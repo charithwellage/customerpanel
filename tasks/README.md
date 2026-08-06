@@ -23,10 +23,17 @@ This directory coordinates read-only infrastructure verification and Delivery 01
 6. For a Public Website task, create/resume the phase branch and child task branch exactly as documented in that task. Phase 0 is branch-neutral.
 7. Run `node tasks/scripts/taskctl.mjs check <ID>`, report `Blockers: None`, then run `start` with an owner.
 8. Implement exactly the stated scope and its missing feature tests.
-9. Update the unique execution log, run `submit`, obtain independent review and run `approve`.
-10. At phase acceptance, update the phase summary; after merges, run `render` instead of resolving tracker rows manually.
+9. Run the task's feature tests plus the mandatory repository checks: `corepack pnpm lint`, `corepack pnpm typecheck` and `corepack pnpm -r build`. Record exact results and any compiler/build error in the unique execution log.
+10. Update the unique execution log, run `submit`, obtain independent review and run `approve`.
+11. At phase acceptance, update the phase summary; after merges, run `render` instead of resolving tracker rows manually.
 
 Phase 0 may change only task logs, summaries and the generated tracker. It must not change application source or configuration.
+
+## Build and container verification policy
+
+Every Delivery 01 implementation task includes root lint, TypeScript typecheck and recursive workspace build commands. These checks are required even for a small UI task so compiler errors cannot accumulate unnoticed. A missing shared test harness or target workspace is a prerequisite failure; do not silently skip it.
+
+Container redeployment is intentionally concentrated at the infrastructure gate and phase acceptance tasks rather than repeated for every component task. `D01-P01-T010` and the final acceptance task of each phase must rebuild the target architecture stack from `docker/docker-compose.yml` plus `docker/docker-compose.dev.yml`, start it, run the container Playwright project, complete the named manual supervisor smoke scenario, record evidence, and shut it down cleanly. These are the required UI gates for the Docker deployment. They verify the target solution stack, not the separate compiled-POC `docker-compose.poc.yml`.
 
 ## Branch convention
 

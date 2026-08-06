@@ -30,6 +30,14 @@ Any output is a blocker. Ask the user to commit the changes first, report `No im
 
 Parallel group labels that match may run together only when their dependencies are COMPLETE and developers confirm non-overlapping owned paths. A later group never starts merely because an earlier task is IN_REVIEW.
 
+## Verification policy
+
+Every implementation task runs its feature-specific unit, integration, contract and UI tests, followed by `corepack pnpm lint`, `corepack pnpm typecheck` and `corepack pnpm -r build`. The execution log must record the exact commands, results and any compiler/build errors.
+
+The required Docker gates are `D01-P01-T010` and the final acceptance task of each phase (`D01-P02-T002`, `D01-P03-T004`, `D01-P04-T003`, `D01-P05-T004`, `D01-P06-T005`, `D01-P07-T004`, `D01-P08-T004`). Each gate rebuilds and starts the target Compose stack, runs container-targeted Playwright tests, completes its manual supervisor UI smoke scenario, records evidence, and shuts the stack down. Small component tasks do not redeploy Docker individually; their phase gate catches integration and runtime issues.
+
+The target commands use `docker/docker-compose.yml` with `docker/docker-compose.dev.yml` from `FRONT_END_ARCHITECTURE.md`. They are separate from the existing compiled-POC `docker-compose.poc.yml` and do not replace it.
+
 ## Capacity baseline
 
 The implementation tasks total **19.5 delivery days**: Phase 1.1 8.5 days, Phase 1.2 1 day, Phase 1.3 2.5 days, Phase 1.4 2 days, Phase 1.5 2 days, Phase 1.6 1.5 days, Phase 1.7 1 day and Phase 1.8 1 day. The agreed **2-day cross-phase correction allowance** remains outside individual task estimates, preserving the implementation plan's **21.5-working-day Public Website baseline**. Phase 0 is a separate 1.25-day readiness capacity and may be parallelized as shown.

@@ -191,6 +191,18 @@ function validate({ quiet = false } = {}) {
       if (!body.includes('## Phase branch and PR handoff')) errors.push(`${task.task_id}: missing phase PR handoff`);
       if (!body.includes('create a PR with base `delivery/01-public`')) errors.push(`${task.task_id}: missing delivery PR target`);
     }
+    if (task.task_id.startsWith('D01-')) {
+      const validationBody = body.match(/## Validation commands\n\n([\s\S]*?)(?=\n## )/)?.[1] || '';
+      for (const command of ['- `corepack pnpm lint`', '- `corepack pnpm typecheck`', '- `corepack pnpm -r build`']) {
+        if (!validationBody.includes(command)) errors.push(`${task.task_id}: validation commands must include ${command}`);
+      }
+      if (!body.includes('Root lint, TypeScript typecheck and recursive workspace builds pass')) {
+        errors.push(`${task.task_id}: acceptance criteria missing root build/compiler requirement`);
+      }
+    }
+    if (phaseAcceptanceTasks.has(task.task_id) && !body.includes('## Containerized verification')) {
+      errors.push(`${task.task_id}: missing required containerized verification section`);
+    }
     for (const dependency of task.dependencies) {
       if (!tasks.has(dependency)) errors.push(`${task.task_id}: missing dependency ${dependency}`);
     }
