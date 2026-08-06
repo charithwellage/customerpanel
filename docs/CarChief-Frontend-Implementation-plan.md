@@ -227,24 +227,31 @@ These remain open questions or demonstration-only behavior until explicitly appr
 - Sales dashboard, inventory, imports, leads, customers, reservations, PI/invoices, finance, masters, tiers, users, roles, content, and audit presentation.
 - “Salesperson Application” is the business-facing name; finance and administration remain permission-controlled modules inside it.
 
-### 4.2 Shared packages
+### 4.2 Repository layout
+
+One repository holds all four applications and the code they share. Each application is deployed as its own container; the shared packages are compiled into those containers and are never deployed on their own.
 
 ```text
-apps/
-  public-web/
-  customer-app/
-  salesperson-app/
+apps/                      Each of these becomes its own container
+  public-web/                Public website
+  customer-app/              Customer application
+  salesperson-app/           Salesperson application
+  mock-api/                  Stand-in backend service (see 4.4)
 
-packages/
-  ui/
-  domain/
-  validation/
-  api-contracts/
-  api-client/
-  mock-services/
-  testing/
-  config/
+packages/                  Shared code, compiled into the applications above
+  ui/                        Shared screen components
+  theme/                     Colours, fonts, spacing (see 4.5)
+  domain/                    Shared business types and rules
+  validation/                Shared field-checking rules
+  api-client/                The only place that calls the API
+  testing/                   Shared test data and helpers
+  config/                    Shared build and quality settings
+
+openapi/                   The agreed API description
+docker/                    Container definitions for local and production use
 ```
+
+Full technical detail of this structure — including where container definitions and environment files live — is in [`FRONT_END_ARCHITECTURE.md`](../FRONT_END_ARCHITECTURE.md).
 
 ### 4.3 Frontend service rule
 
@@ -260,19 +267,29 @@ For each component phase:
 
 ### 4.4 The CarChief Mock Service
 
-A separate project, in its own repository and its own container. It is **not** part of the frontend codebase and is never imported by it.
+A separate application inside the same repository, at `apps/mock-api`. It sits alongside the three frontends as a peer, is deployed as its own container, and is **never part of any application's code** — the applications reach it over the network, exactly as they will reach the real system later.
 
 **What it is**
 
 | Aspect | Decision |
 |---|---|
+| Where it lives | `apps/mock-api`, in this repository, alongside the three applications |
+| Deployment | Its own container, started and stopped independently of the applications |
 | Technology | A small Node.js service, deliberately simple so an AI agent can extend it cheaply |
 | Storage | Its own PostgreSQL database in a companion container — the same engine AutoPulse uses |
 | Data access | A declarative schema with a generated typed client, so adding a record type is a few lines rather than hand-written queries |
-| Contract | One OpenAPI document, owned by the mock project, describing every service, request and response |
+| Contract | One OpenAPI document, held in the repository, describing every service, request and response |
 | Sign-in | A stand-in authentication layer issuing signed passes carrying user identity, role and permissions |
-| Delivery | `docker compose` brings up the service and its database together |
-| Lifecycle | Switched off when AutoPulse is available, not deleted — it remains useful for testing and demonstrations |
+| Delivery | `docker compose` brings up the applications, the service and its database together |
+| Lifecycle | Simply not deployed once AutoPulse is available — it remains available for testing and demonstrations |
+
+**Why it lives in the same repository.** The API description, the stand-in service that implements it, and the applications that consume it all change together. Keeping them in one repository means a change to the agreed API and its matching implementation arrive in a single reviewed change, rather than drifting apart across two separate projects.
+
+**What that costs, and how it is controlled.** Being in the same repository means the separation is no longer automatic — it has to be enforced. Three controls do that:
+
+- No application lists the stand-in service as something it depends on, so its code cannot be reached from application code.
+- An automated rule rejects any attempt to import from it, and fails the build.
+- The production container set simply does not include it, so it cannot be started by accident in a live environment.
 
 **Why PostgreSQL rather than a file-based store.** The system has around two dozen connected record types — customers own vehicles, vehicles carry quotations, quotations attract payments, payments are allocated against vehicles. A real database enforces that a payment already allocated cannot be allocated again. A flat file cannot, and the demonstration system's own difficulties came from exactly that gap.
 
@@ -299,11 +316,11 @@ If the mock and the applications ever disagree about a field, the build fails ra
 
 **Rules**
 
-- The frontend never imports mock code, fixtures, or database types.
+- No application imports mock code, fixtures, or database types — enforced automatically, not by convention.
 - The mock grows one screen at a time — only what a delivered screen needs.
 - Every service the mock exposes appears in the shared API document first.
 - The mock enforces permissions the same way the real system will, so authorisation is tested throughout rather than at the end.
-- Production builds cannot point at the mock.
+- Production builds cannot point at the mock, and the production container set does not include it.
 
 **Sign-in.** AutoPulse already provides authentication and will do so in production. Because it is unavailable during this project, the mock issues an equivalent signed pass carrying role and permission claims. The applications only ever see the pass, never the issuer — so moving to real AutoPulse sign-in is a configuration change.
 
@@ -1421,7 +1438,8 @@ These are capability groups, not approved REST endpoints or payloads.
 - Customer application behavior remains provisional until signed off; it was established by operating the running system, since no source exists.
 - The Salesperson Application contains finance and administration modules.
 - REST/JSON/OpenAPI is the initial BFF integration style unless decided otherwise before contract work.
-- The mock service is a separate project and container, using PostgreSQL, and is switched off rather than removed when AutoPulse becomes available.
+- The mock service is a separate application inside the same repository (`apps/mock-api`), deployed as its own container, using PostgreSQL, and simply not deployed once AutoPulse becomes available.
+- Each of the four applications is deployed as its own container.
 - AutoPulse provides authentication in production; the mock service supplies an equivalent stand-in during this project.
 - The proof of concept's visual direction is approved and is implemented as one swappable theme.
 

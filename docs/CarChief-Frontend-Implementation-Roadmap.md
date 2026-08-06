@@ -186,10 +186,10 @@ flowchart TB
     Frontend -->|"During this project"| MockAPI
     Frontend -->|"When AutoPulse is available"| BFF
 
-    subgraph MockProject["CarChief Mock Service — separate project, separate container"]
+    subgraph MockProject["Stand-in service — same repository, its own container"]
         MockAuth["Mock sign-in and permissions<br/>stands in for AutoPulse sign-in"]
         MockAPI["Mock business services<br/>vehicles, customers, quotes,<br/>payments, shipments, settings"]
-        MockDB[("Mock database<br/>PostgreSQL")]
+        MockDB[("Mock database<br/>PostgreSQL, own container")]
         MockAPI --> MockDB
         MockAuth --> MockDB
     end
@@ -220,20 +220,36 @@ flowchart TB
 
 **Plain-language explanation:** The three applications never talk to a database directly. They talk to one agreed set of business services, described in a single shared document that both sides sign up to.
 
-During this project those services are answered by a **separate mock service** — its own small project, in its own container, with its own database. It behaves like the real thing: it stores what you save, returns what you ask for, and enforces who is allowed to see what.
+During this project those services are answered by a **stand-in service** — a fourth application kept alongside the other three, running in its own container with its own database. It behaves like the real thing: it stores what you save, returns what you ask for, and enforces who is allowed to see what.
 
-CarChief staff and customers already sign in through AutoPulse in production. Because that system is not available to us yet, the mock service includes a **stand-in sign-in layer** that issues the same kind of pass and carries the same roles and permissions.
+CarChief staff and customers already sign in through AutoPulse in production. Because that system is not available to us yet, the stand-in service includes a **stand-in sign-in layer** that issues the same kind of pass and carries the same roles and permissions.
 
-When AutoPulse is ready, the mock service is switched off and the real API and real sign-in take its place. **The three applications do not change** — they are pointed at a different address.
+When AutoPulse is ready, the stand-in service is simply not deployed, and the real API and real sign-in take its place. **The three applications do not change** — they are pointed at a different address.
 
-### Why the mock service is a separate project
+### How everything is packaged
+
+Each of the four applications is delivered as its own self-contained unit, so they can be started, stopped, updated and deployed independently of one another.
+
+| Unit | What it is |
+|---|---|
+| Public Website | Its own container |
+| Customer Application | Its own container |
+| Salesperson Application | Its own container |
+| Stand-in service | Its own container, with a database container beside it |
+
+In production, the last of these is simply not deployed. The three real applications are pointed at AutoPulse instead.
+
+### Why the stand-in service sits in the same repository
 
 | Reason | Benefit |
 |---|---|
-| It lives in its own repository and container | The frontend never accidentally depends on demonstration data |
-| It is switched off, not removed | No clean-up work when the real system arrives |
+| The agreed API description and the service that answers it change together | A change to what the applications expect, and the matching update to the stand-in, arrive as one reviewed change instead of drifting apart |
+| It is still a separate deployable unit | The applications reach it over the network, exactly as they will reach the real system |
+| It is simply not deployed later, rather than removed | No clean-up work when the real system arrives |
 | It uses the same database engine as AutoPulse (PostgreSQL) | What we prove in demonstration is what happens in production |
 | It grows one screen at a time | We only ever build the parts a delivered screen actually needs |
+
+**One thing to be aware of:** because it now lives beside the applications rather than in a separate project, the separation is no longer automatic and has to be actively enforced. Three controls do that — no application declares it as something it depends on, an automated rule rejects any attempt to use its code directly, and the production set of containers does not include it at all.
 
 ## 4. Delivery order
 
@@ -495,14 +511,17 @@ Production will never silently use mock services. Deterministic mocks remain ava
 
 | Question | Answer |
 |---|---|
-| Is it part of the frontend? | No. It is a separate project in its own repository and its own container. |
+| Where does it live? | In the same repository as the three applications, alongside them as a fourth application. |
+| Is it part of the applications? | No. It is packaged and deployed separately, in its own container. The applications reach it over the network, never by using its code. |
+| Why keep it in the same repository? | The agreed API description and the service that answers it change together, so both arrive as one reviewed change rather than drifting apart across two projects. |
+| What stops an application depending on it by mistake? | No application declares it as a dependency, an automated rule rejects any attempt to use its code, and the production container set does not include it. |
 | What is it built with? | A small Node.js service, kept deliberately simple so it is cheap to extend. |
-| Where does it store data? | Its own PostgreSQL database — the same engine AutoPulse uses, so behaviour matches production. |
+| Where does it store data? | Its own PostgreSQL database in its own container — the same engine AutoPulse uses, so behaviour matches production. |
 | Why not something simpler? | The system has around two dozen connected record types. Anything simpler cannot enforce that a payment already spent on one vehicle is not spent again on another. |
-| How do the two sides agree? | One shared document describes every service, request and response. The mock implements it; the applications are built against it; the real API later implements the same document. |
-| How does sign-in work? | The mock issues the same kind of pass AutoPulse will issue, carrying the person's role and permissions. |
+| How do the two sides agree? | One shared document describes every service, request and response. The stand-in implements it; the applications are built against it; the real API later implements the same document. |
+| How does sign-in work? | It issues the same kind of pass AutoPulse will issue, carrying the person's role and permissions. |
 | How does it grow? | One screen at a time. We add only the services the screen being delivered actually needs. |
-| What happens to it at the end? | It is switched off, not removed. It stays available for testing and demonstrations. |
+| What happens to it at the end? | It is simply not deployed to production. It stays in the repository for testing and demonstrations. |
 
 ### Sign-in, now and later
 
