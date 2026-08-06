@@ -1,0 +1,106 @@
+- generic [ref=f14e3]:
+  - generic [ref=f14e4]:
+    - generic [ref=f14e7]:
+      - strong [ref=f14e8]: OfflineCache Quota Limit Reached
+      - text: — The system has automatically entered offline high-fidelity fallback mode. All features remain 100% responsive and functional!
+    - button "Retry Live Connection" [ref=f14e9] [cursor=pointer]
+  - banner [ref=f14e10]:
+    - generic [ref=f14e12]:
+      - generic [ref=f14e13]:
+        - generic [ref=f14e14] [cursor=pointer]: CARCHIEF
+        - generic [ref=f14e22]: ONLINE
+      - generic [ref=f14e30]:
+        - paragraph [ref=f14e31]: Super Admin Staff
+        - generic [ref=f14e32]: Super Admin
+  - main [ref=f14e38]:
+    - generic [ref=f14e40]:
+      - generic [ref=f14e41]:
+        - generic [ref=f14e42]:
+          - text: CarChief HQ Administration
+          - heading "Enterprise Logistics Portal" [level=2] [ref=f14e43]
+          - paragraph [ref=f14e44]: "Role: Super Admin • Full database control of listings & client leads."
+        - generic [ref=f14e45]:
+          - button "Staff Dashboard" [ref=f14e46] [cursor=pointer]
+          - button "Inventory 1" [ref=f14e51] [cursor=pointer]:
+            - generic [ref=f14e52]: Inventory
+            - generic [ref=f14e53]: "1"
+          - button "Leads (1)" [active] [ref=f14e54] [cursor=pointer]
+          - button "Finance" [ref=f14e56] [cursor=pointer]
+          - button "Master Controls" [ref=f14e58] [cursor=pointer]
+      - generic [ref=f14e535]:
+        - generic [ref=f14e536]:
+          - generic [ref=f14e537]:
+            - generic [ref=f14e538]:
+              - heading "Buyer Communications Registry" [level=3] [ref=f14e539]
+              - paragraph [ref=f14e540]: Acknowledge vehicle deal requests and logs
+            - generic [ref=f14e541]:
+              - generic [ref=f14e542]: "Show:"
+              - generic [ref=f14e543]: Filter Leads Status
+              - combobox "Filter Leads Status" [ref=f14e544]:
+                - option "All Leads" [selected]
+                - option "New"
+                - option "Contacted"
+                - option "In Progress"
+                - option "Sold"
+                - option "Archived"
+          - table [ref=f14e546]:
+            - rowgroup [ref=f14e547]:
+              - row [ref=f14e548]:
+                - columnheader "Lead / Buyer Info" [ref=f14e549]
+                - columnheader "Target Model" [ref=f14e550]
+                - columnheader "Logistics / Freight" [ref=f14e551]
+                - columnheader "Status" [ref=f14e552]
+                - columnheader "Inspect" [ref=f14e553]
+            - rowgroup [ref=f14e554]:
+              - row [ref=f14e555] [cursor=pointer]:
+                - cell "Charith No telephone provided" [ref=f14e556]:
+                  - generic [ref=f14e557]:
+                    - generic [ref=f14e558]: Charith
+                    - text: No telephone provided
+                - cell [ref=f14e559]
+                - cell "Showroom Purchase" [ref=f14e560]
+                - cell "Contacted" [ref=f14e561]
+                - cell [ref=f14e562]
+              - row [ref=f14e565] [cursor=pointer]:
+                - cell "John Smith No telephone provided" [ref=f14e566]:
+                  - generic [ref=f14e567]:
+                    - generic [ref=f14e568]: John Smith
+                    - text: No telephone provided
+                - cell [ref=f14e569]
+                - cell "Showroom Purchase" [ref=f14e570]
+                - cell "New" [ref=f14e571]
+                - cell [ref=f14e572]
+        - generic [ref=f14e576]:
+          - paragraph [ref=f14e580]: No Lead Selected
+          - paragraph [ref=f14e581]: Click any buyer lead in the communications table to view details, update status, and take persistent agent notes.
+  - contentinfo [ref=f14e500]:
+    - generic [ref=f14e501]:
+      - generic [ref=f14e502]:
+        - generic [ref=f14e503]:
+          - generic [ref=f14e504]: CARCHIEF
+          - paragraph [ref=f14e505]: PREMIUM GLOBAL VEHICLE EXPORTERS
+          - paragraph [ref=f14e506]: CarChief is a high-end showcase portal providing direct ocean-cargo logistics, certified pre-owned inspections, and custom spec tracking.
+        - generic [ref=f14e507]:
+          - heading "Logistics Core Portals" [level=4] [ref=f14e508]
+          - list [ref=f14e509]:
+            - listitem [ref=f14e510]:
+              - button "Showroom Catalog" [ref=f14e511] [cursor=pointer]
+            - listitem [ref=f14e512]:
+              - button "How to Buy" [ref=f14e513] [cursor=pointer]
+            - listitem [ref=f14e514]:
+              - button "About Us" [ref=f14e515] [cursor=pointer]
+            - listitem [ref=f14e516]:
+              - button "Testimonials" [ref=f14e517] [cursor=pointer]
+            - listitem [ref=f14e518]:
+              - button "FAQ" [ref=f14e519] [cursor=pointer]
+            - listitem [ref=f14e520]:
+              - button "Contact Us" [ref=f14e521] [cursor=pointer]
+            - listitem [ref=f14e522]:
+              - button "Logistics ERP Console" [ref=f14e523] [cursor=pointer]
+        - generic [ref=f14e524]:
+          - heading "Secure Verification" [level=4] [ref=f14e525]
+          - paragraph [ref=f14e526]: CarChief utilizes highly secure cloud-replicated server architectures for real-time transaction records and client logs.
+          - generic [ref=f14e527]: SECURED CLOUD ENVELOPE
+      - generic [ref=f14e531]:
+        - generic [ref=f14e532]: © 2026 CARCHIEF AUTO GROUP. ALL RIGHTS RESERVED.
+        - generic [ref=f14e533]: CLOUDRUN ENVIRONMENT • REGISTRY SECURITY PROTOCOL SHIELD-V2

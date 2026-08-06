@@ -1,0 +1,13 @@
+[     102ms] [LOG] OfflineCache Loop Detection and Audit Engine Initialized. @ http://127.0.0.1:8080/staff/:7651
+[     127ms] [LOG] Subscribing to active leads for backend... @ http://127.0.0.1:8080/staff/:19423
+[     127ms] [LOG] Service Worker registered successfully: http://127.0.0.1:8080/ @ http://127.0.0.1:8080/staff/:19737
+[     134ms] [WARNING] <meta name="apple-mobile-web-app-capable" content="yes"> is deprecated. Please include <meta name="mobile-web-app-capable" content="yes"> @ http://127.0.0.1:8080/staff/?view=backend:0
+[     161ms] [WARNING] Error while trying to use the following icon from the Manifest: http://127.0.0.1:8080/input_file_0.png (Download error or resource isn't a valid image) @ http://127.0.0.1:8080/staff/?view=backend:0
+[   23849ms] [ERROR] Error deleting vehicle images: TypeError: Cannot read properties of undefined (reading 'collection')
+    at Ir (http://127.0.0.1:8080/staff/:7617:17)
+    at lr (http://127.0.0.1:8080/staff/:19621:43)
+    at async Object.onConfirm (http://127.0.0.1:8080/staff/:18435:13)
+    at async onClick (http://127.0.0.1:8080/staff/:18594:9) @ http://127.0.0.1:8080/staff/:19623
+[   23855ms] [LOG] Vehicle removed successfully. @ http://127.0.0.1:8080/staff/:19626
+[   23855ms] [LOG] Cache invalidated for: vehicles @ http://127.0.0.1:8080/staff/:7883
+[   65683ms] [LOG] Cleared all OfflineCache client caches. @ http://127.0.0.1:8080/staff/:7891

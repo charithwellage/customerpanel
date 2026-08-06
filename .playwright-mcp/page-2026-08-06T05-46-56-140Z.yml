@@ -1,0 +1,186 @@
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e7]:
+      - strong [ref=e8]: OfflineCache Quota Limit Reached
+      - text: — The system has automatically entered offline high-fidelity fallback mode. All features remain 100% responsive and functional!
+    - button "Retry Live Connection" [ref=e9] [cursor=pointer]
+  - banner [ref=e10]:
+    - generic [ref=e12]:
+      - generic [ref=e13]:
+        - generic [ref=e14] [cursor=pointer]: CARCHIEF
+        - generic [ref=e22]: ONLINE
+      - generic [ref=e30]:
+        - paragraph [ref=e31]: Super Admin Staff
+        - generic [ref=e32]: Super Admin
+  - main [ref=e38]:
+    - generic [ref=e40]:
+      - generic [ref=e41]:
+        - generic [ref=e42]:
+          - text: CarChief HQ Administration
+          - heading "Enterprise Logistics Portal" [level=2] [ref=e43]
+          - paragraph [ref=e44]: "Role: Super Admin • Full database control of listings & client leads."
+        - generic [ref=e45]:
+          - button "Staff Dashboard" [ref=e46] [cursor=pointer]
+          - button "Inventory 1" [ref=e51] [cursor=pointer]:
+            - generic [ref=e52]: Inventory
+            - generic [ref=e53]: "1"
+          - button "Leads (1)" [ref=e54] [cursor=pointer]
+          - button "Finance" [ref=e56] [cursor=pointer]
+          - button "Master Controls" [ref=e58] [cursor=pointer]
+      - generic [ref=e941]:
+        - generic [ref=e942]:
+          - generic [ref=e950]:
+            - generic [ref=e951]: Audited & Approved
+            - generic [ref=e952]: $195,200
+          - generic [ref=e958]:
+            - generic [ref=e959]: Pending Customer TTs
+            - generic [ref=e960]: "0"
+          - generic [ref=e968]:
+            - generic [ref=e969]: Sales Allocations
+            - generic [ref=e970]: "0"
+          - generic [ref=e976]:
+            - generic [ref=e977]: Filtered Wires
+            - generic [ref=e978]: 0 wire(s)
+        - generic [ref=e979]:
+          - generic [ref=e980]:
+            - generic [ref=e981]:
+              - generic [ref=e982]:
+                - heading "Finance Audit Desk" [level=3] [ref=e983]
+                - generic [ref=e984]: "Showing: Today"
+              - generic [ref=e985]:
+                - button "Customer Portal TTs (1)" [ref=e986] [cursor=pointer]
+                - button "Salesman Allocations (0)" [ref=e987] [cursor=pointer]
+                - button "Exchange Rates" [active] [ref=e988] [cursor=pointer]
+            - generic [ref=e1069]:
+              - generic [ref=e1070]:
+                - generic [ref=e1071]:
+                  - generic [ref=e1072]: FINANCE EXCHANGE RATE MASTER
+                  - heading "Currency Exchange Rates" [level=3] [ref=e1076]
+                  - paragraph [ref=e1077]: Read-only view for Sales. Active rates are automatically applied during TT allocation.
+                - button "Refresh Rates" [ref=e1079] [cursor=pointer]
+              - table [ref=e1086]:
+                - rowgroup [ref=e1087]:
+                  - row [ref=e1088]:
+                    - columnheader "From Currency" [ref=e1089]
+                    - columnheader "To Currency" [ref=e1090]
+                    - columnheader "Exchange Rate" [ref=e1091]
+                    - columnheader "Effective Date" [ref=e1092]
+                    - columnheader "Status" [ref=e1093]
+                    - columnheader "Updated By" [ref=e1094]
+                    - columnheader "Actions" [ref=e1095]
+                - rowgroup [ref=e1096]:
+                  - row [ref=e1097]:
+                    - cell "JPY" [ref=e1098]
+                    - cell "USD" [ref=e1099]
+                    - cell "1 JPY = 0.0061 USD" [ref=e1100]
+                    - cell "2026-08-06" [ref=e1102]
+                    - cell [ref=e1103]:
+                      - button "Active" [disabled] [ref=e1104]
+                    - cell "Finance Admin 06/08/2026" [ref=e1105]:
+                      - generic [ref=e1106]: Finance Admin
+                      - generic [ref=e1107]: 06/08/2026
+                    - cell [ref=e1108]:
+                      - button "View History" [ref=e1110] [cursor=pointer]
+                  - row [ref=e1115]:
+                    - cell "USD" [ref=e1116]
+                    - cell "JPY" [ref=e1117]
+                    - cell "1 USD = 163.93 JPY" [ref=e1118]
+                    - cell "2026-08-06" [ref=e1120]
+                    - cell [ref=e1121]:
+                      - button "Active" [disabled] [ref=e1122]
+                    - cell "Finance Admin 06/08/2026" [ref=e1123]:
+                      - generic [ref=e1124]: Finance Admin
+                      - generic [ref=e1125]: 06/08/2026
+                    - cell [ref=e1126]:
+                      - button "View History" [ref=e1128] [cursor=pointer]
+                  - row [ref=e1133]:
+                    - cell "EUR" [ref=e1134]
+                    - cell "USD" [ref=e1135]
+                    - cell "1 EUR = 1.08 USD" [ref=e1136]
+                    - cell "2026-08-06" [ref=e1138]
+                    - cell [ref=e1139]:
+                      - button "Active" [disabled] [ref=e1140]
+                    - cell "Finance Admin 06/08/2026" [ref=e1141]:
+                      - generic [ref=e1142]: Finance Admin
+                      - generic [ref=e1143]: 06/08/2026
+                    - cell [ref=e1144]:
+                      - button "View History" [ref=e1146] [cursor=pointer]
+                  - row [ref=e1151]:
+                    - cell "USD" [ref=e1152]
+                    - cell "EUR" [ref=e1153]
+                    - cell "1 USD = 0.925 EUR" [ref=e1154]
+                    - cell "2026-08-06" [ref=e1156]
+                    - cell [ref=e1157]:
+                      - button "Active" [disabled] [ref=e1158]
+                    - cell "Finance Admin 06/08/2026" [ref=e1159]:
+                      - generic [ref=e1160]: Finance Admin
+                      - generic [ref=e1161]: 06/08/2026
+                    - cell [ref=e1162]:
+                      - button "View History" [ref=e1164] [cursor=pointer]
+                  - row [ref=e1169]:
+                    - cell "USD" [ref=e1170]
+                    - cell "USD" [ref=e1171]
+                    - cell "1 USD = 1 USD" [ref=e1172]
+                    - cell "2026-08-06" [ref=e1174]
+                    - cell [ref=e1175]:
+                      - button "Active" [disabled] [ref=e1176]
+                    - cell "System 06/08/2026" [ref=e1177]:
+                      - generic [ref=e1178]: System
+                      - generic [ref=e1179]: 06/08/2026
+                    - cell [ref=e1180]:
+                      - button "View History" [ref=e1182] [cursor=pointer]
+                  - row [ref=e1187]:
+                    - cell "JPY" [ref=e1188]
+                    - cell "JPY" [ref=e1189]
+                    - cell "1 JPY = 1 JPY" [ref=e1190]
+                    - cell "2026-08-06" [ref=e1192]
+                    - cell [ref=e1193]:
+                      - button "Active" [disabled] [ref=e1194]
+                    - cell "System 06/08/2026" [ref=e1195]:
+                      - generic [ref=e1196]: System
+                      - generic [ref=e1197]: 06/08/2026
+                    - cell [ref=e1198]:
+                      - button "View History" [ref=e1200] [cursor=pointer]
+          - generic [ref=e1041]:
+            - generic [ref=e1042]:
+              - heading "System Notifications" [level=3] [ref=e1047]
+              - button "Clear All" [ref=e1048] [cursor=pointer]
+            - generic [ref=e1050]:
+              - button "Remove notification" [ref=e1051] [cursor=pointer]
+              - generic [ref=e1063]:
+                - generic [ref=e1064]: New TT Wire Payment Submitted
+                - paragraph [ref=e1065]: Charith submitted payment of $195,200 for PI-2026-0001 (Audi R8).
+                - generic [ref=e1066]:
+                  - generic [ref=e1067]: Just now
+                  - button "• Mark as Read" [ref=e1068] [cursor=pointer]
+  - contentinfo [ref=e907]:
+    - generic [ref=e908]:
+      - generic [ref=e909]:
+        - generic [ref=e910]:
+          - generic [ref=e911]: CARCHIEF
+          - paragraph [ref=e912]: PREMIUM GLOBAL VEHICLE EXPORTERS
+          - paragraph [ref=e913]: CarChief is a high-end showcase portal providing direct ocean-cargo logistics, certified pre-owned inspections, and custom spec tracking.
+        - generic [ref=e914]:
+          - heading "Logistics Core Portals" [level=4] [ref=e915]
+          - list [ref=e916]:
+            - listitem [ref=e917]:
+              - button "Showroom Catalog" [ref=e918] [cursor=pointer]
+            - listitem [ref=e919]:
+              - button "How to Buy" [ref=e920] [cursor=pointer]
+            - listitem [ref=e921]:
+              - button "About Us" [ref=e922] [cursor=pointer]
+            - listitem [ref=e923]:
+              - button "Testimonials" [ref=e924] [cursor=pointer]
+            - listitem [ref=e925]:
+              - button "FAQ" [ref=e926] [cursor=pointer]
+            - listitem [ref=e927]:
+              - button "Contact Us" [ref=e928] [cursor=pointer]
+            - listitem [ref=e929]:
+              - button "Logistics ERP Console" [ref=e930] [cursor=pointer]
+        - generic [ref=e931]:
+          - heading "Secure Verification" [level=4] [ref=e932]
+          - paragraph [ref=e933]: CarChief utilizes highly secure cloud-replicated server architectures for real-time transaction records and client logs.
+          - generic [ref=e934]: SECURED CLOUD ENVELOPE
+      - generic [ref=e938]:
+        - generic [ref=e939]: © 2026 CARCHIEF AUTO GROUP. ALL RIGHTS RESERVED.
+        - generic [ref=e940]: CLOUDRUN ENVIRONMENT • REGISTRY SECURITY PROTOCOL SHIELD-V2

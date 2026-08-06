@@ -1,0 +1,123 @@
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e7]:
+      - strong [ref=e8]: OfflineCache Quota Limit Reached
+      - text: — The system has automatically entered offline high-fidelity fallback mode. All features remain 100% responsive and functional!
+    - button "Retry Live Connection" [ref=e9] [cursor=pointer]
+  - banner [ref=e10]:
+    - generic [ref=e12]:
+      - generic [ref=e13]:
+        - generic [ref=e14] [cursor=pointer]: CARCHIEF
+        - generic [ref=e22]: ONLINE
+      - generic [ref=e30]:
+        - paragraph [ref=e31]: Super Admin Staff
+        - generic [ref=e32]: Super Admin
+  - main [ref=e38]:
+    - generic [ref=e40]:
+      - generic [ref=e41]:
+        - generic [ref=e42]:
+          - text: CarChief HQ Administration
+          - heading "Enterprise Logistics Portal" [level=2] [ref=e43]
+          - paragraph [ref=e44]: "Role: Super Admin • Full database control of listings & client leads."
+        - generic [ref=e45]:
+          - button "Staff Dashboard" [ref=e46] [cursor=pointer]
+          - button "Inventory 1" [ref=e51] [cursor=pointer]:
+            - generic [ref=e52]: Inventory
+            - generic [ref=e53]: "1"
+          - button "Leads (1)" [ref=e54] [cursor=pointer]
+          - button "Finance" [ref=e56] [cursor=pointer]
+          - button "Master Controls" [ref=e58] [cursor=pointer]
+      - generic [ref=e1206]:
+        - button "Core Config" [ref=e1207] [cursor=pointer]
+        - button "CSV Upload" [active] [ref=e1212] [cursor=pointer]
+        - button "Freight Calculator" [ref=e1217] [cursor=pointer]
+        - button "City Delivery" [ref=e1223] [cursor=pointer]
+        - button "Customer Tiers" [ref=e1228] [cursor=pointer]
+        - button "Customer Management" [ref=e1233] [cursor=pointer]
+        - button "Roles Control" [ref=e1240] [cursor=pointer]
+        - button "CMS" [ref=e1245] [cursor=pointer]
+        - button "FAQ Manager" [ref=e1250] [cursor=pointer]
+        - button "OfflineCache Audit" [ref=e1255] [cursor=pointer]
+      - generic [ref=e2025]:
+        - generic [ref=e2026]:
+          - generic [ref=e2027]:
+            - heading "Manual Inventory Registration" [level=4] [ref=e2028]
+            - paragraph [ref=e2029]: Would you prefer to manually register a new vehicle specifications record instead of a bulk spreadsheet?
+          - button "Manually Register New Vehicle" [ref=e2030]
+        - generic [ref=e2033]:
+          - generic [ref=e2034]:
+            - generic [ref=e2035]:
+              - generic [ref=e2036]:
+                - heading "CSV Bulk Sourcing Portal" [level=3] [ref=e2037]
+                - paragraph [ref=e2041]: Directly import large logistics batches or map vehicle shipment details using reference numbers.
+              - generic [ref=e2042]: Import Engine Online
+            - generic [ref=e2045]:
+              - button "Vehicle Sourcing Import" [ref=e2046]
+              - button "Shipment Details Master Upload" [ref=e2047]
+            - generic [ref=e2048]:
+              - generic [ref=e2049]:
+                - generic [ref=e2050]: Logistics Sheet Dropzone
+                - generic [ref=e2051] [cursor=pointer]:
+                  - paragraph [ref=e2056]: Select logistics sheet
+                  - paragraph [ref=e2057]: Drag and drop your CSV spreadsheet here or click to browse. Supports UTF-8 format.
+                - generic [ref=e2058]:
+                  - generic [ref=e2059]: "Sourcing Metadata Guidelines:"
+                  - paragraph [ref=e2060]:
+                    - text: Our intelligent importer automatically maps
+                    - code [ref=e2061]: Make
+                    - text: ","
+                    - code [ref=e2062]: Model
+                    - text: ","
+                    - code [ref=e2063]: YearMonth
+                    - text: ","
+                    - code [ref=e2064]: Mileage
+                    - text: ","
+                    - code [ref=e2065]: Transmission
+                    - text: ","
+                    - code [ref=e2066]: STK Number
+                    - text: ", and"
+                    - code [ref=e2067]: ReferenceNo
+                    - text: . Blank prices are automatically estimated based on high-end luxury market valuation benchmarks.
+              - generic [ref=e2068]:
+                - generic [ref=e2069]: Verification Pipeline
+                - generic [ref=e2070]:
+                  - generic [ref=e2074]: Pipeline Idle
+                  - paragraph [ref=e2075]: Once you select a CSV, parsed specifications will list here for your verification prior to database insertion.
+          - generic [ref=e2076]:
+            - generic [ref=e2077]:
+              - heading "Sourced Stream History" [level=4] [ref=e2078]
+              - paragraph [ref=e2079]: Live list of imported vehicles committed to the cloud database registry in this active management session.
+            - generic [ref=e2080]:
+              - paragraph [ref=e2081]: No bulk uploads registered in this session.
+              - paragraph [ref=e2082]: When you successfully parse and click "Commit & Publish" above, they will display below.
+  - contentinfo [ref=e907]:
+    - generic [ref=e908]:
+      - generic [ref=e909]:
+        - generic [ref=e910]:
+          - generic [ref=e911]: CARCHIEF
+          - paragraph [ref=e912]: PREMIUM GLOBAL VEHICLE EXPORTERS
+          - paragraph [ref=e913]: CarChief is a high-end showcase portal providing direct ocean-cargo logistics, certified pre-owned inspections, and custom spec tracking.
+        - generic [ref=e914]:
+          - heading "Logistics Core Portals" [level=4] [ref=e915]
+          - list [ref=e916]:
+            - listitem [ref=e917]:
+              - button "Showroom Catalog" [ref=e918] [cursor=pointer]
+            - listitem [ref=e919]:
+              - button "How to Buy" [ref=e920] [cursor=pointer]
+            - listitem [ref=e921]:
+              - button "About Us" [ref=e922] [cursor=pointer]
+            - listitem [ref=e923]:
+              - button "Testimonials" [ref=e924] [cursor=pointer]
+            - listitem [ref=e925]:
+              - button "FAQ" [ref=e926] [cursor=pointer]
+            - listitem [ref=e927]:
+              - button "Contact Us" [ref=e928] [cursor=pointer]
+            - listitem [ref=e929]:
+              - button "Logistics ERP Console" [ref=e930] [cursor=pointer]
+        - generic [ref=e931]:
+          - heading "Secure Verification" [level=4] [ref=e932]
+          - paragraph [ref=e933]: CarChief utilizes highly secure cloud-replicated server architectures for real-time transaction records and client logs.
+          - generic [ref=e934]: SECURED CLOUD ENVELOPE
+      - generic [ref=e938]:
+        - generic [ref=e939]: © 2026 CARCHIEF AUTO GROUP. ALL RIGHTS RESERVED.
+        - generic [ref=e940]: CLOUDRUN ENVIRONMENT • REGISTRY SECURITY PROTOCOL SHIELD-V2

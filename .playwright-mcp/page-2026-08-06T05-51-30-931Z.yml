@@ -1,0 +1,310 @@
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e7]:
+      - strong [ref=e8]: OfflineCache Quota Limit Reached
+      - text: — The system has automatically entered offline high-fidelity fallback mode. All features remain 100% responsive and functional!
+    - button "Retry Live Connection" [ref=e9] [cursor=pointer]
+  - banner [ref=e10]:
+    - generic [ref=e12]:
+      - generic [ref=e13]:
+        - generic [ref=e14] [cursor=pointer]: CARCHIEF
+        - generic [ref=e22]: ONLINE
+      - generic [ref=e30]:
+        - paragraph [ref=e31]: Super Admin Staff
+        - generic [ref=e32]: Super Admin
+  - main [ref=e38]:
+    - generic [ref=e40]:
+      - generic [ref=e41]:
+        - generic [ref=e42]:
+          - text: CarChief HQ Administration
+          - heading "Enterprise Logistics Portal" [level=2] [ref=e43]
+          - paragraph [ref=e44]: "Role: Super Admin • Full database control of listings & client leads."
+        - generic [ref=e45]:
+          - button "Staff Dashboard" [ref=e46] [cursor=pointer]
+          - button "Inventory 1" [active] [ref=e51] [cursor=pointer]:
+            - generic [ref=e52]: Inventory
+            - generic [ref=e53]: "1"
+          - button "Leads (1)" [ref=e54] [cursor=pointer]
+          - button "Finance" [ref=e56] [cursor=pointer]
+          - button "Master Controls" [ref=e58] [cursor=pointer]
+      - generic [ref=e3634]:
+        - generic [ref=e3635]:
+          - generic [ref=e3636]:
+            - heading "Showroom Inventory Registry" [level=2] [ref=e3643]
+            - paragraph [ref=e3644]: Monitor registered vehicles, edit commercial/technical specifications, update media, and manage agent reservations.
+          - button "Register New Vehicle" [ref=e3645] [cursor=pointer]
+        - generic [ref=e3648]:
+          - generic [ref=e3649]:
+            - generic [ref=e3655]:
+              - generic [ref=e3656]: Finance Approved TT Remittance
+              - heading "Telegraphic Transfer (TT) Confirmed & Cleared ✓" [level=3] [ref=e3658]
+            - button "Acknowledge" [ref=e3660] [cursor=pointer]
+          - generic [ref=e3665]:
+            - generic [ref=e3666]:
+              - generic [ref=e3667]:
+                - generic [ref=e3668]: Charith
+                - generic [ref=e3673]: Charith Auto Traders
+              - generic [ref=e3674]:
+                - generic [ref=e3675]:
+                  - text: "Ref/SWIFT:"
+                  - strong [ref=e3678]: TXN-908122
+                - generic [ref=e3679]:
+                  - text: "Bank:"
+                  - strong [ref=e3680]: Wire Transfer
+                - generic [ref=e3681]:
+                  - text: "Date:"
+                  - strong [ref=e3682]: 2026-08-06T05:11:02.360Z
+            - generic [ref=e3683]:
+              - generic [ref=e3684]:
+                - generic [ref=e3685]: Audited TT Deposit
+                - generic [ref=e3686]:
+                  - generic [ref=e3687]: USD $195,200
+                  - generic [ref=e3688]: Approved
+                - generic [ref=e3689]:
+                  - text: "Available TT Credit:"
+                  - strong [ref=e3690]: $195,200 USD
+              - button "Allocate Funds" [ref=e3692] [cursor=pointer]
+        - generic [ref=e3701]:
+          - generic [ref=e3702]:
+            - generic [ref=e3703]:
+              - generic [ref=e3704]:
+                - generic [ref=e3705]:
+                  - generic [ref=e3706]: Real-time Audit Ledger
+                  - generic [ref=e3708]: "SECURE SYNC: ONLINE"
+                - heading "INVENTORY CONTROL STATISTICS" [level=3] [ref=e3709]
+                - paragraph [ref=e3710]: Manage current fleet logistics, reservation pipelines, and proforma sales ledgers.
+              - generic [ref=e3711]:
+                - generic [ref=e3712]:
+                  - generic [ref=e3713]: STOCK BALANCE
+                  - generic [ref=e3714]: 6 UNITS
+                - generic [ref=e3715]:
+                  - 'generic "Available: 5" [ref=e3716]'
+                  - 'generic "Reserved: 0"'
+                  - 'generic "Reserved with PI: 0"'
+                  - 'generic "Invoiced: 0"'
+                  - 'generic "Pending: 1" [ref=e3717]'
+                  - 'generic "Sold Out: 0"'
+                - generic [ref=e3718]:
+                  - generic [ref=e3719]: 5 Avail
+                  - generic [ref=e3721]: •
+                  - generic [ref=e3722]: 0 Locked
+                  - generic [ref=e3724]: •
+                  - generic [ref=e3725]: 0 PI
+            - generic [ref=e3727]:
+              - button "Active Available 5" [ref=e3728] [cursor=pointer]:
+                - generic [ref=e3729]: Active
+                - generic [ref=e3736]:
+                  - generic [ref=e3737]: Available
+                  - generic [ref=e3738]: "5"
+              - button "Locked Reserved 0" [ref=e3739] [cursor=pointer]:
+                - generic [ref=e3740]: Locked
+                - generic [ref=e3746]:
+                  - generic [ref=e3747]: Reserved
+                  - generic [ref=e3748]: "0"
+              - button "P. Invoice Reserved with PI 0" [ref=e3749] [cursor=pointer]:
+                - generic [ref=e3750]: P. Invoice
+                - generic [ref=e3756]:
+                  - generic [ref=e3757]: Reserved with PI
+                  - generic [ref=e3758]: "0"
+              - button "Invoiced Invoiced 0" [ref=e3759] [cursor=pointer]:
+                - generic [ref=e3760]: Invoiced
+                - generic [ref=e3766]:
+                  - generic [ref=e3767]: Invoiced
+                  - generic [ref=e3768]: "0"
+              - button "Processing Pending 1" [ref=e3769] [cursor=pointer]:
+                - generic [ref=e3770]: Processing
+                - generic [ref=e3778]:
+                  - generic [ref=e3779]: Pending
+                  - generic [ref=e3780]: "1"
+              - button "Closed Sold Out 0" [ref=e3781] [cursor=pointer]:
+                - generic [ref=e3782]: Closed
+                - generic [ref=e3787]:
+                  - generic [ref=e3788]: Sold Out
+                  - generic [ref=e3789]: "0"
+              - button "Grand Total Total Vault 6" [ref=e3790] [cursor=pointer]:
+                - generic [ref=e3791]: Grand Total
+                - generic [ref=e3798]:
+                  - generic [ref=e3799]: Total Vault
+                  - generic [ref=e3800]: "6"
+          - generic [ref=e3801]:
+            - generic [ref=e3802]:
+              - generic [ref=e3803]:
+                - heading "Active Vehicle Listings Database" [level=3] [ref=e3804]
+                - paragraph [ref=e3805]: Manage live prices, change specifications, and upload new media
+              - generic [ref=e3807]:
+                - generic [ref=e3808]:
+                  - button "Standard" [ref=e3809] [cursor=pointer]
+                  - button "AI Copilot" [ref=e3812] [cursor=pointer]
+                - textbox "Search brand, model, color..." [ref=e3821]
+            - table [ref=e3823]:
+              - rowgroup [ref=e3824]:
+                - row [ref=e3825]:
+                  - columnheader "Vehicle Specification" [ref=e3826]
+                  - columnheader "Condition" [ref=e3827]
+                  - columnheader "MSRP Price" [ref=e3828]
+                  - columnheader "Mileage" [ref=e3829]
+                  - columnheader "Status" [ref=e3830]
+                  - columnheader "Actions" [ref=e3831]
+              - rowgroup [ref=e3832]:
+                - row [ref=e3833]:
+                  - 'cell "Range Rover Sport SV Edition One Slideshow 3P Land Rover Range Rover Sport SV Edition One ID: vehicle- • 2024 model • SUV" [ref=e3834]':
+                    - generic [ref=e3835]:
+                      - button "Expand All 37 Specifications" [ref=e3836]
+                      - generic "Click to view full slideshow of vehicle pictures" [ref=e3839] [cursor=pointer]:
+                        - img "Range Rover Sport SV Edition One" [ref=e3840]
+                        - generic [ref=e3841]: Slideshow
+                        - generic [ref=e3843]: 3P
+                      - generic [ref=e3844]:
+                        - generic [ref=e3845]: Land Rover
+                        - generic [ref=e3846]: Range Rover Sport SV Edition One
+                        - generic [ref=e3847]: "ID: vehicle- • 2024 model • SUV"
+                  - cell "New" [ref=e3848]
+                  - cell "$180,300" [ref=e3849]
+                  - cell "80 mi" [ref=e3851]
+                  - cell "Available" [ref=e3853]
+                  - cell [ref=e3856]:
+                    - generic [ref=e3857]:
+                      - button "Check More Details" [ref=e3858] [cursor=pointer]
+                      - button "Reserve Vehicle" [ref=e3862] [cursor=pointer]
+                      - button "Edit specs" [ref=e3866] [cursor=pointer]
+                      - button "Remove vehicle" [ref=e3870] [cursor=pointer]
+                - row [ref=e3874]:
+                  - 'cell "M4 Competition xDrive Coupe Slideshow 3P BMW M4 Competition xDrive Coupe ID: vehicle- • 2023 model • Coupe" [ref=e3875]':
+                    - generic [ref=e3876]:
+                      - button "Expand All 37 Specifications" [ref=e3877]
+                      - generic "Click to view full slideshow of vehicle pictures" [ref=e3880] [cursor=pointer]:
+                        - img "M4 Competition xDrive Coupe" [ref=e3881]
+                        - generic [ref=e3882]: Slideshow
+                        - generic [ref=e3884]: 3P
+                      - generic [ref=e3885]:
+                        - generic [ref=e3886]: BMW
+                        - generic [ref=e3887]: M4 Competition xDrive Coupe
+                        - generic [ref=e3888]: "ID: vehicle- • 2023 model • Coupe"
+                  - cell "Used" [ref=e3889]
+                  - cell "$89,500" [ref=e3890]
+                  - cell "12,100 mi" [ref=e3892]
+                  - cell "Pending" [ref=e3894]
+                  - cell [ref=e3897]:
+                    - generic [ref=e3898]:
+                      - button "Check More Details" [ref=e3899] [cursor=pointer]
+                      - button "Edit specs" [ref=e3903] [cursor=pointer]
+                      - button "Remove vehicle" [ref=e3907] [cursor=pointer]
+                - row [ref=e3911]:
+                  - 'cell "AMG GT 63 S E-Performance Slideshow 3P Mercedes-Benz AMG GT 63 S E-Performance ID: vehicle- • 2024 model • Sedan" [ref=e3912]':
+                    - generic [ref=e3913]:
+                      - button "Expand All 37 Specifications" [ref=e3914]
+                      - generic "Click to view full slideshow of vehicle pictures" [ref=e3917] [cursor=pointer]:
+                        - img "AMG GT 63 S E-Performance" [ref=e3918]
+                        - generic [ref=e3919]: Slideshow
+                        - generic [ref=e3921]: 3P
+                      - generic [ref=e3922]:
+                        - generic [ref=e3923]: Mercedes-Benz
+                        - generic [ref=e3924]: AMG GT 63 S E-Performance
+                        - generic [ref=e3925]: "ID: vehicle- • 2024 model • Sedan"
+                  - cell "New" [ref=e3926]
+                  - cell "$198,000" [ref=e3927]
+                  - cell "450 mi" [ref=e3929]
+                  - cell "Available" [ref=e3931]
+                  - cell [ref=e3934]:
+                    - generic [ref=e3935]:
+                      - button "Check More Details" [ref=e3936] [cursor=pointer]
+                      - button "Reserve Vehicle" [ref=e3940] [cursor=pointer]
+                      - button "Edit specs" [ref=e3944] [cursor=pointer]
+                      - button "Remove vehicle" [ref=e3948] [cursor=pointer]
+                - row [ref=e3952]:
+                  - 'cell "Model S Plaid Slideshow 3P Tesla Model S Plaid ID: vehicle- • 2023 model • Sedan" [ref=e3953]':
+                    - generic [ref=e3954]:
+                      - button "Expand All 37 Specifications" [ref=e3955]
+                      - generic "Click to view full slideshow of vehicle pictures" [ref=e3958] [cursor=pointer]:
+                        - img "Model S Plaid" [ref=e3959]
+                        - generic [ref=e3960]: Slideshow
+                        - generic [ref=e3962]: 3P
+                      - generic [ref=e3963]:
+                        - generic [ref=e3964]: Tesla
+                        - generic [ref=e3965]: Model S Plaid
+                        - generic [ref=e3966]: "ID: vehicle- • 2023 model • Sedan"
+                  - cell "Used" [ref=e3967]
+                  - cell "$94,990" [ref=e3968]
+                  - cell "8,400 mi" [ref=e3970]
+                  - cell "Available" [ref=e3972]
+                  - cell [ref=e3975]:
+                    - generic [ref=e3976]:
+                      - button "Check More Details" [ref=e3977] [cursor=pointer]
+                      - button "Reserve Vehicle" [ref=e3981] [cursor=pointer]
+                      - button "Edit specs" [ref=e3985] [cursor=pointer]
+                      - button "Remove vehicle" [ref=e3989] [cursor=pointer]
+                - row [ref=e3993]:
+                  - 'cell "911 GT3 RS Slideshow 3P Porsche 911 GT3 RS ID: vehicle- • 2024 model • Coupe" [ref=e3994]':
+                    - generic [ref=e3995]:
+                      - button "Expand All 37 Specifications" [ref=e3996]
+                      - generic "Click to view full slideshow of vehicle pictures" [ref=e3999] [cursor=pointer]:
+                        - img "911 GT3 RS" [ref=e4000]
+                        - generic [ref=e4001]: Slideshow
+                        - generic [ref=e4003]: 3P
+                      - generic [ref=e4004]:
+                        - generic [ref=e4005]: Porsche
+                        - generic [ref=e4006]: 911 GT3 RS
+                        - generic [ref=e4007]: "ID: vehicle- • 2024 model • Coupe"
+                  - cell "New" [ref=e4008]
+                  - cell "$274,500" [ref=e4009]
+                  - cell "150 mi" [ref=e4011]
+                  - cell "Available" [ref=e4013]
+                  - cell [ref=e4016]:
+                    - generic [ref=e4017]:
+                      - button "Check More Details" [ref=e4018] [cursor=pointer]
+                      - button "Reserve Vehicle" [ref=e4022] [cursor=pointer]
+                      - button "Edit specs" [ref=e4026] [cursor=pointer]
+                      - button "Remove vehicle" [ref=e4030] [cursor=pointer]
+                - row [ref=e4034]:
+                  - 'cell "R8 Coupe V10 Performance Slideshow 3P Audi R8 Coupe V10 Performance ID: vehicle- • 2023 model • Coupe" [ref=e4035]':
+                    - generic [ref=e4036]:
+                      - button "Expand All 37 Specifications" [ref=e4037]
+                      - generic "Click to view full slideshow of vehicle pictures" [ref=e4040] [cursor=pointer]:
+                        - img "R8 Coupe V10 Performance" [ref=e4041]
+                        - generic [ref=e4042]: Slideshow
+                        - generic [ref=e4044]: 3P
+                      - generic [ref=e4045]:
+                        - generic [ref=e4046]: Audi
+                        - generic [ref=e4047]: R8 Coupe V10 Performance
+                        - generic [ref=e4048]: "ID: vehicle- • 2023 model • Coupe"
+                  - cell "Certified Pre-Owned" [ref=e4049]
+                  - cell "$189,900" [ref=e4050]
+                  - cell "3,200 mi" [ref=e4052]
+                  - cell "Available" [ref=e4054]
+                  - cell [ref=e4057]:
+                    - generic [ref=e4058]:
+                      - button "Check More Details" [ref=e4059] [cursor=pointer]
+                      - button "Reserve Vehicle" [ref=e4063] [cursor=pointer]
+                      - button "Edit specs" [ref=e4067] [cursor=pointer]
+                      - button "Remove vehicle" [ref=e4071] [cursor=pointer]
+  - contentinfo [ref=e907]:
+    - generic [ref=e908]:
+      - generic [ref=e909]:
+        - generic [ref=e910]:
+          - generic [ref=e911]: CARCHIEF
+          - paragraph [ref=e912]: PREMIUM GLOBAL VEHICLE EXPORTERS
+          - paragraph [ref=e913]: CarChief is a high-end showcase portal providing direct ocean-cargo logistics, certified pre-owned inspections, and custom spec tracking.
+        - generic [ref=e914]:
+          - heading "Logistics Core Portals" [level=4] [ref=e915]
+          - list [ref=e916]:
+            - listitem [ref=e917]:
+              - button "Showroom Catalog" [ref=e918] [cursor=pointer]
+            - listitem [ref=e919]:
+              - button "How to Buy" [ref=e920] [cursor=pointer]
+            - listitem [ref=e921]:
+              - button "About Us" [ref=e922] [cursor=pointer]
+            - listitem [ref=e923]:
+              - button "Testimonials" [ref=e924] [cursor=pointer]
+            - listitem [ref=e925]:
+              - button "FAQ" [ref=e926] [cursor=pointer]
+            - listitem [ref=e927]:
+              - button "Contact Us" [ref=e928] [cursor=pointer]
+            - listitem [ref=e929]:
+              - button "Logistics ERP Console" [ref=e930] [cursor=pointer]
+        - generic [ref=e931]:
+          - heading "Secure Verification" [level=4] [ref=e932]
+          - paragraph [ref=e933]: CarChief utilizes highly secure cloud-replicated server architectures for real-time transaction records and client logs.
+          - generic [ref=e934]: SECURED CLOUD ENVELOPE
+      - generic [ref=e938]:
+        - generic [ref=e939]: © 2026 CARCHIEF AUTO GROUP. ALL RIGHTS RESERVED.
+        - generic [ref=e940]: CLOUDRUN ENVIRONMENT • REGISTRY SECURITY PROTOCOL SHIELD-V2

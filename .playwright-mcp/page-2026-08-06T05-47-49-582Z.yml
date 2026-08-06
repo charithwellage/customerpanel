@@ -1,0 +1,130 @@
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e7]:
+      - strong [ref=e8]: OfflineCache Quota Limit Reached
+      - text: — The system has automatically entered offline high-fidelity fallback mode. All features remain 100% responsive and functional!
+    - button "Retry Live Connection" [ref=e9] [cursor=pointer]
+  - banner [ref=e10]:
+    - generic [ref=e12]:
+      - generic [ref=e13]:
+        - generic [ref=e14] [cursor=pointer]: CARCHIEF
+        - generic [ref=e22]: ONLINE
+      - generic [ref=e30]:
+        - paragraph [ref=e31]: Super Admin Staff
+        - generic [ref=e32]: Super Admin
+  - main [ref=e38]:
+    - generic [ref=e40]:
+      - generic [ref=e41]:
+        - generic [ref=e42]:
+          - text: CarChief HQ Administration
+          - heading "Enterprise Logistics Portal" [level=2] [ref=e43]
+          - paragraph [ref=e44]: "Role: Super Admin • Full database control of listings & client leads."
+        - generic [ref=e45]:
+          - button "Staff Dashboard" [ref=e46] [cursor=pointer]
+          - button "Inventory 1" [ref=e51] [cursor=pointer]:
+            - generic [ref=e52]: Inventory
+            - generic [ref=e53]: "1"
+          - button "Leads (1)" [ref=e54] [cursor=pointer]
+          - button "Finance" [ref=e56] [cursor=pointer]
+          - button "Master Controls" [ref=e58] [cursor=pointer]
+      - generic [ref=e1206]:
+        - button "Core Config" [ref=e1207] [cursor=pointer]
+        - button "CSV Upload" [ref=e1212] [cursor=pointer]
+        - button "Freight Calculator" [ref=e1217] [cursor=pointer]
+        - button "City Delivery" [ref=e1223] [cursor=pointer]
+        - button "Customer Tiers" [ref=e1228] [cursor=pointer]
+        - button "Customer Management" [ref=e1233] [cursor=pointer]
+        - button "Roles Control" [ref=e1240] [cursor=pointer]
+        - button "CMS" [ref=e1245] [cursor=pointer]
+        - button "FAQ Manager" [ref=e1250] [cursor=pointer]
+        - button "OfflineCache Audit" [active] [ref=e1255] [cursor=pointer]
+      - generic [ref=e1933]:
+        - generic [ref=e1934]:
+          - generic [ref=e1935]:
+            - generic [ref=e1936]: System Optimization & Telemetry
+            - heading "OfflineCache Loop & Loop Protection Audit" [level=2] [ref=e1939]
+            - paragraph [ref=e1940]: Real-time scanner analyzing OfflineCache database read/write cycles, suppressing duplicate requests, identifying sync loops, and measuring local-first memory cache hits.
+          - generic [ref=e1941]:
+            - 'button "Fallback Mode: FORCED ACTIVE" [ref=e1942] [cursor=pointer]'
+            - button "Reset telemetry dashboard" [ref=e1948] [cursor=pointer]
+        - generic [ref=e1952]:
+          - generic [ref=e1953]:
+            - generic [ref=e1954]: OfflineCache Reads
+            - generic [ref=e1955]:
+              - generic [ref=e1956]: "0"
+              - generic [ref=e1957]: ops
+            - generic [ref=e1958]: Cached reads optimized
+          - generic [ref=e1962]:
+            - generic [ref=e1963]: OfflineCache Writes
+            - generic [ref=e1964]:
+              - generic [ref=e1965]: "0"
+              - generic [ref=e1966]: ops
+            - generic [ref=e1967]: Transaction level logs armed
+          - generic [ref=e1971]:
+            - generic [ref=e1972]: Writes Eliminated
+            - generic [ref=e1973]:
+              - generic [ref=e1974]: "0"
+              - generic [ref=e1975]: saved
+            - generic [ref=e1976]: 100% write overhead cut
+          - generic [ref=e1977]:
+            - generic [ref=e1978]: Active Listeners
+            - generic [ref=e1979]:
+              - generic [ref=e1980]: "0"
+              - generic [ref=e1981]: subs
+            - generic [ref=e1982]: No live write-back loops
+          - generic [ref=e1983]:
+            - generic [ref=e1984]: Loop Protection Status
+            - generic [ref=e1985]: Fallback
+            - generic [ref=e1989]: "Threshold: Max 5 writes / 10s"
+        - generic [ref=e1990]:
+          - generic [ref=e1991]:
+            - heading "Operation Frequency Ranking" [level=3] [ref=e1996]
+            - generic [ref=e1998]:
+              - generic [ref=e2003]: No stats recorded yet
+              - paragraph [ref=e2004]: Perform some actions or update data to populate the audit metrics.
+          - generic [ref=e2005]:
+            - generic [ref=e2006]:
+              - heading "Real-Time Operations Log" [level=3] [ref=e2010]
+              - generic [ref=e2011]:
+                - textbox "Filter log entries..." [ref=e2016]
+                - combobox [ref=e2017] [cursor=pointer]:
+                  - option "All Types" [selected]
+                  - option "Reads"
+                  - option "Writes"
+                  - option "Deduplicated"
+                  - option "Listeners"
+                  - option "Deletions"
+            - generic [ref=e2019]:
+              - generic [ref=e2022]: No matching logs
+              - paragraph [ref=e2023]: Logs are captured automatically as transactions occur in real-time.
+  - contentinfo [ref=e907]:
+    - generic [ref=e908]:
+      - generic [ref=e909]:
+        - generic [ref=e910]:
+          - generic [ref=e911]: CARCHIEF
+          - paragraph [ref=e912]: PREMIUM GLOBAL VEHICLE EXPORTERS
+          - paragraph [ref=e913]: CarChief is a high-end showcase portal providing direct ocean-cargo logistics, certified pre-owned inspections, and custom spec tracking.
+        - generic [ref=e914]:
+          - heading "Logistics Core Portals" [level=4] [ref=e915]
+          - list [ref=e916]:
+            - listitem [ref=e917]:
+              - button "Showroom Catalog" [ref=e918] [cursor=pointer]
+            - listitem [ref=e919]:
+              - button "How to Buy" [ref=e920] [cursor=pointer]
+            - listitem [ref=e921]:
+              - button "About Us" [ref=e922] [cursor=pointer]
+            - listitem [ref=e923]:
+              - button "Testimonials" [ref=e924] [cursor=pointer]
+            - listitem [ref=e925]:
+              - button "FAQ" [ref=e926] [cursor=pointer]
+            - listitem [ref=e927]:
+              - button "Contact Us" [ref=e928] [cursor=pointer]
+            - listitem [ref=e929]:
+              - button "Logistics ERP Console" [ref=e930] [cursor=pointer]
+        - generic [ref=e931]:
+          - heading "Secure Verification" [level=4] [ref=e932]
+          - paragraph [ref=e933]: CarChief utilizes highly secure cloud-replicated server architectures for real-time transaction records and client logs.
+          - generic [ref=e934]: SECURED CLOUD ENVELOPE
+      - generic [ref=e938]:
+        - generic [ref=e939]: © 2026 CARCHIEF AUTO GROUP. ALL RIGHTS RESERVED.
+        - generic [ref=e940]: CLOUDRUN ENVIRONMENT • REGISTRY SECURITY PROTOCOL SHIELD-V2

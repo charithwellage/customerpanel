@@ -1,0 +1,337 @@
+- generic [ref=f4e3]:
+  - generic [ref=f4e4]:
+    - generic [ref=f4e7]:
+      - strong [ref=f4e8]: OfflineCache Quota Limit Reached
+      - text: — The system has automatically entered offline high-fidelity fallback mode. All features remain 100% responsive and functional!
+    - button "Retry Live Connection" [ref=f4e9] [cursor=pointer]
+  - banner [ref=f4e10]:
+    - generic [ref=f4e12]:
+      - generic [ref=f4e13]:
+        - generic [ref=f4e14] [cursor=pointer]: CARCHIEF
+        - generic [ref=f4e22]: ONLINE
+      - navigation [ref=f4e28]:
+        - button "Showroom" [ref=f4e29]
+        - button "All Stock" [ref=f4e30]
+        - button "How to Buy" [ref=f4e31]
+        - button "About Us" [ref=f4e32]
+        - button "Testimonials" [ref=f4e33]
+        - button "FAQ" [ref=f4e34]
+        - button "Contact" [ref=f4e35]
+  - main [ref=f4e36]:
+    - generic [ref=f4e37]:
+      - generic [ref=f4e38]:
+        - img "High-end Sports Car" [ref=f4e42]
+        - generic [ref=f4e44]:
+          - generic [ref=f4e45]:
+            - generic [ref=f4e46]: Curated Global Acquisitions
+            - heading "CHECK OUR SELECTION OF PREMIUM VEHICLES" [level=1] [ref=f4e48]
+            - paragraph [ref=f4e49]: Browse our hand-picked, premium global acquisitions of hypercars, custom performance coupes, and bespoke luxury SUVs. Every vehicle is thoroughly inspected, complete with detailed digital logs, and delivered via premium secure ocean transit.
+            - generic [ref=f4e50]:
+              - button "Check Premium Vehicles" [ref=f4e51]
+              - button "How to Purchase" [ref=f4e55]
+          - generic [ref=f4e56]:
+            - generic [ref=f4e62]:
+              - heading "Elite Quality Sourcing" [level=4] [ref=f4e63]
+              - paragraph [ref=f4e64]: Strict inspection & technical logs for every chassis.
+            - generic [ref=f4e71]:
+              - heading "Container Ocean Freight" [level=4] [ref=f4e72]
+              - paragraph [ref=f4e73]: Secure maritime container pipelines & customs clearing.
+            - generic [ref=f4e79]:
+              - heading "Dedicated Secure Portal" [level=4] [ref=f4e80]
+              - paragraph [ref=f4e81]: Track order pipelines, invoices & documents live.
+      - generic [ref=f4e82]:
+        - generic [ref=f4e83]:
+          - button "Standard Filters" [ref=f4e84] [cursor=pointer]
+          - button "AI Copilot Search" [ref=f4e87] [cursor=pointer]
+        - generic [ref=f4e93]:
+          - textbox "Search by keyword (e.g., Porsche, GT3, Black, V8)..." [ref=f4e95]
+          - generic [ref=f4e96]:
+            - button "Maximize Filters" [ref=f4e97] [cursor=pointer]
+            - button "Reset All" [ref=f4e102] [cursor=pointer]
+        - generic [ref=f4e104]:
+          - generic [ref=f4e105] [cursor=pointer]:
+            - generic [ref=f4e106]:
+              - img "Land Rover Range Rover Sport SV Edition One" [ref=f4e107]
+              - generic [ref=f4e108]: Available
+            - generic [ref=f4e111]:
+              - generic [ref=f4e112]:
+                - generic [ref=f4e113]: 2024 Land Rover
+                - heading "Range Rover Sport SV Edition One" [level=4] [ref=f4e114]
+              - generic [ref=f4e115]:
+                - generic [ref=f4e116]: Retail Price
+                - generic [ref=f4e117]: $180,300
+          - generic [ref=f4e119] [cursor=pointer]:
+            - generic [ref=f4e120]:
+              - img "Mercedes-Benz AMG GT 63 S E-Performance" [ref=f4e121]
+              - generic [ref=f4e122]: Available
+            - generic [ref=f4e125]:
+              - generic [ref=f4e126]:
+                - generic [ref=f4e127]: 2024 Mercedes-Benz
+                - heading "AMG GT 63 S E-Performance" [level=4] [ref=f4e128]
+              - generic [ref=f4e129]:
+                - generic [ref=f4e130]: Retail Price
+                - generic [ref=f4e131]: $198,000
+          - generic [ref=f4e133] [cursor=pointer]:
+            - generic [ref=f4e134]:
+              - img "Porsche 911 GT3 RS" [ref=f4e135]
+              - generic [ref=f4e136]: Available
+            - generic [ref=f4e139]:
+              - generic [ref=f4e140]:
+                - generic [ref=f4e141]: 2024 Porsche
+                - heading "911 GT3 RS" [level=4] [ref=f4e142]
+              - generic [ref=f4e143]:
+                - generic [ref=f4e144]: Retail Price
+                - generic [ref=f4e145]: $274,500
+          - generic [ref=f4e147] [cursor=pointer]:
+            - generic [ref=f4e148]:
+              - img "BMW M4 Competition xDrive Coupe" [ref=f4e149]
+              - generic [ref=f4e150]: Pending
+            - generic [ref=f4e153]:
+              - generic [ref=f4e154]:
+                - generic [ref=f4e155]: 2023 BMW
+                - heading "M4 Competition xDrive Coupe" [level=4] [ref=f4e156]
+              - generic [ref=f4e157]:
+                - generic [ref=f4e158]: Retail Price
+                - generic [ref=f4e159]: $89,500
+          - generic [ref=f4e161] [cursor=pointer]:
+            - generic [ref=f4e162]:
+              - img "Tesla Model S Plaid" [ref=f4e163]
+              - generic [ref=f4e164]: Available
+            - generic [ref=f4e167]:
+              - generic [ref=f4e168]:
+                - generic [ref=f4e169]: 2023 Tesla
+                - heading "Model S Plaid" [level=4] [ref=f4e170]
+              - generic [ref=f4e171]:
+                - generic [ref=f4e172]: Retail Price
+                - generic [ref=f4e173]: $94,990
+          - generic [ref=f4e175] [cursor=pointer]:
+            - generic [ref=f4e176]:
+              - img "Audi R8 Coupe V10 Performance" [ref=f4e177]
+              - generic [ref=f4e178]: Available
+            - generic [ref=f4e181]:
+              - generic [ref=f4e182]:
+                - generic [ref=f4e183]: 2023 Audi
+                - heading "R8 Coupe V10 Performance" [level=4] [ref=f4e184]
+              - generic [ref=f4e185]:
+                - generic [ref=f4e186]: Retail Price
+                - generic [ref=f4e187]: $189,900
+        - generic [ref=f4e189]:
+          - generic [ref=f4e191]:
+            - generic [ref=f4e192]:
+              - generic [ref=f4e193]:
+                - generic [ref=f4e194]: Intercontinental Freight Pipeline
+                - heading "EXPORTING WORLDWIDE MADE EFFORTLESS" [level=2] [ref=f4e198]
+                - paragraph [ref=f4e199]: CarChief integrates direct maritime deep-sea container lines, custom documentation handoffs, and door-to-port routing. Sourcing and delivering luxury vehicles from any hub straight to your local harbor with unmatched reliability.
+              - generic [ref=f4e200]:
+                - generic [ref=f4e207]:
+                  - heading "Fast Shipping" [level=4] [ref=f4e208]
+                  - paragraph [ref=f4e209]: Priority slot booking with premier carrier lines.
+                - generic [ref=f4e215]:
+                  - heading "Customs Cleared" [level=4] [ref=f4e216]
+                  - paragraph [ref=f4e217]: Full pre-clearing & bilateral transit tariff filings.
+                - generic [ref=f4e223]:
+                  - heading "Door-to-Port Delivery" [level=4] [ref=f4e224]
+                  - paragraph [ref=f4e225]: Direct transport coordination from source to docks.
+                - generic [ref=f4e231]:
+                  - heading "Real-Time Tracking" [level=4] [ref=f4e232]
+                  - paragraph [ref=f4e233]: Maritime vessel tracking with automated ETA updates.
+              - generic [ref=f4e234]:
+                - button "Learn About Shipping" [ref=f4e235] [cursor=pointer]
+                - button "Estimate Shipping Rates" [ref=f4e239] [cursor=pointer]
+            - generic [ref=f4e241]:
+              - img "Cargo Container Ship" [ref=f4e243]
+              - generic [ref=f4e244]:
+                - generic [ref=f4e245]: VESSEL DEPARTURE
+                - text: Active Maritime Registry
+          - generic [ref=f4e246]:
+            - generic [ref=f4e247]:
+              - generic [ref=f4e248]:
+                - generic [ref=f4e249]: Customized Transit Pipelines
+                - heading "TAILORED EXPORT SOLUTIONS" [level=3] [ref=f4e254]
+                - paragraph [ref=f4e255]: Choose from high-efficiency transit options optimized for your port's infrastructure and volume requirement. We secure premium freight schedules for single or bulk dealer consignments.
+                - list [ref=f4e256]:
+                  - listitem [ref=f4e257]:
+                    - generic [ref=f4e260]: Roll-on/Roll-off (RoRo)
+                  - listitem [ref=f4e261]:
+                    - generic [ref=f4e264]: Dedicated Containerized Loading
+                  - listitem [ref=f4e265]:
+                    - generic [ref=f4e268]: Consolidated Multi-Unit Freight
+                  - listitem [ref=f4e269]:
+                    - generic [ref=f4e272]: Pre-Shipment Port Inspections
+              - generic [ref=f4e273]:
+                - button "Get Export Quote" [ref=f4e274] [cursor=pointer]
+                - button "Learn Shipping Blueprint" [ref=f4e278] [cursor=pointer]
+            - generic [ref=f4e279]:
+              - generic [ref=f4e280]:
+                - generic [ref=f4e281]: ● Live Registry Statistics
+                - heading "SECURED GLOBAL OPERATIONS" [level=3] [ref=f4e282]
+                - paragraph [ref=f4e283]: We monitor vessel transit vectors, custom duties, escrow balances, and legal documentation in real-time.
+                - generic [ref=f4e284]:
+                  - generic [ref=f4e285]:
+                    - generic [ref=f4e286]: Global Escrow
+                    - text: $42.8M+
+                  - generic [ref=f4e287]:
+                    - generic [ref=f4e288]: Total Sourced
+                    - text: 14,200+ Units
+              - generic [ref=f4e289]: LOGISTICS DECK COMPLIANT
+          - generic [ref=f4e293]:
+            - generic:
+              - img "Premium Luxury Sports Car"
+            - generic [ref=f4e295]:
+              - generic [ref=f4e296]:
+                - text: Ultimate Sourcing Trust
+                - heading "EXPLORE OUR PREMIUM STOCK" [level=3] [ref=f4e297]
+                - paragraph [ref=f4e298]: Discover an exquisite collection of luxury SUVs, high-performance supercars, and premium family vehicles. Sourced directly from elite Japanese networks and meticulously pre-vetted.
+              - button "Browse Premium Stock" [ref=f4e299] [cursor=pointer]
+            - generic [ref=f4e300]:
+              - generic [ref=f4e306]:
+                - heading "Hand-Picked Grades" [level=4] [ref=f4e307]
+                - paragraph [ref=f4e308]: Sourced strictly from premium auction grades 4.5+ or S-grade with flawless condition reports.
+              - generic [ref=f4e314]:
+                - heading "Certified Inspection" [level=4] [ref=f4e315]
+                - paragraph [ref=f4e316]: Rigorous 150-point diagnostics, paint gauge verification, and mechanical evaluation.
+              - generic [ref=f4e324]:
+                - heading "VIP Concierge" [level=4] [ref=f4e325]
+                - paragraph [ref=f4e326]: Can't find a specific spec? Our bespoke agents tap into private dealer circles globally.
+              - generic [ref=f4e332]:
+                - heading "Document Integrity" [level=4] [ref=f4e333]
+                - paragraph [ref=f4e334]: Direct delivery of original export certificates, certified auction sheets, and history logs.
+              - generic [ref=f4e339]:
+                - heading "Climate-Safe Transit" [level=4] [ref=f4e340]
+                - paragraph [ref=f4e341]: Premium containerized and lash-secured logistics to safeguard luxury automotive paint.
+        - generic [ref=f4e342]:
+          - generic [ref=f4e343]:
+            - generic [ref=f4e344]:
+              - generic [ref=f4e345]:
+                - text: Corporate Statement
+                - heading "Welcome To CarChief!" [level=3] [ref=f4e346]
+                - paragraph [ref=f4e347]: We are premium curators and global maritime logistics brokers. Together with our dealer partners, we redefine the online car buying experience, turning dreams into reality.
+                - generic [ref=f4e348]:
+                  - generic [ref=f4e349]:
+                    - text: OUR VISION
+                    - paragraph [ref=f4e350]: To Transform Dreams Into Reality
+                  - generic [ref=f4e351]:
+                    - text: OUR MISSION
+                    - paragraph [ref=f4e352]: Convenience, Happiness, And Distinction
+              - button "Explore our full vision" [ref=f4e354] [cursor=pointer]
+            - generic [ref=f4e358]:
+              - generic [ref=f4e359]:
+                - text: Global Footprint
+                - heading "CarChief Operations" [level=3] [ref=f4e360]
+                - paragraph [ref=f4e361]: Serving the automotive dealership sector worldwide with high-quality stock lists, expert diagnostics, and secure container shipping.
+              - generic [ref=f4e362]:
+                - generic [ref=f4e363]:
+                  - generic [ref=f4e364]: "35"
+                  - generic [ref=f4e365]: YEARS
+                - generic [ref=f4e366]:
+                  - generic [ref=f4e367]: "14"
+                  - generic [ref=f4e368]: COUNTRIES
+                - generic [ref=f4e369]:
+                  - generic [ref=f4e370]: "4"
+                  - generic [ref=f4e371]: CONTINENTS
+                - generic [ref=f4e372]:
+                  - generic [ref=f4e373]: "9"
+                  - generic [ref=f4e374]: OFFICES
+          - generic [ref=f4e375]:
+            - generic [ref=f4e376]:
+              - text: Sourcing Guide
+              - heading "THE CARCHIEF 5-STEP BLUEPRINT" [level=3] [ref=f4e377]
+              - paragraph [ref=f4e378]: Acquiring intercontinental vehicles requires absolute logistics precision. We manage the entire loop from export diagnostics to final driveway offloading.
+              - button "View Sourcing Timeline" [ref=f4e380] [cursor=pointer]
+            - generic [ref=f4e384]:
+              - generic [ref=f4e385]:
+                - generic [ref=f4e386]: "01"
+                - generic [ref=f4e387]:
+                  - heading "Select Car & Get Quote" [level=4] [ref=f4e388]
+                  - paragraph [ref=f4e389]: Browse our high-quality stock list ready to export and click Get Free Quote to submit an inquiry.
+              - generic [ref=f4e390]:
+                - generic [ref=f4e391]: "02"
+                - generic [ref=f4e392]:
+                  - heading "Confirm Order & Invoice" [level=4] [ref=f4e393]
+                  - paragraph [ref=f4e394]: Confirm your order details and receive a formal invoice containing our bank details and final payment amounts.
+              - generic [ref=f4e395]:
+                - generic [ref=f4e396]: "03"
+                - generic [ref=f4e397]:
+                  - heading "Make Payment & Share" [level=4] [ref=f4e398]
+                  - paragraph [ref=f4e399]: Complete your bank wire transfer and upload/share the receipt so our accounts department can track it fast.
+              - generic [ref=f4e400]:
+                - generic [ref=f4e401]: "04"
+                - generic [ref=f4e402]:
+                  - heading "Shipment & Documents" [level=4] [ref=f4e403]
+                  - paragraph [ref=f4e404]: We book the earliest maritime container shipment and courier original export title papers right after departure.
+              - generic [ref=f4e405]:
+                - generic [ref=f4e406]: "05"
+                - generic [ref=f4e407]:
+                  - heading "Receive Your Vehicle" [level=4] [ref=f4e408]
+                  - paragraph [ref=f4e409]: Hire a local clearing agent to handle import clearance, settle local taxes, and register your vehicle.
+          - generic [ref=f4e410]:
+            - generic [ref=f4e411]:
+              - generic [ref=f4e412]:
+                - text: Client Logs
+                - heading "COLLECTOR ENDORSEMENTS" [level=3] [ref=f4e413]
+                - paragraph [ref=f4e414]: Read real logs from international automobile collectors, fleet buyers, and prestige dealers who import with us.
+              - button "Submit / Read All logs" [ref=f4e415] [cursor=pointer]
+            - generic [ref=f4e419]:
+              - generic [ref=f4e420]:
+                - paragraph [ref=f4e433]: "\"The paint-thickness meter files and direct suspension video files provided by CarChief were flawless. Delivery inside a vacuum-sealed sea container preserved the paint completely. Simply outstanding.\""
+                - generic [ref=f4e434]:
+                  - generic [ref=f4e435]: JV
+                  - generic [ref=f4e436]:
+                    - heading "Julian Vance" [level=4] [ref=f4e437]
+                    - paragraph [ref=f4e438]: Geneva, Switzerland
+                  - generic [ref=f4e439]: Porsche 911 GT3 RS
+              - generic [ref=f4e440]:
+                - paragraph [ref=f4e453]: "\"Apex Import Corp has imported over fifteen vehicles via CarChief’s Rotterdam logistics gate. Their customs brokerage pre-filing eliminates delays entirely. Unparalleled professional logistics.\""
+                - generic [ref=f4e454]:
+                  - generic [ref=f4e455]: SC
+                  - generic [ref=f4e456]:
+                    - heading "Sophia Chen" [level=4] [ref=f4e457]
+                    - paragraph [ref=f4e458]: Singapore
+                  - generic [ref=f4e459]: Mercedes-AMG G63
+              - generic [ref=f4e460]:
+                - paragraph [ref=f4e473]: "\"Purchasing a classic halo supercar of this caliber across seas is highly stressful. CarChief coordinated escrow lines and arranged special mechanical clearance with extreme care. Trustworthy.\""
+                - generic [ref=f4e474]:
+                  - generic [ref=f4e475]: MS
+                  - generic [ref=f4e476]:
+                    - heading "Marcus Sterling" [level=4] [ref=f4e477]
+                    - paragraph [ref=f4e478]: London, United Kingdom
+                  - generic [ref=f4e479]: Ferrari F40 Spec
+          - generic [ref=f4e480]:
+            - generic [ref=f4e481]:
+              - text: Help Desk
+              - heading "FREQUENTLY ASKED LOGS" [level=3] [ref=f4e482]
+              - paragraph [ref=f4e483]: Review standard operating procedures regarding customs compliance, clean titles, and vehicle specifications.
+              - button "Explore full FAQ archive" [ref=f4e485] [cursor=pointer]
+            - generic [ref=f4e489]:
+              - button "Is CarChief an authorized vehicle dealership or an export agency?" [ref=f4e491] [cursor=pointer]
+              - button "Will I receive a clean title to register the vehicle in my home country?" [ref=f4e496] [cursor=pointer]
+              - button "What is included in the shown vehicle price?" [ref=f4e501] [cursor=pointer]
+  - contentinfo [ref=f4e505]:
+    - generic [ref=f4e506]:
+      - generic [ref=f4e507]:
+        - generic [ref=f4e508]:
+          - generic [ref=f4e509]: CARCHIEF
+          - paragraph [ref=f4e510]: PREMIUM GLOBAL VEHICLE EXPORTERS
+          - paragraph [ref=f4e511]: CarChief is a high-end showcase portal providing direct ocean-cargo logistics, certified pre-owned inspections, and custom spec tracking.
+        - generic [ref=f4e512]:
+          - heading "Logistics Core Portals" [level=4] [ref=f4e513]
+          - list [ref=f4e514]:
+            - listitem [ref=f4e515]:
+              - button "Showroom Catalog" [ref=f4e516] [cursor=pointer]
+            - listitem [ref=f4e517]:
+              - button "How to Buy" [ref=f4e518] [cursor=pointer]
+            - listitem [ref=f4e519]:
+              - button "About Us" [ref=f4e520] [cursor=pointer]
+            - listitem [ref=f4e521]:
+              - button "Testimonials" [ref=f4e522] [cursor=pointer]
+            - listitem [ref=f4e523]:
+              - button "FAQ" [ref=f4e524] [cursor=pointer]
+            - listitem [ref=f4e525]:
+              - button "Contact Us" [ref=f4e526] [cursor=pointer]
+        - generic [ref=f4e527]:
+          - heading "Secure Verification" [level=4] [ref=f4e528]
+          - paragraph [ref=f4e529]: CarChief utilizes highly secure cloud-replicated server architectures for real-time transaction records and client logs.
+          - generic [ref=f4e530]: SECURED CLOUD ENVELOPE
+      - generic [ref=f4e534]:
+        - generic [ref=f4e535]: © 2026 CARCHIEF AUTO GROUP. ALL RIGHTS RESERVED.
+        - generic [ref=f4e536]: CLOUDRUN ENVIRONMENT • REGISTRY SECURITY PROTOCOL SHIELD-V2

@@ -1,0 +1,140 @@
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e7]:
+      - strong [ref=e8]: OfflineCache Quota Limit Reached
+      - text: — The system has automatically entered offline high-fidelity fallback mode. All features remain 100% responsive and functional!
+    - button "Retry Live Connection" [ref=e9] [cursor=pointer]
+  - banner [ref=e10]:
+    - generic [ref=e12]:
+      - generic [ref=e13]:
+        - generic [ref=e14] [cursor=pointer]: CARCHIEF
+        - generic [ref=e22]: ONLINE
+      - generic [ref=e30]:
+        - paragraph [ref=e31]: Super Admin Staff
+        - generic [ref=e32]: Super Admin
+  - main [ref=e38]:
+    - generic [ref=e40]:
+      - generic [ref=e41]:
+        - generic [ref=e42]:
+          - text: CarChief HQ Administration
+          - heading "Enterprise Logistics Portal" [level=2] [ref=e43]
+          - paragraph [ref=e44]: "Role: Super Admin • Full database control of listings & client leads."
+        - generic [ref=e45]:
+          - button "Staff Dashboard" [ref=e46] [cursor=pointer]
+          - button "Inventory 1" [ref=e51] [cursor=pointer]:
+            - generic [ref=e52]: Inventory
+            - generic [ref=e53]: "1"
+          - button "Leads (1)" [ref=e54] [cursor=pointer]
+          - button "Finance" [active] [ref=e56] [cursor=pointer]
+          - button "Master Controls" [ref=e58] [cursor=pointer]
+      - generic [ref=e941]:
+        - generic [ref=e942]:
+          - generic [ref=e950]:
+            - generic [ref=e951]: Audited & Approved
+            - generic [ref=e952]: $195,200
+          - generic [ref=e958]:
+            - generic [ref=e959]: Pending Customer TTs
+            - generic [ref=e960]: "0"
+          - generic [ref=e968]:
+            - generic [ref=e969]: Sales Allocations
+            - generic [ref=e970]: "0"
+          - generic [ref=e976]:
+            - generic [ref=e977]: Filtered Wires
+            - generic [ref=e978]: 1 wire(s)
+        - generic [ref=e979]:
+          - generic [ref=e980]:
+            - generic [ref=e981]:
+              - generic [ref=e982]:
+                - heading "Finance Audit Desk" [level=3] [ref=e983]
+                - generic [ref=e984]: "Showing: Today"
+              - generic [ref=e985]:
+                - button "Customer Portal TTs (1)" [ref=e986] [cursor=pointer]
+                - button "Salesman Allocations (0)" [ref=e987] [cursor=pointer]
+                - button "Exchange Rates" [ref=e988] [cursor=pointer]
+            - generic [ref=e989]:
+              - generic [ref=e990]:
+                - generic [ref=e991]:
+                  - generic [ref=e994]: "From:"
+                  - textbox [ref=e995] [cursor=pointer]: 2026-08-06
+                - generic [ref=e996]:
+                  - generic [ref=e999]: "To:"
+                  - textbox [ref=e1000] [cursor=pointer]: 2026-08-06
+                - button "Today" [ref=e1001] [cursor=pointer]
+                - button "Show All Dates" [ref=e1002] [cursor=pointer]
+              - generic [ref=e1003]:
+                - 'textbox "Search customer, TT #, ref..." [ref=e1008]'
+                - combobox [ref=e1009] [cursor=pointer]:
+                  - option "All Statuses" [selected]
+                  - option "Pending"
+                  - option "Approved"
+                  - option "Rejected"
+            - table [ref=e1011]:
+              - rowgroup [ref=e1012]:
+                - row [ref=e1013]:
+                  - columnheader "ID & Date" [ref=e1014]
+                  - columnheader "Submitter Details" [ref=e1015]
+                  - columnheader "Swift Reference" [ref=e1016]
+                  - columnheader "Invoice Reference" [ref=e1017]
+                  - columnheader "Wire Amount" [ref=e1018]
+                  - columnheader "Status" [ref=e1019]
+                  - columnheader "Actions" [ref=e1020]
+              - rowgroup [ref=e1021]:
+                - row [ref=e1022]:
+                  - cell "TXN-908122 2026-08-06" [ref=e1023]:
+                    - generic [ref=e1024]: TXN-908122
+                    - generic [ref=e1025]: 2026-08-06
+                  - cell "Charith charith3ny@gmail.com" [ref=e1026]:
+                    - generic [ref=e1027]:
+                      - generic [ref=e1028]: Charith
+                      - generic [ref=e1029]: charith3ny@gmail.com
+                  - cell "Direct Wire (USD) No Attachment" [ref=e1030]:
+                    - generic [ref=e1031]:
+                      - generic [ref=e1032]: Direct Wire (USD)
+                      - generic [ref=e1033]: No Attachment
+                  - cell "Manual" [ref=e1036]
+                  - cell "USD 195,200" [ref=e1038]
+                  - cell "Approved" [ref=e1039]
+                  - cell [ref=e1040]
+          - generic [ref=e1041]:
+            - generic [ref=e1042]:
+              - heading "System Notifications" [level=3] [ref=e1047]
+              - button "Clear All" [ref=e1048] [cursor=pointer]
+            - generic [ref=e1050]:
+              - button "Remove notification" [ref=e1051] [cursor=pointer]
+              - generic [ref=e1063]:
+                - generic [ref=e1064]: New TT Wire Payment Submitted
+                - paragraph [ref=e1065]: Charith submitted payment of $195,200 for PI-2026-0001 (Audi R8).
+                - generic [ref=e1066]:
+                  - generic [ref=e1067]: Just now
+                  - button "• Mark as Read" [ref=e1068] [cursor=pointer]
+  - contentinfo [ref=e907]:
+    - generic [ref=e908]:
+      - generic [ref=e909]:
+        - generic [ref=e910]:
+          - generic [ref=e911]: CARCHIEF
+          - paragraph [ref=e912]: PREMIUM GLOBAL VEHICLE EXPORTERS
+          - paragraph [ref=e913]: CarChief is a high-end showcase portal providing direct ocean-cargo logistics, certified pre-owned inspections, and custom spec tracking.
+        - generic [ref=e914]:
+          - heading "Logistics Core Portals" [level=4] [ref=e915]
+          - list [ref=e916]:
+            - listitem [ref=e917]:
+              - button "Showroom Catalog" [ref=e918] [cursor=pointer]
+            - listitem [ref=e919]:
+              - button "How to Buy" [ref=e920] [cursor=pointer]
+            - listitem [ref=e921]:
+              - button "About Us" [ref=e922] [cursor=pointer]
+            - listitem [ref=e923]:
+              - button "Testimonials" [ref=e924] [cursor=pointer]
+            - listitem [ref=e925]:
+              - button "FAQ" [ref=e926] [cursor=pointer]
+            - listitem [ref=e927]:
+              - button "Contact Us" [ref=e928] [cursor=pointer]
+            - listitem [ref=e929]:
+              - button "Logistics ERP Console" [ref=e930] [cursor=pointer]
+        - generic [ref=e931]:
+          - heading "Secure Verification" [level=4] [ref=e932]
+          - paragraph [ref=e933]: CarChief utilizes highly secure cloud-replicated server architectures for real-time transaction records and client logs.
+          - generic [ref=e934]: SECURED CLOUD ENVELOPE
+      - generic [ref=e938]:
+        - generic [ref=e939]: © 2026 CARCHIEF AUTO GROUP. ALL RIGHTS RESERVED.
+        - generic [ref=e940]: CLOUDRUN ENVIRONMENT • REGISTRY SECURITY PROTOCOL SHIELD-V2
