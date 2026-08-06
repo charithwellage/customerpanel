@@ -1,12 +1,12 @@
 # CarChief Frontend Implementation Plan
 
-**Document purpose:** Page- and component-level engineering delivery plan  
-**Discovery basis:** Re-audit of the full source project and compiled artifacts under `POC/`  
-**Delivery order:** Public Website → Customer Application → Salesperson Application → SEO Completion and Release Readiness  
-**Base scheduled delivery:** **18.5 calendar weeks**  
-**Programme allowance:** **3 weeks** (rounded 15% allowance for integration, review corrections, and accepted-scope uncertainty)  
-**Management planning range:** **21–22 calendar weeks**  
-**Delivery model:** Two experienced engineers coordinating 3–5 bounded AI-agent workstreams, with human product, design, QA, security, finance, and business review
+**Document purpose:** Page- and component-level engineering delivery plan
+**Discovery basis:** Re-audit of the full source project and compiled artifacts under `POC/`, **plus hands-on operation of the running demonstration system, screen by screen**
+**Delivery order:** Public Website → Customer Application → Salesperson Application → SEO Completion and Release Readiness
+**Base scheduled delivery:** **79 working days ≈ 16 calendar weeks**
+**Programme allowance:** **2–3 weeks** for integration, review corrections, and accepted-scope uncertainty
+**Management planning range:** **18–19 calendar weeks**
+**Delivery model:** Each phase is built by an AI agent, driven, tested and reviewed daily by one accountable person
 
 > This is a frontend delivery plan. It does not approve a database design, accounting policy, identity platform, external vendor, or final ASP.NET Core BFF wire contract.
 
@@ -32,29 +32,44 @@ Delivery is organized by application rather than by a cross-application workflow
 
 - **Source-confirmed:** Supported by supplied TS/TSX, configuration, utility, or server source.
 - **Compiled-artifact evidence:** Visible in a built HTML artifact, but the original source is missing or unavailable.
+- **Runtime-confirmed:** Observed working by operating the running demonstration system by hand. The strongest evidence available, and the only kind available for the Customer Application.
+- **`UNABLE_TO_VERIFY_WITH_POC`:** Present in the demonstration but impossible to exercise — the data never reaches it, or the feature is not connected. **Requires a business answer before the matching screen is built.**
 - **Recommendation:** Proposed production behavior or architecture rather than a POC claim.
 - **Open question:** Requires confirmation from management, business, legacy, AutoPulse, security, finance, or the BFF team.
 
 ### 2.2 Estimate labels
 
-- **Phase effort** is the blended implementation/review load in 0.5-week increments. It includes UI, the incremental mock slice, automated tests, human review, corrections, and demo preparation.
-- **Application calendar** is elapsed delivery time after safe parallel work by two engineers and bounded AI-agent workstreams.
-- Phase effort does not add directly to application calendar because independent components may overlap inside the same application.
-- Application delivery order remains sequential.
+Each delivery phase is built by an AI agent, driven and checked by one accountable person. Every working day follows the same fixed pattern:
+
+| Hours | Activity |
+|---:|---|
+| 5 | Building the software with an AI agent |
+| 2 | Manual testing of what was built |
+| 1 | Human review and sign-off |
+| **8** | **Total working day** |
+
+- **Phase days** means whole working days on that pattern — so **five hours of building per day**, not eight.
+- Phase days include the screen, its slice of the mock service, automated tests, manual testing, review and demonstration preparation.
+- A correction allowance is carried per delivery rather than inflating individual phases.
+- Application delivery order remains sequential. Phases inside a delivery may overlap only where they do not share files.
 
 ### 2.3 Estimate result
 
-| Delivery | Phase effort | Scheduled calendar |
-|---|---:|---:|
-| Public Website | 5.5 weeks | 4 weeks |
-| Customer Application | 6 weeks | 4 weeks |
-| Salesperson Application | 11 weeks | 8 weeks |
-| SEO Completion and Release Readiness | 2.5 weeks | 2.5 weeks |
-| **Base scheduled delivery** | **25 phase-effort weeks** | **18.5 weeks** |
-| Rounded 15% programme allowance |  | **3 weeks** |
-| **Management planning range** |  | **21–22 weeks** |
+| Delivery | Phase days | Correction allowance | Total days | Calendar |
+|---|---:|---:|---:|---:|
+| Public Website (incl. foundation, theming, mock service start-up) | 19.5 | 2 | **21.5** | 4.5 weeks |
+| Customer Application | 16 | 2 | **18** | 3.6 weeks |
+| Salesperson Application | 28.5 | 6.5 | **35** | 7 weeks |
+| SEO Completion and Release Readiness | 3.5 | 1 | **4.5** | 1 week |
+| **Base scheduled delivery** | **67.5** | **11.5** | **79** | **≈ 16 weeks** |
+| Programme allowance | | | | **2–3 weeks** |
+| **Management planning range** | | | | **18–19 weeks** |
 
-The earlier 14–16-week estimate grouped large areas into seven broad milestones. The bottom-up re-audit adds time because the new plan delivers applications sequentially, explicitly enumerates customer pages whose source is missing, and includes every confirmed finance and administration module inside the Salesperson Application.
+**Why this differs from the previous 21–22 weeks.**
+
+Shorter because: each phase is built by an AI agent rather than hand-written; the demonstration system has now been operated screen by screen, so the behaviour to build is known rather than inferred; and the SEO delivery shrank once it was confirmed that vehicle pages already work as shareable web addresses.
+
+Longer because: the mock service is now explicit scope with its own project, container, database and stand-in sign-in layer; the visual design is built as a swappable theme; eighteen areas carry an `UNABLE_TO_VERIFY_WITH_POC` question that must be answered before building; and testing and review remain human work at three hours of every eight.
 
 ## 3. Re-audit findings
 
@@ -96,6 +111,85 @@ The previous documents covered the main domains but compressed or omitted the fo
 - Proforma-to-commercial-invoice conversion and portal-visibility controls in invoiced/sold registries.
 - Staff notification read/delete behavior and finance proof preview/filtering.
 - The PWA/service-worker implementation as source evidence but not an approved target requirement.
+
+### 3.2a What operating the demonstration system added
+
+The previous version of this plan was written from the delivered files. The system has since been run and every screen used by hand. That confirmed most of the coverage above and added the following, which is now built into the phases.
+
+**Public Website**
+
+- Two search modes presented side by side: standard filters and a natural-language box with worked example questions.
+- An expandable filter panel — make, model, body type, year from/to, price slider, fuel type — where the options are **derived from live stock**, not a fixed list.
+- Three sort orders: newest year, price ascending, price descending.
+- A manual stock-refresh action on the listing page.
+- Vehicle pages that already function as individual shareable web addresses.
+- Twelve FAQ categories, testimonial submission, promotional banners and countdown timers.
+- A contact page carrying multiple offices and published operating hours.
+
+**Customer Application** *(runtime-confirmed; no source exists)*
+
+- Nine navigation areas: overview, browse stock, sourced vehicles, reserved vehicles, billed invoices, wire remittance, secure vault, bulletins, profile.
+- A light/dark display switch and a manual data-sync action.
+- Vehicle folders — reserved, reserved with quotation, invoiced — each carrying its own count.
+- A five-stage shipping filter: purchased, inspection, ready, in transit, delivered.
+- Ten named document categories in the vault.
+- Credit limit displayed with utilisation against it.
+- An automatically derived 50% deposit figure on reserved vehicles.
+- A profile separating fixed identity fields from editable contact fields, plus password change.
+
+**Salesperson Application**
+
+- Five primary areas; master controls subdivides into ten administration screens; finance subdivides into three.
+- A dashboard carrying twelve performance figures, a monthly target gauge, a five-stage pipeline, six one-click actions, follow-up and hot-lead panels, an activity log and three charts.
+- Pipeline stages: new leads → contacted → quotation issued → payment pending → completed.
+- One-click actions: add customer, create lead, create quote, reserve vehicle, record bulk payment, approved payment logs.
+- Four actions per stock row, plus a thirty-seven-field specification panel and quick presets for sports, luxury SUV and luxury sedan.
+- A five-section quotation builder with live printable preview, per-field control over what prints, seven trading currencies, a percentage tax basis, four trade terms, twelve destinations, salesperson assignment, and selectable bank accounts and standard terms.
+- A finance desk with date and status filters and its own notification panel.
+- Six exchange rate pairs with a history view.
+- A twenty-nine-permission matrix across four roles.
+- Two spreadsheet upload modes: vehicle sourcing and shipment details.
+
+**Business rules confirmed at runtime**
+
+| Rule | Values |
+|---|---|
+| Vehicle status | Draft · Available · Pending · Reserved · Reserved with PI · Invoice Created · Invoiced · Sold |
+| Lead status | New (Needs Call) · Contacted (Emailed) · In Progress (Negotiation) · Sold (Closed-Won) · Archived (Closed-Lost) |
+| Payment status | Pending · Approved · Rejected |
+| Shipment status | Purchased · Inspection · Ready · In Transit · Delivered |
+| Customer tiers | Platinum 15% · Gold 10% · Silver 5% · Standard 0% |
+| Reservation hold | 48 hours default, configurable |
+| Deposit | 50% of vehicle price |
+| Quotation cost lines | Vehicle price, freight, customs clearance, export inspection, port handling, insurance, plus percentage tax basis |
+| Trade terms | CNF · FOB · CIF · C&F |
+| Currencies | USD · JPY · EUR · UGX · GBP · AUD · CAD |
+| Roles | Admin (Super Admin) · Dealer (Partner Dealer) · Sales (Sales Representative) · Guest (Showroom Guest) |
+
+### 3.2b `UNABLE_TO_VERIFY_WITH_POC` register
+
+Each item below exists in the demonstration but could not be exercised — the data never reaches it, or the feature is not connected. **Each requires a business answer before the matching phase begins.** They are repeated against their phases in sections 5–8.
+
+| # | Area | Reason it could not be verified | Phase |
+|---|---|---|---|
+| UV-1 | Currency conversion end to end | Only same-currency payments exist in demonstration data | 3.5, 3.7 |
+| UV-2 | Exchange rate history | No history records exist | 3.7 |
+| UV-3 | Freight rate calculation | No rates loaded; none can be added through the screen | 1.5, 3.8 |
+| UV-4 | City delivery rate calculation | No rates loaded | 1.5, 3.8 |
+| UV-5 | Import duty | No duty field exists; only a percentage tax basis | 3.5 |
+| UV-6 | Spreadsheet import behaviour | No file could be uploaded to observe the result | 3.3 |
+| UV-7 | Vehicle image management | Screen exists but was not reachable with demonstration data | 3.2 |
+| UV-8 | Quotation-to-invoice conversion | No quotation reached that stage | 3.6 |
+| UV-9 | Invoiced and sold registers | Not reachable with demonstration data | 3.6 |
+| UV-10 | Salesperson allocations | No allocation records exist | 3.7 |
+| UV-11 | Payment allocation action | Action exists but has no completed example | 3.7 |
+| UV-12 | Reservation expiry | The 48-hour hold never elapsed during testing | 3.5 |
+| UV-13 | Password recovery and multi-factor sign-in | Not present in the demonstration | 2.1 |
+| UV-14 | Document upload to the customer vault | No documents exist and none could be added | 2.7 |
+| UV-15 | Email and printed-document delivery | Actions exist but were not triggered | 2.5, 3.5 |
+| UV-16 | Staff global search | Not exercisable with demonstration data | 3.1 |
+| UV-17 | Bulk payment entry and proof preview | No example records exist | 3.7 |
+| UV-18 | Offline behaviour and installable app | Present in the files but not an approved requirement | 4.4 |
 
 ### 3.3 Features not promoted to production requirements automatically
 
@@ -164,14 +258,81 @@ For each component phase:
 4. Record unresolved BFF/AutoPulse fields and rules.
 5. Avoid inventing final wire payloads without backend evidence.
 
+### 4.4 The CarChief Mock Service
+
+A separate project, in its own repository and its own container. It is **not** part of the frontend codebase and is never imported by it.
+
+**What it is**
+
+| Aspect | Decision |
+|---|---|
+| Technology | A small Node.js service, deliberately simple so an AI agent can extend it cheaply |
+| Storage | Its own PostgreSQL database in a companion container — the same engine AutoPulse uses |
+| Data access | A declarative schema with a generated typed client, so adding a record type is a few lines rather than hand-written queries |
+| Contract | One OpenAPI document, owned by the mock project, describing every service, request and response |
+| Sign-in | A stand-in authentication layer issuing signed passes carrying user identity, role and permissions |
+| Delivery | `docker compose` brings up the service and its database together |
+| Lifecycle | Switched off when AutoPulse is available, not deleted — it remains useful for testing and demonstrations |
+
+**Why PostgreSQL rather than a file-based store.** The system has around two dozen connected record types — customers own vehicles, vehicles carry quotations, quotations attract payments, payments are allocated against vehicles. A real database enforces that a payment already allocated cannot be allocated again. A flat file cannot, and the demonstration system's own difficulties came from exactly that gap.
+
+**How the contract protects the frontend**
+
+```mermaid
+flowchart TB
+    Spec["One shared API document<br/>owned by the mock project"]
+    Spec --> Mock["Mock service implements it"]
+    Spec --> FE["Applications generate their<br/>typed clients from it"]
+    Spec -.->|"later"| BFF["ASP.NET Core BFF<br/>implements the same document"]
+    FE --> Mock
+    FE -.->|"switch address only"| BFF
+
+    classDef spec fill:#fffbeb,stroke:#d97706,color:#111827,stroke-width:3px
+    classDef svc fill:#eff6ff,stroke:#2563eb,color:#111827
+    classDef app fill:#fef2f2,stroke:#dc2626,color:#111827
+    class Spec spec
+    class Mock,BFF svc
+    class FE app
+```
+
+If the mock and the applications ever disagree about a field, the build fails rather than the behaviour quietly breaking at runtime.
+
+**Rules**
+
+- The frontend never imports mock code, fixtures, or database types.
+- The mock grows one screen at a time — only what a delivered screen needs.
+- Every service the mock exposes appears in the shared API document first.
+- The mock enforces permissions the same way the real system will, so authorisation is tested throughout rather than at the end.
+- Production builds cannot point at the mock.
+
+**Sign-in.** AutoPulse already provides authentication and will do so in production. Because it is unavailable during this project, the mock issues an equivalent signed pass carrying role and permission claims. The applications only ever see the pass, never the issuer — so moving to real AutoPulse sign-in is a configuration change.
+
+### 4.5 Theming
+
+The applications keep the proof of concept's visual direction. It is approved, familiar, and there is no reason to redesign it.
+
+The difference is construction. Colours, typography, spacing, radii, shadows and motion are defined once as named design tokens in a single theme. Screens reference roles — "primary action", "surface", "danger" — never literal values.
+
+| Requirement | Effect |
+|---|---|
+| One theme carries today's look | The proof of concept's appearance is preserved exactly |
+| Themes are swappable at runtime | A rebrand, a partner-branded deployment, or light/dark becomes one file |
+| No literal colours in components | A lint rule fails the build if a raw colour value appears in a screen |
+| Shared across all three applications | The public site, customer portal and staff console cannot drift apart |
+
+The customer application in the demonstration already offers a light/dark switch, so this is expected behaviour rather than speculative scope. Cost is roughly half a day inside Phase 1.1, and it is far cheaper there than retrofitted later.
+
 ## 5. Delivery 1 — Public Website
 
-**Application calendar:** 4 weeks  
-**Phase effort:** 5.5 weeks
+**Scheduled delivery:** 21.5 working days ≈ 4.5 weeks
+**Includes:** shared foundation, theme system, and the first working version of the mock service
+**Correction allowance:** 2 days
 
 ### Phase 1.1 — Shared foundation and public application shell
 
-**Phase effort:** 1 week
+**Phase days:** 8.5 days
+
+Also in scope: the theme/design-token system carrying the proof of concept's look as one swappable theme, and start-up of the separate mock service (Node.js + PostgreSQL + shared API document + stand-in sign-in).
 
 **Business outcome:** A stable public application foundation is visible and the shared frontend conventions needed by later applications are established once.
 
@@ -205,7 +366,9 @@ For each component phase:
 
 ### Phase 1.2 — Home and showroom
 
-**Phase effort:** 0.5 week
+**Phase days:** 1 day
+
+Runtime additions: promotional banners and countdown timers alongside the featured collections.
 
 **Business outcome:** A visitor can understand CarChief’s proposition and browse highlighted vehicles.
 
@@ -233,7 +396,9 @@ For each component phase:
 
 ### Phase 1.3 — Inventory and search page
 
-**Phase effort:** 1 week
+**Phase days:** 2.5 days
+
+Runtime additions: two search modes side by side (standard filters and natural-language); an expandable filter panel whose make/model/type/year/price/fuel options are derived from live stock rather than a fixed list; three sort orders (newest year, price ascending, price descending); and a manual stock-refresh action.
 
 **Business outcome:** Visitors can quickly locate relevant stock using understandable filters and search.
 
@@ -262,7 +427,9 @@ For each component phase:
 
 ### Phase 1.4 — Vehicle details
 
-**Phase effort:** 1 week
+**Phase days:** 2 days
+
+Runtime confirmation: vehicle pages already work as individual shareable web addresses, so this phase preserves that behaviour and adds page information for search and sharing.
 
 **Business outcome:** A visitor can make an informed enquiry from a stable vehicle page.
 
@@ -291,7 +458,9 @@ For each component phase:
 
 ### Phase 1.5 — Freight estimate and quotation enquiry
 
-**Phase effort:** 0.5 week
+**Phase days:** 2 days
+
+`UNABLE_TO_VERIFY_WITH_POC` — **UV-3** freight rate calculation and **UV-4** city delivery rate calculation. No rates are loaded in the demonstration and none can be added through its screens, so the calculation model must be confirmed with the business before this phase begins.
 
 **Business outcome:** A visitor can obtain an understandable indicative landed-cost estimate and request a formal quotation.
 
@@ -322,7 +491,9 @@ For each component phase:
 
 ### Phase 1.6 — Enquiry, contact, authentication and reservation entry
 
-**Phase effort:** 0.5 week
+**Phase days:** 1.5 days
+
+Runtime finding: the demonstration relies on browser-native field checking only. This phase includes proper application-level validation of every field.
 
 **Business outcome:** Visitors and known customers can express interest or request a temporary vehicle hold.
 
@@ -352,7 +523,9 @@ For each component phase:
 
 ### Phase 1.7 — Public information and content
 
-**Phase effort:** 0.5 week
+**Phase days:** 1 day
+
+Runtime additions: twelve FAQ categories, customer testimonial submission, and a contact page carrying multiple offices with published operating hours.
 
 **Business outcome:** Visitors can understand CarChief, the buying process, customer experiences, and common answers.
 
@@ -380,7 +553,7 @@ For each component phase:
 
 ### Phase 1.8 — Public Website acceptance
 
-**Phase effort:** 0.5 week
+**Phase days:** 1 day
 
 **Business outcome:** Management accepts a coherent public acquisition application before Customer Application delivery becomes primary.
 
@@ -400,13 +573,16 @@ For each component phase:
 
 ## 6. Delivery 2 — Customer Application
 
-**Application calendar:** 4 weeks  
-**Phase effort:** 6 weeks  
+**Scheduled delivery:** 18 working days ≈ 3.6 weeks
+**Correction allowance:** 2 days
+
 **Evidence warning:** Customer TypeScript source is missing. Detailed behavior below is compiled-artifact evidence until business approval.
 
 ### Phase 2.1 — Customer shell, session and account access
 
-**Phase effort:** 0.5 week
+**Phase days:** 2.5 days
+
+`UNABLE_TO_VERIFY_WITH_POC` — **UV-13** password recovery and multi-factor sign-in are not present in the demonstration. Runtime additions: light/dark display switch and a manual data-sync action. Sign-in is issued by the mock service's stand-in authentication layer.
 
 **Business outcome:** A customer can enter a protected application and understand account/session states.
 
@@ -433,7 +609,9 @@ For each component phase:
 
 ### Phase 2.2 — Customer dashboard
 
-**Phase effort:** 0.5 week
+**Phase days:** 1.5 days
+
+Runtime additions: credit limit displayed with utilisation against it.
 
 **Business outcome:** Customers can understand their account and current transactions at a glance.
 
@@ -461,7 +639,7 @@ For each component phase:
 
 ### Phase 2.3 — Customer showroom and vehicle search
 
-**Phase effort:** 0.5 week
+**Phase days:** 1 day
 
 **Business outcome:** Signed-in customers can browse eligible stock with customer-specific visibility and pricing.
 
@@ -488,7 +666,9 @@ For each component phase:
 
 ### Phase 2.4 — My vehicles
 
-**Phase effort:** 1 week
+**Phase days:** 2.5 days
+
+Runtime additions: three vehicle folders (reserved, reserved with quotation, invoiced) each carrying its own count; a five-stage shipping filter (purchased, inspection, ready, in transit, delivered); and an automatically derived 50% deposit figure on reserved vehicles.
 
 **Business outcome:** Customers can find and understand vehicles associated with their account.
 
@@ -517,7 +697,9 @@ For each component phase:
 
 ### Phase 2.5 — Quotes and invoices
 
-**Phase effort:** 0.5 week
+**Phase days:** 2 days
+
+`UNABLE_TO_VERIFY_WITH_POC` — **UV-15** email and printed-document delivery. The actions exist in the demonstration but were never triggered.
 
 **Business outcome:** Customers can review formal pricing documents and current balances.
 
@@ -544,7 +726,7 @@ For each component phase:
 
 ### Phase 2.6 — Payments and TT remittance
 
-**Phase effort:** 1 week
+**Phase days:** 2 days
 
 **Business outcome:** Customers can submit and track wire-transfer evidence for finance review.
 
@@ -572,7 +754,9 @@ For each component phase:
 
 ### Phase 2.7 — Shipment tracking and documents
 
-**Phase effort:** 1 week
+**Phase days:** 2 days
+
+Runtime additions: the document vault carries ten named categories — proforma invoice, commercial invoice, bill of lading, inspection certificate, export certificate, insurance, packing list, vehicle photos, auction sheet and other. `UNABLE_TO_VERIFY_WITH_POC` — **UV-14** document upload; no documents exist in the demonstration and none could be added.
 
 **Business outcome:** Customers can understand delivery progress and securely access approved documents.
 
@@ -600,7 +784,9 @@ For each component phase:
 
 ### Phase 2.8 — Notifications and profile
 
-**Phase effort:** 0.5 week
+**Phase days:** 1.5 days
+
+Runtime additions: the profile separates fixed identity fields from editable contact fields and includes a password change.
 
 **Business outcome:** Customers can manage communications and approved personal/contact details.
 
@@ -628,7 +814,7 @@ For each component phase:
 
 ### Phase 2.9 — Customer Application acceptance
 
-**Phase effort:** 0.5 week
+**Phase days:** 1 day
 
 **Business outcome:** Management accepts the customer scope before Salesperson Application delivery becomes primary.
 
@@ -648,12 +834,14 @@ For each component phase:
 
 ## 7. Delivery 3 — Salesperson Application
 
-**Application calendar:** 8 weeks  
-**Phase effort:** 11 weeks
+**Scheduled delivery:** 35 working days ≈ 7 weeks
+**Correction allowance:** 6.5 days
 
 ### Phase 3.1 — Staff access and dashboard
 
-**Phase effort:** 0.5 week
+**Phase days:** 3 days
+
+Runtime additions: twelve performance figures, a monthly target gauge, a five-stage pipeline (new leads → contacted → quotation issued → payment pending → completed), six one-click actions (add customer, create lead, create quote, reserve vehicle, record bulk payment, approved payment logs), follow-up and hot-lead panels, an activity log and three charts. `UNABLE_TO_VERIFY_WITH_POC` — **UV-16** global search.
 
 **Business outcome:** Authorized staff can enter a role-aware workspace and identify priority work.
 
@@ -682,7 +870,9 @@ For each component phase:
 
 ### Phase 3.2 — Inventory management
 
-**Phase effort:** 1.5 weeks
+**Phase days:** 4 days
+
+Runtime additions: four actions per stock row, a thirty-seven-field specification panel, and quick specification presets for sports, luxury SUV and luxury sedan vehicles. `UNABLE_TO_VERIFY_WITH_POC` — **UV-7** vehicle image management.
 
 **Business outcome:** Staff can maintain accurate stock and control which information customers and the public can see.
 
@@ -713,7 +903,9 @@ For each component phase:
 
 ### Phase 3.3 — Vehicle and shipment imports
 
-**Phase effort:** 1 week
+**Phase days:** 2 days
+
+Runtime additions: two upload modes — vehicle sourcing and shipment details. `UNABLE_TO_VERIFY_WITH_POC` — **UV-6** import behaviour; no file could be uploaded to observe the result. The demonstration also states it estimates missing prices automatically, which requires a business decision before implementation.
 
 **Business outcome:** Staff can safely review bulk vehicle/shipment data before committing it.
 
@@ -743,7 +935,9 @@ For each component phase:
 
 ### Phase 3.4 — Leads and customer management
 
-**Phase effort:** 1 week
+**Phase days:** 2.5 days
+
+Runtime additions: the five lead statuses carry business labels — new (needs call), contacted (emailed), in progress (negotiation), sold (closed-won), archived (closed-lost) — plus persistent internal agent notes.
 
 **Business outcome:** Salespeople can convert public interest into an owned, traceable customer opportunity.
 
@@ -773,7 +967,9 @@ For each component phase:
 
 ### Phase 3.5 — Reservations and proforma invoices
 
-**Phase effort:** 1.5 weeks
+**Phase days:** 5 days
+
+Runtime additions: a five-section quotation builder with live printable preview, per-field control over what appears on the printed document, seven trading currencies, a percentage tax basis, four trade terms (CNF, FOB, CIF, C&F), twelve destination countries, salesperson assignment, and selectable bank accounts and standard terms. `UNABLE_TO_VERIFY_WITH_POC` — **UV-1** currency conversion end to end, **UV-5** import duty (no duty field exists), **UV-12** reservation expiry, **UV-15** email and print delivery.
 
 **Business outcome:** Salespeople can reserve a vehicle and produce a controlled proforma invoice using approved customer and master data.
 
@@ -804,7 +1000,9 @@ For each component phase:
 
 ### Phase 3.6 — Sales registries and customer visibility
 
-**Phase effort:** 0.5 week
+**Phase days:** 1.5 days
+
+`UNABLE_TO_VERIFY_WITH_POC` — **UV-8** quotation-to-invoice conversion and **UV-9** the invoiced and sold registers. Neither was reachable with demonstration data.
 
 **Business outcome:** Staff can convert and monitor invoiced/sold transactions and control customer visibility.
 
@@ -833,7 +1031,9 @@ For each component phase:
 
 ### Phase 3.7 — Payments and finance
 
-**Phase effort:** 1.5 weeks
+**Phase days:** 3 days
+
+Runtime additions: finance divides into three areas (customer payments, salesperson allocations, exchange rates), with date and status filters and its own notification panel; six exchange rate pairs are pre-loaded. `UNABLE_TO_VERIFY_WITH_POC` — **UV-2** rate history, **UV-10** salesperson allocations, **UV-11** the allocation action, **UV-17** bulk payment entry and proof preview.
 
 **Business outcome:** Sales and finance users can submit, review, approve and allocate TT funds with reconciled balances.
 
@@ -864,7 +1064,9 @@ For each component phase:
 
 ### Phase 3.8 — Operational masters and logistics rates
 
-**Phase effort:** 1 week
+**Phase days:** 2.5 days
+
+Runtime additions: six master lists — country, port, costing item, shipper, bank, terms presets. `UNABLE_TO_VERIFY_WITH_POC` — **UV-3** and **UV-4**; neither rate engine holds data and the demonstration's own loading mechanism does not work, so a working way to load standard starting rates is explicitly in scope.
 
 **Business outcome:** Authorized administrators can maintain controlled reference data used by quotations and sales documents.
 
@@ -895,7 +1097,7 @@ For each component phase:
 
 ### Phase 3.9 — Customer tiers
 
-**Phase effort:** 0.5 week
+**Phase days:** 1 day
 
 **Business outcome:** Administrators can manage customer benefits and limits using approved, testable rules.
 
@@ -922,7 +1124,9 @@ For each component phase:
 
 ### Phase 3.10 — Users, roles and permissions
 
-**Phase effort:** 1 week
+**Phase days:** 1.5 days
+
+Runtime confirmation: a twenty-nine-permission matrix across four roles — Admin (Super Admin), Dealer (Partner Dealer), Sales (Sales Representative), Guest (Showroom Guest). Eight of the twenty-nine permissions govern master-data fields.
 
 **Business outcome:** Authorized administrators can control staff access without relying on browser-stored roles.
 
@@ -950,7 +1154,9 @@ For each component phase:
 
 ### Phase 3.11 — Branding, FAQ and audit
 
-**Phase effort:** 0.5 week
+**Phase days:** 1 day
+
+Runtime finding: branding in the demonstration covers the header logo only, not general site content. Scope accordingly. FAQ administration carries twelve categories.
 
 **Business outcome:** Administrators can manage approved brand/FAQ content and inspect available operational audit events safely.
 
@@ -977,7 +1183,7 @@ For each component phase:
 
 ### Phase 3.12 — Salesperson Application acceptance
 
-**Phase effort:** 0.5 week
+**Phase days:** 1.5 days
 
 **Business outcome:** Management accepts the complete operational application and connected three-application journey.
 
@@ -997,11 +1203,14 @@ For each component phase:
 
 ## 8. Delivery 4 — SEO Completion and Release Readiness
 
-**Application calendar and phase effort:** 2.5 weeks
+**Scheduled delivery:** 4.5 working days ≈ 1 week
+**Correction allowance:** 1 day
+
+Smaller than previously estimated. Operating the demonstration confirmed that individual vehicle pages already work as their own shareable web addresses, so this delivery adds search-engine information to existing pages rather than rebuilding site navigation.
 
 ### Phase 4.1 — Public URL and indexation policy
 
-**Phase effort:** 0.5 week
+**Phase days:** 0.5 days
 
 **Business outcome:** Search engines receive stable, intentional public URLs while private content remains excluded.
 
@@ -1021,7 +1230,7 @@ For each component phase:
 
 ### Phase 4.2 — Metadata and structured data
 
-**Phase effort:** 0.5 week
+**Phase days:** 0.5 days
 
 **Business outcome:** Public pages and shared links clearly describe CarChief and its vehicles.
 
@@ -1041,7 +1250,7 @@ For each component phase:
 
 ### Phase 4.3 — Public performance and SEO validation
 
-**Phase effort:** 0.5 week
+**Phase days:** 1 day
 
 **Business outcome:** Public pages are fast, crawlable, and usable on target devices.
 
@@ -1061,7 +1270,9 @@ For each component phase:
 
 ### Phase 4.4 — Final release readiness
 
-**Phase effort:** 1 week
+**Phase days:** 1.5 days
+
+`UNABLE_TO_VERIFY_WITH_POC` — **UV-18** offline behaviour and installable-app support are present in the delivered files but are not an approved requirement; a decision is needed here.
 
 **Business outcome:** The frontend programme is ready for management release approval and later BFF cutover.
 
@@ -1089,16 +1300,19 @@ For each component phase:
 
 ## 9. Recommended calendar sequence
 
-| Calendar window | Primary delivery | Acceptance result |
-|---|---|---|
-| Weeks 1–4 | Public Website | Accepted public acquisition application and linked enquiries/reservations |
-| Weeks 5–8 | Customer Application | Accepted customer self-service application and linked transaction scenarios |
-| Weeks 9–16 | Salesperson Application | Accepted sales, finance and administration application plus full connected journey |
-| Weeks 17–18.5 | SEO Completion and Release Readiness | SEO-complete, release-ready frontend and BFF conformance pack |
-| Rounded programme allowance | Integration/review corrections and accepted uncertainty | Up to 3 weeks distributed where needed |
-| **Management planning range** |  | **21–22 calendar weeks** |
+| Calendar window | Primary delivery | Days | Acceptance result |
+|---|---|---:|---|
+| Weeks 1–4.5 | Public Website, foundation, theme system, mock service | 21.5 | Accepted public application, working mock service and sign-in, theme system proven |
+| Weeks 5–8 | Customer Application | 18 | Accepted customer self-service application and linked transaction scenarios |
+| Weeks 9–15 | Salesperson Application | 35 | Accepted sales, finance and administration application plus full connected journey |
+| Week 16 | SEO Completion and Release Readiness | 4.5 | Search-complete, release-ready frontend and hand-over pack |
+| | **Base scheduled delivery** | **79** | **≈ 16 calendar weeks** |
+| Programme allowance | Integration/review corrections and accepted uncertainty | | 2–3 weeks distributed where needed |
+| **Management planning range** | | | **18–19 calendar weeks** |
 
-The allowance is not a separate feature phase. It protects the management commitment against customer-source confirmation, cross-application corrections, finance/security review, and accepted POC-to-business differences.
+Every day in this table follows the fixed pattern of five hours building with an AI agent, two hours manual testing and one hour review.
+
+The allowance is not a separate feature phase. It protects the management commitment against customer-source confirmation, the eighteen `UNABLE_TO_VERIFY_WITH_POC` business answers, cross-application corrections, finance and security review, and accepted differences between the demonstration and the business's real rules.
 
 ## 10. BFF domains and migration
 
@@ -1202,11 +1416,14 @@ These are capability groups, not approved REST endpoints or payloads.
 
 ### Assumptions
 
-- Two experienced engineers coordinate 3–5 bounded AI-agent workstreams.
+- One accountable person drives the AI agent, tests daily and reviews daily, on a fixed pattern of five hours building, two hours testing and one hour review per working day.
 - Business/demo feedback is normally available within one business day.
-- Customer compiled behavior remains provisional until signed off.
+- Customer application behavior remains provisional until signed off; it was established by operating the running system, since no source exists.
 - The Salesperson Application contains finance and administration modules.
 - REST/JSON/OpenAPI is the initial BFF integration style unless decided otherwise before contract work.
+- The mock service is a separate project and container, using PostgreSQL, and is switched off rather than removed when AutoPulse becomes available.
+- AutoPulse provides authentication in production; the mock service supplies an equivalent stand-in during this project.
+- The proof of concept's visual direction is approved and is implemented as one swappable theme.
 
 ### Exclusions
 
@@ -1218,6 +1435,17 @@ These are capability groups, not approved REST endpoints or payloads.
 - External legal, privacy, compliance, certification and penetration-testing work.
 
 ### Ranked decisions required
+
+**Answering the eighteen `UNABLE_TO_VERIFY_WITH_POC` items in section 3.2b is the highest-priority decision set.** Each blocks a specific phase, and each is cheap to answer now and expensive to discover mid-build. They are grouped below by the delivery they block:
+
+| Blocks | Items to answer |
+|---|---|
+| Delivery 1 | UV-3 freight rates, UV-4 city delivery rates |
+| Delivery 2 | UV-13 password recovery and multi-factor sign-in, UV-14 document upload, UV-15 email and print delivery |
+| Delivery 3 | UV-1 currency conversion, UV-2 rate history, UV-5 import duty, UV-6 spreadsheet import, UV-7 image management, UV-8 quotation conversion, UV-9 registers, UV-10 and UV-11 allocations, UV-12 reservation expiry, UV-16 global search, UV-17 bulk payment entry |
+| Delivery 4 | UV-18 offline and installable-app support |
+
+Then, in order:
 
 1. Supply or confirm the absence of missing customer, Firebase, cache and audit source.
 2. Explain the Firebase/Firestore versus earlier Supabase revision difference.
@@ -1278,3 +1506,18 @@ The roadmap is complete when:
 - UAT, release, support, privacy and operational ownership are recorded.
 
 For the management summary, see [CarChief Frontend Implementation Roadmap](./CarChief-Frontend-Implementation-Roadmap.md).
+
+## 15. Conclusion
+
+| # | Delivery | What we are delivering | Summary | Timeline (days) |
+|---|---|---|---|---:|
+| 1 | Public Website | The public-facing website, plus the shared foundations every later delivery depends on: the design system, the swappable visual theme, and the first working version of the separate mock service. | Where a visitor finds and enquires about a vehicle. No sign-in required. | 21.5 |
+| 2 | Customer Application | A sign-in-protected application for existing customers to track their own vehicles, quotations, invoices, payments, shipment status and documents. | The customer's private account view. | 18 |
+| 3 | Salesperson Application | The staff-facing system covering sales, finance and administration — leads, inventory, quotations, payments, master data, users and permissions. | The day-to-day tool used by CarChief's own team. | 35 |
+| 4 | SEO Completion and Release Readiness | Search-engine visibility for the public website, plus final cross-application checks before hand-over. | The launch-readiness pass. | 4.5 |
+| | | | **Base total** | **79** |
+| | | | **With programme allowance** | **≈ 89–94** |
+
+**79 working days is roughly 16 calendar weeks; with allowance, 18–19 weeks.** Every day in that total follows the same pattern: five hours building with an AI agent, two hours manual testing, one hour human review.
+
+Full detail, evidence and acceptance criteria for each phase are in sections 5–8 above. Open questions that shape this timeline — including the eighteen items that could not be confirmed by operating the demonstration system — are tracked separately in [`implementation_risks.md`](./implementation_risks.md).
