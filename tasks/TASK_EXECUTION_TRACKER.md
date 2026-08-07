@@ -24,7 +24,7 @@
 | [D01-P01-T001](delivery_01/phase_01/D01-P01-T001.md) | Bootstrap the pnpm workspace, runtime pins and application/package skeletons | NOT_STARTED | — | `feat_delivery01_phase_01` | INF-P00-T005 | P01-A | — |
 | [D01-P01-T002](delivery_01/phase_01/D01-P01-T002.md) | Add strict TypeScript, quality and boundary guardrails | NOT_STARTED | — | `feat_delivery01_phase_01` | D01-P01-T001 | P01-B | — |
 | [D01-P01-T003](delivery_01/phase_01/D01-P01-T003.md) | Establish automated testing foundations | NOT_STARTED | — | `feat_delivery01_phase_01` | D01-P01-T001 | P01-B | — |
-| [D01-P01-T004](delivery_01/phase_01/D01-P01-T004.md) | Establish OpenAPI, generated client and HTTP boundary | NOT_STARTED | — | `feat_delivery01_phase_01` | D01-P01-T002, D01-P01-T003, D01-P01-T007 | P01-C | — |
+| [D01-P01-T004](delivery_01/phase_01/D01-P01-T004.md) | Establish OpenAPI, generated client and HTTP boundary | NOT_STARTED | — | `feat_delivery01_phase_01` | D01-P01-T002, D01-P01-T003 | P01-C | — |
 | [D01-P01-T005](delivery_01/phase_01/D01-P01-T005.md) | Build mock API, PostgreSQL foundation and deterministic reset | NOT_STARTED | — | `feat_delivery01_phase_01` | D01-P01-T003, D01-P01-T004 | P01-D | — |
 | [D01-P01-T006](delivery_01/phase_01/D01-P01-T006.md) | Add stand-in JWT identities, roles and enforcement | NOT_STARTED | — | `feat_delivery01_phase_01` | D01-P01-T005 | P01-E | — |
 | [D01-P01-T007](delivery_01/phase_01/D01-P01-T007.md) | Build semantic theme and runtime theme infrastructure | NOT_STARTED | — | `feat_delivery01_phase_01` | D01-P01-T001 | P01-B | — |
@@ -59,6 +59,14 @@
 | [D01-P08-T003](delivery_01/phase_08/D01-P08-T003.md) | Complete accessibility, browser and performance acceptance | NOT_STARTED | — | `feat_delivery01_phase_08` | D01-P07-T004 | P08-A | — |
 | [D01-P08-T004](delivery_01/phase_08/D01-P08-T004.md) | Produce Public Website UAT and Delivery 1 handoff | NOT_STARTED | — | `feat_delivery01_phase_08` | D01-P08-T001, D01-P08-T002, D01-P08-T003 | P08-B | — |
 
+
+## Current execution frontier
+
+- Sequential next: INF-P00-T005 — Produce Phase 0 readiness result (IN_REVIEW)
+- Optional same-group parallel tasks: None
+- Downstream work waits for COMPLETE or SUPERSEDED; IN_REVIEW is not complete.
+- Later tasks cannot be bypassed; use taskctl sequence TASK-ID for the exact blocker.
+
 ## Continuation rule
 
-The next developer starts with this tracker, then reads the latest phase summary and the execution log for the task being continued. A task may start only after the clean-tree `taskctl precheck`, branch preparation and final `taskctl check` succeed.
+The next developer starts with this tracker, then reads the latest phase summary and the execution log for the task being continued. Sequential execution is the default; optional parallel work is limited to an approved same-group task after the group frontier is active. Blocked tasks cannot be bypassed. A task may start only after the clean-tree `taskctl precheck`, branch preparation and final `taskctl check` succeed.

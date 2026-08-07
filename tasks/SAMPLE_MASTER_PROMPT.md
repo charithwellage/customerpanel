@@ -22,6 +22,8 @@ If the working tree is dirty, stop and report exactly:
 Uncommitted changes detected. Commit the changes first, then rerun this task.
 No implementation started.
 
+Run `node tasks/scripts/taskctl.mjs next` and `node tasks/scripts/taskctl.mjs sequence TASK-ID` before branch setup. If the task is not the current execution frontier, or is not an explicitly eligible same-`parallel_group` task, stop and report the exact earlier task and `No implementation started`.
+
 If unblocked, run the task’s `precheck`, branch setup, `check` and `start` commands. Implement only the stated scope, add the required tests, update the execution log and tracker, and follow the task’s completion workflow.
 
 Do not modify POC/**, invent unresolved business rules, self-approve, push or merge without authorization.
