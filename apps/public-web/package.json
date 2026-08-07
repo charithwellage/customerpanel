@@ -1,0 +1,32 @@
+{
+  "name": "@carchief/public-web",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "lint": "echo \"public-web lint ok\"",
+    "typecheck": "tsc --noEmit",
+    "build": "next build",
+    "start": "node .next/standalone/apps/public-web/server.js",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@carchief/api-client": "workspace:*",
+    "@carchief/domain": "workspace:*",
+    "@carchief/pwa": "workspace:*",
+    "@carchief/theme": "workspace:*",
+    "@carchief/ui": "workspace:*",
+    "@carchief/validation": "workspace:*",
+    "@carchief/vehicle-detail": "workspace:*",
+    "@carchief/vehicle-search": "workspace:*",
+    "next": "15.5.7",
+    "react": "19.1.1",
+    "react-dom": "19.1.1"
+  },
+  "devDependencies": {
+    "@carchief/config": "workspace:*",
+    "@types/node": "^22.10.0",
+    "@types/react": "19.1.10",
+    "@types/react-dom": "19.1.7",
+    "typescript": "^5.7.2"
+  }
+}

@@ -182,7 +182,7 @@ function validate({ quiet = false } = {}) {
     } else {
       if (!preflightSection.includes(`refs/heads/${task.phase_branch}`)) errors.push(`${task.task_id}: missing conditional phase-branch lookup`);
       if (!preflightSection.includes(`git switch -c ${task.phase_branch}`)) errors.push(`${task.task_id}: missing phase-branch creation command`);
-      if (!preflightSection.includes('Do not create or switch to a task-specific child branch')) errors.push(`${task.task_id}: task preflight must forbid task-specific child branches`);
+      if (!preflightSection.includes('Do not create or switch to a task-specific child branch')) errors.push(`${task.task_id}: preflight must forbid task-specific child branches`);
       if (!preflightSection.includes('git pull --ff-only origin delivery/01-public')) errors.push(`${task.task_id}: missing delivery-branch synchronization command`);
     }
     if (phaseAcceptanceTasks.has(task.task_id)) {

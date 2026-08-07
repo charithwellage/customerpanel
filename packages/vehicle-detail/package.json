@@ -1,0 +1,20 @@
+{
+  "name": "@carchief/vehicle-detail",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "lint": "echo \"vehicle-detail lint ok\"",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@carchief/domain": "workspace:*",
+    "@carchief/ui": "workspace:*"
+  },
+  "devDependencies": {
+    "@carchief/config": "workspace:*",
+    "typescript": "^5.7.2"
+  }
+}
