@@ -501,6 +501,7 @@ PUBLIC_WEB_PORT=3000
 CUSTOMER_APP_PORT=3001
 SALESPERSON_APP_PORT=3002
 MOCK_API_PORT=4000
+MOCK_API_SWAGGER_ENABLED=true       # local development only; disabled in production
 POSTGRES_PORT=5432
 POSTGRES_USER=carchief
 POSTGRES_PASSWORD=change-me          # local only; never a real credential
@@ -519,9 +520,22 @@ PORT=4000
 DATABASE_URL=postgresql://carchief:change-me@postgres:5432/carchief_mock
 JWT_SECRET=local-development-only          # never a production value
 JWT_EXPIRY=8h
+SWAGGER_UI_ENABLED=true             # local development only; never expose in production by default
 ```
 
 > **No production secret ever appears in this repository**, including in an `.env.example`. Production values are supplied by the deployment environment. The examples above are local-development placeholders and are named as such.
+
+### Mock API Swagger interface
+
+The mock API exposes a browser-readable Swagger UI for local development and supervisor demonstrations:
+
+- `GET /swagger` (or the configured trailing-slash equivalent) serves the Swagger UI.
+- `GET /openapi.json` serves the exact committed `openapi/openapi.yaml` contract in JSON form, or the generated equivalent.
+- The UI and document are generated from the same OpenAPI source used by `packages/api-client`; a second hand-written Swagger schema is prohibited.
+- “Try it out” requests run against the local mock server and use only deterministic demo fixtures. Contract examples, reset behavior, validation errors and authorization responses must be visible in the UI.
+- The mock server may expose Swagger only on local/dev interfaces. `SWAGGER_UI_ENABLED=false` is mandatory for production-like configurations, and the production Compose overlay must not start `mock-api`.
+- Swagger must not display secrets, real credentials, connection strings or sensitive customer/staff data. Demo tokens and fixture identifiers are non-production values.
+- This interface documents and exercises the mock contract; it does not imply that the future ASP.NET Core BFF has adopted the final wire schema. BFF contract changes remain an explicit migration step.
 
 ---
 

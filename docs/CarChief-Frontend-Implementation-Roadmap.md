@@ -293,6 +293,8 @@ flowchart LR
 
 **Production-site parity check:** A live public-site audit is now recorded in [the Legacy Public Website Audit](CarChief-Legacy-Public-Website-Audit.md). It confirms that the new responsive website must also account for stock categories and country routes, auction guidance, services/company pages, shipping schedule, privacy/cookie information and public support actions. This means equivalent approved visitor capabilities—not copying legacy faults, unapproved content or third-party integrations.
 
+The local stand-in API will include a Swagger page so engineers and supervisors can see and try the available mock operations. It is generated from the same contract used by the website, contains demo data only, and is disabled in production-like environments.
+
 | Phase | Page/component delivery | Visible result | Days |
 |---|---|---|---:|
 | 1.1 | Shared foundation, reusable packages, theme system, PWA and mock service start-up | Responsive shell, reusable vehicle-search/detail packages, PWA manifests/offline shell/update lifecycle, navigation, shared controls, loading/error states, the proof-of-concept look packaged as a swappable theme, and a running mock service with sign-in | 8.5 |

@@ -40,7 +40,7 @@ Every implementation task runs its feature-specific unit, integration, contract 
 
 The required Docker gates are `D01-P01-T010` and the final acceptance task of each phase (`D01-P02-T002`, `D01-P03-T004`, `D01-P04-T003`, `D01-P05-T004`, `D01-P06-T005`, `D01-P07-T004`, `D01-P08-T004`). Each gate rebuilds and starts the target Compose stack, runs container-targeted Playwright tests, completes its manual supervisor UI smoke scenario, records evidence, and shuts the stack down. Small component tasks do not redeploy Docker individually; their phase gate catches integration and runtime issues.
 
-The target commands use `docker/docker-compose.yml` with `docker/docker-compose.dev.yml` from `FRONT_END_ARCHITECTURE.md`. They are separate from the existing compiled-POC `docker-compose.poc.yml` and do not replace it.
+The target commands use `docker/docker-compose.yml` with `docker/docker-compose.dev.yml` from `FRONT_END_ARCHITECTURE.md`. They are separate from the existing compiled-POC `docker-compose.poc.yml` and do not replace it. Phase 1.1 must expose local mock Swagger at `/swagger` and `/openapi.json`; phase acceptance checks both routes and confirms the production overlay disables them and omits `mock-api`.
 
 ## Capacity baseline
 

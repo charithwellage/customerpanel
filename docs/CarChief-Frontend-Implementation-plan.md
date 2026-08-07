@@ -291,6 +291,8 @@ For each component phase:
 
 A separate application inside the same repository, at `apps/mock-api`. It sits alongside the three frontends as a peer, is deployed as its own container, and is **never part of any application's code** — the applications reach it over the network, exactly as they will reach the real system later.
 
+For developer and supervisor use, the mock API also publishes a Swagger interface at `/swagger` and its generated contract at `/openapi.json`. These are produced from the same OpenAPI source used for the typed frontend client, so Swagger “Try it out” exercises the actual mock routes and linked fixtures. Swagger is local/dev-only, must not expose secrets or sensitive records, and is disabled in production-like configurations.
+
 **What it is**
 
 | Aspect | Decision |
