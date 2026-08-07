@@ -40,12 +40,14 @@ Phase 1.1 exposes only the foundation operations needed by the shell: health, pu
 - `git diff --check` — passed.
 - `git diff -- POC` — empty.
 - Docker Compose build/start — PostgreSQL, mock API and public web containers healthy.
+- Live container checks — public `/healthz`, mock `/healthz`, `/openapi.json`, public config, seeded vehicles and reset all returned successfully.
 
 ## Decisions and approved deviations
 
 - `delivery_01_public_website` is the canonical delivery integration branch. Public phase branches are created from its latest clean state.
 - PostgreSQL is provided by `postgres:16-alpine` for the local mock stack; the mock store retains an in-memory fallback for isolated unit tests.
 - The compiled POC remains unchanged and is not used as production source.
+- The Docker runtime explicitly copies the repository OpenAPI document so Swagger/OpenAPI routes work inside the container.
 
 ## Known risks and deferred scope
 
