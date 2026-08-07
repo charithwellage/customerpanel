@@ -17,7 +17,7 @@
 | ID | Task | Status | Owner | Phase branch | Dependencies | Parallel group | Last update |
 |---|---|---|---|---|---|---|---|
 | [INF-P00-T001](infra_check/INF-P00-T001.md) | Verify governing documents, evidence inventory, repository integrity and source boundaries | IN_REVIEW | Antigravity | Branch-neutral | None | INF-A | 2026-08-07T08:19:36.777Z |
-| [INF-P00-T002](infra_check/INF-P00-T002.md) | Verify developer tooling, ports and capacity | READY | — | Branch-neutral | None | INF-A | — |
+| [INF-P00-T002](infra_check/INF-P00-T002.md) | Verify developer tooling, ports and capacity | IN_REVIEW | Antigravity | Branch-neutral | None | INF-A | 2026-08-07T08:26:12.741Z |
 | [INF-P00-T003](infra_check/INF-P00-T003.md) | Verify compiled POC routes, reset and screenshots read-only | NOT_STARTED | — | Branch-neutral | INF-P00-T001, INF-P00-T002 | INF-B | — |
 | [INF-P00-T004](infra_check/INF-P00-T004.md) | Verify target-workspace readiness, secrets and architecture prerequisites | NOT_STARTED | — | Branch-neutral | INF-P00-T001, INF-P00-T002 | INF-B | — |
 | [INF-P00-T005](infra_check/INF-P00-T005.md) | Produce Phase 0 readiness result | NOT_STARTED | — | Branch-neutral | INF-P00-T003, INF-P00-T004 | INF-C | — |
