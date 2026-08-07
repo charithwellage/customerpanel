@@ -24,7 +24,7 @@
 | [D01-P01-T001](delivery_01/phase_01/D01-P01-T001.md) | Bootstrap the pnpm workspace, runtime pins and application/package skeletons | COMPLETE | Antigravity | `feat_delivery01_phase_01` | INF-P00-T005 | P01-A | 2026-08-07T09:02:15.260Z |
 | [D01-P01-T002](delivery_01/phase_01/D01-P01-T002.md) | Add strict TypeScript, quality and boundary guardrails | COMPLETE | Antigravity | `feat_delivery01_phase_01` | D01-P01-T001 | P01-B | 2026-08-07T09:06:47.066Z |
 | [D01-P01-T003](delivery_01/phase_01/D01-P01-T003.md) | Establish automated testing foundations | COMPLETE | Antigravity | `feat_delivery01_phase_01` | D01-P01-T001 | P01-B | 2026-08-07T09:14:23.451Z |
-| [D01-P01-T004](delivery_01/phase_01/D01-P01-T004.md) | Establish OpenAPI, generated client and HTTP boundary | COMPLETE | Antigravity | `feat_delivery01_phase_01` | D01-P01-T002, D01-P01-T003, D01-P01-T007 | P01-C | 2026-08-07T09:43:49.686Z |
+| [D01-P01-T004](delivery_01/phase_01/D01-P01-T004.md) | Establish OpenAPI, generated client and HTTP boundary | COMPLETE | Antigravity | `feat_delivery01_phase_01` | D01-P01-T002, D01-P01-T003 | P01-C | 2026-08-07T09:43:49.686Z |
 | [D01-P01-T005](delivery_01/phase_01/D01-P01-T005.md) | Build mock API, PostgreSQL foundation and deterministic reset | COMPLETE | Antigravity | `feat_delivery01_phase_01` | D01-P01-T003, D01-P01-T004 | P01-D | 2026-08-07T09:47:05.510Z |
 | [D01-P01-T006](delivery_01/phase_01/D01-P01-T006.md) | Add stand-in JWT identities, roles and enforcement | COMPLETE | Antigravity | `feat_delivery01_phase_01` | D01-P01-T005 | P01-E | 2026-08-07T09:55:55.425Z |
 | [D01-P01-T007](delivery_01/phase_01/D01-P01-T007.md) | Build semantic theme and runtime theme infrastructure | COMPLETE | Antigravity | `feat_delivery01_phase_01` | D01-P01-T001 | P01-B | 2026-08-07T09:30:20.819Z |
@@ -62,7 +62,7 @@
 
 ## Current execution frontier
 
-- Sequential next: INF-P00-T005 — Produce Phase 0 readiness result (IN_REVIEW)
+- Sequential next: D01-P02-T001 — Add featured vehicle services and reusable vehicle collections (NOT_STARTED)
 - Optional same-group parallel tasks: None
 - Downstream work waits for COMPLETE or SUPERSEDED; IN_REVIEW is not complete.
 - Later tasks cannot be bypassed; use taskctl sequence TASK-ID for the exact blocker.
