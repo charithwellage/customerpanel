@@ -5,7 +5,8 @@
   "scripts": {
     "lint": "echo \"public-web lint ok\"",
     "typecheck": "tsc --noEmit",
-    "build": "tsc"
+    "build": "tsc",
+    "test": "vitest run"
   },
   "dependencies": {
     "@carchief/api-client": "workspace:*",

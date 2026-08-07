@@ -29,7 +29,7 @@
 | [D01-P01-T006](delivery_01/phase_01/D01-P01-T006.md) | Add stand-in JWT identities, roles and enforcement | COMPLETE | Antigravity | `feat_delivery01_phase_01` | D01-P01-T005 | P01-E | 2026-08-07T09:55:55.425Z |
 | [D01-P01-T007](delivery_01/phase_01/D01-P01-T007.md) | Build semantic theme and runtime theme infrastructure | COMPLETE | Antigravity | `feat_delivery01_phase_01` | D01-P01-T001 | P01-B | 2026-08-07T09:30:20.819Z |
 | [D01-P01-T008](delivery_01/phase_01/D01-P01-T008.md) | Build shared controls and application feedback primitives | COMPLETE | Antigravity | `feat_delivery01_phase_01` | D01-P01-T002, D01-P01-T003, D01-P01-T007 | P01-C | 2026-08-07T09:38:18.207Z |
-| [D01-P01-T009](delivery_01/phase_01/D01-P01-T009.md) | Build the Next.js public shell and navigation | BLOCKED | — | `feat_delivery01_phase_01` | D01-P01-T006, D01-P01-T008 | P01-F | 2026-08-07T09:35:36.548Z |
+| [D01-P01-T009](delivery_01/phase_01/D01-P01-T009.md) | Build the Next.js public shell and navigation | IN_REVIEW | Antigravity | `feat_delivery01_phase_01` | D01-P01-T006, D01-P01-T008 | P01-F | 2026-08-07T10:00:00.005Z |
 | [D01-P01-T010](delivery_01/phase_01/D01-P01-T010.md) | Complete containers, CI guardrails and Phase 1.1 acceptance | NOT_STARTED | — | `feat_delivery01_phase_01` | D01-P01-T009 | P01-G | — |
 | [D01-P02-T001](delivery_01/phase_02/D01-P02-T001.md) | Add featured vehicle services and reusable vehicle collections | NOT_STARTED | — | `feat_delivery01_phase_02` | D01-P01-T010 | P02-A | — |
 | [D01-P02-T002](delivery_01/phase_02/D01-P02-T002.md) | Build and accept the home/showroom experience | NOT_STARTED | — | `feat_delivery01_phase_02` | D01-P02-T001 | P02-B | — |
