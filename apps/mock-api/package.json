@@ -11,12 +11,14 @@
   },
   "dependencies": {
     "@carchief/domain": "workspace:*",
-    "express": "^4.21.2"
+    "express": "^4.21.2",
+    "pg": "8.16.3"
   },
   "devDependencies": {
     "@carchief/config": "workspace:*",
     "@types/express": "^5.0.0",
     "@types/node": "^22.10.0",
+    "@types/pg": "8.15.5",
     "typescript": "^5.7.2"
   }
 }
