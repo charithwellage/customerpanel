@@ -26,7 +26,7 @@
 | [D01-P01-T003](delivery_01/phase_01/D01-P01-T003.md) | Establish automated testing foundations | COMPLETE | Antigravity | `feat_delivery01_phase_01` | D01-P01-T001 | P01-B | 2026-08-07T09:14:23.451Z |
 | [D01-P01-T004](delivery_01/phase_01/D01-P01-T004.md) | Establish OpenAPI, generated client and HTTP boundary | BLOCKED | — | `feat_delivery01_phase_01` | D01-P01-T002, D01-P01-T003, D01-P01-T007 | P01-C | 2026-08-07T09:22:14.328Z |
 | [D01-P01-T005](delivery_01/phase_01/D01-P01-T005.md) | Build mock API, PostgreSQL foundation and deterministic reset | BLOCKED | — | `feat_delivery01_phase_01` | D01-P01-T003, D01-P01-T004 | P01-D | 2026-08-07T09:23:29.389Z |
-| [D01-P01-T006](delivery_01/phase_01/D01-P01-T006.md) | Add stand-in JWT identities, roles and enforcement | BLOCKED | — | `feat_delivery01_phase_01` | D01-P01-T005 | P01-E | 2026-08-07T09:24:51.028Z |
+| [D01-P01-T006](delivery_01/phase_01/D01-P01-T006.md) | Add stand-in JWT identities, roles and enforcement | BLOCKED | — | `feat_delivery01_phase_01` | D01-P01-T005 | P01-E | 2026-08-07T09:38:39.953Z |
 | [D01-P01-T007](delivery_01/phase_01/D01-P01-T007.md) | Build semantic theme and runtime theme infrastructure | COMPLETE | Antigravity | `feat_delivery01_phase_01` | D01-P01-T001 | P01-B | 2026-08-07T09:30:20.819Z |
 | [D01-P01-T008](delivery_01/phase_01/D01-P01-T008.md) | Build shared controls and application feedback primitives | COMPLETE | Antigravity | `feat_delivery01_phase_01` | D01-P01-T002, D01-P01-T003, D01-P01-T007 | P01-C | 2026-08-07T09:38:18.207Z |
 | [D01-P01-T009](delivery_01/phase_01/D01-P01-T009.md) | Build the Next.js public shell and navigation | BLOCKED | — | `feat_delivery01_phase_01` | D01-P01-T006, D01-P01-T008 | P01-F | 2026-08-07T09:35:36.548Z |
