@@ -20,7 +20,7 @@
 | [INF-P00-T002](infra_check/INF-P00-T002.md) | Verify developer tooling, ports and capacity | COMPLETE | Antigravity | Branch-neutral | None | INF-A | 2026-08-07T08:29:21.018Z |
 | [INF-P00-T003](infra_check/INF-P00-T003.md) | Verify compiled POC routes, reset and screenshots read-only | COMPLETE | Antigravity | Branch-neutral | INF-P00-T001, INF-P00-T002 | INF-B | 2026-08-07T08:35:37.042Z |
 | [INF-P00-T004](infra_check/INF-P00-T004.md) | Verify target-workspace readiness, secrets and architecture prerequisites | COMPLETE | Antigravity | Branch-neutral | INF-P00-T001, INF-P00-T002 | INF-B | 2026-08-07T08:35:42.909Z |
-| [INF-P00-T005](infra_check/INF-P00-T005.md) | Produce Phase 0 readiness result | READY | — | Branch-neutral | INF-P00-T003, INF-P00-T004 | INF-C | — |
+| [INF-P00-T005](infra_check/INF-P00-T005.md) | Produce Phase 0 readiness result | IN_REVIEW | Antigravity | Branch-neutral | INF-P00-T003, INF-P00-T004 | INF-C | 2026-08-07T08:36:42.463Z |
 | [D01-P01-T001](delivery_01/phase_01/D01-P01-T001.md) | Bootstrap the pnpm workspace, runtime pins and application/package skeletons | NOT_STARTED | — | `feat_delivery01_phase_01` | INF-P00-T005 | P01-A | — |
 | [D01-P01-T002](delivery_01/phase_01/D01-P01-T002.md) | Add strict TypeScript, quality and boundary guardrails | NOT_STARTED | — | `feat_delivery01_phase_01` | D01-P01-T001 | P01-B | — |
 | [D01-P01-T003](delivery_01/phase_01/D01-P01-T003.md) | Establish automated testing foundations | NOT_STARTED | — | `feat_delivery01_phase_01` | D01-P01-T001 | P01-B | — |
