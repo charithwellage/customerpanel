@@ -1,9 +1,23 @@
 {
   "extends": "@carchief/config/tsconfig.base.json",
   "compilerOptions": {
-    "rootDir": "./src",
-    "outDir": "./dist"
+    "allowJs": true,
+    "noEmit": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ]
   },
-  "include": ["src/**/*"],
-  "exclude": ["**/__tests__/**", "**/*.test.ts"]
+  "include": [
+    "src/**/*",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": [
+    "**/__tests__/**",
+    "**/*.test.ts"
+  ]
 }

@@ -8,7 +8,7 @@ The BA workflow reconciliation backlog is tracked separately under `tasks/workfl
 
 ## Branch sequence
 
-After the task system and Phase 0 records are committed on `planning`, create `delivery/01-public` from `planning` once. Phase 0 itself is branch-neutral. Public phases use `feat_delivery01_phase_01` through `feat_delivery01_phase_08`. Each phase starts from `delivery/01-public` only after the previous phase PR is merged and `git pull --ff-only origin delivery/01-public` succeeds. Parallel child branches start from the phase branch and merge back only after independent approval.
+After the task system and Phase 0 records are committed on `planning`, create `delivery/01-public` from `planning` once. Phase 0 itself is branch-neutral. Public phases use `feat_delivery01_phase_01` through `feat_delivery01_phase_08`. Each phase starts from `delivery/01-public` only after the previous phase PR is merged and `git pull --ff-only origin delivery/01-public` succeeds. Every task works directly on its phase branch; no task-specific child branches are created. Parallel groups are coordination lanes on the same phase branch.
 
 Before any task or Git branch command, run:
 
@@ -96,7 +96,7 @@ The implementation tasks total **25.5 delivery days** before allowance: Phase 1.
 ## Merge and continuation protocol
 
 1. Complete and independently approve child tasks.
-2. Merge approved child branches into the matching `feat_delivery01_phase_NN` branch only when authorized.
+2. Review and commit approved task work directly on the matching `feat_delivery01_phase_NN` branch only when authorized.
 3. Regenerate `TASK_EXECUTION_TRACKER.md`, run phase-wide quality commands, and complete the final acceptance task and phase summary.
 4. Commit all remaining phase changes and verify the phase branch is clean.
 5. Push the phase branch and create a PR targeting `delivery/01-public` when remote operations are authorized. Do not merge it automatically.

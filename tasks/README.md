@@ -46,7 +46,7 @@ Container redeployment is intentionally concentrated at the infrastructure gate 
 - Phase 0 is branch-neutral and runs on the approved clean baseline branch.
 - Delivery integration branch: `delivery/01-public`.
 - Public phase branches: `feat_delivery01_phase_01` through `feat_delivery01_phase_08`.
-- Short-lived `task/...` branches remain the unit of parallel implementation and independent review.
+- Tasks work directly on their phase branch. No task-specific child branches are created; parallel groups are coordination lanes on the same phase branch.
 - A phase branch is created only from the latest local `delivery/01-public` after `git pull --ff-only origin delivery/01-public` succeeds.
 - After phase acceptance, merge approved task branches into the phase branch, commit its tracker/summary, and create a PR from the phase branch into `delivery/01-public`. Never merge the PR automatically without explicit authorization.
 
@@ -66,7 +66,7 @@ Publishing the delivery branch is an explicitly authorized human action. If `del
 
 `node tasks/scripts/taskctl.mjs precheck <ID>` performs a read-only clean-tree, prerequisite, decision and delivery-branch check before any branch operation.
 
-`node tasks/scripts/taskctl.mjs check <ID>` repeats the clean-tree/prerequisite checks and validates the current phase or child branch.
+`node tasks/scripts/taskctl.mjs check <ID>` repeats the clean-tree/prerequisite checks and validates the required phase branch.
 
 `node tasks/scripts/taskctl.mjs start <ID> --owner "Name"`, `block <ID> --reason "Reason"`, `submit <ID>`, `approve <ID> --reviewer "Name"`, and `render` maintain durable handoff state.
 

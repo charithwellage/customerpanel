@@ -137,7 +137,6 @@ function validate({ quiet = false } = {}) {
   const decisions = loadDecisions();
   const errors = [];
   const orders = new Map();
-  const branches = new Map();
   const requiredHeadings = [
     '## Agent assignment', '## Authority and context to read', '## Requirements and rules',
     '## Mandatory preflight and blocker protocol', '## Business-visible outcome', '## In scope',
@@ -159,13 +158,12 @@ function validate({ quiet = false } = {}) {
     if (orders.has(task.execution_order)) errors.push(`${task.task_id}: execution_order duplicates ${orders.get(task.execution_order)}`);
     else orders.set(task.execution_order, task.task_id);
     if (!task.task_id.startsWith('INF-')) {
-      if (branches.has(task.task_branch)) errors.push(`${task.task_id}: task_branch duplicates ${branches.get(task.task_branch)}`);
-      else branches.set(task.task_branch, task.task_id);
       const idMatch = task.task_id.match(/^D(\d{2})-P(\d{2})-/);
       const expectedPhaseBranch = idMatch ? `feat_delivery${idMatch[1]}_phase_${idMatch[2]}` : '';
       if (!idMatch || task.phase_branch !== expectedPhaseBranch) {
         errors.push(`${task.task_id}: phase_branch must be ${expectedPhaseBranch || 'derived from a DNN-PNN task ID'}`);
       }
+      if (task.task_branch !== task.phase_branch) errors.push(`${task.task_id}: task_branch must equal phase_branch; task work stays on the phase branch`);
     } else if (task.phase_branch !== 'BRANCH_NEUTRAL' || task.task_branch !== 'BRANCH_NEUTRAL') {
       errors.push(`${task.task_id}: Phase 0 must be branch-neutral`);
     }
@@ -184,7 +182,7 @@ function validate({ quiet = false } = {}) {
     } else {
       if (!preflightSection.includes(`refs/heads/${task.phase_branch}`)) errors.push(`${task.task_id}: missing conditional phase-branch lookup`);
       if (!preflightSection.includes(`git switch -c ${task.phase_branch}`)) errors.push(`${task.task_id}: missing phase-branch creation command`);
-      if (!preflightSection.includes(`refs/heads/${task.task_branch}`)) errors.push(`${task.task_id}: missing conditional child-branch lookup`);
+      if (!preflightSection.includes('Do not create or switch to a task-specific child branch')) errors.push(`${task.task_id}: preflight must forbid task-specific child branches`);
       if (!preflightSection.includes('git pull --ff-only origin delivery/01-public')) errors.push(`${task.task_id}: missing delivery-branch synchronization command`);
     }
     if (phaseAcceptanceTasks.has(task.task_id)) {
@@ -274,8 +272,8 @@ function check(id) {
   if (!task) die(`unknown task ${id}`);
   const blockers = prerequisiteBlockers(task, decisions);
   const branch = currentBranch();
-  if (!task.task_id.startsWith('INF-') && branch !== task.phase_branch && branch !== task.task_branch) {
-    blockers.push(`current branch '${branch || '(detached)'}' is neither '${task.phase_branch}' nor '${task.task_branch}'`);
+  if (!task.task_id.startsWith('INF-') && branch !== task.phase_branch) {
+    blockers.push(`current branch '${branch || '(detached)'}' is not the required phase branch '${task.phase_branch}'`);
   }
   if (blockers.length) die(`${id} is blocked:\n- ${blockers.join('\n- ')}`);
   console.log(`${id} preflight metadata check passed. Blockers: None.`);

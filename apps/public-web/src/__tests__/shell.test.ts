@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { renderLayoutShellConfig, PUBLIC_NAV_ITEMS } from '../index.js';
+import { renderPublicPage } from '../server.js';
 
 describe('Public Web Shell Layout & Navigation Tests', () => {
   it('renders complete landmark structure with skip link, header, main, and footer', () => {
@@ -25,5 +26,13 @@ describe('Public Web Shell Layout & Navigation Tests', () => {
     expect(config.landmarks.drawer.isOpen).toBe(true);
     expect(config.landmarks.drawer.role).toBe('dialog');
     expect(config.landmarks.drawer.ariaModal).toBe(true);
+  });
+
+  it('renders a browser-ready public page with vehicle content and responsive search controls', () => {
+    const html = renderPublicPage([{ id: 'veh-1', make: 'Toyota', model: 'Corolla', year: 2021, priceUsd: 8500, status: 'Available' }]);
+    expect(html).toContain('CarChief');
+    expect(html).toContain('Toyota Corolla');
+    expect(html).toContain('vehicle-search');
+    expect(html).toContain('manifest.webmanifest');
   });
 });
