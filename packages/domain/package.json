@@ -7,10 +7,12 @@
   "scripts": {
     "lint": "echo \"domain lint ok\"",
     "typecheck": "tsc --noEmit",
-    "build": "tsc"
+    "build": "tsc",
+    "test": "vitest run"
   },
   "devDependencies": {
     "@carchief/config": "workspace:*",
+    "@types/node": "^22.10.0",
     "typescript": "^5.7.2"
   }
 }

@@ -28,3 +28,5 @@ export interface VehicleDomainSummary {
   priceUsd: number;
   status: VehicleStatus;
 }
+
+export * from './auth.js';
