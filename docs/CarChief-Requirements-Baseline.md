@@ -1,5 +1,7 @@
 # CarChief — Requirements Baseline
 
+> **BA workflow reconciliation:** The later business workflow is recorded in [`CarChief-BA-Workflow-Coverage-Matrix.md`](./CarChief-BA-Workflow-Coverage-Matrix.md). This baseline remains demonstration-derived evidence; the BA workflow and `REQUIREMENT.md` WF requirements govern upstream import, publication, negotiation, PI timing, finance exceptions, Ship OK and document release.
+
 **Date:** 2026-08-06
 **Purpose:** capture what the POC demonstrably establishes about the intended product, as a starting point for a real requirements set.
 **Basis:** browser-runtime validation of the local Docker POC, plus read-only source inspection.

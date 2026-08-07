@@ -48,6 +48,46 @@ flowchart LR
 
 A finance person and an administrator use the same application as a salesperson — the Sales App — but see only the parts of it their role permits.
 
+## BA operational workflow baseline
+
+The following workflow was supplied by the business analyst in [`docs/CarChief-BA-Workflow-Coverage-Matrix.md`](docs/CarChief-BA-Workflow-Coverage-Matrix.md), based on the draw.io export `/Users/prabodha/Downloads/car_chief_user_journey.json`. It extends the application requirements below; it does not replace them.
+
+> **Colour evidence limitation:** the JSON export contains labels and edges but no encoded fill/stroke colours. Blue/clear/green ownership is therefore provisional from the BA legend and must be confirmed by the process owner before implementation.
+
+### Upstream stock and publication
+
+**WF-01 — BA-confirmed workflow:** Procurement, bidding, VBMS entry, Oracle NetSuite updates, ERP CSV extraction, auction activity and auction-image collection occur before or alongside CarChief stock preparation. These are external or manual boundaries unless separately approved for integration.
+
+**WF-02 — Recommendation:** CarChief shall validate imported vehicle and shipment data before commit, report duplicates and partial failures, and retain source/reference metadata. It shall not silently become the authoritative procurement or ERP record.
+
+**WF-03 — Open question:** Operational lifecycle, price readiness, commercial sale state, public visibility, customer visibility and country availability shall be represented as distinct concepts until management approves the canonical field vocabulary.
+
+**WF-04 — BA-confirmed workflow:** A vehicle may be available to selected countries before its price is ready, subject to the approved visibility policy. A customer may request a price when the price is unavailable; the resulting request type and routing require confirmation.
+
+### Enquiry, negotiation and PI
+
+**WF-05 — BA-confirmed workflow:** An enquiry may enter through Customer Support, be screened, and be assigned to the relevant country salesperson before negotiation starts. WhatsApp is a lead-source/integration boundary until an actual provider is approved.
+
+**WF-06 — BA-confirmed workflow:** A salesperson can start negotiation and the record becomes “Under Negotiation”. The negotiation timer and expiry outcome require business approval.
+
+**WF-07 — Open question:** Confirm whether the negotiation timer is the same as, or separate from, the existing 48-hour reservation hold. The implementation shall model them separately until confirmed.
+
+**WF-08 — BA-confirmed workflow:** After customer confirmation, a salesperson can create a proforma invoice and the record can become “Under Negotiation With PI”. A 72-hour payment timer and its expiry/cancellation behavior require approval.
+
+### Payment, Ship OK and documents
+
+**WF-09 — BA-confirmed workflow:** A TT/payment record can be created with proof, reviewed by Finance against a bank statement, held with a reason, re-submitted, approved or rejected, and allocated to the relevant invoice/vehicle. Allocation must be idempotent and cannot double-spend funds.
+
+**WF-10 — BA-confirmed workflow:** A second or due payment may follow the Ship OK stage. Its relationship to invoice status, remaining balance and shipment release requires approval.
+
+**WF-11 — BA-confirmed workflow:** Ship OK is a separate request and approval process. CarChief UI approvals and ERP/IBQ checkpoints must be represented separately; no frontend action may claim an ERP approval occurred without an integration or recorded manual checkpoint.
+
+**WF-12 — BA-confirmed workflow:** Document release is a separate request and approval process. Documents become customer-visible only after the approved release and upload rules are satisfied.
+
+**WF-13 — Recommendation:** The BFF/mock service, not the browser, shall enforce workflow transitions, timers, role checks, idempotency, allocation rules and approval-gated document visibility.
+
+**WF-14 — Open question:** Confirm the approvers, rejection/return paths, notification channels, document categories, retention and scanning rules for Ship OK and document release.
+
 ---
 
 ## The complete journey
@@ -646,6 +686,13 @@ Each of these needs an answer from the business before the related part of the s
 | 16 | Should entering several payments at once (bulk entry) work differently from entering one payment, and is a preview of the proof needed before approving? | Affects how finance staff's daily work is designed | SALES-45 |
 | 17 | Does the system need to work without an internet connection, or be installable like an app on a phone? | This exists in the current demonstration but was never confirmed as something the business actually wants | — |
 | 18 | Which of CarChief's old website addresses need to keep working after the new Public App launches? | Old links and search results could lead to broken pages if this list is missing | PUB-24 |
+| 19 | Are the negotiation and reservation 48-hour timers the same or separate, and what happens when either expires? | A vehicle or negotiation could be released at the wrong time | WF-06, WF-07, RULE-05 |
+| 20 | What is the authoritative source for vehicle, price and publication data: CarChief, VBMS or Oracle NetSuite? | Conflicting records could overwrite one another | WF-01 to WF-04, SALES-20 |
+| 21 | Which countries may see price-unready stock, and does a price request create a lead, negotiation or another enquiry type? | Customers could see unavailable or incorrect commercial information | WF-03, WF-04 |
+| 22 | What is the 72-hour PI payment expiry and does the vehicle remain held during it? | Reservations and invoices could remain stuck or be released incorrectly | WF-08 |
+| 23 | Who may approve Ship OK and document release, and how are ERP/IBQ rejections returned to CarChief? | Unauthorized shipment or document release could occur | WF-11, WF-12, WF-14 |
+| 24 | Does the second payment follow Ship OK, and how are due balance, invoice status and allocation represented? | Finance and customer balances could disagree | WF-09, WF-10 |
+| 25 | Are bank verification, notifications, WhatsApp support and ERP checkpoints manual for MVP or integration scope? | UI could falsely claim external work completed | WF-05, WF-09, WF-11, WF-14 |
 
 ---
 

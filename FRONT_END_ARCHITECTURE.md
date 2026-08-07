@@ -152,7 +152,30 @@ flowchart TB
 
 ---
 
-## 4. The design pattern
+## 4. BA workflow ownership and integration boundaries
+
+The BA workflow baseline is documented in [`docs/CarChief-BA-Workflow-Coverage-Matrix.md`](docs/CarChief-BA-Workflow-Coverage-Matrix.md). The frontend applications display authoritative state and submit typed commands; they do not decide whether a transition is valid.
+
+### Ownership
+
+- The mock API models only approved workflow behavior needed by delivered screens.
+- The future ASP.NET Core BFF owns authorization, state transitions, timers, calculations, idempotency and multi-record transactions.
+- VBMS, Oracle NetSuite, auction websites, bank statements, email, WhatsApp and ERP/IBQ remain manual or external boundaries until separately approved.
+- A UI label, notification intent or recorded checkpoint must never claim that an external operation completed without an integration response or an explicitly recorded manual confirmation.
+
+### Provisional domain boundaries
+
+The service layer may grow incrementally across these domains: stock ingestion, publication/visibility, pricing readiness, enquiries and screening, negotiation, reservations, proforma invoices, TT/payment review, allocations, Ship OK, document release, documents and external-integration checkpoints. Final payloads remain open until the BA and AutoPulse/BFF teams approve the fields.
+
+### Server-authoritative transitions
+
+The API boundary must enforce active/inactive publication, under-negotiation, PI-created, payment held/approved/rejected, Ship OK approval, document-release approval, vehicle allocation and customer document visibility. The browser may hide unavailable actions but is never the security or workflow authority.
+
+### State separation
+
+Operational lifecycle, commercial sale state, publication state, price readiness and country availability must not be collapsed into a single vehicle status. The existing 48-hour reservation rule and the BA negotiation timer remain separate concepts until the business resolves that decision. The 72-hour PI payment timer is a separate workflow stage.
+
+### 4.1 The design pattern
 
 **Feature-first (vertical slice) organisation with a thin service layer.**
 

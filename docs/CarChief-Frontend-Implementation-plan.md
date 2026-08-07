@@ -26,6 +26,29 @@ The target will be a clean React/TypeScript implementation with:
 
 Delivery is organized by application rather than by a cross-application workflow. The Public Website is completed and accepted first, the Customer Application second, the Salesperson Application third, and full SEO plus final release readiness last. Components may be developed in parallel within the active application, but the next application does not become the primary delivery stream until the previous application passes its acceptance phase.
 
+## 1.1 BA workflow reconciliation
+
+The BA workflow in [`docs/CarChief-BA-Workflow-Coverage-Matrix.md`](./CarChief-BA-Workflow-Coverage-Matrix.md) is now the cross-application acceptance baseline. It adds upstream stock preparation, price readiness, support screening, negotiation, a separate PI/payment timer, payment hold and re-submission, Ship OK, ERP/IBQ checkpoints and document release to the existing application scope.
+
+```mermaid
+flowchart LR
+    A["Purchase order / bidding"] --> B["VBMS and NetSuite<br/>manual or future integration"]
+    B --> C["ERP CSV and auction media<br/>uploaded to CarChief"]
+    C --> D["Price ready and<br/>country visibility approved"]
+    D --> E["Customer enquiry or<br/>price request"]
+    E --> F["Support screening and<br/>salesperson assignment"]
+    F --> G["Negotiation<br/>48-hour decision gate"]
+    G --> H["Customer confirms → PI<br/>72-hour payment gate"]
+    H --> I["TT proof → Finance hold,<br/>resubmit or approve"]
+    I --> J["Allocate payment →<br/>Ship OK approval"]
+    J --> K["ERP/IBQ checkpoint →<br/>document release"]
+    K --> L["Documents uploaded and<br/>visible to customer"]
+```
+
+**Implementation meaning:** blue-labelled application actions are implemented through the typed API boundary; clear/manual and green/external steps are represented as explicit checkpoints or integration intent until approved. The supplied JSON does not encode colours, so the BA legend must be confirmed before ownership is treated as final.
+
+The existing estimate is not carried forward automatically. After the new workflow decisions are resolved, Salesperson and cross-application acceptance phases must be re-estimated for the additional timers, approvals, payment exceptions and document-release path.
+
 ## 2. Evidence and estimation conventions
 
 ### 2.1 Evidence labels
@@ -588,6 +611,10 @@ Runtime additions: twelve FAQ categories, customer testimonial submission, and a
 
 **Testing and acceptance:** Critical public journeys pass; no critical accessibility/security defects; approved fixtures hand off to Customer and Salesperson applications.
 
+### 5.9 BA workflow corrections to Public Website
+
+The public projection must carry stable visibility data rather than exposing an undifferentiated vehicle status. Add component coverage for active/deactive publication, country eligibility, price-unready/request-price enquiry, source/reference metadata, categorized auction media and enquiry routing metadata. VBMS, NetSuite, WhatsApp and auction-site automation remain excluded integrations; the public app consumes approved CarChief projections only.
+
 ## 6. Delivery 2 — Customer Application
 
 **Scheduled delivery:** 18 working days ≈ 3.6 weeks
@@ -848,6 +875,10 @@ Runtime additions: the profile separates fixed identity fields from editable con
 **Supervisor demo:** Login → dashboard → showroom/my vehicles → PI/invoice → TT → shipment/document → notification/profile.
 
 **Testing and acceptance:** Every customer page has business approval; isolation tests pass; no unresolved critical source-confidence issue remains hidden.
+
+### 6.10 BA workflow additions to Customer Application
+
+Add customer-facing status and notification coverage for PI-created/under-negotiation-with-PI, the approved 72-hour payment deadline, held or re-submission-required TT evidence, payment allocation and remaining balance, Ship OK, document-release pending/approved, and documents becoming visible only after approved upload. All views remain customer-isolated and must use the same authoritative balance and status projections.
 
 ## 7. Delivery 3 — Salesperson Application
 
@@ -1218,6 +1249,21 @@ Runtime finding: branding in the demonstration covers the header logo only, not 
 
 **Testing and acceptance:** Critical role/customer journeys pass; finance examples reconcile; no critical security/accessibility defects; unresolved integrations are labelled and excluded.
 
+### 7.13 BA workflow additions to Salesperson Application
+
+The Salesperson Application must also cover the operational path that the original plan only described at a high level:
+
+- Support-screened lead intake, country assignment and price-request enquiries.
+- Separate negotiation state and 48-hour timer, customer confirmation/cancellation and expiry handling.
+- PI-created state and separate 72-hour payment timer.
+- TT creation, proof upload, Finance hold/re-submit/approve/reject and notification intent.
+- Payment allocation, remaining balance and second/due payment behavior.
+- Ship OK request/approval, ERP/IBQ manual checkpoint recording and rejection paths.
+- Document-release request/approval, upload and customer-visibility transition.
+- Publication, price-readiness, country visibility, CSV source/reference and image-source controls.
+
+These are mock/API operations only until the BFF and external-system responsibilities are approved. The frontend must never claim that VBMS, NetSuite, bank verification, ERP/IBQ, email or WhatsApp completed an action without an integration result or recorded manual checkpoint.
+
 ## 8. Delivery 4 — SEO Completion and Release Readiness
 
 **Scheduled delivery:** 4.5 working days ≈ 1 week
@@ -1332,6 +1378,10 @@ Every day in this table follows the fixed pattern of five hours building with an
 The allowance is not a separate feature phase. It protects the management commitment against customer-source confirmation, the eighteen `UNABLE_TO_VERIFY_WITH_POC` business answers, cross-application corrections, finance and security review, and accepted differences between the demonstration and the business's real rules.
 
 ## 10. BFF domains and migration
+
+### BA workflow mock scenario
+
+The linked deterministic fixture scenario must include imported-but-unpublished stock, price-unready country stock, price request, screened/assigned lead, negotiation timer, customer confirmation, PI/payment timer, TT hold and re-submission, approval/allocation, Ship OK, ERP checkpoint, document release and approved customer document visibility. Every command is permission-checked, transition-validated, idempotent, resettable and covered by conflict/failure tests. External actions remain explicit intent or manual checkpoint records.
 
 ### 10.1 Provisional frontend service domains
 
@@ -1462,6 +1512,10 @@ These are capability groups, not approved REST endpoints or payloads.
 | Delivery 2 | UV-13 password recovery and multi-factor sign-in, UV-14 document upload, UV-15 email and print delivery |
 | Delivery 3 | UV-1 currency conversion, UV-2 rate history, UV-5 import duty, UV-6 spreadsheet import, UV-7 image management, UV-8 quotation conversion, UV-9 registers, UV-10 and UV-11 allocations, UV-12 reservation expiry, UV-16 global search, UV-17 bulk payment entry |
 | Delivery 4 | UV-18 offline and installable-app support |
+
+### BA workflow decisions that now gate implementation
+
+Before Customer and Salesperson task generation, resolve the colour ownership classification, authoritative inventory/price source, publication and country visibility semantics, negotiation versus reservation timer relationship, 72-hour PI window, payment hold/re-submission policy, Ship OK/document-release approvers, ERP/IBQ responsibilities, second-payment behavior and manual versus integrated boundaries. The full list is recorded in `tasks/DECISION_REGISTER.md` as `DEC-WF-*` entries.
 
 Then, in order:
 

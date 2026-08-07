@@ -2,6 +2,8 @@
 
 Scope: Phase 0 plus Delivery 01 Public Website only. The immutable delivery sequence is infrastructure → phases 1.1 through 1.8. Customer, Salesperson and full SEO tasks are intentionally absent.
 
+The BA workflow reconciliation backlog is tracked separately under `tasks/workflow/`. It becomes eligible only after the listed decision gates are resolved and the Customer/Salesperson application task sets are generated from the approved workflow contract.
+
 ## Branch sequence
 
 After the task system and Phase 0 records are committed on `planning`, create `delivery/01-public` from `planning` once. Phase 0 itself is branch-neutral. Public phases use `feat_delivery01_phase_01` through `feat_delivery01_phase_08`. Each phase starts from `delivery/01-public` only after the previous phase PR is merged and `git pull --ff-only origin delivery/01-public` succeeds. Parallel child branches start from the phase branch and merge back only after independent approval.
@@ -100,3 +102,16 @@ The implementation tasks total **19.5 delivery days**: Phase 1.1 8.5 days, Phase
 7. Verify the working tree is clean, then create `feat_delivery01_phase_<next-NN>` from the updated delivery branch.
 
 If a dependency, decision or baseline fails, record `BLOCKED` and **No implementation started**. Do not work around the graph by copying unfinished code.
+
+## BA workflow follow-on order
+
+After the workflow decisions in `tasks/DECISION_REGISTER.md` are resolved, execute the supplemental tasks in this order:
+
+1. `WF-T001` — workflow contract and status vocabulary.
+2. `WF-T006` and `WF-T007` may run in parallel after `WF-T001` because import/publication fixtures and external-boundary records have separate ownership.
+3. `WF-T003` and `WF-T004` may run in parallel after `WF-T001` where negotiation/PI and finance paths have non-overlapping files.
+4. `WF-T002` starts after `WF-T001` and the Customer foundation; it consumes the approved projections from the workflow contract.
+5. `WF-T005` starts after `WF-T001` and the Salesperson/Customer foundations.
+6. `WF-T008` is the final golden-journey gate after all seven preceding tasks are COMPLETE.
+
+These tasks do not authorize live VBMS, NetSuite, auction, bank, email, WhatsApp or ERP integrations. Those require separate management approval and later integration tasks.

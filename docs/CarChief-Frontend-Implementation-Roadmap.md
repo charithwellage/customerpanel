@@ -44,6 +44,24 @@ Three things have been added to this plan since the previous version:
 
 The revised **18–19-week** management range replaces the earlier 21–22 weeks. It is lower because each delivery is built by an AI agent rather than by hand, and higher than a naive halving because the mock service and theming are new scope, and because daily testing and review remain human work.
 
+## 1.1 What the BA workflow adds
+
+The BA diagram shows that the customer journey starts before a vehicle appears in the showroom and continues after payment. It includes stock imports, country-specific pricing, support screening, negotiation, a separate PI payment window, finance exceptions, Ship OK and document release.
+
+```mermaid
+flowchart LR
+    A["Procurement and bidding"] --> B["Import stock and images"]
+    B --> C["Price ready / country visibility"]
+    C --> D["Enquiry → support screening"]
+    D --> E["Negotiation → customer confirmation"]
+    E --> F["PI → 72-hour payment window"]
+    F --> G["TT review → allocation"]
+    G --> H["Ship OK → document release"]
+    H --> I["Customer receives documents"]
+```
+
+Blue items represent CarChief screens and commands. Clear items are manual operations and green items are future third-party integrations, according to the BA legend. The supplied JSON contains no colour metadata, so ambiguous ownership must be confirmed before implementation. The existing application order remains Public Website → Customer Application → Salesperson Application → SEO/release.
+
 ## 2. What the re-audit confirmed
 
 ### Evidence levels
@@ -418,6 +436,10 @@ flowchart LR
 
 **Plain-language explanation:** The applications are delivered separately, but their demonstration data remains connected. An enquiry created in the Public Website becomes the customer, reservation, invoice, payment and shipment story used by the later applications.
 
+### 7.1 Additional visible business outcomes
+
+The Customer Application must show PI/payment deadlines, held or re-submission-required payments, Ship OK and document-release status. The Salesperson Application must show support-screened leads, country assignment, negotiation and PI timers, TT review exceptions, payment allocation, Ship OK approval and document-release approval. These additions require a re-estimate after the management decisions below; the current 18–19-week range is not a guaranteed final total.
+
 ## 9. Delivery 4 — SEO Completion and Release Readiness
 
 **Scheduled delivery:** 4.5 working days ≈ **1 week**
@@ -568,6 +590,13 @@ flowchart LR
 9. Decide launch integrations and fund them separately.
 10. Provide final domains, public claims and legacy PHP URLs.
 11. Assign content, master-data, finance, security, UAT and release owners.
+12. Confirm the BA diagram colour ownership for ambiguous nodes; the JSON export does not preserve colours.
+13. Confirm whether negotiation and reservation timers are the same, and define expiry outcomes.
+14. Confirm the 72-hour PI payment window and vehicle-hold behavior.
+15. Confirm Active/Deactive/Now On Sale meanings, country visibility and price-request routing.
+16. Confirm whether CSV, auction media, bank checks, ERP/IBQ, email and WhatsApp remain manual for MVP.
+17. Confirm Ship OK and document-release approvers, rejection paths and customer-visible status names.
+18. Confirm second-payment behavior and document-release timing.
 
 ### Principal risks and controls
 
@@ -582,6 +611,8 @@ flowchart LR
 | Documents, KYC or proofs are mishandled | Approve storage, scanning, access, privacy, retention and audit policies |
 | AI-agent output exceeds review capacity | Use bounded tasks, mandatory human review and automated gates |
 | App-first delivery delays end-to-end discovery | Maintain linked fixtures and run a connected demo at each application acceptance |
+| Upstream and approval workflow is under-specified | Resolve the BA workflow decision gate before generating Customer/Salesperson tasks and re-estimate |
+| Manual or external steps are mistaken for automation | Label them as checkpoints/integration intent and never claim completion without evidence |
 
 ## 13. Exclusions
 

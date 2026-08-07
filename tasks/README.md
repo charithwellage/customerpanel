@@ -2,6 +2,8 @@
 
 This directory coordinates read-only infrastructure verification and Delivery 01, the Public Website. It deliberately contains no Customer Application, Salesperson Application or full-SEO implementation tasks. Those are generated only after Public Website acceptance.
 
+The BA workflow reconciliation backlog is in `tasks/workflow/`. It is decision-gated and supplements the future Customer/Salesperson task sets; it must not be started while the workflow decisions remain open.
+
 ## Authority order
 
 1. `REQUIREMENT.md` — business behavior.
