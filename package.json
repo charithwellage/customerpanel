@@ -13,6 +13,7 @@
     "typecheck": "pnpm --recursive run typecheck",
     "build": "pnpm --recursive run build",
     "api:generate": "node openapi/generate.mjs",
+    "mock:reset": "node apps/mock-api/scripts/reset.mjs",
     "test:boundaries": "node scripts/check-boundaries.mjs",
     "test": "vitest run",
     "test:contract": "vitest run packages/api-client",

@@ -5,13 +5,17 @@
   "scripts": {
     "lint": "echo \"mock-api lint ok\"",
     "typecheck": "tsc --noEmit",
-    "build": "tsc"
+    "build": "tsc",
+    "test": "vitest run"
   },
   "dependencies": {
-    "@carchief/domain": "workspace:*"
+    "@carchief/domain": "workspace:*",
+    "express": "^4.21.2"
   },
   "devDependencies": {
     "@carchief/config": "workspace:*",
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.10.0",
     "typescript": "^5.7.2"
   }
 }
