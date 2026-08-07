@@ -205,6 +205,9 @@ function validate({ quiet = false } = {}) {
     }
     for (const dependency of task.dependencies) {
       if (!tasks.has(dependency)) errors.push(`${task.task_id}: missing dependency ${dependency}`);
+      else if (tasks.get(dependency).execution_order >= task.execution_order) {
+        errors.push(`${task.task_id}: dependency ${dependency} must have an earlier execution_order`);
+      }
     }
     for (const gate of task.decision_gates) {
       if (!decisions.has(gate)) errors.push(`${task.task_id}: unknown decision gate ${gate}`);
@@ -241,18 +244,34 @@ function validate({ quiet = false } = {}) {
   return { tasks, decisions };
 }
 
-function prerequisiteBlockers(task, decisions) {
+function sequenceBlockers(task, tasks) {
+  const prior = [...tasks.values()]
+    .filter((candidate) => candidate.execution_order < task.execution_order)
+    .sort((a, b) => a.execution_order - b.execution_order);
+  const unfinished = prior.filter((candidate) => !['COMPLETE', 'SUPERSEDED'].includes(rawStatus(candidate.task_id)));
+  if (!unfinished.length) return [];
+
+  const earliest = unfinished[0];
+  const sameGroup = task.parallel_group && earliest.parallel_group === task.parallel_group;
+  if (sameGroup && unfinished.every((candidate) => candidate.parallel_group === task.parallel_group
+    && ['IN_PROGRESS', 'IN_REVIEW'].includes(rawStatus(candidate.task_id)))) {
+    return [];
+  }
+
+  return [`execution frontier is ${earliest.task_id} (${rawStatus(earliest.task_id)}); complete it before starting ${task.task_id}`];
+}
+
+function prerequisiteBlockers(task, tasks, decisions, { includeSequence = true } = {}) {
   const blockers = [];
+  const dirty = workingChanges();
+  if (dirty.length) blockers.push(`uncommitted changes detected: ${dirty.join(', ')}. Commit the changes first, then rerun this task`);
   for (const dependency of task.dependencies) {
     if (rawStatus(dependency) !== 'COMPLETE') blockers.push(`dependency ${dependency} is ${rawStatus(dependency)}, not COMPLETE`);
   }
   for (const gate of task.decision_gates) {
     if (decisions.get(gate) !== 'RESOLVED') blockers.push(`decision ${gate} is ${decisions.get(gate) || 'MISSING'}, not RESOLVED`);
   }
-  const dirty = workingChanges();
-  if (dirty.length) {
-    blockers.push(`uncommitted changes detected: ${dirty.join(', ')}. Commit the changes first, then rerun this task`);
-  }
+  if (includeSequence) blockers.push(...sequenceBlockers(task, tasks));
   return blockers;
 }
 
@@ -260,7 +279,7 @@ function precheck(id) {
   const { tasks, decisions } = validate({ quiet: true });
   const task = tasks.get(id);
   if (!task) die(`unknown task ${id}`);
-  const blockers = prerequisiteBlockers(task, decisions);
+  const blockers = prerequisiteBlockers(task, tasks, decisions);
   if (!task.task_id.startsWith('INF-') && !localBranchExists('delivery/01-public')) {
     blockers.push("required local delivery branch 'delivery/01-public' does not exist");
   }
@@ -272,7 +291,7 @@ function check(id) {
   const { tasks, decisions } = validate({ quiet: true });
   const task = tasks.get(id);
   if (!task) die(`unknown task ${id}`);
-  const blockers = prerequisiteBlockers(task, decisions);
+  const blockers = prerequisiteBlockers(task, tasks, decisions);
   const branch = currentBranch();
   if (!task.task_id.startsWith('INF-') && branch !== task.phase_branch && branch !== task.task_branch) {
     blockers.push(`current branch '${branch || '(detached)'}' is neither '${task.phase_branch}' nor '${task.task_branch}'`);
@@ -316,8 +335,71 @@ function option(name) {
   return index >= 0 ? process.argv[index + 1] : undefined;
 }
 
+function frontier(tasks) {
+  return [...tasks.values()]
+    .filter((task) => !['COMPLETE', 'SUPERSEDED'].includes(rawStatus(task.task_id)))
+    .sort((a, b) => a.execution_order - b.execution_order)[0] || null;
+}
+
+function printSequence(id) {
+  const { tasks, decisions } = validate({ quiet: true });
+  const task = tasks.get(id);
+  if (!task) die(`unknown task ${id}`);
+  const blockers = [];
+  for (const dependency of task.dependencies) {
+    if (rawStatus(dependency) !== 'COMPLETE') blockers.push(`dependency ${dependency} is ${rawStatus(dependency)}, not COMPLETE`);
+  }
+  for (const gate of task.decision_gates) {
+    if (decisions.get(gate) !== 'RESOLVED') blockers.push(`decision ${gate} is ${decisions.get(gate) || 'MISSING'}, not RESOLVED`);
+  }
+  blockers.push(...sequenceBlockers(task, tasks));
+  const activeParallel = [...tasks.values()]
+    .filter((candidate) => candidate.task_id !== task.task_id
+      && candidate.parallel_group === task.parallel_group
+      && ['IN_PROGRESS', 'IN_REVIEW'].includes(rawStatus(candidate.task_id)))
+    .map((candidate) => candidate.task_id);
+  console.log(`Task: ${task.task_id}`);
+  console.log(`Status: ${rawStatus(task.task_id)}`);
+  console.log(`Execution order: ${task.execution_order}`);
+  console.log(`Parallel group: ${task.parallel_group}`);
+  console.log(`Active same-group tasks: ${activeParallel.join(', ') || 'None'}`);
+  console.log(`Result: ${blockers.length ? 'BLOCKED' : 'ELIGIBLE'}`);
+  if (blockers.length) blockers.forEach((blocker) => console.log(`- ${blocker}`));
+}
+
+function printNext() {
+  const { tasks, decisions } = validate({ quiet: true });
+  const task = frontier(tasks);
+  if (!task) {
+    console.log('All tasks are COMPLETE or SUPERSEDED.');
+    return;
+  }
+  console.log(`Execution frontier: ${task.task_id} — ${task.title}`);
+  console.log(`Status: ${rawStatus(task.task_id)}`);
+  const candidateBlockers = sequenceBlockers(task, tasks);
+  const currentStatus = rawStatus(task.task_id);
+  const sequentialResult = ['IN_PROGRESS', 'IN_REVIEW'].includes(currentStatus)
+    ? 'WAITING_FOR_COMPLETE'
+    : (candidateBlockers.length ? 'BLOCKED' : 'ELIGIBLE');
+  console.log(`Sequential result: ${sequentialResult}`);
+  const parallel = [...tasks.values()]
+    .filter((candidate) => candidate.execution_order > task.execution_order
+      && candidate.parallel_group === task.parallel_group
+      && ['NOT_STARTED', 'READY', 'BLOCKED'].includes(rawStatus(candidate.task_id)))
+    .filter((candidate) => sequenceBlockers(candidate, tasks).length === 0);
+  console.log(`Optional same-group parallel tasks: ${parallel.map((candidate) => candidate.task_id).join(', ') || 'None'}`);
+  if (candidateBlockers.length) candidateBlockers.forEach((blocker) => console.log(`- ${blocker}`));
+  if (task.decision_gates.some((gate) => decisions.get(gate) !== 'RESOLVED')) console.log('- Decision gate is unresolved.');
+}
+
 function render() {
   const { tasks, decisions } = validate({ quiet: true });
+  const currentFrontier = frontier(tasks);
+  const frontierLabel = currentFrontier ? `${currentFrontier.task_id} — ${currentFrontier.title} (${rawStatus(currentFrontier.task_id)})` : 'All tasks are COMPLETE or SUPERSEDED';
+  const optionalParallel = currentFrontier ? [...tasks.values()]
+    .filter((candidate) => candidate.execution_order > currentFrontier.execution_order && candidate.parallel_group === currentFrontier.parallel_group && ['NOT_STARTED', 'READY', 'BLOCKED'].includes(rawStatus(candidate.task_id)))
+    .filter((candidate) => sequenceBlockers(candidate, tasks).length === 0)
+    .map((candidate) => candidate.task_id) : [];
   const ordered = [...tasks.values()].sort((a, b) => a.execution_order - b.execution_order || a.task_id.localeCompare(b.task_id));
   const rows = ordered.map((task) => {
     const log = loadLog(task.task_id);
@@ -326,14 +408,19 @@ function render() {
     return `| [${task.task_id}](${link}) | ${task.title} | ${displayStatus(task, tasks, decisions)} | ${log?.owner || '—'} | ${phaseBranch} | ${task.dependencies.join(', ') || 'None'} | ${task.parallel_group} | ${log?.updated_at || '—'} |`;
   });
   const text = `# CarChief Task Execution Tracker\n\n> Generated by \`node tasks/scripts/taskctl.mjs render\`. Do not edit the task rows manually.\n\n## Status meanings\n\n- \`NOT_STARTED\`: prerequisites or decisions are incomplete.\n- \`READY\`: dependencies and decision gates are complete.\n- \`IN_PROGRESS\`: claimed by an implementer.\n- \`IN_REVIEW\`: implementation and automated tests await independent review.\n- \`COMPLETE\`: independently approved.\n- \`BLOCKED\`: work stopped and the execution log names the blocker.\n- \`SUPERSEDED\`: intentionally replaced by another approved task.\n\n## Tracker\n\n| ID | Task | Status | Owner | Phase branch | Dependencies | Parallel group | Last update |\n|---|---|---|---|---|---|---|---|\n${rows.join('\n')}\n\n## Continuation rule\n\nThe next developer starts with this tracker, then reads the latest phase summary and the execution log for the task being continued. A task may start only after the clean-tree \`taskctl precheck\`, branch preparation and final \`taskctl check\` succeed.\n`;
-  writeFileSync(trackerPath, text);
+  const frontierSection = `\n## Current execution frontier\n\n- Sequential next: ${frontierLabel}\n- Optional same-group parallel tasks: ${optionalParallel.join(', ') || 'None'}\n- Downstream work waits for COMPLETE or SUPERSEDED; IN_REVIEW is not complete.\n- Later tasks cannot be bypassed; use taskctl sequence TASK-ID for the exact blocker.\n\n`;
+  const enrichedText = text.replace('## Continuation rule', `${frontierSection}## Continuation rule`)
+    .replace('A task may start only after', 'Sequential execution is the default; optional parallel work is limited to an approved same-group task after the group frontier is active. Blocked tasks cannot be bypassed. A task may start only after');
+  writeFileSync(trackerPath, enrichedText);
   console.log(`Rendered ${trackerPath}`);
 }
 
 const [command, id] = process.argv.slice(2);
-if (!command) die('usage: taskctl.mjs <validate|precheck|check|start|block|submit|approve|render> [TASK-ID]');
+if (!command) die('usage: taskctl.mjs <validate|next|sequence|precheck|check|start|block|submit|approve|render> [TASK-ID]');
 
 if (command === 'validate') validate();
+else if (command === 'next') printNext();
+else if (command === 'sequence') printSequence(id);
 else if (command === 'precheck') precheck(id);
 else if (command === 'check') check(id);
 else if (command === 'render') render();

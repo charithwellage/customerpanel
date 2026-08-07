@@ -6,6 +6,8 @@ The live production-site evidence is [`docs/CarChief-Legacy-Public-Website-Audit
 
 The BA workflow reconciliation backlog is tracked separately under `tasks/workflow/`. It becomes eligible only after the listed decision gates are resolved and the Customer/Salesperson application task sets are generated from the approved workflow contract.
 
+Execution is sequential by default. Use `node tasks/scripts/taskctl.mjs next` to identify the frontier and `node tasks/scripts/taskctl.mjs sequence <TASK-ID>` to explain eligibility. A later task is blocked when an earlier task is not `COMPLETE` or `SUPERSEDED`. Optional parallel work is permitted only within the same named `parallel_group`, after the first task in that group is `IN_PROGRESS` or `IN_REVIEW`; future related tasks do not become prerequisites.
+
 ## Branch sequence
 
 After the task system and Phase 0 records are committed on `planning`, create `delivery/01-public` from `planning` once. Phase 0 itself is branch-neutral. Public phases use `feat_delivery01_phase_01` through `feat_delivery01_phase_08`. Each phase starts from `delivery/01-public` only after the previous phase PR is merged and `git pull --ff-only origin delivery/01-public` succeeds. Parallel child branches start from the phase branch and merge back only after independent approval.
@@ -32,7 +34,7 @@ Any output is a blocker. Ask the user to commit the changes first, report `No im
 | 1.7 — Public information and content | `feat_delivery01_phase_07` | [D01-P07-T001](delivery_01/phase_07/D01-P07-T001.md), [D01-P07-T002](delivery_01/phase_07/D01-P07-T002.md), [D01-P07-T003](delivery_01/phase_07/D01-P07-T003.md), [D01-P07-T004](delivery_01/phase_07/D01-P07-T004.md) | P07-A → P07-B → P07-C |
 | 1.8 — Public SEO, acceptance and release readiness | `feat_delivery01_phase_08` | [D01-P08-T001](delivery_01/phase_08/D01-P08-T001.md), [D01-P08-T002](delivery_01/phase_08/D01-P08-T002.md), [D01-P08-T003](delivery_01/phase_08/D01-P08-T003.md), [D01-P08-T004](delivery_01/phase_08/D01-P08-T004.md) | P08-A → P08-B |
 
-Parallel group labels that match may run together only when their dependencies are COMPLETE and developers confirm non-overlapping owned paths. A later group never starts merely because an earlier task is IN_REVIEW.
+Parallel group labels that match may run together only when their dependencies are COMPLETE, the execution frontier permits the group, and developers confirm non-overlapping owned paths. A later group never starts merely because an earlier task is IN_REVIEW.
 
 ## Verification policy
 

@@ -18,7 +18,7 @@ The BA workflow reconciliation backlog is in `tasks/workflow/`. It is decision-g
 ## Starting or continuing work
 
 1. Read `TASK_EXECUTION_TRACKER.md` and the latest applicable phase summary.
-2. Select a `READY` task from `EXECUTION_ORDER.md`; for parallel work, coordinate the named lane and owned paths.
+2. Run `node tasks/scripts/taskctl.mjs next`, then select the execution-frontier task from `EXECUTION_ORDER.md`. Work is sequential by default; an optional same-`parallel_group` task is available only after the first task in that group is active.
 3. Read that single task file and only its named evidence/context.
 4. Before doing anything else, run `git status --porcelain=v1 --untracked-files=all`. If it prints anything, stop and ask the user to commit the changes first. Do not change branches or task state.
 5. Run the read-only `node tasks/scripts/taskctl.mjs precheck <ID>`.
@@ -64,11 +64,17 @@ Publishing the delivery branch is an explicitly authorized human action. If `del
 
 `node tasks/scripts/taskctl.mjs validate` validates 42 task/gate files, metadata, decisions and the dependency DAG.
 
-`node tasks/scripts/taskctl.mjs precheck <ID>` performs a read-only clean-tree, prerequisite, decision and delivery-branch check before any branch operation.
+`node tasks/scripts/taskctl.mjs next` reports the current execution frontier and permitted same-group parallel tasks.
+
+`node tasks/scripts/taskctl.mjs sequence <ID>` explains whether a task is sequentially eligible or blocked by an earlier tracker task.
+
+`node tasks/scripts/taskctl.mjs precheck <ID>` performs a read-only clean-tree, prerequisite, decision, execution-frontier and delivery-branch check before any branch operation. It blocks skipped tasks and reports the exact earlier task that must be completed.
 
 `node tasks/scripts/taskctl.mjs check <ID>` repeats the clean-tree/prerequisite checks and validates the current phase or child branch.
 
 `node tasks/scripts/taskctl.mjs start <ID> --owner "Name"`, `block <ID> --reason "Reason"`, `submit <ID>`, `approve <ID> --reviewer "Name"`, and `render` maintain durable handoff state.
+
+Run `node --test tasks/scripts/taskctl-sequence.test.mjs` to verify the current frontier report, skipped-task blocker and dependency/cycle guards.
 
 ## Branches and review
 
