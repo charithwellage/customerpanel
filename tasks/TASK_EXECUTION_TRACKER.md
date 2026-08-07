@@ -18,7 +18,7 @@
 |---|---|---|---|---|---|---|---|
 | [INF-P00-T001](infra_check/INF-P00-T001.md) | Verify governing documents, evidence inventory, repository integrity and source boundaries | COMPLETE | Antigravity | Branch-neutral | None | INF-A | 2026-08-07T08:29:20.983Z |
 | [INF-P00-T002](infra_check/INF-P00-T002.md) | Verify developer tooling, ports and capacity | COMPLETE | Antigravity | Branch-neutral | None | INF-A | 2026-08-07T08:29:21.018Z |
-| [INF-P00-T003](infra_check/INF-P00-T003.md) | Verify compiled POC routes, reset and screenshots read-only | READY | — | Branch-neutral | INF-P00-T001, INF-P00-T002 | INF-B | — |
+| [INF-P00-T003](infra_check/INF-P00-T003.md) | Verify compiled POC routes, reset and screenshots read-only | IN_REVIEW | Antigravity | Branch-neutral | INF-P00-T001, INF-P00-T002 | INF-B | 2026-08-07T08:32:12.797Z |
 | [INF-P00-T004](infra_check/INF-P00-T004.md) | Verify target-workspace readiness, secrets and architecture prerequisites | READY | — | Branch-neutral | INF-P00-T001, INF-P00-T002 | INF-B | — |
 | [INF-P00-T005](infra_check/INF-P00-T005.md) | Produce Phase 0 readiness result | NOT_STARTED | — | Branch-neutral | INF-P00-T003, INF-P00-T004 | INF-C | — |
 | [D01-P01-T001](delivery_01/phase_01/D01-P01-T001.md) | Bootstrap the pnpm workspace, runtime pins and application/package skeletons | NOT_STARTED | — | `feat_delivery01_phase_01` | INF-P00-T005 | P01-A | — |
