@@ -10,7 +10,7 @@ Execution is sequential by default. Use `node tasks/scripts/taskctl.mjs next` to
 
 ## Branch sequence
 
-After the task system and Phase 0 records are committed on `planning`, create `delivery/01-public` from `planning` once. Phase 0 itself is branch-neutral. Public phases use `feat_delivery01_phase_01` through `feat_delivery01_phase_08`. Each phase starts from `delivery/01-public` only after the previous phase PR is merged and `git pull --ff-only origin delivery/01-public` succeeds. Every task works directly on its phase branch; no task-specific child branches are created. Parallel groups are coordination lanes on the same phase branch and require non-overlapping ownership and review.
+After the task system and Phase 0 records are committed on `planning`, create `delivery_01_public_website` from `planning` once. Phase 0 itself is branch-neutral. Public phases use `feat_delivery01_phase_01` through `feat_delivery01_phase_08`. Each phase starts from `delivery_01_public_website` only after the previous phase PR is merged and `git pull --ff-only origin delivery_01_public_website` succeeds. Every task works directly on its phase branch; no task-specific child branches are created. Parallel groups are coordination lanes on the same phase branch and require non-overlapping ownership and review.
 
 Before any task or Git branch command, run:
 
@@ -101,8 +101,8 @@ The implementation tasks total **25.5 delivery days** before allowance: Phase 1.
 2. Review and commit approved task work directly on the matching `feat_delivery01_phase_NN` branch only when authorized.
 3. Regenerate `TASK_EXECUTION_TRACKER.md`, run phase-wide quality commands, and complete the final acceptance task and phase summary.
 4. Commit all remaining phase changes and verify the phase branch is clean.
-5. Push the phase branch and create a PR targeting `delivery/01-public` when remote operations are authorized. Do not merge it automatically.
-6. After the PR is merged, run `git switch delivery/01-public` and `git pull --ff-only origin delivery/01-public`.
+5. Push the phase branch and create a PR targeting `delivery_01_public_website` when remote operations are authorized. Do not merge it automatically.
+6. After the PR is merged, run `git switch delivery_01_public_website` and `git pull --ff-only origin delivery_01_public_website`.
 7. Verify the working tree is clean, then create `feat_delivery01_phase_<next-NN>` from the updated delivery branch.
 
 If a dependency, decision or baseline fails, record `BLOCKED` and **No implementation started**. Do not work around the graph by copying unfinished code.

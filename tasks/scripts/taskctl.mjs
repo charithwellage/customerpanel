@@ -183,11 +183,11 @@ function validate({ quiet = false } = {}) {
       if (!preflightSection.includes(`refs/heads/${task.phase_branch}`)) errors.push(`${task.task_id}: missing conditional phase-branch lookup`);
       if (!preflightSection.includes(`git switch -c ${task.phase_branch}`)) errors.push(`${task.task_id}: missing phase-branch creation command`);
       if (!preflightSection.includes('Do not create or switch to a task-specific child branch')) errors.push(`${task.task_id}: preflight must forbid task-specific child branches`);
-      if (!preflightSection.includes('git pull --ff-only origin delivery/01-public')) errors.push(`${task.task_id}: missing delivery-branch synchronization command`);
+      if (!preflightSection.includes('git pull --ff-only origin delivery_01_public_website')) errors.push(`${task.task_id}: missing delivery-branch synchronization command`);
     }
     if (phaseAcceptanceTasks.has(task.task_id)) {
       if (!body.includes('## Phase branch and PR handoff')) errors.push(`${task.task_id}: missing phase PR handoff`);
-      if (!body.includes('create a PR with base `delivery/01-public`')) errors.push(`${task.task_id}: missing delivery PR target`);
+      if (!body.includes('create a PR with base `delivery_01_public_website`')) errors.push(`${task.task_id}: missing delivery PR target`);
     }
     if (task.task_id.startsWith('D01-')) {
       const validationBody = body.match(/## Validation commands\n\n([\s\S]*?)(?=\n## )/)?.[1] || '';
@@ -278,8 +278,8 @@ function precheck(id) {
   const task = tasks.get(id);
   if (!task) die(`unknown task ${id}`);
   const blockers = prerequisiteBlockers(task, tasks, decisions);
-  if (!task.task_id.startsWith('INF-') && !localBranchExists('delivery/01-public')) {
-    blockers.push("required local delivery branch 'delivery/01-public' does not exist");
+  if (!task.task_id.startsWith('INF-') && !localBranchExists('delivery_01_public_website')) {
+    blockers.push("required local delivery branch 'delivery_01_public_website' does not exist");
   }
   if (blockers.length) die(`${id} is blocked before branch preparation:\n- ${blockers.join('\n- ')}\nNo implementation started.`);
   console.log(`${id} prerequisite and clean-tree check passed. Blockers: None.`);
