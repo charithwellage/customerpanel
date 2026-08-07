@@ -1,0 +1,19 @@
+{
+  "name": "carchief-monorepo",
+  "private": true,
+  "version": "1.0.0",
+  "description": "CarChief Frontend Rebuild Monorepo",
+  "packageManager": "pnpm@10.2.0",
+  "engines": {
+    "node": ">=22.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "scripts": {
+    "lint": "pnpm --recursive run lint",
+    "typecheck": "pnpm --recursive run typecheck",
+    "build": "pnpm --recursive run build"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  }
+}

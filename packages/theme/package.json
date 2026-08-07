@@ -1,0 +1,16 @@
+{
+  "name": "@carchief/theme",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "lint": "echo \"theme lint ok\"",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "@carchief/config": "workspace:*",
+    "typescript": "^5.7.2"
+  }
+}

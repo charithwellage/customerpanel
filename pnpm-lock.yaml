@@ -1,0 +1,255 @@
+lockfileVersion: '9.0'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+importers:
+
+  .:
+    devDependencies:
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+
+  apps/customer-app:
+    dependencies:
+      '@carchief/api-client':
+        specifier: workspace:*
+        version: link:../../packages/api-client
+      '@carchief/domain':
+        specifier: workspace:*
+        version: link:../../packages/domain
+      '@carchief/pwa':
+        specifier: workspace:*
+        version: link:../../packages/pwa
+      '@carchief/theme':
+        specifier: workspace:*
+        version: link:../../packages/theme
+      '@carchief/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
+      '@carchief/validation':
+        specifier: workspace:*
+        version: link:../../packages/validation
+      '@carchief/vehicle-detail':
+        specifier: workspace:*
+        version: link:../../packages/vehicle-detail
+      '@carchief/vehicle-search':
+        specifier: workspace:*
+        version: link:../../packages/vehicle-search
+    devDependencies:
+      '@carchief/config':
+        specifier: workspace:*
+        version: link:../../packages/config
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+
+  apps/mock-api:
+    dependencies:
+      '@carchief/domain':
+        specifier: workspace:*
+        version: link:../../packages/domain
+    devDependencies:
+      '@carchief/config':
+        specifier: workspace:*
+        version: link:../../packages/config
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+
+  apps/public-web:
+    dependencies:
+      '@carchief/api-client':
+        specifier: workspace:*
+        version: link:../../packages/api-client
+      '@carchief/domain':
+        specifier: workspace:*
+        version: link:../../packages/domain
+      '@carchief/pwa':
+        specifier: workspace:*
+        version: link:../../packages/pwa
+      '@carchief/theme':
+        specifier: workspace:*
+        version: link:../../packages/theme
+      '@carchief/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
+      '@carchief/validation':
+        specifier: workspace:*
+        version: link:../../packages/validation
+      '@carchief/vehicle-detail':
+        specifier: workspace:*
+        version: link:../../packages/vehicle-detail
+      '@carchief/vehicle-search':
+        specifier: workspace:*
+        version: link:../../packages/vehicle-search
+    devDependencies:
+      '@carchief/config':
+        specifier: workspace:*
+        version: link:../../packages/config
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+
+  apps/salesperson-app:
+    dependencies:
+      '@carchief/api-client':
+        specifier: workspace:*
+        version: link:../../packages/api-client
+      '@carchief/domain':
+        specifier: workspace:*
+        version: link:../../packages/domain
+      '@carchief/pwa':
+        specifier: workspace:*
+        version: link:../../packages/pwa
+      '@carchief/theme':
+        specifier: workspace:*
+        version: link:../../packages/theme
+      '@carchief/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
+      '@carchief/validation':
+        specifier: workspace:*
+        version: link:../../packages/validation
+      '@carchief/vehicle-detail':
+        specifier: workspace:*
+        version: link:../../packages/vehicle-detail
+      '@carchief/vehicle-search':
+        specifier: workspace:*
+        version: link:../../packages/vehicle-search
+    devDependencies:
+      '@carchief/config':
+        specifier: workspace:*
+        version: link:../../packages/config
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+
+  packages/api-client:
+    dependencies:
+      '@carchief/domain':
+        specifier: workspace:*
+        version: link:../domain
+    devDependencies:
+      '@carchief/config':
+        specifier: workspace:*
+        version: link:../config
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+
+  packages/config: {}
+
+  packages/domain:
+    devDependencies:
+      '@carchief/config':
+        specifier: workspace:*
+        version: link:../config
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+
+  packages/pwa:
+    devDependencies:
+      '@carchief/config':
+        specifier: workspace:*
+        version: link:../config
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+
+  packages/testing:
+    dependencies:
+      '@carchief/domain':
+        specifier: workspace:*
+        version: link:../domain
+    devDependencies:
+      '@carchief/config':
+        specifier: workspace:*
+        version: link:../config
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+
+  packages/theme:
+    devDependencies:
+      '@carchief/config':
+        specifier: workspace:*
+        version: link:../config
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+
+  packages/ui:
+    dependencies:
+      '@carchief/theme':
+        specifier: workspace:*
+        version: link:../theme
+    devDependencies:
+      '@carchief/config':
+        specifier: workspace:*
+        version: link:../config
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+
+  packages/validation:
+    dependencies:
+      '@carchief/domain':
+        specifier: workspace:*
+        version: link:../domain
+    devDependencies:
+      '@carchief/config':
+        specifier: workspace:*
+        version: link:../config
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+
+  packages/vehicle-detail:
+    dependencies:
+      '@carchief/domain':
+        specifier: workspace:*
+        version: link:../domain
+      '@carchief/ui':
+        specifier: workspace:*
+        version: link:../ui
+    devDependencies:
+      '@carchief/config':
+        specifier: workspace:*
+        version: link:../config
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+
+  packages/vehicle-search:
+    dependencies:
+      '@carchief/api-client':
+        specifier: workspace:*
+        version: link:../api-client
+      '@carchief/domain':
+        specifier: workspace:*
+        version: link:../domain
+      '@carchief/ui':
+        specifier: workspace:*
+        version: link:../ui
+    devDependencies:
+      '@carchief/config':
+        specifier: workspace:*
+        version: link:../config
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+
+packages:
+
+  typescript@5.9.3:
+    resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
+    engines: {node: '>=14.17'}
+    hasBin: true
+
+snapshots:
+
+  typescript@5.9.3: {}

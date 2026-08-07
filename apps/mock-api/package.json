@@ -1,0 +1,17 @@
+{
+  "name": "@carchief/mock-api",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "lint": "echo \"mock-api lint ok\"",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@carchief/domain": "workspace:*"
+  },
+  "devDependencies": {
+    "@carchief/config": "workspace:*",
+    "typescript": "^5.7.2"
+  }
+}
