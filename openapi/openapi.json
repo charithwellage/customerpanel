@@ -1,0 +1,130 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "CarChief API Service",
+    "version": "1.0.0",
+    "description": "CarChief OpenAPI Specification and Contract Surface"
+  },
+  "paths": {
+    "/healthz": {
+      "get": {
+        "summary": "Health check",
+        "operationId": "getHealth",
+        "responses": {
+          "200": {
+            "description": "Health status response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "ok" },
+                    "timestamp": { "type": "string", "example": "2026-08-07T00:00:00.000Z" }
+                  },
+                  "required": ["status", "timestamp"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/config/public": {
+      "get": {
+        "summary": "Get public configuration and branding summary",
+        "operationId": "getPublicConfig",
+        "responses": {
+          "200": {
+            "description": "Public branding and site configuration",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicConfig"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/vehicles": {
+      "get": {
+        "summary": "Get vehicle domain summaries",
+        "operationId": "getVehicles",
+        "responses": {
+          "200": {
+            "description": "List of vehicle summaries",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VehicleSummary"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/__reset": {
+      "post": {
+        "summary": "Deterministic non-production data reset",
+        "operationId": "resetData",
+        "responses": {
+          "200": {
+            "description": "Reset operation result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": true },
+                    "message": { "type": "string", "example": "Data reset successfully" }
+                  },
+                  "required": ["success", "message"]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "PublicConfig": {
+        "type": "object",
+        "properties": {
+          "siteName": { "type": "string", "example": "CarChief" },
+          "currency": { "type": "string", "example": "USD" },
+          "contactPhone": { "type": "string", "example": "+256 700 000 000" }
+        },
+        "required": ["siteName", "currency", "contactPhone"]
+      },
+      "VehicleSummary": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "example": "veh-1" },
+          "chassisNumber": { "type": "string", "example": "NZE141-1234567" },
+          "make": { "type": "string", "example": "Toyota" },
+          "model": { "type": "string", "example": "Corolla Axio" },
+          "year": { "type": "integer", "example": 2021 },
+          "priceUsd": { "type": "number", "example": 8500 },
+          "status": { "type": "string", "example": "Available" }
+        },
+        "required": ["id", "chassisNumber", "make", "model", "year", "priceUsd", "status"]
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "statusCode": { "type": "integer", "example": 400 },
+          "message": { "type": "string", "example": "Bad Request" },
+          "correlationId": { "type": "string", "example": "corr-12345" }
+        },
+        "required": ["statusCode", "message", "correlationId"]
+      }
+    }
+  }
+}
