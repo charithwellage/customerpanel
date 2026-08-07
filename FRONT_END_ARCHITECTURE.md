@@ -190,6 +190,16 @@ The API boundary must enforce active/inactive publication, under-negotiation, PI
 
 Operational lifecycle, commercial sale state, publication state, price readiness and country availability must not be collapsed into a single vehicle status. The existing 48-hour reservation rule and the BA negotiation timer remain separate concepts until the business resolves that decision. The 72-hour PI payment timer is a separate workflow stage.
 
+### Public-website legacy parity boundary
+
+The production public-site audit is recorded in [`docs/CarChief-Legacy-Public-Website-Audit.md`](docs/CarChief-Legacy-Public-Website-Audit.md) and its traceability matrix. `apps/public-web` preserves approved public information architecture through semantic Next.js routes and one responsive shell: home, stock/category/country queries, vehicle details, freight/price requests, enquiry/account entry, auction guidance, shipping schedule, company/services content, FAQ, policy and contact routes.
+
+- Public stock category, country, currency and language controls are typed **display/projection inputs**. The service decides their actual availability, currency and localization effect; the browser must not manufacture conversions or expose ineligible stock.
+- Legacy public pages become a route inventory for redirects and content migration. Repeated make/type/country/vehicle URLs map to stable route templates; the exhaustive redirect list is approved in Phase 1.8.
+- WhatsApp, email, phone, CAPTCHA, auction, shipping schedule, downloadable documents, stock counters and partner badges are external/content boundaries. UI actions are accessible and honestly labelled, but no provider/API behavior is assumed.
+- Error responses must be owned UI states. Never render upstream error pages, server paths, exception details or maintenance HTML inside the React application.
+- Legacy layout is evidence of content hierarchy only. The new responsive design keeps all essential public actions usable at phone, tablet and desktop widths rather than retaining dense sidebars or disabled browser zoom.
+
 ## 4.1 Progressive Web App strategy
 
 PWA support is part of the frontend architecture for all three user-facing applications. Each app owns its manifest, icons, service-worker registration and install/update UI, while shared packages provide the safe lifecycle and connectivity primitives.

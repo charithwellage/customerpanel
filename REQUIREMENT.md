@@ -145,7 +145,9 @@ The Public App is CarChief's shop window. Anyone can look, search and ask questi
 - A page for each vehicle with photos and full details
 - A shipping cost estimate
 - An enquiry form to ask about a vehicle or request a quote
-- Company information: About Us, How to Buy, Testimonials, Frequently Asked Questions, and Contact details
+- Public stock categories and country-aware availability where approved
+- Public auction guidance and account-gated live-auction entry where approved
+- Company information: About Us, How to Buy, Services, Testimonials, Frequently Asked Questions, Contact details, policy and other approved public content
 
 ## Visitor journey
 
@@ -217,6 +219,20 @@ flowchart TD
 **PUB-24** An address from CarChief's old website that a visitor or a search engine might still use leads to the correct new page, rather than a broken page.
 
 > ⚠ **NEEDS A DECISION** — see Open Question 18. Which old addresses need to keep working was not something we could confirm.
+
+**PUB-25 — Source-confirmed by legacy public-site audit:** A visitor can browse only the approved public stock categories (for example, arrival, premium or clearance) and country-specific stock projections. Category, country eligibility, operational status, commercial state, publication and price readiness remain distinct server-authoritative concepts.
+
+**PUB-26 — Source-confirmed controls; semantics open:** A visitor can see approved country, currency and language choices on public pages. The business must define which choice changes stock eligibility, price/currency display, content or language before implementation; the interface must not imply a conversion or localization it cannot perform.
+
+**PUB-27 — Source-confirmed legacy route family:** A visitor can read approved auction services, calendar, terms, FAQ and buying guidance. Any Live Auction capability is account-gated or an approved external destination; auction-site access, bidding and data integration are not implied.
+
+**PUB-28 — Source-confirmed contact pattern:** A visitor can use approved public contact actions, including vehicle/general enquiry and clearly labelled WhatsApp, email or call intent. The site must not claim a message, call, notification or external hand-off completed unless an approved service confirms it.
+
+**PUB-29 — Source-confirmed legacy page; content source open:** A visitor can read an approved shipping-schedule page or a clear unavailable/recovery state. The application must never expose server errors, internal paths or fabricated schedule data.
+
+**PUB-30 — Source-confirmed public content portfolio:** A visitor can read approved public company, services, team, gallery, news, security and bank-information content where management authorizes publication. Each item requires a content owner, approval state and safe public projection; sensitive bank, security or personal details are not published by default.
+
+**PUB-31 — Source-confirmed legacy behaviour; legal content open:** A visitor can access approved privacy/cookie information and make a consent choice where legally required. The new frontend uses an approved consent mechanism and copy; it does not reuse legacy scripts or treat prior acceptance as consent.
 
 ---
 

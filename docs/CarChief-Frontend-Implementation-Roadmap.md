@@ -291,17 +291,19 @@ flowchart LR
 **Scheduled delivery:** 26 working days ≈ **5.5 weeks**
 **Includes:** the shared foundation, reusable vehicle packages, the visual theme system, complete public SEO and the first working version of the mock service
 
+**Production-site parity check:** A live public-site audit is now recorded in [the Legacy Public Website Audit](CarChief-Legacy-Public-Website-Audit.md). It confirms that the new responsive website must also account for stock categories and country routes, auction guidance, services/company pages, shipping schedule, privacy/cookie information and public support actions. This means equivalent approved visitor capabilities—not copying legacy faults, unapproved content or third-party integrations.
+
 | Phase | Page/component delivery | Visible result | Days |
 |---|---|---|---:|
 | 1.1 | Shared foundation, reusable packages, theme system, PWA and mock service start-up | Responsive shell, reusable vehicle-search/detail packages, PWA manifests/offline shell/update lifecycle, navigation, shared controls, loading/error states, the proof-of-concept look packaged as a swappable theme, and a running mock service with sign-in | 8.5 |
-| 1.2 | Home and showroom | Hero, promoted content, featured vehicles, vehicle cards, promotional banners, countdown timers and empty/loading states | 1 |
-| 1.3 | Inventory and search page | Shared vehicle-search package consumed by the public app, two search modes, expandable filters drawn from live stock, three sort options, manual refresh, results and no-results behavior | 2.5 |
-| 1.4 | Vehicle details | Shareable vehicle web address, specifications, categorized media, status, sharing and printing | 2 |
+| 1.2 | Home and showroom | Hero, promoted content, featured/category vehicle collections, country/currency/language controls, vehicle cards, public support actions, promotional banners, countdown timers and empty/loading states | 1.25 |
+| 1.3 | Inventory and search page | Shared vehicle-search package consumed by the public app, stock-category and country routes, two search modes, expandable filters drawn from live stock, three sort options, manual refresh, results and no-results behavior | 2.75 |
+| 1.4 | Vehicle details | Shareable vehicle web address, specifications, categorized media, status, approved price/price-request presentation, sharing and printing | 2.25 |
 | 1.5 | Freight estimate and quotation enquiry | Destination selection, freight/city/insurance estimate and quotation enquiry | 2 |
-| 1.6 | Enquiry, contact, authentication and reservation entry | Contact/vehicle enquiry with proper field checking, customer access entry and reservation eligibility/conflict feedback | 1.5 |
-| 1.7 | Public information and content | About, How to Buy, Testimonials with submission, twelve-category FAQ, and Contact with offices and hours | 1 |
-| 1.8 | Public SEO, PWA, acceptance and release readiness | Complete visitor journey, canonical URLs, sitemap, robots, redirects, metadata, structured data, PWA install/offline/update/security checks, responsive/accessibility/performance review and linked enquiry fixtures | 4.5 |
-| — | Correction allowance | Rework arising from testing and review | 3 |
+| 1.6 | Enquiry, contact, authentication and reservation entry | Vehicle-preference/general enquiries, approved public support actions, customer access entry and reservation eligibility/conflict feedback | 1.75 |
+| 1.7 | Public information and content | Company/services pages, stock/auction buying guidance, testimonials with submission, twelve-category FAQ, shipping schedule, approved policy content and Contact with offices/hours | 2.5 |
+| 1.8 | Public SEO, PWA, acceptance and release readiness | Complete visitor journey, legacy PHP route templates/redirects, canonical URLs, sitemap, robots, metadata, structured data, PWA install/offline/update/security checks, responsive/accessibility/performance review and linked enquiry fixtures | 4.5 |
+| — | Remaining correction allowance | Rework arising from testing and review after legacy-parity additions | 0.5 |
 
 ### Business outcome
 
@@ -309,7 +311,7 @@ A visitor can understand CarChief, find an appropriate vehicle, inspect it, esti
 
 ### Supervisor demonstration
 
-Open the home page, search for an SUV, apply filters, open its vehicle page, review images/specifications, calculate freight, submit an enquiry, and show a customer reservation limit or conflict.
+Open the home page, select a stock category/country, search for an SUV, open its vehicle page, review images/specifications and a price-request state, calculate freight, submit an enquiry, view public auction/service/shipping/FAQ content, and show a customer reservation limit or conflict.
 
 ### Important decisions
 
@@ -318,12 +320,15 @@ Open the home page, search for an SUV, apply filters, open its vehicle page, rev
 - Freight, insurance and discount examples.
 - Reservation duration and eligibility.
 - Whether AI search or PayPal-labelled booking is required for launch.
+- Which country/currency/language controls affect public stock or pricing, and which visible legacy pages/content are approved for launch.
+- Whether Live Auction is an account-gated CarChief feature, an external destination or a retired route; which shipping-schedule source and support/CAPTCHA providers are approved.
 
 ### Acceptance
 
 - Public/private information is correctly separated.
 - Search, vehicle URLs, freight examples and forms work on supported devices.
 - Critical public accessibility and automated journeys pass.
+- Every approved legacy public page template is accounted for by a responsive route, redirect, explicit retirement decision or content-owner decision; legacy server-error pages are not reproduced.
 - Public Website scope is accepted before Customer Application delivery becomes primary.
 
 ## 6. Delivery 2 — Customer Application

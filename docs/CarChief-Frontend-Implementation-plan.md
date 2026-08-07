@@ -365,7 +365,9 @@ The customer application in the demonstration already offers a light/dark switch
 
 **Scheduled delivery:** 26 working days ≈ 5.5 weeks
 **Includes:** shared foundation, theme system, complete public SEO, and the first working version of the mock service
-**Correction allowance:** 3 days
+**Correction allowance:** 0.5 day
+
+**Legacy production parity baseline:** The live public-site audit in [`CarChief-Legacy-Public-Website-Audit.md`](CarChief-Legacy-Public-Website-Audit.md) and its traceability matrix are Delivery 1 evidence. They add the approved public page inventory—stock category/country routes, auction guidance, service/company content, shipping schedule, privacy/cookie information and public support actions—without changing the Customer or Salesperson deliveries. Legacy failures, server details, direct external integrations and unapproved content are explicitly not parity targets.
 
 ### Phase 1.1 — Shared foundation and public application shell
 
@@ -382,6 +384,7 @@ Also in scope: the theme/design-token system carrying the proof of concept's loo
 - Monorepo, strict TypeScript, shared lint/format/test/CI settings.
 - Public Next.js layout and semantic route skeleton.
 - Responsive header/mobile menu/footer.
+- Public route/navigation inventory covering the approved legacy page families, with a compact mobile composition that retains essential search, contact and account-entry actions.
 - Shared buttons, fields, cards, dialogs, tables, status badges, toast/notification, loader, empty and error components.
 - Design tokens based on the POC visual direction.
 - Error boundary and not-found presentation.
@@ -411,7 +414,7 @@ Also in scope: the theme/design-token system carrying the proof of concept's loo
 
 ### Phase 1.2 — Home and showroom
 
-**Phase days:** 1 day
+**Phase days:** 1.25 days
 
 Runtime additions: promotional banners and countdown timers alongside the featured collections.
 
@@ -423,9 +426,12 @@ Runtime additions: promotional banners and countdown timers alongside the featur
 
 - Hero and primary calls to action.
 - Featured/latest/available vehicle collections.
+- Approved arrival, premium, clearance and other launch stock-category collections; category labels and badges remain service projections rather than client rules.
 - Reusable vehicle card with image, make/model/year, price, mileage, condition, fuel/transmission, and availability.
 - Progressive loading and unavailable-stock state.
 - Promotional logistics and premium-stock sections.
+- Country, currency and language controls with an honest display-only fallback until their stock/pricing/localization semantics are approved.
+- Public WhatsApp/email/call actions as clearly labelled contact intent, never a claim of completed third-party delivery.
 - Buying-process, testimonial, and FAQ previews with navigation.
 - Public-content claim flags for unverified location, inspection, customs, speed, or tracking statements.
 
@@ -441,7 +447,7 @@ Runtime additions: promotional banners and countdown timers alongside the featur
 
 ### Phase 1.3 — Inventory and search page
 
-**Phase days:** 2.5 days
+**Phase days:** 2.75 days
 
 Runtime additions: two search modes side by side (standard filters and natural-language); an expandable filter panel whose make/model/type/year/price/fuel options are derived from live stock rather than a fixed list; three sort orders (newest year, price ascending, price descending); and a manual stock-refresh action.
 
@@ -453,6 +459,7 @@ Runtime additions: two search modes side by side (standard filters and natural-l
 
 - Standard keyword search.
 - Source-supported make, model, type, year, price, fuel, transmission, status, colour, mileage, and arrival-related filtering where the final public contract supports them.
+- URL-backed category, make, type and country landing/query routes; only the server-approved public/country projection is searchable.
 - Sorting and reset.
 - Result count, progressive load/pagination, and no-results guidance.
 - URL-backed filter state.
@@ -473,7 +480,7 @@ Runtime additions: two search modes side by side (standard filters and natural-l
 
 ### Phase 1.4 — Vehicle details
 
-**Phase days:** 2 days
+**Phase days:** 2.25 days
 
 Runtime confirmation: vehicle pages already work as individual shareable web addresses, so this phase preserves that behaviour and adds page information for search and sharing.
 
@@ -484,10 +491,12 @@ Runtime confirmation: vehicle pages already work as individual shareable web add
 **Sub-delivery components**
 
 - Stable public vehicle URL with immutable identifier fallback.
+- Explicit priced versus price-request presentation; a vehicle without an approved price never receives an invented amount.
 - Vehicle identity, price, status, narrative, specifications, commercial/logistics data approved for public display.
 - Main gallery, thumbnails, navigation, empty-image fallback.
 - Auction, auction sheet, Japan, and Durban media categories with explicit visibility rules; auction-sheet visibility requires business confirmation.
 - Share and print actions.
+- Compare, wishlist and PDF labels from the legacy detail page are retained only after product/security approval; they are not assumed launch features.
 - Tier-aware price presentation when an authenticated customer context is available.
 - Specifications, freight, and enquiry sections.
 - Consolidation of POC modal/page duplication into one target feature model.
@@ -537,7 +546,7 @@ Runtime confirmation: vehicle pages already work as individual shareable web add
 
 ### Phase 1.6 — Enquiry, contact, authentication and reservation entry
 
-**Phase days:** 1.5 days
+**Phase days:** 1.75 days
 
 Runtime finding: the demonstration relies on browser-native field checking only. This phase includes proper application-level validation of every field.
 
@@ -548,6 +557,8 @@ Runtime finding: the demonstration relies on browser-native field checking only.
 **Sub-delivery components**
 
 - General contact/enquiry form.
+- Vehicle-preference enquiry fields where approved (make, model, drive side, year and target price), while keeping the canonical lead model and validation.
+- Approved WhatsApp/email/call action metadata and contact-source capture; CAPTCHA/anti-abuse provider remains an explicit decision.
 - Vehicle-specific enquiry.
 - Name, email, phone, message and consent validation.
 - Submission progress, duplicate prevention, success/failure recovery.
@@ -569,23 +580,27 @@ Runtime finding: the demonstration relies on browser-native field checking only.
 
 ### Phase 1.7 — Public information and content
 
-**Phase days:** 1 day
+**Phase days:** 2.5 days
 
 Runtime additions: twelve FAQ categories, customer testimonial submission, and a contact page carrying multiple offices with published operating hours.
 
 **Business outcome:** Visitors can understand CarChief, the buying process, customer experiences, and common answers.
 
-**Pages/modules:** About, How to Buy, Testimonials, FAQ, Contact information.
+**Pages/modules:** About, Why Choose Us, Services, How to Buy from Stock/Auction, Auction Services/Calendar/Terms/FAQ, Testimonials, FAQ, Contact, approved Team/Gallery/News/Security/Bank content, Shipping Schedule, Privacy/Cookie information.
 
 **Sub-delivery components**
 
 - About, mission, vision, operating-footprint content.
+- Approved public company/services/team/gallery/news/security/bank page templates with content-owner and publication-status controls. Bank/security details use an explicit safe-public review; no sensitive values are assumed.
 - Interactive five-step How to Buy presentation with manual navigation and accessible non-animated fallback.
+- Separate buy-from-stock and buy-from-auction guidance, auction services/calendar/terms/FAQ content, and an account-gated Live Auction entry/link when approved. No auction-site automation or bidding integration is included.
+- Shipping-schedule presentation only from an approved source, with a useful unavailable/recovery state; never expose upstream exception detail.
 - Testimonials list and submission.
 - FAQ keyword/category browsing, suggested questions, empty state, and contact escalation.
 - Optional local/AI FAQ lookup clearly separated from standard FAQ browsing.
 - Dynamic branding concept.
 - Content owner, status, approval, and external-claim disclaimers.
+- Privacy/cookie-policy content and consent UI from legal-approved copy; no legacy cookie script reuse.
 
 **Evidence:** [`POC/src/components/AboutUs.tsx`](../POC/src/components/AboutUs.tsx), [`POC/src/components/HowToBuy.tsx`](../POC/src/components/HowToBuy.tsx), [`POC/src/components/Testimonials.tsx`](../POC/src/components/Testimonials.tsx), and [`POC/src/components/FAQ.tsx`](../POC/src/components/FAQ.tsx).
 
@@ -593,7 +608,7 @@ Runtime additions: twelve FAQ categories, customer testimonial submission, and a
 
 **Dependencies/open questions:** Approved claims, moderation, testimonial consent, FAQ owner, AI/vendor decision.
 
-**Supervisor demo:** Follow the buying guide, submit a testimonial, search FAQs, and escalate an unanswered question.
+**Supervisor demo:** Follow stock and auction buying guidance, browse approved service/company information, view a safe shipping-schedule unavailable state, submit a testimonial, search FAQs, and escalate an unanswered question.
 
 **Testing and acceptance:** Content status is respected; submissions are moderated/pending where approved; AI cannot invent content; reduced motion works.
 
@@ -605,7 +620,7 @@ Runtime additions: twelve FAQ categories, customer testimonial submission, and a
 
 **Pages/modules:** Entire Public Website.
 
-**Sub-delivery components:** Canonical URLs, sitemap, robots rules, legacy PHP redirects, sold/unavailable and filter-indexing policy, unique metadata, social previews, approved structured data, server-rendered public content verification, PWA install/offline/update/security acceptance, responsive/performance checks, visitor regression, public/private field review, mock reset, support notes and linked enquiry/reservation fixtures.
+**Sub-delivery components:** Canonical URLs, sitemap, robots rules, legacy PHP route-template inventory/redirect mapping, sold/unavailable and filter-indexing policy, unique metadata, social previews, approved structured data, server-rendered public content verification, PWA install/offline/update/security acceptance, responsive/performance checks, desktop/mobile legacy-content UAT, visitor regression, public/private field review, mock reset, support notes and linked enquiry/reservation fixtures.
 
 **Evidence:** Acceptance recommendation covering the source-confirmed Public Website capabilities and evidence paths documented in Phases 1.1–1.7.
 
@@ -613,7 +628,7 @@ Runtime additions: twelve FAQ categories, customer testimonial submission, and a
 
 **Dependencies/open questions:** Named public UAT approvers and accepted open-question register.
 
-**Supervisor demo:** Home → search → vehicle detail → freight estimate → enquiry/reservation → content/FAQ; inspect canonical/metadata/sitemap/robots output, open a legacy redirect and verify portal `noindex` protection.
+**Supervisor demo:** Home → stock category/country search → vehicle detail/price request → freight estimate → enquiry/reservation → public services/auction guidance/shipping schedule/FAQ; inspect canonical/metadata/sitemap/robots output, open representative legacy redirects and verify portal `noindex` protection.
 
 **Testing and acceptance:** Critical public journeys, SEO/PWA checks, responsive browser matrix, accessibility and performance gates pass; sensitive data is not cached and offline mutations are blocked; approved fixtures hand off to Customer and Salesperson applications.
 
