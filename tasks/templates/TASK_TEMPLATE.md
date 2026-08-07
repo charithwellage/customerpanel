@@ -8,11 +8,8 @@ The first preflight command must always be:
 git status --porcelain=v1 --untracked-files=all
 ```
 
-<<<<<<< Updated upstream
-Any output blocks the task before all branch, source, log and tracker mutations. Public phase branches must follow `feat_delivery<two-digit-delivery>_phase_<two-digit-phase>` and be created from the updated delivery integration branch. Phase 0 tasks must use `BRANCH_NEUTRAL` for both branch fields and must not switch or create branches. Include `taskctl next`, `taskctl sequence`, `taskctl precheck`, conditional phase/task branch commands, final `taskctl check`, and the exact dirty-tree response from an existing task. The precheck/check commands enforce the execution frontier: later tasks are blocked when earlier tasks are incomplete, except for explicitly eligible same-group parallel work.
-=======
 Any output blocks the task before all branch, source, log and tracker mutations. Public phase branches must follow `feat_delivery<two-digit-delivery>_phase_<two-digit-phase>` and be created from the updated delivery integration branch. Phase 0 tasks must use `BRANCH_NEUTRAL` for both branch fields and must not switch or create branches. Include `taskctl precheck`, conditional phase-branch commands, final `taskctl check`, and the exact dirty-tree response from an existing task. Never create a task-specific child branch.
->>>>>>> Stashed changes
+Run `taskctl next` and `taskctl sequence` before `taskctl precheck`. The precheck/check commands enforce the execution frontier: later tasks are blocked when earlier tasks are incomplete, except for explicitly eligible same-group parallel work. Never create a task-specific child branch.
 
 ## Verification requirements
 

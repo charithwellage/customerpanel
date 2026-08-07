@@ -44,21 +44,21 @@ Container redeployment is intentionally concentrated at the infrastructure gate 
 ## Branch convention
 
 - Phase 0 is branch-neutral and runs on the approved clean baseline branch.
-- Delivery integration branch: `delivery/01-public`.
+- Delivery integration branch: `delivery_01_public_website`.
 - Public phase branches: `feat_delivery01_phase_01` through `feat_delivery01_phase_08`.
 - Tasks do not create child branches. Every task works directly on its phase branch, for example `feat_delivery01_phase_01`; parallel groups are coordination lanes on that same branch, not separate Git branches.
-- A phase branch is created only from the latest local `delivery/01-public` after `git pull --ff-only origin delivery/01-public` succeeds.
-- After phase acceptance, review approved task work on the phase branch, commit its tracker/summary, and create a PR from the phase branch into `delivery/01-public`. Never merge the PR automatically without explicit authorization.
+- A phase branch is created only from the latest local `delivery_01_public_website` after `git pull --ff-only origin delivery_01_public_website` succeeds.
+- After phase acceptance, review approved task work on the phase branch, commit its tracker/summary, and create a PR from the phase branch into `delivery_01_public_website`. Never merge the PR automatically without explicit authorization.
 
 After Phase 0 records and this task system are committed on `planning`, create the one-time delivery branch from that baseline:
 
 ```bash
 git switch planning
 git status --porcelain=v1 --untracked-files=all
-git switch -c delivery/01-public
+git switch -c delivery_01_public_website
 ```
 
-Publishing the delivery branch is an explicitly authorized human action. If `delivery/01-public` already exists, do not recreate it.
+Publishing the delivery branch is an explicitly authorized human action. If `delivery_01_public_website` already exists, do not recreate it.
 
 ## Commands
 
@@ -71,6 +71,7 @@ Publishing the delivery branch is an explicitly authorized human action. If `del
 `node tasks/scripts/taskctl.mjs precheck <ID>` performs a read-only clean-tree, prerequisite, decision, execution-frontier and delivery-branch check before any branch operation. It blocks skipped tasks and reports the exact earlier task that must be completed.
 
 `node tasks/scripts/taskctl.mjs check <ID>` repeats the clean-tree/prerequisite checks and validates the required phase branch.
+`node tasks/scripts/taskctl.mjs check <ID>` repeats the clean-tree/prerequisite checks and validates the required phase branch.
 
 `node tasks/scripts/taskctl.mjs start <ID> --owner "Name"`, `block <ID> --reason "Reason"`, `submit <ID>`, `approve <ID> --reviewer "Name"`, and `render` maintain durable handoff state.
 
@@ -78,4 +79,4 @@ Run `node --test tasks/scripts/taskctl-sequence.test.mjs` to verify the current 
 
 ## Branches and review
 
-Use `delivery/01-public`, then `feat_delivery01_phase_NN`. Each task stays on the phase branch and may create a task-ID local commit when authorized; it must not create or switch to a task-specific branch. Parallel tasks require explicit coordination and non-overlapping owned paths on the same phase branch. Agents do not push, merge, rewrite history or self-approve without explicit authority.
+Use `delivery_01_public_website`, then `feat_delivery01_phase_NN`. Each task stays on the phase branch and may create a task-ID local commit when authorized; it must not create or switch to a task-specific branch. Parallel tasks require explicit coordination and non-overlapping owned paths on the same phase branch. Agents do not push, merge, rewrite history or self-approve without explicit authority.

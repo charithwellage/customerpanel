@@ -1,0 +1,62 @@
+name: carchief-frontend
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: carchief_mock
+      POSTGRES_USER: carchief
+      POSTGRES_PASSWORD: carchief_dev_pass
+    volumes:
+      - carchief-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U carchief -d carchief_mock"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  mock-api:
+    build:
+      context: .
+      dockerfile: docker/frontend.Dockerfile
+      target: runtime
+    command: ["node", "apps/mock-api/dist/server.js"]
+    environment:
+      NODE_ENV: production
+      MOCK_API_PORT: 4000
+      DATABASE_URL: postgresql://carchief:carchief_dev_pass@postgres:5432/carchief_mock
+    depends_on:
+      postgres:
+        condition: service_healthy
+    expose:
+      - "4000"
+    ports:
+      - "127.0.0.1:${CARCHIEF_MOCK_API_PORT:-4000}:4000"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4000/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  public-web:
+    build:
+      context: .
+      dockerfile: docker/frontend.Dockerfile
+      target: runtime
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      API_BASE_URL: http://mock-api:4000
+    depends_on:
+      mock-api:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${CARCHIEF_FRONTEND_PORT:-3000}:3000"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://'+require('os').hostname()+':3000/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  carchief-postgres-data:

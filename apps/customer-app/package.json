@@ -1,0 +1,24 @@
+{
+  "name": "@carchief/customer-app",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "lint": "echo \"customer-app lint ok\"",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@carchief/api-client": "workspace:*",
+    "@carchief/domain": "workspace:*",
+    "@carchief/pwa": "workspace:*",
+    "@carchief/theme": "workspace:*",
+    "@carchief/ui": "workspace:*",
+    "@carchief/validation": "workspace:*",
+    "@carchief/vehicle-detail": "workspace:*",
+    "@carchief/vehicle-search": "workspace:*"
+  },
+  "devDependencies": {
+    "@carchief/config": "workspace:*",
+    "typescript": "^5.7.2"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "name": "carchief-monorepo",
+  "private": true,
+  "version": "1.0.0",
+  "description": "CarChief Frontend Rebuild Monorepo",
+  "packageManager": "pnpm@10.2.0",
+  "engines": {
+    "node": ">=22.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "scripts": {
+    "lint": "pnpm --recursive run lint",
+    "typecheck": "pnpm --recursive --sort run typecheck",
+    "build": "pnpm --recursive --sort run build",
+    "api:generate": "node openapi/generate.mjs",
+    "mock:reset": "node apps/mock-api/scripts/reset.mjs",
+    "test:boundaries": "node scripts/check-boundaries.mjs",
+    "test": "vitest run",
+    "test:contract": "vitest run packages/api-client",
+    "test:integration": "vitest run packages/api-client",
+    "test:e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.50.0",
+    "typescript": "^5.7.2",
+    "vitest": "^3.0.0"
+  }
+}

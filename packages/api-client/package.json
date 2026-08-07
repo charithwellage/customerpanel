@@ -1,0 +1,20 @@
+{
+  "name": "@carchief/api-client",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "lint": "echo \"api-client lint ok\"",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@carchief/domain": "workspace:*"
+  },
+  "devDependencies": {
+    "@carchief/config": "workspace:*",
+    "@carchief/testing": "workspace:*",
+    "typescript": "^5.7.2"
+  }
+}
