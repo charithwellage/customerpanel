@@ -1,0 +1,463 @@
+- generic [ref=f7e3]:
+  - generic [ref=f7e4]:
+    - generic [ref=f7e7]:
+      - strong [ref=f7e8]: OfflineCache Quota Limit Reached
+      - text: — The system has automatically entered offline high-fidelity fallback mode. All features remain 100% responsive and functional!
+    - button "Retry Live Connection" [ref=f7e9] [cursor=pointer]
+  - banner [ref=f7e10]:
+    - generic [ref=f7e12]:
+      - generic [ref=f7e13]:
+        - generic [ref=f7e14] [cursor=pointer]: CARCHIEF
+        - generic [ref=f7e22]: ONLINE
+      - generic [ref=f7e30]:
+        - paragraph [ref=f7e31]: Super Admin Staff
+        - generic [ref=f7e32]: Super Admin
+  - main [ref=f7e38]:
+    - generic [ref=f7e40]:
+      - generic [ref=f7e41]:
+        - generic [ref=f7e42]:
+          - text: CarChief HQ Administration
+          - heading "Enterprise Logistics Portal" [level=2] [ref=f7e43]
+          - paragraph [ref=f7e44]: "Role: Super Admin • Full database control of listings & client leads."
+        - generic [ref=f7e45]:
+          - button "Staff Dashboard" [ref=f7e46] [cursor=pointer]
+          - button "Inventory 1" [ref=f7e51] [cursor=pointer]:
+            - generic [ref=f7e52]: Inventory
+            - generic [ref=f7e53]: "1"
+          - button "Leads (1)" [ref=f7e54] [cursor=pointer]
+          - button "Finance" [ref=f7e56] [cursor=pointer]
+          - button "Master Controls" [ref=f7e58] [cursor=pointer]
+      - generic [ref=f7e59]:
+        - generic [ref=f7e60]:
+          - generic [ref=f7e61]:
+            - heading "CRM sales command center" [level=1] [ref=f7e67]
+            - paragraph [ref=f7e68]:
+              - text: Enterprise Sales & Vehicle Reservation control portal for CarChief Logistics. Logged in as
+              - generic [ref=f7e69]: Super Admin Representative
+              - text: .
+          - generic [ref=f7e70]:
+            - 'textbox "Search customers, VIN, stock # or PI..." [ref=f7e75]'
+            - button "Approved TT Logs" [ref=f7e76] [cursor=pointer]
+            - button "Alerts 1" [ref=f7e81] [cursor=pointer]:
+              - generic [ref=f7e84]: Alerts
+              - generic [ref=f7e85]: "1"
+        - generic [ref=f7e87]:
+          - generic [ref=f7e88]:
+            - generic [ref=f7e94]:
+              - generic [ref=f7e95]: Finance Approved TT Remittance
+              - heading "Telegraphic Transfer (TT) Confirmed & Cleared ✓" [level=3] [ref=f7e97]
+            - button "Acknowledge" [ref=f7e99] [cursor=pointer]
+          - generic [ref=f7e104]:
+            - generic [ref=f7e105]:
+              - generic [ref=f7e106]:
+                - generic [ref=f7e107]: Charith
+                - generic [ref=f7e112]: Charith Auto Traders
+              - generic [ref=f7e113]:
+                - generic [ref=f7e114]:
+                  - text: "Ref/SWIFT:"
+                  - strong [ref=f7e117]: TXN-908122
+                - generic [ref=f7e118]:
+                  - text: "Bank:"
+                  - strong [ref=f7e119]: Wire Transfer
+                - generic [ref=f7e120]:
+                  - text: "Date:"
+                  - strong [ref=f7e121]: 2026-08-06T04:26:29.318Z
+            - generic [ref=f7e122]:
+              - generic [ref=f7e123]:
+                - generic [ref=f7e124]: Audited TT Deposit
+                - generic [ref=f7e125]:
+                  - generic [ref=f7e126]: USD $195,200
+                  - generic [ref=f7e127]: Approved
+                - generic [ref=f7e128]:
+                  - text: "Available TT Credit:"
+                  - strong [ref=f7e129]: $195,200 USD
+              - button "Allocate Funds" [ref=f7e131] [cursor=pointer]
+        - generic [ref=f7e140]:
+          - generic [ref=f7e141]:
+            - generic [ref=f7e142]:
+              - generic [ref=f7e143]:
+                - generic "Drag and drop to reorder" [ref=f7e144]
+                - generic [ref=f7e157]: System Performance KPIs
+              - generic [ref=f7e158]:
+                - generic [ref=f7e159]:
+                  - button "Move up" [disabled] [ref=f7e160] [cursor=pointer]
+                  - button "Move down" [ref=f7e163] [cursor=pointer]
+                - button "Minimize/Collapse" [ref=f7e166] [cursor=pointer]
+                - button "Open Full-Screen" [ref=f7e168] [cursor=pointer]
+            - generic [ref=f7e175]:
+              - button "+5 today Available Vehicles 5" [ref=f7e176] [cursor=pointer]:
+                - generic [ref=f7e177]: +5 today
+                - generic [ref=f7e188]:
+                  - generic [ref=f7e189]: Available Vehicles
+                  - generic [ref=f7e190]: "5"
+              - button "+0 today Reserved Vehicles 0" [ref=f7e191] [cursor=pointer]:
+                - generic [ref=f7e192]: +0 today
+                - generic [ref=f7e202]:
+                  - generic [ref=f7e203]: Reserved Vehicles
+                  - generic [ref=f7e204]: "0"
+              - button "+1 today PI Issued (Quots) 1" [ref=f7e205] [cursor=pointer]:
+                - generic [ref=f7e206]: +1 today
+                - generic [ref=f7e216]:
+                  - generic [ref=f7e217]: PI Issued (Quots)
+                  - generic [ref=f7e218]: "1"
+              - button "0 pending Pending Payments 0" [ref=f7e219] [cursor=pointer]:
+                - generic [ref=f7e220]: 0 pending
+                - generic [ref=f7e229]:
+                  - generic [ref=f7e230]: Pending Payments
+                  - generic [ref=f7e231]: "0"
+              - button "+0 today Sold This Month 0" [ref=f7e232] [cursor=pointer]:
+                - generic [ref=f7e233]: +0 today
+                - generic [ref=f7e243]:
+                  - generic [ref=f7e244]: Sold This Month
+                  - generic [ref=f7e245]: "0"
+              - button "+$0.0K Monthly Sales $0.0K" [ref=f7e246] [cursor=pointer]:
+                - generic [ref=f7e247]: +$0.0K
+                - generic [ref=f7e257]:
+                  - generic [ref=f7e258]: Monthly Sales
+                  - generic [ref=f7e259]: $0.0K
+              - button "25 Limit Monthly Target 25" [ref=f7e260] [cursor=pointer]:
+                - generic [ref=f7e261]: 25 Limit
+                - generic [ref=f7e271]:
+                  - generic [ref=f7e272]: Monthly Target
+                  - generic [ref=f7e273]: "25"
+              - button "Of 25 Units Achievement % 0%" [ref=f7e274] [cursor=pointer]:
+                - generic [ref=f7e275]: Of 25 Units
+                - generic [ref=f7e285]:
+                  - generic [ref=f7e286]: Achievement %
+                  - generic [ref=f7e287]: 0%
+              - button "Active bids Open Quotations 1" [ref=f7e288] [cursor=pointer]:
+                - generic [ref=f7e289]: Active bids
+                - generic [ref=f7e299]:
+                  - generic [ref=f7e300]: Open Quotations
+                  - generic [ref=f7e301]: "1"
+              - button "+2 active Active Customers 2" [ref=f7e302] [cursor=pointer]:
+                - generic [ref=f7e303]: +2 active
+                - generic [ref=f7e315]:
+                  - generic [ref=f7e316]: Active Customers
+                  - generic [ref=f7e317]: "2"
+              - button "2 due Pending Followups 2" [ref=f7e318] [cursor=pointer]:
+                - generic [ref=f7e319]: 2 due
+                - generic [ref=f7e328]:
+                  - generic [ref=f7e329]: Pending Followups
+                  - generic [ref=f7e330]: "2"
+              - button "2.5% Cut Commission Earned $0" [ref=f7e331] [cursor=pointer]:
+                - generic [ref=f7e332]: 2.5% Cut
+                - generic [ref=f7e341]:
+                  - generic [ref=f7e342]: Commission Earned
+                  - generic [ref=f7e343]: $0
+          - generic [ref=f7e344]:
+            - generic [ref=f7e345]:
+              - generic [ref=f7e346]:
+                - generic "Drag and drop to reorder" [ref=f7e347]
+                - generic [ref=f7e359]: Monthly Target Metrics
+              - generic [ref=f7e360]:
+                - generic [ref=f7e361]:
+                  - button "Move up" [ref=f7e362] [cursor=pointer]
+                  - button "Move down" [ref=f7e365] [cursor=pointer]
+                - button "Minimize/Collapse" [ref=f7e368] [cursor=pointer]
+                - button "Open Full-Screen" [ref=f7e370] [cursor=pointer]
+            - generic [ref=f7e377]:
+              - generic [ref=f7e379]:
+                - generic [ref=f7e384]:
+                  - generic [ref=f7e385]: 0%
+                  - generic [ref=f7e386]: Completed
+                - generic [ref=f7e387]:
+                  - heading "0 / 25 Vehicles Sold" [level=3] [ref=f7e388]
+                  - paragraph [ref=f7e389]: Outstanding performance! Just 25 more finalized units to hit July milestones.
+              - generic [ref=f7e390]:
+                - generic [ref=f7e391]:
+                  - generic [ref=f7e392]: Expected Commission
+                  - generic [ref=f7e393]: $0 USD
+                - generic [ref=f7e394]:
+                  - generic [ref=f7e395]: Remaining Days
+                  - generic [ref=f7e396]: 14 Days left
+          - generic [ref=f7e397]:
+            - generic [ref=f7e398]:
+              - generic [ref=f7e399]:
+                - generic "Drag and drop to reorder" [ref=f7e400]
+                - generic [ref=f7e413]: Active Sales Pipeline
+              - generic [ref=f7e414]:
+                - generic [ref=f7e415]:
+                  - button "Move up" [ref=f7e416] [cursor=pointer]
+                  - button "Move down" [ref=f7e419] [cursor=pointer]
+                - button "Minimize/Collapse" [ref=f7e422] [cursor=pointer]
+                - button "Open Full-Screen" [ref=f7e424] [cursor=pointer]
+            - generic [ref=f7e431]:
+              - generic [ref=f7e432]:
+                - generic [ref=f7e433]:
+                  - generic [ref=f7e434]: PIPELINE MILESTONES
+                  - button "Reset Filter" [ref=f7e435]
+                - generic [ref=f7e436]:
+                  - button "1 New Leads 1 100%" [ref=f7e437] [cursor=pointer]:
+                    - generic [ref=f7e438]:
+                      - generic [ref=f7e439]: "1"
+                      - generic [ref=f7e440]: New Leads
+                    - generic [ref=f7e441]:
+                      - generic [ref=f7e442]: "1"
+                      - generic [ref=f7e443]: 100%
+                  - button "2 Contacted 1 85%" [ref=f7e444] [cursor=pointer]:
+                    - generic [ref=f7e445]:
+                      - generic [ref=f7e446]: "2"
+                      - generic [ref=f7e447]: Contacted
+                    - generic [ref=f7e448]:
+                      - generic [ref=f7e449]: "1"
+                      - generic [ref=f7e450]: 85%
+                  - button "3 Quotation Issued 1 65%" [ref=f7e451] [cursor=pointer]:
+                    - generic [ref=f7e452]:
+                      - generic [ref=f7e453]: "3"
+                      - generic [ref=f7e454]: Quotation Issued
+                    - generic [ref=f7e455]:
+                      - generic [ref=f7e456]: "1"
+                      - generic [ref=f7e457]: 65%
+                  - button "4 Payment Pending 0 45%" [ref=f7e458] [cursor=pointer]:
+                    - generic [ref=f7e459]:
+                      - generic [ref=f7e460]: "4"
+                      - generic [ref=f7e461]: Payment Pending
+                    - generic [ref=f7e462]:
+                      - generic [ref=f7e463]: "0"
+                      - generic [ref=f7e464]: 45%
+                  - button "5 Completed (Sold) 0 25%" [ref=f7e465] [cursor=pointer]:
+                    - generic [ref=f7e466]:
+                      - generic [ref=f7e467]: "5"
+                      - generic [ref=f7e468]: Completed (Sold)
+                    - generic [ref=f7e469]:
+                      - generic [ref=f7e470]: "0"
+                      - generic [ref=f7e471]: 25%
+              - paragraph [ref=f7e472]: "* Click on any pipeline stage card to filter lists."
+          - generic [ref=f7e473]:
+            - generic [ref=f7e474]:
+              - generic [ref=f7e475]:
+                - generic "Drag and drop to reorder" [ref=f7e476]
+                - generic [ref=f7e488]: CRM Quick Actions
+              - generic [ref=f7e489]:
+                - generic [ref=f7e490]:
+                  - button "Move up" [ref=f7e491] [cursor=pointer]
+                  - button "Move down" [ref=f7e494] [cursor=pointer]
+                - button "Minimize/Collapse" [ref=f7e497] [cursor=pointer]
+                - button "Open Full-Screen" [ref=f7e499] [cursor=pointer]
+            - generic [ref=f7e506]:
+              - generic [ref=f7e508]:
+                - button [ref=f7e509] [cursor=pointer]:
+                  - heading "Add Customer" [level=4] [ref=f7e516]
+                  - paragraph [ref=f7e517]: Register new buyer on CRM
+                - button [ref=f7e518] [cursor=pointer]:
+                  - heading "Create Lead" [level=4] [ref=f7e522]
+                  - paragraph [ref=f7e523]: Log new vehicle inquiry
+                - button [ref=f7e524] [cursor=pointer]:
+                  - heading "Create Quote" [level=4] [ref=f7e529]
+                  - paragraph [ref=f7e530]: Draft Proforma Invoice
+                - button [ref=f7e531] [cursor=pointer]:
+                  - heading "Reserve Vehicle" [level=4] [ref=f7e536]
+                  - paragraph [ref=f7e537]: Apply reservation lock time
+                - button [ref=f7e538] [cursor=pointer]:
+                  - generic [ref=f7e544]:
+                    - heading "Record Bulk TT" [level=4] [ref=f7e545]
+                    - paragraph [ref=f7e546]: Submit deposit for Finance clearance
+                - button "Approved TT Logs View available balances by customer View" [ref=f7e547] [cursor=pointer]:
+                  - generic [ref=f7e548]:
+                    - generic [ref=f7e554]:
+                      - heading "Approved TT Logs" [level=4] [ref=f7e555]
+                      - paragraph [ref=f7e556]: View available balances by customer
+                    - generic [ref=f7e557]: View
+              - generic [ref=f7e558]:
+                - generic [ref=f7e559]: Salesman tier limits
+                - generic [ref=f7e560]: 100% Unrestricted
+          - generic [ref=f7e561]:
+            - generic [ref=f7e562]:
+              - generic [ref=f7e563]:
+                - generic "Drag and drop to reorder" [ref=f7e564]
+                - generic [ref=f7e576]: Critical Customer Follow-ups
+              - generic [ref=f7e577]:
+                - generic [ref=f7e578]:
+                  - button "Move up" [ref=f7e579] [cursor=pointer]
+                  - button "Move down" [ref=f7e582] [cursor=pointer]
+                - button "Minimize/Collapse" [ref=f7e585] [cursor=pointer]
+                - button "Open Full-Screen" [ref=f7e587] [cursor=pointer]
+            - generic [ref=f7e596]:
+              - generic [ref=f7e597]:
+                - generic [ref=f7e598]:
+                  - generic [ref=f7e599]:
+                    - generic [ref=f7e600]: Charith
+                    - generic [ref=f7e601]: Contacted
+                  - paragraph [ref=f7e602]: "\"Interested in reserving the Audi R8 Coupe immediately. Please send bank details.\""
+                  - generic [ref=f7e603]: "Email: • Tel:"
+                - button "Follow up" [ref=f7e604] [cursor=pointer]
+              - generic [ref=f7e605]:
+                - generic [ref=f7e606]:
+                  - generic [ref=f7e607]:
+                    - generic [ref=f7e608]: John Smith
+                    - generic [ref=f7e609]: New
+                  - paragraph [ref=f7e610]: "\"Please send FOB and ocean freight rate estimate for Auckland Port.\""
+                  - generic [ref=f7e611]: "Email: • Tel:"
+                - button "Follow up" [ref=f7e612] [cursor=pointer]
+          - generic [ref=f7e613]:
+            - generic [ref=f7e614]:
+              - generic [ref=f7e615]:
+                - generic "Drag and drop to reorder" [ref=f7e616]
+                - generic [ref=f7e627]: Highly Active Hot Leads
+              - generic [ref=f7e628]:
+                - generic [ref=f7e629]:
+                  - button "Move up" [ref=f7e630] [cursor=pointer]
+                  - button "Move down" [ref=f7e633] [cursor=pointer]
+                - button "Minimize/Collapse" [ref=f7e636] [cursor=pointer]
+                - button "Open Full-Screen" [ref=f7e638] [cursor=pointer]
+            - generic [ref=f7e648]:
+              - generic [ref=f7e649]:
+                - generic [ref=f7e650]:
+                  - generic [ref=f7e651]: John Smith
+                  - generic [ref=f7e652]: "Score: 65%"
+                - paragraph [ref=f7e653]: "Interested in:"
+                - paragraph [ref=f7e654]: "Inquiry date: 06/08/2026"
+              - button "Issue PI →" [ref=f7e655] [cursor=pointer]
+          - generic [ref=f7e656]:
+            - generic [ref=f7e657]:
+              - generic [ref=f7e658]:
+                - generic "Drag and drop to reorder" [ref=f7e659]
+                - generic [ref=f7e671]: AI-Powered Smart Recommendations
+              - generic [ref=f7e672]:
+                - generic [ref=f7e673]:
+                  - button "Move up" [ref=f7e674] [cursor=pointer]
+                  - button "Move down" [ref=f7e677] [cursor=pointer]
+                - button "Minimize/Collapse" [ref=f7e680] [cursor=pointer]
+                - button "Open Full-Screen" [ref=f7e682] [cursor=pointer]
+            - generic [ref=f7e690]:
+              - generic [ref=f7e691]:
+                - generic [ref=f7e692]: AI-Powered Smart Recommendations
+                - generic [ref=f7e696]: Copilot online
+              - generic [ref=f7e697]:
+                - generic [ref=f7e698]:
+                  - generic [ref=f7e703]:
+                    - heading "Premium Stock Opportunity" [level=4] [ref=f7e704]
+                    - paragraph [ref=f7e705]: We currently have 4 premium vehicles (above $100K FOB) available. Consider contacting VIP tiers or promoting custom campaigns for these models.
+                  - button "View Premium Inventory →" [ref=f7e707]
+                - generic [ref=f7e708]:
+                  - generic [ref=f7e715]:
+                    - heading "Actionable Lead Response" [level=4] [ref=f7e716]
+                    - paragraph [ref=f7e717]: There are 1 uncontacted leads currently in queue. Fast response (under 2 hours) yields 8x higher close conversion rate.
+                  - button "View Pending Leads →" [ref=f7e719]
+                - generic [ref=f7e720]:
+                  - generic [ref=f7e726]:
+                    - heading "Sales Forecast Analytics" [level=4] [ref=f7e727]
+                    - paragraph [ref=f7e728]: Currently at 0% of target. At our current closing speed, we are projected to reach 92% of our monthly targets. Recommending priority push on Silver/Gold Tiers.
+                  - button "Accelerate Pipeline →" [ref=f7e730]
+          - generic [ref=f7e731]:
+            - generic [ref=f7e732]:
+              - generic [ref=f7e733]:
+                - generic "Drag and drop to reorder" [ref=f7e734]
+                - generic [ref=f7e745]: Recent System Log Activity
+              - generic [ref=f7e746]:
+                - generic [ref=f7e747]:
+                  - button "Move up" [ref=f7e748] [cursor=pointer]
+                  - button "Move down" [ref=f7e751] [cursor=pointer]
+                - button "Minimize/Collapse" [ref=f7e754] [cursor=pointer]
+                - button "Open Full-Screen" [ref=f7e756] [cursor=pointer]
+            - generic [ref=f7e765]:
+              - generic [ref=f7e766]:
+                - generic [ref=f7e768]:
+                  - heading "Proforma Invoice Issued (undefined)" [level=4] [ref=f7e769]
+                  - generic [ref=f7e770]: Recent
+                - paragraph [ref=f7e771]: To Consignee for 2023 Audi R8 Coupe V10 Performance
+              - generic [ref=f7e772]:
+                - generic [ref=f7e774]:
+                  - heading "Payment Approved ($195,200 USD)" [level=4] [ref=f7e775]
+                  - generic [ref=f7e776]: 2026-08-06T04:26:29.318Z
+                - paragraph [ref=f7e777]: "Reference: undefined via T/T Wire Transfer"
+              - generic [ref=f7e778]:
+                - generic [ref=f7e780]:
+                  - heading "New Inquiry from Charith" [level=4] [ref=f7e781]
+                  - generic [ref=f7e782]: 06/08/2026
+                - paragraph [ref=f7e783]: "Interested in Vehicle. Notes: \"Interested in reserving the Audi R8 Coupe immediately. Please send bank details.\""
+              - generic [ref=f7e784]:
+                - generic [ref=f7e786]:
+                  - heading "New Inquiry from John Smith" [level=4] [ref=f7e787]
+                  - generic [ref=f7e788]: 06/08/2026
+                - paragraph [ref=f7e789]: "Interested in Vehicle. Notes: \"Please send FOB and ocean freight rate estimate for Auckland Port.\""
+          - generic [ref=f7e790]:
+            - generic [ref=f7e791]:
+              - generic [ref=f7e792]:
+                - generic "Drag and drop to reorder" [ref=f7e793]
+                - generic [ref=f7e803]: Operational Intelligence & Charts
+              - generic [ref=f7e804]:
+                - generic [ref=f7e805]:
+                  - button "Move up" [ref=f7e806] [cursor=pointer]
+                  - button "Move down" [disabled] [ref=f7e809] [cursor=pointer]
+                - button "Minimize/Collapse" [ref=f7e812] [cursor=pointer]
+                - button "Open Full-Screen" [ref=f7e814] [cursor=pointer]
+            - generic [ref=f7e821]:
+              - generic [ref=f7e822]:
+                - heading "Sales Distribution by Brand" [level=4] [ref=f7e824]
+                - generic [ref=f7e828]:
+                  - generic [ref=f7e830]:
+                    - generic [ref=f7e831]: Toyota
+                    - generic [ref=f7e832]: 8 Units
+                  - generic [ref=f7e836]:
+                    - generic [ref=f7e837]: Mercedes-Benz
+                    - generic [ref=f7e838]: 4 Units
+                  - generic [ref=f7e842]:
+                    - generic [ref=f7e843]: Porsche
+                    - generic [ref=f7e844]: 3 Units
+                  - generic [ref=f7e848]:
+                    - generic [ref=f7e849]: Ford
+                    - generic [ref=f7e850]: 2 Units
+                  - generic [ref=f7e854]:
+                    - generic [ref=f7e855]: Land Rover
+                    - generic [ref=f7e856]: 1 Units
+              - generic [ref=f7e859]:
+                - heading "Customer Base by Country" [level=4] [ref=f7e861]
+                - generic [ref=f7e867]:
+                  - generic [ref=f7e868]: Japan
+                  - generic [ref=f7e869]: 2 Clients
+              - generic [ref=f7e872]:
+                - heading "Conversion Funnel Analysis" [level=4] [ref=f7e874]
+                - generic [ref=f7e878]:
+                  - generic [ref=f7e879]:
+                    - generic [ref=f7e880]:
+                      - generic [ref=f7e881]: Total Inquiries
+                      - generic [ref=f7e882]: 2 (100%)
+                    - generic [ref=f7e883]: Level 1
+                  - generic [ref=f7e886]:
+                    - generic [ref=f7e887]:
+                      - generic [ref=f7e888]: Contacted Leads
+                      - generic [ref=f7e889]: 1 (75%)
+                    - generic [ref=f7e890]: Level 2
+                  - generic [ref=f7e893]:
+                    - generic [ref=f7e894]:
+                      - generic [ref=f7e895]: Quotations Sent
+                      - generic [ref=f7e896]: 1 (55%)
+                    - generic [ref=f7e897]: Level 3
+                  - generic [ref=f7e900]:
+                    - generic [ref=f7e901]:
+                      - generic [ref=f7e902]: Sold Deliveries
+                      - generic [ref=f7e903]: 0 (35%)
+                    - generic [ref=f7e904]: Level 4
+  - contentinfo [ref=f7e907]:
+    - generic [ref=f7e908]:
+      - generic [ref=f7e909]:
+        - generic [ref=f7e910]:
+          - generic [ref=f7e911]: CARCHIEF
+          - paragraph [ref=f7e912]: PREMIUM GLOBAL VEHICLE EXPORTERS
+          - paragraph [ref=f7e913]: CarChief is a high-end showcase portal providing direct ocean-cargo logistics, certified pre-owned inspections, and custom spec tracking.
+        - generic [ref=f7e914]:
+          - heading "Logistics Core Portals" [level=4] [ref=f7e915]
+          - list [ref=f7e916]:
+            - listitem [ref=f7e917]:
+              - button "Showroom Catalog" [ref=f7e918] [cursor=pointer]
+            - listitem [ref=f7e919]:
+              - button "How to Buy" [ref=f7e920] [cursor=pointer]
+            - listitem [ref=f7e921]:
+              - button "About Us" [ref=f7e922] [cursor=pointer]
+            - listitem [ref=f7e923]:
+              - button "Testimonials" [ref=f7e924] [cursor=pointer]
+            - listitem [ref=f7e925]:
+              - button "FAQ" [ref=f7e926] [cursor=pointer]
+            - listitem [ref=f7e927]:
+              - button "Contact Us" [ref=f7e928] [cursor=pointer]
+            - listitem [ref=f7e929]:
+              - button "Logistics ERP Console" [ref=f7e930] [cursor=pointer]
+        - generic [ref=f7e931]:
+          - heading "Secure Verification" [level=4] [ref=f7e932]
+          - paragraph [ref=f7e933]: CarChief utilizes highly secure cloud-replicated server architectures for real-time transaction records and client logs.
+          - generic [ref=f7e934]: SECURED CLOUD ENVELOPE
+      - generic [ref=f7e938]:
+        - generic [ref=f7e939]: © 2026 CARCHIEF AUTO GROUP. ALL RIGHTS RESERVED.
+        - generic [ref=f7e940]: CLOUDRUN ENVIRONMENT • REGISTRY SECURITY PROTOCOL SHIELD-V2

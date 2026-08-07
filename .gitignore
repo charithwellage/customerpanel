@@ -55,3 +55,26 @@ CodeCoverage/
 *.VisualState.xml
 TestResult.xml
 nunit-*.xml
+
+
+#frontend
+# Dependencies
+node_modules/
+node_modules
+**/node_modules/
+
+# Production builds & output
+dist/
+build/
+coverage/
+
+# Local Environment Variables
+.env
+.env.local
+!.env.example
+
+# Logs & System Files
+*.log
+.DS_Store
+.vscode/
+.idea/

@@ -1,0 +1,113 @@
+- generic [ref=f3e3]:
+  - generic [ref=f3e4]:
+    - generic [ref=f3e7]:
+      - strong [ref=f3e8]: OfflineCache Quota Limit Reached
+      - text: — The system has automatically entered offline high-fidelity fallback mode. All features remain 100% responsive and functional!
+    - button "Retry Live Connection" [ref=f3e9] [cursor=pointer]
+  - banner [ref=f3e10]:
+    - generic [ref=f3e12]:
+      - generic [ref=f3e13]:
+        - generic [ref=f3e14] [cursor=pointer]: CARCHIEF
+        - generic [ref=f3e22]: ONLINE
+      - generic [ref=f3e30]:
+        - paragraph [ref=f3e31]: Super Admin Staff
+        - generic [ref=f3e32]: Super Admin
+  - main [ref=f3e38]:
+    - generic [ref=f3e40]:
+      - generic [ref=f3e41]:
+        - generic [ref=f3e42]:
+          - text: CarChief HQ Administration
+          - heading "Enterprise Logistics Portal" [level=2] [ref=f3e43]
+          - paragraph [ref=f3e44]: "Role: Super Admin • Full database control of listings & client leads."
+        - generic [ref=f3e45]:
+          - button "Staff Dashboard" [ref=f3e46] [cursor=pointer]
+          - button "Inventory 1" [ref=f3e51] [cursor=pointer]:
+            - generic [ref=f3e52]: Inventory
+            - generic [ref=f3e53]: "1"
+          - button "Leads (1)" [ref=f3e54] [cursor=pointer]
+          - button "Finance" [ref=f3e56] [cursor=pointer]
+          - button "Master Controls" [ref=f3e58] [cursor=pointer]
+      - generic [ref=f3e535]:
+        - button "Core Config" [ref=f3e536] [cursor=pointer]
+        - button "CSV Upload" [ref=f3e541] [cursor=pointer]
+        - button "Freight Calculator" [active] [ref=f3e546] [cursor=pointer]
+        - button "City Delivery" [ref=f3e552] [cursor=pointer]
+        - button "Customer Tiers" [ref=f3e557] [cursor=pointer]
+        - button "Customer Management" [ref=f3e562] [cursor=pointer]
+        - button "Roles Control" [ref=f3e569] [cursor=pointer]
+        - button "CMS" [ref=f3e574] [cursor=pointer]
+        - button "FAQ Manager" [ref=f3e579] [cursor=pointer]
+        - button "OfflineCache Audit" [ref=f3e584] [cursor=pointer]
+      - generic [ref=f3e704]:
+        - generic [ref=f3e705]:
+          - generic [ref=f3e706]:
+            - heading "Freight Calculator mapping" [level=3] [ref=f3e707]
+            - paragraph [ref=f3e712]: Define Cubic Meter (M3) ranges and cost rules mapped to Country/Port combinations for automatic freight quotes
+          - button "Seed Freight Mappings" [ref=f3e713]
+        - generic [ref=f3e719]:
+          - generic [ref=f3e720]:
+            - heading "Add Freight Mapping" [level=4] [ref=f3e721]
+            - generic [ref=f3e723]:
+              - generic [ref=f3e724]:
+                - generic [ref=f3e725]: Select Country *
+                - combobox [ref=f3e726]:
+                  - option "-- Choose Country --" [selected]
+                  - option "Kenya"
+                  - option "Tanzania"
+                  - option "Jamaica"
+                  - option "New Zealand"
+              - generic [ref=f3e727]:
+                - generic [ref=f3e728]: Select Port *
+                - combobox [disabled] [ref=f3e729]:
+                  - option "-- Choose Port --" [selected]
+              - generic [ref=f3e730]:
+                - generic [ref=f3e731]: M3 Range *
+                - textbox "e.g. 0-1, 1-5, 5-10" [ref=f3e732]
+              - generic [ref=f3e733]:
+                - generic [ref=f3e734]: Cost for 1M3 (USD) *
+                - generic [ref=f3e735]:
+                  - generic [ref=f3e736]: $
+                  - spinbutton "e.g. 10.00" [ref=f3e737]
+              - button "Add Freight Cost Range" [disabled] [ref=f3e738]
+          - table [ref=f3e741]:
+            - rowgroup [ref=f3e742]:
+              - row [ref=f3e743]:
+                - columnheader "Country" [ref=f3e744]
+                - columnheader "Port" [ref=f3e745]
+                - columnheader "M3 Range" [ref=f3e746]
+                - columnheader "Cost for 1M3" [ref=f3e747]
+                - columnheader "Action" [ref=f3e748]
+            - rowgroup [ref=f3e749]:
+              - row [ref=f3e750]:
+                - cell "No freight mappings found. Select Country, Port, specify M3 Range and Cost to create new mappings." [ref=f3e751]
+  - contentinfo [ref=f3e500]:
+    - generic [ref=f3e501]:
+      - generic [ref=f3e502]:
+        - generic [ref=f3e503]:
+          - generic [ref=f3e504]: CARCHIEF
+          - paragraph [ref=f3e505]: PREMIUM GLOBAL VEHICLE EXPORTERS
+          - paragraph [ref=f3e506]: CarChief is a high-end showcase portal providing direct ocean-cargo logistics, certified pre-owned inspections, and custom spec tracking.
+        - generic [ref=f3e507]:
+          - heading "Logistics Core Portals" [level=4] [ref=f3e508]
+          - list [ref=f3e509]:
+            - listitem [ref=f3e510]:
+              - button "Showroom Catalog" [ref=f3e511] [cursor=pointer]
+            - listitem [ref=f3e512]:
+              - button "How to Buy" [ref=f3e513] [cursor=pointer]
+            - listitem [ref=f3e514]:
+              - button "About Us" [ref=f3e515] [cursor=pointer]
+            - listitem [ref=f3e516]:
+              - button "Testimonials" [ref=f3e517] [cursor=pointer]
+            - listitem [ref=f3e518]:
+              - button "FAQ" [ref=f3e519] [cursor=pointer]
+            - listitem [ref=f3e520]:
+              - button "Contact Us" [ref=f3e521] [cursor=pointer]
+            - listitem [ref=f3e522]:
+              - button "Logistics ERP Console" [ref=f3e523] [cursor=pointer]
+        - generic [ref=f3e524]:
+          - heading "Secure Verification" [level=4] [ref=f3e525]
+          - paragraph [ref=f3e526]: CarChief utilizes highly secure cloud-replicated server architectures for real-time transaction records and client logs.
+          - generic [ref=f3e527]: SECURED CLOUD ENVELOPE
+      - generic [ref=f3e531]:
+        - generic [ref=f3e532]: © 2026 CARCHIEF AUTO GROUP. ALL RIGHTS RESERVED.
+        - generic [ref=f3e533]: CLOUDRUN ENVIRONMENT • REGISTRY SECURITY PROTOCOL SHIELD-V2

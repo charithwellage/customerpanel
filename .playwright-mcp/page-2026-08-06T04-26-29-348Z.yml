@@ -1,0 +1,138 @@
+- generic [ref=f1e3]:
+  - generic [ref=f1e4]:
+    - generic [ref=f1e7]:
+      - strong [ref=f1e8]: OfflineCache Quota Limit Reached
+      - text: — The system has automatically entered offline high-fidelity fallback mode. All features remain 100% responsive and functional!
+    - button "Retry Live Connection" [ref=f1e9] [cursor=pointer]
+  - generic [ref=f1e10]:
+    - complementary [ref=f1e11]:
+      - generic [ref=f1e12]:
+        - heading "CARCHIEF PORTAL" [level=1] [ref=f1e16]
+        - navigation [ref=f1e17]:
+          - button "Overview Desk" [ref=f1e18] [cursor=pointer]
+          - button "Sourcing Showroom" [ref=f1e26] [cursor=pointer]
+          - button "Sourced Vehicles" [ref=f1e32] [cursor=pointer]
+          - button "Reserved Vehicles" [ref=f1e39] [cursor=pointer]
+          - button "Billed Invoices" [ref=f1e45] [cursor=pointer]
+          - button "Wire Remittance" [ref=f1e51] [cursor=pointer]
+          - button "Secure Vault" [ref=f1e56] [cursor=pointer]
+          - button "Bulletins" [ref=f1e62] [cursor=pointer]
+          - button "Client Profile" [ref=f1e68] [cursor=pointer]
+      - generic [ref=f1e74]:
+        - button "Daylight Mode" [ref=f1e75] [cursor=pointer]
+        - button "Sync Sourcing Data" [ref=f1e83] [cursor=pointer]
+        - button "Exit To Showroom" [ref=f1e90] [cursor=pointer]
+        - button "Secure Log Out" [ref=f1e96] [cursor=pointer]
+    - main [ref=f1e101]:
+      - generic [ref=f1e102]:
+        - generic [ref=f1e104]:
+          - generic [ref=f1e105]:
+            - generic [ref=f1e106]:
+              - generic [ref=f1e107]:
+                - generic [ref=f1e108]: SECURE CLIENT SESSION
+                - generic [ref=f1e112]: ● active
+              - heading "WELCOME BACK, Charith" [level=1] [ref=f1e113]
+              - paragraph [ref=f1e114]:
+                - text: Managing logistics for
+                - strong [ref=f1e115]: Charith Auto Traders
+                - text: in Japan. Your secure portal coordinates high-end vehicle procurement, real-time freight pipelines, and direct customs clearance records.
+            - generic [ref=f1e116]:
+              - generic [ref=f1e117]: "LOGISTICS NETWORK: ONLINE"
+              - generic [ref=f1e120]: "|"
+              - generic [ref=f1e122]:
+                - text: "ACTIVE FLEET:"
+                - strong [ref=f1e123]: 2 UNITS
+              - generic [ref=f1e124]: "|"
+              - generic [ref=f1e126]:
+                - text: "IN TRANSIT:"
+                - strong [ref=f1e127]: 1 VESSELS
+          - generic [ref=f1e128]:
+            - generic [ref=f1e129]:
+              - generic [ref=f1e130]:
+                - generic [ref=f1e131]: SECURE CLIENT ID
+                - text: CUST-1001
+              - generic [ref=f1e132]:
+                - generic [ref=f1e133]: REGISTRY LOCATION
+                - text: Japan
+            - generic [ref=f1e134]:
+              - generic [ref=f1e135]:
+                - generic [ref=f1e136]: PORTAL TIER
+                - generic [ref=f1e139]: Platinum Club
+              - generic [ref=f1e140]:
+                - generic [ref=f1e141]: CREDIT UTILIZATION
+                - generic [ref=f1e142]: $0 / $500,000
+        - generic [ref=f1e143]:
+          - generic [ref=f1e144] [cursor=pointer]:
+            - generic [ref=f1e145]: Bought Cars
+            - generic [ref=f1e152]:
+              - generic [ref=f1e153]: "2"
+              - text: Full Ledger
+          - generic [ref=f1e154] [cursor=pointer]:
+            - generic [ref=f1e155]: In Transit
+            - generic [ref=f1e162]:
+              - generic [ref=f1e163]: "1"
+              - text: Vessels En Route
+          - generic [ref=f1e164] [cursor=pointer]:
+            - generic [ref=f1e165]: Port Ready
+            - generic [ref=f1e171]:
+              - generic [ref=f1e172]: "0"
+              - text: Booked & Loaded
+          - generic [ref=f1e173] [cursor=pointer]:
+            - generic [ref=f1e174]: Due Bills
+            - generic [ref=f1e180]:
+              - generic [ref=f1e181]: "0"
+              - text: Unpaid / Partial
+          - generic [ref=f1e182] [cursor=pointer]:
+            - generic [ref=f1e183]: Pending Balance
+            - generic [ref=f1e188]:
+              - generic [ref=f1e189]: $0.00
+              - generic [ref=f1e190]: "Credit limit: $500,000"
+        - generic [ref=f1e191]:
+          - generic [ref=f1e192]:
+            - generic [ref=f1e193]:
+              - generic [ref=f1e194]:
+                - generic [ref=f1e195]:
+                  - heading "ACTIVE SHIPMENT TRACKING" [level=3] [ref=f1e196]
+                  - paragraph [ref=f1e197]: Live ocean logistics & container status
+                - button "View All" [ref=f1e198] [cursor=pointer]
+              - generic [ref=f1e202]:
+                - generic [ref=f1e203] [cursor=pointer]:
+                  - generic [ref=f1e204]:
+                    - img "R8 Coupe V10 Performance" [ref=f1e206]
+                    - generic [ref=f1e207]:
+                      - heading "2023 Audi R8 Coupe V10 Performance" [level=4] [ref=f1e208]
+                      - generic [ref=f1e209]: "Chassis: | Stock: STK-vehi"
+                  - generic [ref=f1e210]:
+                    - generic [ref=f1e211]: reserved
+                    - generic [ref=f1e212]:
+                      - generic [ref=f1e213]: ETA
+                      - generic [ref=f1e214]: TBD
+                - generic [ref=f1e215] [cursor=pointer]:
+                  - generic [ref=f1e216]:
+                    - img "R8 Coupe V10 Performance" [ref=f1e218]
+                    - generic [ref=f1e219]:
+                      - heading "2023 Audi R8 Coupe V10 Performance" [level=4] [ref=f1e220]
+                      - generic [ref=f1e221]: "Chassis: 4S-CR8V10-00912 | Stock: STK-9012"
+                  - generic [ref=f1e222]:
+                    - generic [ref=f1e223]: transit
+                    - generic [ref=f1e224]:
+                      - generic [ref=f1e225]: ETA
+                      - generic [ref=f1e226]: 2026-09-02
+            - generic [ref=f1e227]:
+              - generic [ref=f1e228]:
+                - generic [ref=f1e229]:
+                  - heading "FINANCIAL BILLING SUMMARY" [level=3] [ref=f1e230]
+                  - paragraph [ref=f1e231]: Unpaid Proforma & Commercial accounts
+                - button "Full Ledger" [ref=f1e232] [cursor=pointer]
+              - generic [ref=f1e236]: Your account is fully settled. No pending dues.
+          - generic [ref=f1e238]:
+            - generic [ref=f1e239]:
+              - generic [ref=f1e240]:
+                - heading "UNREAD BULLETINS" [level=3] [ref=f1e241]
+                - button "InBox" [ref=f1e242]
+              - generic [ref=f1e243]: No new unread bulletins.
+            - generic [ref=f1e244]:
+              - generic [ref=f1e245]:
+                - heading "SECURE VAULT" [level=3] [ref=f1e246]
+                - button "Vault" [ref=f1e247]
+              - generic [ref=f1e248]: No export files uploaded.

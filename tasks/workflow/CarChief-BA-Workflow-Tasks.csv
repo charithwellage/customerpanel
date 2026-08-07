@@ -1,0 +1,9 @@
+Task ID,Task Summary,Dependent Task,Decision Gates,Execution Stage
+WF-T001,Approve workflow contract and status vocabulary,,DEC-WF-COLOUR-OWNERSHIP; DEC-WF-TIMER-SEMANTICS; DEC-WF-PI-PAYMENT-WINDOW; DEC-WF-PUBLICATION-PRICE; DEC-WF-EXTERNAL-BOUNDARIES; DEC-WF-SHIP-DOC-APPROVAL,Decision gate
+WF-T002,Customer workflow status and notification visibility,WF-T001,,Customer Application
+WF-T003,Sales negotiation confirmation and PI timers,WF-T001,,Salesperson Application
+WF-T004,TT review hold resubmission and allocation,WF-T001,,Salesperson Application
+WF-T005,Ship OK ERP checkpoints and document release,WF-T001,,Salesperson and Customer Applications
+WF-T006,Import publication and price readiness,WF-T001,,Public and Salesperson Applications
+WF-T007,External and manual boundary records,WF-T001,,Later integration boundary
+WF-T008,Golden BA workflow acceptance,WF-T002; WF-T003; WF-T004; WF-T005; WF-T006; WF-T007,,Cross-application acceptance

@@ -1,0 +1,99 @@
+- generic [ref=f5e3]:
+  - generic [ref=f5e4]:
+    - generic [ref=f5e7]:
+      - strong [ref=f5e8]: OfflineCache Quota Limit Reached
+      - text: — The system has automatically entered offline high-fidelity fallback mode. All features remain 100% responsive and functional!
+    - button "Retry Live Connection" [ref=f5e9] [cursor=pointer]
+  - generic [ref=f5e10]:
+    - complementary [ref=f5e11]:
+      - generic [ref=f5e12]:
+        - heading "CARCHIEF PORTAL" [level=1] [ref=f5e16]
+        - navigation [ref=f5e17]:
+          - button "Overview Desk" [ref=f5e18] [cursor=pointer]
+          - button "Sourcing Showroom" [ref=f5e26] [cursor=pointer]
+          - button "Sourced Vehicles" [ref=f5e32] [cursor=pointer]
+          - button "Reserved Vehicles" [ref=f5e39] [cursor=pointer]
+          - button "Billed Invoices" [ref=f5e45] [cursor=pointer]
+          - button "Wire Remittance" [ref=f5e51] [cursor=pointer]
+          - button "Secure Vault" [ref=f5e56] [cursor=pointer]
+          - button "Bulletins" [ref=f5e62] [cursor=pointer]
+          - button "Client Profile" [ref=f5e68] [cursor=pointer]
+      - generic [ref=f5e74]:
+        - button "Daylight Mode" [ref=f5e75] [cursor=pointer]
+        - button "Sync Sourcing Data" [ref=f5e83] [cursor=pointer]
+        - button "Exit To Showroom" [ref=f5e90] [cursor=pointer]
+        - button "Secure Log Out" [ref=f5e96] [cursor=pointer]
+    - main [ref=f5e101]:
+      - generic [ref=f5e102]:
+        - generic [ref=f5e103]:
+          - generic [ref=f5e105]:
+            - text: Aggregate Outstanding
+            - heading "$0.00" [level=4] [ref=f5e106]
+            - paragraph [ref=f5e107]: Telegraphic Transfer pending
+          - generic [ref=f5e112]:
+            - text: Remitted & Cleared
+            - heading "$195,200.00" [level=4] [ref=f5e113]
+            - paragraph [ref=f5e114]: SWIFT confirmations logged
+          - generic [ref=f5e120]:
+            - text: Billed Units Vault
+            - heading "1 Units" [level=4] [ref=f5e121]
+            - paragraph [ref=f5e122]: Invoiced vehicles mapped to ledger
+        - generic [ref=f5e128]:
+          - heading "Active Invoice Ledgers" [level=3] [ref=f5e129]
+          - paragraph [ref=f5e130]: View commercial invoices, outstanding balances, and remittance tracking indices.
+        - textbox "Search invoice number, type, status..." [ref=f5e136]
+        - table [ref=f5e139]:
+          - rowgroup [ref=f5e140]:
+            - row [ref=f5e141]:
+              - columnheader "Invoice Number" [ref=f5e142]
+              - columnheader "Type" [ref=f5e143]
+              - columnheader "Billed Date" [ref=f5e144]
+              - columnheader "Total Amount" [ref=f5e145]
+              - columnheader "Paid" [ref=f5e146]
+              - columnheader "Outstanding" [ref=f5e147]
+              - columnheader "Due Date" [ref=f5e148]
+              - columnheader "Action" [ref=f5e149]
+          - rowgroup [ref=f5e150]:
+            - row [ref=f5e151]:
+              - cell "PI-pi-1" [ref=f5e152]
+              - cell "Proforma" [ref=f5e157]
+              - cell "06/08/2026" [ref=f5e158]
+              - cell "$195,200.00" [ref=f5e159]
+              - cell "$195,200.00" [ref=f5e160]
+              - cell "$0.00" [ref=f5e161]
+              - cell "2026-08-13" [ref=f5e162]
+              - cell [ref=f5e163]:
+                - button "Ledger" [ref=f5e164] [cursor=pointer]
+        - generic [ref=f5e168]:
+          - generic [ref=f5e169]:
+            - generic [ref=f5e170]:
+              - heading "Invoiced Sourced Vehicles Ledger" [level=4] [ref=f5e171]
+              - paragraph [ref=f5e177]: All inventory units that have been commercialized and billed directly to this customer portal ledger.
+            - generic [ref=f5e178]: 1 Units Billed
+          - generic [ref=f5e180]:
+            - generic [ref=f5e181]:
+              - img "R8 Coupe V10 Performance" [ref=f5e182]
+              - generic [ref=f5e183]: BILLED & VERIFIED
+              - generic [ref=f5e184]: "STK: STK-9012"
+              - generic [ref=f5e185]: "CHASSIS: 4S-CR8V10-00912"
+            - generic [ref=f5e186]:
+              - generic [ref=f5e187]:
+                - heading "2023 Audi R8 Coupe V10 Performance" [level=5] [ref=f5e188]
+                - generic [ref=f5e189]:
+                  - generic [ref=f5e190]: "Engine:"
+                  - generic [ref=f5e191]: V10-58912
+                  - generic [ref=f5e192]: "Vessel & Voyage:"
+                  - generic [ref=f5e193]: OCEANUS LEADER V-102
+                  - generic [ref=f5e194]: "Destination Port:"
+                  - generic [ref=f5e195]: Durban Port, ZA
+              - generic [ref=f5e196]:
+                - generic [ref=f5e197]:
+                  - generic [ref=f5e198]: "Sold:"
+                  - generic [ref=f5e199]: $189,900.00
+                - generic [ref=f5e200]:
+                  - generic [ref=f5e201]: "Paid:"
+                  - generic [ref=f5e202]: $0.00
+                - generic [ref=f5e203]:
+                  - generic [ref=f5e204]: "Balance:"
+                  - generic [ref=f5e205]: $189,900.00
+            - generic [ref=f5e206]: ACCOUNTS LEDGER INDEXED

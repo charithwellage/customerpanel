@@ -1,0 +1,6 @@
+[     232ms] [LOG] OfflineCache Loop Detection and Audit Engine Initialized. @ http://127.0.0.1:8080/:7630
+[     254ms] [LOG] Auto-logged out active user sessions per user request. @ http://127.0.0.1:8080/:19383
+[     254ms] [LOG] Super Admin auto-creation successful on mount. @ http://127.0.0.1:8080/:19390
+[     476ms] [WARNING] <meta name="apple-mobile-web-app-capable" content="yes"> is deprecated. Please include <meta name="mobile-web-app-capable" content="yes"> @ http://127.0.0.1:8080/?view=showroom:0
+[     530ms] [LOG] Service Worker registered successfully: http://127.0.0.1:8080/ @ http://127.0.0.1:8080/:19716
+[     623ms] [WARNING] Error while trying to use the following icon from the Manifest: http://127.0.0.1:8080/input_file_0.png (Download error or resource isn't a valid image) @ http://127.0.0.1:8080/?view=showroom:0

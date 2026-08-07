@@ -1,0 +1,103 @@
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e7]:
+      - strong [ref=e8]: OfflineCache Quota Limit Reached
+      - text: — The system has automatically entered offline high-fidelity fallback mode. All features remain 100% responsive and functional!
+    - button "Retry Live Connection" [ref=e9] [cursor=pointer]
+  - banner [ref=e10]:
+    - generic [ref=e12]:
+      - generic [ref=e13]:
+        - generic [ref=e14] [cursor=pointer]: CARCHIEF
+        - generic [ref=e22]: ONLINE
+      - generic [ref=e30]:
+        - paragraph [ref=e31]: Super Admin Staff
+        - generic [ref=e32]: Super Admin
+  - main [ref=e38]:
+    - generic [ref=e40]:
+      - generic [ref=e41]:
+        - generic [ref=e42]:
+          - text: CarChief HQ Administration
+          - heading "Enterprise Logistics Portal" [level=2] [ref=e43]
+          - paragraph [ref=e44]: "Role: Super Admin • Full database control of listings & client leads."
+        - generic [ref=e45]:
+          - button "Staff Dashboard" [ref=e46] [cursor=pointer]
+          - button "Inventory 1" [ref=e51] [cursor=pointer]:
+            - generic [ref=e52]: Inventory
+            - generic [ref=e53]: "1"
+          - button "Leads (1)" [ref=e54] [cursor=pointer]
+          - button "Finance" [ref=e56] [cursor=pointer]
+          - button "Master Controls" [ref=e58] [cursor=pointer]
+      - generic [ref=e1206]:
+        - button "Core Config" [ref=e1207] [cursor=pointer]
+        - button "CSV Upload" [ref=e1212] [cursor=pointer]
+        - button "Freight Calculator" [ref=e1217] [cursor=pointer]
+        - button "City Delivery" [ref=e1223] [cursor=pointer]
+        - button "Customer Tiers" [ref=e1228] [cursor=pointer]
+        - button "Customer Management" [ref=e1233] [cursor=pointer]
+        - button "Roles Control" [ref=e1240] [cursor=pointer]
+        - button "CMS" [active] [ref=e1245] [cursor=pointer]
+        - button "FAQ Manager" [ref=e1250] [cursor=pointer]
+        - button "OfflineCache Audit" [ref=e1255] [cursor=pointer]
+      - generic [ref=e2171]:
+        - generic [ref=e2172]:
+          - generic [ref=e2173]:
+            - text: System Branding Console
+            - heading "Project Logo CMS" [level=2] [ref=e2174]
+            - paragraph [ref=e2175]: Customize the official CarChief brand logo icon or image displayed on the global header.
+          - generic [ref=e2176]:
+            - button "Reset Defaults" [ref=e2177] [cursor=pointer]
+            - button "Save Logo" [ref=e2181] [cursor=pointer]
+        - generic [ref=e2186]:
+          - generic [ref=e2188]:
+            - text: 1. Select Logo Type
+            - generic [ref=e2189]:
+              - button "Predefined Icon" [ref=e2190] [cursor=pointer]
+              - button "Custom Image URL" [ref=e2196] [cursor=pointer]
+              - button "Custom SVG Code" [ref=e2202] [cursor=pointer]
+          - generic [ref=e2207]:
+            - generic [ref=e2208]:
+              - generic [ref=e2209]:
+                - generic [ref=e2210]: Real-time Sandbox
+                - heading "Interactive Preview" [level=3] [ref=e2211]
+              - generic [ref=e2212]:
+                - text: Desktop Layout Rendering
+                - generic [ref=e2213]:
+                  - generic [ref=e2214]: CARCHIEF
+                  - generic [ref=e2221]: Header
+              - generic [ref=e2222]:
+                - generic [ref=e2223]: Mobile Drawer Rendering
+                - generic [ref=e2224]:
+                  - generic [ref=e2225]: CARCHIEF
+                  - generic [ref=e2232]: Drawer
+            - generic [ref=e2233]: Verify layout spacing and color contrasts. All changes sync dynamically across every active viewing viewport after saving.
+  - contentinfo [ref=e907]:
+    - generic [ref=e908]:
+      - generic [ref=e909]:
+        - generic [ref=e910]:
+          - generic [ref=e911]: CARCHIEF
+          - paragraph [ref=e912]: PREMIUM GLOBAL VEHICLE EXPORTERS
+          - paragraph [ref=e913]: CarChief is a high-end showcase portal providing direct ocean-cargo logistics, certified pre-owned inspections, and custom spec tracking.
+        - generic [ref=e914]:
+          - heading "Logistics Core Portals" [level=4] [ref=e915]
+          - list [ref=e916]:
+            - listitem [ref=e917]:
+              - button "Showroom Catalog" [ref=e918] [cursor=pointer]
+            - listitem [ref=e919]:
+              - button "How to Buy" [ref=e920] [cursor=pointer]
+            - listitem [ref=e921]:
+              - button "About Us" [ref=e922] [cursor=pointer]
+            - listitem [ref=e923]:
+              - button "Testimonials" [ref=e924] [cursor=pointer]
+            - listitem [ref=e925]:
+              - button "FAQ" [ref=e926] [cursor=pointer]
+            - listitem [ref=e927]:
+              - button "Contact Us" [ref=e928] [cursor=pointer]
+            - listitem [ref=e929]:
+              - button "Logistics ERP Console" [ref=e930] [cursor=pointer]
+        - generic [ref=e931]:
+          - heading "Secure Verification" [level=4] [ref=e932]
+          - paragraph [ref=e933]: CarChief utilizes highly secure cloud-replicated server architectures for real-time transaction records and client logs.
+          - generic [ref=e934]: SECURED CLOUD ENVELOPE
+      - generic [ref=e938]:
+        - generic [ref=e939]: © 2026 CARCHIEF AUTO GROUP. ALL RIGHTS RESERVED.
+        - generic [ref=e940]: CLOUDRUN ENVIRONMENT • REGISTRY SECURITY PROTOCOL SHIELD-V2

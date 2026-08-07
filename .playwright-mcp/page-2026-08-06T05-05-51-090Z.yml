@@ -1,0 +1,154 @@
+- generic [ref=f9e780]:
+  - generic [ref=f9e782]:
+    - button "Back to Catalog" [ref=f9e783]
+    - generic [ref=f9e787]:
+      - button "Copy link to share" [ref=f9e788]
+      - button "Print spec sheet" [ref=f9e795]
+      - generic [ref=f9e800]: CARCHIEF
+  - generic [ref=f9e802]:
+    - generic [ref=f9e803]:
+      - generic [ref=f9e804]:
+        - generic [ref=f9e805]:
+          - generic [ref=f9e806]: New
+          - generic [ref=f9e807]: Available
+        - generic [ref=f9e808]:
+          - img "2024 Porsche 911 GT3 RS" [ref=f9e809]
+          - button [ref=f9e810]
+          - button [ref=f9e813]
+        - generic [ref=f9e816]:
+          - button [ref=f9e817]:
+            - img "thumb" [ref=f9e818]
+          - button [ref=f9e819]:
+            - img "thumb" [ref=f9e820]
+          - button [ref=f9e821]:
+            - img "thumb" [ref=f9e822]
+      - generic [ref=f9e823]:
+        - heading "Condition Assessment & Overview" [level=3] [ref=f9e824]
+        - paragraph [ref=f9e826]: Born on the racetrack, legal on the street. This brand new Porsche 911 GT3 RS is styled in premium Carrara White with contrasting red racing stripes and carbon fiber aerodynamic wing. Active aerodynamics, lightweight Weissach package, and motorsport-grade steering wheel controls.
+        - paragraph [ref=f9e830]: "CARCHIEF SECURED INVENTORY GUARANTEE: This vehicle is backed by our pre-purchase inspection certification program. All specifications are certified by certified auto engineers prior to entering dynamic freight cargo export channels."
+      - generic [ref=f9e831]:
+        - heading "SPECIFICATIONS" [level=3] [ref=f9e833]
+        - generic [ref=f9e834]:
+          - generic [ref=f9e835]: 4.0L Naturally Aspirated Boxer-6
+          - generic [ref=f9e849]: 150 KM
+          - generic [ref=f9e855]: Petrol
+          - generic [ref=f9e861]: Dual-Clutch
+          - generic [ref=f9e875]: Carrara White Metallic
+        - table [ref=f9e884]:
+          - rowgroup [ref=f9e885]:
+            - row [ref=f9e886]:
+              - cell "Stock No." [ref=f9e887]
+              - cell [ref=f9e888]:
+                - strong [ref=f9e889]: —
+              - cell "Make" [ref=f9e890]
+              - cell "Porsche" [ref=f9e891]
+            - row [ref=f9e892]:
+              - cell "Model" [ref=f9e893]
+              - cell "911 GT3 RS" [ref=f9e894]
+              - cell "Model Code" [ref=f9e895]
+              - cell "—" [ref=f9e896]
+            - row [ref=f9e897]:
+              - cell "Chassis No" [ref=f9e898]
+              - cell "—" [ref=f9e899]
+              - cell "Version/Class" [ref=f9e900]
+              - cell "—" [ref=f9e901]
+            - row [ref=f9e902]:
+              - cell "REG Year/Mon" [ref=f9e903]
+              - cell "—" [ref=f9e904]
+              - cell "MFG Year/Mon" [ref=f9e905]
+              - cell "—" [ref=f9e906]
+            - row [ref=f9e907]:
+              - cell "Mileage" [ref=f9e908]
+              - cell "150 KM" [ref=f9e909]
+              - cell "Fuel" [ref=f9e910]
+              - cell "Petrol" [ref=f9e911]
+            - row [ref=f9e912]:
+              - cell "Transmission" [ref=f9e913]
+              - cell "Dual-Clutch" [ref=f9e914]
+              - cell "Engine" [ref=f9e915]
+              - cell "4.0L Naturally Aspirated Boxer-6" [ref=f9e916]
+            - row [ref=f9e917]:
+              - cell "2WD/4WD" [ref=f9e918]
+              - cell "—" [ref=f9e919]
+              - cell "Exterior Color" [ref=f9e920]
+              - cell "Carrara White Metallic" [ref=f9e921]
+            - row [ref=f9e922]:
+              - cell "Doors" [ref=f9e923]
+              - cell "—" [ref=f9e924]
+              - cell "Steering" [ref=f9e925]
+              - cell "—" [ref=f9e926]
+            - row [ref=f9e927]:
+              - cell "Seats" [ref=f9e928]
+              - cell "—" [ref=f9e929]
+              - cell "Gross Weight" [ref=f9e930]
+              - cell "—" [ref=f9e931]
+            - row [ref=f9e932]:
+              - cell "LxWxH" [ref=f9e933]
+              - cell "—" [ref=f9e934]
+              - cell "M3 Size" [ref=f9e935]
+              - cell "—" [ref=f9e936]
+            - row [ref=f9e937]:
+              - cell "Type" [ref=f9e938]
+              - cell "Coupe" [ref=f9e939]
+              - cell [ref=f9e940]
+              - cell [ref=f9e941]
+    - generic [ref=f9e942]:
+      - generic [ref=f9e943]:
+        - generic [ref=f9e944]:
+          - generic [ref=f9e945]: Porsche Inventory ID
+          - heading "911 GT3 RS" [level=1] [ref=f9e946]
+          - generic [ref=f9e947]:
+            - generic [ref=f9e948]: "Model Year: 2024"
+            - generic [ref=f9e949]: 150 KM
+        - generic [ref=f9e950]:
+          - generic [ref=f9e951]:
+            - generic [ref=f9e952]: FOB PRICE
+            - generic [ref=f9e953]: $274,500 USD
+          - generic [ref=f9e954]:
+            - generic [ref=f9e955]: EST. DEPOSIT
+            - generic [ref=f9e956]: $27,450 USD
+        - generic [ref=f9e957]:
+          - generic [ref=f9e958]: "DATABASE REF ID:"
+          - generic [ref=f9e959]: vehicle-2
+      - generic [ref=f9e960]:
+        - generic [ref=f9e961]: Customer Online Lock Engine
+        - paragraph [ref=f9e966]: Lock this unit instantly in your name under active benefits of Platinum tier.
+        - button "Reserve Online Now" [ref=f9e967] [cursor=pointer]
+      - generic [ref=f9e969]:
+        - generic [ref=f9e970]:
+          - heading "Ocean Freight Estimator (CIF)" [level=3] [ref=f9e971]
+          - paragraph [ref=f9e975]: Calculate global logistics ocean cargo fees and marine insurance for exporting this Porsche.
+        - generic [ref=f9e976]:
+          - heading "CIF Calculator" [level=2] [ref=f9e978]
+          - generic [ref=f9e981]:
+            - generic [ref=f9e982]:
+              - generic [ref=f9e983]: Choose Final Country*
+              - combobox "Choose Final Country*" [ref=f9e984]:
+                - option "-- Select Destination --" [selected]
+                - option "Jamaica"
+                - option "Kenya"
+                - option "New Zealand"
+                - option "Tanzania"
+            - paragraph [ref=f9e986]: Please select the country where your vehicle(s) will be shipped.
+      - generic [ref=f9e987]:
+        - generic [ref=f9e988]:
+          - heading "Specs Inquiry & Booking Form" [level=3] [ref=f9e989]
+          - paragraph [ref=f9e993]:
+            - text: Send a secure sales inquiry regarding this
+            - generic [ref=f9e994]: 2024 Porsche
+            - text: . Our customer representatives will provide customized export estimates.
+        - generic [ref=f9e995]:
+          - generic [ref=f9e996]:
+            - generic [ref=f9e997]: Full Name
+            - textbox "John Doe" [ref=f9e998]
+          - generic [ref=f9e999]:
+            - generic [ref=f9e1000]:
+              - generic [ref=f9e1001]: Email Address
+              - textbox "john@example.com" [ref=f9e1002]
+            - generic [ref=f9e1003]:
+              - generic [ref=f9e1004]: Phone (Optional)
+              - textbox "+1 555-0199" [ref=f9e1005]
+          - generic [ref=f9e1006]:
+            - generic [ref=f9e1007]: Inquiry Message
+            - textbox [ref=f9e1008]: Hello, I am interested in purchasing the 2024 Porsche 911 GT3 RS. Please let me know its availability and the next steps.
+          - button "Submit Inquiry Spec File" [ref=f9e1009]

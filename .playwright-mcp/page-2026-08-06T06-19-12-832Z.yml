@@ -1,0 +1,129 @@
+- generic [ref=f6e3]:
+  - generic [ref=f6e4]:
+    - generic [ref=f6e7]:
+      - strong [ref=f6e8]: OfflineCache Quota Limit Reached
+      - text: — The system has automatically entered offline high-fidelity fallback mode. All features remain 100% responsive and functional!
+    - button "Retry Live Connection" [ref=f6e9] [cursor=pointer]
+  - banner [ref=f6e10]:
+    - generic [ref=f6e12]:
+      - generic [ref=f6e13]:
+        - generic [ref=f6e14] [cursor=pointer]: CARCHIEF
+        - generic [ref=f6e22]: ONLINE
+      - generic [ref=f6e30]:
+        - paragraph [ref=f6e31]: Super Admin Staff
+        - generic [ref=f6e32]: Super Admin
+  - main [ref=f6e38]:
+    - generic [ref=f6e40]:
+      - generic [ref=f6e41]:
+        - generic [ref=f6e42]:
+          - text: CarChief HQ Administration
+          - heading "Enterprise Logistics Portal" [level=2] [ref=f6e43]
+          - paragraph [ref=f6e44]: "Role: Super Admin • Full database control of listings & client leads."
+        - generic [ref=f6e45]:
+          - button "Staff Dashboard" [ref=f6e46] [cursor=pointer]
+          - button "Inventory 1" [ref=f6e51] [cursor=pointer]:
+            - generic [ref=f6e52]: Inventory
+            - generic [ref=f6e53]: "1"
+          - button "Leads (1)" [ref=f6e54] [cursor=pointer]
+          - button "Finance" [ref=f6e56] [cursor=pointer]
+          - button "Master Controls" [active] [ref=f6e58] [cursor=pointer]
+      - generic [ref=f6e638]:
+        - button "Core Config" [ref=f6e639] [cursor=pointer]
+        - button "CSV Upload" [ref=f6e644] [cursor=pointer]
+        - button "Freight Calculator" [ref=f6e649] [cursor=pointer]
+        - button "City Delivery" [ref=f6e655] [cursor=pointer]
+        - button "Customer Tiers" [ref=f6e660] [cursor=pointer]
+        - button "Customer Management" [ref=f6e665] [cursor=pointer]
+        - button "Roles Control" [ref=f6e672] [cursor=pointer]
+        - button "CMS" [ref=f6e677] [cursor=pointer]
+        - button "FAQ Manager" [ref=f6e682] [cursor=pointer]
+        - button "OfflineCache Audit" [ref=f6e687] [cursor=pointer]
+      - generic [ref=f6e692]:
+        - generic [ref=f6e694]:
+          - heading "Admin Master Controls" [level=3] [ref=f6e695]
+          - paragraph [ref=f6e700]: Configure system masters such as Country Master, Port Master, Costing Items Master, Shipper Master, and Bank Details Master for downstream logistics
+        - generic [ref=f6e701]:
+          - button "Country Master (4)" [ref=f6e702]
+          - button "Port Master (4)" [ref=f6e707]
+          - button "Costing Items Master (3)" [ref=f6e712]
+          - button "Shipper Master (2)" [ref=f6e719]
+          - button "Bank Master (2)" [ref=f6e726]
+          - button "Terms Presets (2)" [ref=f6e730]
+        - generic [ref=f6e735]:
+          - generic [ref=f6e736]:
+            - heading "Add Country Master" [level=4] [ref=f6e737]
+            - generic [ref=f6e740]:
+              - generic [ref=f6e741]:
+                - generic [ref=f6e742]: Country Name *
+                - textbox "e.g. Kenya" [ref=f6e743]
+              - generic [ref=f6e744]:
+                - generic [ref=f6e745]: ISO Country Code (Optional)
+                - textbox "e.g. KE" [ref=f6e746]
+              - button "Register Country" [ref=f6e747]
+          - table [ref=f6e750]:
+            - rowgroup [ref=f6e751]:
+              - row [ref=f6e752]:
+                - columnheader "Country ID" [ref=f6e753]
+                - columnheader "Country Name" [ref=f6e754]
+                - columnheader "Code" [ref=f6e755]
+                - columnheader "Action" [ref=f6e756]
+            - rowgroup [ref=f6e757]:
+              - row [ref=f6e758]:
+                - cell "c-kenya" [ref=f6e759]
+                - cell "Kenya" [ref=f6e760]
+                - cell "N/A" [ref=f6e761]
+                - cell [ref=f6e762]:
+                  - button "Edit Country Master" [ref=f6e763]
+                  - button "Delete Country Master" [ref=f6e766]
+              - row [ref=f6e770]:
+                - cell "c-tanzania" [ref=f6e771]
+                - cell "Tanzania" [ref=f6e772]
+                - cell "N/A" [ref=f6e773]
+                - cell [ref=f6e774]:
+                  - button "Edit Country Master" [ref=f6e775]
+                  - button "Delete Country Master" [ref=f6e778]
+              - row [ref=f6e782]:
+                - cell "c-jamaica" [ref=f6e783]
+                - cell "Jamaica" [ref=f6e784]
+                - cell "N/A" [ref=f6e785]
+                - cell [ref=f6e786]:
+                  - button "Edit Country Master" [ref=f6e787]
+                  - button "Delete Country Master" [ref=f6e790]
+              - row [ref=f6e794]:
+                - cell "c-nz" [ref=f6e795]
+                - cell "New Zealand" [ref=f6e796]
+                - cell "N/A" [ref=f6e797]
+                - cell [ref=f6e798]:
+                  - button "Edit Country Master" [ref=f6e799]
+                  - button "Delete Country Master" [ref=f6e802]
+  - contentinfo [ref=f6e162]:
+    - generic [ref=f6e163]:
+      - generic [ref=f6e164]:
+        - generic [ref=f6e165]:
+          - generic [ref=f6e166]: CARCHIEF
+          - paragraph [ref=f6e167]: PREMIUM GLOBAL VEHICLE EXPORTERS
+          - paragraph [ref=f6e168]: CarChief is a high-end showcase portal providing direct ocean-cargo logistics, certified pre-owned inspections, and custom spec tracking.
+        - generic [ref=f6e169]:
+          - heading "Logistics Core Portals" [level=4] [ref=f6e170]
+          - list [ref=f6e171]:
+            - listitem [ref=f6e172]:
+              - button "Showroom Catalog" [ref=f6e173] [cursor=pointer]
+            - listitem [ref=f6e174]:
+              - button "How to Buy" [ref=f6e175] [cursor=pointer]
+            - listitem [ref=f6e176]:
+              - button "About Us" [ref=f6e177] [cursor=pointer]
+            - listitem [ref=f6e178]:
+              - button "Testimonials" [ref=f6e179] [cursor=pointer]
+            - listitem [ref=f6e180]:
+              - button "FAQ" [ref=f6e181] [cursor=pointer]
+            - listitem [ref=f6e182]:
+              - button "Contact Us" [ref=f6e183] [cursor=pointer]
+            - listitem [ref=f6e184]:
+              - button "Logistics ERP Console" [ref=f6e185] [cursor=pointer]
+        - generic [ref=f6e186]:
+          - heading "Secure Verification" [level=4] [ref=f6e187]
+          - paragraph [ref=f6e188]: CarChief utilizes highly secure cloud-replicated server architectures for real-time transaction records and client logs.
+          - generic [ref=f6e189]: SECURED CLOUD ENVELOPE
+      - generic [ref=f6e193]:
+        - generic [ref=f6e194]: © 2026 CARCHIEF AUTO GROUP. ALL RIGHTS RESERVED.
+        - generic [ref=f6e195]: CLOUDRUN ENVIRONMENT • REGISTRY SECURITY PROTOCOL SHIELD-V2
