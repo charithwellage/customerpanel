@@ -14,6 +14,8 @@ Nothing marked this way should be treated as agreed. Everything else in this doc
 
 **How this document was produced.** CarChief already has a working demonstration system. It was tested by hand — every screen, button and form was tried — to understand what the finished product should do. Where the demonstration does something correctly, this document asks for that behaviour. Where the demonstration does something wrong (and a few things were found to be wrong), this document asks for the **correct** behaviour instead, not a copy of the mistake.
 
+**Additional legacy-business evidence (7 August 2026).** The supplied *Brach Page – Front End*, *Homepage Display as per country IP*, and *Premium Stocks Web Page* PDFs are valid business requirements for the replacement Public App. Their reconciliation and delivery mapping are recorded in [`docs/CarChief-Legacy-Public-Requirements-Reconciliation.md`](docs/CarChief-Legacy-Public-Requirements-Reconciliation.md). The PDF spelling “Brach” is retained only in the source title; this document uses **Branch**.
+
 ---
 
 ## What CarChief does
@@ -233,6 +235,16 @@ flowchart TD
 **PUB-30 — Source-confirmed public content portfolio:** A visitor can read approved public company, services, team, gallery, news, security and bank-information content where management authorizes publication. Each item requires a content owner, approval state and safe public projection; sensitive bank, security or personal details are not published by default.
 
 **PUB-31 — Source-confirmed legacy behaviour; legal content open:** A visitor can access approved privacy/cookie information and make a consent choice where legally required. The new frontend uses an approved consent mechanism and copy; it does not reuse legacy scripts or treat prior acceptance as consent.
+
+**PUB-32 — Confirmed by legacy business requirements:** Public stock location and market eligibility are server-authoritative. For a vehicle’s relevant destination port, the service shall classify it as **In Japan** when both ETD and ETA are absent or ETD is in the future; **In Transit** when ETD has passed and ETA is in the future; and **In Port** when ETA has passed. A subsequent ETD or ETA update must update the returned category. The public app shall use an automatically detected country where an approved privacy-compliant service is available, and shall always allow a manual country selection. It shall show only stock eligible for that market’s approved port or ports; a market with several ports receives the union of eligible stock for those ports. The browser must never derive the category, infer a visitor’s location itself, or expose a vehicle merely because it exists in the database.
+
+> ⚠ **NEEDS A DECISION** — see Open Questions 26 and 27. The business must define the market-to-port mapping, the approved automatic-country provider/consent/fallback, the exact meaning of “J stock” and “CRFO”, and how their order combines with the required In Port → In Transit → In Japan order.
+
+**PUB-33 — Confirmed by legacy business requirements:** The home page and stock browsing experience shall provide market-aware collections. **Latest Arrivals** contains only eligible In Japan vehicles created within the previous five days. **Browse Stock** contains eligible In Port, In Transit and In Japan vehicles, in the approved display order. **Discounted/Best Offers** and **Clearance** contain only eligible vehicles in those categories. Where a selected market has no eligible stock, Browse Stock and Latest Arrivals fall back to eligible In Japan stock only, with the same five-day rule for Latest Arrivals. Filter options and result counts must reflect the selected market’s actual eligible stock. The replacement must not recreate the legacy “New” tag.
+
+**PUB-34 — Confirmed by legacy business requirements:** A visitor can reach a Premium Stock page from both a clearly labelled home-page banner and the Premium Stock navigation item. The page shows a Premium Stock teaser of up to ten eligible vehicles, an honest empty/fewer-results state, a **Browse all Premium Stock** action that opens the full Premium Stock list with the Premium filter applied, a Premium Vehicle enquiry action, and a clearly labelled WhatsApp chat intent. The UI must not claim that a WhatsApp message was delivered unless an approved integration confirms it.
+
+**PUB-35 — Confirmed by legacy business requirements; branch meaning open:** Each approved Branch page shall show the selected branch name; branch-specific Latest Arrivals and Recently Discounted collections using the same market/collection rules as the landing page; an introduction; welcome and contact banners; CarChief Team and Meet & Greet sections; and approved contact details. The page must have loading, empty, unavailable-content and no-eligible-stock states. The business must define what a Branch represents, the available branch list, its market/port relationship and the content owner before the route is released.
 
 ---
 
@@ -723,6 +735,10 @@ Each of these needs an answer from the business before the related part of the s
 | 23 | Who may approve Ship OK and document release, and how are ERP/IBQ rejections returned to CarChief? | Unauthorized shipment or document release could occur | WF-11, WF-12, WF-14 |
 | 24 | Does the second payment follow Ship OK, and how are due balance, invoice status and allocation represented? | Finance and customer balances could disagree | WF-09, WF-10 |
 | 25 | Are bank verification, notifications, WhatsApp support and ERP checkpoints manual for MVP or integration scope? | UI could falsely claim external work completed | WF-05, WF-09, WF-11, WF-14 |
+| 26 | Which approved service, consent wording, fallback and override rules govern automatic country detection, and which ports belong to each public market? | The wrong visitor could see stock for the wrong market or port, and location processing could breach privacy expectations | PUB-32, PUB-33 |
+| 27 | What do “J stock” and “CRFO stock” mean, and how do their ordering rules combine with In Port → In Transit → In Japan? | The home page and Browse Stock could show the right vehicles in the wrong business priority | PUB-32, PUB-33 |
+| 28 | What is a Branch (office, country market, sales team or another unit), which branches launch, and who owns each branch’s content and contacts? | A Branch page could show the wrong vehicles, people or contact details | PUB-35 |
+| 29 | What content, eligibility rule and contact ownership apply to Premium Stock, and is WhatsApp a manual contact intent or an approved integration at launch? | The Premium page could promote the wrong stock or imply a message was sent when it was not | PUB-34, PUB-28 |
 
 ---
 

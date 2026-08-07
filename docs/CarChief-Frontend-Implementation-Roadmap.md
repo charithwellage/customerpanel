@@ -5,9 +5,9 @@
 **Purpose:** Rebuild the CarChief POC as three production-quality applications delivered one at a time.
 **Delivery order:** Public Website (including SEO) → Customer Application → Salesperson Application
 **Build method:** Each delivery is built by an AI agent, with daily human testing and review
-**Base scheduled delivery:** **79 working days ≈ 16 calendar weeks**
+**Base scheduled delivery:** **81 working days ≈ 16–17 calendar weeks**
 **Programme allowance:** **2–3 weeks** for integration, review corrections, and accepted uncertainty
-**Management planning range:** **18–19 calendar weeks**
+**Management planning range:** **18–20 calendar weeks**
 **Detailed plan:** [CarChief Frontend Implementation Plan](./CarChief-Frontend-Implementation-plan.md)
 
 ### How a working day is spent
@@ -46,7 +46,7 @@ Three things have been added to this plan since the previous version:
 2. **A separate mock service is now explicit scope.** The applications need something to talk to before AutoPulse is available. That is now a small project of its own, described in section 3.
 3. **The visual design becomes a theme.** The look and feel of the proof of concept is kept, but built so a different set of colours, fonts and spacing can be applied later without rebuilding screens.
 
-The revised **18–19-week** management range replaces the earlier 21–22 weeks. It is lower because each delivery is built by an AI agent rather than by hand, and higher than a naive halving because the mock service and theming are new scope, and because daily testing and review remain human work.
+The revised **18–20-week** management range replaces the earlier 21–22 weeks. It is lower because each delivery is built by an AI agent rather than by hand, and higher than a naive halving because the mock service, theming, market-aware stock rules and daily testing/review remain real scope.
 
 ## 1.1 What the BA workflow adds
 
@@ -288,10 +288,10 @@ flowchart LR
 
 ## 5. Delivery 1 — Public Website
 
-**Scheduled delivery:** 26 working days ≈ **5.5 weeks**
+**Scheduled delivery:** 28 working days ≈ **6 weeks**
 **Includes:** the shared foundation, reusable vehicle packages, the visual theme system, complete public SEO and the first working version of the mock service
 
-**Production-site parity check:** A live public-site audit is now recorded in [the Legacy Public Website Audit](CarChief-Legacy-Public-Website-Audit.md). It confirms that the new responsive website must also account for stock categories and country routes, auction guidance, services/company pages, shipping schedule, privacy/cookie information and public support actions. This means equivalent approved visitor capabilities—not copying legacy faults, unapproved content or third-party integrations.
+**Production-site parity check:** A live public-site audit is now recorded in [the Legacy Public Website Audit](CarChief-Legacy-Public-Website-Audit.md). The newly reconciled [legacy business requirements](CarChief-Legacy-Public-Requirements-Reconciliation.md) add market/port-aware stock, date-driven arrival/location collections, Premium Stock and Branch pages. This means equivalent approved visitor capabilities—not copying legacy faults, unapproved content or third-party integrations.
 
 The local stand-in API will include a Swagger page so engineers and supervisors can see and try the available mock operations. It is generated from the same contract used by the website, contains demo data only, and is disabled in production-like environments.
 
@@ -300,12 +300,12 @@ The detailed Delivery 01 task inventory and phase handoff outputs are maintained
 | Phase | Page/component delivery | Visible result | Days |
 |---|---|---|---:|
 | 1.1 | Shared foundation, reusable packages, theme system, PWA and mock service start-up | Responsive shell, reusable vehicle-search/detail packages, PWA manifests/offline shell/update lifecycle, navigation, shared controls, loading/error states, the proof-of-concept look packaged as a swappable theme, and a running mock service with sign-in | 8.5 |
-| 1.2 | Home and showroom | Hero, promoted content, featured/category vehicle collections, country/currency/language controls, vehicle cards, public support actions, promotional banners, countdown timers and empty/loading states | 1.25 |
-| 1.3 | Inventory and search page | Shared vehicle-search package consumed by the public app, stock-category and country routes, two search modes, expandable filters drawn from live stock, three sort options, manual refresh, results and no-results behavior | 2.75 |
+| 1.2 | Home and showroom | Hero, market-aware latest/discounted/clearance collections, Premium Stock banner/teaser, country control, vehicle cards, public support actions, promotional banners, countdown timers and empty/loading states | 1.75 |
+| 1.3 | Inventory and search page | Shared vehicle-search package consumed by the public app, country/port/category routes, server-returned Japan/transit/port location projection, two search modes, market-aware filters, manual refresh, results and no-results behavior | 3.5 |
 | 1.4 | Vehicle details | Shareable vehicle web address, specifications, categorized media, status, approved price/price-request presentation, sharing and printing | 2.25 |
 | 1.5 | Freight estimate and quotation enquiry | Destination selection, freight/city/insurance estimate and quotation enquiry | 2 |
 | 1.6 | Enquiry, contact, authentication and reservation entry | Vehicle-preference/general enquiries, approved public support actions, customer access entry and reservation eligibility/conflict feedback | 1.75 |
-| 1.7 | Public information and content | Company/services pages, stock/auction buying guidance, testimonials with submission, twelve-category FAQ, shipping schedule, approved policy content and Contact with offices/hours | 2.5 |
+| 1.7 | Public information and content | Company/services and Branch pages, stock/auction buying guidance, testimonials with submission, twelve-category FAQ, shipping schedule, approved policy content and Contact with offices/hours | 3.25 |
 | 1.8 | Public SEO, PWA, acceptance and release readiness | Complete visitor journey, legacy PHP route templates/redirects, canonical URLs, sitemap, robots, metadata, structured data, PWA install/offline/update/security checks, responsive/accessibility/performance review and linked enquiry fixtures | 4.5 |
 | — | Remaining correction allowance | Rework arising from testing and review after legacy-parity additions | 0.5 |
 
@@ -315,7 +315,7 @@ A visitor can understand CarChief, find an appropriate vehicle, inspect it, esti
 
 ### Supervisor demonstration
 
-Open the home page, select a stock category/country, search for an SUV, open its vehicle page, review images/specifications and a price-request state, calculate freight, submit an enquiry, view public auction/service/shipping/FAQ content, and show a customer reservation limit or conflict.
+Open the home page, select a market, review its Latest Arrivals and Premium teaser, browse market-eligible stock, open a vehicle page, calculate freight, submit an enquiry, open a Branch page, and view public auction/service/shipping/FAQ content.
 
 ### Important decisions
 
@@ -326,6 +326,7 @@ Open the home page, select a stock category/country, search for an SUV, open its
 - Whether AI search or PayPal-labelled booking is required for launch.
 - Which country/currency/language controls affect public stock or pricing, and which visible legacy pages/content are approved for launch.
 - Whether Live Auction is an account-gated CarChief feature, an external destination or a retired route; which shipping-schedule source and support/CAPTCHA providers are approved.
+- Country/port mapping, IP-detection privacy/fallback, J/CRFO definitions/order, Premium eligibility, and Branch meaning/content ownership.
 
 ### Acceptance
 
@@ -450,7 +451,7 @@ flowchart LR
 
 ### 7.1 Additional visible business outcomes
 
-The Customer Application must show PI/payment deadlines, held or re-submission-required payments, Ship OK and document-release status. The Salesperson Application must show support-screened leads, country assignment, negotiation and PI timers, TT review exceptions, payment allocation, Ship OK approval and document-release approval. These additions require a re-estimate after the management decisions below; the current 18–19-week range is not a guaranteed final total.
+The Customer Application must show PI/payment deadlines, held or re-submission-required payments, Ship OK and document-release status. The Salesperson Application must show support-screened leads, country assignment, negotiation and PI timers, TT review exceptions, payment allocation, Ship OK approval and document-release approval. These additions require a re-estimate after the management decisions below; the current 18–20-week range is not a guaranteed final total.
 
 ## 9. SEO within Public Website delivery
 
@@ -460,16 +461,16 @@ SEO is no longer a separate delivery. It is completed in Phase 1.8 as part of th
 
 | Calendar window | Primary delivery | Working days | Scheduled time |
 |---|---|---:|---:|
-| Weeks 1–5.5 | Public Website, shared foundation, reusable packages, mock service and SEO | 26 | 5.5 weeks |
-| Weeks 5.5–9.1 | Customer Application | 18 | 3.6 weeks |
-| Weeks 9.1–16.1 | Salesperson Application | 35 | 7 weeks |
-| | **Base scheduled delivery** | **79** | **≈ 16 weeks** |
+| Weeks 1–6 | Public Website, shared foundation, reusable packages, mock service and SEO | 28 | 6 weeks |
+| Weeks 6–9.6 | Customer Application | 18 | 3.6 weeks |
+| Weeks 9.6–16.6 | Salesperson Application | 35 | 7 weeks |
+| | **Base scheduled delivery** | **81** | **≈ 16–17 weeks** |
 | Distributed where required | Programme allowance | | **2–3 weeks** |
-| | **Management planning range** | | **18–19 weeks** |
+| | **Management planning range** | | **18–20 weeks** |
 
 ### Why the estimate changed
 
-The previous figure was 21–22 weeks. The new figure is 18–19 weeks. It did not fall further, and the reasons are worth stating plainly.
+The previous figure was 21–22 weeks. The current figure is 18–20 weeks. It did not fall further, and the reasons are worth stating plainly.
 
 **What made it shorter**
 
@@ -630,12 +631,12 @@ This is the delivery in one table: four things are built, one at a time, each on
 
 | # | Delivery | What we are delivering | Summary | Timeline (days) |
 |---|---|---|---|---:|
-| 1 | Public Website (including SEO) | A responsive public website where anyone can browse, search, inspect and enquire about vehicles for sale. Includes reusable vehicle packages, the shared design foundation, the swappable visual theme, complete public SEO and the first working version of the separate mock service. | The shop window. No sign-in required. This is what a prospective buyer sees first. | 26 |
+| 1 | Public Website (including SEO) | A responsive public website where anyone can browse market-eligible stock, Premium Stock and Branch pages, search, inspect and enquire about vehicles for sale. Includes reusable vehicle packages, the shared design foundation, the swappable visual theme, complete public SEO and the first working version of the separate mock service. | The shop window. No sign-in required. This is what a prospective buyer sees first. | 28 |
 | 2 | Customer Application | A private, sign-in-protected area where an existing CarChief customer can see their vehicles, quotations, invoices, payments, shipment progress and documents. | The customer's own account. Answers "where is my car and what do I owe." | 18 |
 | 3 | Salesperson Application | The internal system used every day by sales, finance and administration staff to manage leads, stock, quotations, payments, master data, users and permissions. | The engine room. Where enquiries become sales and money gets tracked. | 35 |
-| | | | **Base total** | **79** |
-| | | | **With programme allowance** | **≈ 89–94** |
+| | | | **Base total** | **81** |
+| | | | **With programme allowance** | **≈ 91–96** |
 
-**In calendar time:** roughly **16 weeks** of base work, **18–19 weeks** once a reasonable allowance is added for corrections and open questions. One person, working the same pattern every day — five hours building with an AI agent, two hours testing, one hour review — carries the whole plan through in that time.
+**In calendar time:** roughly **16–17 weeks** of base work, **18–20 weeks** once a reasonable allowance is added for corrections and open questions. One person, working the same pattern every day — five hours building with an AI agent, two hours testing, one hour review — carries the whole plan through in that time.
 
 The open questions behind that allowance — including everything we could not confirm by operating the demonstration system ourselves — are tracked in [`implementation_risks.md`](./implementation_risks.md).
