@@ -9,7 +9,7 @@ Only named human authorities may resolve business decisions. Agents record evide
 | DEC-PUB-AI-SEARCH | DEFERRED | External AI search is outside Delivery 01; deterministic local parsing is the approved baseline. | Management may reopen with privacy/vendor approval | Phase 1.3 |
 | DEC-PUB-FAQ-AI | DEFERRED | FAQ answers remain grounded in approved records; external AI is outside Delivery 01. | Management may reopen with content/vendor approval | Phase 1.7 |
 | DEC-PUB-AUTH-BOUNDARY | RESOLVED | Use stand-in JWT demo identities; production identity is excluded. | Architecture plan | Phase 1.1 and 1.6 |
-| DEC-PUB-SEO-SCOPE | RESOLVED | Delivery 01 includes semantic routes/basic metadata; full SEO and PUB-24 redirects remain Delivery 4. | Agreed roadmap | Phase 1.1, 1.4, 1.8 |
+| DEC-PUB-SEO-SCOPE | RESOLVED | Complete public SEO, including PUB-24 redirects, is part of Delivery 01 Phase 1.8. Private applications remain protected from indexing; no separate SEO delivery exists. | Agreed roadmap | Phase 1.1, 1.4, 1.8 |
 | DEC-PUB-RESERVATION-EXPIRY-ACTION | OPEN | RULE-05 fixes the default hold at 48 hours; automatic release versus manual release remains unconfirmed. Delivery 01 may expose expiry but must not claim an automatic action. | Sales operations owner | Phase 1.6 and later Sales delivery |
 | DEC-WF-COLOUR-OWNERSHIP | OPEN | The draw.io JSON has no encoded colours. Confirm which nodes are CarChief UI, manual operation or future third-party integration. | BA/process owner | Before Customer/Salesperson task generation |
 | DEC-WF-TIMER-SEMANTICS | OPEN | Confirm whether the BA negotiation 48-hour timer is the same as the reservation hold, and define both expiry outcomes. | Sales operations owner | Customer/Salesperson workflow |

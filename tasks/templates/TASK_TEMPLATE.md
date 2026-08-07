@@ -21,3 +21,5 @@ corepack pnpm -r build
 ```
 
 Acceptance criteria must require lint, typecheck and recursive builds to pass with no compiler/build errors. Infrastructure and phase-acceptance tasks must also include `## Containerized verification`: rebuild the target Compose stack (`docker/docker-compose.yml` plus `docker/docker-compose.dev.yml`), start it, run container Playwright tests, complete a manual UI smoke checklist, record evidence, and shut it down. Ordinary component tasks do not need a Docker redeploy when their phase gate performs it.
+
+Every UI task must state its responsive behavior and test phone, tablet and desktop widths where applicable. If a domain interaction is used by two or more applications, the task must implement or consume a reusable package under `packages/` (for example `packages/vehicle-search`) rather than copying app-local components. App-specific wrappers may configure audience, permissions, routes, prices and actions, but must not fork shared search/detail behavior.

@@ -3,7 +3,7 @@
 ## Management presentation
 
 **Purpose:** Rebuild the CarChief POC as three production-quality applications delivered one at a time.
-**Delivery order:** Public Website → Customer Application → Salesperson Application → SEO Completion and Release Readiness
+**Delivery order:** Public Website (including SEO) → Customer Application → Salesperson Application
 **Build method:** Each delivery is built by an AI agent, with daily human testing and review
 **Base scheduled delivery:** **79 working days ≈ 16 calendar weeks**
 **Programme allowance:** **2–3 weeks** for integration, review corrections, and accepted uncertainty
@@ -32,9 +32,11 @@ The production rebuild will be delivered application by application:
 1. Complete and accept the Public Website.
 2. Complete and accept the Customer Application.
 3. Complete and accept the Salesperson Application, including its finance and administration modules.
-4. Complete full SEO and final release readiness.
+4. Public SEO and public release-readiness checks are completed inside Delivery 1 before Customer Application delivery begins.
 
 Each application is divided into small page- or component-focused phases. Every phase includes the screen, its supporting demonstration data, validation, tests, review, and a visible result. Mock services are extended only when the current page requires them.
+
+All three applications are responsive. Common vehicle search and vehicle detail behavior is built once as reusable shared packages and configured for each audience, so customers, staff and public visitors do not receive three divergent search implementations.
 
 Three things have been added to this plan since the previous version:
 
@@ -60,7 +62,7 @@ flowchart LR
     H --> I["Customer receives documents"]
 ```
 
-Blue items represent CarChief screens and commands. Clear items are manual operations and green items are future third-party integrations, according to the BA legend. The supplied JSON contains no colour metadata, so ambiguous ownership must be confirmed before implementation. The existing application order remains Public Website → Customer Application → Salesperson Application → SEO/release.
+Blue items represent CarChief screens and commands. Clear items are manual operations and green items are future third-party integrations, according to the BA legend. The supplied JSON contains no colour metadata, so ambiguous ownership must be confirmed before implementation. The existing application order remains Public Website (including SEO) → Customer Application → Salesperson Application.
 
 ## 2. What the re-audit confirmed
 
@@ -273,32 +275,31 @@ In production, the last of these is simply not deployed. The three real applicat
 
 ```mermaid
 flowchart LR
-    Public[1. Public Website<br/>Foundation included] --> Customer[2. Customer Application]
+    Public[1. Public Website<br/>Foundation + SEO included] --> Customer[2. Customer Application]
     Customer --> Sales[3. Salesperson Application<br/>Sales, finance and admin]
-    Sales --> SEO[4. SEO and<br/>Release Readiness]
 
     classDef delivery fill:#ffffff,stroke:#dc2626,color:#111827,stroke-width:2px
-    class Public,Customer,Sales,SEO delivery
+    class Public,Customer,Sales delivery
 ```
 
-**Plain-language explanation:** One application is completed and accepted before the next becomes the primary delivery. The shared foundation is created during the Public Website delivery, and full SEO is completed after all three applications work together.
+**Plain-language explanation:** One application is completed and accepted before the next becomes the primary delivery. The shared foundation, reusable vehicle packages and full public SEO are completed during the Public Website delivery.
 
 ## 5. Delivery 1 — Public Website
 
-**Scheduled delivery:** 21.5 working days ≈ **4.5 weeks**
-**Includes:** the shared foundation, the visual theme system, and the first working version of the mock service
+**Scheduled delivery:** 26 working days ≈ **5.5 weeks**
+**Includes:** the shared foundation, reusable vehicle packages, the visual theme system, complete public SEO and the first working version of the mock service
 
 | Phase | Page/component delivery | Visible result | Days |
 |---|---|---|---:|
-| 1.1 | Shared foundation, theme system and mock service start-up | Responsive shell, navigation, shared controls, loading/error states, the proof-of-concept look packaged as a swappable theme, and a running mock service with sign-in | 8.5 |
+| 1.1 | Shared foundation, reusable packages, theme system and mock service start-up | Responsive shell, reusable vehicle-search/detail packages, navigation, shared controls, loading/error states, the proof-of-concept look packaged as a swappable theme, and a running mock service with sign-in | 8.5 |
 | 1.2 | Home and showroom | Hero, promoted content, featured vehicles, vehicle cards, promotional banners, countdown timers and empty/loading states | 1 |
-| 1.3 | Inventory and search page | Two search modes, expandable filters drawn from live stock, three sort options, manual refresh, results and no-results behavior | 2.5 |
+| 1.3 | Inventory and search page | Shared vehicle-search package consumed by the public app, two search modes, expandable filters drawn from live stock, three sort options, manual refresh, results and no-results behavior | 2.5 |
 | 1.4 | Vehicle details | Shareable vehicle web address, specifications, categorized media, status, sharing and printing | 2 |
 | 1.5 | Freight estimate and quotation enquiry | Destination selection, freight/city/insurance estimate and quotation enquiry | 2 |
 | 1.6 | Enquiry, contact, authentication and reservation entry | Contact/vehicle enquiry with proper field checking, customer access entry and reservation eligibility/conflict feedback | 1.5 |
 | 1.7 | Public information and content | About, How to Buy, Testimonials with submission, twelve-category FAQ, and Contact with offices and hours | 1 |
-| 1.8 | Public Website acceptance | Complete visitor journey, responsive/accessibility review and linked enquiry fixtures | 1 |
-| — | Correction allowance | Rework arising from testing and review | 2 |
+| 1.8 | Public SEO, acceptance and release readiness | Complete visitor journey, canonical URLs, sitemap, robots, redirects, metadata, structured data, responsive/accessibility/performance review and linked enquiry fixtures | 4.5 |
+| — | Correction allowance | Rework arising from testing and review | 3 |
 
 ### Business outcome
 
@@ -440,43 +441,17 @@ flowchart LR
 
 The Customer Application must show PI/payment deadlines, held or re-submission-required payments, Ship OK and document-release status. The Salesperson Application must show support-screened leads, country assignment, negotiation and PI timers, TT review exceptions, payment allocation, Ship OK approval and document-release approval. These additions require a re-estimate after the management decisions below; the current 18–19-week range is not a guaranteed final total.
 
-## 9. Delivery 4 — SEO Completion and Release Readiness
+## 9. SEO within Public Website delivery
 
-**Scheduled delivery:** 4.5 working days ≈ **1 week**
-
-Smaller than previously estimated. Operating the demonstration showed that individual vehicle pages already work as their own shareable web addresses, so this delivery adds search-engine information to pages that already exist rather than rebuilding how the site is navigated.
-
-| Phase | Delivery | Visible result | Days |
-|---|---|---|---:|
-| 4.1 | Public web address and indexing policy | Preferred addresses, site map, crawler rules, legacy redirects, sold-vehicle and filter policy | 0.5 |
-| 4.2 | Page information for search and sharing | Page titles, descriptions, social preview cards and approved business, vehicle, breadcrumb, how-to and FAQ data | 0.5 |
-| 4.3 | Public performance and search validation | Responsive images served from our own storage, server-rendered content, link and performance checks | 1 |
-| 4.4 | Final release readiness | Cross-application regression, accessibility, security and performance gates, hand-over pack, user acceptance and runbooks | 1.5 |
-| — | Correction allowance | Rework arising from testing and review | 1 |
-
-### Business outcome
-
-CarChief receives an intentionally indexable public website and a tested frontend release candidate ready for later BFF connection.
-
-### Supervisor demonstration
-
-Open a legacy PHP link and show its correct destination, preview vehicle social/search metadata, verify customer/staff pages are excluded from indexing, run the complete business journey, and recover from a controlled service failure.
-
-### Acceptance
-
-- Canonical, sitemap, robots, redirects and structured data pass validation.
-- Approved public performance/accessibility targets pass or have signed waivers.
-- Production cannot enable mock data.
-- BFF conformance examples, UAT evidence and operational ownership are accepted.
+SEO is no longer a separate delivery. It is completed in Phase 1.8 as part of the Public Website, before the Customer Application begins.
 
 ## 10. Timeline, staffing and estimate comparison
 
 | Calendar window | Primary delivery | Working days | Scheduled time |
 |---|---|---:|---:|
-| Weeks 1–4.5 | Public Website, shared foundation, theme system, mock service | 21.5 | 4.5 weeks |
-| Weeks 5–8 | Customer Application | 18 | 3.6 weeks |
-| Weeks 9–15 | Salesperson Application | 35 | 7 weeks |
-| Week 16 | SEO Completion and Release Readiness | 4.5 | 1 week |
+| Weeks 1–5.5 | Public Website, shared foundation, reusable packages, mock service and SEO | 26 | 5.5 weeks |
+| Weeks 5.5–9.1 | Customer Application | 18 | 3.6 weeks |
+| Weeks 9.1–16.1 | Salesperson Application | 35 | 7 weeks |
 | | **Base scheduled delivery** | **79** | **≈ 16 weeks** |
 | Distributed where required | Programme allowance | | **2–3 weeks** |
 | | **Management planning range** | | **18–19 weeks** |
@@ -631,7 +606,7 @@ flowchart LR
 - A connected enquiry-to-payment-to-shipment demonstration journey.
 - Incremental, realistic mock services with repeatable reset.
 - Automated tests for critical workflows and approved calculations.
-- Full SEO completion and release-readiness evidence.
+- Public SEO completion and release-readiness evidence are accepted inside Delivery 1 before the later applications are primary.
 - A documented migration path to the ASP.NET Core BFF and AutoPulse.
 - UAT, release, support, risk and decision documentation.
 
@@ -643,10 +618,9 @@ This is the delivery in one table: four things are built, one at a time, each on
 
 | # | Delivery | What we are delivering | Summary | Timeline (days) |
 |---|---|---|---|---:|
-| 1 | Public Website | A public website where anyone can browse, search, inspect and enquire about vehicles for sale. Includes the shared design foundation, the swappable visual theme, and the first working version of the separate mock service that stands in for the real backend until AutoPulse is connected. | The shop window. No sign-in required. This is what a prospective buyer sees first. | 21.5 |
+| 1 | Public Website (including SEO) | A responsive public website where anyone can browse, search, inspect and enquire about vehicles for sale. Includes reusable vehicle packages, the shared design foundation, the swappable visual theme, complete public SEO and the first working version of the separate mock service. | The shop window. No sign-in required. This is what a prospective buyer sees first. | 26 |
 | 2 | Customer Application | A private, sign-in-protected area where an existing CarChief customer can see their vehicles, quotations, invoices, payments, shipment progress and documents. | The customer's own account. Answers "where is my car and what do I owe." | 18 |
 | 3 | Salesperson Application | The internal system used every day by sales, finance and administration staff to manage leads, stock, quotations, payments, master data, users and permissions. | The engine room. Where enquiries become sales and money gets tracked. | 35 |
-| 4 | SEO Completion and Release Readiness | Making the public website easy to find on search engines, and a final check across all three applications before hand-over. | The finishing work that makes the whole system findable and ready to launch. | 4.5 |
 | | | | **Base total** | **79** |
 | | | | **With programme allowance** | **≈ 89–94** |
 

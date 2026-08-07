@@ -8,6 +8,8 @@ Read `REQUIREMENT.md` CUST-14–CUST-22 and WF-08–WF-14, the Customer phases i
 
 ## Work
 
+Consume `packages/vehicle-search` and `packages/vehicle-detail` for the customer showroom; configure customer visibility, tier pricing and reservation actions without copying public components.
+
 Add customer projections for PI/payment deadline, held or re-submission-required TT, approved allocation, Ship OK, document-release status and approved document visibility. Notifications must identify intent versus real email delivery.
 
 ## Tests and acceptance

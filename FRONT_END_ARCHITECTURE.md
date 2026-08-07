@@ -12,7 +12,7 @@ The delivery documents describe **what** is built and **in what order**. This do
 
 Read it before building any feature. It exists because an AI agent writes most of the code, and without a written architecture every feature drifts into a slightly different shape. The POC failed for exactly that reason — its screens were correct, but its data layer had two write paths and two read paths that never reconciled, so working screens showed wrong data.
 
-**The one promise this architecture must keep:** when the real ASP.NET Core BFF replaces the mock service, **no screen changes**. Only a base URL changes.
+**The one promise this architecture must keep:** when the real ASP.NET Core BFF replaces the mock service, **no screen changes**. Only a base URL changes. There are three user-facing frontend applications—Public Website, Customer Application and Salesperson Application—plus the separate mock-api service used during development.
 
 Everything below serves that promise.
 
@@ -29,6 +29,14 @@ Five rules. Each is enforced by a lint rule or a CI check (§16) rather than by 
 | P3 | **Components render; hooks decide** | Components take props and return markup. All logic — fetching, deriving, submitting — lives in hooks. |
 | P4 | **The contract is the source of truth** | Types come from the OpenAPI document. They are generated, never hand-written. |
 | P5 | **Prefer deleting over abstracting** | We add an indirection only when it earns its place. §17 lists what we deliberately do not build. |
+
+### Responsive-first and reusable feature packages
+
+All three applications are responsive products, not desktop pages with a mobile fallback. Every shared component and feature package must support the agreed phone, tablet and desktop viewports, touch targets, keyboard navigation, browser zoom, reduced motion and narrow/long content. Fixed-width layouts, horizontal overflow for primary workflows and breakpoint-only hiding of required information are prohibited.
+
+Shared behavior belongs in a reusable package when two or more applications need the same domain interaction. The vehicle search experience is the first explicit example: Public Website, Customer Application and Salesperson Application consume the same `packages/vehicle-search` package, while each app supplies an audience configuration for visibility, price presentation, reservation permissions, route handling and available actions. The package owns reusable search orchestration, filter schema, URL/query mapping, result-grid/list components, loading/empty/error states and accessibility behavior; it does not own app-specific navigation or authorization decisions.
+
+Reusable packages must have a small public `index.ts`, framework-compatible peer dependencies, no app imports, no mock-fixture imports and no direct route assumptions. App-specific wrappers compose the package rather than fork it. New shared behavior is added once, tested once at package level, then covered by a thin integration test in each consuming application.
 
 ### SOLID, concretely
 
@@ -68,9 +76,13 @@ flowchart TB
         direction TB
         UI["ui + theme<br/>design system, tokens"]
         DOM["domain + validation<br/>types, rules, Zod schemas"]
+        VEH["vehicle-search + vehicle-detail<br/>shared feature packages"]
         SVC["api-client / services<br/>thin per-domain modules"]
         GEN["api-client / generated<br/>typed client from OpenAPI"]
         SVC --> GEN
+        VEH --> UI
+        VEH --> DOM
+        VEH --> SVC
     end
 
     U1 --> A1
@@ -80,6 +92,9 @@ flowchart TB
     A1 --> UI
     A2 --> UI
     A3 --> UI
+    A1 --> VEH
+    A2 --> VEH
+    A3 --> VEH
     A1 --> SVC
     A2 --> SVC
     A3 --> SVC
@@ -284,6 +299,8 @@ carchief-frontend/
 │   ├── domain/                     # Shared types, status vocabularies, business rules
 │   ├── validation/                 # Zod schemas shared across apps
 │   ├── api-client/                 # THE only place that talks HTTP (see below)
+│   ├── vehicle-search/             # Shared vehicle search UI, hooks, schemas and view models
+│   ├── vehicle-detail/             # Shared vehicle detail/gallery projections where applicable
 │   ├── testing/                    # Fixtures, render helpers, Playwright utilities
 │   └── config/                     # Shared eslint / tsconfig / tailwind / vite presets
 │
@@ -393,7 +410,7 @@ flowchart TB
     class BFF ext
 ```
 
-**Why `packages/*` is not a container.** Shared packages are compiled into each application's image at build time. They have no runtime of their own, which is why the workspace has four deployable apps and seven build-time packages.
+**Why `packages/*` is not a container.** Shared packages are compiled into each application's image at build time. They have no runtime of their own, which is why the workspace has four deployable apps and nine build-time packages, including the reusable vehicle-search and vehicle-detail packages.
 
 **In production, `mock-api` and `postgres` are simply not deployed.** The three application containers point at the real BFF instead. No image changes, no rebuild of application code — only `API_BASE_URL` differs.
 
@@ -796,6 +813,8 @@ Each layer is tested at the level where failure is cheapest to find.
 | Service modules | Request shape and response mapping | Vitest + MSW |
 | Contract | Generated types match `openapi.yaml` | Type check in CI |
 | Journeys | Full user flows against the running mock | Playwright |
+
+Responsive acceptance is required at package and application level: shared vehicle-search tests cover phone/tablet/desktop layouts, keyboard and touch interaction, and no-overflow behavior; each application adds route/permission/content variations without reimplementing the search module.
 | Money | Worked examples reconcile exactly | Vitest, run on every commit |
 
 **Shared test infrastructure lives in `packages/testing/`** — fixtures, custom render helpers that wrap components in the required providers (QueryClient, Theme, Auth), and Playwright utilities for signing in against the mock. Tests import from there rather than each app re-creating its own harness.

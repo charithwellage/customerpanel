@@ -1,6 +1,6 @@
 # CarChief Task Execution Order
 
-Scope: Phase 0 plus Delivery 01 Public Website only. The immutable delivery sequence is infrastructure → phases 1.1 through 1.8. Customer, Salesperson and full SEO tasks are intentionally absent.
+Scope: Phase 0 plus Delivery 01 Public Website only. The immutable delivery sequence is infrastructure → phases 1.1 through 1.8. Customer and Salesperson tasks are intentionally absent; complete public SEO is included in Phase 1.8.
 
 The BA workflow reconciliation backlog is tracked separately under `tasks/workflow/`. It becomes eligible only after the listed decision gates are resolved and the Customer/Salesperson application task sets are generated from the approved workflow contract.
 
@@ -28,7 +28,7 @@ Any output is a blocker. Ask the user to commit the changes first, report `No im
 | 1.5 — Freight estimate and quotation enquiry | `feat_delivery01_phase_05` | [D01-P05-G001](delivery_01/phase_05/D01-P05-G001.md), [D01-P05-T001](delivery_01/phase_05/D01-P05-T001.md), [D01-P05-T002](delivery_01/phase_05/D01-P05-T002.md), [D01-P05-T003](delivery_01/phase_05/D01-P05-T003.md), [D01-P05-T004](delivery_01/phase_05/D01-P05-T004.md) | P05-GATE → P05-A → P05-B → P05-C → P05-D |
 | 1.6 — Enquiry, account and reservation entry | `feat_delivery01_phase_06` | [D01-P06-T001](delivery_01/phase_06/D01-P06-T001.md), [D01-P06-T002](delivery_01/phase_06/D01-P06-T002.md), [D01-P06-T003](delivery_01/phase_06/D01-P06-T003.md), [D01-P06-T004](delivery_01/phase_06/D01-P06-T004.md), [D01-P06-T005](delivery_01/phase_06/D01-P06-T005.md) | P06-A → P06-B → P06-C → P06-D |
 | 1.7 — Public information and content | `feat_delivery01_phase_07` | [D01-P07-T001](delivery_01/phase_07/D01-P07-T001.md), [D01-P07-T002](delivery_01/phase_07/D01-P07-T002.md), [D01-P07-T003](delivery_01/phase_07/D01-P07-T003.md), [D01-P07-T004](delivery_01/phase_07/D01-P07-T004.md) | P07-A → P07-B → P07-C |
-| 1.8 — Public Website acceptance | `feat_delivery01_phase_08` | [D01-P08-T001](delivery_01/phase_08/D01-P08-T001.md), [D01-P08-T002](delivery_01/phase_08/D01-P08-T002.md), [D01-P08-T003](delivery_01/phase_08/D01-P08-T003.md), [D01-P08-T004](delivery_01/phase_08/D01-P08-T004.md) | P08-A → P08-B |
+| 1.8 — Public SEO, acceptance and release readiness | `feat_delivery01_phase_08` | [D01-P08-T001](delivery_01/phase_08/D01-P08-T001.md), [D01-P08-T002](delivery_01/phase_08/D01-P08-T002.md), [D01-P08-T003](delivery_01/phase_08/D01-P08-T003.md), [D01-P08-T004](delivery_01/phase_08/D01-P08-T004.md) | P08-A → P08-B |
 
 Parallel group labels that match may run together only when their dependencies are COMPLETE and developers confirm non-overlapping owned paths. A later group never starts merely because an earlier task is IN_REVIEW.
 
@@ -42,7 +42,7 @@ The target commands use `docker/docker-compose.yml` with `docker/docker-compose.
 
 ## Capacity baseline
 
-The implementation tasks total **19.5 delivery days**: Phase 1.1 8.5 days, Phase 1.2 1 day, Phase 1.3 2.5 days, Phase 1.4 2 days, Phase 1.5 2 days, Phase 1.6 1.5 days, Phase 1.7 1 day and Phase 1.8 1 day. The agreed **2-day cross-phase correction allowance** remains outside individual task estimates, preserving the implementation plan's **21.5-working-day Public Website baseline**. Phase 0 is a separate 1.25-day readiness capacity and may be parallelized as shown.
+The implementation tasks total **23 delivery days** before allowance: Phase 1.1 8.5 days, Phase 1.2 1 day, Phase 1.3 2.5 days, Phase 1.4 2 days, Phase 1.5 2 days, Phase 1.6 1.5 days, Phase 1.7 1 day and Phase 1.8 4.5 days. The **3-day Public Website correction/SEO allowance** preserves the implementation plan's **26-working-day Public Website baseline**. Phase 0 is a separate 1.25-day readiness capacity and may be parallelized as shown.
 
 ## Complete ordered inventory
 
@@ -86,10 +86,10 @@ The implementation tasks total **19.5 delivery days**: Phase 1.1 8.5 days, Phase
 | 36 | [D01-P07-T002](delivery_01/phase_07/D01-P07-T002.md) | Build About, How to Buy and Contact information pages | D01-P07-T001 | P07-B | 0.25 day |
 | 37 | [D01-P07-T003](delivery_01/phase_07/D01-P07-T003.md) | Build testimonial display and moderated submission | D01-P07-T001 | P07-B | 0.25 day |
 | 38 | [D01-P07-T004](delivery_01/phase_07/D01-P07-T004.md) | Build FAQ browsing/search and accept public content | D01-P07-T002, D01-P07-T003 | P07-C | 0.25 day |
-| 39 | [D01-P08-T001](delivery_01/phase_08/D01-P08-T001.md) | Complete public traceability and full visitor regression | D01-P07-T004 | P08-A | 0.25 day |
-| 40 | [D01-P08-T002](delivery_01/phase_08/D01-P08-T002.md) | Complete data projection, privacy and production-safety checks | D01-P07-T004 | P08-A | 0.25 day |
-| 41 | [D01-P08-T003](delivery_01/phase_08/D01-P08-T003.md) | Complete accessibility, browser and performance acceptance | D01-P07-T004 | P08-A | 0.25 day |
-| 42 | [D01-P08-T004](delivery_01/phase_08/D01-P08-T004.md) | Produce Public Website UAT and Delivery 1 handoff | D01-P08-T001, D01-P08-T002, D01-P08-T003 | P08-B | 0.25 day |
+| 39 | [D01-P08-T001](delivery_01/phase_08/D01-P08-T001.md) | Complete public SEO policy and visitor regression | D01-P07-T004 | P08-A | 1 day |
+| 40 | [D01-P08-T002](delivery_01/phase_08/D01-P08-T002.md) | Complete data projection, privacy and production-safety checks | D01-P07-T004 | P08-A | 0.75 day |
+| 41 | [D01-P08-T003](delivery_01/phase_08/D01-P08-T003.md) | Complete accessibility, browser and performance acceptance | D01-P07-T004 | P08-A | 1.25 days |
+| 42 | [D01-P08-T004](delivery_01/phase_08/D01-P08-T004.md) | Produce Public Website UAT and Delivery 1 handoff | D01-P08-T001, D01-P08-T002, D01-P08-T003 | P08-B | 1.5 days |
 
 ## Merge and continuation protocol
 

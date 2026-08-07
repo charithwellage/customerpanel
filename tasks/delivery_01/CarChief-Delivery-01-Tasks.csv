@@ -32,7 +32,7 @@
 1.7,D01-P07-T002,"Build About, How to Buy and Contact information pages",D01-P07-T001,3
 1.7,D01-P07-T003,Build testimonial display and moderated submission,D01-P07-T001,3
 1.7,D01-P07-T004,Build FAQ browsing/search and accept public content,D01-P07-T002; D01-P07-T003,3
-1.8,D01-P08-T001,Complete public traceability and full visitor regression,D01-P07-T004,3
-1.8,D01-P08-T002,"Complete data projection, privacy and production-safety checks",D01-P07-T004,3
-1.8,D01-P08-T003,"Complete accessibility, browser and performance acceptance",D01-P07-T004,3
-1.8,D01-P08-T004,Produce Public Website UAT and Delivery 1 handoff,D01-P08-T001; D01-P08-T002; D01-P08-T003,3
+1.8,D01-P08-T001,Complete public SEO policy and visitor regression,D01-P07-T004,12
+1.8,D01-P08-T002,"Complete data projection, privacy and production-safety checks",D01-P07-T004,9
+1.8,D01-P08-T003,"Complete accessibility, browser and performance acceptance",D01-P07-T004,15
+1.8,D01-P08-T004,Produce Public Website UAT and Delivery 1 handoff,D01-P08-T001; D01-P08-T002; D01-P08-T003,18

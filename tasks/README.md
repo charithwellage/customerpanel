@@ -1,6 +1,6 @@
 # CarChief AI-Executable Task System
 
-This directory coordinates read-only infrastructure verification and Delivery 01, the Public Website. It deliberately contains no Customer Application, Salesperson Application or full-SEO implementation tasks. Those are generated only after Public Website acceptance.
+This directory coordinates read-only infrastructure verification and Delivery 01, the Public Website. It deliberately contains no Customer Application or Salesperson implementation tasks. Complete public SEO is implemented and accepted inside Delivery 01 Phase 1.8; later application task sets are generated after Public Website acceptance.
 
 The BA workflow reconciliation backlog is in `tasks/workflow/`. It is decision-gated and supplements the future Customer/Salesperson task sets; it must not be started while the workflow decisions remain open.
 
@@ -34,6 +34,8 @@ Phase 0 may change only task logs, summaries and the generated tracker. It must 
 ## Build and container verification policy
 
 Every Delivery 01 implementation task includes root lint, TypeScript typecheck and recursive workspace build commands. These checks are required even for a small UI task so compiler errors cannot accumulate unnoticed. A missing shared test harness or target workspace is a prerequisite failure; do not silently skip it.
+
+Responsive behavior and reuse are mandatory task concerns: UI tasks test phone/tablet/desktop behavior, and any feature shared by Public, Customer and Salesperson applications is implemented once in a reusable `packages/` feature package. The vehicle search module is the first required example (`packages/vehicle-search`); consuming apps configure it rather than copying it.
 
 Container redeployment is intentionally concentrated at the infrastructure gate and phase acceptance tasks rather than repeated for every component task. `D01-P01-T010` and the final acceptance task of each phase must rebuild the target architecture stack from `docker/docker-compose.yml` plus `docker/docker-compose.dev.yml`, start it, run the container Playwright project, complete the named manual supervisor smoke scenario, record evidence, and shut it down cleanly. These are the required UI gates for the Docker deployment. They verify the target solution stack, not the separate compiled-POC `docker-compose.poc.yml`.
 

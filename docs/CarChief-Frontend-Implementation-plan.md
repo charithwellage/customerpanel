@@ -2,7 +2,7 @@
 
 **Document purpose:** Page- and component-level engineering delivery plan
 **Discovery basis:** Re-audit of the full source project and compiled artifacts under `POC/`, **plus hands-on operation of the running demonstration system, screen by screen**
-**Delivery order:** Public Website → Customer Application → Salesperson Application → SEO Completion and Release Readiness
+**Delivery order:** Public Website (including SEO) → Customer Application → Salesperson Application
 **Base scheduled delivery:** **79 working days ≈ 16 calendar weeks**
 **Programme allowance:** **2–3 weeks** for integration, review corrections, and accepted-scope uncertainty
 **Management planning range:** **18–19 calendar weeks**
@@ -24,7 +24,7 @@ The target will be a clean React/TypeScript implementation with:
 - Shared packages for UI, domain definitions, validation, frontend service contracts, adapters, incremental mock services, testing, and configuration.
 - No direct Firebase, Supabase, PostgreSQL, credential, or privileged identity dependency in frontend code.
 
-Delivery is organized by application rather than by a cross-application workflow. The Public Website is completed and accepted first, the Customer Application second, the Salesperson Application third, and full SEO plus final release readiness last. Components may be developed in parallel within the active application, but the next application does not become the primary delivery stream until the previous application passes its acceptance phase.
+Delivery is organized by application rather than by a cross-application workflow. The Public Website—including complete public SEO and public release-readiness checks—is completed and accepted first, the Customer Application second, and the Salesperson Application third. Components may be developed in parallel within the active application, but the next application does not become the primary delivery stream until the previous application passes its acceptance phase.
 
 ## 1.1 BA workflow reconciliation
 
@@ -80,10 +80,9 @@ Each delivery phase is built by an AI agent, driven and checked by one accountab
 
 | Delivery | Phase days | Correction allowance | Total days | Calendar |
 |---|---:|---:|---:|---:|
-| Public Website (incl. foundation, theming, mock service start-up) | 19.5 | 2 | **21.5** | 4.5 weeks |
+| Public Website (incl. foundation, theming, mock service and complete SEO) | 23 | 3 | **26** | 5.5 weeks |
 | Customer Application | 16 | 2 | **18** | 3.6 weeks |
 | Salesperson Application | 28.5 | 6.5 | **35** | 7 weeks |
-| SEO Completion and Release Readiness | 3.5 | 1 | **4.5** | 1 week |
 | **Base scheduled delivery** | **67.5** | **11.5** | **79** | **≈ 16 weeks** |
 | Programme allowance | | | | **2–3 weeks** |
 | **Management planning range** | | | | **18–19 weeks** |
@@ -364,9 +363,9 @@ The customer application in the demonstration already offers a light/dark switch
 
 ## 5. Delivery 1 — Public Website
 
-**Scheduled delivery:** 21.5 working days ≈ 4.5 weeks
-**Includes:** shared foundation, theme system, and the first working version of the mock service
-**Correction allowance:** 2 days
+**Scheduled delivery:** 26 working days ≈ 5.5 weeks
+**Includes:** shared foundation, theme system, complete public SEO, and the first working version of the mock service
+**Correction allowance:** 3 days
 
 ### Phase 1.1 — Shared foundation and public application shell
 
@@ -388,6 +387,8 @@ Also in scope: the theme/design-token system carrying the proof of concept's loo
 - Error boundary and not-found presentation.
 - Non-production fixture reset and initial vehicle/session scenarios.
 - Basic metadata and `noindex` protection for future private applications.
+- Reusable package boundaries for `packages/vehicle-search` and `packages/vehicle-detail`; later applications consume these packages with audience-specific configuration rather than copying them.
+- Responsive-first viewport, touch, keyboard, zoom, reduced-motion and overflow rules for all shared primitives.
 
 **Evidence:** Header/views in [`POC/src/components/Header.tsx`](../POC/src/components/Header.tsx), application composition in [`POC/src/App.tsx`](../POC/src/App.tsx), loader in [`POC/src/components/CarChiefLoader.tsx`](../POC/src/components/CarChiefLoader.tsx).
 
@@ -403,6 +404,8 @@ Also in scope: the theme/design-token system carrying the proof of concept's loo
 - Shared controls meet keyboard/focus basics.
 - No Firebase/Supabase/direct-database dependency exists.
 - Production configuration cannot expose demo controls.
+- Shared packages build independently and are consumed by the public app without app-local forks.
+- Responsive smoke tests cover phone, tablet and desktop widths.
 
 ### Phase 1.2 — Home and showroom
 
@@ -453,6 +456,7 @@ Runtime additions: two search modes side by side (standard filters and natural-l
 - URL-backed filter state.
 - Local natural-language parsing for structured phrases.
 - Optional AI search adapter and clearly separated non-AI fallback.
+- Shared vehicle-search package owns search state, filter schema, URL mapping, result presentation and accessibility behavior; app wrappers provide audience, visibility, pricing and action configuration.
 - Loading, timeout, malformed-response, and service-unavailable states.
 
 **Evidence:** Search/filter UI in [`POC/src/App.tsx`](../POC/src/App.tsx), local parsing in [`POC/src/utils/aiSearchLocal.ts`](../POC/src/utils/aiSearchLocal.ts), optional server search in [`POC/server.ts`](../POC/server.ts).
@@ -591,15 +595,15 @@ Runtime additions: twelve FAQ categories, customer testimonial submission, and a
 
 **Testing and acceptance:** Content status is respected; submissions are moderated/pending where approved; AI cannot invent content; reduced motion works.
 
-### Phase 1.8 — Public Website acceptance
+### Phase 1.8 — Public SEO, acceptance and release readiness
 
-**Phase days:** 1 day
+**Phase days:** 4.5 days
 
-**Business outcome:** Management accepts a coherent public acquisition application before Customer Application delivery becomes primary.
+**Business outcome:** Management accepts a coherent, responsive and search-ready public acquisition application before Customer Application delivery becomes primary.
 
 **Pages/modules:** Entire Public Website.
 
-**Sub-delivery components:** Visitor regression, public/private field review, responsive/browser/accessibility pass, mock reset, support notes, linked enquiry/reservation fixtures.
+**Sub-delivery components:** Canonical URLs, sitemap, robots rules, legacy PHP redirects, sold/unavailable and filter-indexing policy, unique metadata, social previews, approved structured data, server-rendered public content verification, responsive/performance checks, visitor regression, public/private field review, mock reset, support notes and linked enquiry/reservation fixtures.
 
 **Evidence:** Acceptance recommendation covering the source-confirmed Public Website capabilities and evidence paths documented in Phases 1.1–1.7.
 
@@ -607,9 +611,9 @@ Runtime additions: twelve FAQ categories, customer testimonial submission, and a
 
 **Dependencies/open questions:** Named public UAT approvers and accepted open-question register.
 
-**Supervisor demo:** Home → search → vehicle detail → freight estimate → enquiry/reservation → content/FAQ.
+**Supervisor demo:** Home → search → vehicle detail → freight estimate → enquiry/reservation → content/FAQ; inspect canonical/metadata/sitemap/robots output, open a legacy redirect and verify portal `noindex` protection.
 
-**Testing and acceptance:** Critical public journeys pass; no critical accessibility/security defects; approved fixtures hand off to Customer and Salesperson applications.
+**Testing and acceptance:** Critical public journeys, SEO checks, responsive browser matrix, accessibility and performance gates pass; approved fixtures hand off to Customer and Salesperson applications.
 
 ### 5.9 BA workflow corrections to Public Website
 
@@ -1264,111 +1268,17 @@ The Salesperson Application must also cover the operational path that the origin
 
 These are mock/API operations only until the BFF and external-system responsibilities are approved. The frontend must never claim that VBMS, NetSuite, bank verification, ERP/IBQ, email or WhatsApp completed an action without an integration result or recorded manual checkpoint.
 
-## 8. Delivery 4 — SEO Completion and Release Readiness
+## 8. SEO within Public Website delivery
 
-**Scheduled delivery:** 4.5 working days ≈ 1 week
-**Correction allowance:** 1 day
-
-Smaller than previously estimated. Operating the demonstration confirmed that individual vehicle pages already work as their own shareable web addresses, so this delivery adds search-engine information to existing pages rather than rebuilding site navigation.
-
-### Phase 4.1 — Public URL and indexation policy
-
-**Phase days:** 0.5 days
-
-**Business outcome:** Search engines receive stable, intentional public URLs while private content remains excluded.
-
-**Pages/modules:** Public route policy, sitemap/robots output, and legacy redirect handling.
-
-**Sub-delivery components:** Canonicals, sitemap, robots, legacy PHP URL inventory/redirects, sold/unavailable policy, filter-indexing policy, redirect monitoring.
-
-**Evidence:** Recommendation. The POC has runtime public view/query handling in [`POC/src/App.tsx`](../POC/src/App.tsx), but no source-confirmed canonical, sitemap, robots, or legacy-redirect implementation.
-
-**Incremental mock capability:** Published/sold/unavailable vehicle URL scenarios and representative legacy-path fixtures for redirect and indexation testing.
-
-**Dependencies/open questions:** Final domains, legacy URL export, sold-vehicle policy, approved indexable filters.
-
-**Supervisor demo:** Open legacy links and show correct permanent destinations; inspect sitemap and private `noindex` behavior.
-
-**Testing and acceptance:** Redirects have no loops/chains; private routes cannot be indexed; canonical policy is consistent.
-
-### Phase 4.2 — Metadata and structured data
-
-**Phase days:** 0.5 days
-
-**Business outcome:** Public pages and shared links clearly describe CarChief and its vehicles.
-
-**Pages/modules:** Home, inventory, vehicle detail, About, How to Buy, and approved FAQ metadata outputs.
-
-**Sub-delivery components:** Unique titles/descriptions, social previews, Organization/AutomotiveBusiness, vehicle/product, breadcrumb, HowTo and applicable visible FAQ structured data.
-
-**Evidence:** Recommendation derived from the confirmed public page set; structured-data eligibility and wording require content/business approval.
-
-**Incremental mock capability:** Approved metadata, social-image, breadcrumb, vehicle, process, and visible-FAQ examples for render validation.
-
-**Dependencies/open questions:** Approved content/claims, social fallback images, schema eligibility and ownership.
-
-**Supervisor demo:** Preview home, vehicle and How to Buy metadata/social cards and validate structured data.
-
-**Testing and acceptance:** Metadata is unique; structured data matches visible approved content; no private/customer data appears.
-
-### Phase 4.3 — Public performance and SEO validation
-
-**Phase days:** 1 day
-
-**Business outcome:** Public pages are fast, crawlable, and usable on target devices.
-
-**Pages/modules:** All indexable Public Website pages and public media delivery.
-
-**Sub-delivery components:** Responsive images, server-rendered content verification, performance budgets, broken-link checks, structured-data/indexation checks, accessibility regression.
-
-**Evidence:** Recommendation. POC public media and page complexity are evidenced across [`POC/src/App.tsx`](../POC/src/App.tsx) and the public components, but production performance and crawl behavior are not established by the POC.
-
-**Incremental mock capability:** Representative large inventories, media variants, slow responses, missing pages, and broken-link scenarios for performance and crawler checks.
-
-**Dependencies/open questions:** Hosting/CDN and representative production media/data.
-
-**Supervisor demo:** Show server-rendered vehicle content and agreed performance/SEO validation results.
-
-**Testing and acceptance:** Approved budgets pass or have documented waivers; critical crawl/accessibility issues are resolved.
-
-### Phase 4.4 — Final release readiness
-
-**Phase days:** 1.5 days
-
-`UNABLE_TO_VERIFY_WITH_POC` — **UV-18** offline behaviour and installable-app support are present in the delivered files but are not an approved requirement; a decision is needed here.
-
-**Business outcome:** The frontend programme is ready for management release approval and later BFF cutover.
-
-**Pages/modules:** All three applications, release controls, operational evidence, and BFF adapter/conformance pack.
-
-**Sub-delivery components**
-
-- Cross-application regression and controlled-failure recovery.
-- Accessibility, security, browser and performance gates.
-- Production mock-selection guard.
-- Observability, correlation and redaction review.
-- BFF contract/conformance pack and environment-switch pattern.
-- UAT evidence, release notes, support/rollback runbooks.
-- PWA decision: remove/replace the POC service worker unless offline behavior is explicitly approved; never broadly cache authenticated BFF responses.
-
-**Evidence:** Recommendation informed by the POC application breadth and the broad service-worker behavior in [`POC/public/sw.js`](../POC/public/sw.js); production release controls and BFF conformance do not yet exist.
-
-**Incremental mock capability:** Cross-application golden scenario, controlled authorization/validation/conflict/outage cases, production mock-disable check, and contract examples reusable by future HTTP adapters.
-
-**Dependencies/open questions:** Hosting, privacy/analytics, BFF/OpenAPI schedule or contract review, support and release owners.
-
-**Supervisor demo:** Run the complete journey, trigger/recover from a controlled service failure, and show production cannot enter mock mode.
-
-**Testing and acceptance:** Critical suites/gates pass; UAT is signed; operational ownership is recorded; BFF migration pack is accepted.
+Complete SEO and public release-readiness work is delivered in Phase 1.8 before the Customer Application becomes primary. The scope includes canonical URLs, sitemap, robots rules, legacy redirects, metadata, structured data, server-rendered public content, public performance and indexation validation.
 
 ## 9. Recommended calendar sequence
 
 | Calendar window | Primary delivery | Days | Acceptance result |
 |---|---|---:|---|
-| Weeks 1–4.5 | Public Website, foundation, theme system, mock service | 21.5 | Accepted public application, working mock service and sign-in, theme system proven |
-| Weeks 5–8 | Customer Application | 18 | Accepted customer self-service application and linked transaction scenarios |
-| Weeks 9–15 | Salesperson Application | 35 | Accepted sales, finance and administration application plus full connected journey |
-| Week 16 | SEO Completion and Release Readiness | 4.5 | Search-complete, release-ready frontend and hand-over pack |
+| Weeks 1–5.5 | Public Website, foundation, theme system, mock service and SEO | 26 | Accepted responsive, search-ready public application and working mock service |
+| Weeks 5.5–9.1 | Customer Application | 18 | Accepted customer self-service application and linked transaction scenarios |
+| Weeks 9.1–16.1 | Salesperson Application | 35 | Accepted sales, finance and administration application plus full connected journey |
 | | **Base scheduled delivery** | **79** | **≈ 16 calendar weeks** |
 | Programme allowance | Integration/review corrections and accepted uncertainty | | 2–3 weeks distributed where needed |
 | **Management planning range** | | | **18–19 calendar weeks** |
@@ -1511,7 +1421,7 @@ These are capability groups, not approved REST endpoints or payloads.
 | Delivery 1 | UV-3 freight rates, UV-4 city delivery rates |
 | Delivery 2 | UV-13 password recovery and multi-factor sign-in, UV-14 document upload, UV-15 email and print delivery |
 | Delivery 3 | UV-1 currency conversion, UV-2 rate history, UV-5 import duty, UV-6 spreadsheet import, UV-7 image management, UV-8 quotation conversion, UV-9 registers, UV-10 and UV-11 allocations, UV-12 reservation expiry, UV-16 global search, UV-17 bulk payment entry |
-| Delivery 4 | UV-18 offline and installable-app support |
+| Delivery 1, Phase 1.8 | UV-18 offline and installable-app support |
 
 ### BA workflow decisions that now gate implementation
 
@@ -1583,10 +1493,9 @@ For the management summary, see [CarChief Frontend Implementation Roadmap](./Car
 
 | # | Delivery | What we are delivering | Summary | Timeline (days) |
 |---|---|---|---|---:|
-| 1 | Public Website | The public-facing website, plus the shared foundations every later delivery depends on: the design system, the swappable visual theme, and the first working version of the separate mock service. | Where a visitor finds and enquires about a vehicle. No sign-in required. | 21.5 |
+| 1 | Public Website (including SEO) | The public-facing website, shared foundations, reusable vehicle packages, complete public SEO and the first working version of the separate mock service. | Where a visitor finds and enquires about a vehicle. No sign-in required. | 26 |
 | 2 | Customer Application | A sign-in-protected application for existing customers to track their own vehicles, quotations, invoices, payments, shipment status and documents. | The customer's private account view. | 18 |
 | 3 | Salesperson Application | The staff-facing system covering sales, finance and administration — leads, inventory, quotations, payments, master data, users and permissions. | The day-to-day tool used by CarChief's own team. | 35 |
-| 4 | SEO Completion and Release Readiness | Search-engine visibility for the public website, plus final cross-application checks before hand-over. | The launch-readiness pass. | 4.5 |
 | | | | **Base total** | **79** |
 | | | | **With programme allowance** | **≈ 89–94** |
 

@@ -54,7 +54,7 @@
 | [D01-P07-T002](delivery_01/phase_07/D01-P07-T002.md) | Build About, How to Buy and Contact information pages | NOT_STARTED | — | `feat_delivery01_phase_07` | D01-P07-T001 | P07-B | — |
 | [D01-P07-T003](delivery_01/phase_07/D01-P07-T003.md) | Build testimonial display and moderated submission | NOT_STARTED | — | `feat_delivery01_phase_07` | D01-P07-T001 | P07-B | — |
 | [D01-P07-T004](delivery_01/phase_07/D01-P07-T004.md) | Build FAQ browsing/search and accept public content | NOT_STARTED | — | `feat_delivery01_phase_07` | D01-P07-T002, D01-P07-T003 | P07-C | — |
-| [D01-P08-T001](delivery_01/phase_08/D01-P08-T001.md) | Complete public traceability and full visitor regression | NOT_STARTED | — | `feat_delivery01_phase_08` | D01-P07-T004 | P08-A | — |
+| [D01-P08-T001](delivery_01/phase_08/D01-P08-T001.md) | Complete public SEO policy and visitor regression | NOT_STARTED | — | `feat_delivery01_phase_08` | D01-P07-T004 | P08-A | — |
 | [D01-P08-T002](delivery_01/phase_08/D01-P08-T002.md) | Complete data projection, privacy and production-safety checks | NOT_STARTED | — | `feat_delivery01_phase_08` | D01-P07-T004 | P08-A | — |
 | [D01-P08-T003](delivery_01/phase_08/D01-P08-T003.md) | Complete accessibility, browser and performance acceptance | NOT_STARTED | — | `feat_delivery01_phase_08` | D01-P07-T004 | P08-A | — |
 | [D01-P08-T004](delivery_01/phase_08/D01-P08-T004.md) | Produce Public Website UAT and Delivery 1 handoff | NOT_STARTED | — | `feat_delivery01_phase_08` | D01-P08-T001, D01-P08-T002, D01-P08-T003 | P08-B | — |
