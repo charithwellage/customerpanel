@@ -48,6 +48,7 @@ Phase 1.1 exposes only the foundation operations needed by the shell: health, pu
 - PostgreSQL is provided by `postgres:16-alpine` for the local mock stack; the mock store retains an in-memory fallback for isolated unit tests.
 - The compiled POC remains unchanged and is not used as production source.
 - The Docker runtime explicitly copies the repository OpenAPI document so Swagger/OpenAPI routes work inside the container.
+- Next.js standalone output is copied at the workspace root with its static and public assets, so the responsive CSS is served by the container.
 
 ## Known risks and deferred scope
 

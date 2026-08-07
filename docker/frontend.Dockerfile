@@ -16,4 +16,9 @@ COPY --from=build /workspace/apps ./apps
 COPY --from=build /workspace/packages ./packages
 COPY --from=build /workspace/openapi ./openapi
 COPY --from=build /workspace/node_modules ./node_modules
-CMD ["pnpm", "--filter", "@carchief/public-web", "start"]
+# Next standalone output must be copied at the workspace root so its server can
+# resolve static assets and the public directory using its expected paths.
+COPY --from=build /workspace/apps/public-web/.next/standalone ./
+COPY --from=build /workspace/apps/public-web/.next/static ./apps/public-web/.next/static
+COPY --from=build /workspace/apps/public-web/public ./apps/public-web/public
+CMD ["node", "apps/public-web/server.js"]
