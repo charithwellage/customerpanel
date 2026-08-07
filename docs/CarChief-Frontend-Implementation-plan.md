@@ -132,7 +132,7 @@ The previous documents covered the main domains but compressed or omitted the fo
 - Media ordering, visibility, image URL/upload behavior, and POC-only preset-image shortcuts.
 - Proforma-to-commercial-invoice conversion and portal-visibility controls in invoiced/sold registries.
 - Staff notification read/delete behavior and finance proof preview/filtering.
-- The PWA/service-worker implementation as source evidence but not an approved target requirement.
+- The PWA/service-worker implementation as source evidence; the target now includes a safe installable PWA baseline while rejecting the POC's broad cache behavior.
 
 ### 3.2a What operating the demonstration system added
 
@@ -211,7 +211,7 @@ Each item below exists in the demonstration but could not be exercised — the d
 | UV-15 | Email and printed-document delivery | Actions exist but were not triggered | 2.5, 3.5 |
 | UV-16 | Staff global search | Not exercisable with demonstration data | 3.1 |
 | UV-17 | Bulk payment entry and proof preview | No example records exist | 3.7 |
-| UV-18 | Offline behaviour and installable app | Present in the files but not an approved requirement | 4.4 |
+| UV-18 | Push notifications, background sync, camera capture and install analytics | Not confirmed by the POC/business | Phase 1.1/1.8 decision gate; excluded unless approved |
 
 ### 3.3 Features not promoted to production requirements automatically
 
@@ -221,7 +221,7 @@ Each item below exists in the demonstration but could not be exercised — the d
 - PayPal-labelled booking, email dispatch, WhatsApp messaging, or live carrier tracking.
 - Browser-side user creation/password administration.
 - Raw SVG injection.
-- Offline-first behavior or broad service-worker caching.
+- Offline mutations or broad service-worker caching of authenticated/sensitive data.
 - Remarks and bank-notes master tabs that are named in state but have no rendered source page.
 
 These remain open questions or demonstration-only behavior until explicitly approved.
@@ -388,6 +388,7 @@ Also in scope: the theme/design-token system carrying the proof of concept's loo
 - Non-production fixture reset and initial vehicle/session scenarios.
 - Basic metadata and `noindex` protection for future private applications.
 - Reusable package boundaries for `packages/vehicle-search` and `packages/vehicle-detail`; later applications consume these packages with audience-specific configuration rather than copying them.
+- `packages/pwa` plus app-specific manifests, icons, service-worker registration, offline shell/fallback, connectivity state and safe cache-version/update lifecycle.
 - Responsive-first viewport, touch, keyboard, zoom, reduced-motion and overflow rules for all shared primitives.
 
 **Evidence:** Header/views in [`POC/src/components/Header.tsx`](../POC/src/components/Header.tsx), application composition in [`POC/src/App.tsx`](../POC/src/App.tsx), loader in [`POC/src/components/CarChiefLoader.tsx`](../POC/src/components/CarChiefLoader.tsx).
@@ -406,6 +407,7 @@ Also in scope: the theme/design-token system carrying the proof of concept's loo
 - Production configuration cannot expose demo controls.
 - Shared packages build independently and are consumed by the public app without app-local forks.
 - Responsive smoke tests cover phone, tablet and desktop widths.
+- Fresh-install, offline-shell, reconnect, update, logout-cache-cleanup and stale-cache recovery tests pass; no sensitive data or offline mutation is cached.
 
 ### Phase 1.2 — Home and showroom
 
@@ -603,7 +605,7 @@ Runtime additions: twelve FAQ categories, customer testimonial submission, and a
 
 **Pages/modules:** Entire Public Website.
 
-**Sub-delivery components:** Canonical URLs, sitemap, robots rules, legacy PHP redirects, sold/unavailable and filter-indexing policy, unique metadata, social previews, approved structured data, server-rendered public content verification, responsive/performance checks, visitor regression, public/private field review, mock reset, support notes and linked enquiry/reservation fixtures.
+**Sub-delivery components:** Canonical URLs, sitemap, robots rules, legacy PHP redirects, sold/unavailable and filter-indexing policy, unique metadata, social previews, approved structured data, server-rendered public content verification, PWA install/offline/update/security acceptance, responsive/performance checks, visitor regression, public/private field review, mock reset, support notes and linked enquiry/reservation fixtures.
 
 **Evidence:** Acceptance recommendation covering the source-confirmed Public Website capabilities and evidence paths documented in Phases 1.1–1.7.
 
@@ -613,7 +615,7 @@ Runtime additions: twelve FAQ categories, customer testimonial submission, and a
 
 **Supervisor demo:** Home → search → vehicle detail → freight estimate → enquiry/reservation → content/FAQ; inspect canonical/metadata/sitemap/robots output, open a legacy redirect and verify portal `noindex` protection.
 
-**Testing and acceptance:** Critical public journeys, SEO checks, responsive browser matrix, accessibility and performance gates pass; approved fixtures hand off to Customer and Salesperson applications.
+**Testing and acceptance:** Critical public journeys, SEO/PWA checks, responsive browser matrix, accessibility and performance gates pass; sensitive data is not cached and offline mutations are blocked; approved fixtures hand off to Customer and Salesperson applications.
 
 ### 5.9 BA workflow corrections to Public Website
 
@@ -882,7 +884,7 @@ Runtime additions: the profile separates fixed identity fields from editable con
 
 ### 6.10 BA workflow additions to Customer Application
 
-Add customer-facing status and notification coverage for PI-created/under-negotiation-with-PI, the approved 72-hour payment deadline, held or re-submission-required TT evidence, payment allocation and remaining balance, Ship OK, document-release pending/approved, and documents becoming visible only after approved upload. All views remain customer-isolated and must use the same authoritative balance and status projections.
+Add customer-facing status and notification coverage for PI-created/under-negotiation-with-PI, the approved 72-hour payment deadline, held or re-submission-required TT evidence, payment allocation and remaining balance, Ship OK, document-release pending/approved, and documents becoming visible only after approved upload. All views remain customer-isolated and must use the same authoritative balance and status projections. The Customer Application consumes `packages/pwa` for installability and offline shell behavior but never caches sensitive customer data or permits offline mutations.
 
 ## 7. Delivery 3 — Salesperson Application
 
@@ -1268,6 +1270,8 @@ The Salesperson Application must also cover the operational path that the origin
 
 These are mock/API operations only until the BFF and external-system responsibilities are approved. The frontend must never claim that VBMS, NetSuite, bank verification, ERP/IBQ, email or WhatsApp completed an action without an integration result or recorded manual checkpoint.
 
+The Salesperson Application also consumes `packages/pwa` for install/update/offline-shell behavior. Finance, approval, allocation, document and identity actions require an online authoritative BFF and are blocked while offline.
+
 ## 8. SEO within Public Website delivery
 
 Complete SEO and public release-readiness work is delivered in Phase 1.8 before the Customer Application becomes primary. The scope includes canonical URLs, sitemap, robots rules, legacy redirects, metadata, structured data, server-rendered public content, public performance and indexation validation.
@@ -1421,11 +1425,13 @@ These are capability groups, not approved REST endpoints or payloads.
 | Delivery 1 | UV-3 freight rates, UV-4 city delivery rates |
 | Delivery 2 | UV-13 password recovery and multi-factor sign-in, UV-14 document upload, UV-15 email and print delivery |
 | Delivery 3 | UV-1 currency conversion, UV-2 rate history, UV-5 import duty, UV-6 spreadsheet import, UV-7 image management, UV-8 quotation conversion, UV-9 registers, UV-10 and UV-11 allocations, UV-12 reservation expiry, UV-16 global search, UV-17 bulk payment entry |
-| Delivery 1, Phase 1.8 | UV-18 offline and installable-app support |
+| Delivery 1, Phases 1.1 and 1.8 | PWA installability, offline shell, update/cache safety and online-only sensitive mutations |
 
 ### BA workflow decisions that now gate implementation
 
 Before Customer and Salesperson task generation, resolve the colour ownership classification, authoritative inventory/price source, publication and country visibility semantics, negotiation versus reservation timer relationship, 72-hour PI window, payment hold/re-submission policy, Ship OK/document-release approvers, ERP/IBQ responsibilities, second-payment behavior and manual versus integrated boundaries. The full list is recorded in `tasks/DECISION_REGISTER.md` as `DEC-WF-*` entries.
+
+PWA baseline decisions are already set: all three applications are installable and provide a safe offline shell, but sensitive data and all financial/approval mutations stay online-only. Decide separately whether push notifications, background sync, camera/file capture or install analytics should be added.
 
 Then, in order:
 
@@ -1469,7 +1475,7 @@ Then, in order:
 | `AdminCustomerTiers` | Phase 3.9 |
 | `UserSecurityMatrix` and backend user section | Phase 3.10 |
 | `CmsBrandingManager`, `AdminFAQManager`, missing `FirestoreAuditPanel` | Phase 3.11; audit conditional |
-| Service worker, manifest and PWA setup | Phase 4.4 decision; not assumed production requirement |
+| Service worker, manifest and PWA setup | Phases 1.1 and 1.8; safe installable baseline is required, while push/background-sync/camera/analytics remain open |
 | `types`, `presetVehicles`, other preset data and Firestore collection usage | Domain/fixture evidence across phases; not production schema or approved production data |
 
 Every TS/TSX source file is either assigned above or treated as supporting configuration/data for its consuming phase.

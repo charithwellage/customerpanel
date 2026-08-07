@@ -88,6 +88,20 @@ The following workflow was supplied by the business analyst in [`docs/CarChief-B
 
 **WF-14 — Open question:** Confirm the approvers, rejection/return paths, notification channels, document categories, retention and scanning rules for Ship OK and document release.
 
+## Progressive Web App requirements
+
+The frontend shall be installable as a Progressive Web App on supported browsers. PWA support means an installable app shell and safe offline behavior; it does not make financial or approval workflows safe to execute without the server.
+
+**PWA-01 — Recommendation approved for planning:** Public, Customer and Salesperson applications shall each provide an application manifest, icons, responsive standalone presentation and an install/update experience appropriate to that application.
+
+**PWA-02 — Recommendation approved for planning:** Each application shall provide an offline shell/fallback page and clearly indicate online/offline state. Public content may use explicitly approved read-only cache data; authenticated data must be scoped to the signed-in user.
+
+**PWA-03 — Security rule:** Payment proofs, invoices, customer documents, identity data, staff data and other sensitive records must not be broadly cached by a service worker. Offline mutations, payment submission, approvals, allocation, Ship OK and document release are not permitted; the user must be prompted to reconnect.
+
+**PWA-04 — Recommendation approved for planning:** Service-worker versioning, update notification, cache expiry, logout cache cleanup and recovery from stale/broken caches shall be tested. Production must never cache mock data or credentials.
+
+**PWA-05 — Open question:** Confirm whether push notifications, background sync, camera/file capture and install analytics are required. They are excluded from the initial PWA baseline until approved.
+
 ---
 
 ## The complete journey
@@ -684,7 +698,7 @@ Each of these needs an answer from the business before the related part of the s
 | 14 | How wide and how fast does the staff search need to be — searching customers, vehicles and invoices together? | Affects how much work this feature needs | SALES-09 |
 | 15 | What exactly should be recorded in the system activity log, and who should be able to see it? | Affects trust and accountability inside the company | SALES-62 |
 | 16 | Should entering several payments at once (bulk entry) work differently from entering one payment, and is a preview of the proof needed before approving? | Affects how finance staff's daily work is designed | SALES-45 |
-| 17 | Does the system need to work without an internet connection, or be installable like an app on a phone? | This exists in the current demonstration but was never confirmed as something the business actually wants | — |
+| 17 | Does the system require push notifications, background sync, camera/file capture or install analytics beyond the approved installable PWA shell? | These capabilities affect security, permissions, support and device behavior | PWA-05 |
 | 18 | Which of CarChief's old website addresses need to keep working after the new Public App launches? | Old links and search results could lead to broken pages if this list is missing | PUB-24 |
 | 19 | Are the negotiation and reservation 48-hour timers the same or separate, and what happens when either expires? | A vehicle or negotiation could be released at the wrong time | WF-06, WF-07, RULE-05 |
 | 20 | What is the authoritative source for vehicle, price and publication data: CarChief, VBMS or Oracle NetSuite? | Conflicting records could overwrite one another | WF-01 to WF-04, SALES-20 |

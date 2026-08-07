@@ -190,7 +190,21 @@ The API boundary must enforce active/inactive publication, under-negotiation, PI
 
 Operational lifecycle, commercial sale state, publication state, price readiness and country availability must not be collapsed into a single vehicle status. The existing 48-hour reservation rule and the BA negotiation timer remain separate concepts until the business resolves that decision. The 72-hour PI payment timer is a separate workflow stage.
 
-### 4.1 The design pattern
+## 4.1 Progressive Web App strategy
+
+PWA support is part of the frontend architecture for all three user-facing applications. Each app owns its manifest, icons, service-worker registration and install/update UI, while shared packages provide the safe lifecycle and connectivity primitives.
+
+- `packages/pwa` owns manifest helpers, online/offline state, update prompts, cache-version constants, logout cleanup and test utilities.
+- `apps/public-web`, `apps/customer-app` and `apps/salesperson-app` provide app-specific names, icons, start URLs, scopes and offline fallback pages.
+- The service worker may cache the public application shell and explicitly approved public read-only content.
+- Authenticated customer/staff data, payment proofs, invoices, documents, identity data and staff data are never broadly cached. Sensitive data is cleared on logout and user changes.
+- Offline mutations and approval/finance/logistics commands are blocked with a clear reconnect message. The BFF remains the authority for all state changes.
+- Service-worker updates are versioned, observable and recoverable; a stale or broken cache must be clearable without deleting server data.
+- Push notifications, background sync, camera capture and install analytics remain open requirements under `PWA-05`; they are not implied by installability.
+
+PWA behavior is tested at package level and in each application at supported phone, tablet and desktop viewports, including fresh install, offline shell, reconnect, update, logout and cache-reset scenarios.
+
+### 4.2 The design pattern
 
 **Feature-first (vertical slice) organisation with a thin service layer.**
 
@@ -301,6 +315,7 @@ carchief-frontend/
 │   ├── api-client/                 # THE only place that talks HTTP (see below)
 │   ├── vehicle-search/             # Shared vehicle search UI, hooks, schemas and view models
 │   ├── vehicle-detail/             # Shared vehicle detail/gallery projections where applicable
+│   ├── pwa/                         # Manifest, safe cache lifecycle, offline/update primitives
 │   ├── testing/                    # Fixtures, render helpers, Playwright utilities
 │   └── config/                     # Shared eslint / tsconfig / tailwind / vite presets
 │
@@ -410,7 +425,7 @@ flowchart TB
     class BFF ext
 ```
 
-**Why `packages/*` is not a container.** Shared packages are compiled into each application's image at build time. They have no runtime of their own, which is why the workspace has four deployable apps and nine build-time packages, including the reusable vehicle-search and vehicle-detail packages.
+**Why `packages/*` is not a container.** Shared packages are compiled into each application's image at build time. They have no runtime of their own, which is why the workspace has four deployable apps and ten build-time packages, including the reusable vehicle-search, vehicle-detail and pwa packages.
 
 **In production, `mock-api` and `postgres` are simply not deployed.** The three application containers point at the real BFF instead. No image changes, no rebuild of application code — only `API_BASE_URL` differs.
 

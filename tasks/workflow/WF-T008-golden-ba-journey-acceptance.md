@@ -13,3 +13,5 @@ Run the linked scenario: import → publish → price request/enquiry → screen
 ## Tests and acceptance
 
 Run unit, contract, integration and Playwright tests, including invalid transitions, timer expiry, duplicate allocation, wrong-role actions and pre-release document access. Rebuild/redeploy the target Docker stack, perform the manual supervisor walkthrough, record screenshots/results, update the tracker and produce a signed workflow acceptance summary.
+
+Also verify that each application remains installable, presents an offline shell, clears user-scoped caches on logout and blocks all finance/approval/document mutations while offline.

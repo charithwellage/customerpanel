@@ -17,6 +17,7 @@ Only named human authorities may resolve business decisions. Agents record evide
 | DEC-WF-PUBLICATION-PRICE | OPEN | Confirm Active/Deactive/Now On Sale meanings, country visibility before price readiness and price-request routing. | Product and country managers | Public and inventory phases |
 | DEC-WF-EXTERNAL-BOUNDARIES | OPEN | Confirm which CSV, VBMS, NetSuite, auction media, bank verification, email, WhatsApp and ERP/IBQ steps remain manual for MVP. | Management and integration owners | All application deliveries |
 | DEC-WF-SHIP-DOC-APPROVAL | OPEN | Confirm Ship OK/document-release approvers, rejection paths, second payment behavior and customer-visible status names. | Finance/logistics owner | Salesperson and Customer acceptance |
+| DEC-PWA-ENHANCEMENTS | OPEN | Installable PWA shell is approved for all three applications. Confirm separately whether push notifications, background sync, camera/file capture and install analytics are required. | Management, security and product owner | Phases 1.1 and 1.8; later application acceptance |
 
 When resolving a row, change only its status to `RESOLVED` and add the named approver, date, decision text and evidence link below this table. Never place secrets or personal credentials here.
 

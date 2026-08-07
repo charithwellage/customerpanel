@@ -37,6 +37,8 @@ Every Delivery 01 implementation task includes root lint, TypeScript typecheck a
 
 Responsive behavior and reuse are mandatory task concerns: UI tasks test phone/tablet/desktop behavior, and any feature shared by Public, Customer and Salesperson applications is implemented once in a reusable `packages/` feature package. The vehicle search module is the first required example (`packages/vehicle-search`); consuming apps configure it rather than copying it.
 
+PWA support is also a shared baseline: `packages/pwa` supplies safe install/update/connectivity primitives and each application supplies its manifest, icons and offline shell. PWA tasks must prove that sensitive data is not broadly cached and that finance, approval, allocation, document and identity mutations are blocked while offline.
+
 Container redeployment is intentionally concentrated at the infrastructure gate and phase acceptance tasks rather than repeated for every component task. `D01-P01-T010` and the final acceptance task of each phase must rebuild the target architecture stack from `docker/docker-compose.yml` plus `docker/docker-compose.dev.yml`, start it, run the container Playwright project, complete the named manual supervisor smoke scenario, record evidence, and shut it down cleanly. These are the required UI gates for the Docker deployment. They verify the target solution stack, not the separate compiled-POC `docker-compose.poc.yml`.
 
 ## Branch convention

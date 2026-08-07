@@ -38,6 +38,8 @@ Each application is divided into small page- or component-focused phases. Every 
 
 All three applications are responsive. Common vehicle search and vehicle detail behavior is built once as reusable shared packages and configured for each audience, so customers, staff and public visitors do not receive three divergent search implementations.
 
+All three applications will also be installable PWAs. The PWA baseline includes manifests, icons, an offline shell, online/offline indication, safe cache versioning, update prompts and logout cleanup. Sensitive records and financial or approval actions remain online-only; push notifications and background sync require a separate management decision.
+
 Three things have been added to this plan since the previous version:
 
 1. **The proof of concept was operated, not just read.** The earlier version of this document was written by reading the delivered demonstration files. The application has since been run and every screen used by hand. That exercise confirmed most of what was expected, and added a number of screens, options and business rules that were not visible from the files alone. Those additions are listed in section 2 and are now reflected in each delivery.
@@ -187,7 +189,7 @@ The following exist in the proof of concept but could not be exercised, because 
 | Email and printed-document delivery | The actions exist but were not triggered |
 | Staff global search | Not exercisable with demonstration data |
 | Bulk payment entry and proof preview | No example records exist |
-| Offline behaviour and installable app | Present in the files but not part of an approved requirement |
+| PWA support | Installability, offline shell and safe cache lifecycle are now part of the target baseline; push/background-sync/camera/analytics remain open |
 
 **This list is a strength, not a gap.** Each entry is a question we now know to ask before building, rather than an assumption discovered late.
 
@@ -291,14 +293,14 @@ flowchart LR
 
 | Phase | Page/component delivery | Visible result | Days |
 |---|---|---|---:|
-| 1.1 | Shared foundation, reusable packages, theme system and mock service start-up | Responsive shell, reusable vehicle-search/detail packages, navigation, shared controls, loading/error states, the proof-of-concept look packaged as a swappable theme, and a running mock service with sign-in | 8.5 |
+| 1.1 | Shared foundation, reusable packages, theme system, PWA and mock service start-up | Responsive shell, reusable vehicle-search/detail packages, PWA manifests/offline shell/update lifecycle, navigation, shared controls, loading/error states, the proof-of-concept look packaged as a swappable theme, and a running mock service with sign-in | 8.5 |
 | 1.2 | Home and showroom | Hero, promoted content, featured vehicles, vehicle cards, promotional banners, countdown timers and empty/loading states | 1 |
 | 1.3 | Inventory and search page | Shared vehicle-search package consumed by the public app, two search modes, expandable filters drawn from live stock, three sort options, manual refresh, results and no-results behavior | 2.5 |
 | 1.4 | Vehicle details | Shareable vehicle web address, specifications, categorized media, status, sharing and printing | 2 |
 | 1.5 | Freight estimate and quotation enquiry | Destination selection, freight/city/insurance estimate and quotation enquiry | 2 |
 | 1.6 | Enquiry, contact, authentication and reservation entry | Contact/vehicle enquiry with proper field checking, customer access entry and reservation eligibility/conflict feedback | 1.5 |
 | 1.7 | Public information and content | About, How to Buy, Testimonials with submission, twelve-category FAQ, and Contact with offices and hours | 1 |
-| 1.8 | Public SEO, acceptance and release readiness | Complete visitor journey, canonical URLs, sitemap, robots, redirects, metadata, structured data, responsive/accessibility/performance review and linked enquiry fixtures | 4.5 |
+| 1.8 | Public SEO, PWA, acceptance and release readiness | Complete visitor journey, canonical URLs, sitemap, robots, redirects, metadata, structured data, PWA install/offline/update/security checks, responsive/accessibility/performance review and linked enquiry fixtures | 4.5 |
 | — | Correction allowance | Rework arising from testing and review | 3 |
 
 ### Business outcome
@@ -572,6 +574,7 @@ flowchart LR
 16. Confirm whether CSV, auction media, bank checks, ERP/IBQ, email and WhatsApp remain manual for MVP.
 17. Confirm Ship OK and document-release approvers, rejection paths and customer-visible status names.
 18. Confirm second-payment behavior and document-release timing.
+19. Confirm whether push notifications, background sync, camera/file capture and install analytics are required beyond the PWA baseline.
 
 ### Principal risks and controls
 
