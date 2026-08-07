@@ -1,14 +1,8 @@
-export interface ThemeTokens {
-  colors: {
-    primary: string;
-    secondary: string;
-    background: string;
-    surface: string;
-    text: string;
-  };
-}
+export * from './tokens.js';
+export * from './provider.js';
+export * from './contrast.js';
 
-export const defaultTheme: ThemeTokens = {
+export const defaultTheme = {
   colors: {
     primary: '#1d4ed8',
     secondary: '#0f766e',
