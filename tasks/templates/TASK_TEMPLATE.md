@@ -1,6 +1,6 @@
 # Executable Task Template
 
-Copy the structure of an existing generated task. Every task must include frontmatter fields for ID, order, estimate, model, parallel group, dependencies, decision gates and branches; authority/evidence; blocker preflight; outcome/scope/exclusions; owned paths; incremental API/mock work; UX/accessibility/authorization; automated tests and exact commands; acceptance; execution-log/tracker workflow; and the required final response with `Blockers: None` when unblocked.
+Copy the structure of an existing generated task. Every task must include frontmatter fields for ID, order, estimate, model, parallel group, dependencies, decision gates and the phase branch; authority/evidence; blocker preflight; outcome/scope/exclusions; owned paths; incremental API/mock work; UX/accessibility/authorization; automated tests and exact commands; acceptance; execution-log/tracker workflow; and the required final response with `Blockers: None` when unblocked. Tasks work directly on the phase branch and must not create task-specific child branches.
 
 The first preflight command must always be:
 
@@ -8,7 +8,11 @@ The first preflight command must always be:
 git status --porcelain=v1 --untracked-files=all
 ```
 
+<<<<<<< Updated upstream
 Any output blocks the task before all branch, source, log and tracker mutations. Public phase branches must follow `feat_delivery<two-digit-delivery>_phase_<two-digit-phase>` and be created from the updated delivery integration branch. Phase 0 tasks must use `BRANCH_NEUTRAL` for both branch fields and must not switch or create branches. Include `taskctl next`, `taskctl sequence`, `taskctl precheck`, conditional phase/task branch commands, final `taskctl check`, and the exact dirty-tree response from an existing task. The precheck/check commands enforce the execution frontier: later tasks are blocked when earlier tasks are incomplete, except for explicitly eligible same-group parallel work.
+=======
+Any output blocks the task before all branch, source, log and tracker mutations. Public phase branches must follow `feat_delivery<two-digit-delivery>_phase_<two-digit-phase>` and be created from the updated delivery integration branch. Phase 0 tasks must use `BRANCH_NEUTRAL` for both branch fields and must not switch or create branches. Include `taskctl precheck`, conditional phase-branch commands, final `taskctl check`, and the exact dirty-tree response from an existing task. Never create a task-specific child branch.
+>>>>>>> Stashed changes
 
 ## Verification requirements
 
