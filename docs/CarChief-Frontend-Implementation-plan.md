@@ -638,6 +638,58 @@ Runtime additions: twelve FAQ categories, customer testimonial submission, and a
 
 The public projection must carry stable visibility data rather than exposing an undifferentiated vehicle status. Add component coverage for active/deactive publication, country eligibility, price-unready/request-price enquiry, source/reference metadata, categorized auction media and enquiry routing metadata. VBMS, NetSuite, WhatsApp and auction-site automation remain excluded integrations; the public app consumes approved CarChief projections only.
 
+## 5.10 Delivery 01 task inventory and tangible outputs
+
+The table below is the execution view of the existing `tasks/delivery_01` files. Each `Deliveries` row is a merged-style phase handoff row: it describes the visible result a supervisor can open, the mock/API result that must exist, and the acceptance evidence required before the next phase begins. URLs are local target routes for the new implementation; the exact production domain is a release decision.
+
+| Phase | TaskId | Task Summary |
+|---|---|---|
+| 1.1 | D01-P01-T001 | Bootstrap the pnpm workspace, runtime pins and application/package skeletons |
+| 1.1 | D01-P01-T002 | Add strict TypeScript, quality and boundary guardrails |
+| 1.1 | D01-P01-T003 | Establish automated testing foundations |
+| 1.1 | D01-P01-T004 | Establish OpenAPI, generated client and HTTP boundary |
+| 1.1 | D01-P01-T005 | Build mock API, PostgreSQL foundation and deterministic reset |
+| 1.1 | D01-P01-T006 | Add stand-in JWT identities, roles and enforcement |
+| 1.1 | D01-P01-T007 | Build semantic theme and runtime theme infrastructure |
+| 1.1 | D01-P01-T008 | Build shared controls and application feedback primitives |
+| 1.1 | D01-P01-T009 | Build the Next.js public shell and navigation |
+| 1.1 | D01-P01-T010 | Complete containers, CI guardrails and Phase 1.1 acceptance |
+| 1.1 | **Deliveries** | - Shared monorepo, reusable UI/theme, vehicle-search/detail package boundaries and responsive public shell.<br>- Public app runs at `http://localhost:3000/` with navigation, loading, empty and error states.<br>- Mock API runs at `http://localhost:4000/`, with Swagger at `http://localhost:4000/swagger` and OpenAPI JSON at `http://localhost:4000/openapi.json`.<br>- Docker Compose build/health check, deterministic seed/reset and basic PWA shell are demonstrated. |
+| 1.2 | D01-P02-T001 | Add featured vehicle services and reusable vehicle collections |
+| 1.2 | D01-P02-T002 | Build and accept the home/showroom experience |
+| 1.2 | **Deliveries** | - Home page and showroom content are visible at `http://localhost:3000/`.<br>- Featured/latest/category vehicle cards load from the mock vehicle-summary service rather than page fixtures.<br>- Promotional, testimonial and FAQ previews, loading/empty states and responsive phone/tablet/desktop layouts are demonstrated.<br>- Swagger shows the featured-vehicle operation and contract tests prove reset and public projection behavior. |
+| 1.3 | D01-P03-T001 | Add vehicle query, dynamic filters, sorting and pagination |
+| 1.3 | D01-P03-T002 | Build search orchestration, URL state and natural parsing |
+| 1.3 | D01-P03-T003 | Build inventory filters and result presentations |
+| 1.3 | D01-P03-T004 | Integrate and accept inventory search |
+| 1.3 | **Deliveries** | - Browse stock is available at the target `/vehicles` route, with category, make/type, country, keyword and approved filters.<br>- Sorting, pagination/load-more, URL-backed search and honest no-results/error states are demonstrated.<br>- The shared vehicle-search package calls the mock vehicle-query/filter API; changes in Swagger fixtures appear after refresh.<br>- Container Playwright coverage proves browser → public app → mock API behavior. |
+| 1.4 | D01-P04-T001 | Add vehicle detail and public media service behavior |
+| 1.4 | D01-P04-T002 | Build vehicle detail page and gallery |
+| 1.4 | D01-P04-T003 | Add sharing, printing, metadata and detail acceptance |
+| 1.4 | **Deliveries** | - A stable target vehicle route such as `/vehicles/:slug` opens directly in a fresh browser.<br>- Specifications, gallery, public media categories, availability and priced/request-price states come from the mock detail API.<br>- Share, print, metadata and missing/unavailable media states are demonstrated responsively.<br>- Swagger and contract tests expose valid, not-found and service-error vehicle scenarios. |
+| 1.5 | D01-P05-G001 | Approve freight and city-delivery calculation decisions |
+| 1.5 | D01-P05-T001 | Add destinations, rates and freight estimate services |
+| 1.5 | D01-P05-T002 | Implement approved freight calculations |
+| 1.5 | D01-P05-T003 | Build freight estimate selection and explanation UI |
+| 1.5 | D01-P05-T004 | Add freight quotation enquiry and accept the phase |
+| 1.5 | **Deliveries** | - Freight estimate is available at the target `/freight` route and from vehicle details.<br>- Destination, port, dimensions, delivery and insurance selections call mock rate/calculation APIs; totals are service-calculated and explained.<br>- No-rate, invalid-input and stale-rate states are visible.<br>- A freight quotation enquiry is persisted through the mock lead API and verified in the phase Playwright flow. |
+| 1.6 | D01-P06-T001 | Add lead and enquiry contracts with persistent mock behavior |
+| 1.6 | D01-P06-T002 | Build accessible contact and vehicle enquiry forms |
+| 1.6 | D01-P06-T003 | Build account entry and unauthenticated reservation guidance |
+| 1.6 | D01-P06-T004 | Add transactional reservation eligibility and hold behavior |
+| 1.6 | D01-P06-T005 | Build reservation UI and accept enquiry/reservation journeys |
+| 1.6 | **Deliveries** | - General and vehicle inquiry flows are available at `/inquiry` and from vehicle detail pages.<br>- Forms call the mock enquiry/lead API with server validation, duplicate protection, confirmation and retry behavior.<br>- Demo account entry and reservation guidance are available; eligible/conflict/limit/expiry responses are visible.<br>- A created enquiry/reservation can be retrieved through the service boundary after refresh, proving it is not only local component state. |
+| 1.7 | D01-P07-T001 | Add public content, FAQ and testimonial services |
+| 1.7 | D01-P07-T002 | Build About, How to Buy and Contact information pages |
+| 1.7 | D01-P07-T003 | Build testimonial display and moderated submission |
+| 1.7 | D01-P07-T004 | Build FAQ browsing/search and accept public content |
+| 1.7 | **Deliveries** | - Public content routes such as `/about`, `/how-to-buy`, `/services`, `/auction`, `/contact`, `/testimonials` and `/faq` are available from the shell.<br>- Content, FAQ categories/search and testimonials load from mock content APIs; testimonial submissions persist as pending records.<br>- Approved shipping/policy/company content and safe unavailable states are demonstrated; legacy server errors are not reproduced.<br>- Swagger operations, accessibility tests and browser flows prove content integration and deterministic reset. |
+| 1.8 | D01-P08-T001 | Complete public SEO policy and visitor regression |
+| 1.8 | D01-P08-T002 | Complete data projection, privacy and production-safety checks |
+| 1.8 | D01-P08-T003 | Complete accessibility, browser and performance acceptance |
+| 1.8 | D01-P08-T004 | Produce Public Website UAT and Delivery 1 handoff |
+| 1.8 | **Deliveries** | - The complete public journey is demonstrated: home → stock/search → vehicle detail → freight → inquiry/reservation → public content/FAQ.<br>- Canonicals, metadata, sitemap, robots, structured-data policy and approved legacy redirects are verified.<br>- Responsive, accessibility, PWA, performance, privacy and production-mock safety gates pass.<br>- Docker Compose redeploy, mock Swagger/API checks, supervisor UAT evidence and the Delivery 01 phase summary are complete; the public app is ready for Customer Application work. |
+
 ## 6. Delivery 2 — Customer Application
 
 **Scheduled delivery:** 18 working days ≈ 3.6 weeks

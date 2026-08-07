@@ -295,6 +295,8 @@ flowchart LR
 
 The local stand-in API will include a Swagger page so engineers and supervisors can see and try the available mock operations. It is generated from the same contract used by the website, contains demo data only, and is disabled in production-like environments.
 
+The detailed Delivery 01 task inventory and phase handoff outputs are maintained in [§5.10 of the engineering implementation plan](CarChief-Frontend-Implementation-plan.md#510-delivery-01-task-inventory-and-tangible-outputs). This supervisor roadmap keeps task IDs and engineering execution details in that linked document.
+
 | Phase | Page/component delivery | Visible result | Days |
 |---|---|---|---:|
 | 1.1 | Shared foundation, reusable packages, theme system, PWA and mock service start-up | Responsive shell, reusable vehicle-search/detail packages, PWA manifests/offline shell/update lifecycle, navigation, shared controls, loading/error states, the proof-of-concept look packaged as a swappable theme, and a running mock service with sign-in | 8.5 |
