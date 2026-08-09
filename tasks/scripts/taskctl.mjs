@@ -6,7 +6,9 @@ import { dirname, join, relative, resolve } from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 
-const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
+const root = process.env.TASKCTL_ROOT
+  ? resolve(process.env.TASKCTL_ROOT)
+  : resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const tasksRoot = join(root, 'tasks');
 const logsRoot = join(tasksRoot, 'execution_logs');
 const trackerPath = join(tasksRoot, 'TASK_EXECUTION_TRACKER.md');
@@ -145,11 +147,15 @@ function validate({ quiet = false } = {}) {
     '## Automated tests to add', '## Validation commands', '## Acceptance criteria',
     '## Completion, handoff and tracker update', '## Required final response',
   ];
-  const phaseAcceptanceTasks = new Set([
+  const containerGateTasks = new Set([
     'D01-P01-T010', 'D01-P01-T012', 'D01-P02-T002', 'D01-P03-T004', 'D01-P04-T003',
     'D01-P05-T004', 'D01-P06-T005', 'D01-P07-T004', 'D01-P08-T004',
   ]);
-  if (tasks.size !== 44) errors.push(`expected 44 task/gate files, found ${tasks.size}`);
+  const phaseReviewTasks = new Set([
+    'D01-P01-CODE_REVIEW', 'D01-P02-CODE_REVIEW', 'D01-P03-CODE_REVIEW', 'D01-P04-CODE_REVIEW',
+    'D01-P05-CODE_REVIEW', 'D01-P06-CODE_REVIEW', 'D01-P07-CODE_REVIEW', 'D01-P08-CODE_REVIEW',
+  ]);
+  if (tasks.size !== 52) errors.push(`expected 52 task/gate files, found ${tasks.size}`);
   for (const task of tasks.values()) {
     for (const field of ['task_id', 'title', 'delivery', 'phase', 'estimate', 'model_tier', 'parallel_group', 'phase_branch', 'task_branch']) {
       if (!task[field]) errors.push(`${task.task_id || task.file}: missing ${field}`);
@@ -169,10 +175,28 @@ function validate({ quiet = false } = {}) {
     }
     if (!['allowed', 'forbidden'].includes(task.product_source_mutation)) errors.push(`${task.task_id}: invalid product_source_mutation`);
     if (task.task_id.startsWith('INF-') && task.product_source_mutation !== 'forbidden') errors.push(`${task.task_id}: Phase 0 must forbid product source mutation`);
+    if (task.task_id.startsWith('D01-') && !['self_ai', 'phase_manual'].includes(task.review_mode)) {
+      errors.push(`${task.task_id}: review_mode must be self_ai or phase_manual`);
+    }
+    if (phaseReviewTasks.has(task.task_id) && task.review_mode !== 'phase_manual') errors.push(`${task.task_id}: phase review must use phase_manual review_mode`);
+    if (!phaseReviewTasks.has(task.task_id) && task.task_id.startsWith('D01-') && task.review_mode !== 'self_ai') errors.push(`${task.task_id}: implementation task must use self_ai review_mode`);
     const body = readFileSync(task.file, 'utf8');
     for (const heading of requiredHeadings) if (!body.includes(heading)) errors.push(`${task.task_id}: missing section ${heading}`);
     if (!body.includes('### Blockers\nNone')) errors.push(`${task.task_id}: final response does not require Blockers: None`);
     if (!body.includes('Do not commit, push, create a PR, merge')) errors.push(`${task.task_id}: task must prohibit automatic Git history and remote operations`);
+    if (task.review_mode === 'self_ai') {
+      if (!body.includes('## AI code review before tests')) errors.push(`${task.task_id}: self_ai task is missing pre-test code review instructions`);
+      if (!body.includes(`taskctl.mjs complete ${task.task_id} --review-agent`)) errors.push(`${task.task_id}: self_ai task is missing self-completion command`);
+      if (!body.includes('### AI code review')) errors.push(`${task.task_id}: self_ai task is missing AI review final response heading`);
+      if (body.includes('Obtain independent review.')) errors.push(`${task.task_id}: self_ai task must not require a manual task-level review`);
+    }
+    if (task.review_mode === 'phase_manual') {
+      const range = `delivery_01_public_website...${task.phase_branch}`;
+      if (!body.includes(range)) errors.push(`${task.task_id}: phase review must name comparison range ${range}`);
+      if (!body.includes(`taskctl.mjs submit ${task.task_id}`) || !body.includes(`taskctl.mjs approve ${task.task_id}`)) {
+        errors.push(`${task.task_id}: phase review must require submit and tech-lead approval`);
+      }
+    }
     const preflightSection = body.match(/## Mandatory preflight and blocker protocol\n\n([\s\S]*?)(?=## Business-visible outcome)/)?.[1] || '';
     if (!preflightSection.trimStart().startsWith('1. **Before doing anything else**, run:')) errors.push(`${task.task_id}: clean-tree check is not the first preflight step`);
     if (!preflightSection.includes('git status --porcelain=v1 --untracked-files=all')) errors.push(`${task.task_id}: missing full clean-tree command`);
@@ -186,7 +210,7 @@ function validate({ quiet = false } = {}) {
       if (!preflightSection.includes('Do not create or switch to a task-specific child branch')) errors.push(`${task.task_id}: preflight must forbid task-specific child branches`);
       if (!preflightSection.includes('git pull --ff-only origin delivery_01_public_website')) errors.push(`${task.task_id}: missing delivery-branch synchronization command`);
     }
-    if (phaseAcceptanceTasks.has(task.task_id)) {
+    if (phaseReviewTasks.has(task.task_id)) {
       if (!body.includes('## Phase branch and PR handoff')) errors.push(`${task.task_id}: missing phase PR handoff`);
       if (!body.includes('create a PR with base `delivery_01_public_website`')) errors.push(`${task.task_id}: missing delivery PR target`);
     }
@@ -199,7 +223,7 @@ function validate({ quiet = false } = {}) {
         errors.push(`${task.task_id}: acceptance criteria missing root build/compiler requirement`);
       }
     }
-    if (phaseAcceptanceTasks.has(task.task_id) && !body.includes('## Containerized verification')) {
+    if (containerGateTasks.has(task.task_id) && !body.includes('## Containerized verification')) {
       errors.push(`${task.task_id}: missing required containerized verification section`);
     }
     for (const dependency of task.dependencies) {
@@ -301,7 +325,7 @@ function check(id) {
 
 function replaceFrontmatterField(text, field, value) {
   const expression = new RegExp(`^${field}:.*$`, 'm');
-  if (!expression.test(text)) die(`execution log is missing ${field}`);
+  if (!expression.test(text)) return text.replace(/^---\n/, `---\n${field}: "${String(value).replaceAll('"', '\\"')}"\n`);
   return text.replace(expression, `${field}: "${String(value).replaceAll('"', '\\"')}"`);
 }
 
@@ -315,7 +339,7 @@ function writeLog(id, status, fields = {}) {
     text = replaceFrontmatterField(text, 'status', status);
     for (const [field, value] of Object.entries(fields)) text = replaceFrontmatterField(text, field, value);
   } else {
-    text = `---\ntask_id: "${id}"\nstatus: "${status}"\nowner: "${fields.owner || ''}"\nreviewer: "${fields.reviewer || ''}"\nphase_branch: "${task?.phase_branch || ''}"\ntask_branch: "${task?.task_branch || ''}"\nstarted_at: "${status === 'IN_PROGRESS' ? new Date().toISOString() : ''}"\nupdated_at: "${new Date().toISOString()}"\nblocker: "${fields.blocker || ''}"\n---\n\n# ${id} Execution Log\n\n## Preflight\n\n- Blockers: None\n- Clean-tree command/result: Passed\n- Phase branch: ${task?.phase_branch || 'Not recorded'}\n- Child task branch: ${task?.task_branch || 'Not recorded'}\n- Baseline commands: Not recorded\n\n## Completed work\n\nNot recorded.\n\n## Tests executed\n\nNot recorded.\n\n## Decisions and deviations\n\nNone recorded.\n\n## Blockers\n\nNone.\n`;
+    text = `---\ntask_id: "${id}"\nstatus: "${status}"\nowner: "${fields.owner || ''}"\nreviewer: "${fields.reviewer || ''}"\nreview_agent: "${fields.review_agent || ''}"\nreview_mode: "${task?.review_mode || ''}"\nphase_branch: "${task?.phase_branch || ''}"\ntask_branch: "${task?.task_branch || ''}"\nstarted_at: "${status === 'IN_PROGRESS' ? new Date().toISOString() : ''}"\nupdated_at: "${new Date().toISOString()}"\nblocker: "${fields.blocker || ''}"\n---\n\n# ${id} Execution Log\n\n## Preflight\n\n- Blockers: None\n- Clean-tree command/result: Passed\n- Phase branch: ${task?.phase_branch || 'Not recorded'}\n- Child task branch: ${task?.task_branch || 'Not recorded'}\n- Baseline commands: Not recorded\n\n## Completed work\n\nNot recorded.\n\n## AI code review\n\n- Reviewed range/files: Not recorded.\n- Rules checked: Not recorded.\n- Findings: Not recorded.\n- Fixes applied: Not recorded.\n- Remaining concerns: Not recorded.\n- Result: Not recorded.\n\n## Tests executed\n\nNot recorded.\n\n## Decisions and deviations\n\nNone recorded.\n\n## Blockers\n\nNone.\n`;
   }
   if (status === 'BLOCKED' && fields.blocker) {
     const event = `\n## Blocker event — ${new Date().toISOString()}\n\n${fields.blocker}\n`;
@@ -327,6 +351,23 @@ function writeLog(id, status, fields = {}) {
   }
   text = replaceFrontmatterField(text, 'updated_at', new Date().toISOString());
   writeFileSync(path, text);
+}
+
+function requireSelfReviewEvidence(id) {
+  const log = loadLog(id);
+  if (!log) die(`${id} requires an execution log`);
+  if (!log.text.includes('## AI code review') || !log.text.includes('- Result: PASS')) {
+    die(`${id} requires a PASS AI code-review record before completion`);
+  }
+  const tests = log.text.match(/## Tests executed\n\n([\s\S]*?)(?=\n## )/)?.[1] || '';
+  if (!tests.trim() || tests.includes('Not recorded.')) die(`${id} requires recorded passing test evidence before completion`);
+}
+
+function appendReopenEvent(id, reason) {
+  const log = loadLog(id);
+  if (!log) return;
+  const event = `\n## Reopened — ${new Date().toISOString()}\n\n${reason}\n`;
+  writeFileSync(log.path, log.text.replace(/\n## Blockers\n/, `${event}\n## Blockers\n`));
 }
 
 function option(name) {
@@ -404,18 +445,21 @@ function render() {
     const log = loadLog(task.task_id);
     const link = relative(tasksRoot, task.file);
     const phaseBranch = task.task_id.startsWith('INF-') ? 'Branch-neutral' : `\`${task.phase_branch}\``;
-    return `| [${task.task_id}](${link}) | ${task.title} | ${displayStatus(task, tasks, decisions)} | ${log?.owner || '—'} | ${phaseBranch} | ${task.dependencies.join(', ') || 'None'} | ${task.parallel_group} | ${log?.updated_at || '—'} |`;
+    const phaseReview = task.task_id.match(/^D01-P(\d{2})-/)?.[1];
+    const phaseGateId = phaseReview ? `D01-P${phaseReview}-CODE_REVIEW` : '—';
+    const phaseGate = tasks.has(phaseGateId) ? `${phaseGateId} (${rawStatus(phaseGateId)})` : '—';
+    return `| [${task.task_id}](${link}) | ${task.title} | ${displayStatus(task, tasks, decisions)} | ${task.review_mode || '—'} | ${log?.owner || '—'} | ${phaseBranch} | ${phaseGate} | ${task.dependencies.join(', ') || 'None'} | ${task.parallel_group} | ${log?.updated_at || '—'} |`;
   });
-  const text = `# CarChief Task Execution Tracker\n\n> Generated by \`node tasks/scripts/taskctl.mjs render\`. Do not edit the task rows manually.\n\n## Status meanings\n\n- \`NOT_STARTED\`: prerequisites or decisions are incomplete.\n- \`READY\`: dependencies and decision gates are complete.\n- \`IN_PROGRESS\`: claimed by an implementer.\n- \`IN_REVIEW\`: implementation and automated tests await independent review.\n- \`COMPLETE\`: independently approved.\n- \`BLOCKED\`: work stopped and the execution log names the blocker.\n- \`SUPERSEDED\`: intentionally replaced by another approved task.\n\n## Tracker\n\n| ID | Task | Status | Owner | Phase branch | Dependencies | Parallel group | Last update |\n|---|---|---|---|---|---|---|---|\n${rows.join('\n')}\n\n## Continuation rule\n\nThe next developer starts with this tracker, then reads the latest phase summary and the execution log for the task being continued. A task may start only after the clean-tree \`taskctl precheck\`, branch preparation and final \`taskctl check\` succeed.\n`;
+  const text = `# CarChief Task Execution Tracker\n\n> Generated by \`node tasks/scripts/taskctl.mjs render\`. Do not edit the task rows manually.\n\n## Status meanings\n\n- \`NOT_STARTED\`: prerequisites or decisions are incomplete.\n- \`READY\`: dependencies and decision gates are complete.\n- \`IN_PROGRESS\`: claimed by an implementer.\n- \`IN_REVIEW\`: a phase-level PR review awaits the tech lead.\n- \`COMPLETE\`: a self-reviewed task passed tests, or a phase review was approved by the tech lead.\n- \`BLOCKED\`: work stopped and the execution log names the blocker.\n- \`SUPERSEDED\`: intentionally replaced by another approved task.\n\n## Review modes\n\n- \`self_ai\`: the implementing agent reviews its owned diff against \`CODE_REVIEW_RULES.md\`, fixes findings, records PASS and tests, then runs \`taskctl complete\`.\n- \`phase_manual\`: AI reviews the phase PR diff; the tech lead performs the only required manual code review and approves the task.\n\n## Tracker\n\n| ID | Task | Status | Review mode | Owner | Phase branch | Phase review gate | Dependencies | Parallel group | Last update |\n|---|---|---|---|---|---|---|---|---|---|\n${rows.join('\n')}\n\n## Continuation rule\n\nThe next developer starts with this tracker, then reads the latest phase summary and the execution log for the task being continued. A self-AI task may start only after the clean-tree \`taskctl precheck\`, branch preparation and final \`taskctl check\` succeed. A phase review waits for all phase work, a human-created PR and tech-lead approval.\n`;
   const frontierSection = `\n## Current execution frontier\n\n- Sequential next: ${frontierLabel}\n- Optional same-group parallel tasks: ${optionalParallel.join(', ') || 'None'}\n- Downstream work waits for COMPLETE or SUPERSEDED; IN_REVIEW is not complete.\n- Later tasks cannot be bypassed; use taskctl sequence TASK-ID for the exact blocker.\n\n`;
   const enrichedText = text.replace('## Continuation rule', `${frontierSection}## Continuation rule`)
-    .replace('A task may start only after', 'Sequential execution is the default; optional parallel work is limited to an approved same-group task after the group frontier is active. Blocked tasks cannot be bypassed. The working tree must be clean before a task starts; commit any previous task changes manually before continuing. Agents never commit, push, create PRs or merge. A task may start only after');
+    .replace('A self-AI task may start only after', 'Sequential execution is the default; optional parallel work is limited to an approved same-group task after the group frontier is active. Blocked tasks cannot be bypassed. The working tree must be clean before a task starts; commit any previous task changes manually before continuing. Agents never commit, push, create PRs or merge. A self-AI task may start only after');
   writeFileSync(trackerPath, enrichedText);
   console.log(`Rendered ${trackerPath}`);
 }
 
 const [command, id] = process.argv.slice(2);
-if (!command) die('usage: taskctl.mjs <validate|next|sequence|precheck|check|start|block|submit|approve|render> [TASK-ID]');
+if (!command) die('usage: taskctl.mjs <validate|next|sequence|precheck|check|start|complete|submit|approve|reopen|block|render> [TASK-ID]');
 
 if (command === 'validate') validate();
 else if (command === 'next') printNext();
@@ -438,20 +482,49 @@ else if (command === 'start') {
   writeLog(id, 'BLOCKED', { blocker: reason });
   render();
   console.log(`${id} is BLOCKED: ${reason}`);
+} else if (command === 'complete') {
+  const { tasks } = validate({ quiet: true });
+  const task = tasks.get(id);
+  if (!id || !task) die('complete requires a valid TASK-ID');
+  if (task.review_mode !== 'self_ai') die(`${id} is a phase_manual review task; use submit and approve`);
+  if (!['IN_PROGRESS', 'IN_REVIEW'].includes(rawStatus(id))) die(`${id} cannot complete from ${rawStatus(id)}`);
+  const reviewAgent = option('--review-agent');
+  if (!reviewAgent) die('complete requires --review-agent <name>');
+  requireSelfReviewEvidence(id);
+  writeLog(id, 'COMPLETE', { review_agent: reviewAgent, reviewer: '' });
+  render();
+  console.log(`${id} is COMPLETE after AI self-review (review agent: ${reviewAgent}).`);
 } else if (command === 'submit') {
-  if (!id || !loadLog(id)) die('submit requires a started task with an execution log');
+  const { tasks } = validate({ quiet: true });
+  const task = tasks.get(id);
+  if (!id || !task || !loadLog(id)) die('submit requires a started task with an execution log');
+  if (task.review_mode !== 'phase_manual') die(`${id} is a self_ai task; use complete after AI review and tests`);
   if (rawStatus(id) !== 'IN_PROGRESS') die(`${id} cannot submit from ${rawStatus(id)}`);
   writeLog(id, 'IN_REVIEW');
   render();
   console.log(`${id} is IN_REVIEW.`);
 } else if (command === 'approve') {
   const reviewer = option('--reviewer');
+  const { tasks } = validate({ quiet: true });
+  const task = tasks.get(id);
   const log = loadLog(id);
-  if (!id || !log) die('approve requires a submitted task with an execution log');
+  if (!id || !task || !log) die('approve requires a submitted task with an execution log');
+  if (task.review_mode !== 'phase_manual') die(`${id} is a self_ai task; use complete after AI review and tests`);
   if (log.status !== 'IN_REVIEW') die(`${id} is ${log.status}, not IN_REVIEW`);
   if (!reviewer) die('approve requires --reviewer <name>');
   if (reviewer === log.owner) die('the task owner cannot approve their own task');
   writeLog(id, 'COMPLETE', { reviewer });
   render();
   console.log(`${id} is COMPLETE (reviewer: ${reviewer}).`);
+} else if (command === 'reopen') {
+  const { tasks } = validate({ quiet: true });
+  const task = tasks.get(id);
+  const reason = option('--reason');
+  if (!id || !task || !reason) die('reopen requires a valid TASK-ID --reason <text>');
+  if (task.review_mode !== 'self_ai') die(`${id} is not an implementation task and cannot be reopened this way`);
+  if (rawStatus(id) !== 'COMPLETE') die(`${id} can be reopened only from COMPLETE`);
+  writeLog(id, 'IN_PROGRESS', { reviewer: '', review_agent: '', blocker: '' });
+  appendReopenEvent(id, reason);
+  render();
+  console.log(`${id} is IN_PROGRESS again: ${reason}`);
 } else die(`unknown command ${command}`);
