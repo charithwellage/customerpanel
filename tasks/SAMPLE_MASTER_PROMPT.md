@@ -24,7 +24,11 @@ No implementation started.
 
 Run `node tasks/scripts/taskctl.mjs next` and `node tasks/scripts/taskctl.mjs sequence TASK-ID` before branch setup. If the task is not the current execution frontier, or is not an explicitly eligible same-`parallel_group` task, stop and report the exact earlier task and `No implementation started`.
 
-If unblocked, run the task’s `precheck`, then remain on the named phase branch; do not create or switch to a task-specific child branch. Run `check` and `start`, implement only the stated scope, add the required tests, update the execution log and tracker, and follow the task’s completion workflow.
+If unblocked, run the task’s `precheck`, then remain on the named phase branch; do not create or switch to a task-specific child branch. Run `check` and `start`, implement only the stated scope, and follow the task’s completion workflow.
+
+For a `self_ai` task, before running tests review only the owned diff and named dependencies against `tasks/CODE_REVIEW_RULES.md`. Fix every in-scope finding and repeat until the execution-log review result is PASS. Then run all required tests and use `taskctl complete TASK-ID --review-agent "<agent-name>"`. Do not request manual task-level PR approval.
+
+For a `phase_manual` task, review only the named `delivery_01_public_website...feat_delivery01_phase_NN` PR diff, record the AI review, run `submit`, and wait for the tech lead to perform manual PR review and `approve` it.
 
 Do not modify POC/**, invent unresolved business rules, commit, push, create a pull request, merge, rewrite history or self-approve. The agent must leave implementation changes as a working-tree diff for the human owner to review and commit manually. Updating the task execution log and generated tracker is required and permitted.
 

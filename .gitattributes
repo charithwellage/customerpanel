@@ -1,0 +1,2 @@
+# The Excel-import task export is intentionally UTF-8 BOM with CRLF records.
+tasks/delivery_01/CarChief-Delivery-01-Tasks.csv -whitespace

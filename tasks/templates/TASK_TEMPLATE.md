@@ -21,6 +21,10 @@ corepack pnpm typecheck
 corepack pnpm -r build
 ```
 
+Before those tests, include an `## AI code review before tests` section requiring the agent to inspect only its owned diff and named dependencies against `CODE_REVIEW_RULES.md`, fix violations, repeat review until PASS, and record the required review result. Add `### AI code review` to the final response format.
+
+Every Delivery 01 task declares `review_mode`: use `self_ai` for implementation work and `phase_manual` only for the dedicated phase PR review. A `self_ai` task must review its owned diff against `CODE_REVIEW_RULES.md`, fix all in-scope findings, record PASS, run tests and then use `taskctl complete`. It does not require manual task-level PR approval. A `phase_manual` task reviews only its phase branch diff against `delivery_01_public_website`, records the AI review, then awaits a tech-lead PR approval through `taskctl approve`.
+
 Task agents must never run `git commit`, `git push`, create a pull request, merge, rewrite history or self-approve. They may update the task execution log and generated tracker as required by the task. The human owner reviews the working-tree diff and performs all commits, pushes, PR creation and merges manually.
 
 Acceptance criteria must require lint, typecheck and recursive builds to pass with no compiler/build errors. Infrastructure and phase-acceptance tasks must also include `## Containerized verification`: rebuild the target Compose stack (`docker/docker-compose.yml` plus `docker/docker-compose.dev.yml`), start it, run container Playwright tests, complete a manual UI smoke checklist, record evidence, and shut it down. Ordinary component tasks do not need a Docker redeploy when their phase gate performs it.

@@ -25,11 +25,12 @@ The BA workflow reconciliation backlog is in `tasks/workflow/`. It is decision-g
 6. For a Public Website task, create/resume the phase branch exactly as documented in that task. Do not create a child task branch. Phase 0 is branch-neutral.
 7. Run `node tasks/scripts/taskctl.mjs check <ID>`, report `Blockers: None`, then run `start` with an owner.
 8. Implement exactly the stated scope and its missing feature tests.
-9. Run the task's feature tests plus the mandatory repository checks: `corepack pnpm lint`, `corepack pnpm typecheck` and `corepack pnpm -r build`. Record exact results and any compiler/build error in the unique execution log.
-10. Update the unique execution log, run `submit`, obtain independent review and run `approve`.
-11. At phase acceptance, update the phase summary; after merges, run `render` instead of resolving tracker rows manually.
+9. For a `self_ai` task, review the owned diff against `CODE_REVIEW_RULES.md`, fix every in-scope finding, record a PASS result, then run feature tests plus `corepack pnpm lint`, `corepack pnpm typecheck` and `corepack pnpm -r build`.
+10. After passing tests, run `taskctl complete <ID> --review-agent "<name>"`. Normal tasks do not require manual task-level PR review.
+11. A `phase_manual` code-review task is the one human review gate: the owner creates/updates the phase PR, AI records the phase-diff review, and the tech lead runs `approve` only after manual PR review.
+12. At phase acceptance, update the phase summary; after merges, run `render` instead of resolving tracker rows manually.
 
-Agents never commit, push, create PRs, merge or rewrite history. They only implement, test, update the execution log/tracker and return the working-tree diff. The human owner performs Git review, commit, push, PR and merge actions manually.
+Agents never commit, push, create PRs, merge or rewrite history. They only implement, self-review, test, update the execution log/tracker and return the working-tree diff. The human owner performs Git review, commit, push, PR and merge actions manually.
 
 Phase 0 may change only task logs, summaries and the generated tracker. It must not change application source or configuration.
 
@@ -75,7 +76,7 @@ Publishing the delivery branch is an explicitly authorized human action. If `del
 `node tasks/scripts/taskctl.mjs check <ID>` repeats the clean-tree/prerequisite checks and validates the required phase branch.
 `node tasks/scripts/taskctl.mjs check <ID>` repeats the clean-tree/prerequisite checks and validates the required phase branch.
 
-`node tasks/scripts/taskctl.mjs start <ID> --owner "Name"`, `block <ID> --reason "Reason"`, `submit <ID>`, `approve <ID> --reviewer "Name"`, and `render` maintain durable handoff state.
+`node tasks/scripts/taskctl.mjs start <ID> --owner "Name"`, `complete <ID> --review-agent "Name"`, `reopen <ID> --reason "Reason"`, `block <ID> --reason "Reason"`, `submit <ID>`, `approve <ID> --reviewer "Name"`, and `render` maintain durable handoff state. `submit`/`approve` are reserved for phase code-review tasks.
 
 Run `node --test tasks/scripts/taskctl-sequence.test.mjs` to verify the current frontier report, skipped-task blocker and dependency/cycle guards.
 
