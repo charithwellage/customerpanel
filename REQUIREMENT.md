@@ -104,6 +104,14 @@ The frontend shall be installable as a Progressive Web App on supported browsers
 
 **PWA-05 — Open question:** Confirm whether push notifications, background sync, camera/file capture and install analytics are required. They are excluded from the initial PWA baseline until approved.
 
+## Shared frontend presentation requirements
+
+**UI-01 — Recommendation approved for planning:** The Unified POC Brand is the default visual theme for the Public, Customer and Salesperson applications. It uses the POC typography, red accent, neutral/dark surfaces, accessible light surfaces, cards, badges, spacing, radii, shadows and feedback states. The source POC remains visual evidence only; unsafe markup and defects are not copied.
+
+**UI-02 — Recommendation approved for planning:** Theme values are defined in the shared theme package. The default `carchief` theme and the alternate `ocean` theme are selected through typed configuration. Feature components use semantic roles and shared UI packages; changing the theme must not require feature-component changes.
+
+**UI-03 — Security and usability rule:** All screens and reusable components must support phone, tablet and desktop widths, touch, keyboard navigation, browser zoom, visible focus, contrast, reduced motion and narrow/long content. App-local forks of shared vehicle search, vehicle detail or presentation components are not permitted when the behavior is shared.
+
 ---
 
 ## The complete journey

@@ -5,7 +5,7 @@
 **Purpose:** Rebuild the CarChief POC as three production-quality applications delivered one at a time.
 **Delivery order:** Public Website (including SEO) → Customer Application → Salesperson Application
 **Build method:** Each delivery is built by an AI agent, with daily human testing and review
-**Base scheduled delivery:** **81 working days ≈ 16–17 calendar weeks**
+**Base scheduled delivery:** **82.75 working days ≈ 16.5–17 calendar weeks**
 **Programme allowance:** **2–3 weeks** for integration, review corrections, and accepted uncertainty
 **Management planning range:** **18–20 calendar weeks**
 **Detailed plan:** [CarChief Frontend Implementation Plan](./CarChief-Frontend-Implementation-plan.md)
@@ -44,7 +44,7 @@ Three things have been added to this plan since the previous version:
 
 1. **The proof of concept was operated, not just read.** The earlier version of this document was written by reading the delivered demonstration files. The application has since been run and every screen used by hand. That exercise confirmed most of what was expected, and added a number of screens, options and business rules that were not visible from the files alone. Those additions are listed in section 2 and are now reflected in each delivery.
 2. **A separate mock service is now explicit scope.** The applications need something to talk to before AutoPulse is available. That is now a small project of its own, described in section 3.
-3. **The visual design becomes a theme.** The look and feel of the proof of concept is kept, but built so a different set of colours, fonts and spacing can be applied later without rebuilding screens.
+3. **The visual design becomes a theme.** The look and feel of the proof of concept is kept as the default `carchief` theme, with an `ocean` alternate proving that colours, fonts and spacing can be changed later without rebuilding screens.
 
 The revised **18–20-week** management range replaces the earlier 21–22 weeks. It is lower because each delivery is built by an AI agent rather than by hand, and higher than a naive halving because the mock service, theming, market-aware stock rules and daily testing/review remain real scope.
 
@@ -288,7 +288,7 @@ flowchart LR
 
 ## 5. Delivery 1 — Public Website
 
-**Scheduled delivery:** 28 working days ≈ **6 weeks**
+**Scheduled delivery:** 29.75 working days ≈ **6 weeks**
 **Includes:** the shared foundation, reusable vehicle packages, the visual theme system, complete public SEO and the first working version of the mock service
 
 **Production-site parity check:** A live public-site audit is now recorded in [the Legacy Public Website Audit](CarChief-Legacy-Public-Website-Audit.md). The newly reconciled [legacy business requirements](CarChief-Legacy-Public-Requirements-Reconciliation.md) add market/port-aware stock, date-driven arrival/location collections, Premium Stock and Branch pages. This means equivalent approved visitor capabilities—not copying legacy faults, unapproved content or third-party integrations.
@@ -299,7 +299,7 @@ The detailed Delivery 01 task inventory and phase handoff outputs are maintained
 
 | Phase | Page/component delivery | Visible result | Days |
 |---|---|---|---:|
-| 1.1 | Shared foundation, reusable packages, theme system, PWA and mock service start-up | Responsive shell, reusable vehicle-search/detail packages, PWA manifests/offline shell/update lifecycle, navigation, shared controls, loading/error states, the proof-of-concept look packaged as a swappable theme, and a running mock service with sign-in | 8.5 |
+| 1.1 | Shared foundation, reusable packages, POC theme parity, alternate theme, PWA and mock service start-up | Responsive shell, reusable vehicle-search/detail packages, PWA manifests/offline shell/update lifecycle, navigation, shared controls, loading/error states, the Unified POC Brand as default `carchief`, the `ocean` alternate, developer guide and a running mock service with sign-in | 10.25 |
 | 1.2 | Home and showroom | Hero, market-aware latest/discounted/clearance collections, Premium Stock banner/teaser, country control, vehicle cards, public support actions, promotional banners, countdown timers and empty/loading states | 1.75 |
 | 1.3 | Inventory and search page | Shared vehicle-search package consumed by the public app, country/port/category routes, server-returned Japan/transit/port location projection, two search modes, market-aware filters, manual refresh, results and no-results behavior | 3.5 |
 | 1.4 | Vehicle details | Shareable vehicle web address, specifications, categorized media, status, approved price/price-request presentation, sharing and printing | 2.25 |
@@ -327,6 +327,7 @@ Open the home page, select a market, review its Latest Arrivals and Premium teas
 - Which country/currency/language controls affect public stock or pricing, and which visible legacy pages/content are approved for launch.
 - Whether Live Auction is an account-gated CarChief feature, an external destination or a retired route; which shipping-schedule source and support/CAPTCHA providers are approved.
 - Country/port mapping, IP-detection privacy/fallback, J/CRFO definitions/order, Premium eligibility, and Branch meaning/content ownership.
+- Acceptance of the Unified POC Brand as `carchief`, the `ocean` alternate, and the theme-switching configuration documented for developers.
 
 ### Acceptance
 
@@ -334,7 +335,7 @@ Open the home page, select a market, review its Latest Arrivals and Premium teas
 - Search, vehicle URLs, freight examples and forms work on supported devices.
 - Critical public accessibility and automated journeys pass.
 - Every approved legacy public page template is accounted for by a responsive route, redirect, explicit retirement decision or content-owner decision; legacy server-error pages are not reproduced.
-- Public Website scope is accepted before Customer Application delivery becomes primary.
+- Public Website scope, including the corrected shared theme foundation and alternate-theme demonstration, is accepted before Customer Application delivery becomes primary.
 
 ## 6. Delivery 2 — Customer Application
 
@@ -461,10 +462,10 @@ SEO is no longer a separate delivery. It is completed in Phase 1.8 as part of th
 
 | Calendar window | Primary delivery | Working days | Scheduled time |
 |---|---|---:|---:|
-| Weeks 1–6 | Public Website, shared foundation, reusable packages, mock service and SEO | 28 | 6 weeks |
+| Weeks 1–6 | Public Website, shared foundation, POC theme parity, reusable packages, mock service and SEO | 29.75 | 6 weeks |
 | Weeks 6–9.6 | Customer Application | 18 | 3.6 weeks |
 | Weeks 9.6–16.6 | Salesperson Application | 35 | 7 weeks |
-| | **Base scheduled delivery** | **81** | **≈ 16–17 weeks** |
+| | **Base scheduled delivery** | **82.75** | **≈ 16.5–17 weeks** |
 | Distributed where required | Programme allowance | | **2–3 weeks** |
 | | **Management planning range** | | **18–20 weeks** |
 
@@ -546,8 +547,8 @@ The difference is how it is built. Instead of fixing colours, fonts and spacing 
 
 ```mermaid
 flowchart LR
-    T1["CarChief theme<br/>today's look"] --> Tokens["One shared set of<br/>colours, fonts, spacing"]
-    T2["A future theme<br/>rebrand, partner, dark mode"] -.-> Tokens
+    T1["carchief theme<br/>Unified POC Brand"] --> Tokens["One shared set of<br/>semantic tokens"]
+    T2["ocean theme<br/>alternate demo"] -.-> Tokens
     Tokens --> Screens["All screens in all<br/>three applications"]
 
     classDef theme fill:#fff7ed,stroke:#d97706,color:#111827
@@ -558,7 +559,7 @@ flowchart LR
     class Screens app
 ```
 
-**What this buys CarChief:** a future rebrand, a partner-branded version of the site, or a light and dark mode becomes a change to one theme file rather than a pass over every screen. The customer application in the proof of concept already offers a light/dark switch, so the capability is expected behaviour rather than a speculative addition.
+**What this buys CarChief:** the familiar POC look is the default, while a future rebrand, partner-branded version or light/dark surface variant becomes a registry/configuration change rather than a pass over every screen. The customer application in the proof of concept already offers a light/dark switch, so surface variants are expected behaviour rather than a speculative addition. Developers can follow [`DEVELOPER_USER_GUIDE.md`](../DEVELOPER_USER_GUIDE.md) to switch between `carchief` and `ocean`.
 
 **Cost:** roughly half a day inside the shared foundation phase. It is far cheaper to do at the start than to retrofit.
 
@@ -631,10 +632,10 @@ This is the delivery in one table: four things are built, one at a time, each on
 
 | # | Delivery | What we are delivering | Summary | Timeline (days) |
 |---|---|---|---|---:|
-| 1 | Public Website (including SEO) | A responsive public website where anyone can browse market-eligible stock, Premium Stock and Branch pages, search, inspect and enquire about vehicles for sale. Includes reusable vehicle packages, the shared design foundation, the swappable visual theme, complete public SEO and the first working version of the separate mock service. | The shop window. No sign-in required. This is what a prospective buyer sees first. | 28 |
+| 1 | Public Website (including SEO) | A responsive public website where anyone can browse market-eligible stock, Premium Stock and Branch pages, search, inspect and enquire about vehicles for sale. Includes reusable vehicle packages, the shared design foundation, Unified POC Brand default theme, `ocean` alternate theme, complete public SEO and the first working version of the separate mock service. | The shop window. No sign-in required. This is what a prospective buyer sees first. | 29.75 |
 | 2 | Customer Application | A private, sign-in-protected area where an existing CarChief customer can see their vehicles, quotations, invoices, payments, shipment progress and documents. | The customer's own account. Answers "where is my car and what do I owe." | 18 |
 | 3 | Salesperson Application | The internal system used every day by sales, finance and administration staff to manage leads, stock, quotations, payments, master data, users and permissions. | The engine room. Where enquiries become sales and money gets tracked. | 35 |
-| | | | **Base total** | **81** |
+| | | | **Base total** | **82.75** |
 | | | | **With programme allowance** | **≈ 91–96** |
 
 **In calendar time:** roughly **16–17 weeks** of base work, **18–20 weeks** once a reasonable allowance is added for corrections and open questions. One person, working the same pattern every day — five hours building with an AI agent, two hours testing, one hour review — carries the whole plan through in that time.

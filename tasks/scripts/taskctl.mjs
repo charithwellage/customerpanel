@@ -146,10 +146,10 @@ function validate({ quiet = false } = {}) {
     '## Completion, handoff and tracker update', '## Required final response',
   ];
   const phaseAcceptanceTasks = new Set([
-    'D01-P01-T010', 'D01-P02-T002', 'D01-P03-T004', 'D01-P04-T003',
+    'D01-P01-T010', 'D01-P01-T012', 'D01-P02-T002', 'D01-P03-T004', 'D01-P04-T003',
     'D01-P05-T004', 'D01-P06-T005', 'D01-P07-T004', 'D01-P08-T004',
   ]);
-  if (tasks.size !== 42) errors.push(`expected 42 task/gate files, found ${tasks.size}`);
+  if (tasks.size !== 44) errors.push(`expected 44 task/gate files, found ${tasks.size}`);
   for (const task of tasks.values()) {
     for (const field of ['task_id', 'title', 'delivery', 'phase', 'estimate', 'model_tier', 'parallel_group', 'phase_branch', 'task_branch']) {
       if (!task[field]) errors.push(`${task.task_id || task.file}: missing ${field}`);

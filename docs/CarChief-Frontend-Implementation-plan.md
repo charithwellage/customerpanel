@@ -3,7 +3,7 @@
 **Document purpose:** Page- and component-level engineering delivery plan
 **Discovery basis:** Re-audit of the full source project and compiled artifacts under `POC/`, **plus hands-on operation of the running demonstration system, screen by screen**
 **Delivery order:** Public Website (including SEO) → Customer Application → Salesperson Application
-**Base scheduled delivery:** **81 working days ≈ 16–17 calendar weeks**
+**Base scheduled delivery:** **82.75 working days ≈ 16.5–17 calendar weeks**
 **Programme allowance:** **2–3 weeks** for integration, review corrections, and accepted-scope uncertainty
 **Management planning range:** **18–20 calendar weeks**
 **Delivery model:** Each phase is built by an AI agent, driven, tested and reviewed daily by one accountable person
@@ -80,10 +80,10 @@ Each delivery phase is built by an AI agent, driven and checked by one accountab
 
 | Delivery | Phase days | Correction allowance | Total days | Calendar |
 |---|---:|---:|---:|---:|
-| Public Website (incl. foundation, theming, mock service and complete SEO) | 27.5 | 0.5 | **28** | 6 weeks |
+| Public Website (incl. foundation, POC theme parity, mock service and complete SEO) | 29.25 | 0.5 | **29.75** | 6 weeks |
 | Customer Application | 16 | 2 | **18** | 3.6 weeks |
 | Salesperson Application | 28.5 | 6.5 | **35** | 7 weeks |
-| **Base scheduled delivery** | **72** | **9** | **81** | **≈ 16–17 weeks** |
+| **Base scheduled delivery** | **73.75** | **9** | **82.75** | **≈ 16.5–17 weeks** |
 | Programme allowance | | | | **2–3 weeks** |
 | **Management planning range** | | | | **18–20 weeks** |
 
@@ -350,22 +350,23 @@ If the mock and the applications ever disagree about a field, the build fails ra
 
 ### 4.5 Theming
 
-The applications keep the proof of concept's visual direction. It is approved, familiar, and there is no reason to redesign it.
+The applications keep the proof of concept's visual direction. It is approved, familiar, and there is no reason to redesign it. The current Phase 1.1 implementation is blue/teal and therefore does not yet meet this parity requirement; the corrective theme tasks below close that gap before Customer Application work begins.
 
 The difference is construction. Colours, typography, spacing, radii, shadows and motion are defined once as named design tokens in a single theme. Screens reference roles — "primary action", "surface", "danger" — never literal values.
 
 | Requirement | Effect |
 |---|---|
-| One theme carries today's look | The proof of concept's appearance is preserved exactly |
+| `carchief` carries today's look | The Unified POC Brand is the default across all three applications |
+| `ocean` proves injection | An alternate blue/teal theme can be selected without feature changes |
 | Themes are swappable at runtime | A rebrand, a partner-branded deployment, or light/dark becomes one file |
 | No literal colours in components | A lint rule fails the build if a raw colour value appears in a screen |
 | Shared across all three applications | The public site, customer portal and staff console cannot drift apart |
 
-The customer application in the demonstration already offers a light/dark switch, so this is expected behaviour rather than speculative scope. Cost is roughly half a day inside Phase 1.1, and it is far cheaper there than retrofitted later.
+The customer application in the demonstration already offers a light/dark switch, so surface variants are expected behaviour rather than speculative scope. The corrective Phase 1.1 work adds 1.75 delivery days for POC parity, the alternate registry entry, cross-app verification and the developer guide.
 
 ## 5. Delivery 1 — Public Website
 
-**Scheduled delivery:** 28 working days ≈ 6 weeks
+**Scheduled delivery:** 29.75 working days ≈ 6 weeks
 **Includes:** shared foundation, theme system, complete public SEO, and the first working version of the mock service
 **Correction allowance:** 0.5 day
 
@@ -373,7 +374,7 @@ The customer application in the demonstration already offers a light/dark switch
 
 ### Phase 1.1 — Shared foundation and public application shell
 
-**Phase days:** 8.5 days
+**Phase days:** 10.25 days, including the corrective POC-parity tasks `D01-P01-T011` and `D01-P01-T012`
 
 Also in scope: the theme/design-token system carrying the proof of concept's look as one swappable theme, and start-up of the separate mock service (Node.js + PostgreSQL + shared API document + stand-in sign-in).
 
@@ -389,6 +390,8 @@ Also in scope: the theme/design-token system carrying the proof of concept's loo
 - Public route/navigation inventory covering the approved legacy page families, with a compact mobile composition that retains essential search, contact and account-entry actions.
 - Shared buttons, fields, cards, dialogs, tables, status badges, toast/notification, loader, empty and error components.
 - Design tokens based on the POC visual direction.
+- `carchief` default Unified POC Brand and `ocean` alternate theme registry with safe fallback.
+- Developer guide for theme selection, extension, responsive checks and PWA-safe verification.
 - Error boundary and not-found presentation.
 - Non-production fixture reset and initial vehicle/session scenarios.
 - Basic metadata and `noindex` protection for future private applications.
@@ -411,6 +414,7 @@ Also in scope: the theme/design-token system carrying the proof of concept's loo
 - No Firebase/Supabase/direct-database dependency exists.
 - Production configuration cannot expose demo controls.
 - Shared packages build independently and are consumed by the public app without app-local forks.
+- Public and customer reference screens match the approved POC direction under `carchief`; the same screens render under `ocean` without feature-component changes.
 - Responsive smoke tests cover phone, tablet and desktop widths.
 - Fresh-install, offline-shell, reconnect, update, logout-cache-cleanup and stale-cache recovery tests pass; no sensitive data or offline mutation is cached.
 
@@ -661,7 +665,9 @@ The table below is the execution view of the existing `tasks/delivery_01` files.
 | 1.1 | D01-P01-T008 | Build shared controls and application feedback primitives |
 | 1.1 | D01-P01-T009 | Build the Next.js public shell and navigation |
 | 1.1 | D01-P01-T010 | Complete containers, CI guardrails and Phase 1.1 acceptance |
-| 1.1 | **Deliveries** | - Shared monorepo, reusable UI/theme, vehicle-search/detail package boundaries and responsive public shell.<br>- Public app runs at `http://localhost:3000/` with navigation, loading, empty and error states.<br>- Mock API runs at `http://localhost:4000/`, with Swagger at `http://localhost:4000/swagger` and OpenAPI JSON at `http://localhost:4000/openapi.json`.<br>- Docker Compose build/health check, deterministic seed/reset and basic PWA shell are demonstrated. |
+| 1.1 | D01-P01-T011 | Align shared theme with the Unified POC Brand |
+| 1.1 | D01-P01-T012 | Add alternate theme injection and developer guide |
+| 1.1 | **Deliveries** | - Shared monorepo, reusable UI/theme, vehicle-search/detail package boundaries and responsive public shell.<br>- The Unified POC Brand is the default `carchief` theme; `ocean` renders the same screens without feature changes, with switching documented in `DEVELOPER_USER_GUIDE.md`.<br>- Public app runs at `http://localhost:3000/` with navigation, loading, empty and error states.<br>- Mock API runs at `http://localhost:4000/`, with Swagger at `http://localhost:4000/swagger` and OpenAPI JSON at `http://localhost:4000/openapi.json`.<br>- Docker Compose build/health check, deterministic seed/reset and basic PWA shell are demonstrated. |
 | 1.2 | D01-P02-T001 | Add featured vehicle services and reusable vehicle collections |
 | 1.2 | D01-P02-T002 | Build and accept the home/showroom experience |
 | 1.2 | **Deliveries** | - Home page and showroom content are visible at `http://localhost:3000/`.<br>- Market-aware Latest Arrivals, Discounted/Best Offer, Clearance and Premium teaser cards load from the mock vehicle-summary service rather than page fixtures; no legacy New tag appears.<br>- Premium banner/menu navigation, a preserved Premium query and honest fewer/empty states are demonstrated alongside responsive phone/tablet/desktop layouts.<br>- Swagger shows the featured-vehicle operation and contract tests prove reset, five-day Latest Arrival and public projection behavior. |
@@ -1356,10 +1362,10 @@ Complete SEO and public release-readiness work is delivered in Phase 1.8 before 
 
 | Calendar window | Primary delivery | Days | Acceptance result |
 |---|---|---:|---|
-| Weeks 1–6 | Public Website, foundation, theme system, mock service and SEO | 28 | Accepted responsive, search-ready public application and working mock service |
+| Weeks 1–6 | Public Website, foundation, POC theme parity, mock service and SEO | 29.75 | Accepted responsive, search-ready public application and working mock service |
 | Weeks 6–9.6 | Customer Application | 18 | Accepted customer self-service application and linked transaction scenarios |
 | Weeks 9.6–16.6 | Salesperson Application | 35 | Accepted sales, finance and administration application plus full connected journey |
-| | **Base scheduled delivery** | **81** | **≈ 16–17 calendar weeks** |
+| | **Base scheduled delivery** | **82.75** | **≈ 16.5–17 calendar weeks** |
 | Programme allowance | Integration/review corrections and accepted uncertainty | | 2–3 weeks distributed where needed |
 | **Management planning range** | | | **18–20 calendar weeks** |
 
@@ -1575,12 +1581,12 @@ For the management summary, see [CarChief Frontend Implementation Roadmap](./Car
 
 | # | Delivery | What we are delivering | Summary | Timeline (days) |
 |---|---|---|---|---:|
-| 1 | Public Website (including SEO) | The public-facing website, shared foundations, reusable vehicle packages, complete public SEO and the first working version of the separate mock service. | Where a visitor finds and enquires about a vehicle. No sign-in required. | 28 |
+| 1 | Public Website (including SEO) | The public-facing website, shared foundations, Unified POC Brand theme, reusable vehicle packages, complete public SEO and the first working version of the separate mock service. | Where a visitor finds and enquires about a vehicle. No sign-in required. | 29.75 |
 | 2 | Customer Application | A sign-in-protected application for existing customers to track their own vehicles, quotations, invoices, payments, shipment status and documents. | The customer's private account view. | 18 |
 | 3 | Salesperson Application | The staff-facing system covering sales, finance and administration — leads, inventory, quotations, payments, master data, users and permissions. | The day-to-day tool used by CarChief's own team. | 35 |
-| | | | **Base total** | **81** |
+| | | | **Base total** | **82.75** |
 | | | | **With programme allowance** | **≈ 91–96** |
 
-**81 working days is roughly 16–17 calendar weeks; with allowance, 18–20 weeks.** Every day in that total follows the same pattern: five hours building with an AI agent, two hours manual testing, one hour human review.
+**82.75 working days is roughly 16.5–17 calendar weeks; with allowance, 18–20 weeks.** Every day in that total follows the same pattern: five hours building with an AI agent, two hours manual testing, one hour human review.
 
 Full detail, evidence and acceptance criteria for each phase are in sections 5–8 above. Open questions that shape this timeline — including the eighteen items that could not be confirmed by operating the demonstration system — are tracked separately in [`implementation_risks.md`](./implementation_risks.md).

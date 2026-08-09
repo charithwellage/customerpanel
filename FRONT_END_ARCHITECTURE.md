@@ -284,7 +284,7 @@ flowchart TB
 | **Features** | Screen behaviour, orchestration, feature-local state, validation schemas | Know the HTTP shape, know the base URL |
 | **Services** | How to call one domain; mapping wire shapes to domain types | Cache, hold React state, know about components |
 | **Generated client** | Typed HTTP calls, auth header, error normalisation | Anything hand-written — it is regenerated |
-| **ui + theme** | Presentational components, design tokens | Fetch, validate, or know any domain |
+| **ui + theme** | Presentational components, semantic tokens and the carchief/ocean registry | Fetch, validate, or know any domain |
 | **domain + validation** | Shared types, status vocabularies, business rules, Zod schemas | Import from any layer above |
 
 ---
@@ -757,9 +757,9 @@ The POC already uses Tailwind v4's `@theme` with CSS custom properties, so this 
 
 ```mermaid
 flowchart LR
-    T1["carchief theme<br/>the POC look"] --> TOK
-    T2["dark theme"] --> TOK
-    T3["future: partner brand"] -.-> TOK
+    T1["carchief theme<br/>Unified POC Brand"] --> TOK
+    T2["ocean theme<br/>alternate demo"] --> TOK
+    T3["future: approved brand"] -.-> TOK
     TOK["CSS custom properties<br/>--color-primary, --space-*, --radius-*"]
     TOK --> UI["packages/ui components"]
     UI --> APPS["All three applications"]
@@ -774,11 +774,13 @@ flowchart LR
     class APPS app
 ```
 
-**Mechanism.** Tokens are CSS custom properties scoped by a `data-theme` attribute on the root element. Switching themes sets that attribute — no re-render, no rebuild, no JavaScript theme objects passed through props.
+**Default and registry.** `carchief` is the default theme and reproduces the POC visual direction: Inter, Space Grotesk, JetBrains Mono, neutral/dark surfaces, red accents, POC-style cards/badges and accessible light surfaces. `ocean` is a complete blue/teal alternate used to prove that feature components are theme-independent. A typed registry rejects unknown names by falling back to `carchief`.
+
+**Mechanism.** Tokens are CSS custom properties scoped by a `data-theme` attribute on the root element. Switching themes sets that attribute — no feature re-render, no rebuild, no JavaScript theme objects passed through props. Applications select the theme through approved configuration; feature packages consume semantic roles and never import a concrete theme.
 
 **The rule:** components reference semantic roles (`bg-surface`, `text-primary`, `border-danger`), never literal values (`bg-[#dc2626]`, `p-[13px]`). A lint rule fails the build on raw colour or spacing literals in application code.
 
-This is what makes a rebrand a single-file change instead of a pass over every screen.
+This is what makes a rebrand a registry/configuration change instead of a pass over every screen. See [`DEVELOPER_USER_GUIDE.md`](DEVELOPER_USER_GUIDE.md) for local switching and extension instructions.
 
 ---
 

@@ -39,7 +39,7 @@ Responsive behavior and reuse are mandatory task concerns: UI tasks test phone/t
 
 PWA support is also a shared baseline: `packages/pwa` supplies safe install/update/connectivity primitives and each application supplies its manifest, icons and offline shell. PWA tasks must prove that sensitive data is not broadly cached and that finance, approval, allocation, document and identity mutations are blocked while offline.
 
-Container redeployment is intentionally concentrated at the infrastructure gate and phase acceptance tasks rather than repeated for every component task. `D01-P01-T010` and the final acceptance task of each phase must rebuild the target architecture stack from `docker/docker-compose.yml` plus `docker/docker-compose.dev.yml`, start it, run the container Playwright project, complete the named manual supervisor smoke scenario, record evidence, and shut it down cleanly. These are the required UI gates for the Docker deployment. They verify the target solution stack, not the separate compiled-POC `docker-compose.poc.yml`.
+Container redeployment is intentionally concentrated at the infrastructure gate and phase acceptance tasks rather than repeated for every component task. `D01-P01-T010`, corrective Phase 1.1 acceptance `D01-P01-T012`, and the final acceptance task of each later phase must rebuild the target architecture stack from `docker/docker-compose.yml` plus `docker/docker-compose.dev.yml`, start it, run the container Playwright project, complete the named manual supervisor smoke scenario, record evidence, and shut it down cleanly. These are the required UI gates for the Docker deployment. They verify the target solution stack, not the separate compiled-POC `docker-compose.poc.yml`.
 
 ## Branch convention
 
@@ -62,7 +62,7 @@ Publishing the delivery branch is an explicitly authorized human action. If `del
 
 ## Commands
 
-`node tasks/scripts/taskctl.mjs validate` validates 42 task/gate files, metadata, decisions and the dependency DAG.
+`node tasks/scripts/taskctl.mjs validate` validates 44 task/gate files, metadata, decisions and the dependency DAG.
 
 `node tasks/scripts/taskctl.mjs next` reports the current execution frontier and permitted same-group parallel tasks.
 
