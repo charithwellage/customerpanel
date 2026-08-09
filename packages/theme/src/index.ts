@@ -4,10 +4,10 @@ export * from './contrast.js';
 
 export const defaultTheme = {
   colors: {
-    primary: '#1d4ed8',
-    secondary: '#0f766e',
-    background: '#f8fafc',
+    primary: '#dc2626',
+    secondary: '#525252',
+    background: '#fafafa',
     surface: '#ffffff',
-    text: '#0f172a',
+    text: '#171717',
   },
 };

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
+import { defaultSemanticTheme, getThemeCssVariables } from '@carchief/theme';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -9,5 +10,6 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
-  return <html lang="en"><body>{children}</body></html>;
+  const themeVariables = getThemeCssVariables(defaultSemanticTheme) as CSSProperties;
+  return <html lang="en" data-theme="carchief"><body style={themeVariables}>{children}</body></html>;
 }
