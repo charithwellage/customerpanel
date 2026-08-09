@@ -13,9 +13,14 @@ export interface ColorTokens {
   border: string;
   focus: string;
   success: string;
+  successSurface: string;
   warning: string;
+  warningSurface: string;
   error: string;
+  errorSurface: string;
   info: string;
+  infoSurface: string;
+  neutralSurface: string;
 }
 
 export interface SpacingTokens {
@@ -105,9 +110,14 @@ export const defaultSemanticTheme: SemanticThemeTokens = {
     border: '#e5e5e5',
     focus: '#b91c1c',
     success: '#166534',
+    successSurface: '#dcfce7',
     warning: '#92400e',
+    warningSurface: '#fef3c7',
     error: '#b91c1c',
+    errorSurface: '#fee2e2',
     info: '#1d4ed8',
+    infoSurface: '#dbeafe',
+    neutralSurface: '#f5f5f5',
   },
   spacing: {
     xs: '0.25rem',
