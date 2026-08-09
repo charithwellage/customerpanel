@@ -8,6 +8,8 @@ The BA workflow reconciliation backlog is tracked separately under `tasks/workfl
 
 Execution is sequential by default. Use `node tasks/scripts/taskctl.mjs next` to identify the frontier and `node tasks/scripts/taskctl.mjs sequence <TASK-ID>` to explain eligibility. A later task is blocked when an earlier task is not `COMPLETE` or `SUPERSEDED`. Optional parallel work is permitted only within the same named `parallel_group`, after the first task in that group is `IN_PROGRESS` or `IN_REVIEW`; future related tasks do not become prerequisites.
 
+Task agents never run `git commit`, `git push`, create pull requests, merge, rewrite history or self-approve. They leave implementation changes as a working-tree diff for the human owner to review and commit manually. The execution log and generated tracker may be updated as required.
+
 ## Branch sequence
 
 After the task system and Phase 0 records are committed on `planning`, create `delivery_01_public_website` from `planning` once. Phase 0 itself is branch-neutral. Public phases use `feat_delivery01_phase_01` through `feat_delivery01_phase_08`. Each phase starts from `delivery_01_public_website` only after the previous phase PR is merged and `git pull --ff-only origin delivery_01_public_website` succeeds. Every task works directly on its phase branch; no task-specific child branches are created. Parallel groups are coordination lanes on the same phase branch and require non-overlapping ownership and review.
@@ -100,10 +102,10 @@ The implementation tasks total **29.25 Public Website delivery days** before all
 ## Merge and continuation protocol
 
 1. Complete and independently approve tasks on the phase branch.
-2. Review and commit approved task work directly on the matching `feat_delivery01_phase_NN` branch only when authorized.
+2. The human owner reviews and manually commits approved task work directly on the matching `feat_delivery01_phase_NN` branch.
 3. Regenerate `TASK_EXECUTION_TRACKER.md`, run phase-wide quality commands, and complete the final acceptance task and phase summary.
 4. Commit all remaining phase changes and verify the phase branch is clean.
-5. Push the phase branch and create a PR targeting `delivery_01_public_website` when remote operations are authorized. Do not merge it automatically.
+5. The human owner manually pushes the phase branch and creates a PR targeting `delivery_01_public_website`. Agents do not push or create the PR; the PR is not merged automatically.
 6. After the PR is merged, run `git switch delivery_01_public_website` and `git pull --ff-only origin delivery_01_public_website`.
 7. Verify the working tree is clean, then create `feat_delivery01_phase_<next-NN>` from the updated delivery branch.
 

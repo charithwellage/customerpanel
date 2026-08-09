@@ -71,4 +71,4 @@
 
 ## Continuation rule
 
-The next developer starts with this tracker, then reads the latest phase summary and the execution log for the task being continued. Sequential execution is the default; optional parallel work is limited to an approved same-group task after the group frontier is active. Blocked tasks cannot be bypassed. A task may start only after the clean-tree `taskctl precheck`, branch preparation and final `taskctl check` succeed.
+The next developer starts with this tracker, then reads the latest phase summary and the execution log for the task being continued. Sequential execution is the default; optional parallel work is limited to an approved same-group task after the group frontier is active. Blocked tasks cannot be bypassed. The working tree must be clean before a task starts; commit any previous task changes manually before continuing. Agents never commit, push, create PRs or merge. A task may start only after the clean-tree `taskctl precheck`, branch preparation and final `taskctl check` succeed.
