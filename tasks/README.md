@@ -29,6 +29,8 @@ The BA workflow reconciliation backlog is in `tasks/workflow/`. It is decision-g
 10. Update the unique execution log, run `submit`, obtain independent review and run `approve`.
 11. At phase acceptance, update the phase summary; after merges, run `render` instead of resolving tracker rows manually.
 
+Agents never commit, push, create PRs, merge or rewrite history. They only implement, test, update the execution log/tracker and return the working-tree diff. The human owner performs Git review, commit, push, PR and merge actions manually.
+
 Phase 0 may change only task logs, summaries and the generated tracker. It must not change application source or configuration.
 
 ## Build and container verification policy
@@ -48,7 +50,7 @@ Container redeployment is intentionally concentrated at the infrastructure gate 
 - Public phase branches: `feat_delivery01_phase_01` through `feat_delivery01_phase_08`.
 - Tasks do not create child branches. Every task works directly on its phase branch, for example `feat_delivery01_phase_01`; parallel groups are coordination lanes on that same branch, not separate Git branches.
 - A phase branch is created only from the latest local `delivery_01_public_website` after `git pull --ff-only origin delivery_01_public_website` succeeds.
-- After phase acceptance, review approved task work on the phase branch, commit its tracker/summary, and create a PR from the phase branch into `delivery_01_public_website`. Never merge the PR automatically without explicit authorization.
+- After phase acceptance, the human owner reviews the phase diff, commits its tracker/summary and creates a PR from the phase branch into `delivery_01_public_website` manually. Agents do not perform these actions.
 
 After Phase 0 records and this task system are committed on `planning`, create the one-time delivery branch from that baseline:
 
@@ -79,4 +81,4 @@ Run `node --test tasks/scripts/taskctl-sequence.test.mjs` to verify the current 
 
 ## Branches and review
 
-Use `delivery_01_public_website`, then `feat_delivery01_phase_NN`. Each task stays on the phase branch and may create a task-ID local commit when authorized; it must not create or switch to a task-specific branch. Parallel tasks require explicit coordination and non-overlapping owned paths on the same phase branch. Agents do not push, merge, rewrite history or self-approve without explicit authority.
+Use `delivery_01_public_website`, then `feat_delivery01_phase_NN`. Each task stays on the phase branch and never creates a task-specific branch. Parallel tasks require explicit coordination and non-overlapping owned paths on the same phase branch. Agents do not commit, push, create PRs, merge, rewrite history or self-approve; the human owner performs Git operations manually after reviewing the diff.

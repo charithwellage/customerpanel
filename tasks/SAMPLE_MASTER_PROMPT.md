@@ -26,7 +26,7 @@ Run `node tasks/scripts/taskctl.mjs next` and `node tasks/scripts/taskctl.mjs se
 
 If unblocked, run the task’s `precheck`, then remain on the named phase branch; do not create or switch to a task-specific child branch. Run `check` and `start`, implement only the stated scope, add the required tests, update the execution log and tracker, and follow the task’s completion workflow.
 
-Do not modify POC/**, invent unresolved business rules, self-approve, push or merge without authorization.
+Do not modify POC/**, invent unresolved business rules, commit, push, create a pull request, merge, rewrite history or self-approve. The agent must leave implementation changes as a working-tree diff for the human owner to review and commit manually. Updating the task execution log and generated tracker is required and permitted.
 
 For any UI task, also read `DEVELOPER_USER_GUIDE.md` and the theme section of `FRONT_END_ARCHITECTURE.md`. Use `packages/theme` and `packages/ui`, semantic tokens, reusable feature packages, and test both `carchief` and `ocean` at phone, tablet and desktop widths. Do not add page-local color/font/spacing values or duplicate shared vehicle/search/detail components.
 
