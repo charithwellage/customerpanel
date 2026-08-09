@@ -28,6 +28,8 @@ If unblocked, run the task’s `precheck`, then remain on the named phase branch
 
 Do not modify POC/**, invent unresolved business rules, self-approve, push or merge without authorization.
 
+For any UI task, also read `DEVELOPER_USER_GUIDE.md` and the theme section of `FRONT_END_ARCHITECTURE.md`. Use `packages/theme` and `packages/ui`, semantic tokens, reusable feature packages, and test both `carchief` and `ocean` at phone, tablet and desktop widths. Do not add page-local color/font/spacing values or duplicate shared vehicle/search/detail components.
+
 Use the exact final-response headings required by the task file.
 ```
 

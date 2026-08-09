@@ -195,6 +195,10 @@ Operational lifecycle, commercial sale state, publication state, price readiness
 The production public-site audit is recorded in [`docs/CarChief-Legacy-Public-Website-Audit.md`](docs/CarChief-Legacy-Public-Website-Audit.md) and its traceability matrix. `apps/public-web` preserves approved public information architecture through semantic Next.js routes and one responsive shell: home, stock/category/country queries, vehicle details, freight/price requests, enquiry/account entry, auction guidance, shipping schedule, company/services content, FAQ, policy and contact routes.
 
 - Public stock category, country, currency and language controls are typed **display/projection inputs**. The service decides their actual availability, currency and localization effect; the browser must not manufacture conversions or expose ineligible stock.
+- A public **market context** carries only the approved country, selected port/ports and selection source (automatic or manual). The mock API and future BFF own country-to-port eligibility, fallback and ordering; no page, shared component or service worker derives a visitor’s country from IP or calculates stock eligibility in the browser. Automatic country detection is an optional BFF/integration capability with an explicit manual fallback and approved privacy policy.
+- A vehicle’s public **current-location projection** is distinct from its operational/sale/publication state. The service derives In Japan, In Transit or In Port from ETD/ETA and the applicable port, then returns the public category. It re-evaluates the projection whenever ETD/ETA changes. The frontend renders the returned projection and never embeds date-transition rules that could drift from the BFF.
+- Market-aware collections—Latest Arrivals, Browse Stock, Discounted/Best Offers, Clearance and Premium—are named service projections. The service returns the already eligible, ordered result set and the filter universe for the current market; client components do not filter an unrestricted list or recreate the legacy “New” tag.
+- Premium Stock is a first-class public route and filter projection. Branch pages are content-plus-projection routes (for example, `/branches/[branchSlug]`) whose branch identity, team/contact content and stock collections are resolved by public-content and vehicle services. Branch meaning, market relationship and content ownership remain business decisions.
 - Legacy public pages become a route inventory for redirects and content migration. Repeated make/type/country/vehicle URLs map to stable route templates; the exhaustive redirect list is approved in Phase 1.8.
 - WhatsApp, email, phone, CAPTCHA, auction, shipping schedule, downloadable documents, stock counters and partner badges are external/content boundaries. UI actions are accessible and honestly labelled, but no provider/API behavior is assumed.
 - Error responses must be owned UI states. Never render upstream error pages, server paths, exception details or maintenance HTML inside the React application.
@@ -280,7 +284,7 @@ flowchart TB
 | **Features** | Screen behaviour, orchestration, feature-local state, validation schemas | Know the HTTP shape, know the base URL |
 | **Services** | How to call one domain; mapping wire shapes to domain types | Cache, hold React state, know about components |
 | **Generated client** | Typed HTTP calls, auth header, error normalisation | Anything hand-written — it is regenerated |
-| **ui + theme** | Presentational components, design tokens | Fetch, validate, or know any domain |
+| **ui + theme** | Presentational components, semantic tokens and the carchief/ocean registry | Fetch, validate, or know any domain |
 | **domain + validation** | Shared types, status vocabularies, business rules, Zod schemas | Import from any layer above |
 
 ---
@@ -753,9 +757,9 @@ The POC already uses Tailwind v4's `@theme` with CSS custom properties, so this 
 
 ```mermaid
 flowchart LR
-    T1["carchief theme<br/>the POC look"] --> TOK
-    T2["dark theme"] --> TOK
-    T3["future: partner brand"] -.-> TOK
+    T1["carchief theme<br/>Unified POC Brand"] --> TOK
+    T2["ocean theme<br/>alternate demo"] --> TOK
+    T3["future: approved brand"] -.-> TOK
     TOK["CSS custom properties<br/>--color-primary, --space-*, --radius-*"]
     TOK --> UI["packages/ui components"]
     UI --> APPS["All three applications"]
@@ -770,11 +774,13 @@ flowchart LR
     class APPS app
 ```
 
-**Mechanism.** Tokens are CSS custom properties scoped by a `data-theme` attribute on the root element. Switching themes sets that attribute — no re-render, no rebuild, no JavaScript theme objects passed through props.
+**Default and registry.** `carchief` is the default theme and reproduces the POC visual direction: Inter, Space Grotesk, JetBrains Mono, neutral/dark surfaces, red accents, POC-style cards/badges and accessible light surfaces. `ocean` is a complete blue/teal alternate used to prove that feature components are theme-independent. A typed registry rejects unknown names by falling back to `carchief`.
+
+**Mechanism.** Tokens are CSS custom properties scoped by a `data-theme` attribute on the root element. Switching themes sets that attribute — no feature re-render, no rebuild, no JavaScript theme objects passed through props. Applications select the theme through approved configuration; feature packages consume semantic roles and never import a concrete theme.
 
 **The rule:** components reference semantic roles (`bg-surface`, `text-primary`, `border-danger`), never literal values (`bg-[#dc2626]`, `p-[13px]`). A lint rule fails the build on raw colour or spacing literals in application code.
 
-This is what makes a rebrand a single-file change instead of a pass over every screen.
+This is what makes a rebrand a registry/configuration change instead of a pass over every screen. See [`DEVELOPER_USER_GUIDE.md`](DEVELOPER_USER_GUIDE.md) for local switching and extension instructions.
 
 ---
 
