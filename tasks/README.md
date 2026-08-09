@@ -18,16 +18,18 @@ The BA workflow reconciliation backlog is in `tasks/workflow/`. It is decision-g
 ## Starting or continuing work
 
 1. Read `TASK_EXECUTION_TRACKER.md` and the latest applicable phase summary.
-2. Select a `READY` task from `EXECUTION_ORDER.md`; for parallel work, coordinate the named lane and owned paths.
+2. Run `node tasks/scripts/taskctl.mjs next`, then select the execution-frontier task from `EXECUTION_ORDER.md`. Work is sequential by default; an optional same-`parallel_group` task is available only after the first task in that group is active.
 3. Read that single task file and only its named evidence/context.
 4. Before doing anything else, run `git status --porcelain=v1 --untracked-files=all`. If it prints anything, stop and ask the user to commit the changes first. Do not change branches or task state.
 5. Run the read-only `node tasks/scripts/taskctl.mjs precheck <ID>`.
-6. For a Public Website task, create/resume the phase branch and child task branch exactly as documented in that task. Phase 0 is branch-neutral.
+6. For a Public Website task, create/resume the phase branch exactly as documented in that task. Do not create a child task branch. Phase 0 is branch-neutral.
 7. Run `node tasks/scripts/taskctl.mjs check <ID>`, report `Blockers: None`, then run `start` with an owner.
 8. Implement exactly the stated scope and its missing feature tests.
 9. Run the task's feature tests plus the mandatory repository checks: `corepack pnpm lint`, `corepack pnpm typecheck` and `corepack pnpm -r build`. Record exact results and any compiler/build error in the unique execution log.
 10. Update the unique execution log, run `submit`, obtain independent review and run `approve`.
 11. At phase acceptance, update the phase summary; after merges, run `render` instead of resolving tracker rows manually.
+
+Agents never commit, push, create PRs, merge or rewrite history. They only implement, test, update the execution log/tracker and return the working-tree diff. The human owner performs Git review, commit, push, PR and merge actions manually.
 
 Phase 0 may change only task logs, summaries and the generated tracker. It must not change application source or configuration.
 
@@ -39,37 +41,44 @@ Responsive behavior and reuse are mandatory task concerns: UI tasks test phone/t
 
 PWA support is also a shared baseline: `packages/pwa` supplies safe install/update/connectivity primitives and each application supplies its manifest, icons and offline shell. PWA tasks must prove that sensitive data is not broadly cached and that finance, approval, allocation, document and identity mutations are blocked while offline.
 
-Container redeployment is intentionally concentrated at the infrastructure gate and phase acceptance tasks rather than repeated for every component task. `D01-P01-T010` and the final acceptance task of each phase must rebuild the target architecture stack from `docker/docker-compose.yml` plus `docker/docker-compose.dev.yml`, start it, run the container Playwright project, complete the named manual supervisor smoke scenario, record evidence, and shut it down cleanly. These are the required UI gates for the Docker deployment. They verify the target solution stack, not the separate compiled-POC `docker-compose.poc.yml`.
+Container redeployment is intentionally concentrated at the infrastructure gate and phase acceptance tasks rather than repeated for every component task. `D01-P01-T010`, corrective Phase 1.1 acceptance `D01-P01-T012`, and the final acceptance task of each later phase must rebuild the target architecture stack from `docker/docker-compose.yml` plus `docker/docker-compose.dev.yml`, start it, run the container Playwright project, complete the named manual supervisor smoke scenario, record evidence, and shut it down cleanly. These are the required UI gates for the Docker deployment. They verify the target solution stack, not the separate compiled-POC `docker-compose.poc.yml`.
 
 ## Branch convention
 
 - Phase 0 is branch-neutral and runs on the approved clean baseline branch.
-- Delivery integration branch: `delivery/01-public`.
+- Delivery integration branch: `delivery_01_public_website`.
 - Public phase branches: `feat_delivery01_phase_01` through `feat_delivery01_phase_08`.
-- Tasks work directly on their phase branch. No task-specific child branches are created; parallel groups are coordination lanes on the same phase branch.
-- A phase branch is created only from the latest local `delivery/01-public` after `git pull --ff-only origin delivery/01-public` succeeds.
-- After phase acceptance, merge approved task branches into the phase branch, commit its tracker/summary, and create a PR from the phase branch into `delivery/01-public`. Never merge the PR automatically without explicit authorization.
+- Tasks do not create child branches. Every task works directly on its phase branch, for example `feat_delivery01_phase_01`; parallel groups are coordination lanes on that same branch, not separate Git branches.
+- A phase branch is created only from the latest local `delivery_01_public_website` after `git pull --ff-only origin delivery_01_public_website` succeeds.
+- After phase acceptance, the human owner reviews the phase diff, commits its tracker/summary and creates a PR from the phase branch into `delivery_01_public_website` manually. Agents do not perform these actions.
 
 After Phase 0 records and this task system are committed on `planning`, create the one-time delivery branch from that baseline:
 
 ```bash
 git switch planning
 git status --porcelain=v1 --untracked-files=all
-git switch -c delivery/01-public
+git switch -c delivery_01_public_website
 ```
 
-Publishing the delivery branch is an explicitly authorized human action. If `delivery/01-public` already exists, do not recreate it.
+Publishing the delivery branch is an explicitly authorized human action. If `delivery_01_public_website` already exists, do not recreate it.
 
 ## Commands
 
-`node tasks/scripts/taskctl.mjs validate` validates 42 task/gate files, metadata, decisions and the dependency DAG.
+`node tasks/scripts/taskctl.mjs validate` validates 44 task/gate files, metadata, decisions and the dependency DAG.
 
-`node tasks/scripts/taskctl.mjs precheck <ID>` performs a read-only clean-tree, prerequisite, decision and delivery-branch check before any branch operation.
+`node tasks/scripts/taskctl.mjs next` reports the current execution frontier and permitted same-group parallel tasks.
 
+`node tasks/scripts/taskctl.mjs sequence <ID>` explains whether a task is sequentially eligible or blocked by an earlier tracker task.
+
+`node tasks/scripts/taskctl.mjs precheck <ID>` performs a read-only clean-tree, prerequisite, decision, execution-frontier and delivery-branch check before any branch operation. It blocks skipped tasks and reports the exact earlier task that must be completed.
+
+`node tasks/scripts/taskctl.mjs check <ID>` repeats the clean-tree/prerequisite checks and validates the required phase branch.
 `node tasks/scripts/taskctl.mjs check <ID>` repeats the clean-tree/prerequisite checks and validates the required phase branch.
 
 `node tasks/scripts/taskctl.mjs start <ID> --owner "Name"`, `block <ID> --reason "Reason"`, `submit <ID>`, `approve <ID> --reviewer "Name"`, and `render` maintain durable handoff state.
 
+Run `node --test tasks/scripts/taskctl-sequence.test.mjs` to verify the current frontier report, skipped-task blocker and dependency/cycle guards.
+
 ## Branches and review
 
-Use `delivery/01-public`, then `feat_delivery01_phase_NN` and short-lived child task branches. Parallel children start from the same phase branch, own non-overlapping paths and merge back only after independent approval. Agents may create task-ID local commits when authorized; they do not push, merge, rewrite history or self-approve without explicit authority.
+Use `delivery_01_public_website`, then `feat_delivery01_phase_NN`. Each task stays on the phase branch and never creates a task-specific branch. Parallel tasks require explicit coordination and non-overlapping owned paths on the same phase branch. Agents do not commit, push, create PRs, merge, rewrite history or self-approve; the human owner performs Git operations manually after reviewing the diff.

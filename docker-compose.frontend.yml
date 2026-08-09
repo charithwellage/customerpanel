@@ -1,6 +1,20 @@
 name: carchief-frontend
 
 services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: carchief_mock
+      POSTGRES_USER: carchief
+      POSTGRES_PASSWORD: carchief_dev_pass
+    volumes:
+      - carchief-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U carchief -d carchief_mock"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   mock-api:
     build:
       context: .
@@ -10,6 +24,10 @@ services:
     environment:
       NODE_ENV: production
       MOCK_API_PORT: 4000
+      DATABASE_URL: postgresql://carchief:carchief_dev_pass@postgres:5432/carchief_mock
+    depends_on:
+      postgres:
+        condition: service_healthy
     expose:
       - "4000"
     ports:
@@ -39,3 +57,6 @@ services:
       interval: 10s
       timeout: 3s
       retries: 5
+
+volumes:
+  carchief-postgres-data:

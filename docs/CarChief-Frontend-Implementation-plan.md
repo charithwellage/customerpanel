@@ -3,9 +3,9 @@
 **Document purpose:** Page- and component-level engineering delivery plan
 **Discovery basis:** Re-audit of the full source project and compiled artifacts under `POC/`, **plus hands-on operation of the running demonstration system, screen by screen**
 **Delivery order:** Public Website (including SEO) → Customer Application → Salesperson Application
-**Base scheduled delivery:** **79 working days ≈ 16 calendar weeks**
+**Base scheduled delivery:** **82.75 working days ≈ 16.5–17 calendar weeks**
 **Programme allowance:** **2–3 weeks** for integration, review corrections, and accepted-scope uncertainty
-**Management planning range:** **18–19 calendar weeks**
+**Management planning range:** **18–20 calendar weeks**
 **Delivery model:** Each phase is built by an AI agent, driven, tested and reviewed daily by one accountable person
 
 > This is a frontend delivery plan. It does not approve a database design, accounting policy, identity platform, external vendor, or final ASP.NET Core BFF wire contract.
@@ -80,18 +80,18 @@ Each delivery phase is built by an AI agent, driven and checked by one accountab
 
 | Delivery | Phase days | Correction allowance | Total days | Calendar |
 |---|---:|---:|---:|---:|
-| Public Website (incl. foundation, theming, mock service and complete SEO) | 23 | 3 | **26** | 5.5 weeks |
+| Public Website (incl. foundation, POC theme parity, mock service and complete SEO) | 29.25 | 0.5 | **29.75** | 6 weeks |
 | Customer Application | 16 | 2 | **18** | 3.6 weeks |
 | Salesperson Application | 28.5 | 6.5 | **35** | 7 weeks |
-| **Base scheduled delivery** | **67.5** | **11.5** | **79** | **≈ 16 weeks** |
+| **Base scheduled delivery** | **73.75** | **9** | **82.75** | **≈ 16.5–17 weeks** |
 | Programme allowance | | | | **2–3 weeks** |
-| **Management planning range** | | | | **18–19 weeks** |
+| **Management planning range** | | | | **18–20 weeks** |
 
 **Why this differs from the previous 21–22 weeks.**
 
 Shorter because: each phase is built by an AI agent rather than hand-written; the demonstration system has now been operated screen by screen, so the behaviour to build is known rather than inferred; and the SEO delivery shrank once it was confirmed that vehicle pages already work as shareable web addresses.
 
-Longer because: the mock service is now explicit scope with its own project, container, database and stand-in sign-in layer; the visual design is built as a swappable theme; eighteen areas carry an `UNABLE_TO_VERIFY_WITH_POC` question that must be answered before building; and testing and review remain human work at three hours of every eight.
+Longer because: the mock service is now explicit scope with its own project, container, database and stand-in sign-in layer; the visual design is built as a swappable theme; eighteen areas carry an `UNABLE_TO_VERIFY_WITH_POC` question that must be answered before building; and testing and review remain human work at three hours of every eight. The subsequently supplied legacy-business PDFs add **two Public Website delivery days** for market/port projections, date-driven stock collections, Premium Stock and Branch-page content; they do not add unapproved external integrations.
 
 ## 3. Re-audit findings
 
@@ -350,22 +350,23 @@ If the mock and the applications ever disagree about a field, the build fails ra
 
 ### 4.5 Theming
 
-The applications keep the proof of concept's visual direction. It is approved, familiar, and there is no reason to redesign it.
+The applications keep the proof of concept's visual direction. It is approved, familiar, and there is no reason to redesign it. The current Phase 1.1 implementation is blue/teal and therefore does not yet meet this parity requirement; the corrective theme tasks below close that gap before Customer Application work begins.
 
 The difference is construction. Colours, typography, spacing, radii, shadows and motion are defined once as named design tokens in a single theme. Screens reference roles — "primary action", "surface", "danger" — never literal values.
 
 | Requirement | Effect |
 |---|---|
-| One theme carries today's look | The proof of concept's appearance is preserved exactly |
+| `carchief` carries today's look | The Unified POC Brand is the default across all three applications |
+| `ocean` proves injection | An alternate blue/teal theme can be selected without feature changes |
 | Themes are swappable at runtime | A rebrand, a partner-branded deployment, or light/dark becomes one file |
 | No literal colours in components | A lint rule fails the build if a raw colour value appears in a screen |
 | Shared across all three applications | The public site, customer portal and staff console cannot drift apart |
 
-The customer application in the demonstration already offers a light/dark switch, so this is expected behaviour rather than speculative scope. Cost is roughly half a day inside Phase 1.1, and it is far cheaper there than retrofitted later.
+The customer application in the demonstration already offers a light/dark switch, so surface variants are expected behaviour rather than speculative scope. The corrective Phase 1.1 work adds 1.75 delivery days for POC parity, the alternate registry entry, cross-app verification and the developer guide.
 
 ## 5. Delivery 1 — Public Website
 
-**Scheduled delivery:** 26 working days ≈ 5.5 weeks
+**Scheduled delivery:** 29.75 working days ≈ 6 weeks
 **Includes:** shared foundation, theme system, complete public SEO, and the first working version of the mock service
 **Correction allowance:** 0.5 day
 
@@ -373,7 +374,7 @@ The customer application in the demonstration already offers a light/dark switch
 
 ### Phase 1.1 — Shared foundation and public application shell
 
-**Phase days:** 8.5 days
+**Phase days:** 10.25 days, including the corrective POC-parity tasks `D01-P01-T011` and `D01-P01-T012`
 
 Also in scope: the theme/design-token system carrying the proof of concept's look as one swappable theme, and start-up of the separate mock service (Node.js + PostgreSQL + shared API document + stand-in sign-in).
 
@@ -389,6 +390,8 @@ Also in scope: the theme/design-token system carrying the proof of concept's loo
 - Public route/navigation inventory covering the approved legacy page families, with a compact mobile composition that retains essential search, contact and account-entry actions.
 - Shared buttons, fields, cards, dialogs, tables, status badges, toast/notification, loader, empty and error components.
 - Design tokens based on the POC visual direction.
+- `carchief` default Unified POC Brand and `ocean` alternate theme registry with safe fallback.
+- Developer guide for theme selection, extension, responsive checks and PWA-safe verification.
 - Error boundary and not-found presentation.
 - Non-production fixture reset and initial vehicle/session scenarios.
 - Basic metadata and `noindex` protection for future private applications.
@@ -411,12 +414,13 @@ Also in scope: the theme/design-token system carrying the proof of concept's loo
 - No Firebase/Supabase/direct-database dependency exists.
 - Production configuration cannot expose demo controls.
 - Shared packages build independently and are consumed by the public app without app-local forks.
+- Public and customer reference screens match the approved POC direction under `carchief`; the same screens render under `ocean` without feature-component changes.
 - Responsive smoke tests cover phone, tablet and desktop widths.
 - Fresh-install, offline-shell, reconnect, update, logout-cache-cleanup and stale-cache recovery tests pass; no sensitive data or offline mutation is cached.
 
 ### Phase 1.2 — Home and showroom
 
-**Phase days:** 1.25 days
+**Phase days:** 1.75 days
 
 Runtime additions: promotional banners and countdown timers alongside the featured collections.
 
@@ -428,6 +432,9 @@ Runtime additions: promotional banners and countdown timers alongside the featur
 
 - Hero and primary calls to action.
 - Featured/latest/available vehicle collections.
+- Market-aware Latest Arrivals: only service-projected In Japan vehicles created within the previous five days, with the approved source-stock ordering returned by the service.
+- Market-aware Discounted/Best Offer and Clearance collections, plus the approved no-stock-country fallback. The legacy “New” tag is explicitly excluded.
+- Premium Stock home banner/navigation entry and a teaser of up to ten eligible Premium vehicles, including honest fewer/empty states.
 - Approved arrival, premium, clearance and other launch stock-category collections; category labels and badges remain service projections rather than client rules.
 - Reusable vehicle card with image, make/model/year, price, mileage, condition, fuel/transmission, and availability.
 - Progressive loading and unavailable-stock state.
@@ -437,11 +444,11 @@ Runtime additions: promotional banners and countdown timers alongside the featur
 - Buying-process, testimonial, and FAQ previews with navigation.
 - Public-content claim flags for unverified location, inspection, customs, speed, or tracking statements.
 
-**Evidence:** [`POC/src/components/VehicleCard.tsx`](../POC/src/components/VehicleCard.tsx), [`POC/src/components/HomeAdditions.tsx`](../POC/src/components/HomeAdditions.tsx), and [`POC/src/components/MidBanners.tsx`](../POC/src/components/MidBanners.tsx).
+**Evidence:** [`POC/src/components/VehicleCard.tsx`](../POC/src/components/VehicleCard.tsx), [`POC/src/components/HomeAdditions.tsx`](../POC/src/components/HomeAdditions.tsx), [`POC/src/components/MidBanners.tsx`](../POC/src/components/MidBanners.tsx), and the reconciled legacy-business PDFs in [`CarChief-Legacy-Public-Requirements-Reconciliation.md`](CarChief-Legacy-Public-Requirements-Reconciliation.md).
 
 **Incremental mock capability:** Featured-vehicle selection and public content fixtures.
 
-**Dependencies/open questions:** Approved public copy, featured-stock rules, public status mapping, approved claims and media.
+**Dependencies/open questions:** Approved public copy, featured-stock rules, public status mapping, approved claims/media, market-to-port mapping, J/CRFO definitions/order, and geo-IP privacy/fallback policy.
 
 **Supervisor demo:** Open the home page, browse featured vehicles, follow supporting content links, and show an empty showroom scenario.
 
@@ -449,7 +456,7 @@ Runtime additions: promotional banners and countdown timers alongside the featur
 
 ### Phase 1.3 — Inventory and search page
 
-**Phase days:** 2.75 days
+**Phase days:** 3.5 days
 
 Runtime additions: two search modes side by side (standard filters and natural-language); an expandable filter panel whose make/model/type/year/price/fuel options are derived from live stock rather than a fixed list; three sort orders (newest year, price ascending, price descending); and a manual stock-refresh action.
 
@@ -462,6 +469,9 @@ Runtime additions: two search modes side by side (standard filters and natural-l
 - Standard keyword search.
 - Source-supported make, model, type, year, price, fuel, transmission, status, colour, mileage, and arrival-related filtering where the final public contract supports them.
 - URL-backed category, make, type and country landing/query routes; only the server-approved public/country projection is searchable.
+- Service-returned market context: automatic-country result where approved or a manual country choice, applicable port/ports and selection source. The browser must not perform IP lookup or derive eligibility.
+- Service-returned ETD/ETA current-location projection: In Japan, In Transit or In Port. A refreshed response after an ETD/ETA update must show the revised projection.
+- Latest Arrival five-day window, country/port union, no-stock fallback, Discounted/Best Offer, Clearance and Premium filter projections. Selected-country filters and counts are derived only from the resulting eligible universe.
 - Sorting and reset.
 - Result count, progressive load/pagination, and no-results guidance.
 - URL-backed filter state.
@@ -474,11 +484,11 @@ Runtime additions: two search modes side by side (standard filters and natural-l
 
 **Incremental mock capability:** Vehicle query, filter options, sort, pagination/load-more, local-search examples, optional AI-search response scenarios.
 
-**Dependencies/open questions:** Public searchable fields, expected stock volume, server search capability, AI launch decision and data-governance policy.
+**Dependencies/open questions:** Public searchable fields, expected stock volume, server search capability, AI launch decision, data-governance policy, market/port master data, J/CRFO semantics and collection ordering.
 
 **Supervisor demo:** Search for a vehicle by keyword and natural language, combine filters, sort, refresh the URL, clear filters, and show no-results/failure behavior.
 
-**Testing and acceptance:** Approved filters return deterministic results; URL state is shareable; AI failure does not disable normal search; accessibility checks pass.
+**Testing and acceptance:** Approved filters return deterministic results; ETD/ETA category, country/port eligibility, multi-port union, no-stock fallback, five-day Latest Arrival window and Premium filter are service-tested; URL state is shareable; AI failure does not disable normal search; accessibility checks pass.
 
 ### Phase 1.4 — Vehicle details
 
@@ -582,7 +592,7 @@ Runtime finding: the demonstration relies on browser-native field checking only.
 
 ### Phase 1.7 — Public information and content
 
-**Phase days:** 2.5 days
+**Phase days:** 3.25 days
 
 Runtime additions: twelve FAQ categories, customer testimonial submission, and a contact page carrying multiple offices with published operating hours.
 
@@ -593,6 +603,7 @@ Runtime additions: twelve FAQ categories, customer testimonial submission, and a
 **Sub-delivery components**
 
 - About, mission, vision, operating-footprint content.
+- Branch landing template: selected Branch name, branch-specific Latest Arrivals and Recently Discounted collections, introduction, welcome/contact banners, CarChief Team, Meet & Greet and approved contact details. Branch and market meaning remain server/content projections rather than browser rules.
 - Approved public company/services/team/gallery/news/security/bank page templates with content-owner and publication-status controls. Bank/security details use an explicit safe-public review; no sensitive values are assumed.
 - Interactive five-step How to Buy presentation with manual navigation and accessible non-animated fallback.
 - Separate buy-from-stock and buy-from-auction guidance, auction services/calendar/terms/FAQ content, and an account-gated Live Auction entry/link when approved. No auction-site automation or bidding integration is included.
@@ -606,11 +617,11 @@ Runtime additions: twelve FAQ categories, customer testimonial submission, and a
 
 **Evidence:** [`POC/src/components/AboutUs.tsx`](../POC/src/components/AboutUs.tsx), [`POC/src/components/HowToBuy.tsx`](../POC/src/components/HowToBuy.tsx), [`POC/src/components/Testimonials.tsx`](../POC/src/components/Testimonials.tsx), and [`POC/src/components/FAQ.tsx`](../POC/src/components/FAQ.tsx).
 
-**Incremental mock capability:** Public content, testimonial list/submission, FAQ query/categories, optional grounded-answer scenarios.
+**Incremental mock capability:** Public content, Branch/Team/Meet & Greet/contact projections, testimonial list/submission, FAQ query/categories, optional grounded-answer scenarios.
 
-**Dependencies/open questions:** Approved claims, moderation, testimonial consent, FAQ owner, AI/vendor decision.
+**Dependencies/open questions:** Approved claims, moderation, testimonial consent, FAQ owner, AI/vendor decision, Branch definition/list/market mapping and content owners.
 
-**Supervisor demo:** Follow stock and auction buying guidance, browse approved service/company information, view a safe shipping-schedule unavailable state, submit a testimonial, search FAQs, and escalate an unanswered question.
+**Supervisor demo:** Follow stock and auction buying guidance, browse approved service/company information, open a Branch page and its relevant stock/content sections, view a safe shipping-schedule unavailable state, submit a testimonial, search FAQs, and escalate an unanswered question.
 
 **Testing and acceptance:** Content status is respected; submissions are moderated/pending where approved; AI cannot invent content; reduced motion works.
 
@@ -637,6 +648,60 @@ Runtime additions: twelve FAQ categories, customer testimonial submission, and a
 ### 5.9 BA workflow corrections to Public Website
 
 The public projection must carry stable visibility data rather than exposing an undifferentiated vehicle status. Add component coverage for active/deactive publication, country eligibility, price-unready/request-price enquiry, source/reference metadata, categorized auction media and enquiry routing metadata. VBMS, NetSuite, WhatsApp and auction-site automation remain excluded integrations; the public app consumes approved CarChief projections only.
+
+## 5.10 Delivery 01 task inventory and tangible outputs
+
+The table below is the execution view of the existing `tasks/delivery_01` files. Each `Deliveries` row is a merged-style phase handoff row: it describes the visible result a supervisor can open, the mock/API result that must exist, and the acceptance evidence required before the next phase begins. URLs are local target routes for the new implementation; the exact production domain is a release decision.
+
+| Phase | TaskId | Task Summary |
+|---|---|---|
+| 1.1 | D01-P01-T001 | Bootstrap the pnpm workspace, runtime pins and application/package skeletons |
+| 1.1 | D01-P01-T002 | Add strict TypeScript, quality and boundary guardrails |
+| 1.1 | D01-P01-T003 | Establish automated testing foundations |
+| 1.1 | D01-P01-T004 | Establish OpenAPI, generated client and HTTP boundary |
+| 1.1 | D01-P01-T005 | Build mock API, PostgreSQL foundation and deterministic reset |
+| 1.1 | D01-P01-T006 | Add stand-in JWT identities, roles and enforcement |
+| 1.1 | D01-P01-T007 | Build semantic theme and runtime theme infrastructure |
+| 1.1 | D01-P01-T008 | Build shared controls and application feedback primitives |
+| 1.1 | D01-P01-T009 | Build the Next.js public shell and navigation |
+| 1.1 | D01-P01-T010 | Complete containers, CI guardrails and Phase 1.1 acceptance |
+| 1.1 | D01-P01-T011 | Align shared theme with the Unified POC Brand |
+| 1.1 | D01-P01-T012 | Add alternate theme injection and developer guide |
+| 1.1 | **Deliveries** | - Shared monorepo, reusable UI/theme, vehicle-search/detail package boundaries and responsive public shell.<br>- The Unified POC Brand is the default `carchief` theme; `ocean` renders the same screens without feature changes, with switching documented in `DEVELOPER_USER_GUIDE.md`.<br>- Public app runs at `http://localhost:3000/` with navigation, loading, empty and error states.<br>- Mock API runs at `http://localhost:4000/`, with Swagger at `http://localhost:4000/swagger` and OpenAPI JSON at `http://localhost:4000/openapi.json`.<br>- Docker Compose build/health check, deterministic seed/reset and basic PWA shell are demonstrated. |
+| 1.2 | D01-P02-T001 | Add featured vehicle services and reusable vehicle collections |
+| 1.2 | D01-P02-T002 | Build and accept the home/showroom experience |
+| 1.2 | **Deliveries** | - Home page and showroom content are visible at `http://localhost:3000/`.<br>- Market-aware Latest Arrivals, Discounted/Best Offer, Clearance and Premium teaser cards load from the mock vehicle-summary service rather than page fixtures; no legacy New tag appears.<br>- Premium banner/menu navigation, a preserved Premium query and honest fewer/empty states are demonstrated alongside responsive phone/tablet/desktop layouts.<br>- Swagger shows the featured-vehicle operation and contract tests prove reset, five-day Latest Arrival and public projection behavior. |
+| 1.3 | D01-P03-T001 | Add vehicle query, dynamic filters, sorting and pagination |
+| 1.3 | D01-P03-T002 | Build search orchestration, URL state and natural parsing |
+| 1.3 | D01-P03-T003 | Build inventory filters and result presentations |
+| 1.3 | D01-P03-T004 | Integrate and accept inventory search |
+| 1.3 | **Deliveries** | - Browse stock is available at the target `/vehicles` route, with category, make/type, selected market/port, keyword and approved filters.<br>- Service-returned Japan/transit/port classification, multi-port union, no-stock fallback, five-day Latest Arrival and Premium/category projections are demonstrated; the browser does not calculate them.<br>- Sorting, pagination/load-more, URL-backed search and honest no-results/error states are demonstrated.<br>- The shared vehicle-search package calls the mock vehicle-query/filter API; changes in Swagger fixtures appear after refresh.<br>- Container Playwright coverage proves browser → public app → mock API behavior. |
+| 1.4 | D01-P04-T001 | Add vehicle detail and public media service behavior |
+| 1.4 | D01-P04-T002 | Build vehicle detail page and gallery |
+| 1.4 | D01-P04-T003 | Add sharing, printing, metadata and detail acceptance |
+| 1.4 | **Deliveries** | - A stable target vehicle route such as `/vehicles/:slug` opens directly in a fresh browser.<br>- Specifications, gallery, public media categories, availability and priced/request-price states come from the mock detail API.<br>- Share, print, metadata and missing/unavailable media states are demonstrated responsively.<br>- Swagger and contract tests expose valid, not-found and service-error vehicle scenarios. |
+| 1.5 | D01-P05-G001 | Approve freight and city-delivery calculation decisions |
+| 1.5 | D01-P05-T001 | Add destinations, rates and freight estimate services |
+| 1.5 | D01-P05-T002 | Implement approved freight calculations |
+| 1.5 | D01-P05-T003 | Build freight estimate selection and explanation UI |
+| 1.5 | D01-P05-T004 | Add freight quotation enquiry and accept the phase |
+| 1.5 | **Deliveries** | - Freight estimate is available at the target `/freight` route and from vehicle details.<br>- Destination, port, dimensions, delivery and insurance selections call mock rate/calculation APIs; totals are service-calculated and explained.<br>- No-rate, invalid-input and stale-rate states are visible.<br>- A freight quotation enquiry is persisted through the mock lead API and verified in the phase Playwright flow. |
+| 1.6 | D01-P06-T001 | Add lead and enquiry contracts with persistent mock behavior |
+| 1.6 | D01-P06-T002 | Build accessible contact and vehicle enquiry forms |
+| 1.6 | D01-P06-T003 | Build account entry and unauthenticated reservation guidance |
+| 1.6 | D01-P06-T004 | Add transactional reservation eligibility and hold behavior |
+| 1.6 | D01-P06-T005 | Build reservation UI and accept enquiry/reservation journeys |
+| 1.6 | **Deliveries** | - General, vehicle and Premium Vehicle inquiry flows are available at `/inquiry`, from vehicle detail pages and from Premium Stock.<br>- Forms call the mock enquiry/lead API with server validation, duplicate protection, confirmation and retry behavior; WhatsApp remains clearly labelled contact intent.<br>- Demo account entry and reservation guidance are available; eligible/conflict/limit/expiry responses are visible.<br>- A created enquiry/reservation can be retrieved through the service boundary after refresh, proving it is not only local component state. |
+| 1.7 | D01-P07-T001 | Add public content, FAQ and testimonial services |
+| 1.7 | D01-P07-T002 | Build About, How to Buy and Contact information pages |
+| 1.7 | D01-P07-T003 | Build testimonial display and moderated submission |
+| 1.7 | D01-P07-T004 | Build FAQ browsing/search and accept public content |
+| 1.7 | **Deliveries** | - Public content routes such as `/about`, `/how-to-buy`, `/services`, `/auction`, `/contact`, `/branches/:branchSlug`, `/testimonials` and `/faq` are available from the shell.<br>- Branch pages show their returned name, arrival/discount collections, intro/banners, team, Meet & Greet and contact content, with honest empty/unavailable states.<br>- Content, FAQ categories/search and testimonials load from mock content APIs; testimonial submissions persist as pending records.<br>- Approved shipping/policy/company content and safe unavailable states are demonstrated; legacy server errors are not reproduced.<br>- Swagger operations, accessibility tests and browser flows prove content integration and deterministic reset. |
+| 1.8 | D01-P08-T001 | Complete public SEO policy and visitor regression |
+| 1.8 | D01-P08-T002 | Complete data projection, privacy and production-safety checks |
+| 1.8 | D01-P08-T003 | Complete accessibility, browser and performance acceptance |
+| 1.8 | D01-P08-T004 | Produce Public Website UAT and Delivery 1 handoff |
+| 1.8 | **Deliveries** | - The complete public journey is demonstrated: market-aware home/Premium → stock/search → vehicle detail → freight → inquiry/reservation → Branch/public content/FAQ.<br>- Canonicals, metadata, sitemap, robots, structured-data policy and approved legacy redirects are verified.<br>- Responsive, accessibility, PWA, performance, privacy and production-mock safety gates pass.<br>- Docker Compose redeploy, mock Swagger/API checks, supervisor UAT evidence and the Delivery 01 phase summary are complete; the public app is ready for Customer Application work. |
 
 ## 6. Delivery 2 — Customer Application
 
@@ -1297,12 +1362,12 @@ Complete SEO and public release-readiness work is delivered in Phase 1.8 before 
 
 | Calendar window | Primary delivery | Days | Acceptance result |
 |---|---|---:|---|
-| Weeks 1–5.5 | Public Website, foundation, theme system, mock service and SEO | 26 | Accepted responsive, search-ready public application and working mock service |
-| Weeks 5.5–9.1 | Customer Application | 18 | Accepted customer self-service application and linked transaction scenarios |
-| Weeks 9.1–16.1 | Salesperson Application | 35 | Accepted sales, finance and administration application plus full connected journey |
-| | **Base scheduled delivery** | **79** | **≈ 16 calendar weeks** |
+| Weeks 1–6 | Public Website, foundation, POC theme parity, mock service and SEO | 29.75 | Accepted responsive, search-ready public application and working mock service |
+| Weeks 6–9.6 | Customer Application | 18 | Accepted customer self-service application and linked transaction scenarios |
+| Weeks 9.6–16.6 | Salesperson Application | 35 | Accepted sales, finance and administration application plus full connected journey |
+| | **Base scheduled delivery** | **82.75** | **≈ 16.5–17 calendar weeks** |
 | Programme allowance | Integration/review corrections and accepted uncertainty | | 2–3 weeks distributed where needed |
-| **Management planning range** | | | **18–19 calendar weeks** |
+| **Management planning range** | | | **18–20 calendar weeks** |
 
 Every day in this table follows the fixed pattern of five hours building with an AI agent, two hours manual testing and one hour review.
 
@@ -1516,12 +1581,12 @@ For the management summary, see [CarChief Frontend Implementation Roadmap](./Car
 
 | # | Delivery | What we are delivering | Summary | Timeline (days) |
 |---|---|---|---|---:|
-| 1 | Public Website (including SEO) | The public-facing website, shared foundations, reusable vehicle packages, complete public SEO and the first working version of the separate mock service. | Where a visitor finds and enquires about a vehicle. No sign-in required. | 26 |
+| 1 | Public Website (including SEO) | The public-facing website, shared foundations, Unified POC Brand theme, reusable vehicle packages, complete public SEO and the first working version of the separate mock service. | Where a visitor finds and enquires about a vehicle. No sign-in required. | 29.75 |
 | 2 | Customer Application | A sign-in-protected application for existing customers to track their own vehicles, quotations, invoices, payments, shipment status and documents. | The customer's private account view. | 18 |
 | 3 | Salesperson Application | The staff-facing system covering sales, finance and administration — leads, inventory, quotations, payments, master data, users and permissions. | The day-to-day tool used by CarChief's own team. | 35 |
-| | | | **Base total** | **79** |
-| | | | **With programme allowance** | **≈ 89–94** |
+| | | | **Base total** | **82.75** |
+| | | | **With programme allowance** | **≈ 91–96** |
 
-**79 working days is roughly 16 calendar weeks; with allowance, 18–19 weeks.** Every day in that total follows the same pattern: five hours building with an AI agent, two hours manual testing, one hour human review.
+**82.75 working days is roughly 16.5–17 calendar weeks; with allowance, 18–20 weeks.** Every day in that total follows the same pattern: five hours building with an AI agent, two hours manual testing, one hour human review.
 
 Full detail, evidence and acceptance criteria for each phase are in sections 5–8 above. Open questions that shape this timeline — including the eighteen items that could not be confirmed by operating the demonstration system — are tracked separately in [`implementation_risks.md`](./implementation_risks.md).

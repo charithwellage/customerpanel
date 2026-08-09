@@ -2,12 +2,13 @@ import express, { Request, Response, NextFunction, Express } from 'express';
 import { readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { parseDemoJwtToken, JwtClaims, hasPermission } from '@carchief/domain';
+import { createStore, type DemoStore } from './store.js';
 
 export interface AuthenticatedRequest extends Request {
   user?: JwtClaims;
 }
 
-export function createMockApiApp(): Express {
+export function createMockApiApp(store: DemoStore = createStore()): Express {
   const app: Express = express();
   app.use(express.json());
 
@@ -24,50 +25,19 @@ export function createMockApiApp(): Express {
     next();
   });
 
-  // Initial seed state
-  const initialConfig = {
-    siteName: 'CarChief',
-    currency: 'USD',
-    contactPhone: '+256 700 000 000',
-  };
-
-  const initialVehicles = [
-    {
-      id: 'veh-1',
-      chassisNumber: 'NZE141-1234567',
-      make: 'Toyota',
-      model: 'Corolla Axio',
-      year: 2021,
-      priceUsd: 8500,
-      status: 'Available',
-    },
-    {
-      id: 'veh-2',
-      chassisNumber: 'KDH201-7654321',
-      make: 'Toyota',
-      model: 'HiAce Van',
-      year: 2020,
-      priceUsd: 14200,
-      status: 'ReservedWithPI',
-    },
-  ];
-
-  let currentConfig = { ...initialConfig };
-  let currentVehicles = [...initialVehicles];
-
   // 1. Health check (Public)
   app.get('/healthz', (_req: Request, res: Response) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
   });
 
   // 2. Public config (Public)
-  app.get('/api/v1/config/public', (_req: Request, res: Response) => {
-    res.json(currentConfig);
+  app.get('/api/v1/config/public', async (_req: Request, res: Response) => {
+    res.json(await store.getConfig());
   });
 
   // 3. Vehicles summary (Public)
-  app.get('/api/v1/vehicles', (_req: Request, res: Response) => {
-    res.json(currentVehicles);
+  app.get('/api/v1/vehicles', async (_req: Request, res: Response) => {
+    res.json(await store.getVehicles());
   });
 
   // 4. Auth identity inspection endpoint
@@ -80,15 +50,14 @@ export function createMockApiApp(): Express {
   });
 
   // 5. Deterministic reset
-  app.post('/api/v1/__reset', (req: AuthenticatedRequest, res: Response) => {
+  app.post('/api/v1/__reset', async (req: AuthenticatedRequest, res: Response) => {
     // If token provided, enforce permission
     if (req.user && !hasPermission(req.user.role, 'reset:data')) {
       res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
       return;
     }
 
-    currentConfig = { ...initialConfig };
-    currentVehicles = [...initialVehicles];
+    await store.reset();
     res.json({ success: true, message: 'Data reset successfully' });
   });
 
@@ -134,8 +103,9 @@ export function createMockApiApp(): Express {
 
 if (process.env.NODE_ENV !== 'test') {
   const port = process.env.MOCK_API_PORT || 4000;
-  const app = createMockApiApp();
-  app.listen(port, () => {
+  const store = createStore();
+  const app = createMockApiApp(store);
+  store.ready().then(() => app.listen(port, () => {
     console.log(`CarChief Mock API listening on port ${port}`);
-  });
+  })).catch((error) => { console.error('Mock API database initialization failed', error); process.exitCode = 1; });
 }
