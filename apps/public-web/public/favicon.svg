@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title id="title">CarChief</title>
+  <path fill="#171717" d="M32 3 57 12v18c0 15-10.3 25.9-25 31C17.3 55.9 7 45 7 30V12L32 3Z"/>
+  <path fill="#dc2626" d="M32 7 53 15v15c0 12.4-8.2 22.1-21 27.1C19.2 52.1 11 42.4 11 30V15L32 7Z"/>
+  <text x="32" y="42" text-anchor="middle" fill="#fff" font-family="Arial, sans-serif" font-size="29" font-weight="700">C</text>
+</svg>

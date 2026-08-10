@@ -12,7 +12,10 @@ test.describe('Public Website Phase 1.1 browser smoke tests', () => {
   test('serves the public PWA manifest and health endpoint', async ({ page, request }) => {
     await page.goto('/');
     await expect(page.locator('link[rel="manifest"]')).toHaveAttribute('href', '/manifest.webmanifest');
+    await expect(page.locator('link[rel="icon"]')).toHaveAttribute('href', '/favicon.svg');
     const health = await request.get('/healthz');
     expect(health.ok()).toBeTruthy();
+    const favicon = await request.get('/favicon.svg');
+    expect(favicon.ok()).toBeTruthy();
   });
 });

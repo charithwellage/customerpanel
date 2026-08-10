@@ -9,6 +9,9 @@ export const metadata: Metadata = {
   title: 'CarChief | Japanese Used Vehicles',
   description: 'Find quality Japanese used vehicles with CarChief.',
   manifest: '/manifest.webmanifest',
+  icons: {
+    icon: '/favicon.svg',
+  },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
