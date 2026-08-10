@@ -15,7 +15,7 @@ export default async function HomePage() {
   const initialVehicles = await getInitialVehicles();
 
   return (
-    <main id="main-content">
+    <main id="main-content" tabIndex={-1}>
       <Hero />
       <HomeShowroom initialVehicles={initialVehicles} />
     </main>
@@ -26,18 +26,53 @@ function Hero() {
   return (
     <section className="hero">
       <div className="hero-inner">
-        <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', textTransform: 'uppercase', color: '#ffb703' }}>
-          Japanese Used Vehicles • Direct Export Logistics
+        <div className="hero-eyebrow">
+          <span>CURATED GLOBAL ACQUISITIONS</span>
+        </div>
+
+        <h1 className="hero-title">
+          CHECK OUR SELECTION OF{' '}
+          <span className="hero-title-accent">PREMIUM VEHICLES</span>
+        </h1>
+
+        <p className="hero-subtitle">
+          Browse our hand-picked, premium global acquisitions of hypercars, custom performance coupes, and bespoke luxury SUVs. Every vehicle is thoroughly inspected, complete with detailed digital logs, and delivered via premium secure ocean transit.
         </p>
-        <h1>Find your next vehicle with confidence.</h1>
-        <p>Browse our current stock and connect with the CarChief team for a quotation.</p>
-        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginTop: '1.5rem' }}>
-          <a className="button primary" href="#showroom">
-            Browse stock
+
+        <div className="hero-actions">
+          <a className="button primary hero-btn-primary" href="#showroom">
+            CHECK PREMIUM VEHICLES →
           </a>
-          <a className="button secondary" href="/inventory?category=premium" style={{ textDecoration: 'none' }}>
-            Explore Premium Stock
+          <a className="button secondary hero-btn-secondary" href="/how-to-buy">
+            HOW TO PURCHASE
           </a>
+        </div>
+
+        {/* 3-Column Value Proposition Strip */}
+        <div className="hero-value-strip">
+          <div className="value-strip-item">
+            <div className="value-strip-icon">🛡️</div>
+            <div>
+              <div className="value-strip-title">ELITE QUALITY SOURCING</div>
+              <div className="value-strip-text">Strict inspection & technical logs for every chassis.</div>
+            </div>
+          </div>
+
+          <div className="value-strip-item">
+            <div className="value-strip-icon">🚢</div>
+            <div>
+              <div className="value-strip-title">CONTAINER OCEAN FREIGHT</div>
+              <div className="value-strip-text">Secure maritime container pipelines & customs clearing.</div>
+            </div>
+          </div>
+
+          <div className="value-strip-item">
+            <div className="value-strip-icon">🔒</div>
+            <div>
+              <div className="value-strip-title">DEDICATED SECURE PORTAL</div>
+              <div className="value-strip-text">Track order pipelines, invoices & documents live.</div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
