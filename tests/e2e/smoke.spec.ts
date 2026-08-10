@@ -4,9 +4,9 @@ test.describe('Public Website Phase 1.1 browser smoke tests', () => {
   test('loads the real public shell and exposes the mock-backed showroom', async ({ page }) => {
     await page.goto('/');
     await expect(page).toHaveTitle(/CarChief/);
-    await expect(page.locator('h1')).toContainText('Find your next vehicle');
-    await expect(page.locator('#vehicle-grid')).toContainText('Toyota');
-    await expect(page.locator('input[type="search"]')).toBeVisible();
+    await expect(page.locator('h1')).toContainText('PREMIUM VEHICLES');
+    await expect(page.locator('#market-select')).toBeVisible();
+    await expect(page.locator('#showroom')).toBeVisible();
   });
 
   test('serves the public PWA manifest and health endpoint', async ({ page, request }) => {

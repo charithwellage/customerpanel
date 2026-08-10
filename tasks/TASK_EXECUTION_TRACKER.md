@@ -43,9 +43,9 @@
 | [D01-P02-T001](delivery_01/phase_02/D01-P02-T001.md) | Add featured vehicle services and reusable vehicle collections | COMPLETE | self_ai | legacy/not-applicable | Antigravity | `feat_delivery01_phase_02` | D01-P02-CODE_REVIEW (NOT_STARTED) | D01-P01-CODE_REVIEW | P02-A | 2026-08-10T05:33:26.295Z |
 | [D01-P02-T002](delivery_01/phase_02/D01-P02-T002.md) | Build and accept the home/showroom experience | COMPLETE | self_ai | legacy/not-applicable | Antigravity | `feat_delivery01_phase_02` | D01-P02-CODE_REVIEW (NOT_STARTED) | D01-P02-T001 | P02-B | 2026-08-10T05:48:14.754Z |
 | [INF-P00-T006](infra_check/INF-P00-T006.md) | Verify and provision Playwright MCP UI-testing tools | COMPLETE | self_ai | not_applicable | Antigravity | Branch-neutral | — | D01-P02-T002 | INF-D | 2026-08-10T08:20:46.398Z |
-| [D01-P02-T003](delivery_01/phase_02/D01-P02-T003.md) | Implement exact POC visual parity for the Public Home and Showroom | READY | self_ai | playwright_mcp | — | `feat_delivery01_phase_02` | D01-P02-CODE_REVIEW (NOT_STARTED) | D01-P02-T002, INF-P00-T006 | P02-C | — |
-| [D01-P02-T004](delivery_01/phase_02/D01-P02-T004.md) | Validate the POC-parity Home and Showroom UI with Playwright MCP | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery01_phase_02` | D01-P02-CODE_REVIEW (NOT_STARTED) | D01-P02-T003 | P02-D | — |
-| [D01-P02-CODE_REVIEW](delivery_01/phase_02/D01-P02-CODE_REVIEW.md) | Phase 1.2 PR code review and tech-lead approval | NOT_STARTED | phase_manual | not_applicable | — | `feat_delivery01_phase_02` | D01-P02-CODE_REVIEW (NOT_STARTED) | D01-P02-T004 | P02-REVIEW | — |
+| [D01-P02-T003](delivery_01/phase_02/D01-P02-T003.md) | Implement exact POC visual parity for the Public Home and Showroom | COMPLETE | self_ai | playwright_mcp | Antigravity | `feat_delivery01_phase_02` | D01-P02-CODE_REVIEW (NOT_STARTED) | D01-P02-T002, INF-P00-T006 | P02-C | 2026-08-10T08:29:06.856Z |
+| [D01-P02-T004](delivery_01/phase_02/D01-P02-T004.md) | Validate the POC-parity Home and Showroom UI with Playwright MCP | COMPLETE | self_ai | playwright_mcp | Antigravity | `feat_delivery01_phase_02` | D01-P02-CODE_REVIEW (NOT_STARTED) | D01-P02-T003 | P02-D | 2026-08-10T08:33:35.681Z |
+| [D01-P02-CODE_REVIEW](delivery_01/phase_02/D01-P02-CODE_REVIEW.md) | Phase 1.2 PR code review and tech-lead approval | READY | phase_manual | not_applicable | — | `feat_delivery01_phase_02` | D01-P02-CODE_REVIEW (NOT_STARTED) | D01-P02-T004 | P02-REVIEW | — |
 | [D01-P03-T001](delivery_01/phase_03/D01-P03-T001.md) | Add vehicle query, dynamic filters, sorting and pagination | NOT_STARTED | self_ai | not_applicable | — | `feat_delivery01_phase_03` | D01-P03-CODE_REVIEW (NOT_STARTED) | D01-P02-CODE_REVIEW | P03-A | — |
 | [D01-P03-T002](delivery_01/phase_03/D01-P03-T002.md) | Build search orchestration, URL state and natural parsing | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery01_phase_03` | D01-P03-CODE_REVIEW (NOT_STARTED) | D01-P03-T001 | P03-B | — |
 | [D01-P03-T003](delivery_01/phase_03/D01-P03-T003.md) | Build inventory filters and result presentations | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery01_phase_03` | D01-P03-CODE_REVIEW (NOT_STARTED) | D01-P03-T001 | P03-B | — |
@@ -123,7 +123,7 @@
 
 ## Current execution frontier
 
-- Sequential next: D01-P02-T003 — Implement exact POC visual parity for the Public Home and Showroom (NOT_STARTED)
+- Sequential next: D01-P02-CODE_REVIEW — Phase 1.2 PR code review and tech-lead approval (NOT_STARTED)
 - Optional same-group parallel tasks: None
 - Downstream work waits for COMPLETE or SUPERSEDED; IN_REVIEW is not complete.
 - Later tasks cannot be bypassed; use taskctl sequence TASK-ID for the exact blocker.

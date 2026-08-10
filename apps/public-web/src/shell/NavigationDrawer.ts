@@ -1,4 +1,4 @@
-import { PUBLIC_NAV_ITEMS, NavItem } from './Header.js';
+import { PUBLIC_NAV_ITEMS, NavItem } from './Header';
 
 export interface NavigationDrawerProps {
   isOpen: boolean;
