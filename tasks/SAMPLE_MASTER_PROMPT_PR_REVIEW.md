@@ -1,6 +1,6 @@
 # CarChief Phase PR Review Master Prompt
 
-Replace `PHASE-REVIEW-TASK-ID` with the phase review task, for example `D01-P01-CODE_REVIEW`.
+Replace `PHASE-REVIEW-TASK-ID`, `DELIVERY-NN` and `PHASE-NN` with the values from the phase review task, for example Delivery 02 Phase 04 uses `D02-P04-CODE_REVIEW`, `delivery_02` and `phase_04`.
 
 ```text
 Perform the phase PR review task PHASE-REVIEW-TASK-ID from its task file.
@@ -10,8 +10,9 @@ Read, in this order:
 2. tasks/TASK_EXECUTION_TRACKER.md
 3. The latest applicable phase summary
 4. tasks/CODE_REVIEW_RULES.md
-5. tasks/delivery_01/phase_NN/PHASE-REVIEW-TASK-ID.md
-6. Only the completed task files, execution logs, requirements, architecture sections, evidence and POC paths explicitly named by that phase-review task.
+5. tasks/COMMON_FRONTEND_RULES.md
+6. tasks/DELIVERY-NN/PHASE-NN/PHASE-REVIEW-TASK-ID.md
+7. Only the completed task files, execution logs, requirements, architecture sections, evidence and POC paths explicitly named by that phase-review task.
 
 The phase-review task is the source of truth. Do not scan the entire project or unrelated modules. Do not treat POC code as production code to copy.
 
@@ -30,14 +31,13 @@ node tasks/scripts/taskctl.mjs next
 node tasks/scripts/taskctl.mjs sequence PHASE-REVIEW-TASK-ID
 node tasks/scripts/taskctl.mjs precheck PHASE-REVIEW-TASK-ID
 
-Confirm that every normal task in the phase is COMPLETE and that the phase PR/diff is available. The review must compare only:
-
-git diff --check delivery_01_public_website...feat_delivery01_phase_NN
-git diff delivery_01_public_website...feat_delivery01_phase_NN
+Confirm that every normal task in the phase is COMPLETE and that the phase PR/diff is available. Use only the exact comparison range stated in the phase-review task. Do not infer the base branch from an older delivery.
 
 Remain on the named phase branch. Do not create a task branch. Do not modify product code, POC/**, requirements, architecture or unrelated task files during the review.
 
 Review the diff against every applicable rule in tasks/CODE_REVIEW_RULES.md and every phase-specific rule in the phase review task. Check architecture boundaries, reusable packages, responsive behavior, accessibility, security, API/mock separation, tests, Docker/PWA requirements and the phase acceptance criteria.
+
+For every completed task marked `ui_validation: "playwright_mcp"`, verify its execution log proves a fresh runtime was built/recreated from the task's current worktree before browser validation. The evidence must identify the build/recreate command, target URL, runtime process/container identity, health/readiness results, both themes/viewports, console/network result and both MCP and automated Playwright PASS outcomes. Treat stale-image/unknown-server evidence, missing API readiness evidence, or browser tests aimed at a different target as a blocking finding; reopen the responsible task rather than approving the phase.
 
 For each finding, record:
 - severity (blocking or non-blocking)
@@ -78,4 +78,4 @@ node tasks/scripts/taskctl.mjs approve PHASE-REVIEW-TASK-ID --reviewer "Tech Lea
 Use the exact final-response headings required by the phase-review task. Always state the comparison range, review result, tests, execution-log/tracker status, PR/tech-lead handoff and blockers.
 ```
 
-This prompt is for the eight `phase_manual` review tasks only. For implementation tasks, use `SAMPLE_MASTER_PROMPT_TASKS.md`.
+This prompt is for Delivery 01 and Delivery 02 `phase_manual` review tasks only. For implementation tasks, use `SAMPLE_MASTER_PROMPT_TASKS.md`.

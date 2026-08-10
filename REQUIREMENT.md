@@ -106,7 +106,7 @@ The frontend shall be installable as a Progressive Web App on supported browsers
 
 ## Shared frontend presentation requirements
 
-**UI-01 — Recommendation approved for planning:** The Unified POC Brand is the default visual theme for the Public, Customer and Salesperson applications. It uses the POC typography, red accent, neutral/dark surfaces, accessible light surfaces, cards, badges, spacing, radii, shadows and feedback states. The source POC remains visual evidence only; unsafe markup and defects are not copied.
+**UI-01 — Recommendation approved for planning:** The Unified POC Brand is the default visual theme for the Public, Customer and Salesperson applications. For the Public Website, [`docs/evidence/phase0/phase0-public-landing.png`](docs/evidence/phase0/phase0-public-landing.png) is the authoritative visual baseline: delivered content must materially match its dark header and hero, red/orange emphasis, typography hierarchy, navigation and action treatments, light showroom surface, filters, vehicle cards and status badges. Parity applies at phone, tablet and desktop sizes and may differ only for documented accessibility, responsiveness, truthful content or approved requirement reasons. The source POC remains visual evidence only; unsafe markup, fixed-width behavior, fabricated content and defects are not copied.
 
 **UI-02 — Recommendation approved for planning:** Theme values are defined in the shared theme package. The default `carchief` theme and the alternate `ocean` theme are selected through typed configuration. Feature components use semantic roles and shared UI packages; changing the theme must not require feature-component changes.
 

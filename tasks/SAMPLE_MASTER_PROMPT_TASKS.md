@@ -1,6 +1,6 @@
 # CarChief Sample Master Prompt
 
-Replace `TASK-ID` with the task you want the AI agent to execute, for example `D01-P03-T002`.
+Replace `TASK-ID` with the task you want the AI agent to execute, for example `D01-P03-T002` or `D02-P04-T002`.
 
 ```text
 Implement task TASK-ID from its task file.
@@ -28,11 +28,13 @@ If unblocked, run the task’s `precheck`, then remain on the named phase branch
 
 For a `self_ai` task, before running tests review only the owned diff and named dependencies against `tasks/CODE_REVIEW_RULES.md`. Fix every in-scope finding and repeat until the execution-log review result is PASS. Then run all required tests and use `taskctl complete TASK-ID --review-agent "<agent-name>"`. Do not request manual task-level PR approval.
 
-For a `phase_manual` task, review only the named `delivery_01_public_website...feat_delivery01_phase_NN` PR diff, record the AI review, run `submit`, and wait for the tech lead to perform manual PR review and `approve` it.
+For a `phase_manual` task, review only the exact delivery-integration-to-phase range named by its task file, record the AI review, run `submit`, and wait for the tech lead to perform manual PR review and `approve` it. Prefer `tasks/SAMPLE_MASTER_PROMPT_PR_REVIEW.md` for these review tasks.
 
 Do not modify POC/**, invent unresolved business rules, commit, push, create a pull request, merge, rewrite history or self-approve. The agent must leave implementation changes as a working-tree diff for the human owner to review and commit manually. Updating the task execution log and generated tracker is required and permitted.
 
-For any UI task, also read `DEVELOPER_USER_GUIDE.md` and the theme section of `FRONT_END_ARCHITECTURE.md`. Use `packages/theme` and `packages/ui`, semantic tokens, reusable feature packages, and test both `carchief` and `ocean` at phone, tablet and desktop widths. Do not add page-local color/font/spacing values or duplicate shared vehicle/search/detail components.
+For any UI task, also read `DEVELOPER_USER_GUIDE.md`, the theme section of `FRONT_END_ARCHITECTURE.md`, and `tasks/COMMON_FRONTEND_RULES.md`. The common rules are mandatory for semantic tokens, reusable packages, CSS ownership, static-inline-style restrictions, responsive/accessibility checks and UI evidence. Task-specific requirements remain authoritative.
+
+If the task frontmatter says `ui_validation: "playwright_mcp"`, confirm `INF-P00-T006` is COMPLETE and the active agent exposes Playwright MCP browser tools. After the initial AI code review, build/recreate a controlled runtime from the current worktree; do not reuse an unknown process or Docker image already listening on the usual port. Record the target URL, exact command, runtime process/container identity, and health/API readiness. Run the task's MCP walkthrough and automated Playwright suite against that recorded URL, inspect console/network and required UI states, fix every in-scope defect, recreate/retest after corrections, and reopen another task only when its owned path is genuinely required. Do not mark the task complete without fresh-runtime, readiness, MCP and automated-test PASS evidence. Playwright Test alone does not satisfy the MCP gate.
 
 Use the exact final-response headings required by the task file.
 ```

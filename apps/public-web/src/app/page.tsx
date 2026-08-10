@@ -1,28 +1,80 @@
-import { SearchShowroom } from './search-showroom';
+import type { VehicleDomainSummary } from '@carchief/domain';
+import { HomeShowroom } from '../features/home';
 
-interface Vehicle {
-  id: string;
-  make: string;
-  model: string;
-  year: number;
-  priceUsd: number;
-  status: string;
-}
-
-async function getVehicles(): Promise<Vehicle[]> {
+async function getInitialVehicles(): Promise<VehicleDomainSummary[]> {
   const baseUrl = process.env.API_BASE_URL || 'http://localhost:4000';
   try {
-    const response = await fetch(`${baseUrl}/api/v1/vehicles`, { cache: 'no-store' });
-    return response.ok ? await response.json() as Vehicle[] : [];
+    const response = await fetch(`${baseUrl}/api/v1/vehicles?collection=browse`, { cache: 'no-store' });
+    return response.ok ? ((await response.json()) as VehicleDomainSummary[]) : [];
   } catch {
     return [];
   }
 }
 
 export default async function HomePage() {
-  return <main><Hero /><SearchShowroom vehicles={await getVehicles()} /></main>;
+  const initialVehicles = await getInitialVehicles();
+
+  return (
+    <main id="main-content" tabIndex={-1}>
+      <Hero />
+      <HomeShowroom initialVehicles={initialVehicles} />
+    </main>
+  );
 }
 
 function Hero() {
-  return <section className="hero"><div className="hero-inner"><p>Japanese vehicles, made simple.</p><h1>Find your next vehicle with confidence.</h1><p>Browse our current stock and connect with the CarChief team for a quotation.</p><a className="button primary" href="#showroom">Browse stock</a></div></section>;
+  return (
+    <section className="hero">
+      <div className="hero-inner">
+        <div className="hero-eyebrow">
+          <span>CURATED GLOBAL ACQUISITIONS</span>
+        </div>
+
+        <h1 className="hero-title">
+          CHECK OUR SELECTION OF{' '}
+          <span className="hero-title-accent">PREMIUM VEHICLES</span>
+        </h1>
+
+        <p className="hero-subtitle">
+          Browse our hand-picked, premium global acquisitions of hypercars, custom performance coupes, and bespoke luxury SUVs. Every vehicle is thoroughly inspected, complete with detailed digital logs, and delivered via premium secure ocean transit.
+        </p>
+
+        <div className="hero-actions">
+          <a className="button primary hero-btn-primary" href="#showroom">
+            CHECK PREMIUM VEHICLES →
+          </a>
+          <a className="button secondary hero-btn-secondary" href="/how-to-buy">
+            HOW TO PURCHASE
+          </a>
+        </div>
+
+        {/* 3-Column Value Proposition Strip */}
+        <div className="hero-value-strip">
+          <div className="value-strip-item">
+            <div className="value-strip-icon">🛡️</div>
+            <div>
+              <div className="value-strip-title">ELITE QUALITY SOURCING</div>
+              <div className="value-strip-text">Strict inspection & technical logs for every chassis.</div>
+            </div>
+          </div>
+
+          <div className="value-strip-item">
+            <div className="value-strip-icon">🚢</div>
+            <div>
+              <div className="value-strip-title">CONTAINER OCEAN FREIGHT</div>
+              <div className="value-strip-text">Secure maritime container pipelines & customs clearing.</div>
+            </div>
+          </div>
+
+          <div className="value-strip-item">
+            <div className="value-strip-icon">🔒</div>
+            <div>
+              <div className="value-strip-title">DEDICATED SECURE PORTAL</div>
+              <div className="value-strip-text">Track order pipelines, invoices & documents live.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
 }

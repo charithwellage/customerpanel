@@ -3,10 +3,10 @@
 **Document purpose:** Page- and component-level engineering delivery plan
 **Discovery basis:** Re-audit of the full source project and compiled artifacts under `POC/`, **plus hands-on operation of the running demonstration system, screen by screen**
 **Delivery order:** Public Website (including SEO) → Customer Application → Salesperson Application
-**Base scheduled delivery:** **82.75 working days ≈ 16.5–17 calendar weeks**
+**Base scheduled delivery:** **93.5 working days ≈ 18–19 calendar weeks**
 **Programme allowance:** **2–3 weeks** for integration, review corrections, and accepted-scope uncertainty
-**Management planning range:** **18–20 calendar weeks**
-**Delivery model:** Each phase is built by an AI agent, driven, tested and reviewed daily by one accountable person
+**Management planning range:** **20–22 calendar weeks**
+**Delivery model:** Experienced engineers coordinate bounded AI-agent work while retaining architecture, security, QA and acceptance responsibility
 
 > This is a frontend delivery plan. It does not approve a database design, accounting policy, identity platform, external vendor, or final ASP.NET Core BFF wire contract.
 
@@ -80,12 +80,12 @@ Each delivery phase is built by an AI agent, driven and checked by one accountab
 
 | Delivery | Phase days | Correction allowance | Total days | Calendar |
 |---|---:|---:|---:|---:|
-| Public Website (incl. foundation, POC theme parity, mock service and complete SEO) | 29.25 | 0.5 | **29.75** | 6 weeks |
-| Customer Application | 16 | 2 | **18** | 3.6 weeks |
+| Public Website (incl. foundation, POC theme parity, mock service, Playwright MCP UI validation and complete SEO) | 31.0 | 0.5 | **31.5** | 6 weeks |
+| Customer Application | 25 | 3.75 (15%) | **28.75 ≈ 29** | 5–6 weeks |
 | Salesperson Application | 28.5 | 6.5 | **35** | 7 weeks |
-| **Base scheduled delivery** | **73.75** | **9** | **82.75** | **≈ 16.5–17 weeks** |
+| **Base scheduled delivery** | **84.5** | **10.75** | **95.25** | **≈ 18–19 weeks** |
 | Programme allowance | | | | **2–3 weeks** |
-| **Management planning range** | | | | **18–20 weeks** |
+| **Management planning range** | | | | **20–22 weeks** |
 
 **Why this differs from the previous 21–22 weeks.**
 
@@ -366,7 +366,7 @@ The customer application in the demonstration already offers a light/dark switch
 
 ## 5. Delivery 1 — Public Website
 
-**Scheduled delivery:** 29.75 working days ≈ 6 weeks
+**Scheduled delivery:** 31.5 working days ≈ 6 weeks
 **Includes:** shared foundation, theme system, complete public SEO, and the first working version of the mock service
 **Correction allowance:** 0.5 day
 
@@ -420,7 +420,7 @@ Also in scope: the theme/design-token system carrying the proof of concept's loo
 
 ### Phase 1.2 — Home and showroom
 
-**Phase days:** 1.75 days
+**Phase days:** 4.0 days, including the corrective POC visual-parity implementation, the final Playwright MCP UI-validation task and the mixed-PR hygiene correction added after the original Phase 1.2 implementation.
 
 Runtime additions: promotional banners and countdown timers alongside the featured collections.
 
@@ -430,6 +430,7 @@ Runtime additions: promotional banners and countdown timers alongside the featur
 
 **Sub-delivery components**
 
+- Exact responsive visual parity with `docs/evidence/phase0/phase0-public-landing.png` for the default `carchief` theme, with documented accessibility/content exceptions; `ocean` remains the secondary injectable theme using the same components.
 - Hero and primary calls to action.
 - Featured/latest/available vehicle collections.
 - Market-aware Latest Arrivals: only service-projected In Japan vehicles created within the previous five days, with the approved source-stock ordering returned by the service.
@@ -452,7 +453,7 @@ Runtime additions: promotional banners and countdown timers alongside the featur
 
 **Supervisor demo:** Open the home page, browse featured vehicles, follow supporting content links, and show an empty showroom scenario.
 
-**Testing and acceptance:** Responsive cards and navigation work; private fields/media never render; public claims have an owner/approval state.
+**Testing and acceptance:** Responsive cards and navigation work; private fields/media never render; public claims have an owner/approval state. The corrective visual task first aligns the page with the named POC reference. The final gate then inspects both themes at phone, tablet and desktop sizes through Playwright MCP, fixes in-scope defects, checks console/network behavior and runs the deterministic Playwright Test suite before PR review.
 
 ### Phase 1.3 — Inventory and search page
 
@@ -670,7 +671,10 @@ The table below is the execution view of the existing `tasks/delivery_01` files.
 | 1.1 | **Deliveries** | - Shared monorepo, reusable UI/theme, vehicle-search/detail package boundaries and responsive public shell.<br>- The Unified POC Brand is the default `carchief` theme; `ocean` renders the same screens without feature changes, with switching documented in `DEVELOPER_USER_GUIDE.md`.<br>- Public app runs at `http://localhost:3000/` with navigation, loading, empty and error states.<br>- Mock API runs at `http://localhost:4000/`, with Swagger at `http://localhost:4000/swagger` and OpenAPI JSON at `http://localhost:4000/openapi.json`.<br>- Docker Compose build/health check, deterministic seed/reset and basic PWA shell are demonstrated. |
 | 1.2 | D01-P02-T001 | Add featured vehicle services and reusable vehicle collections |
 | 1.2 | D01-P02-T002 | Build and accept the home/showroom experience |
-| 1.2 | **Deliveries** | - Home page and showroom content are visible at `http://localhost:3000/`.<br>- Market-aware Latest Arrivals, Discounted/Best Offer, Clearance and Premium teaser cards load from the mock vehicle-summary service rather than page fixtures; no legacy New tag appears.<br>- Premium banner/menu navigation, a preserved Premium query and honest fewer/empty states are demonstrated alongside responsive phone/tablet/desktop layouts.<br>- Swagger shows the featured-vehicle operation and contract tests prove reset, five-day Latest Arrival and public projection behavior. |
+| 1.2 | D01-P02-T003 | Implement exact POC visual parity for the Public Home and Showroom |
+| 1.2 | D01-P02-T004 | Validate the POC-parity Home and Showroom UI with Playwright MCP |
+| 1.2 | D01-P02-T005 | Reconcile mixed PR review defects and hygiene before the expanded phase review |
+| 1.2 | **Deliveries** | - Home page and showroom content are visible at `http://localhost:3000/`.<br>- The default `carchief` rendering materially matches the POC reference's header, hero, navigation, actions, showroom transition, search presentation, cards and badges at responsive widths; `ocean` renders the same features as the injectable alternate.<br>- Market-aware Latest Arrivals, Discounted/Best Offer, Clearance and Premium teaser cards load from the mock vehicle-summary service rather than page fixtures; no legacy New tag appears.<br>- Premium banner/menu navigation, a preserved Premium query and honest fewer/empty states are demonstrated alongside responsive phone/tablet/desktop layouts.<br>- Both themes are inspected through Playwright MCP; visual, console and network findings are corrected and automated Playwright Test passes.<br>- Swagger shows the featured-vehicle operation and contract tests prove reset, five-day Latest Arrival and public projection behavior. |
 | 1.3 | D01-P03-T001 | Add vehicle query, dynamic filters, sorting and pagination |
 | 1.3 | D01-P03-T002 | Build search orchestration, URL state and natural parsing |
 | 1.3 | D01-P03-T003 | Build inventory filters and result presentations |
@@ -705,14 +709,17 @@ The table below is the execution view of the existing `tasks/delivery_01` files.
 
 ## 6. Delivery 2 — Customer Application
 
-**Scheduled delivery:** 18 working days ≈ 3.6 weeks
-**Correction allowance:** 2 days
+**Planned task capacity:** 25 working days
+**Review/correction allowance:** 15% (3.75 days)
+**Management baseline:** approximately 29 working days or 5–6 calendar weeks with two experienced engineers coordinating bounded AI agents and timely human decisions.
+
+Delivery 02 is now represented by 42 executable files: 29 feature/acceptance implementation tasks, four decision/scope gates and nine phase PR-review gates. This is the mathematically consistent classification of the approved inventory, which explicitly lists gates in Phases 2.1, 2.2, 2.6 and 2.7. See [`tasks/delivery_02/DELIVERY_02_COVERAGE_MATRIX.md`](../tasks/delivery_02/DELIVERY_02_COVERAGE_MATRIX.md) and [`tasks/EXECUTION_ORDER.md`](../tasks/EXECUTION_ORDER.md).
 
 **Evidence warning:** Customer TypeScript source is missing. Detailed behavior below is compiled-artifact evidence until business approval.
 
 ### Phase 2.1 — Customer shell, session and account access
 
-**Phase days:** 2.5 days
+**Phase days:** 3 days, including the decision gate and phase PR review
 
 `UNABLE_TO_VERIFY_WITH_POC` — **UV-13** password recovery and multi-factor sign-in are not present in the demonstration. Runtime additions: light/dark display switch and a manual data-sync action. Sign-in is issued by the mock service's stand-in authentication layer.
 
@@ -741,7 +748,7 @@ The table below is the execution view of the existing `tasks/delivery_01` files.
 
 ### Phase 2.2 — Customer dashboard
 
-**Phase days:** 1.5 days
+**Phase days:** 1.5 days, including the decision gate and phase PR review
 
 Runtime additions: credit limit displayed with utilisation against it.
 
@@ -771,7 +778,7 @@ Runtime additions: credit limit displayed with utilisation against it.
 
 ### Phase 2.3 — Customer showroom and vehicle search
 
-**Phase days:** 1 day
+**Phase days:** 2.25 days, including mock/API integration, Docker acceptance and phase PR review
 
 **Business outcome:** Signed-in customers can browse eligible stock with customer-specific visibility and pricing.
 
@@ -798,7 +805,7 @@ Runtime additions: credit limit displayed with utilisation against it.
 
 ### Phase 2.4 — My vehicles
 
-**Phase days:** 2.5 days
+**Phase days:** 2.25 days, including Docker acceptance and phase PR review
 
 Runtime additions: three vehicle folders (reserved, reserved with quotation, invoiced) each carrying its own count; a five-stage shipping filter (purchased, inspection, ready, in transit, delivered); and an automatically derived 50% deposit figure on reserved vehicles.
 
@@ -829,7 +836,7 @@ Runtime additions: three vehicle folders (reserved, reserved with quotation, inv
 
 ### Phase 2.5 — Quotes and invoices
 
-**Phase days:** 2 days
+**Phase days:** 2 days, including Docker acceptance and phase PR review
 
 `UNABLE_TO_VERIFY_WITH_POC` — **UV-15** email and printed-document delivery. The actions exist in the demonstration but were never triggered.
 
@@ -858,7 +865,7 @@ Runtime additions: three vehicle folders (reserved, reserved with quotation, inv
 
 ### Phase 2.6 — Payments and TT remittance
 
-**Phase days:** 2 days
+**Phase days:** 4 days, including the decision gate, finance failure paths, Docker acceptance and phase PR review
 
 **Business outcome:** Customers can submit and track wire-transfer evidence for finance review.
 
@@ -886,7 +893,7 @@ Runtime additions: three vehicle folders (reserved, reserved with quotation, inv
 
 ### Phase 2.7 — Shipment tracking and documents
 
-**Phase days:** 2 days
+**Phase days:** 4 days, including the decision gate, secure-document failure paths, Docker acceptance and phase PR review
 
 Runtime additions: the document vault carries ten named categories — proforma invoice, commercial invoice, bill of lading, inspection certificate, export certificate, insurance, packing list, vehicle photos, auction sheet and other. `UNABLE_TO_VERIFY_WITH_POC` — **UV-14** document upload; no documents exist in the demonstration and none could be added.
 
@@ -916,7 +923,7 @@ Runtime additions: the document vault carries ten named categories — proforma 
 
 ### Phase 2.8 — Notifications and profile
 
-**Phase days:** 1.5 days
+**Phase days:** 2 days, including Docker acceptance and phase PR review
 
 Runtime additions: the profile separates fixed identity fields from editable contact fields and includes a password change.
 
@@ -946,7 +953,7 @@ Runtime additions: the profile separates fixed identity fields from editable con
 
 ### Phase 2.9 — Customer Application acceptance
 
-**Phase days:** 1 day
+**Phase days:** 4 days, including traceability, security, accessibility/PWA/performance, Docker UAT and phase PR review
 
 **Business outcome:** Management accepts the customer scope before Salesperson Application delivery becomes primary.
 
@@ -1362,12 +1369,12 @@ Complete SEO and public release-readiness work is delivered in Phase 1.8 before 
 
 | Calendar window | Primary delivery | Days | Acceptance result |
 |---|---|---:|---|
-| Weeks 1–6 | Public Website, foundation, POC theme parity, mock service and SEO | 29.75 | Accepted responsive, search-ready public application and working mock service |
-| Weeks 6–9.6 | Customer Application | 18 | Accepted customer self-service application and linked transaction scenarios |
-| Weeks 9.6–16.6 | Salesperson Application | 35 | Accepted sales, finance and administration application plus full connected journey |
-| | **Base scheduled delivery** | **82.75** | **≈ 16.5–17 calendar weeks** |
+| Weeks 1–6 | Public Website, foundation, POC theme parity, mock service and SEO | 31.0 | Accepted responsive, search-ready public application and working mock service |
+| Weeks 6–11.8 | Customer Application | 28.75 | Accepted customer self-service application and linked transaction scenarios |
+| Weeks 11.8–18.8 | Salesperson Application | 35 | Accepted sales, finance and administration application plus full connected journey |
+| | **Base scheduled delivery** | **93.5** | **≈ 18–19 calendar weeks** |
 | Programme allowance | Integration/review corrections and accepted uncertainty | | 2–3 weeks distributed where needed |
-| **Management planning range** | | | **18–20 calendar weeks** |
+| **Management planning range** | | | **20–22 calendar weeks** |
 
 Every day in this table follows the fixed pattern of five hours building with an AI agent, two hours manual testing and one hour review.
 
@@ -1470,6 +1477,7 @@ These are capability groups, not approved REST endpoints or payloads.
 - Component tests for pages, forms, tables, permissions and error states.
 - Shared mock/BFF contract tests.
 - Playwright journeys for every application acceptance demo and critical role.
+- Playwright MCP inspection for every remaining task that creates or changes visible UI, with both themes, phone/tablet/desktop sizes, console/network checks and an automatic correction/review loop. MCP evidence complements rather than replaces the automated Playwright suite.
 - Accessibility automation plus manual review.
 - Import tests for malformed headers, duplicates, partial failures and size limits.
 - Finance tests based on signed worked examples.
@@ -1581,12 +1589,12 @@ For the management summary, see [CarChief Frontend Implementation Roadmap](./Car
 
 | # | Delivery | What we are delivering | Summary | Timeline (days) |
 |---|---|---|---|---:|
-| 1 | Public Website (including SEO) | The public-facing website, shared foundations, Unified POC Brand theme, reusable vehicle packages, complete public SEO and the first working version of the separate mock service. | Where a visitor finds and enquires about a vehicle. No sign-in required. | 29.75 |
-| 2 | Customer Application | A sign-in-protected application for existing customers to track their own vehicles, quotations, invoices, payments, shipment status and documents. | The customer's private account view. | 18 |
+| 1 | Public Website (including SEO) | The public-facing website, shared foundations, Unified POC Brand theme with exact POC visual-parity acceptance, reusable vehicle packages, complete public SEO and the first working version of the separate mock service. | Where a visitor finds and enquires about a vehicle. No sign-in required. | 31.0 |
+| 2 | Customer Application | A sign-in-protected application for existing customers to track their own vehicles, quotations, invoices, payments, shipment status and documents. | The customer's private account view. | 28.75 (25 planned + 15%) |
 | 3 | Salesperson Application | The staff-facing system covering sales, finance and administration — leads, inventory, quotations, payments, master data, users and permissions. | The day-to-day tool used by CarChief's own team. | 35 |
-| | | | **Base total** | **82.75** |
-| | | | **With programme allowance** | **≈ 91–96** |
+| | | | **Base total** | **93.5** |
+| | | | **With programme allowance** | **≈ 101–106** |
 
-**82.75 working days is roughly 16.5–17 calendar weeks; with allowance, 18–20 weeks.** Every day in that total follows the same pattern: five hours building with an AI agent, two hours manual testing, one hour human review.
+**93.5 working days is roughly 18–19 calendar weeks; with allowance, 20–22 weeks.** Delivery 02 is a 5–6-week management baseline under its two-engineer, AI-assisted staffing assumption; human decisions, testing and phase PR review remain mandatory.
 
 Full detail, evidence and acceptance criteria for each phase are in sections 5–8 above. Open questions that shape this timeline — including the eighteen items that could not be confirmed by operating the demonstration system — are tracked separately in [`implementation_risks.md`](./implementation_risks.md).

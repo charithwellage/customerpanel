@@ -15,3 +15,6 @@ export function buildSearchQueryString(filter: VehicleSearchFilter): string {
   if (filter.maxPriceUsd) params.set('maxPriceUsd', String(filter.maxPriceUsd));
   return params.toString();
 }
+
+export * from './VehicleCardPrimitive.js';
+export * from './VehicleCollectionPrimitive.js';

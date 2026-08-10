@@ -1,4 +1,4 @@
-# Public Website Decision Register
+# CarChief Delivery Decision Register
 
 Only named human authorities may resolve business decisions. Agents record evidence and stop at hard gates; they never infer a formula or policy from the POC.
 
@@ -23,9 +23,14 @@ Only named human authorities may resolve business decisions. Agents record evide
 | DEC-WF-EXTERNAL-BOUNDARIES | OPEN | Confirm which CSV, VBMS, NetSuite, auction media, bank verification, email, WhatsApp and ERP/IBQ steps remain manual for MVP. | Management and integration owners | All application deliveries |
 | DEC-WF-SHIP-DOC-APPROVAL | OPEN | Confirm Ship OK/document-release approvers, rejection paths, second payment behavior and customer-visible status names. | Finance/logistics owner | Salesperson and Customer acceptance |
 | DEC-PWA-ENHANCEMENTS | OPEN | Installable PWA shell is approved for all three applications. Confirm separately whether push notifications, background sync, camera/file capture and install analytics are required. | Management, security and product owner | Phases 1.1 and 1.8; later application acceptance |
+| DEC-CUST-COMPILED-SCOPE | OPEN | Approve, defer or reject every Customer page and behavior evidenced only by the compiled/runtime POC. The compiled artifact is not authoritative source code. | Customer operations/product owner with the Delivery 02 coverage matrix | D02-P01-G001 and D02-P09-T001 |
+| DEC-CUST-IDENTITY-RECOVERY | OPEN | Confirm production identity ownership, recovery, password change, account states, reauthentication and MFA expectations. Delivery 02 implements only stand-in JWT behavior and approved presentation; production identity remains excluded. | Security, identity/AutoPulse and product owners | D02-P01-G001, D02-P01-T002/T003, D02-P08-T003 |
+| DEC-CUST-DASHBOARD-DEFINITIONS | OPEN | Approve the single source records, formulas, status mappings, freshness and empty-data behavior for customer balance, credit utilisation and every dashboard count. | Finance and product owners with reconciled worked examples | D02-P02-G001 through D02-P02-CODE_REVIEW |
+| DEC-CUST-PAYMENT-PROOF-POLICY | OPEN | Confirm customer payment-proof types, maximum size, malware/scanning state, storage, retention, access, resubmission and telemetry/logging policy. | Finance, security, privacy and legal owners | D02-P06-G001 through D02-P06-CODE_REVIEW |
+| DEC-CUST-DOCUMENT-POLICY | OPEN | Confirm the ten customer document categories, source/upload ownership, type/size, storage, retention, preview/download authorization and exact visibility timing after document-release approval. | Logistics, finance, security, privacy and legal owners | D02-P07-G001 through D02-P07-CODE_REVIEW |
 
 When resolving a row, change only its status to `RESOLVED` and add the named approver, date, decision text and evidence link below this table. Never place secrets or personal credentials here.
 
 ## Resolution records
 
-None yet for the two Phase 1.5 hard gates or the six BA workflow gates. Customer/Salesperson workflow implementation remains blocked until the relevant `DEC-WF-*` decisions are resolved.
+None yet for the Public calculation gates, BA workflow gates or Delivery 02 Customer gates. Customer workflow implementation remains blocked only at the phase whose named decisions are unresolved; task generation itself is complete.

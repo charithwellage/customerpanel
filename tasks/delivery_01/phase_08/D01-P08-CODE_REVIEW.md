@@ -3,7 +3,7 @@ task_id: "D01-P08-CODE_REVIEW"
 title: "Phase 1.8 PR code review and tech-lead approval"
 delivery: "Delivery 01 — Public Website"
 phase: "Phase 1.8 — Public SEO, acceptance and release readiness"
-execution_order: 52
+execution_order: 57
 estimate: "0.25 day"
 model_tier: "FRONTIER"
 parallel_group: "P08-REVIEW"
@@ -13,6 +13,8 @@ phase_branch: "feat_delivery01_phase_08"
 task_branch: "feat_delivery01_phase_08"
 product_source_mutation: "forbidden"
 review_mode: "phase_manual"
+ui_scope: "none"
+ui_validation: "not_applicable"
 ---
 
 # D01-P08-CODE_REVIEW — Phase PR code review and tech-lead approval
@@ -25,6 +27,7 @@ review_mode: "phase_manual"
 ## Authority and context to read
 
 - [CODE_REVIEW_RULES.md](../../CODE_REVIEW_RULES.md).
+- [COMMON_FRONTEND_RULES.md](../../COMMON_FRONTEND_RULES.md) for shared frontend implementation and review conventions.
 - This phase's completed task files, execution logs and phase summary.
 - The requirements, architecture, implementation-plan and evidence explicitly named by those completed task files.
 
@@ -32,8 +35,12 @@ review_mode: "phase_manual"
 
 Apply every applicable shared code-review rule and these phase-specific checks:
 
+- Verify every changed public screen under the default `carchief` theme against the authoritative POC visual baseline `docs/evidence/phase0/phase0-public-landing.png`; verify documented responsive/accessibility exceptions and confirm `ocean` uses the same shared components and behavior.
+
 - SEO, redirects, structured data, performance, PWA safety, public/private visibility, UAT, and release evidence.
 - Verify the phase acceptance criteria, required mock/API boundaries and required automated/container evidence are present in the PR diff or its committed execution records.
+
+- Verify Playwright MCP evidence for every completed UI task in this phase: client, URL, themes, viewports, console/network result, findings/corrections, MCP PASS and automated Playwright Test PASS. Missing or contradictory evidence is blocking.
 
 ## Mandatory preflight and blocker protocol
 
@@ -90,7 +97,11 @@ No API, mock, OpenAPI, fixture, database or BFF change is owned. Review their co
 
 ## Implementation and UX requirements
 
-Review responsive phone/tablet/desktop behavior, semantic theme usage, keyboard/focus/contrast/reduced-motion behavior and PWA safety where this phase changes UI.
+### Fresh-runtime evidence review
+
+For every completed task marked `ui_validation: "playwright_mcp"`, verify its execution log proves a fresh current-worktree runtime: `Fresh-runtime verification: PASS`, `Runtime provenance:`, `Service readiness: PASS`, a recorded target URL, and Playwright MCP/automated results against that same URL. Treat a stale-image, stale-server, missing health/API/reset check, or a browser failure deferred from the implementation task as a **blocking** finding. Reopen the responsible task; do not approve the phase on earlier or source-only evidence.
+
+Read and apply [COMMON_FRONTEND_RULES.md](../../COMMON_FRONTEND_RULES.md). Review responsive phone/tablet/desktop behaviour, semantic theme usage, keyboard/focus/contrast/reduced-motion behaviour and PWA safety where this phase changes UI. Treat any violation of the common style ownership, reusable-package or static-inline-style rules as blocking unless the documented runtime-data custom-property exception applies. Fixed DOM IDs in reusable components and nested interactive controls are also blocking accessibility findings.
 
 ## Automated tests to add
 
