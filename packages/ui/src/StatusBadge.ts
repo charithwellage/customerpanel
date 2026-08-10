@@ -9,14 +9,14 @@ export interface StatusBadgeProps {
 export function getStatusBadgeCssClass(variant: StatusBadgeVariant = 'neutral'): string {
   switch (variant) {
     case 'success':
-      return 'cc-badge cc-badge-success bg-green-100 text-green-800';
+      return 'cc-badge cc-badge-success';
     case 'warning':
-      return 'cc-badge cc-badge-warning bg-amber-100 text-amber-800';
+      return 'cc-badge cc-badge-warning';
     case 'error':
-      return 'cc-badge cc-badge-error bg-red-100 text-red-800';
+      return 'cc-badge cc-badge-error';
     case 'info':
-      return 'cc-badge cc-badge-info bg-blue-100 text-blue-800';
+      return 'cc-badge cc-badge-info';
     default:
-      return 'cc-badge cc-badge-neutral bg-slate-100 text-slate-800';
+      return 'cc-badge cc-badge-neutral';
   }
 }

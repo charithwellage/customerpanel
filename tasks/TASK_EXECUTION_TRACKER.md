@@ -7,68 +7,81 @@
 - `NOT_STARTED`: prerequisites or decisions are incomplete.
 - `READY`: dependencies and decision gates are complete.
 - `IN_PROGRESS`: claimed by an implementer.
-- `IN_REVIEW`: implementation and automated tests await independent review.
-- `COMPLETE`: independently approved.
+- `IN_REVIEW`: a phase-level PR review awaits the tech lead.
+- `COMPLETE`: a self-reviewed task passed tests, or a phase review was approved by the tech lead.
 - `BLOCKED`: work stopped and the execution log names the blocker.
 - `SUPERSEDED`: intentionally replaced by another approved task.
 
+## Review modes
+
+- `self_ai`: the implementing agent reviews its owned diff against `CODE_REVIEW_RULES.md`, fixes findings, records PASS and tests, then runs `taskctl complete`.
+- `phase_manual`: AI reviews the phase PR diff; the tech lead performs the only required manual code review and approves the task.
+
 ## Tracker
 
-| ID | Task | Status | Owner | Phase branch | Dependencies | Parallel group | Last update |
-|---|---|---|---|---|---|---|---|
-| [INF-P00-T001](infra_check/INF-P00-T001.md) | Verify governing documents, evidence inventory, repository integrity and source boundaries | COMPLETE | Antigravity | Branch-neutral | None | INF-A | 2026-08-07T08:29:20.983Z |
-| [INF-P00-T002](infra_check/INF-P00-T002.md) | Verify developer tooling, ports and capacity | COMPLETE | Antigravity | Branch-neutral | None | INF-A | 2026-08-07T08:29:21.018Z |
-| [INF-P00-T003](infra_check/INF-P00-T003.md) | Verify compiled POC routes, reset and screenshots read-only | COMPLETE | Antigravity | Branch-neutral | INF-P00-T001, INF-P00-T002 | INF-B | 2026-08-07T08:35:37.042Z |
-| [INF-P00-T004](infra_check/INF-P00-T004.md) | Verify target-workspace readiness, secrets and architecture prerequisites | COMPLETE | Antigravity | Branch-neutral | INF-P00-T001, INF-P00-T002 | INF-B | 2026-08-07T08:35:42.909Z |
-| [INF-P00-T005](infra_check/INF-P00-T005.md) | Produce Phase 0 readiness result | COMPLETE | Antigravity | Branch-neutral | INF-P00-T003, INF-P00-T004 | INF-C | 2026-08-07T08:48:10.538Z |
-| [D01-P01-T001](delivery_01/phase_01/D01-P01-T001.md) | Bootstrap the pnpm workspace, runtime pins and application/package skeletons | COMPLETE | Antigravity | `feat_delivery01_phase_01` | INF-P00-T005 | P01-A | 2026-08-07T09:02:15.260Z |
-| [D01-P01-T002](delivery_01/phase_01/D01-P01-T002.md) | Add strict TypeScript, quality and boundary guardrails | COMPLETE | Antigravity | `feat_delivery01_phase_01` | D01-P01-T001 | P01-B | 2026-08-07T09:06:47.066Z |
-| [D01-P01-T003](delivery_01/phase_01/D01-P01-T003.md) | Establish automated testing foundations | COMPLETE | Antigravity | `feat_delivery01_phase_01` | D01-P01-T001 | P01-B | 2026-08-07T09:14:23.451Z |
-| [D01-P01-T004](delivery_01/phase_01/D01-P01-T004.md) | Establish OpenAPI, generated client and HTTP boundary | COMPLETE | Antigravity | `feat_delivery01_phase_01` | D01-P01-T002, D01-P01-T003 | P01-C | 2026-08-07T09:43:49.686Z |
-| [D01-P01-T005](delivery_01/phase_01/D01-P01-T005.md) | Build mock API, PostgreSQL foundation and deterministic reset | COMPLETE | Antigravity | `feat_delivery01_phase_01` | D01-P01-T003, D01-P01-T004 | P01-D | 2026-08-07T09:47:05.510Z |
-| [D01-P01-T006](delivery_01/phase_01/D01-P01-T006.md) | Add stand-in JWT identities, roles and enforcement | COMPLETE | Antigravity | `feat_delivery01_phase_01` | D01-P01-T005 | P01-E | 2026-08-07T09:55:55.425Z |
-| [D01-P01-T007](delivery_01/phase_01/D01-P01-T007.md) | Build semantic theme and runtime theme infrastructure | COMPLETE | Antigravity | `feat_delivery01_phase_01` | D01-P01-T001 | P01-B | 2026-08-07T09:30:20.819Z |
-| [D01-P01-T008](delivery_01/phase_01/D01-P01-T008.md) | Build shared controls and application feedback primitives | COMPLETE | Antigravity | `feat_delivery01_phase_01` | D01-P01-T002, D01-P01-T003, D01-P01-T007 | P01-C | 2026-08-07T09:38:18.207Z |
-| [D01-P01-T009](delivery_01/phase_01/D01-P01-T009.md) | Build the Next.js public shell and navigation | COMPLETE | Antigravity | `feat_delivery01_phase_01` | D01-P01-T006, D01-P01-T008 | P01-F | 2026-08-07T10:00:45.985Z |
-| [D01-P01-T010](delivery_01/phase_01/D01-P01-T010.md) | Complete containers, CI guardrails and Phase 1.1 acceptance | COMPLETE | Antigravity | `feat_delivery01_phase_01` | D01-P01-T009 | P01-G | 2026-08-07T10:20:38.563Z |
-| [D01-P01-T011](delivery_01/phase_01/D01-P01-T011.md) | Align shared theme with the Unified POC Brand | READY | — | `feat_delivery01_phase_01` | D01-P01-T010 | P01-H | — |
-| [D01-P01-T012](delivery_01/phase_01/D01-P01-T012.md) | Add alternate theme injection and developer guide | NOT_STARTED | — | `feat_delivery01_phase_01` | D01-P01-T011 | P01-I | — |
-| [D01-P02-T001](delivery_01/phase_02/D01-P02-T001.md) | Add featured vehicle services and reusable vehicle collections | NOT_STARTED | — | `feat_delivery01_phase_02` | D01-P01-T012 | P02-A | — |
-| [D01-P02-T002](delivery_01/phase_02/D01-P02-T002.md) | Build and accept the home/showroom experience | NOT_STARTED | — | `feat_delivery01_phase_02` | D01-P02-T001 | P02-B | — |
-| [D01-P03-T001](delivery_01/phase_03/D01-P03-T001.md) | Add vehicle query, dynamic filters, sorting and pagination | NOT_STARTED | — | `feat_delivery01_phase_03` | D01-P02-T002 | P03-A | — |
-| [D01-P03-T002](delivery_01/phase_03/D01-P03-T002.md) | Build search orchestration, URL state and natural parsing | NOT_STARTED | — | `feat_delivery01_phase_03` | D01-P03-T001 | P03-B | — |
-| [D01-P03-T003](delivery_01/phase_03/D01-P03-T003.md) | Build inventory filters and result presentations | NOT_STARTED | — | `feat_delivery01_phase_03` | D01-P03-T001 | P03-B | — |
-| [D01-P03-T004](delivery_01/phase_03/D01-P03-T004.md) | Integrate and accept inventory search | NOT_STARTED | — | `feat_delivery01_phase_03` | D01-P03-T002, D01-P03-T003 | P03-C | — |
-| [D01-P04-T001](delivery_01/phase_04/D01-P04-T001.md) | Add vehicle detail and public media service behavior | NOT_STARTED | — | `feat_delivery01_phase_04` | D01-P03-T004 | P04-A | — |
-| [D01-P04-T002](delivery_01/phase_04/D01-P04-T002.md) | Build vehicle detail page and gallery | NOT_STARTED | — | `feat_delivery01_phase_04` | D01-P04-T001 | P04-B | — |
-| [D01-P04-T003](delivery_01/phase_04/D01-P04-T003.md) | Add sharing, printing, metadata and detail acceptance | NOT_STARTED | — | `feat_delivery01_phase_04` | D01-P04-T002 | P04-C | — |
-| [D01-P05-G001](delivery_01/phase_05/D01-P05-G001.md) | Approve freight and city-delivery calculation decisions | NOT_STARTED | — | `feat_delivery01_phase_05` | D01-P04-T003 | P05-GATE | — |
-| [D01-P05-T001](delivery_01/phase_05/D01-P05-T001.md) | Add destinations, rates and freight estimate services | NOT_STARTED | — | `feat_delivery01_phase_05` | D01-P05-G001 | P05-A | — |
-| [D01-P05-T002](delivery_01/phase_05/D01-P05-T002.md) | Implement approved freight calculations | NOT_STARTED | — | `feat_delivery01_phase_05` | D01-P05-T001 | P05-B | — |
-| [D01-P05-T003](delivery_01/phase_05/D01-P05-T003.md) | Build freight estimate selection and explanation UI | NOT_STARTED | — | `feat_delivery01_phase_05` | D01-P05-T002 | P05-C | — |
-| [D01-P05-T004](delivery_01/phase_05/D01-P05-T004.md) | Add freight quotation enquiry and accept the phase | NOT_STARTED | — | `feat_delivery01_phase_05` | D01-P05-T003 | P05-D | — |
-| [D01-P06-T001](delivery_01/phase_06/D01-P06-T001.md) | Add lead and enquiry contracts with persistent mock behavior | NOT_STARTED | — | `feat_delivery01_phase_06` | D01-P05-T004 | P06-A | — |
-| [D01-P06-T002](delivery_01/phase_06/D01-P06-T002.md) | Build accessible contact and vehicle enquiry forms | NOT_STARTED | — | `feat_delivery01_phase_06` | D01-P06-T001 | P06-B | — |
-| [D01-P06-T003](delivery_01/phase_06/D01-P06-T003.md) | Build account entry and unauthenticated reservation guidance | NOT_STARTED | — | `feat_delivery01_phase_06` | D01-P06-T001 | P06-B | — |
-| [D01-P06-T004](delivery_01/phase_06/D01-P06-T004.md) | Add transactional reservation eligibility and hold behavior | NOT_STARTED | — | `feat_delivery01_phase_06` | D01-P06-T001 | P06-C | — |
-| [D01-P06-T005](delivery_01/phase_06/D01-P06-T005.md) | Build reservation UI and accept enquiry/reservation journeys | NOT_STARTED | — | `feat_delivery01_phase_06` | D01-P06-T002, D01-P06-T003, D01-P06-T004 | P06-D | — |
-| [D01-P07-T001](delivery_01/phase_07/D01-P07-T001.md) | Add public content, FAQ and testimonial services | NOT_STARTED | — | `feat_delivery01_phase_07` | D01-P06-T005 | P07-A | — |
-| [D01-P07-T002](delivery_01/phase_07/D01-P07-T002.md) | Build About, How to Buy and Contact information pages | NOT_STARTED | — | `feat_delivery01_phase_07` | D01-P07-T001 | P07-B | — |
-| [D01-P07-T003](delivery_01/phase_07/D01-P07-T003.md) | Build testimonial display and moderated submission | NOT_STARTED | — | `feat_delivery01_phase_07` | D01-P07-T001 | P07-B | — |
-| [D01-P07-T004](delivery_01/phase_07/D01-P07-T004.md) | Build FAQ browsing/search and accept public content | NOT_STARTED | — | `feat_delivery01_phase_07` | D01-P07-T002, D01-P07-T003 | P07-C | — |
-| [D01-P08-T001](delivery_01/phase_08/D01-P08-T001.md) | Complete public SEO policy and visitor regression | NOT_STARTED | — | `feat_delivery01_phase_08` | D01-P07-T004 | P08-A | — |
-| [D01-P08-T002](delivery_01/phase_08/D01-P08-T002.md) | Complete data projection, privacy and production-safety checks | NOT_STARTED | — | `feat_delivery01_phase_08` | D01-P07-T004 | P08-A | — |
-| [D01-P08-T003](delivery_01/phase_08/D01-P08-T003.md) | Complete accessibility, browser and performance acceptance | NOT_STARTED | — | `feat_delivery01_phase_08` | D01-P07-T004 | P08-A | — |
-| [D01-P08-T004](delivery_01/phase_08/D01-P08-T004.md) | Produce Public Website UAT and Delivery 1 handoff | NOT_STARTED | — | `feat_delivery01_phase_08` | D01-P08-T001, D01-P08-T002, D01-P08-T003 | P08-B | — |
+| ID | Task | Status | Review mode | Owner | Phase branch | Phase review gate | Dependencies | Parallel group | Last update |
+|---|---|---|---|---|---|---|---|---|---|
+| [INF-P00-T001](infra_check/INF-P00-T001.md) | Verify governing documents, evidence inventory, repository integrity and source boundaries | COMPLETE | — | Antigravity | Branch-neutral | — | None | INF-A | 2026-08-07T08:29:20.983Z |
+| [INF-P00-T002](infra_check/INF-P00-T002.md) | Verify developer tooling, ports and capacity | COMPLETE | — | Antigravity | Branch-neutral | — | None | INF-A | 2026-08-07T08:29:21.018Z |
+| [INF-P00-T003](infra_check/INF-P00-T003.md) | Verify compiled POC routes, reset and screenshots read-only | COMPLETE | — | Antigravity | Branch-neutral | — | INF-P00-T001, INF-P00-T002 | INF-B | 2026-08-07T08:35:37.042Z |
+| [INF-P00-T004](infra_check/INF-P00-T004.md) | Verify target-workspace readiness, secrets and architecture prerequisites | COMPLETE | — | Antigravity | Branch-neutral | — | INF-P00-T001, INF-P00-T002 | INF-B | 2026-08-07T08:35:42.909Z |
+| [INF-P00-T005](infra_check/INF-P00-T005.md) | Produce Phase 0 readiness result | COMPLETE | — | Antigravity | Branch-neutral | — | INF-P00-T003, INF-P00-T004 | INF-C | 2026-08-07T08:48:10.538Z |
+| [D01-P01-T001](delivery_01/phase_01/D01-P01-T001.md) | Bootstrap the pnpm workspace, runtime pins and application/package skeletons | COMPLETE | self_ai | Antigravity | `feat_delivery01_phase_01` | D01-P01-CODE_REVIEW (IN_REVIEW) | INF-P00-T005 | P01-A | 2026-08-07T09:02:15.260Z |
+| [D01-P01-T002](delivery_01/phase_01/D01-P01-T002.md) | Add strict TypeScript, quality and boundary guardrails | COMPLETE | self_ai | Antigravity | `feat_delivery01_phase_01` | D01-P01-CODE_REVIEW (IN_REVIEW) | D01-P01-T001 | P01-B | 2026-08-07T09:06:47.066Z |
+| [D01-P01-T003](delivery_01/phase_01/D01-P01-T003.md) | Establish automated testing foundations | COMPLETE | self_ai | Antigravity | `feat_delivery01_phase_01` | D01-P01-CODE_REVIEW (IN_REVIEW) | D01-P01-T001 | P01-B | 2026-08-07T09:14:23.451Z |
+| [D01-P01-T004](delivery_01/phase_01/D01-P01-T004.md) | Establish OpenAPI, generated client and HTTP boundary | COMPLETE | self_ai | Antigravity | `feat_delivery01_phase_01` | D01-P01-CODE_REVIEW (IN_REVIEW) | D01-P01-T002, D01-P01-T003 | P01-C | 2026-08-07T09:43:49.686Z |
+| [D01-P01-T005](delivery_01/phase_01/D01-P01-T005.md) | Build mock API, PostgreSQL foundation and deterministic reset | COMPLETE | self_ai | Antigravity | `feat_delivery01_phase_01` | D01-P01-CODE_REVIEW (IN_REVIEW) | D01-P01-T003, D01-P01-T004 | P01-D | 2026-08-07T09:47:05.510Z |
+| [D01-P01-T006](delivery_01/phase_01/D01-P01-T006.md) | Add stand-in JWT identities, roles and enforcement | COMPLETE | self_ai | Antigravity | `feat_delivery01_phase_01` | D01-P01-CODE_REVIEW (IN_REVIEW) | D01-P01-T005 | P01-E | 2026-08-07T09:55:55.425Z |
+| [D01-P01-T007](delivery_01/phase_01/D01-P01-T007.md) | Build semantic theme and runtime theme infrastructure | COMPLETE | self_ai | Antigravity | `feat_delivery01_phase_01` | D01-P01-CODE_REVIEW (IN_REVIEW) | D01-P01-T001 | P01-B | 2026-08-07T09:30:20.819Z |
+| [D01-P01-T008](delivery_01/phase_01/D01-P01-T008.md) | Build shared controls and application feedback primitives | COMPLETE | self_ai | Antigravity | `feat_delivery01_phase_01` | D01-P01-CODE_REVIEW (IN_REVIEW) | D01-P01-T002, D01-P01-T003, D01-P01-T007 | P01-C | 2026-08-07T09:38:18.207Z |
+| [D01-P01-T009](delivery_01/phase_01/D01-P01-T009.md) | Build the Next.js public shell and navigation | COMPLETE | self_ai | Antigravity | `feat_delivery01_phase_01` | D01-P01-CODE_REVIEW (IN_REVIEW) | D01-P01-T006, D01-P01-T008 | P01-F | 2026-08-07T10:00:45.985Z |
+| [D01-P01-T010](delivery_01/phase_01/D01-P01-T010.md) | Complete containers, CI guardrails and Phase 1.1 acceptance | COMPLETE | self_ai | Antigravity | `feat_delivery01_phase_01` | D01-P01-CODE_REVIEW (IN_REVIEW) | D01-P01-T009 | P01-G | 2026-08-07T10:20:38.563Z |
+| [D01-P01-T011](delivery_01/phase_01/D01-P01-T011.md) | Align shared theme with the Unified POC Brand | COMPLETE | self_ai | Codex | `feat_delivery01_phase_01` | D01-P01-CODE_REVIEW (IN_REVIEW) | D01-P01-T010 | P01-H | 2026-08-09T16:29:39.602Z |
+| [D01-P01-T012](delivery_01/phase_01/D01-P01-T012.md) | Add alternate theme injection and developer guide | COMPLETE | self_ai | Codex | `feat_delivery01_phase_01` | D01-P01-CODE_REVIEW (IN_REVIEW) | D01-P01-T011 | P01-I | 2026-08-10T03:48:43.935Z |
+| [D01-P01-CODE_REVIEW](delivery_01/phase_01/D01-P01-CODE_REVIEW.md) | Phase 1.1 PR code review and tech-lead approval | IN_REVIEW | phase_manual | Codex | `feat_delivery01_phase_01` | D01-P01-CODE_REVIEW (IN_REVIEW) | D01-P01-T012 | P01-REVIEW | 2026-08-10T04:11:28.715Z |
+| [D01-P02-T001](delivery_01/phase_02/D01-P02-T001.md) | Add featured vehicle services and reusable vehicle collections | NOT_STARTED | self_ai | — | `feat_delivery01_phase_02` | D01-P02-CODE_REVIEW (NOT_STARTED) | D01-P01-CODE_REVIEW | P02-A | — |
+| [D01-P02-T002](delivery_01/phase_02/D01-P02-T002.md) | Build and accept the home/showroom experience | NOT_STARTED | self_ai | — | `feat_delivery01_phase_02` | D01-P02-CODE_REVIEW (NOT_STARTED) | D01-P02-T001 | P02-B | — |
+| [D01-P02-CODE_REVIEW](delivery_01/phase_02/D01-P02-CODE_REVIEW.md) | Phase 1.2 PR code review and tech-lead approval | NOT_STARTED | phase_manual | — | `feat_delivery01_phase_02` | D01-P02-CODE_REVIEW (NOT_STARTED) | D01-P02-T002 | P02-REVIEW | — |
+| [D01-P03-T001](delivery_01/phase_03/D01-P03-T001.md) | Add vehicle query, dynamic filters, sorting and pagination | NOT_STARTED | self_ai | — | `feat_delivery01_phase_03` | D01-P03-CODE_REVIEW (NOT_STARTED) | D01-P02-CODE_REVIEW | P03-A | — |
+| [D01-P03-T002](delivery_01/phase_03/D01-P03-T002.md) | Build search orchestration, URL state and natural parsing | NOT_STARTED | self_ai | — | `feat_delivery01_phase_03` | D01-P03-CODE_REVIEW (NOT_STARTED) | D01-P03-T001 | P03-B | — |
+| [D01-P03-T003](delivery_01/phase_03/D01-P03-T003.md) | Build inventory filters and result presentations | NOT_STARTED | self_ai | — | `feat_delivery01_phase_03` | D01-P03-CODE_REVIEW (NOT_STARTED) | D01-P03-T001 | P03-B | — |
+| [D01-P03-T004](delivery_01/phase_03/D01-P03-T004.md) | Integrate and accept inventory search | NOT_STARTED | self_ai | — | `feat_delivery01_phase_03` | D01-P03-CODE_REVIEW (NOT_STARTED) | D01-P03-T002, D01-P03-T003 | P03-C | — |
+| [D01-P03-CODE_REVIEW](delivery_01/phase_03/D01-P03-CODE_REVIEW.md) | Phase 1.3 PR code review and tech-lead approval | NOT_STARTED | phase_manual | — | `feat_delivery01_phase_03` | D01-P03-CODE_REVIEW (NOT_STARTED) | D01-P03-T004 | P03-REVIEW | — |
+| [D01-P04-T001](delivery_01/phase_04/D01-P04-T001.md) | Add vehicle detail and public media service behavior | NOT_STARTED | self_ai | — | `feat_delivery01_phase_04` | D01-P04-CODE_REVIEW (NOT_STARTED) | D01-P03-CODE_REVIEW | P04-A | — |
+| [D01-P04-T002](delivery_01/phase_04/D01-P04-T002.md) | Build vehicle detail page and gallery | NOT_STARTED | self_ai | — | `feat_delivery01_phase_04` | D01-P04-CODE_REVIEW (NOT_STARTED) | D01-P04-T001 | P04-B | — |
+| [D01-P04-T003](delivery_01/phase_04/D01-P04-T003.md) | Add sharing, printing, metadata and detail acceptance | NOT_STARTED | self_ai | — | `feat_delivery01_phase_04` | D01-P04-CODE_REVIEW (NOT_STARTED) | D01-P04-T002 | P04-C | — |
+| [D01-P04-CODE_REVIEW](delivery_01/phase_04/D01-P04-CODE_REVIEW.md) | Phase 1.4 PR code review and tech-lead approval | NOT_STARTED | phase_manual | — | `feat_delivery01_phase_04` | D01-P04-CODE_REVIEW (NOT_STARTED) | D01-P04-T003 | P04-REVIEW | — |
+| [D01-P05-G001](delivery_01/phase_05/D01-P05-G001.md) | Approve freight and city-delivery calculation decisions | NOT_STARTED | self_ai | — | `feat_delivery01_phase_05` | D01-P05-CODE_REVIEW (NOT_STARTED) | D01-P04-CODE_REVIEW | P05-GATE | — |
+| [D01-P05-T001](delivery_01/phase_05/D01-P05-T001.md) | Add destinations, rates and freight estimate services | NOT_STARTED | self_ai | — | `feat_delivery01_phase_05` | D01-P05-CODE_REVIEW (NOT_STARTED) | D01-P05-G001 | P05-A | — |
+| [D01-P05-T002](delivery_01/phase_05/D01-P05-T002.md) | Implement approved freight calculations | NOT_STARTED | self_ai | — | `feat_delivery01_phase_05` | D01-P05-CODE_REVIEW (NOT_STARTED) | D01-P05-T001 | P05-B | — |
+| [D01-P05-T003](delivery_01/phase_05/D01-P05-T003.md) | Build freight estimate selection and explanation UI | NOT_STARTED | self_ai | — | `feat_delivery01_phase_05` | D01-P05-CODE_REVIEW (NOT_STARTED) | D01-P05-T002 | P05-C | — |
+| [D01-P05-T004](delivery_01/phase_05/D01-P05-T004.md) | Add freight quotation enquiry and accept the phase | NOT_STARTED | self_ai | — | `feat_delivery01_phase_05` | D01-P05-CODE_REVIEW (NOT_STARTED) | D01-P05-T003 | P05-D | — |
+| [D01-P05-CODE_REVIEW](delivery_01/phase_05/D01-P05-CODE_REVIEW.md) | Phase 1.5 PR code review and tech-lead approval | NOT_STARTED | phase_manual | — | `feat_delivery01_phase_05` | D01-P05-CODE_REVIEW (NOT_STARTED) | D01-P05-T004 | P05-REVIEW | — |
+| [D01-P06-T001](delivery_01/phase_06/D01-P06-T001.md) | Add lead and enquiry contracts with persistent mock behavior | NOT_STARTED | self_ai | — | `feat_delivery01_phase_06` | D01-P06-CODE_REVIEW (NOT_STARTED) | D01-P05-CODE_REVIEW | P06-A | — |
+| [D01-P06-T002](delivery_01/phase_06/D01-P06-T002.md) | Build accessible contact and vehicle enquiry forms | NOT_STARTED | self_ai | — | `feat_delivery01_phase_06` | D01-P06-CODE_REVIEW (NOT_STARTED) | D01-P06-T001 | P06-B | — |
+| [D01-P06-T003](delivery_01/phase_06/D01-P06-T003.md) | Build account entry and unauthenticated reservation guidance | NOT_STARTED | self_ai | — | `feat_delivery01_phase_06` | D01-P06-CODE_REVIEW (NOT_STARTED) | D01-P06-T001 | P06-B | — |
+| [D01-P06-T004](delivery_01/phase_06/D01-P06-T004.md) | Add transactional reservation eligibility and hold behavior | NOT_STARTED | self_ai | — | `feat_delivery01_phase_06` | D01-P06-CODE_REVIEW (NOT_STARTED) | D01-P06-T001 | P06-C | — |
+| [D01-P06-T005](delivery_01/phase_06/D01-P06-T005.md) | Build reservation UI and accept enquiry/reservation journeys | NOT_STARTED | self_ai | — | `feat_delivery01_phase_06` | D01-P06-CODE_REVIEW (NOT_STARTED) | D01-P06-T002, D01-P06-T003, D01-P06-T004 | P06-D | — |
+| [D01-P06-CODE_REVIEW](delivery_01/phase_06/D01-P06-CODE_REVIEW.md) | Phase 1.6 PR code review and tech-lead approval | NOT_STARTED | phase_manual | — | `feat_delivery01_phase_06` | D01-P06-CODE_REVIEW (NOT_STARTED) | D01-P06-T005 | P06-REVIEW | — |
+| [D01-P07-T001](delivery_01/phase_07/D01-P07-T001.md) | Add public content, FAQ and testimonial services | NOT_STARTED | self_ai | — | `feat_delivery01_phase_07` | D01-P07-CODE_REVIEW (NOT_STARTED) | D01-P06-CODE_REVIEW | P07-A | — |
+| [D01-P07-T002](delivery_01/phase_07/D01-P07-T002.md) | Build About, How to Buy and Contact information pages | NOT_STARTED | self_ai | — | `feat_delivery01_phase_07` | D01-P07-CODE_REVIEW (NOT_STARTED) | D01-P07-T001 | P07-B | — |
+| [D01-P07-T003](delivery_01/phase_07/D01-P07-T003.md) | Build testimonial display and moderated submission | NOT_STARTED | self_ai | — | `feat_delivery01_phase_07` | D01-P07-CODE_REVIEW (NOT_STARTED) | D01-P07-T001 | P07-B | — |
+| [D01-P07-T004](delivery_01/phase_07/D01-P07-T004.md) | Build FAQ browsing/search and accept public content | NOT_STARTED | self_ai | — | `feat_delivery01_phase_07` | D01-P07-CODE_REVIEW (NOT_STARTED) | D01-P07-T002, D01-P07-T003 | P07-C | — |
+| [D01-P07-CODE_REVIEW](delivery_01/phase_07/D01-P07-CODE_REVIEW.md) | Phase 1.7 PR code review and tech-lead approval | NOT_STARTED | phase_manual | — | `feat_delivery01_phase_07` | D01-P07-CODE_REVIEW (NOT_STARTED) | D01-P07-T004 | P07-REVIEW | — |
+| [D01-P08-T001](delivery_01/phase_08/D01-P08-T001.md) | Complete public SEO policy and visitor regression | NOT_STARTED | self_ai | — | `feat_delivery01_phase_08` | D01-P08-CODE_REVIEW (NOT_STARTED) | D01-P07-CODE_REVIEW | P08-A | — |
+| [D01-P08-T002](delivery_01/phase_08/D01-P08-T002.md) | Complete data projection, privacy and production-safety checks | NOT_STARTED | self_ai | — | `feat_delivery01_phase_08` | D01-P08-CODE_REVIEW (NOT_STARTED) | D01-P07-T004 | P08-A | — |
+| [D01-P08-T003](delivery_01/phase_08/D01-P08-T003.md) | Complete accessibility, browser and performance acceptance | NOT_STARTED | self_ai | — | `feat_delivery01_phase_08` | D01-P08-CODE_REVIEW (NOT_STARTED) | D01-P07-T004 | P08-A | — |
+| [D01-P08-T004](delivery_01/phase_08/D01-P08-T004.md) | Produce Public Website UAT and Delivery 1 handoff | NOT_STARTED | self_ai | — | `feat_delivery01_phase_08` | D01-P08-CODE_REVIEW (NOT_STARTED) | D01-P08-T001, D01-P08-T002, D01-P08-T003 | P08-B | — |
+| [D01-P08-CODE_REVIEW](delivery_01/phase_08/D01-P08-CODE_REVIEW.md) | Phase 1.8 PR code review and tech-lead approval | NOT_STARTED | phase_manual | — | `feat_delivery01_phase_08` | D01-P08-CODE_REVIEW (NOT_STARTED) | D01-P08-T004 | P08-REVIEW | — |
 
 
 ## Current execution frontier
 
-- Sequential next: D01-P01-T011 — Align shared theme with the Unified POC Brand (NOT_STARTED)
+- Sequential next: D01-P01-CODE_REVIEW — Phase 1.1 PR code review and tech-lead approval (IN_REVIEW)
 - Optional same-group parallel tasks: None
 - Downstream work waits for COMPLETE or SUPERSEDED; IN_REVIEW is not complete.
 - Later tasks cannot be bypassed; use taskctl sequence TASK-ID for the exact blocker.
 
 ## Continuation rule
 
-The next developer starts with this tracker, then reads the latest phase summary and the execution log for the task being continued. Sequential execution is the default; optional parallel work is limited to an approved same-group task after the group frontier is active. Blocked tasks cannot be bypassed. The working tree must be clean before a task starts; commit any previous task changes manually before continuing. Agents never commit, push, create PRs or merge. A task may start only after the clean-tree `taskctl precheck`, branch preparation and final `taskctl check` succeed.
+The next developer starts with this tracker, then reads the latest phase summary and the execution log for the task being continued. Sequential execution is the default; optional parallel work is limited to an approved same-group task after the group frontier is active. Blocked tasks cannot be bypassed. The working tree must be clean before a task starts; commit any previous task changes manually before continuing. Agents never commit, push, create PRs or merge. A self-AI task may start only after the clean-tree `taskctl precheck`, branch preparation and final `taskctl check` succeed. A phase review waits for all phase work, a human-created PR and tech-lead approval.

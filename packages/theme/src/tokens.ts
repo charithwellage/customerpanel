@@ -4,12 +4,23 @@ export interface ColorTokens {
   secondary: string;
   background: string;
   surface: string;
+  surfaceElevated: string;
+  surfaceDark: string;
   textPrimary: string;
   textSecondary: string;
+  textOnDark: string;
+  textOnPrimary: string;
   border: string;
+  focus: string;
   success: string;
+  successSurface: string;
   warning: string;
+  warningSurface: string;
   error: string;
+  errorSurface: string;
+  info: string;
+  infoSurface: string;
+  neutralSurface: string;
 }
 
 export interface SpacingTokens {
@@ -23,6 +34,8 @@ export interface SpacingTokens {
 
 export interface TypographyTokens {
   fontFamily: string;
+  fontDisplay: string;
+  fontMono: string;
   sizes: {
     xs: string;
     sm: string;
@@ -52,27 +65,59 @@ export interface MotionTokens {
   easing: string;
 }
 
+export interface RadiusTokens {
+  sm: string;
+  md: string;
+  lg: string;
+  pill: string;
+}
+
+export interface ShadowTokens {
+  sm: string;
+  md: string;
+  lg: string;
+}
+
+export interface AccessibilityTokens {
+  focusRingWidth: string;
+  minTouchTarget: string;
+}
+
 export interface SemanticThemeTokens {
   colors: ColorTokens;
   spacing: SpacingTokens;
   typography: TypographyTokens;
   breakpoints: BreakpointTokens;
   motion: MotionTokens;
+  radii: RadiusTokens;
+  shadows: ShadowTokens;
+  accessibility: AccessibilityTokens;
 }
 
 export const defaultSemanticTheme: SemanticThemeTokens = {
   colors: {
-    primary: '#1d4ed8', // AA contrast against #ffffff (4.5:1+)
-    primaryHover: '#1e40af',
-    secondary: '#0f766e',
-    background: '#f8fafc',
+    primary: '#dc2626', // POC red; AA contrast against white
+    primaryHover: '#b91c1c',
+    secondary: '#525252',
+    background: '#fafafa',
     surface: '#ffffff',
-    textPrimary: '#0f172a', // 15.6:1 contrast against #ffffff
-    textSecondary: '#475569', // 4.6:1 contrast against #ffffff
-    border: '#cbd5e1',
-    success: '#15803d',
-    warning: '#b45309',
+    surfaceElevated: '#ffffff',
+    surfaceDark: '#171717',
+    textPrimary: '#171717',
+    textSecondary: '#525252',
+    textOnDark: '#fafafa',
+    textOnPrimary: '#ffffff',
+    border: '#e5e5e5',
+    focus: '#b91c1c',
+    success: '#166534',
+    successSurface: '#dcfce7',
+    warning: '#92400e',
+    warningSurface: '#fef3c7',
     error: '#b91c1c',
+    errorSurface: '#fee2e2',
+    info: '#1d4ed8',
+    infoSurface: '#dbeafe',
+    neutralSurface: '#f5f5f5',
   },
   spacing: {
     xs: '0.25rem',
@@ -84,6 +129,8 @@ export const defaultSemanticTheme: SemanticThemeTokens = {
   },
   typography: {
     fontFamily: 'Inter, system-ui, sans-serif',
+    fontDisplay: '"Space Grotesk", Inter, system-ui, sans-serif',
+    fontMono: '"JetBrains Mono", ui-monospace, SFMono-Regular, monospace',
     sizes: {
       xs: '0.75rem',
       sm: '0.875rem',
@@ -109,5 +156,20 @@ export const defaultSemanticTheme: SemanticThemeTokens = {
     durationNormal: '300ms',
     durationSlow: '500ms',
     easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
+  },
+  radii: {
+    sm: '0.375rem',
+    md: '0.5rem',
+    lg: '0.75rem',
+    pill: '999px',
+  },
+  shadows: {
+    sm: '0 1px 2px rgb(23 23 23 / 0.08)',
+    md: '0 4px 16px rgb(23 23 23 / 0.10)',
+    lg: '0 12px 30px rgb(23 23 23 / 0.14)',
+  },
+  accessibility: {
+    focusRingWidth: '3px',
+    minTouchTarget: '44px',
   },
 };
