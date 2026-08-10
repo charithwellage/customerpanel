@@ -1,5 +1,0 @@
-[      86ms] [LOG] OfflineCache Loop Detection and Audit Engine Initialized. @ http://127.0.0.1:8080/staff/:7651
-[     101ms] [LOG] Service Worker registered successfully: http://127.0.0.1:8080/ @ http://127.0.0.1:8080/staff/:19737
-[     105ms] [LOG] Subscribing to active leads for backend... @ http://127.0.0.1:8080/staff/:19423
-[     121ms] [WARNING] <meta name="apple-mobile-web-app-capable" content="yes"> is deprecated. Please include <meta name="mobile-web-app-capable" content="yes"> @ http://127.0.0.1:8080/staff/?view=backend:0
-[     163ms] [WARNING] Error while trying to use the following icon from the Manifest: http://127.0.0.1:8080/input_file_0.png (Download error or resource isn't a valid image) @ http://127.0.0.1:8080/staff/?view=backend:0

@@ -1,6 +1,0 @@
-[      33ms] [LOG] OfflineCache Loop Detection and Audit Engine Initialized. @ http://127.0.0.1:8080/customer/:7616
-[      40ms] [LOG] Service Worker registered successfully: http://127.0.0.1:8080/ @ http://127.0.0.1:8080/customer/:19702
-[      40ms] [WARNING] <meta name="apple-mobile-web-app-capable" content="yes"> is deprecated. Please include <meta name="mobile-web-app-capable" content="yes"> @ http://127.0.0.1:8080/customer/?view=customer:0
-[      59ms] [WARNING] Error while trying to use the following icon from the Manifest: http://127.0.0.1:8080/input_file_0.png (Download error or resource isn't a valid image) @ http://127.0.0.1:8080/customer/?view=customer:0
-[    7596ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "new-password"): (More info: https://goo.gl/9p2vKq) %o @ http://127.0.0.1:8080/customer/?view=customer:0
-[    7596ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "new-password"): (More info: https://goo.gl/9p2vKq) %o @ http://127.0.0.1:8080/customer/?view=customer:0

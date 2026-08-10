@@ -80,6 +80,8 @@ coverage/
 .DS_Store
 .vscode/
 .idea/
+.playwright-mcp/
+test-results/
 
 # AI phase-review task prompts (kept local to the review workflow)
 tasks/SAMPLE_MASTER_PROMPT_PR_REVIEW.md
