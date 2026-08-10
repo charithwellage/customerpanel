@@ -77,3 +77,81 @@ node tasks/scripts/taskctl.mjs validate
 Visible screen work also requires the relevant integration and Playwright tests under both `carchief` and `ocean`. Record screenshots, commands, deviations and blockers in the task execution log.
 
 Never import mock fixtures into a page. Use the generated API client and feature service boundary.
+
+## Clean rebuild after pulling changes
+
+Use this procedure when a fresh checkout reports missing workspace declarations, stale compiler output, or Docker build errors. Run it from the repository root. It removes generated output only; it must not remove source files, package manifests, lockfiles, Docker files, environment files or task records.
+
+1. Check the branch and protect any work in progress:
+
+   ```bash
+   git status --short
+   git branch --show-current
+   ```
+
+   If the status shows intentional changes under `apps/`, `packages/`, configuration or documentation, commit or stash them before cleanup. Do not run cleanup against work you need to preserve.
+
+2. Remove generated output using `find` so the command is safe in zsh, Bash and shells where unmatched globs are errors:
+
+   ```bash
+   find apps packages -type d \( -name dist -o -name .next \) -prune -exec rm -rf {} +
+   find apps packages -name tsconfig.tsbuildinfo -type f -delete
+   ```
+
+   Confirm that no tracked source or configuration file was removed:
+
+   ```bash
+   git status --short
+   ```
+
+   If tracked `tsconfig.tsbuildinfo` files appear as deleted or modified, they are generated artifacts currently tracked by this branch. Do not commit those changes without an explicit repository decision; restore them after verification if necessary.
+
+3. Reinstall the locked dependencies:
+
+   ```bash
+   corepack pnpm install --frozen-lockfile
+   ```
+
+   If this fails with registry/DNS errors, retry with network access. If it reports a lockfile mismatch, stop and resolve the dependency change rather than regenerating the lockfile casually.
+
+4. Build the two requested applications with their workspace dependencies in dependency order:
+
+   ```bash
+   corepack pnpm --filter @carchief/mock-api... build
+   corepack pnpm --filter @carchief/public-web... build
+   ```
+
+   The `...` includes each application’s workspace dependencies, ensuring packages such as `@carchief/domain` emit `dist/*.d.ts` before an application imports them. This is preferred over a plain `pnpm -r build` when validating only these applications.
+
+5. Verify each application directly:
+
+   ```bash
+   corepack pnpm --filter @carchief/mock-api typecheck
+   corepack pnpm --filter @carchief/public-web typecheck
+   corepack pnpm --filter @carchief/mock-api test
+   corepack pnpm --filter @carchief/public-web test
+   ```
+
+6. Run the repository checks:
+
+   ```bash
+   corepack pnpm lint
+   corepack pnpm typecheck
+   node tasks/scripts/taskctl.mjs validate
+   git diff --check
+   git diff -- POC
+   ```
+
+7. Rebuild and verify Docker when Docker is available:
+
+   ```bash
+   docker compose -f docker-compose.frontend.yml down --remove-orphans
+   docker compose -f docker-compose.frontend.yml build --no-cache
+   docker compose -f docker-compose.frontend.yml up -d
+   docker compose -f docker-compose.frontend.yml ps
+   curl --fail http://127.0.0.1:3000/healthz
+   curl --fail http://127.0.0.1:4000/healthz
+   docker compose -f docker-compose.frontend.yml down
+   ```
+
+If a failure remains, record the exact command, Node/Corepack/pnpm versions, `docker compose ps` output and relevant logs. Do not disable type checking, change dependency versions, or copy generated output into source directories to hide the failure.
