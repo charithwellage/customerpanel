@@ -2,7 +2,7 @@
 
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
-import { dirname, join, relative, resolve } from 'node:path';
+import { basename, dirname, join, relative, resolve } from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 
@@ -58,11 +58,18 @@ function walk(dir) {
 
 function loadTasks() {
   const tasks = new Map();
+  const deliveryDirectories = existsSync(tasksRoot)
+    ? readdirSync(tasksRoot, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory() && /^delivery_\d{2}$/.test(entry.name))
+      .map((entry) => join(tasksRoot, entry.name))
+      .sort()
+    : [];
   const taskFiles = [
     ...walk(join(tasksRoot, 'infra_check')),
-    ...walk(join(tasksRoot, 'delivery_01')),
+    ...deliveryDirectories.flatMap((directory) => walk(directory)),
   ];
   for (const file of taskFiles) {
+    if (!/^(INF-P00-T\d{3}|D\d{2}-P\d{2}-(?:T\d{3}|G\d{3}|CODE_REVIEW))\.md$/.test(basename(file))) continue;
     const data = parseFrontmatter(readFileSync(file, 'utf8'), file);
     if (!data.task_id) continue;
     if (tasks.has(data.task_id)) die(`duplicate task ID ${data.task_id}`);
@@ -73,6 +80,20 @@ function loadTasks() {
     tasks.set(data.task_id, data);
   }
   return tasks;
+}
+
+const deliveryBranches = new Map([
+  ['01', 'delivery_01_public_website'],
+  ['02', 'delivery_02_customer_application'],
+]);
+
+function deliveryBranch(task) {
+  const deliveryNumber = task.task_id.match(/^D(\d{2})-/)?.[1];
+  return deliveryBranches.get(deliveryNumber) || '';
+}
+
+function isPhaseReview(task) {
+  return /^D\d{2}-P\d{2}-CODE_REVIEW$/.test(task.task_id);
 }
 
 function loadDecisions() {
@@ -150,12 +171,10 @@ function validate({ quiet = false } = {}) {
   const containerGateTasks = new Set([
     'D01-P01-T010', 'D01-P01-T012', 'D01-P02-T002', 'D01-P03-T004', 'D01-P04-T003',
     'D01-P05-T004', 'D01-P06-T005', 'D01-P07-T004', 'D01-P08-T004',
+    'D02-P01-T003', 'D02-P02-T002', 'D02-P03-T003', 'D02-P04-T003',
+    'D02-P05-T003', 'D02-P06-T004', 'D02-P07-T004', 'D02-P08-T003', 'D02-P09-T004',
   ]);
-  const phaseReviewTasks = new Set([
-    'D01-P01-CODE_REVIEW', 'D01-P02-CODE_REVIEW', 'D01-P03-CODE_REVIEW', 'D01-P04-CODE_REVIEW',
-    'D01-P05-CODE_REVIEW', 'D01-P06-CODE_REVIEW', 'D01-P07-CODE_REVIEW', 'D01-P08-CODE_REVIEW',
-  ]);
-  if (tasks.size !== 52) errors.push(`expected 52 task/gate files, found ${tasks.size}`);
+  if (tasks.size !== 94) errors.push(`expected 94 task/gate files, found ${tasks.size}`);
   for (const task of tasks.values()) {
     for (const field of ['task_id', 'title', 'delivery', 'phase', 'estimate', 'model_tier', 'parallel_group', 'phase_branch', 'task_branch']) {
       if (!task[field]) errors.push(`${task.task_id || task.file}: missing ${field}`);
@@ -175,11 +194,11 @@ function validate({ quiet = false } = {}) {
     }
     if (!['allowed', 'forbidden'].includes(task.product_source_mutation)) errors.push(`${task.task_id}: invalid product_source_mutation`);
     if (task.task_id.startsWith('INF-') && task.product_source_mutation !== 'forbidden') errors.push(`${task.task_id}: Phase 0 must forbid product source mutation`);
-    if (task.task_id.startsWith('D01-') && !['self_ai', 'phase_manual'].includes(task.review_mode)) {
+    if (/^D\d{2}-/.test(task.task_id) && !['self_ai', 'phase_manual'].includes(task.review_mode)) {
       errors.push(`${task.task_id}: review_mode must be self_ai or phase_manual`);
     }
-    if (phaseReviewTasks.has(task.task_id) && task.review_mode !== 'phase_manual') errors.push(`${task.task_id}: phase review must use phase_manual review_mode`);
-    if (!phaseReviewTasks.has(task.task_id) && task.task_id.startsWith('D01-') && task.review_mode !== 'self_ai') errors.push(`${task.task_id}: implementation task must use self_ai review_mode`);
+    if (isPhaseReview(task) && task.review_mode !== 'phase_manual') errors.push(`${task.task_id}: phase review must use phase_manual review_mode`);
+    if (!isPhaseReview(task) && /^D\d{2}-/.test(task.task_id) && task.review_mode !== 'self_ai') errors.push(`${task.task_id}: implementation task must use self_ai review_mode`);
     const body = readFileSync(task.file, 'utf8');
     for (const heading of requiredHeadings) if (!body.includes(heading)) errors.push(`${task.task_id}: missing section ${heading}`);
     if (!body.includes('### Blockers\nNone')) errors.push(`${task.task_id}: final response does not require Blockers: None`);
@@ -190,8 +209,11 @@ function validate({ quiet = false } = {}) {
       if (!body.includes('### AI code review')) errors.push(`${task.task_id}: self_ai task is missing AI review final response heading`);
       if (body.includes('Obtain independent review.')) errors.push(`${task.task_id}: self_ai task must not require a manual task-level review`);
     }
+    if (/^D02-P\d{2}-T\d{3}$/.test(task.task_id) && !body.includes('### Frontend API integration')) {
+      errors.push(`${task.task_id}: Delivery 02 implementation task is missing explicit frontend/mock HTTP integration instructions`);
+    }
     if (task.review_mode === 'phase_manual') {
-      const range = `delivery_01_public_website...${task.phase_branch}`;
+      const range = `${deliveryBranch(task)}...${task.phase_branch}`;
       if (!body.includes(range)) errors.push(`${task.task_id}: phase review must name comparison range ${range}`);
       if (!body.includes(`taskctl.mjs submit ${task.task_id}`) || !body.includes(`taskctl.mjs approve ${task.task_id}`)) {
         errors.push(`${task.task_id}: phase review must require submit and tech-lead approval`);
@@ -208,13 +230,14 @@ function validate({ quiet = false } = {}) {
       if (!preflightSection.includes(`refs/heads/${task.phase_branch}`)) errors.push(`${task.task_id}: missing conditional phase-branch lookup`);
       if (!preflightSection.includes(`git switch -c ${task.phase_branch}`)) errors.push(`${task.task_id}: missing phase-branch creation command`);
       if (!preflightSection.includes('Do not create or switch to a task-specific child branch')) errors.push(`${task.task_id}: preflight must forbid task-specific child branches`);
-      if (!preflightSection.includes('git pull --ff-only origin delivery_01_public_website')) errors.push(`${task.task_id}: missing delivery-branch synchronization command`);
+      const baseBranch = deliveryBranch(task);
+      if (!baseBranch || !preflightSection.includes(`git pull --ff-only origin ${baseBranch}`)) errors.push(`${task.task_id}: missing delivery-branch synchronization command`);
     }
-    if (phaseReviewTasks.has(task.task_id)) {
+    if (isPhaseReview(task)) {
       if (!body.includes('## Phase branch and PR handoff')) errors.push(`${task.task_id}: missing phase PR handoff`);
-      if (!body.includes('create a PR with base `delivery_01_public_website`')) errors.push(`${task.task_id}: missing delivery PR target`);
+      if (!body.includes(`create a PR with base \`${deliveryBranch(task)}\``)) errors.push(`${task.task_id}: missing delivery PR target`);
     }
-    if (task.task_id.startsWith('D01-')) {
+    if (/^D\d{2}-/.test(task.task_id)) {
       const validationBody = body.match(/## Validation commands\n\n([\s\S]*?)(?=\n## )/)?.[1] || '';
       for (const command of ['- `corepack pnpm lint`', '- `corepack pnpm typecheck`', '- `corepack pnpm -r build`']) {
         if (!validationBody.includes(command)) errors.push(`${task.task_id}: validation commands must include ${command}`);
@@ -254,6 +277,17 @@ function validate({ quiet = false } = {}) {
   for (let number = 1; number <= 24; number += 1) {
     const id = `PUB-${String(number).padStart(2, '0')}`;
     if (!corpus.includes(id)) errors.push(`task set does not assign or explicitly defer ${id}`);
+  }
+  const customerCorpus = [...tasks.values()]
+    .filter((task) => task.task_id.startsWith('D02-'))
+    .map((task) => readFileSync(task.file, 'utf8'))
+    .join('\n');
+  for (let number = 1; number <= 25; number += 1) {
+    const id = `CUST-${String(number).padStart(2, '0')}`;
+    if (!customerCorpus.includes(id)) errors.push(`Delivery 02 task set does not assign ${id}`);
+  }
+  for (const id of ['RULE-01', 'RULE-04', 'RULE-05', 'RULE-06', 'RULE-07', 'RULE-08', 'RULE-09', 'RULE-10', 'UI-01', 'UI-02', 'UI-03', 'PWA-01', 'PWA-02', 'PWA-03', 'PWA-04', 'PWA-05']) {
+    if (!customerCorpus.includes(id)) errors.push(`Delivery 02 task set is missing ${id}`);
   }
   for (const id of ['RULE-05', 'RULE-08', 'RULE-09', 'RULE-10', 'UV-3', 'UV-4']) {
     if (!corpus.includes(id)) errors.push(`task set is missing required rule/gate ${id}`);
@@ -303,8 +337,9 @@ function precheck(id) {
   const task = tasks.get(id);
   if (!task) die(`unknown task ${id}`);
   const blockers = prerequisiteBlockers(task, tasks, decisions);
-  if (!task.task_id.startsWith('INF-') && !localBranchExists('delivery_01_public_website')) {
-    blockers.push("required local delivery branch 'delivery_01_public_website' does not exist");
+  const baseBranch = deliveryBranch(task);
+  if (!task.task_id.startsWith('INF-') && (!baseBranch || !localBranchExists(baseBranch))) {
+    blockers.push(`required local delivery branch '${baseBranch || '(unknown)'}' does not exist`);
   }
   if (blockers.length) die(`${id} is blocked before branch preparation:\n- ${blockers.join('\n- ')}\nNo implementation started.`);
   console.log(`${id} prerequisite and clean-tree check passed. Blockers: None.`);
@@ -445,8 +480,8 @@ function render() {
     const log = loadLog(task.task_id);
     const link = relative(tasksRoot, task.file);
     const phaseBranch = task.task_id.startsWith('INF-') ? 'Branch-neutral' : `\`${task.phase_branch}\``;
-    const phaseReview = task.task_id.match(/^D01-P(\d{2})-/)?.[1];
-    const phaseGateId = phaseReview ? `D01-P${phaseReview}-CODE_REVIEW` : '—';
+    const phaseReview = task.task_id.match(/^D(\d{2})-P(\d{2})-/);
+    const phaseGateId = phaseReview ? `D${phaseReview[1]}-P${phaseReview[2]}-CODE_REVIEW` : '—';
     const phaseGate = tasks.has(phaseGateId) ? `${phaseGateId} (${rawStatus(phaseGateId)})` : '—';
     return `| [${task.task_id}](${link}) | ${task.title} | ${displayStatus(task, tasks, decisions)} | ${task.review_mode || '—'} | ${log?.owner || '—'} | ${phaseBranch} | ${phaseGate} | ${task.dependencies.join(', ') || 'None'} | ${task.parallel_group} | ${log?.updated_at || '—'} |`;
   });

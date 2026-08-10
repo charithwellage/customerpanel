@@ -27,7 +27,7 @@ function taskIds(root, throughOrder) {
     env: { ...process.env, TASKCTL_ROOT: root },
     encoding: 'utf8',
   });
-  assert.match(output, /Validated 52 task\/gate files/);
+  assert.match(output, /Validated 94 task\/gate files/);
   const ordered = readFileSync(join(root, 'tasks/EXECUTION_ORDER.md'), 'utf8')
     .split('\n')
     .map((line) => line.match(/^\|\s*(\d+)\s*\|\s*\[([^\]]+)\]/))
@@ -54,6 +54,7 @@ function setup(phaseBranch) {
   shell(root, 'git', 'add', '.');
   shell(root, 'git', 'commit', '-qm', 'baseline');
   shell(root, 'git', 'branch', 'delivery_01_public_website');
+  shell(root, 'git', 'branch', 'delivery_02_customer_application');
   shell(root, 'git', 'checkout', '-qb', phaseBranch);
   return root;
 }
@@ -78,6 +79,23 @@ test('self-AI completion accepts legacy IN_REVIEW after recorded review and test
     const reopen = run(root, 'reopen', 'D01-P01-T011', '--reason', 'phase finding');
     assert.equal(reopen.status, 0, reopen.stderr);
     assert.match(readFileSync(logPath, 'utf8'), /status: "IN_PROGRESS"/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('Delivery 02 phase review uses its customer integration branch', () => {
+  const root = setup('feat_delivery02_phase_01');
+  try {
+    seedComplete(root, taskIds(root, 57));
+    shell(root, 'git', 'add', '.');
+    shell(root, 'git', 'commit', '-qm', 'seed customer phase');
+    const start = run(root, 'start', 'D02-P01-CODE_REVIEW', '--owner', 'review-agent');
+    assert.equal(start.status, 0, start.stderr);
+    assert.equal(run(root, 'submit', 'D02-P01-CODE_REVIEW').status, 0);
+    const approve = run(root, 'approve', 'D02-P01-CODE_REVIEW', '--reviewer', 'tech-lead');
+    assert.equal(approve.status, 0, approve.stderr);
+    assert.match(approve.stdout, /COMPLETE \(reviewer: tech-lead\)/);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

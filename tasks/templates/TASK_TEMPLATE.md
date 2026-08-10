@@ -8,7 +8,7 @@ The first preflight command must always be:
 git status --porcelain=v1 --untracked-files=all
 ```
 
-Any output blocks the task before all branch, source, log and tracker mutations. Public phase branches must follow `feat_delivery<two-digit-delivery>_phase_<two-digit-phase>` and be created from the updated delivery integration branch. Phase 0 tasks must use `BRANCH_NEUTRAL` for both branch fields and must not switch or create branches. Include `taskctl precheck`, conditional phase-branch commands, final `taskctl check`, and the exact dirty-tree response from an existing task. Never create a task-specific child branch.
+Any output blocks the task before all branch, source, log and tracker mutations. Application phase branches must follow `feat_delivery<two-digit-delivery>_phase_<two-digit-phase>` and be created from the delivery integration branch named for that task. Phase 0 tasks must use `BRANCH_NEUTRAL` for both branch fields and must not switch or create branches. Include `taskctl precheck`, conditional phase-branch commands, final `taskctl check`, and the exact dirty-tree response from an existing task. Never create a task-specific child branch.
 Run `taskctl next` and `taskctl sequence` before `taskctl precheck`. The precheck/check commands enforce the execution frontier: later tasks are blocked when earlier tasks are incomplete, except for explicitly eligible same-group parallel work. Never create a task-specific child branch.
 
 ## Verification requirements
@@ -23,11 +23,13 @@ corepack pnpm -r build
 
 Before those tests, include an `## AI code review before tests` section requiring the agent to inspect only its owned diff and named dependencies against `CODE_REVIEW_RULES.md`, fix violations, repeat review until PASS, and record the required review result. Add `### AI code review` to the final response format.
 
-Every Delivery 01 task declares `review_mode`: use `self_ai` for implementation work and `phase_manual` only for the dedicated phase PR review. A `self_ai` task must review its owned diff against `CODE_REVIEW_RULES.md`, fix all in-scope findings, record PASS, run tests and then use `taskctl complete`. It does not require manual task-level PR approval. A `phase_manual` task reviews only its phase branch diff against `delivery_01_public_website`, records the AI review, then awaits a tech-lead PR approval through `taskctl approve`.
+Every Delivery task declares `review_mode`: use `self_ai` for implementation work and `phase_manual` only for the dedicated phase PR review. A `self_ai` task must review its owned diff against `CODE_REVIEW_RULES.md`, fix all in-scope findings, record PASS, run tests and then use `taskctl complete`. It does not require manual task-level PR approval. A `phase_manual` task reviews only its phase branch diff against the correct delivery integration branch, records the AI review, then awaits tech-lead PR approval through `taskctl approve`.
 
 Task agents must never run `git commit`, `git push`, create a pull request, merge, rewrite history or self-approve. They may update the task execution log and generated tracker as required by the task. The human owner reviews the working-tree diff and performs all commits, pushes, PR creation and merges manually.
 
 Acceptance criteria must require lint, typecheck and recursive builds to pass with no compiler/build errors. Infrastructure and phase-acceptance tasks must also include `## Containerized verification`: rebuild the target Compose stack (`docker/docker-compose.yml` plus `docker/docker-compose.dev.yml`), start it, run container Playwright tests, complete a manual UI smoke checklist, record evidence, and shut it down. Ordinary component tasks do not need a Docker redeploy when their phase gate performs it.
+
+Every containerized verification must inspect the mock API directly, not only the frontend: run `docker compose ... logs --no-color mock-api` and fail on database initialization/schema errors; verify PostgreSQL readiness and inspect the live tables used by the store seed/reset SQL; call mock `/healthz`, `/openapi.json` and deterministic reset; then run container Playwright. A stale volume or `CREATE TABLE IF NOT EXISTS` schema drift is a blocking finding that must be repaired/migrated before acceptance.
 
 Every UI task must state its responsive behavior and test phone, tablet and desktop widths where applicable. If a domain interaction is used by two or more applications, the task must implement or consume a reusable package under `packages/` (for example `packages/vehicle-search`) rather than copying app-local components. App-specific wrappers may configure audience, permissions, routes, prices and actions, but must not fork shared search/detail behavior.
 

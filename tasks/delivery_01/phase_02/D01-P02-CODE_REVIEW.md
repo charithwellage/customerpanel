@@ -34,6 +34,7 @@ Apply every applicable shared code-review rule and these phase-specific checks:
 
 - Home/showroom content, vehicle-collection API integration, public routes, responsive visitor journey, and approved legacy-page parity.
 - Verify the phase acceptance criteria, required mock/API boundaries and required automated/container evidence are present in the PR diff or its committed execution records.
+- Verify the mock API starts cleanly against PostgreSQL: logs contain no initialization/schema errors, the live `vehicles` table contains every column used by seed/reset SQL, `/healthz`, `/openapi.json` and deterministic reset succeed, and the phase is not accepted from a frontend-only smoke test.
 
 ## Mandatory preflight and blocker protocol
 
