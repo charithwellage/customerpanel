@@ -1,6 +1,6 @@
 ---
 task_id: "D01-P02-CODE_REVIEW"
-status: "BLOCKED"
+status: "IN_PROGRESS"
 owner: "Codex"
 reviewer: ""
 review_agent: "Codex"
@@ -8,15 +8,15 @@ review_mode: "phase_manual"
 phase_branch: "feat_delivery01_phase_02"
 task_branch: "feat_delivery01_phase_02"
 started_at: "2026-08-10T09:05:19.000Z"
-updated_at: "2026-08-10T10:23:01.033Z"
-blocker: "D01-P02-T006 is a new required static-inline-style remediation task; complete it and rerun this phase review."
+updated_at: "2026-08-10T10:41:57.914Z"
+blocker: ""
 ---
 
 # D01-P02-CODE_REVIEW Execution Log
 
 ## Preflight
 
-- Blockers: D01-P02-T006 is a new required static-inline-style remediation task; complete it and rerun this phase review..
+- Blockers: None
 - Clean-tree command/result: `git status --porcelain=v1 --untracked-files=all` — passed.
 - Phase branch: `feat_delivery01_phase_02`.
 - Comparison range: `delivery_01_public_website...feat_delivery01_phase_02`.
@@ -42,6 +42,25 @@ blocker: "D01-P02-T006 is a new required static-inline-style remediation task; c
 
 D01-P02-T006 is a new required static-inline-style remediation task; complete it and rerun this phase review.
 
+## Blocking review attempt — 2026-08-10
+
+### AI code review
+
+- Reviewed range/files: `delivery_01_public_website...feat_delivery01_phase_02`; `apps/public-web/src/features/home/home.css`, `packages/vehicle-search/src/VehicleCollectionPrimitive.tsx`, the T006 source guard and the T006 execution evidence.
+- Rules checked: `CODE_REVIEW_RULES.md` 2, 4, 5 and 9; `COMMON_FRONTEND_RULES.md` styles/themes and accessible/responsive UI; Phase 1.2 T006 semantic-theme and reusable-component acceptance criteria.
+- Findings:
+  1. **Blocking** — `apps/public-web/src/features/home/home.css` contains literal fallback palettes and raw visual values such as `#dc2626`, `#25D366`, `rgba(255, 255, 255, 0.1)`, and fallback font/radius/spacing values. T006 requires feature styling to use semantic theme variables only, and the shared frontend/code-review rules prohibit visual fallback palettes. Responsible task: `D01-P02-T006`. Required correction: add or consume the appropriate semantic theme tokens and remove feature-level visual literals/fallback palettes.
+  2. **Blocking** — `packages/vehicle-search/src/VehicleCollectionPrimitive.tsx` derives `headingId` solely from `title` whenever a title exists. Two collections with the same title therefore produce duplicate DOM IDs, despite calling `useId`. Responsible task: `D01-P02-T006`. Required correction: include the hook-generated unique value in the heading ID (or accept a caller-supplied unique ID) and add repeated-render regression coverage.
+- Fixes/reopened tasks: No product code changed. `D01-P02-T006` was reopened with both findings.
+- Remaining concerns: The phase review cannot be submitted until T006 is corrected, self-reviewed, freshly runtime-validated and marked `COMPLETE`, then this review is rerun.
+- Result: FAIL
+
+### Tests executed
+
+- `git diff --check delivery_01_public_website...feat_delivery01_phase_02`: PASS.
+- `taskctl` preflight (`next`, `sequence`, `precheck`, `check`): PASS before review start.
+- Phase-wide lint/typecheck/build/browser commands: not run because the blocking review findings require an immediate stop under the review protocol.
+
 ## Blockers
 
-D01-P02-T006 is a new required static-inline-style remediation task; complete it and rerun this phase review.
+None.
