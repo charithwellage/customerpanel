@@ -123,13 +123,14 @@ Restart or reload the AI-agent session after adding an MCP server when the tools
 For a task marked `playwright_mcp`:
 
 1. Complete the implementation and initial AI code review.
-2. Start the required local application, Mock API and PostgreSQL services.
-3. Test `carchief` and `ocean` at `390x844`, `768x1024` and `1440x900`.
-4. Exercise the task's acceptance journey and loading, empty, error and success states.
-5. Inspect accessibility/keyboard/focus behavior, console messages and failed network requests.
-6. Fix every in-scope finding. Repeat code review and the MCP walkthrough after corrections.
-7. Run the automated Playwright Test suite and all task validation commands.
-8. Record the client, URL, viewports, themes, console/network result, findings/corrections, `Playwright MCP Result: PASS` and `Automated Playwright Test Result: PASS` in the execution log.
+2. Build and recreate a **controlled runtime from the current worktree**. Do not point a browser at an already-running server or Docker image unless the task rebuilt/recreated it and can prove its provenance.
+3. Record the exact build/recreate command, target URL, process ID or container identity, and start time. Check the web health endpoint; where the task uses backend data, also check Mock API health, `/openapi.json`, reset and clean startup logs.
+4. Test `carchief` and `ocean` at `390x844`, `768x1024` and `1440x900` against that exact URL.
+5. Exercise the task's acceptance journey and loading, empty, error and success states.
+6. Inspect accessibility/keyboard/focus behavior, console messages and failed network requests.
+7. Fix every in-scope finding immediately. Rebuild/recreate the controlled runtime, repeat code review and repeat the MCP walkthrough after corrections. If the defect is genuinely owned by an earlier task, reopen that task rather than hiding the failure in phase review.
+8. Run the automated Playwright Test suite with `PLAYWRIGHT_BASE_URL` set to the same recorded target URL, then run all task validation commands.
+9. Record the client, URL, build/recreate command, runtime identity, readiness results, viewports, themes, console/network result, findings/corrections, `Fresh-runtime verification: PASS`, `Service readiness: PASS`, `Playwright MCP Result: PASS` and `Automated Playwright Test Result: PASS` in the execution log.
 
 If the MCP tools are unavailable, stop and resolve/re-run `INF-P00-T006`. Do not claim that Playwright Test, screenshots from an unrelated browser, or a server process check satisfies the MCP gate.
 

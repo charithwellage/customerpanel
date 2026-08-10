@@ -99,6 +99,10 @@ No API, mock, OpenAPI, fixture, database or BFF change is owned. Review their co
 
 ## Implementation and UX requirements
 
+### Fresh-runtime evidence review
+
+For every completed task marked `ui_validation: "playwright_mcp"`, verify its execution log proves a fresh current-worktree runtime: `Fresh-runtime verification: PASS`, `Runtime provenance:`, `Service readiness: PASS`, a recorded target URL, and Playwright MCP/automated results against that same URL. Treat a stale-image, stale-server, missing health/API/reset check, or a browser failure deferred from the implementation task as a **blocking** finding. Reopen the responsible task; do not approve the phase on earlier or source-only evidence.
+
 Review responsive phone/tablet/desktop behavior, semantic theme usage, keyboard/focus/contrast/reduced-motion behavior and PWA safety where this phase changes UI.
 
 ## Automated tests to add

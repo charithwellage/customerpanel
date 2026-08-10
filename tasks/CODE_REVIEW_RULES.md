@@ -14,7 +14,7 @@ Every Delivery 01 and Delivery 02 implementation task performs this review befor
 8. **Accessibility, PWA and performance** — Semantic markup, labels, contrast, focus, touch targets and responsive layouts are present. PWA changes avoid broad sensitive-data caching and do not enable offline mutations for identity, finance, approval or document flows. Avoid unnecessary client JavaScript, blocking work and unoptimized media.
 9. **Tests and maintainability** — Tests prove the new behavior and important failure paths without relying on implementation details. Existing tests remain meaningful. Test names, fixtures and helpers are clear and deterministic. Reusable presentational primitives receive focused tests for repeated rendering/unique accessible references and their permitted interaction model where applicable.
 10. **Comments and documentation** — Add concise comments/JSDoc only for exported, non-obvious, algorithmic, financial, security-sensitive, workflow-transition or workaround code. Do not add comments that merely restate self-explanatory code. Update task evidence and user/developer documentation when the task requires it.
-11. **Playwright MCP evidence for UI tasks** — A task marked `ui_validation: "playwright_mcp"` identifies the active client, URL, both themes, required phone/tablet/desktop viewports, accessibility/keyboard/focus behavior, console/network result, findings and corrections. Every in-scope finding is fixed and reviewed again. The log contains both `Playwright MCP Result: PASS` and `Automated Playwright Test Result: PASS`; neither layer substitutes for the other.
+11. **Playwright MCP evidence for UI tasks** — A task marked `ui_validation: "playwright_mcp"` first proves that its browser target was freshly built/recreated from the current worktree; it must never reuse an unknown or earlier task's server/image. The execution log identifies the active client, target URL, runtime provenance, both themes, required phone/tablet/desktop viewports, accessibility/keyboard/focus behavior, console/network result, findings and corrections. Every in-scope finding is fixed and reviewed again within the same task. The log contains `Fresh-runtime verification: PASS`, `Service readiness: PASS`, `Playwright MCP Result: PASS` and `Automated Playwright Test Result: PASS`; neither browser layer substitutes for the other.
 
 ## Per-task AI review loop
 
@@ -22,9 +22,10 @@ Every Delivery 01 and Delivery 02 implementation task performs this review befor
 2. For UI changes, inspect the owned diff for `style={{`/`style=` usage and static visual literals; move every violation to the owning semantic stylesheet before continuing.
 3. Record findings and fixes in the task execution log under `## AI code review`.
 4. Fix every in-scope violation, then repeat the review.
-5. For a task marked `playwright_mcp`, start the required local services and run its MCP walkthrough. Fix in-scope findings and repeat this code review after any correction.
-6. Only when the final review and MCP result are **PASS** run the task’s automated tests, lint, typecheck and build commands.
-7. Record exact MCP and test results, then use `taskctl complete` for a `self_ai` task.
+5. For a task marked `playwright_mcp`, build/recreate a runtime from the current worktree before starting its MCP walkthrough. Record the exact command, URL, process/container identity and readiness checks. Do not treat a source-only build or a pre-existing port listener as runtime proof.
+6. Run the MCP walkthrough and the automated Playwright suite against that recorded target URL. Fix in-scope findings and repeat the code review and fresh-runtime validation after any correction.
+7. Only when the final review and MCP result are **PASS** run the task’s automated tests, lint, typecheck and build commands.
+8. Record exact MCP and test results, then use `taskctl complete` for a `self_ai` task.
 
 If an issue needs a business decision, another task’s owned path, or a prerequisite change, record it as a blocker rather than guessing or expanding scope.
 

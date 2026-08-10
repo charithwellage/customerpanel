@@ -228,6 +228,11 @@ function validate({ quiet = false } = {}) {
       for (const marker of ['AI client:', 'Target URL:', 'Viewports:', 'Themes:', 'Console/network result:', 'Findings and corrections:', 'Playwright MCP Result: PASS', 'Automated Playwright Test Result: PASS']) {
         if (!body.includes(marker)) errors.push(`${task.task_id}: missing required MCP evidence marker ${marker}`);
       }
+      if (task.task_id !== 'D01-P02-T004') {
+        for (const marker of ['### Fresh-runtime gate', 'Fresh-runtime verification: PASS', 'Runtime provenance:', 'Service readiness: PASS']) {
+          if (!body.includes(marker)) errors.push(`${task.task_id}: missing required fresh-runtime UI validation marker ${marker}`);
+        }
+      }
     }
     if (/^D02-P\d{2}-T\d{3}$/.test(task.task_id) && !body.includes('### Frontend API integration')) {
       errors.push(`${task.task_id}: Delivery 02 implementation task is missing explicit frontend/mock HTTP integration instructions`);
@@ -395,7 +400,7 @@ function writeLog(id, status, fields = {}) {
     for (const [field, value] of Object.entries(fields)) text = replaceFrontmatterField(text, field, value);
   } else {
     const mcpSection = task?.ui_validation === 'playwright_mcp'
-      ? `\n## Playwright MCP UI validation\n\n- AI client: Not recorded.\n- Target URL: Not recorded.\n- Viewports: Not recorded.\n- Themes: Not recorded.\n- Console/network result: Not recorded.\n- Findings and corrections: Not recorded.\n- Playwright MCP Result: Not recorded.\n- Automated Playwright Test Result: Not recorded.\n`
+      ? `\n## Playwright MCP UI validation\n\n- AI client: Not recorded.\n- Target URL: Not recorded.\n- Fresh-runtime verification: Not recorded.\n- Runtime provenance: Not recorded.\n- Service readiness: Not recorded.\n- Viewports: Not recorded.\n- Themes: Not recorded.\n- Console/network result: Not recorded.\n- Findings and corrections: Not recorded.\n- Playwright MCP Result: Not recorded.\n- Automated Playwright Test Result: Not recorded.\n`
       : '';
     text = `---\ntask_id: "${id}"\nstatus: "${status}"\nowner: "${fields.owner || ''}"\nreviewer: "${fields.reviewer || ''}"\nreview_agent: "${fields.review_agent || ''}"\nreview_mode: "${task?.review_mode || ''}"\nphase_branch: "${task?.phase_branch || ''}"\ntask_branch: "${task?.task_branch || ''}"\nstarted_at: "${status === 'IN_PROGRESS' ? new Date().toISOString() : ''}"\nupdated_at: "${new Date().toISOString()}"\nblocker: "${fields.blocker || ''}"\n---\n\n# ${id} Execution Log\n\n## Preflight\n\n- Blockers: None\n- Clean-tree command/result: Passed\n- Phase branch: ${task?.phase_branch || 'Not recorded'}\n- Child task branch: ${task?.task_branch || 'Not recorded'}\n- Baseline commands: Not recorded\n\n## Completed work\n\nNot recorded.\n\n## AI code review\n\n- Reviewed range/files: Not recorded.\n- Rules checked: Not recorded.\n- Findings: Not recorded.\n- Fixes applied: Not recorded.\n- Remaining concerns: Not recorded.\n- Result: Not recorded.\n\n## Tests executed\n\nNot recorded.\n\n## Decisions and deviations\n\nNone recorded.\n\n## Blockers\n\nNone.\n`;
     if (mcpSection) text = text.replace('\n## Tests executed', `${mcpSection}\n## Tests executed`);
@@ -424,6 +429,9 @@ function requireSelfReviewEvidence(id, task) {
     const requiredEvidence = [
       ['AI client:', 'Not recorded'],
       ['Target URL:', 'Not recorded'],
+      ['Fresh-runtime verification: PASS', null],
+      ['Runtime provenance:', 'Not recorded'],
+      ['Service readiness: PASS', null],
       ['Viewports:', 'Not recorded'],
       ['Themes:', 'Not recorded'],
       ['Console/network result: PASS', null],
