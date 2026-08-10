@@ -18,4 +18,3 @@ export function buildSearchQueryString(filter: VehicleSearchFilter): string {
 
 export * from './VehicleCardPrimitive.js';
 export * from './VehicleCollectionPrimitive.js';
-

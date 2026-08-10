@@ -428,4 +428,3 @@ class PostgresStore implements DemoStore {
 export function createStore(connectionString = process.env.DATABASE_URL): DemoStore {
   return connectionString ? new PostgresStore(connectionString) : new MemoryStore();
 }
-
