@@ -96,7 +96,7 @@ No API, mock, OpenAPI, fixture, database or BFF change is owned. Review their co
 
 ## Implementation and UX requirements
 
-Review responsive phone/tablet/desktop behavior, semantic theme usage, keyboard/focus/contrast/reduced-motion behavior and PWA safety where this phase changes UI.
+Review responsive phone/tablet/desktop behavior, semantic theme usage, keyboard/focus/contrast/reduced-motion behavior and PWA safety where this phase changes UI. Treat static JSX/TSX `style={{...}}` visual declarations, literal visual fallback values, and application-local copies of shared package CSS as blocking findings unless the narrow runtime-data custom-property exception is documented in the responsible task log. Also treat fixed DOM IDs in reusable components and nested interactive controls as blocking accessibility findings.
 
 ## Automated tests to add
 

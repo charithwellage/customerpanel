@@ -1,3 +1,5 @@
+@import "../../../../packages/vehicle-search/src/vehicle-search.css";
+
 :root {
   font-family: var(--font-body, Inter, system-ui, sans-serif);
   color: var(--color-text-primary, #171717);
