@@ -1,4 +1,5 @@
 @import "../../../../packages/vehicle-search/src/vehicle-search.css";
+@import "../features/home/home.css";
 
 :root {
   font-family: var(--font-body, Inter, system-ui, sans-serif);

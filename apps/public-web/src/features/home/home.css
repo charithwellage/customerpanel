@@ -1,0 +1,285 @@
+/* ==========================================================================
+   Home Feature Stylesheet (apps/public-web/src/features/home/home.css)
+   ========================================================================== */
+
+/* Section Spacing & Headings */
+.home-section {
+  margin: 3rem 0;
+}
+
+.home-section-compact {
+  margin: 2.5rem 0;
+}
+
+.home-section-header {
+  margin-bottom: 1.5rem;
+}
+
+.home-section-eyebrow {
+  font-size: 0.75rem;
+  font-family: var(--font-mono, monospace);
+  font-weight: 700;
+  color: var(--color-primary, #dc2626);
+  text-transform: uppercase;
+  display: block;
+}
+
+.home-section-title {
+  font-family: var(--font-display, sans-serif);
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin: 0.25rem 0 0 0;
+}
+
+.home-section-title-lg {
+  font-family: var(--font-display, sans-serif);
+  font-size: 1.75rem;
+  font-weight: 800;
+  margin: 0.25rem 0 0.5rem 0;
+}
+
+.home-section-subtitle {
+  font-size: 0.9rem;
+  color: var(--color-text-muted, #a3a3a3);
+  max-width: 650px;
+  margin: 0;
+}
+
+/* Market Controls */
+.market-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding: 0.75rem 1rem;
+  background-color: var(--color-surface, #ffffff);
+  border-radius: var(--radius-md, 0.5rem);
+  border: 1px solid var(--color-border, #e5e5e5);
+}
+
+.market-controls-label {
+  font-size: var(--font-size-xs, 0.75rem);
+  font-weight: 700;
+  font-family: var(--font-mono, monospace);
+  text-transform: uppercase;
+  color: var(--color-text-secondary, #525252);
+}
+
+.market-controls-select {
+  min-height: var(--min-touch-target, 44px);
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-sm, 0.375rem);
+  border: 1px solid var(--color-border, #e5e5e5);
+  background-color: var(--color-background, #fafafa);
+  color: var(--color-text-primary, #171717);
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.market-controls-note {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary, #525252);
+  font-style: italic;
+}
+
+/* Promotions Countdown */
+.promotions-countdown {
+  padding: 1.25rem 1.5rem;
+  background-color: var(--color-surface-dark, #171717);
+  color: var(--color-text-on-dark, #fafafa);
+  border-radius: var(--radius-lg, 0.75rem);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.promotions-countdown-title {
+  font-family: var(--font-display, sans-serif);
+  font-size: 1.1rem;
+  margin: 0.2rem 0 0 0;
+}
+
+.promotions-countdown-timer {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  font-family: var(--font-mono, monospace);
+}
+
+.promotions-countdown-unit {
+  padding: 0.5rem 0.75rem;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-sm, 0.375rem);
+  text-align: center;
+  min-width: 50px;
+}
+
+.promotions-countdown-val {
+  font-size: 1.2rem;
+  font-weight: 800;
+  display: block;
+}
+
+.promotions-countdown-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #a3a3a3);
+}
+
+/* Premium Teaser Section */
+.premium-teaser-banner {
+  margin: 3rem 0;
+  padding: 2rem 1.5rem;
+  background-color: var(--color-surface-dark, #171717);
+  color: var(--color-text-on-dark, #fafafa);
+  border-radius: var(--radius-lg, 0.75rem);
+  border: 1px solid var(--color-border-dark, #333333);
+}
+
+.premium-teaser-footer {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.premium-teaser-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+}
+
+.premium-teaser-contact {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.whatsapp-link {
+  color: #25D366;
+  font-weight: 700;
+  font-size: 0.875rem;
+  text-decoration: none;
+}
+
+/* Buying Process Preview */
+.buying-process-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.buying-process-card {
+  padding: 1.25rem;
+  background-color: var(--color-surface, #ffffff);
+  border-radius: var(--radius-md, 0.5rem);
+  border: 1px solid var(--color-border, #e5e5e5);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.buying-process-step {
+  font-family: var(--font-mono, monospace);
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--color-primary, #dc2626);
+  margin-bottom: 0.5rem;
+}
+
+.buying-process-card-title {
+  font-family: var(--font-display, sans-serif);
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin: 0 0 0.4rem 0;
+}
+
+.buying-process-card-desc {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary, #525252);
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Testimonials Preview */
+.testimonials-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.25rem;
+}
+
+.testimonial-card {
+  padding: 1.25rem;
+  background-color: var(--color-surface, #ffffff);
+  border-radius: var(--radius-md, 0.5rem);
+  border: 1px solid var(--color-border, #e5e5e5);
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.testimonial-quote {
+  font-size: 0.875rem;
+  font-style: italic;
+  margin: 0 0 1rem 0;
+  color: var(--color-text-primary, #171717);
+}
+
+.testimonial-author {
+  display: block;
+  font-size: 0.85rem;
+}
+
+.testimonial-meta {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary, #525252);
+}
+
+/* FAQ Preview */
+.faq-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.faq-card {
+  background-color: var(--color-surface, #ffffff);
+  border: 1px solid var(--color-border, #e5e5e5);
+  border-radius: var(--radius-md, 0.5rem);
+  overflow: hidden;
+}
+
+.faq-trigger {
+  width: 100%;
+  text-align: left;
+  padding: 1rem 1.25rem;
+  min-height: var(--min-touch-target, 44px);
+  background-color: transparent;
+  border: none;
+  font-family: var(--font-display, sans-serif);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-text-primary, #171717);
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.faq-content {
+  padding: 0 1.25rem 1rem 1.25rem;
+  font-size: 0.875rem;
+  color: var(--color-text-secondary, #525252);
+  line-height: 1.5;
+}

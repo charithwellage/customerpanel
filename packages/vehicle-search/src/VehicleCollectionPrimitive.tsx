@@ -27,7 +27,10 @@ export const VehicleCollectionPrimitive: React.FC<VehicleCollectionPrimitiveProp
   onSelectVehicle,
   getVehicleHref,
 }) => {
-  const headingId = useId();
+  const autoId = useId();
+  const headingId = title
+    ? `collection-heading-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
+    : autoId;
 
   return (
     <section aria-labelledby={title ? headingId : undefined} className="cc-vehicle-collection">
