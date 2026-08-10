@@ -1,8 +1,0 @@
-[      84ms] [LOG] OfflineCache Loop Detection and Audit Engine Initialized. @ http://127.0.0.1:8080/staff/:7651
-[     109ms] [LOG] Subscribing to active leads for backend... @ http://127.0.0.1:8080/staff/:19423
-[     109ms] [LOG] Service Worker registered successfully: http://127.0.0.1:8080/ @ http://127.0.0.1:8080/staff/:19737
-[     116ms] [WARNING] <meta name="apple-mobile-web-app-capable" content="yes"> is deprecated. Please include <meta name="mobile-web-app-capable" content="yes"> @ http://127.0.0.1:8080/staff/?view=backend:0
-[     138ms] [WARNING] Error while trying to use the following icon from the Manifest: http://127.0.0.1:8080/input_file_0.png (Download error or resource isn't a valid image) @ http://127.0.0.1:8080/staff/?view=backend:0
-[    3708ms] [LOG] Cleared all OfflineCache client caches. @ http://127.0.0.1:8080/staff/:7891
-[   80441ms] [LOG] Vehicle specifications updated. @ http://127.0.0.1:8080/staff/:19612
-[   80441ms] [LOG] Cache invalidated for: vehicles @ http://127.0.0.1:8080/staff/:7883
