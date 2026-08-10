@@ -39,8 +39,8 @@
 | [D01-P01-T011](delivery_01/phase_01/D01-P01-T011.md) | Align shared theme with the Unified POC Brand | COMPLETE | self_ai | Codex | `feat_delivery01_phase_01` | D01-P01-CODE_REVIEW (COMPLETE) | D01-P01-T010 | P01-H | 2026-08-09T16:29:39.602Z |
 | [D01-P01-T012](delivery_01/phase_01/D01-P01-T012.md) | Add alternate theme injection and developer guide | COMPLETE | self_ai | Codex | `feat_delivery01_phase_01` | D01-P01-CODE_REVIEW (COMPLETE) | D01-P01-T011 | P01-I | 2026-08-10T03:48:43.935Z |
 | [D01-P01-CODE_REVIEW](delivery_01/phase_01/D01-P01-CODE_REVIEW.md) | Phase 1.1 PR code review and tech-lead approval | COMPLETE | phase_manual | Codex | `feat_delivery01_phase_01` | D01-P01-CODE_REVIEW (COMPLETE) | D01-P01-T012 | P01-REVIEW | 2026-08-10T05:18:28.820Z |
-| [D01-P02-T001](delivery_01/phase_02/D01-P02-T001.md) | Add featured vehicle services and reusable vehicle collections | READY | self_ai | — | `feat_delivery01_phase_02` | D01-P02-CODE_REVIEW (NOT_STARTED) | D01-P01-CODE_REVIEW | P02-A | — |
-| [D01-P02-T002](delivery_01/phase_02/D01-P02-T002.md) | Build and accept the home/showroom experience | NOT_STARTED | self_ai | — | `feat_delivery01_phase_02` | D01-P02-CODE_REVIEW (NOT_STARTED) | D01-P02-T001 | P02-B | — |
+| [D01-P02-T001](delivery_01/phase_02/D01-P02-T001.md) | Add featured vehicle services and reusable vehicle collections | COMPLETE | self_ai | Antigravity | `feat_delivery01_phase_02` | D01-P02-CODE_REVIEW (NOT_STARTED) | D01-P01-CODE_REVIEW | P02-A | 2026-08-10T05:33:26.295Z |
+| [D01-P02-T002](delivery_01/phase_02/D01-P02-T002.md) | Build and accept the home/showroom experience | READY | self_ai | — | `feat_delivery01_phase_02` | D01-P02-CODE_REVIEW (NOT_STARTED) | D01-P02-T001 | P02-B | — |
 | [D01-P02-CODE_REVIEW](delivery_01/phase_02/D01-P02-CODE_REVIEW.md) | Phase 1.2 PR code review and tech-lead approval | NOT_STARTED | phase_manual | — | `feat_delivery01_phase_02` | D01-P02-CODE_REVIEW (NOT_STARTED) | D01-P02-T002 | P02-REVIEW | — |
 | [D01-P03-T001](delivery_01/phase_03/D01-P03-T001.md) | Add vehicle query, dynamic filters, sorting and pagination | NOT_STARTED | self_ai | — | `feat_delivery01_phase_03` | D01-P03-CODE_REVIEW (NOT_STARTED) | D01-P02-CODE_REVIEW | P03-A | — |
 | [D01-P03-T002](delivery_01/phase_03/D01-P03-T002.md) | Build search orchestration, URL state and natural parsing | NOT_STARTED | self_ai | — | `feat_delivery01_phase_03` | D01-P03-CODE_REVIEW (NOT_STARTED) | D01-P03-T001 | P03-B | — |
@@ -77,7 +77,7 @@
 
 ## Current execution frontier
 
-- Sequential next: D01-P02-T001 — Add featured vehicle services and reusable vehicle collections (NOT_STARTED)
+- Sequential next: D01-P02-T002 — Build and accept the home/showroom experience (NOT_STARTED)
 - Optional same-group parallel tasks: None
 - Downstream work waits for COMPLETE or SUPERSEDED; IN_REVIEW is not complete.
 - Later tasks cannot be bypassed; use taskctl sequence TASK-ID for the exact blocker.

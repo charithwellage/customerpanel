@@ -16,7 +16,15 @@ export interface VehicleSummary {
   model: string;
   year: number;
   priceUsd: number;
-  status: 'Available' | 'ReservedWithPI' | 'Sold';
+  status: 'Draft' | 'Available' | 'Pending' | 'Reserved' | 'ReservedWithPI' | 'InvoiceCreated' | 'Invoiced' | 'Sold';
+  category?: string;
+  locationStatus?: 'In Japan' | 'In Transit' | 'In Port';
+  createdAt?: string;
+  images?: string[];
+  featured?: boolean;
+  stockType?: 'J' | 'CRFO';
+  destinationPort?: string;
+  discountPercent?: number;
 }
 
 export interface ErrorResponse {

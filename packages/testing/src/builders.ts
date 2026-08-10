@@ -9,6 +9,13 @@ export function createMockVehicle(overrides?: Partial<VehicleDomainSummary>): Ve
     year: 2021,
     priceUsd: 8500,
     status: 'Available',
+    category: 'arrival',
+    locationStatus: 'In Japan',
+    createdAt: '2026-08-09T10:00:00.000Z',
+    images: ['https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?w=400'],
+    featured: true,
+    stockType: 'J',
+    destinationPort: 'Mombasa',
     ...overrides,
   };
 }
