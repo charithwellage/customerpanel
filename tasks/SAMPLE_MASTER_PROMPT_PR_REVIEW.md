@@ -10,8 +10,9 @@ Read, in this order:
 2. tasks/TASK_EXECUTION_TRACKER.md
 3. The latest applicable phase summary
 4. tasks/CODE_REVIEW_RULES.md
-5. tasks/DELIVERY-NN/PHASE-NN/PHASE-REVIEW-TASK-ID.md
-6. Only the completed task files, execution logs, requirements, architecture sections, evidence and POC paths explicitly named by that phase-review task.
+5. tasks/COMMON_FRONTEND_RULES.md
+6. tasks/DELIVERY-NN/PHASE-NN/PHASE-REVIEW-TASK-ID.md
+7. Only the completed task files, execution logs, requirements, architecture sections, evidence and POC paths explicitly named by that phase-review task.
 
 The phase-review task is the source of truth. Do not scan the entire project or unrelated modules. Do not treat POC code as production code to copy.
 

@@ -3,7 +3,7 @@ task_id: "D02-P05-CODE_REVIEW"
 title: "Phase 2.5 PR code review and tech-lead approval"
 delivery: "Delivery 02 — Customer Application"
 phase: "Phase 2.5 — Quotes and invoices"
-execution_order: 77
+execution_order: 78
 estimate: "0.25 day"
 model_tier: "FRONTIER"
 parallel_group: "D02-P05-REVIEW"
@@ -27,6 +27,7 @@ ui_validation: "not_applicable"
 ## Authority and context to read
 
 - [CODE_REVIEW_RULES.md](../../CODE_REVIEW_RULES.md).
+- [COMMON_FRONTEND_RULES.md](../../COMMON_FRONTEND_RULES.md) for shared frontend implementation and review conventions.
 - This phase's completed task files, execution logs and `tasks/phase_summaries/D02-P05-SUMMARY.md`.
 - Only requirements, architecture sections and evidence explicitly named by those completed tasks.
 

@@ -41,7 +41,7 @@ function parseCsv(source) {
 }
 
 for (const [path, expectedRows] of [
-  ['tasks/delivery_01/CarChief-Delivery-01-Tasks.csv', 50],
+  ['tasks/delivery_01/CarChief-Delivery-01-Tasks.csv', 51],
   ['tasks/delivery_02/CarChief-Delivery-02-Tasks.csv', 42],
 ]) {
   test(`${path} is an Excel-compatible UTF-8 BOM/LF CSV export`, () => {

@@ -25,7 +25,7 @@ The BA workflow reconciliation backlog is in `tasks/workflow/`. It is decision-g
 6. For an application task, create/resume its phase branch exactly as documented. Delivery 01 phases derive from `delivery_01_public_website`; Delivery 02 phases derive from `delivery_02_customer_application`. Do not create a child task branch. Phase 0 is branch-neutral.
 7. Run `node tasks/scripts/taskctl.mjs check <ID>`, report `Blockers: None`, then run `start` with an owner.
 8. Implement exactly the stated scope and its missing feature tests.
-9. For a `self_ai` task, review the owned diff against `CODE_REVIEW_RULES.md` and fix every in-scope finding.
+9. For a frontend task, read `COMMON_FRONTEND_RULES.md` before coding. For a `self_ai` task, review the owned diff against `CODE_REVIEW_RULES.md` and fix every in-scope finding.
 10. If frontmatter says `ui_validation: "playwright_mcp"`, first build/recreate a controlled runtime from the current worktree. Record the target URL, exact build/recreate command, process/container identity, and health/API readiness. Do not reuse an unknown server or image already listening on a standard port. Run the MCP browser walkthrough against that target, test both themes and phone/tablet/desktop viewports, inspect console/network behavior, fix in-scope findings, recreate the runtime after a correction, and repeat code review after any correction.
 11. Run feature tests plus `corepack pnpm lint`, `corepack pnpm typecheck` and `corepack pnpm -r build`. A UI task must also record `Playwright MCP Result: PASS` and `Automated Playwright Test Result: PASS`.
 12. After passing tests, run `taskctl complete <ID> --review-agent "<name>"`. Normal tasks do not require manual task-level PR review.
@@ -81,7 +81,7 @@ Publishing the delivery branch is an explicitly authorized human action. If `del
 
 ## Commands
 
-`node tasks/scripts/taskctl.mjs validate` validates 98 task/gate files, UI-validation metadata, decisions, delivery-specific branches, requirement coverage and the dependency DAG.
+`node tasks/scripts/taskctl.mjs validate` validates 99 task/gate files, UI-validation metadata, shared-frontend-rule references, decisions, delivery-specific branches, requirement coverage and the dependency DAG.
 
 `node tasks/scripts/taskctl.mjs next` reports the current execution frontier and permitted same-group parallel tasks.
 

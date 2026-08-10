@@ -3,11 +3,11 @@ task_id: "D01-P02-CODE_REVIEW"
 title: "Phase 1.2 mixed-PR code review and tech-lead approval"
 delivery: "Delivery 01 — Public Website"
 phase: "Phase 1.2 — Home and showroom"
-execution_order: 25
+execution_order: 26
 estimate: "0.25 day"
 model_tier: "FRONTIER"
 parallel_group: "P02-REVIEW"
-dependencies: ["D01-P02-T005"]
+dependencies: ["D01-P02-T006"]
 decision_gates: []
 phase_branch: "feat_delivery01_phase_02"
 task_branch: "feat_delivery01_phase_02"
@@ -43,6 +43,7 @@ Apply every applicable shared code-review rule and these phase-specific checks:
 - Verify Playwright MCP evidence for every completed UI task in this phase: client, URL, themes, viewports, console/network result, findings/corrections, MCP PASS and automated Playwright Test PASS. Missing or contradictory evidence is blocking.
 - Review the deliberately retained mixed scope: shared theme/MCP/task-system changes and Delivery 02 planning files. Verify their task IDs, dependency graph, branch naming, tracker rendering and CSV integrity; verify that no Customer application implementation behaviour is introduced.
 - Treat whitespace or line-ending errors in the exact comparison range as blocking. `D01-P02-T005` owns their correction and must be COMPLETE before this review starts.
+- Verify `D01-P02-T006` removed prohibited static inline visual styles from the seven named Home/Showroom components, placed feature-specific classes in the feature stylesheet, preserved shared-package ownership, and retained carchief/ocean visual parity.
 
 ## Mandatory preflight and blocker protocol
 
@@ -103,7 +104,7 @@ No API, mock, OpenAPI, fixture, database or BFF change is owned. Review their co
 
 For every completed task marked `ui_validation: "playwright_mcp"`, verify its execution log proves a fresh current-worktree runtime: `Fresh-runtime verification: PASS`, `Runtime provenance:`, `Service readiness: PASS`, a recorded target URL, and Playwright MCP/automated results against that same URL. Treat a stale-image, stale-server, missing health/API/reset check, or a browser failure deferred from the implementation task as a **blocking** finding. Reopen the responsible task; do not approve the phase on earlier or source-only evidence.
 
-Review responsive phone/tablet/desktop behavior, semantic theme usage, keyboard/focus/contrast/reduced-motion behavior and PWA safety where this phase changes UI.
+Read and apply `tasks/COMMON_FRONTEND_RULES.md`. Review responsive phone/tablet/desktop behavior, semantic theme usage, keyboard/focus/contrast/reduced-motion behavior and PWA safety where this phase changes UI. Treat prohibited static inline visual styles, raw visual literals in TSX, or incorrect stylesheet ownership as blocking findings.
 
 ## Automated tests to add
 

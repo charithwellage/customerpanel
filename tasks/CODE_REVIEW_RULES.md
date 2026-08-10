@@ -1,6 +1,6 @@
 # CarChief Code Review Rules
 
-Every Delivery 01 and Delivery 02 implementation task performs this review before its automated tests. The review covers only the task-owned diff and the explicitly named dependencies. A phase review covers only the committed comparison range named in its phase review task.
+Every Delivery 01 and Delivery 02 implementation task performs this review before its automated tests. Read [COMMON_FRONTEND_RULES.md](COMMON_FRONTEND_RULES.md) first; it is the authoritative shared frontend convention source. The review covers only the task-owned diff and the explicitly named dependencies. A phase review covers only the committed comparison range named in its phase review task.
 
 ## Review checklist
 
@@ -8,7 +8,7 @@ Every Delivery 01 and Delivery 02 implementation task performs this review befor
 2. **Architecture and reuse** — Package boundaries, dependency direction, generated API client/service boundaries, shared `packages/ui`, `packages/theme`, feature packages and mock/BFF separation are preserved. Reusable behavior is not copied into an application.
 3. **Code quality and SOLID** — TypeScript remains strict; types express the domain; modules have one clear responsibility; dependencies are injected at boundaries where needed; duplication, dead code, hidden side effects and unnecessary abstractions are removed.
 4. **React and frontend quality** — Components keep data orchestration outside presentational UI where the architecture requires it; loading, empty, error, validation, responsive, keyboard, focus, browser-zoom and reduced-motion behavior are addressed. Reusable components must not emit fixed DOM `id` values that can collide when rendered more than once; use `useId` or a caller-supplied unique identifier. Do not nest or overlap interactive controls (for example, a clickable card containing a link); select one interaction model or expose separate controls.
-5. **Styles, themes and component CSS** — Static visual styling must be implemented through a semantic class name in the owning shared package/application stylesheet, using `packages/theme` CSS variables and `packages/ui` primitives. Do not add JSX/TSX `style={{...}}` objects, literal colours, fallback palettes, fonts, spacing, radii, shadows or animation timings in feature components. A narrowly scoped inline custom property is allowed only when its value is genuinely runtime data (for example a calculated chart position), cannot be represented with a class/data attribute, is validated, contains no visual fallback value, and is documented in the execution log. Shared components own their styles in the shared package; application code imports/consumes them rather than recreating their CSS.
+5. **Styles, themes and component CSS** — Apply `COMMON_FRONTEND_RULES.md`. Violations of semantic-token use, stylesheet ownership, reusable-package styling, or the static-inline-style rule are review failures unless the documented runtime-data custom-property exception applies.
 6. **Security and data protection** — No secrets, unsafe HTML/SVG injection, browser-controlled authorization, client-trusted workflow transition, privacy leak, insecure storage or production mock escape is introduced. Authorization, validation, calculation and state-transition responsibilities remain server-authoritative.
 7. **API and mock discipline** — UI uses the generated client through the designated service/hook boundary. Mock operations, fixtures, reset, error and conflict scenarios are linked only when the task owns them. No final BFF payload is invented without approved evidence.
 8. **Accessibility, PWA and performance** — Semantic markup, labels, contrast, focus, touch targets and responsive layouts are present. PWA changes avoid broad sensitive-data caching and do not enable offline mutations for identity, finance, approval or document flows. Avoid unnecessary client JavaScript, blocking work and unoptimized media.
@@ -19,7 +19,7 @@ Every Delivery 01 and Delivery 02 implementation task performs this review befor
 ## Per-task AI review loop
 
 1. Inspect the owned diff and apply every relevant checklist item.
-2. For UI changes, inspect the owned diff for `style={{`/`style=` usage and static visual literals; move every violation to the owning semantic stylesheet before continuing.
+2. For UI changes, inspect the owned diff against `COMMON_FRONTEND_RULES.md`; move every prohibited static visual declaration to the owning semantic stylesheet before continuing.
 3. Record findings and fixes in the task execution log under `## AI code review`.
 4. Fix every in-scope violation, then repeat the review.
 5. For a task marked `playwright_mcp`, build/recreate a runtime from the current worktree before starting its MCP walkthrough. Record the exact command, URL, process/container identity and readiness checks. Do not treat a source-only build or a pre-existing port listener as runtime proof.
