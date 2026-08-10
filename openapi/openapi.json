@@ -51,6 +51,44 @@
       "get": {
         "summary": "Get vehicle domain summaries",
         "operationId": "getVehicles",
+        "parameters": [
+          {
+            "name": "collection",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["latest_arrivals", "premium_teaser", "discounted", "clearance", "featured", "browse"]
+            }
+          },
+          {
+            "name": "market",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "example": "UG"
+            }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["arrival", "premium", "clearance", "best_offer"]
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "example": 10
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "List of vehicle summaries",
@@ -112,7 +150,18 @@
           "model": { "type": "string", "example": "Corolla Axio" },
           "year": { "type": "integer", "example": 2021 },
           "priceUsd": { "type": "number", "example": 8500 },
-          "status": { "type": "string", "example": "Available" }
+          "status": { "type": "string", "example": "Available" },
+          "category": { "type": "string", "example": "premium" },
+          "locationStatus": { "type": "string", "example": "In Japan" },
+          "createdAt": { "type": "string", "example": "2026-08-08T00:00:00.000Z" },
+          "images": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "featured": { "type": "boolean", "example": true },
+          "stockType": { "type": "string", "example": "J" },
+          "destinationPort": { "type": "string", "example": "Mombasa" },
+          "discountPercent": { "type": "number", "example": 5 }
         },
         "required": ["id", "chassisNumber", "make", "model", "year", "priceUsd", "status"]
       },

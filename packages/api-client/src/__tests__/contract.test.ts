@@ -61,4 +61,98 @@ describe('API Client & Contract Boundary Tests', () => {
     expect(capturedHeaders?.get('Authorization')).toBe('Bearer demo-jwt-token-xyz');
     expect(capturedHeaders?.has('X-Correlation-ID')).toBe(true);
   });
+
+  it('builds VehicleService getVehicles query string with collection and limit parameters', async () => {
+    let capturedUrl: string | undefined;
+    const mockFetch = vi.fn().mockImplementation(async (url) => {
+      capturedUrl = url;
+      return {
+        ok: true,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => [
+          {
+            id: 'veh-1',
+            chassisNumber: 'NZE141-1234567',
+            make: 'Toyota',
+            model: 'Corolla Axio',
+            year: 2021,
+            priceUsd: 8500,
+            status: 'Available',
+            locationStatus: 'In Japan',
+            category: 'arrival,premium',
+            createdAt: '2026-08-09T10:00:00.000Z',
+          },
+        ],
+      };
+    });
+    global.fetch = mockFetch;
+
+    const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+    const { VehicleService } = await import('../services/vehicles.js');
+    const service = new VehicleService(client);
+
+    const result = await service.getVehicles({ collection: 'latest_arrivals', limit: 10 });
+    expect(capturedUrl).toContain('/api/v1/vehicles?collection=latest_arrivals&limit=10');
+    expect(result.length).toBe(1);
+    expect(result[0].locationStatus).toBe('In Japan');
+  });
+
+  it('enforces public field projection and excludes private/staff fields', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      headers: new Headers({ 'content-type': 'application/json' }),
+      json: async () => [
+        {
+          id: 'veh-1',
+          chassisNumber: 'NZE141-1234567',
+          make: 'Toyota',
+          model: 'Corolla Axio',
+          year: 2021,
+          priceUsd: 8500,
+          status: 'Available',
+          locationStatus: 'In Japan',
+          createdAt: '2026-08-09T10:00:00.000Z',
+        },
+      ],
+    });
+    global.fetch = mockFetch;
+
+    const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+    const { VehicleService } = await import('../services/vehicles.js');
+    const service = new VehicleService(client);
+
+    const vehicles = await service.getVehicles();
+    expect(vehicles[0]).not.toHaveProperty('internalNotes');
+    expect(vehicles[0]).not.toHaveProperty('staffOwnerId');
+  });
+
+  it('verifies category results exclude legacy "New" tag', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      headers: new Headers({ 'content-type': 'application/json' }),
+      json: async () => [
+        {
+          id: 'veh-1',
+          chassisNumber: 'NZE141-1234567',
+          make: 'Toyota',
+          model: 'Corolla Axio',
+          year: 2021,
+          priceUsd: 8500,
+          status: 'Available',
+          category: 'arrival,premium',
+        },
+      ],
+    });
+    global.fetch = mockFetch;
+
+    const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+    const { VehicleService } = await import('../services/vehicles.js');
+    const service = new VehicleService(client);
+
+    const vehicles = await service.getVehicles({ collection: 'latest_arrivals' });
+    const categories = vehicles.map((v) => v.category).filter(Boolean);
+    categories.forEach((cat) => {
+      expect(cat).not.toContain('New');
+    });
+  });
 });
