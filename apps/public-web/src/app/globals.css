@@ -9,6 +9,8 @@
 
 * { box-sizing: border-box; }
 body { margin: 0; min-width: 320px; background: var(--color-background); }
+.theme-switcher { position: fixed; z-index: 10; top: var(--spacing-sm); right: var(--spacing-sm); display: flex; gap: var(--spacing-xs); align-items: center; min-height: var(--min-touch-target); padding: var(--spacing-xs) var(--spacing-sm); background: var(--color-surface-elevated); border: 1px solid var(--color-border); border-radius: var(--radius-pill); color: var(--color-text-secondary); font-family: var(--font-mono); font-size: var(--font-size-xs); }
+.theme-switcher select { min-height: var(--min-touch-target); border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--color-text-primary); font: inherit; }
 a { color: var(--color-primary); }
 a:focus-visible, button:focus-visible, input:focus-visible {
   outline: var(--focus-ring-width, 3px) solid var(--color-focus);

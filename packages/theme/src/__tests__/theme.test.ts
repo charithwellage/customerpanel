@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { defaultSemanticTheme, getThemeCssVariables, formatCssVariableString, calculateContrastRatio, isWcagAaCompliant } from '../index.js';
+import { defaultSemanticTheme, getThemeCssVariables, formatCssVariableString, calculateContrastRatio, isWcagAaCompliant, getThemeDefinition, resolveThemeId, themeRegistry } from '../index.js';
 
 describe('Theme Package Unit & Accessibility Tests', () => {
   it('defines all required semantic tokens', () => {
@@ -21,7 +21,7 @@ describe('Theme Package Unit & Accessibility Tests', () => {
     expect(vars['--font-display']).toContain('Space Grotesk');
     expect(vars['--radius-lg']).toBe('0.75rem');
     expect(vars['--focus-ring-width']).toBe('3px');
-    expect(Object.keys(vars)).toHaveLength(43);
+    expect(Object.keys(vars)).toHaveLength(49);
 
     const formatted = formatCssVariableString();
     expect(formatted).toContain('--color-primary: #dc2626;');
@@ -40,5 +40,18 @@ describe('Theme Package Unit & Accessibility Tests', () => {
     expect(isWcagAaCompliant(defaultSemanticTheme.colors.warning, '#fef3c7')).toBe(true);
     expect(isWcagAaCompliant(defaultSemanticTheme.colors.error, '#fee2e2')).toBe(true);
     expect(isWcagAaCompliant(defaultSemanticTheme.colors.info, '#dbeafe')).toBe(true);
+  });
+
+  it('provides carchief and ocean themes with a safe default fallback', () => {
+    expect(Object.keys(themeRegistry)).toEqual(['carchief', 'ocean']);
+    expect(getThemeDefinition('carchief').id).toBe('carchief');
+    expect(getThemeDefinition('ocean').id).toBe('ocean');
+    expect(getThemeDefinition('unknown').id).toBe('carchief');
+    expect(resolveThemeId(undefined)).toBe('carchief');
+    expect(resolveThemeId('ocean')).toBe('ocean');
+    expect(resolveThemeId('OCEAN')).toBe('carchief');
+    expect(getThemeCssVariables(getThemeDefinition('ocean').tokens)['--color-primary']).toBe('#0369a1');
+    expect(isWcagAaCompliant(getThemeDefinition('ocean').tokens.colors.primary, getThemeDefinition('ocean').tokens.colors.surface)).toBe(true);
+    expect(isWcagAaCompliant(getThemeDefinition('ocean').tokens.colors.textPrimary, getThemeDefinition('ocean').tokens.colors.surface)).toBe(true);
   });
 });

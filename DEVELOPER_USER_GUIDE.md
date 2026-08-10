@@ -32,7 +32,9 @@ NEXT_PUBLIC_THEME_ID=ocean corepack pnpm --filter @carchief/public-web dev
 VITE_THEME_ID=ocean corepack pnpm --filter @carchief/customer-app dev
 ```
 
-Use the equivalent salesperson-app variable when running that application. If the application provides a local theme selector, it is for development/demo use only. Production theme selection must come from approved deployment configuration.
+Use `VITE_THEME_ID=ocean` for the salesperson app as well. The public development build includes a local-only selector; it changes the same screen without changing feature components and persists only the non-sensitive theme ID in browser storage. Production does not render that selector. Production theme selection must come from approved deployment configuration.
+
+The shared registry exports `resolveThemeId`, `getThemeDefinition` and `getThemeCssVariables`. Unknown values always resolve to `carchief`. Application shells pass the selected semantic variables to their root provider; feature components never import a concrete theme.
 
 After changing the value, restart the development server. Do not change feature components or API services to change a theme.
 

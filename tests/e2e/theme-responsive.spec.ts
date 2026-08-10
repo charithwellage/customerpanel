@@ -14,4 +14,15 @@ test.describe('Unified POC Brand responsive theme', () => {
     expect(viewport?.height).toBeGreaterThanOrEqual(568);
     await expect(page.locator('body')).not.toHaveCSS('overflow-x', 'scroll');
   });
+
+  test('switches the same screen to ocean and persists the non-sensitive preference', async ({ page }) => {
+    await page.goto('/');
+    await page.locator('select[aria-label="Theme"]').selectOption('ocean');
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'ocean');
+    await expect(page.locator('.primary')).toHaveCSS('background-color', 'rgb(3, 105, 161)');
+    await page.reload();
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'ocean');
+    await page.locator('select[aria-label="Theme"]').selectOption('carchief');
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'carchief');
+  });
 });

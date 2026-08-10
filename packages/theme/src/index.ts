@@ -1,6 +1,7 @@
 export * from './tokens.js';
 export * from './provider.js';
 export * from './contrast.js';
+export * from './registry.js';
 
 export const defaultTheme = {
   colors: {
