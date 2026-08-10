@@ -9,6 +9,8 @@ CarChief applications use the shared `packages/theme` and `packages/ui` packages
 - JetBrains Mono for technical and status labels.
 - Neutral/dark surfaces, red primary actions and accessible light surfaces.
 
+For the Public Website, `docs/evidence/phase0/phase0-public-landing.png` is the visual baseline. The `carchief` theme must preserve its recognizable dark header/hero, red/orange hierarchy, light showroom area, navigation, filters, vehicle cards and status treatments while adapting accessibly to phone, tablet and desktop widths.
+
 Feature components must use semantic roles from shared UI primitives. Do not add literal colors, fonts, spacing, radii or duplicated app-local theme CSS in a feature.
 
 ## Available themes
@@ -37,6 +39,14 @@ Use `VITE_THEME_ID=ocean` for the salesperson app as well. The public developmen
 The shared registry exports `resolveThemeId`, `getThemeDefinition` and `getThemeCssVariables`. Unknown values always resolve to `carchief`. Application shells pass the selected semantic variables to their root provider; feature components never import a concrete theme.
 
 After changing the value, restart the development server. Do not change feature components or API services to change a theme.
+
+## Checking POC visual parity
+
+1. Start the public application and mock API with the documented Docker or local commands.
+2. Open the same route under `carchief` and compare it with `docs/evidence/phase0/phase0-public-landing.png` using Playwright MCP.
+3. Check phone `390×844`, tablet `768×1024` and desktop `1440×900`, including navigation collapse, hero hierarchy, calls to action, light showroom transition, filters, cards and badges.
+4. Repeat under `ocean`. The colours may change, but markup, layout behavior, content and interactions must remain the same.
+5. Record screenshots and any intentional difference required for accessibility, responsiveness or truthful content. Do not copy fixed dimensions, unsafe SVG rendering, disabled browser zoom or fabricated POC behavior.
 
 ## Adding a new theme
 

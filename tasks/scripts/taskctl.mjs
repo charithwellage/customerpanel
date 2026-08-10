@@ -169,12 +169,12 @@ function validate({ quiet = false } = {}) {
     '## Completion, handoff and tracker update', '## Required final response',
   ];
   const containerGateTasks = new Set([
-    'D01-P01-T010', 'D01-P01-T012', 'D01-P02-T002', 'D01-P02-T003', 'D01-P03-T004', 'D01-P04-T003',
+    'D01-P01-T010', 'D01-P01-T012', 'D01-P02-T002', 'D01-P02-T004', 'D01-P03-T004', 'D01-P04-T003',
     'D01-P05-T004', 'D01-P06-T005', 'D01-P07-T004', 'D01-P08-T004',
     'D02-P01-T003', 'D02-P02-T002', 'D02-P03-T003', 'D02-P04-T003',
     'D02-P05-T003', 'D02-P06-T004', 'D02-P07-T004', 'D02-P08-T003', 'D02-P09-T004',
   ]);
-  if (tasks.size !== 96) errors.push(`expected 96 task/gate files, found ${tasks.size}`);
+  if (tasks.size !== 97) errors.push(`expected 97 task/gate files, found ${tasks.size}`);
   for (const task of tasks.values()) {
     for (const field of ['task_id', 'title', 'delivery', 'phase', 'estimate', 'model_tier', 'parallel_group', 'phase_branch', 'task_branch']) {
       if (!task[field]) errors.push(`${task.task_id || task.file}: missing ${field}`);
@@ -201,6 +201,7 @@ function validate({ quiet = false } = {}) {
     if (!isPhaseReview(task) && /^D\d{2}-/.test(task.task_id) && task.review_mode !== 'self_ai') errors.push(`${task.task_id}: implementation task must use self_ai review_mode`);
     const requiresUiMetadata = task.task_id === 'INF-P00-T006'
       || task.task_id === 'D01-P02-T003'
+      || task.task_id === 'D01-P02-T004'
       || task.task_id === 'D01-P02-CODE_REVIEW'
       || /^D01-P(?:0[3-8])-/.test(task.task_id)
       || /^D02-/.test(task.task_id);

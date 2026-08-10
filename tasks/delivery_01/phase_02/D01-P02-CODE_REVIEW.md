@@ -3,11 +3,11 @@ task_id: "D01-P02-CODE_REVIEW"
 title: "Phase 1.2 PR code review and tech-lead approval"
 delivery: "Delivery 01 — Public Website"
 phase: "Phase 1.2 — Home and showroom"
-execution_order: 23
+execution_order: 24
 estimate: "0.25 day"
 model_tier: "FRONTIER"
 parallel_group: "P02-REVIEW"
-dependencies: ["D01-P02-T003"]
+dependencies: ["D01-P02-T004"]
 decision_gates: []
 phase_branch: "feat_delivery01_phase_02"
 task_branch: "feat_delivery01_phase_02"
@@ -35,6 +35,7 @@ ui_validation: "not_applicable"
 Apply every applicable shared code-review rule and these phase-specific checks:
 
 - Home/showroom content, vehicle-collection API integration, public routes, responsive visitor journey, and approved legacy-page parity.
+- Verify the default `carchief` theme has material visual parity with `docs/evidence/phase0/phase0-public-landing.png`, while `ocean` remains a separate injectable theme and both use the same feature markup.
 - Verify the phase acceptance criteria, required mock/API boundaries and required automated/container evidence are present in the PR diff or its committed execution records.
 - Verify the mock API starts cleanly against PostgreSQL: logs contain no initialization/schema errors, the live `vehicles` table contains every column used by seed/reset SQL, `/healthz`, `/openapi.json` and deterministic reset succeed, and the phase is not accepted from a frontend-only smoke test.
 

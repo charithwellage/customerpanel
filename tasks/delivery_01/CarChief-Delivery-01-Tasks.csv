@@ -14,8 +14,9 @@
 1.1,D01-P01-CODE_REVIEW,Phase 1.1 PR code review and tech-lead approval,D01-P01-T012,3
 1.2,D01-P02-T001,Add featured vehicle services and reusable vehicle collections,D01-P01-CODE_REVIEW,9
 1.2,D01-P02-T002,Build and accept the home/showroom experience,D01-P02-T001,12
-1.2,D01-P02-T003,Validate and correct the Home and Showroom UI with Playwright MCP,D01-P02-T002; INF-P00-T006,6
-1.2,D01-P02-CODE_REVIEW,Phase 1.2 PR code review and tech-lead approval,D01-P02-T003,3
+1.2,D01-P02-T003,Implement exact POC visual parity for the Public Home and Showroom,D01-P02-T002; INF-P00-T006,15
+1.2,D01-P02-T004,Validate the POC-parity Home and Showroom UI with Playwright MCP,D01-P02-T003,6
+1.2,D01-P02-CODE_REVIEW,Phase 1.2 PR code review and tech-lead approval,D01-P02-T004,3
 1.3,D01-P03-T001,"Add vehicle query, dynamic filters, sorting and pagination",D01-P02-CODE_REVIEW,18
 1.3,D01-P03-T002,"Build search orchestration, URL state and natural parsing",D01-P03-T001,9
 1.3,D01-P03-T003,Build inventory filters and result presentations,D01-P03-T001,6
