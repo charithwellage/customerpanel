@@ -34,6 +34,14 @@ The BA workflow reconciliation backlog is in `tasks/workflow/`. It is decision-g
 
 Agents never commit, push, create PRs, merge or rewrite history. They only implement, self-review, test, update the execution log/tracker and return the working-tree diff. The human owner performs Git review, commit, push, PR and merge actions manually.
 
+## Choosing a master prompt
+
+- Use [`SAMPLE_MASTER_PROMPT_INFRA_CHECK.md`](SAMPLE_MASTER_PROMPT_INFRA_CHECK.md) for branch-neutral Phase 0 tasks under `tasks/infra_check/`. It emphasizes read-only checks, safe project-local provisioning and explicit permission before changing AI-client settings.
+- Use [`SAMPLE_MASTER_PROMPT_TASKS.md`](SAMPLE_MASTER_PROMPT_TASKS.md) for normal implementation tasks.
+- Use [`SAMPLE_MASTER_PROMPT_PR_REVIEW.md`](SAMPLE_MASTER_PROMPT_PR_REVIEW.md) for phase-level manual PR review tasks.
+
+The selected prompt is only common guidance. The individual task file remains authoritative for its exact commands, evidence paths, status transitions and final-response headings.
+
 Phase 0 may change only task logs, summaries and the generated tracker inside the repository. It must not change application source or product configuration. `INF-P00-T006` may install developer-local browser/package caches and, only after explicit user approval, register Playwright MCP in the developer's user-level AI-client configuration.
 
 ## Build and container verification policy
