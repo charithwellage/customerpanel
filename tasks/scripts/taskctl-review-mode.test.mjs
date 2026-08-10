@@ -27,7 +27,7 @@ function taskIds(root, throughOrder) {
     env: { ...process.env, TASKCTL_ROOT: root },
     encoding: 'utf8',
   });
-  assert.match(output, /Validated 96 task\/gate files/);
+  assert.match(output, /Validated 97 task\/gate files/);
   const ordered = readFileSync(join(root, 'tasks/EXECUTION_ORDER.md'), 'utf8')
     .split('\n')
     .map((line) => line.match(/^\|\s*(\d+)\s*\|\s*\[([^\]]+)\]/))
@@ -87,7 +87,7 @@ test('self-AI completion accepts legacy IN_REVIEW after recorded review and test
 test('Delivery 02 phase review uses its customer integration branch', () => {
   const root = setup('feat_delivery02_phase_01');
   try {
-    seedComplete(root, taskIds(root, 59));
+    seedComplete(root, taskIds(root, 60));
     shell(root, 'git', 'add', '.');
     shell(root, 'git', 'commit', '-qm', 'seed customer phase');
     const start = run(root, 'start', 'D02-P01-CODE_REVIEW', '--owner', 'review-agent');
@@ -101,19 +101,19 @@ test('Delivery 02 phase review uses its customer integration branch', () => {
   }
 });
 
-test('a Playwright MCP UI task cannot complete without MCP and automated-browser evidence', () => {
+test('the Phase 1.2 final Playwright MCP task cannot complete without MCP and automated-browser evidence', () => {
   const root = setup('feat_delivery01_phase_02');
   try {
-    seedComplete(root, taskIds(root, 22));
+    seedComplete(root, taskIds(root, 23));
     shell(root, 'git', 'add', '.');
     shell(root, 'git', 'commit', '-qm', 'seed Phase 1.2 dependencies');
-    assert.equal(run(root, 'start', 'D01-P02-T003', '--owner', 'agent').status, 0);
-    const logPath = join(root, 'tasks/execution_logs/D01-P02-T003.md');
+    assert.equal(run(root, 'start', 'D01-P02-T004', '--owner', 'agent').status, 0);
+    const logPath = join(root, 'tasks/execution_logs/D01-P02-T004.md');
     let log = readFileSync(logPath, 'utf8')
       .replace('- Result: Not recorded.', '- Result: PASS')
       .replace('## Tests executed\n\nNot recorded.', '## Tests executed\n\n- Automated suite passed.');
     writeFileSync(logPath, log);
-    const missing = run(root, 'complete', 'D01-P02-T003', '--review-agent', 'agent');
+    const missing = run(root, 'complete', 'D01-P02-T004', '--review-agent', 'agent');
     assert.notEqual(missing.status, 0);
     assert.match(missing.stderr, /requires recorded Playwright MCP evidence/);
 
@@ -127,7 +127,7 @@ test('a Playwright MCP UI task cannot complete without MCP and automated-browser
       .replace('- Playwright MCP Result: Not recorded.', '- Playwright MCP Result: PASS')
       .replace('- Automated Playwright Test Result: Not recorded.', '- Automated Playwright Test Result: PASS');
     writeFileSync(logPath, log);
-    const complete = run(root, 'complete', 'D01-P02-T003', '--review-agent', 'agent');
+    const complete = run(root, 'complete', 'D01-P02-T004', '--review-agent', 'agent');
     assert.equal(complete.status, 0, complete.stderr);
   } finally {
     rmSync(root, { recursive: true, force: true });

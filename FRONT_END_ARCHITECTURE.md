@@ -774,11 +774,13 @@ flowchart LR
     class APPS app
 ```
 
-**Default and registry.** `carchief` is the default theme and reproduces the POC visual direction: Inter, Space Grotesk, JetBrains Mono, neutral/dark surfaces, red accents, POC-style cards/badges and accessible light surfaces. `ocean` is a complete blue/teal alternate used to prove that feature components are theme-independent. A typed registry rejects unknown names by falling back to `carchief`.
+**Default and registry.** `carchief` is the default theme and must materially reproduce the POC visual system shown in `docs/evidence/phase0/phase0-public-landing.png`: Inter, Space Grotesk, JetBrains Mono, a dark header/hero, red-to-orange emphasis, accessible light showroom surfaces, and POC-equivalent navigation, actions, filters, cards and status badges. `ocean` is a complete blue/teal alternate used to prove that feature components are theme-independent. A typed registry rejects unknown names by falling back to `carchief`.
 
 **Mechanism.** Tokens are CSS custom properties scoped by a `data-theme` attribute on the root element. Switching themes sets that attribute — no feature re-render, no rebuild, no JavaScript theme objects passed through props. Applications select the theme through approved configuration; feature packages consume semantic roles and never import a concrete theme.
 
 **The rule:** components reference semantic roles (`bg-surface`, `text-primary`, `border-danger`), never literal values (`bg-[#dc2626]`, `p-[13px]`). A lint rule fails the build on raw colour or spacing literals in application code.
+
+**Visual-parity rule.** Theme parity is verified with reference-based Playwright MCP inspection and deterministic Playwright screenshots at phone, tablet and desktop widths. Both themes render the same DOM/component composition and business data. Any difference from the POC baseline must be recorded and justified by accessibility, responsive adaptation, content truthfulness or an approved requirement; a separate `carchief`-only page implementation is prohibited.
 
 This is what makes a rebrand a registry/configuration change instead of a pass over every screen. See [`DEVELOPER_USER_GUIDE.md`](DEVELOPER_USER_GUIDE.md) for local switching and extension instructions.
 

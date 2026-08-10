@@ -288,7 +288,7 @@ flowchart LR
 
 ## 5. Delivery 1 — Public Website
 
-**Scheduled delivery:** 30.25 working days ≈ **6 weeks**
+**Scheduled delivery:** 31.5 working days ≈ **6 weeks**
 **Includes:** the shared foundation, reusable vehicle packages, the visual theme system, complete public SEO and the first working version of the mock service
 
 **Production-site parity check:** A live public-site audit is now recorded in [the Legacy Public Website Audit](CarChief-Legacy-Public-Website-Audit.md). The newly reconciled [legacy business requirements](CarChief-Legacy-Public-Requirements-Reconciliation.md) add market/port-aware stock, date-driven arrival/location collections, Premium Stock and Branch pages. This means equivalent approved visitor capabilities—not copying legacy faults, unapproved content or third-party integrations.
@@ -300,7 +300,7 @@ The detailed Delivery 01 task inventory and phase handoff outputs are maintained
 | Phase | Page/component delivery | Visible result | Days |
 |---|---|---|---:|
 | 1.1 | Shared foundation, reusable packages, POC theme parity, alternate theme, PWA and mock service start-up | Responsive shell, reusable vehicle-search/detail packages, PWA manifests/offline shell/update lifecycle, navigation, shared controls, loading/error states, the Unified POC Brand as default `carchief`, the `ocean` alternate, developer guide and a running mock service with sign-in | 10.25 |
-| 1.2 | Home and showroom | Hero, market-aware latest/discounted/clearance collections, Premium Stock banner/teaser, country control, vehicle cards, public support actions, promotional banners, countdown timers and empty/loading states; corrective AI browser validation checks both themes and responsive sizes before review | 2.25 |
+| 1.2 | Home and showroom | Hero, market-aware latest/discounted/clearance collections, Premium Stock banner/teaser, country control, vehicle cards, public support actions, promotional banners, countdown timers and empty/loading states; the default view is aligned to the POC screenshot, then AI browser validation checks both themes and responsive sizes before review | 3.5 |
 | 1.3 | Inventory and search page | Shared vehicle-search package consumed by the public app, country/port/category routes, server-returned Japan/transit/port location projection, two search modes, market-aware filters, manual refresh, results and no-results behavior | 3.5 |
 | 1.4 | Vehicle details | Shareable vehicle web address, specifications, categorized media, status, approved price/price-request presentation, sharing and printing | 2.25 |
 | 1.5 | Freight estimate and quotation enquiry | Destination selection, freight/city/insurance estimate and quotation enquiry | 2 |
@@ -464,7 +464,7 @@ SEO is no longer a separate delivery. It is completed in Phase 1.8 as part of th
 
 | Calendar window | Primary delivery | Working days | Scheduled time |
 |---|---|---:|---:|
-| Weeks 1–6 | Public Website, shared foundation, POC theme parity, reusable packages, mock service and SEO | 29.75 | 6 weeks |
+| Weeks 1–6 | Public Website, shared foundation, POC theme parity, reusable packages, mock service and SEO | 31.0 | 6 weeks |
 | Weeks 6–11.8 | Customer Application | 28.75 | 5–6 weeks |
 | Weeks 11.8–18.8 | Salesperson Application | 35 | 7 weeks |
 | | **Base scheduled delivery** | **93.5** | **≈ 18–19 weeks** |
@@ -634,7 +634,7 @@ This is the delivery in one table: four things are built, one at a time, each on
 
 | # | Delivery | What we are delivering | Summary | Timeline (days) |
 |---|---|---|---|---:|
-| 1 | Public Website (including SEO) | A responsive public website where anyone can browse market-eligible stock, Premium Stock and Branch pages, search, inspect and enquire about vehicles for sale. Includes reusable vehicle packages, the shared design foundation, Unified POC Brand default theme, `ocean` alternate theme, complete public SEO and the first working version of the separate mock service. | The shop window. No sign-in required. This is what a prospective buyer sees first. | 29.75 |
+| 1 | Public Website (including SEO) | A responsive public website where anyone can browse market-eligible stock, Premium Stock and Branch pages, search, inspect and enquire about vehicles for sale. Includes reusable vehicle packages, a default theme that materially matches the familiar POC appearance, the injectable `ocean` alternate, complete public SEO and the first working version of the separate mock service. | The shop window. No sign-in required. This is what a prospective buyer sees first. | 31.0 |
 | 2 | Customer Application | A private, sign-in-protected area where an existing CarChief customer can see their vehicles, quotations, invoices, payments, shipment progress and documents. | The customer's own account. Answers "where is my car and what do I owe." | 28.75 |
 | 3 | Salesperson Application | The internal system used every day by sales, finance and administration staff to manage leads, stock, quotations, payments, master data, users and permissions. | The engine room. Where enquiries become sales and money gets tracked. | 35 |
 | | | | **Base total** | **93.5** |

@@ -3,7 +3,7 @@ task_id: "D02-P03-CODE_REVIEW"
 title: "Phase 2.3 PR code review and tech-lead approval"
 delivery: "Delivery 02 — Customer Application"
 phase: "Phase 2.3 — Customer showroom and vehicle search"
-execution_order: 67
+execution_order: 68
 estimate: "0.25 day"
 model_tier: "FRONTIER"
 parallel_group: "D02-P03-REVIEW"

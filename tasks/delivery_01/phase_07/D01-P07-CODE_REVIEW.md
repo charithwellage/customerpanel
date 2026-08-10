@@ -3,7 +3,7 @@ task_id: "D01-P07-CODE_REVIEW"
 title: "Phase 1.7 PR code review and tech-lead approval"
 delivery: "Delivery 01 — Public Website"
 phase: "Phase 1.7 — Public information and content"
-execution_order: 49
+execution_order: 50
 estimate: "0.25 day"
 model_tier: "FRONTIER"
 parallel_group: "P07-REVIEW"
@@ -33,6 +33,8 @@ ui_validation: "not_applicable"
 ## Requirements and rules
 
 Apply every applicable shared code-review rule and these phase-specific checks:
+
+- Verify every changed public screen under the default `carchief` theme against the authoritative POC visual baseline `docs/evidence/phase0/phase0-public-landing.png`; verify documented responsive/accessibility exceptions and confirm `ocean` uses the same shared components and behavior.
 
 - Content, FAQ, testimonials, moderation states, consent, content safety, and legacy public-page parity.
 - Verify the phase acceptance criteria, required mock/API boundaries and required automated/container evidence are present in the PR diff or its committed execution records.

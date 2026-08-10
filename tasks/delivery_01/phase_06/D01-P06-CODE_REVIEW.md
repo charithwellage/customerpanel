@@ -3,7 +3,7 @@ task_id: "D01-P06-CODE_REVIEW"
 title: "Phase 1.6 PR code review and tech-lead approval"
 delivery: "Delivery 01 — Public Website"
 phase: "Phase 1.6 — Enquiry, account and reservation entry"
-execution_order: 44
+execution_order: 45
 estimate: "0.25 day"
 model_tier: "FRONTIER"
 parallel_group: "P06-REVIEW"
@@ -33,6 +33,8 @@ ui_validation: "not_applicable"
 ## Requirements and rules
 
 Apply every applicable shared code-review rule and these phase-specific checks:
+
+- Verify every changed public screen under the default `carchief` theme against the authoritative POC visual baseline `docs/evidence/phase0/phase0-public-landing.png`; verify documented responsive/accessibility exceptions and confirm `ocean` uses the same shared components and behavior.
 
 - Enquiry persistence, duplicate handling, reservation eligibility and holds, lead handoff, privacy, and validation.
 - Verify the phase acceptance criteria, required mock/API boundaries and required automated/container evidence are present in the PR diff or its committed execution records.

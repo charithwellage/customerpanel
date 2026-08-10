@@ -80,10 +80,10 @@ Each delivery phase is built by an AI agent, driven and checked by one accountab
 
 | Delivery | Phase days | Correction allowance | Total days | Calendar |
 |---|---:|---:|---:|---:|
-| Public Website (incl. foundation, POC theme parity, mock service, Playwright MCP UI validation and complete SEO) | 29.75 | 0.5 | **30.25** | 6 weeks |
+| Public Website (incl. foundation, POC theme parity, mock service, Playwright MCP UI validation and complete SEO) | 31.0 | 0.5 | **31.5** | 6 weeks |
 | Customer Application | 25 | 3.75 (15%) | **28.75 ≈ 29** | 5–6 weeks |
 | Salesperson Application | 28.5 | 6.5 | **35** | 7 weeks |
-| **Base scheduled delivery** | **83.25** | **10.75** | **94** | **≈ 18–19 weeks** |
+| **Base scheduled delivery** | **84.5** | **10.75** | **95.25** | **≈ 18–19 weeks** |
 | Programme allowance | | | | **2–3 weeks** |
 | **Management planning range** | | | | **20–22 weeks** |
 
@@ -366,7 +366,7 @@ The customer application in the demonstration already offers a light/dark switch
 
 ## 5. Delivery 1 — Public Website
 
-**Scheduled delivery:** 30.25 working days ≈ 6 weeks
+**Scheduled delivery:** 31.5 working days ≈ 6 weeks
 **Includes:** shared foundation, theme system, complete public SEO, and the first working version of the mock service
 **Correction allowance:** 0.5 day
 
@@ -420,7 +420,7 @@ Also in scope: the theme/design-token system carrying the proof of concept's loo
 
 ### Phase 1.2 — Home and showroom
 
-**Phase days:** 2.25 days, including the corrective Playwright MCP UI-validation task added after the original Phase 1.2 implementation
+**Phase days:** 3.5 days, including the corrective POC visual-parity implementation and the final Playwright MCP UI-validation task added after the original Phase 1.2 implementation
 
 Runtime additions: promotional banners and countdown timers alongside the featured collections.
 
@@ -430,6 +430,7 @@ Runtime additions: promotional banners and countdown timers alongside the featur
 
 **Sub-delivery components**
 
+- Exact responsive visual parity with `docs/evidence/phase0/phase0-public-landing.png` for the default `carchief` theme, with documented accessibility/content exceptions; `ocean` remains the secondary injectable theme using the same components.
 - Hero and primary calls to action.
 - Featured/latest/available vehicle collections.
 - Market-aware Latest Arrivals: only service-projected In Japan vehicles created within the previous five days, with the approved source-stock ordering returned by the service.
@@ -452,7 +453,7 @@ Runtime additions: promotional banners and countdown timers alongside the featur
 
 **Supervisor demo:** Open the home page, browse featured vehicles, follow supporting content links, and show an empty showroom scenario.
 
-**Testing and acceptance:** Responsive cards and navigation work; private fields/media never render; public claims have an owner/approval state. The corrective gate inspects both themes at phone, tablet and desktop sizes through Playwright MCP, fixes in-scope defects, checks console/network behavior and then runs the deterministic Playwright Test suite before PR review.
+**Testing and acceptance:** Responsive cards and navigation work; private fields/media never render; public claims have an owner/approval state. The corrective visual task first aligns the page with the named POC reference. The final gate then inspects both themes at phone, tablet and desktop sizes through Playwright MCP, fixes in-scope defects, checks console/network behavior and runs the deterministic Playwright Test suite before PR review.
 
 ### Phase 1.3 — Inventory and search page
 
@@ -670,8 +671,9 @@ The table below is the execution view of the existing `tasks/delivery_01` files.
 | 1.1 | **Deliveries** | - Shared monorepo, reusable UI/theme, vehicle-search/detail package boundaries and responsive public shell.<br>- The Unified POC Brand is the default `carchief` theme; `ocean` renders the same screens without feature changes, with switching documented in `DEVELOPER_USER_GUIDE.md`.<br>- Public app runs at `http://localhost:3000/` with navigation, loading, empty and error states.<br>- Mock API runs at `http://localhost:4000/`, with Swagger at `http://localhost:4000/swagger` and OpenAPI JSON at `http://localhost:4000/openapi.json`.<br>- Docker Compose build/health check, deterministic seed/reset and basic PWA shell are demonstrated. |
 | 1.2 | D01-P02-T001 | Add featured vehicle services and reusable vehicle collections |
 | 1.2 | D01-P02-T002 | Build and accept the home/showroom experience |
-| 1.2 | D01-P02-T003 | Validate and correct the Home and Showroom UI with Playwright MCP |
-| 1.2 | **Deliveries** | - Home page and showroom content are visible at `http://localhost:3000/`.<br>- Market-aware Latest Arrivals, Discounted/Best Offer, Clearance and Premium teaser cards load from the mock vehicle-summary service rather than page fixtures; no legacy New tag appears.<br>- Premium banner/menu navigation, a preserved Premium query and honest fewer/empty states are demonstrated alongside responsive phone/tablet/desktop layouts.<br>- Both themes are inspected through Playwright MCP; console/network findings are corrected and automated Playwright Test passes.<br>- Swagger shows the featured-vehicle operation and contract tests prove reset, five-day Latest Arrival and public projection behavior. |
+| 1.2 | D01-P02-T003 | Implement exact POC visual parity for the Public Home and Showroom |
+| 1.2 | D01-P02-T004 | Validate the POC-parity Home and Showroom UI with Playwright MCP |
+| 1.2 | **Deliveries** | - Home page and showroom content are visible at `http://localhost:3000/`.<br>- The default `carchief` rendering materially matches the POC reference's header, hero, navigation, actions, showroom transition, search presentation, cards and badges at responsive widths; `ocean` renders the same features as the injectable alternate.<br>- Market-aware Latest Arrivals, Discounted/Best Offer, Clearance and Premium teaser cards load from the mock vehicle-summary service rather than page fixtures; no legacy New tag appears.<br>- Premium banner/menu navigation, a preserved Premium query and honest fewer/empty states are demonstrated alongside responsive phone/tablet/desktop layouts.<br>- Both themes are inspected through Playwright MCP; visual, console and network findings are corrected and automated Playwright Test passes.<br>- Swagger shows the featured-vehicle operation and contract tests prove reset, five-day Latest Arrival and public projection behavior. |
 | 1.3 | D01-P03-T001 | Add vehicle query, dynamic filters, sorting and pagination |
 | 1.3 | D01-P03-T002 | Build search orchestration, URL state and natural parsing |
 | 1.3 | D01-P03-T003 | Build inventory filters and result presentations |
@@ -1366,7 +1368,7 @@ Complete SEO and public release-readiness work is delivered in Phase 1.8 before 
 
 | Calendar window | Primary delivery | Days | Acceptance result |
 |---|---|---:|---|
-| Weeks 1–6 | Public Website, foundation, POC theme parity, mock service and SEO | 29.75 | Accepted responsive, search-ready public application and working mock service |
+| Weeks 1–6 | Public Website, foundation, POC theme parity, mock service and SEO | 31.0 | Accepted responsive, search-ready public application and working mock service |
 | Weeks 6–11.8 | Customer Application | 28.75 | Accepted customer self-service application and linked transaction scenarios |
 | Weeks 11.8–18.8 | Salesperson Application | 35 | Accepted sales, finance and administration application plus full connected journey |
 | | **Base scheduled delivery** | **93.5** | **≈ 18–19 calendar weeks** |
@@ -1586,7 +1588,7 @@ For the management summary, see [CarChief Frontend Implementation Roadmap](./Car
 
 | # | Delivery | What we are delivering | Summary | Timeline (days) |
 |---|---|---|---|---:|
-| 1 | Public Website (including SEO) | The public-facing website, shared foundations, Unified POC Brand theme, reusable vehicle packages, complete public SEO and the first working version of the separate mock service. | Where a visitor finds and enquires about a vehicle. No sign-in required. | 29.75 |
+| 1 | Public Website (including SEO) | The public-facing website, shared foundations, Unified POC Brand theme with exact POC visual-parity acceptance, reusable vehicle packages, complete public SEO and the first working version of the separate mock service. | Where a visitor finds and enquires about a vehicle. No sign-in required. | 31.0 |
 | 2 | Customer Application | A sign-in-protected application for existing customers to track their own vehicles, quotations, invoices, payments, shipment status and documents. | The customer's private account view. | 28.75 (25 planned + 15%) |
 | 3 | Salesperson Application | The staff-facing system covering sales, finance and administration — leads, inventory, quotations, payments, master data, users and permissions. | The day-to-day tool used by CarChief's own team. | 35 |
 | | | | **Base total** | **93.5** |

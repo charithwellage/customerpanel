@@ -13,7 +13,7 @@ function run(...args) {
 test('task metadata and dependency graph validate', () => {
   const result = run('validate');
   assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stdout, /Validated 96 task\/gate files/);
+  assert.match(result.stdout, /Validated 97 task\/gate files/);
 });
 
 test('next reports the current tracker frontier', () => {
@@ -47,7 +47,8 @@ test('the late MCP infrastructure gate precedes the Phase 1.2 UI correction and 
   const source = readFileSync(new URL('../EXECUTION_ORDER.md', import.meta.url), 'utf8');
   assert.match(source, /\| 21 \| \[INF-P00-T006\]/);
   assert.match(source, /\| 22 \| \[D01-P02-T003\]/);
-  assert.match(source, /\| 23 \| \[D01-P02-CODE_REVIEW\]/);
+  assert.match(source, /\| 23 \| \[D01-P02-T004\]/);
+  assert.match(source, /\| 24 \| \[D01-P02-CODE_REVIEW\]/);
 });
 
 test('Delivery 02 starts only after the final Delivery 01 review gate', () => {
