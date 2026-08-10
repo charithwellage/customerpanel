@@ -341,7 +341,9 @@ class PostgresStore implements DemoStore {
         ADD COLUMN IF NOT EXISTS featured boolean,
         ADD COLUMN IF NOT EXISTS stock_type text,
         ADD COLUMN IF NOT EXISTS destination_port text,
-        ADD COLUMN IF NOT EXISTS discount_percent numeric;`
+        ADD COLUMN IF NOT EXISTS discount_percent numeric,
+        ADD COLUMN IF NOT EXISTS internal_notes text,
+        ADD COLUMN IF NOT EXISTS staff_owner_id text;`
     );
     await this.reset();
   }
@@ -428,4 +430,3 @@ class PostgresStore implements DemoStore {
 export function createStore(connectionString = process.env.DATABASE_URL): DemoStore {
   return connectionString ? new PostgresStore(connectionString) : new MemoryStore();
 }
-

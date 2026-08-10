@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest';
+import { createElement, Fragment } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 import { createStore } from '../../../mock-api/src/store.js';
+import { VehicleCollectionPrimitive } from '@carchief/vehicle-search';
 
 describe('Vehicle Collection & Mock Store Tests', () => {
   it('filters Latest Arrivals to eligible In Japan vehicles created within the 5-day window', async () => {
@@ -51,5 +54,25 @@ describe('Vehicle Collection & Mock Store Tests', () => {
       expect(v).not.toHaveProperty('internalNotes');
       expect(v).not.toHaveProperty('staffOwnerId');
     });
+  });
+
+  it('gives each rendered vehicle collection a unique accessible heading reference', async () => {
+    const store = createStore();
+    const vehicles = await store.getVehicles({ collection: 'featured' });
+    const markup = renderToStaticMarkup(
+      createElement(
+        Fragment,
+        null,
+        createElement(VehicleCollectionPrimitive, { title: 'Featured vehicles', vehicles: vehicles.slice(0, 1) }),
+        createElement(VehicleCollectionPrimitive, { title: 'Featured vehicles', vehicles: vehicles.slice(0, 1) }),
+      ),
+    );
+
+    const headingIds = Array.from(markup.matchAll(/<h2 id="([^"]+)"/g), (match) => match[1]);
+    const labelledByIds = Array.from(markup.matchAll(/aria-labelledby="([^"]+)"/g), (match) => match[1]);
+
+    expect(headingIds).toHaveLength(2);
+    expect(new Set(headingIds).size).toBe(2);
+    expect(labelledByIds).toEqual(headingIds);
   });
 });

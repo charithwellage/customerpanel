@@ -1,13 +1,13 @@
 ---
 task_id: "D01-P02-CODE_REVIEW"
-title: "Phase 1.2 PR code review and tech-lead approval"
+title: "Phase 1.2 mixed-PR code review and tech-lead approval"
 delivery: "Delivery 01 — Public Website"
 phase: "Phase 1.2 — Home and showroom"
-execution_order: 24
+execution_order: 26
 estimate: "0.25 day"
 model_tier: "FRONTIER"
 parallel_group: "P02-REVIEW"
-dependencies: ["D01-P02-T004"]
+dependencies: ["D01-P02-T006"]
 decision_gates: []
 phase_branch: "feat_delivery01_phase_02"
 task_branch: "feat_delivery01_phase_02"
@@ -29,6 +29,7 @@ ui_validation: "not_applicable"
 - [CODE_REVIEW_RULES.md](../../CODE_REVIEW_RULES.md).
 - This phase's completed task files, execution logs and phase summary.
 - The requirements, architecture, implementation-plan and evidence explicitly named by those completed task files.
+- Delivery 02 task-system metadata, CSV export and coverage matrix changed in this mixed PR. These are planning artefacts only; do not inspect or infer Customer application runtime behaviour.
 
 ## Requirements and rules
 
@@ -40,6 +41,9 @@ Apply every applicable shared code-review rule and these phase-specific checks:
 - Verify the mock API starts cleanly against PostgreSQL: logs contain no initialization/schema errors, the live `vehicles` table contains every column used by seed/reset SQL, `/healthz`, `/openapi.json` and deterministic reset succeed, and the phase is not accepted from a frontend-only smoke test.
 
 - Verify Playwright MCP evidence for every completed UI task in this phase: client, URL, themes, viewports, console/network result, findings/corrections, MCP PASS and automated Playwright Test PASS. Missing or contradictory evidence is blocking.
+- Review the deliberately retained mixed scope: shared theme/MCP/task-system changes and Delivery 02 planning files. Verify their task IDs, dependency graph, branch naming, tracker rendering and CSV integrity; verify that no Customer application implementation behaviour is introduced.
+- Treat whitespace or line-ending errors in the exact comparison range as blocking. `D01-P02-T005` owns their correction and must be COMPLETE before this review starts.
+- Verify `D01-P02-T006` removed prohibited static inline visual styles from the seven named Home/Showroom components, placed feature-specific classes in the feature stylesheet, preserved shared-package ownership, and retained carchief/ocean visual parity.
 
 ## Mandatory preflight and blocker protocol
 
@@ -78,7 +82,7 @@ A tech lead receives an AI-assisted, phase-specific review of the PR before it c
 
 ## In scope
 
-- Review only `delivery_01_public_website...feat_delivery01_phase_02` using `git diff --check delivery_01_public_website...feat_delivery01_phase_02` and the matching PR diff.
+- Review the complete mixed diff only: `delivery_01_public_website...feat_delivery01_phase_02`, using `git diff --check delivery_01_public_website...feat_delivery01_phase_02` and the matching PR diff. This includes Phase 1.2 Public Website work, shared theme/MCP/task-system changes and Delivery 02 planning files.
 - Record the AI review report, phase-specific findings, test evidence and tech-lead decision in this task's execution log.
 - Reopen responsible implementation tasks when a blocking defect is found; do not fix product code in this review task.
 
@@ -96,7 +100,11 @@ No API, mock, OpenAPI, fixture, database or BFF change is owned. Review their co
 
 ## Implementation and UX requirements
 
-Review responsive phone/tablet/desktop behavior, semantic theme usage, keyboard/focus/contrast/reduced-motion behavior and PWA safety where this phase changes UI.
+### Fresh-runtime evidence review
+
+For every completed task marked `ui_validation: "playwright_mcp"`, verify its execution log proves a fresh current-worktree runtime: `Fresh-runtime verification: PASS`, `Runtime provenance:`, `Service readiness: PASS`, a recorded target URL, and Playwright MCP/automated results against that same URL. Treat a stale-image, stale-server, missing health/API/reset check, or a browser failure deferred from the implementation task as a **blocking** finding. Reopen the responsible task; do not approve the phase on earlier or source-only evidence.
+
+Read and apply `tasks/COMMON_FRONTEND_RULES.md`. Review responsive phone/tablet/desktop behavior, semantic theme usage, keyboard/focus/contrast/reduced-motion behavior and PWA safety where this phase changes UI. Treat prohibited static inline visual styles, raw visual literals in TSX, or incorrect stylesheet ownership as blocking findings.
 
 ## Automated tests to add
 
@@ -108,13 +116,15 @@ No new product test is owned. Verify that required phase tests are present, mean
 - `corepack pnpm lint`
 - `corepack pnpm typecheck`
 - `corepack pnpm -r build`
+- `corepack pnpm --filter @carchief/public-web test -- home`
+- `corepack pnpm exec playwright test home-showroom`
 - `node tasks/scripts/taskctl.mjs validate`
 - `git diff -- POC` (must be empty)
 
 ## Acceptance criteria
 
 - The AI review report records the exact comparison range, applicable rules, findings, fixes/reopen actions and result.
-- The tech lead manually reviews the PR and approves this task only when no blocking findings remain.
+- The tech lead manually reviews the expanded mixed-scope PR and approves this task only when no blocking findings remain.
 - Root lint, TypeScript typecheck and recursive workspace builds pass with no compiler or build errors.
 - The PR cannot merge until this task is `COMPLETE`.
 

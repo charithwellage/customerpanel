@@ -3,7 +3,7 @@ task_id: "D02-P06-CODE_REVIEW"
 title: "Phase 2.6 PR code review and tech-lead approval"
 delivery: "Delivery 02 — Customer Application"
 phase: "Phase 2.6 — Payments, TT remittance and PI deadline"
-execution_order: 82
+execution_order: 84
 estimate: "0.25 day"
 model_tier: "FRONTIER"
 parallel_group: "D02-P06-REVIEW"
@@ -27,6 +27,7 @@ ui_validation: "not_applicable"
 ## Authority and context to read
 
 - [CODE_REVIEW_RULES.md](../../CODE_REVIEW_RULES.md).
+- [COMMON_FRONTEND_RULES.md](../../COMMON_FRONTEND_RULES.md) for shared frontend implementation and review conventions.
 - This phase's completed task files, execution logs and `tasks/phase_summaries/D02-P06-SUMMARY.md`.
 - Only requirements, architecture sections and evidence explicitly named by those completed tasks.
 
@@ -95,6 +96,10 @@ Own only `tasks/execution_logs/D02-P06-CODE_REVIEW.md`, generated tracker and ph
 No contract, mock, database or product change is owned; review conformance only.
 
 ## Implementation and UX requirements
+
+### Fresh-runtime evidence review
+
+For every completed task marked `ui_validation: "playwright_mcp"`, verify its execution log proves a fresh current-worktree runtime: `Fresh-runtime verification: PASS`, `Runtime provenance:`, `Service readiness: PASS`, a recorded target URL, and Playwright MCP/automated results against that same URL. Treat a stale-image, stale-server, missing health/API/reset check, or a browser failure deferred from the implementation task as a **blocking** finding. Reopen the responsible task; do not approve the phase on earlier or source-only evidence.
 
 Review the phase diff for shared package boundaries, both themes, phone/tablet/desktop behavior, keyboard/focus/contrast/zoom/reduced motion, customer isolation, sensitive-cache/PWA safety and honest external labels.
 

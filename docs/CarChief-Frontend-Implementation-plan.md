@@ -420,7 +420,7 @@ Also in scope: the theme/design-token system carrying the proof of concept's loo
 
 ### Phase 1.2 — Home and showroom
 
-**Phase days:** 3.5 days, including the corrective POC visual-parity implementation and the final Playwright MCP UI-validation task added after the original Phase 1.2 implementation
+**Phase days:** 4.0 days, including the corrective POC visual-parity implementation, the final Playwright MCP UI-validation task and the mixed-PR hygiene correction added after the original Phase 1.2 implementation.
 
 Runtime additions: promotional banners and countdown timers alongside the featured collections.
 
@@ -673,6 +673,7 @@ The table below is the execution view of the existing `tasks/delivery_01` files.
 | 1.2 | D01-P02-T002 | Build and accept the home/showroom experience |
 | 1.2 | D01-P02-T003 | Implement exact POC visual parity for the Public Home and Showroom |
 | 1.2 | D01-P02-T004 | Validate the POC-parity Home and Showroom UI with Playwright MCP |
+| 1.2 | D01-P02-T005 | Reconcile mixed PR review defects and hygiene before the expanded phase review |
 | 1.2 | **Deliveries** | - Home page and showroom content are visible at `http://localhost:3000/`.<br>- The default `carchief` rendering materially matches the POC reference's header, hero, navigation, actions, showroom transition, search presentation, cards and badges at responsive widths; `ocean` renders the same features as the injectable alternate.<br>- Market-aware Latest Arrivals, Discounted/Best Offer, Clearance and Premium teaser cards load from the mock vehicle-summary service rather than page fixtures; no legacy New tag appears.<br>- Premium banner/menu navigation, a preserved Premium query and honest fewer/empty states are demonstrated alongside responsive phone/tablet/desktop layouts.<br>- Both themes are inspected through Playwright MCP; visual, console and network findings are corrected and automated Playwright Test passes.<br>- Swagger shows the featured-vehicle operation and contract tests prove reset, five-day Latest Arrival and public projection behavior. |
 | 1.3 | D01-P03-T001 | Add vehicle query, dynamic filters, sorting and pagination |
 | 1.3 | D01-P03-T002 | Build search orchestration, URL state and natural parsing |

@@ -10,83 +10,20 @@ export const BuyingProcessPreview: React.FC = () => {
   ];
 
   return (
-    <section aria-labelledby="buying-process-title" style={{ margin: '3rem 0' }}>
-      <div style={{ marginBottom: '1.5rem' }}>
-        <span
-          style={{
-            fontSize: '0.75rem',
-            fontFamily: 'var(--font-mono, monospace)',
-            fontWeight: 700,
-            color: 'var(--color-primary, #dc2626)',
-            textTransform: 'uppercase',
-          }}
-        >
-          Sourcing Guide
-        </span>
-        <h2
-          id="buying-process-title"
-          style={{
-            fontFamily: 'var(--font-display, sans-serif)',
-            fontSize: '1.5rem',
-            fontWeight: 800,
-            margin: '0.25rem 0 0 0',
-          }}
-        >
+    <section aria-labelledby="buying-process-title" className="home-section">
+      <div className="home-section-header">
+        <span className="home-section-eyebrow">Sourcing Guide</span>
+        <h2 id="buying-process-title" className="home-section-title">
           CarChief 5-Step Sourcing Process
         </h2>
       </div>
 
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: '1rem',
-        }}
-      >
+      <div className="buying-process-grid">
         {steps.map((item) => (
-          <div
-            key={item.step}
-            style={{
-              padding: '1.25rem',
-              backgroundColor: 'var(--color-surface, #ffffff)',
-              borderRadius: 'var(--radius-md, 0.5rem)',
-              border: '1px solid var(--color-border, #e5e5e5)',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-            }}
-          >
-            <span
-              style={{
-                fontFamily: 'var(--font-mono, monospace)',
-                fontSize: '1.25rem',
-                fontWeight: 800,
-                color: 'var(--color-primary, #dc2626)',
-                marginBottom: '0.5rem',
-              }}
-            >
-              {item.step}
-            </span>
-            <h3
-              style={{
-                fontFamily: 'var(--font-display, sans-serif)',
-                fontSize: '0.95rem',
-                fontWeight: 700,
-                margin: '0 0 0.4rem 0',
-              }}
-            >
-              {item.title}
-            </h3>
-            <p
-              style={{
-                fontSize: '0.8rem',
-                color: 'var(--color-text-secondary, #525252)',
-                margin: 0,
-                lineHeight: 1.4,
-              }}
-            >
-              {item.desc}
-            </p>
+          <div key={item.step} className="buying-process-card">
+            <span className="buying-process-step">{item.step}</span>
+            <h3 className="buying-process-card-title">{item.title}</h3>
+            <p className="buying-process-card-desc">{item.desc}</p>
           </div>
         ))}
       </div>

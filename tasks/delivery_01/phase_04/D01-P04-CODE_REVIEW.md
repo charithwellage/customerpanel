@@ -3,7 +3,7 @@ task_id: "D01-P04-CODE_REVIEW"
 title: "Phase 1.4 PR code review and tech-lead approval"
 delivery: "Delivery 01 — Public Website"
 phase: "Phase 1.4 — Vehicle details"
-execution_order: 33
+execution_order: 35
 estimate: "0.25 day"
 model_tier: "FRONTIER"
 parallel_group: "P04-REVIEW"
@@ -27,6 +27,7 @@ ui_validation: "not_applicable"
 ## Authority and context to read
 
 - [CODE_REVIEW_RULES.md](../../CODE_REVIEW_RULES.md).
+- [COMMON_FRONTEND_RULES.md](../../COMMON_FRONTEND_RULES.md) for shared frontend implementation and review conventions.
 - This phase's completed task files, execution logs and phase summary.
 - The requirements, architecture, implementation-plan and evidence explicitly named by those completed task files.
 
@@ -96,7 +97,11 @@ No API, mock, OpenAPI, fixture, database or BFF change is owned. Review their co
 
 ## Implementation and UX requirements
 
-Review responsive phone/tablet/desktop behavior, semantic theme usage, keyboard/focus/contrast/reduced-motion behavior and PWA safety where this phase changes UI.
+### Fresh-runtime evidence review
+
+For every completed task marked `ui_validation: "playwright_mcp"`, verify its execution log proves a fresh current-worktree runtime: `Fresh-runtime verification: PASS`, `Runtime provenance:`, `Service readiness: PASS`, a recorded target URL, and Playwright MCP/automated results against that same URL. Treat a stale-image, stale-server, missing health/API/reset check, or a browser failure deferred from the implementation task as a **blocking** finding. Reopen the responsible task; do not approve the phase on earlier or source-only evidence.
+
+Read and apply [COMMON_FRONTEND_RULES.md](../../COMMON_FRONTEND_RULES.md). Review responsive phone/tablet/desktop behaviour, semantic theme usage, keyboard/focus/contrast/reduced-motion behaviour and PWA safety where this phase changes UI. Treat any violation of the common style ownership, reusable-package or static-inline-style rules as blocking unless the documented runtime-data custom-property exception applies. Fixed DOM IDs in reusable components and nested interactive controls are also blocking accessibility findings.
 
 ## Automated tests to add
 

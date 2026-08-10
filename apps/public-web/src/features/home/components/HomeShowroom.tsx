@@ -57,14 +57,14 @@ export const HomeShowroom: React.FC<HomeShowroomProps> = ({ initialVehicles = []
 
   return (
     <div className="showroom" id="showroom">
-      <div style={{ marginBottom: '1.5rem' }}>
+      <div className="home-section-header">
         <MarketControls selectedMarket={selectedMarket} onMarketChange={setSelectedMarket} />
       </div>
 
       <PromotionsCountdown />
 
       {/* Latest Arrivals Section (5-day window, In Japan) */}
-      <section style={{ margin: '2.5rem 0' }}>
+      <section className="home-section-compact">
         <VehicleCollection
           title="Latest Arrivals (In Japan)"
           description="Eligible stock created within the last 5 days."
@@ -82,7 +82,7 @@ export const HomeShowroom: React.FC<HomeShowroomProps> = ({ initialVehicles = []
 
       {/* Discounted / Best Offer / Clearance Section */}
       {discountedStock.length > 0 && (
-        <section style={{ margin: '2.5rem 0' }}>
+        <section className="home-section-compact">
           <VehicleCollection
             title="Discounted & Clearance Stock"
             description="Special pricing and clearance offers."
@@ -95,7 +95,7 @@ export const HomeShowroom: React.FC<HomeShowroomProps> = ({ initialVehicles = []
       )}
 
       {/* Browse All Stock Section */}
-      <section style={{ margin: '2.5rem 0' }}>
+      <section className="home-section-compact">
         <VehicleCollection
           title="Browse All Stock"
           description="Available inventory ordered by location (In Port -> In Transit -> In Japan)."

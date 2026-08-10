@@ -27,7 +27,7 @@ function taskIds(root, throughOrder) {
     env: { ...process.env, TASKCTL_ROOT: root },
     encoding: 'utf8',
   });
-  assert.match(output, /Validated 97 task\/gate files/);
+  assert.match(output, /Validated 99 task\/gate files/);
   const ordered = readFileSync(join(root, 'tasks/EXECUTION_ORDER.md'), 'utf8')
     .split('\n')
     .map((line) => line.match(/^\|\s*(\d+)\s*\|\s*\[([^\]]+)\]/))
@@ -87,7 +87,7 @@ test('self-AI completion accepts legacy IN_REVIEW after recorded review and test
 test('Delivery 02 phase review uses its customer integration branch', () => {
   const root = setup('feat_delivery02_phase_01');
   try {
-    seedComplete(root, taskIds(root, 60));
+    seedComplete(root, taskIds(root, 62));
     shell(root, 'git', 'add', '.');
     shell(root, 'git', 'commit', '-qm', 'seed customer phase');
     const start = run(root, 'start', 'D02-P01-CODE_REVIEW', '--owner', 'review-agent');
@@ -101,23 +101,17 @@ test('Delivery 02 phase review uses its customer integration branch', () => {
   }
 });
 
-test('the Phase 1.2 final Playwright MCP task cannot complete without MCP and automated-browser evidence', () => {
-  const root = setup('feat_delivery01_phase_02');
+test('a remaining Playwright MCP task cannot complete without fresh-runtime and automated-browser evidence', () => {
+  const root = setup('feat_delivery01_phase_03');
   try {
-    seedComplete(root, taskIds(root, 23));
+    seedComplete(root, taskIds(root, 28));
     shell(root, 'git', 'add', '.');
-    shell(root, 'git', 'commit', '-qm', 'seed Phase 1.2 dependencies');
-    assert.equal(run(root, 'start', 'D01-P02-T004', '--owner', 'agent').status, 0);
-    const logPath = join(root, 'tasks/execution_logs/D01-P02-T004.md');
+    shell(root, 'git', 'commit', '-qm', 'seed Phase 1.3 dependencies');
+    assert.equal(run(root, 'start', 'D01-P03-T002', '--owner', 'agent').status, 0);
+    const logPath = join(root, 'tasks/execution_logs/D01-P03-T002.md');
     let log = readFileSync(logPath, 'utf8')
       .replace('- Result: Not recorded.', '- Result: PASS')
-      .replace('## Tests executed\n\nNot recorded.', '## Tests executed\n\n- Automated suite passed.');
-    writeFileSync(logPath, log);
-    const missing = run(root, 'complete', 'D01-P02-T004', '--review-agent', 'agent');
-    assert.notEqual(missing.status, 0);
-    assert.match(missing.stderr, /requires recorded Playwright MCP evidence/);
-
-    log = readFileSync(logPath, 'utf8')
+      .replace('## Tests executed\n\nNot recorded.', '## Tests executed\n\n- Automated suite passed.')
       .replace('- AI client: Not recorded.', '- AI client: Codex')
       .replace('- Target URL: Not recorded.', '- Target URL: http://127.0.0.1:3000')
       .replace('- Viewports: Not recorded.', '- Viewports: 390x844; 768x1024; 1440x900')
@@ -127,8 +121,31 @@ test('the Phase 1.2 final Playwright MCP task cannot complete without MCP and au
       .replace('- Playwright MCP Result: Not recorded.', '- Playwright MCP Result: PASS')
       .replace('- Automated Playwright Test Result: Not recorded.', '- Automated Playwright Test Result: PASS');
     writeFileSync(logPath, log);
-    const complete = run(root, 'complete', 'D01-P02-T004', '--review-agent', 'agent');
+    const missing = run(root, 'complete', 'D01-P03-T002', '--review-agent', 'agent');
+    assert.notEqual(missing.status, 0);
+    assert.match(missing.stderr, /Fresh-runtime verification: PASS/);
+
+    log = readFileSync(logPath, 'utf8')
+      .replace('- Fresh-runtime verification: Not recorded.', '- Fresh-runtime verification: PASS')
+      .replace('- Runtime provenance: Not recorded.', '- Runtime provenance: docker compose -f docker-compose.frontend.yml up --build -d; public-web-1 started from current worktree')
+      .replace('- Service readiness: Not recorded.', '- Service readiness: PASS');
+    writeFileSync(logPath, log);
+    const complete = run(root, 'complete', 'D01-P03-T002', '--review-agent', 'agent');
     assert.equal(complete.status, 0, complete.stderr);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('the Phase 1.2 mixed-PR review cannot start until the inline-style remediation task is COMPLETE', () => {
+  const root = setup('feat_delivery01_phase_02');
+  try {
+    seedComplete(root, taskIds(root, 25));
+    shell(root, 'git', 'add', '.');
+    shell(root, 'git', 'commit', '-qm', 'seed work before mixed PR hygiene');
+    const start = run(root, 'start', 'D01-P02-CODE_REVIEW', '--owner', 'review-agent');
+    assert.notEqual(start.status, 0);
+    assert.match(start.stderr, /D01-P02-T006/);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

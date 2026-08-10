@@ -27,4 +27,3 @@ export class VehicleService {
     return this.httpClient.request<VehicleDomainSummary[]>(path);
   }
 }
-

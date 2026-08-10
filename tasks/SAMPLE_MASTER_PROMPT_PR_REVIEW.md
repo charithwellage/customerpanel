@@ -10,8 +10,9 @@ Read, in this order:
 2. tasks/TASK_EXECUTION_TRACKER.md
 3. The latest applicable phase summary
 4. tasks/CODE_REVIEW_RULES.md
-5. tasks/DELIVERY-NN/PHASE-NN/PHASE-REVIEW-TASK-ID.md
-6. Only the completed task files, execution logs, requirements, architecture sections, evidence and POC paths explicitly named by that phase-review task.
+5. tasks/COMMON_FRONTEND_RULES.md
+6. tasks/DELIVERY-NN/PHASE-NN/PHASE-REVIEW-TASK-ID.md
+7. Only the completed task files, execution logs, requirements, architecture sections, evidence and POC paths explicitly named by that phase-review task.
 
 The phase-review task is the source of truth. Do not scan the entire project or unrelated modules. Do not treat POC code as production code to copy.
 
@@ -35,6 +36,8 @@ Confirm that every normal task in the phase is COMPLETE and that the phase PR/di
 Remain on the named phase branch. Do not create a task branch. Do not modify product code, POC/**, requirements, architecture or unrelated task files during the review.
 
 Review the diff against every applicable rule in tasks/CODE_REVIEW_RULES.md and every phase-specific rule in the phase review task. Check architecture boundaries, reusable packages, responsive behavior, accessibility, security, API/mock separation, tests, Docker/PWA requirements and the phase acceptance criteria.
+
+For every completed task marked `ui_validation: "playwright_mcp"`, verify its execution log proves a fresh runtime was built/recreated from the task's current worktree before browser validation. The evidence must identify the build/recreate command, target URL, runtime process/container identity, health/readiness results, both themes/viewports, console/network result and both MCP and automated Playwright PASS outcomes. Treat stale-image/unknown-server evidence, missing API readiness evidence, or browser tests aimed at a different target as a blocking finding; reopen the responsible task rather than approving the phase.
 
 For each finding, record:
 - severity (blocking or non-blocking)

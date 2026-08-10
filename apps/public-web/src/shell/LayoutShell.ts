@@ -1,6 +1,6 @@
-import { renderHeaderConfig, HeaderProps } from './Header.js';
-import { renderFooterConfig, FooterProps } from './Footer.js';
-import { renderNavigationDrawerConfig } from './NavigationDrawer.js';
+import { renderHeaderConfig, HeaderProps } from './Header';
+import { renderFooterConfig, FooterProps } from './Footer';
+import { renderNavigationDrawerConfig } from './NavigationDrawer';
 import { getThemeCssVariables, defaultSemanticTheme } from '@carchief/theme';
 
 export interface LayoutShellConfigProps {
