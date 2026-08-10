@@ -81,7 +81,7 @@ Publishing the delivery branch is an explicitly authorized human action. If `del
 
 ## Commands
 
-`node tasks/scripts/taskctl.mjs validate` validates 97 task/gate files, UI-validation metadata, decisions, delivery-specific branches, requirement coverage and the dependency DAG.
+`node tasks/scripts/taskctl.mjs validate` validates 98 task/gate files, UI-validation metadata, decisions, delivery-specific branches, requirement coverage and the dependency DAG.
 
 `node tasks/scripts/taskctl.mjs next` reports the current execution frontier and permitted same-group parallel tasks.
 

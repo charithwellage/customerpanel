@@ -27,7 +27,7 @@ function taskIds(root, throughOrder) {
     env: { ...process.env, TASKCTL_ROOT: root },
     encoding: 'utf8',
   });
-  assert.match(output, /Validated 97 task\/gate files/);
+  assert.match(output, /Validated 98 task\/gate files/);
   const ordered = readFileSync(join(root, 'tasks/EXECUTION_ORDER.md'), 'utf8')
     .split('\n')
     .map((line) => line.match(/^\|\s*(\d+)\s*\|\s*\[([^\]]+)\]/))
@@ -87,7 +87,7 @@ test('self-AI completion accepts legacy IN_REVIEW after recorded review and test
 test('Delivery 02 phase review uses its customer integration branch', () => {
   const root = setup('feat_delivery02_phase_01');
   try {
-    seedComplete(root, taskIds(root, 60));
+    seedComplete(root, taskIds(root, 61));
     shell(root, 'git', 'add', '.');
     shell(root, 'git', 'commit', '-qm', 'seed customer phase');
     const start = run(root, 'start', 'D02-P01-CODE_REVIEW', '--owner', 'review-agent');
@@ -129,6 +129,20 @@ test('the Phase 1.2 final Playwright MCP task cannot complete without MCP and au
     writeFileSync(logPath, log);
     const complete = run(root, 'complete', 'D01-P02-T004', '--review-agent', 'agent');
     assert.equal(complete.status, 0, complete.stderr);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('the Phase 1.2 mixed-PR review cannot start until the hygiene task is COMPLETE', () => {
+  const root = setup('feat_delivery01_phase_02');
+  try {
+    seedComplete(root, taskIds(root, 24));
+    shell(root, 'git', 'add', '.');
+    shell(root, 'git', 'commit', '-qm', 'seed work before mixed PR hygiene');
+    const start = run(root, 'start', 'D01-P02-CODE_REVIEW', '--owner', 'review-agent');
+    assert.notEqual(start.status, 0);
+    assert.match(start.stderr, /D01-P02-T005/);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

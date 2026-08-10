@@ -3,7 +3,7 @@ task_id: "D01-P04-CODE_REVIEW"
 title: "Phase 1.4 PR code review and tech-lead approval"
 delivery: "Delivery 01 — Public Website"
 phase: "Phase 1.4 — Vehicle details"
-execution_order: 33
+execution_order: 34
 estimate: "0.25 day"
 model_tier: "FRONTIER"
 parallel_group: "P04-REVIEW"

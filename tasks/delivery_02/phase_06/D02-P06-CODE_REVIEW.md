@@ -3,7 +3,7 @@ task_id: "D02-P06-CODE_REVIEW"
 title: "Phase 2.6 PR code review and tech-lead approval"
 delivery: "Delivery 02 — Customer Application"
 phase: "Phase 2.6 — Payments, TT remittance and PI deadline"
-execution_order: 82
+execution_order: 83
 estimate: "0.25 day"
 model_tier: "FRONTIER"
 parallel_group: "D02-P06-REVIEW"

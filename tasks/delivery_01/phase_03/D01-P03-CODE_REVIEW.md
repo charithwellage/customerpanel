@@ -3,7 +3,7 @@ task_id: "D01-P03-CODE_REVIEW"
 title: "Phase 1.3 PR code review and tech-lead approval"
 delivery: "Delivery 01 — Public Website"
 phase: "Phase 1.3 — Inventory and search"
-execution_order: 29
+execution_order: 30
 estimate: "0.25 day"
 model_tier: "FRONTIER"
 parallel_group: "P03-REVIEW"

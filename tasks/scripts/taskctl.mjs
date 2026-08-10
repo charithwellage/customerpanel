@@ -174,7 +174,7 @@ function validate({ quiet = false } = {}) {
     'D02-P01-T003', 'D02-P02-T002', 'D02-P03-T003', 'D02-P04-T003',
     'D02-P05-T003', 'D02-P06-T004', 'D02-P07-T004', 'D02-P08-T003', 'D02-P09-T004',
   ]);
-  if (tasks.size !== 97) errors.push(`expected 97 task/gate files, found ${tasks.size}`);
+  if (tasks.size !== 98) errors.push(`expected 98 task/gate files, found ${tasks.size}`);
   for (const task of tasks.values()) {
     for (const field of ['task_id', 'title', 'delivery', 'phase', 'estimate', 'model_tier', 'parallel_group', 'phase_branch', 'task_branch']) {
       if (!task[field]) errors.push(`${task.task_id || task.file}: missing ${field}`);

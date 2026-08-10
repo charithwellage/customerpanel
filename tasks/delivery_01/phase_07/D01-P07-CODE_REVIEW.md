@@ -3,7 +3,7 @@ task_id: "D01-P07-CODE_REVIEW"
 title: "Phase 1.7 PR code review and tech-lead approval"
 delivery: "Delivery 01 — Public Website"
 phase: "Phase 1.7 — Public information and content"
-execution_order: 50
+execution_order: 51
 estimate: "0.25 day"
 model_tier: "FRONTIER"
 parallel_group: "P07-REVIEW"

@@ -3,7 +3,7 @@ task_id: "D01-P08-CODE_REVIEW"
 title: "Phase 1.8 PR code review and tech-lead approval"
 delivery: "Delivery 01 — Public Website"
 phase: "Phase 1.8 — Public SEO, acceptance and release readiness"
-execution_order: 55
+execution_order: 56
 estimate: "0.25 day"
 model_tier: "FRONTIER"
 parallel_group: "P08-REVIEW"
