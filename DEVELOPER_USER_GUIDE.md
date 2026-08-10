@@ -155,3 +155,29 @@ Use this procedure when a fresh checkout reports missing workspace declarations,
    ```
 
 If a failure remains, record the exact command, Node/Corepack/pnpm versions, `docker compose ps` output and relevant logs. Do not disable type checking, change dependency versions, or copy generated output into source directories to hide the failure.
+
+### Mock API database/schema troubleshooting
+
+A frontend container can render while the mock API is failing. Always inspect the API directly after starting Docker:
+
+```bash
+docker compose -f docker-compose.frontend.yml logs --no-color mock-api
+docker compose -f docker-compose.frontend.yml exec -T postgres pg_isready -U carchief -d carchief_mock
+docker compose -f docker-compose.frontend.yml exec -T postgres psql -U carchief -d carchief_mock -c '\d+ public.vehicles'
+curl --fail http://127.0.0.1:4000/healthz
+curl --fail http://127.0.0.1:4000/openapi.json
+curl --fail -X POST http://127.0.0.1:4000/api/v1/__reset
+```
+
+Errors such as `column "category" of relation "vehicles" does not exist` mean the running mock code and PostgreSQL schema are out of sync. `CREATE TABLE IF NOT EXISTS` does not add columns to an existing table. First confirm that the current branch's store seed/reset SQL and schema definition both contain the same columns. Then, for disposable local demo data, recreate the named Compose volume and rebuild the image:
+
+```bash
+docker compose -f docker-compose.frontend.yml down --remove-orphans
+docker volume ls --format '{{.Name}}' | rg 'carchief-postgres-data'
+docker volume rm <exact-carchief-postgres-volume-name>
+docker compose -f docker-compose.frontend.yml build --no-cache mock-api
+docker compose -f docker-compose.frontend.yml up -d
+docker compose -f docker-compose.frontend.yml logs --no-color mock-api
+```
+
+Do not delete a volume containing data that must be preserved. If a fresh volume still reports a missing column, it is a code/schema migration defect and must be fixed in the responsible task; do not repeatedly reset Docker to hide it. Phase acceptance requires clean startup logs, a matching live schema, successful reset and healthy `/healthz`/`/openapi.json` responses.
