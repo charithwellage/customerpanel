@@ -332,6 +332,17 @@ class PostgresStore implements DemoStore {
         staff_owner_id text
       );`
     );
+    await this.pool.query(
+      `ALTER TABLE vehicles
+        ADD COLUMN IF NOT EXISTS category text,
+        ADD COLUMN IF NOT EXISTS location_status text,
+        ADD COLUMN IF NOT EXISTS created_at text,
+        ADD COLUMN IF NOT EXISTS images text,
+        ADD COLUMN IF NOT EXISTS featured boolean,
+        ADD COLUMN IF NOT EXISTS stock_type text,
+        ADD COLUMN IF NOT EXISTS destination_port text,
+        ADD COLUMN IF NOT EXISTS discount_percent numeric;`
+    );
     await this.reset();
   }
 
