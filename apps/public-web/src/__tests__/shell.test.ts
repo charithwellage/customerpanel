@@ -16,6 +16,7 @@ describe('Public Web Shell Layout & Navigation Tests', () => {
     const labels = PUBLIC_NAV_ITEMS.map((item) => item.label);
     expect(labels).toContain('Home');
     expect(labels).toContain('Inventory');
+    expect(labels).toContain('Premium Stock');
     expect(labels).toContain('How to Buy');
     expect(labels).toContain('About Us');
     expect(labels).toContain('Contact Us');

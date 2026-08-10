@@ -1,3 +1,3 @@
-export * from './generated/schema.js';
+export type * from './generated/schema.js';
 export * from './services/vehicles.js';
 export * from './http.js';
