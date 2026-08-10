@@ -3,7 +3,7 @@ task_id: "D02-P03-CODE_REVIEW"
 title: "Phase 2.3 PR code review and tech-lead approval"
 delivery: "Delivery 02 — Customer Application"
 phase: "Phase 2.3 — Customer showroom and vehicle search"
-execution_order: 65
+execution_order: 67
 estimate: "0.25 day"
 model_tier: "FRONTIER"
 parallel_group: "D02-P03-REVIEW"
@@ -13,6 +13,8 @@ phase_branch: "feat_delivery02_phase_03"
 task_branch: "feat_delivery02_phase_03"
 product_source_mutation: "forbidden"
 review_mode: "phase_manual"
+ui_scope: "none"
+ui_validation: "not_applicable"
 ---
 
 # D02-P03-CODE_REVIEW — Phase 2.3 PR code review and tech-lead approval
@@ -33,6 +35,8 @@ review_mode: "phase_manual"
 Apply every shared code-review rule and specifically verify shared-package reuse, customer inventory projection, tier pricing, reservation enforcement and public/private data separation.
 
 Customer compiled behavior is evidence only. Confirm known POC defects were prohibited and no unapproved business rule or external integration was invented.
+
+- Verify Playwright MCP evidence for every completed UI task in this phase: client, URL, themes, viewports, console/network result, findings/corrections, MCP PASS and automated Playwright Test PASS. Missing or contradictory evidence is blocking.
 
 ## Mandatory preflight and blocker protocol
 

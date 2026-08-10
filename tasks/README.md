@@ -25,20 +25,24 @@ The BA workflow reconciliation backlog is in `tasks/workflow/`. It is decision-g
 6. For an application task, create/resume its phase branch exactly as documented. Delivery 01 phases derive from `delivery_01_public_website`; Delivery 02 phases derive from `delivery_02_customer_application`. Do not create a child task branch. Phase 0 is branch-neutral.
 7. Run `node tasks/scripts/taskctl.mjs check <ID>`, report `Blockers: None`, then run `start` with an owner.
 8. Implement exactly the stated scope and its missing feature tests.
-9. For a `self_ai` task, review the owned diff against `CODE_REVIEW_RULES.md`, fix every in-scope finding, record a PASS result, then run feature tests plus `corepack pnpm lint`, `corepack pnpm typecheck` and `corepack pnpm -r build`.
-10. After passing tests, run `taskctl complete <ID> --review-agent "<name>"`. Normal tasks do not require manual task-level PR review.
-11. A `phase_manual` code-review task is the one human review gate: the owner creates/updates the phase PR, AI records the phase-diff review, and the tech lead runs `approve` only after manual PR review.
-12. At phase acceptance, update the phase summary; after merges, run `render` instead of resolving tracker rows manually.
+9. For a `self_ai` task, review the owned diff against `CODE_REVIEW_RULES.md` and fix every in-scope finding.
+10. If frontmatter says `ui_validation: "playwright_mcp"`, run the required MCP browser walkthrough against the local application. Test both themes and phone/tablet/desktop viewports, inspect console/network behavior, fix in-scope findings, and repeat code review after any correction.
+11. Run feature tests plus `corepack pnpm lint`, `corepack pnpm typecheck` and `corepack pnpm -r build`. A UI task must also record `Playwright MCP Result: PASS` and `Automated Playwright Test Result: PASS`.
+12. After passing tests, run `taskctl complete <ID> --review-agent "<name>"`. Normal tasks do not require manual task-level PR review.
+13. A `phase_manual` code-review task is the one human review gate: the owner creates/updates the phase PR, AI records the phase-diff review, and the tech lead runs `approve` only after manual PR review.
+14. At phase acceptance, update the phase summary; after merges, run `render` instead of resolving tracker rows manually.
 
 Agents never commit, push, create PRs, merge or rewrite history. They only implement, self-review, test, update the execution log/tracker and return the working-tree diff. The human owner performs Git review, commit, push, PR and merge actions manually.
 
-Phase 0 may change only task logs, summaries and the generated tracker. It must not change application source or configuration.
+Phase 0 may change only task logs, summaries and the generated tracker inside the repository. It must not change application source or product configuration. `INF-P00-T006` may install developer-local browser/package caches and, only after explicit user approval, register Playwright MCP in the developer's user-level AI-client configuration.
 
 ## Build and container verification policy
 
 Every Delivery 01 and Delivery 02 implementation task includes root lint, TypeScript typecheck and recursive workspace build commands. These checks are required even for a small UI task so compiler errors cannot accumulate unnoticed. A missing shared test harness or target workspace is a prerequisite failure; do not silently skip it.
 
 Responsive behavior and reuse are mandatory task concerns: UI tasks test phone/tablet/desktop behavior, and any feature shared by Public, Customer and Salesperson applications is implemented once in a reusable `packages/` feature package. The vehicle search module is the first required example (`packages/vehicle-search`); consuming apps configure it rather than copying it.
+
+Playwright MCP and Playwright Test have different responsibilities. MCP gives the active AI agent an interactive browser for accessibility snapshots, visual inspection, console/network diagnosis and correction loops. Playwright Test is the deterministic automated suite used locally, in Docker and in CI. A task marked `playwright_mcp` must pass both layers; one cannot substitute for the other. `INF-P00-T006` verifies the active client's tools before any such task can start.
 
 PWA support is also a shared baseline: `packages/pwa` supplies safe install/update/connectivity primitives and each application supplies its manifest, icons and offline shell. PWA tasks must prove that sensitive data is not broadly cached and that finance, approval, allocation, document and identity mutations are blocked while offline.
 
@@ -69,7 +73,7 @@ Publishing the delivery branch is an explicitly authorized human action. If `del
 
 ## Commands
 
-`node tasks/scripts/taskctl.mjs validate` validates 94 task/gate files, metadata, decisions, delivery-specific branches, requirement coverage and the dependency DAG.
+`node tasks/scripts/taskctl.mjs validate` validates 96 task/gate files, UI-validation metadata, decisions, delivery-specific branches, requirement coverage and the dependency DAG.
 
 `node tasks/scripts/taskctl.mjs next` reports the current execution frontier and permitted same-group parallel tasks.
 

@@ -3,7 +3,7 @@ task_id: "D01-P04-CODE_REVIEW"
 title: "Phase 1.4 PR code review and tech-lead approval"
 delivery: "Delivery 01 — Public Website"
 phase: "Phase 1.4 — Vehicle details"
-execution_order: 30
+execution_order: 32
 estimate: "0.25 day"
 model_tier: "FRONTIER"
 parallel_group: "P04-REVIEW"
@@ -13,6 +13,8 @@ phase_branch: "feat_delivery01_phase_04"
 task_branch: "feat_delivery01_phase_04"
 product_source_mutation: "forbidden"
 review_mode: "phase_manual"
+ui_scope: "none"
+ui_validation: "not_applicable"
 ---
 
 # D01-P04-CODE_REVIEW — Phase PR code review and tech-lead approval
@@ -34,6 +36,8 @@ Apply every applicable shared code-review rule and these phase-specific checks:
 
 - Vehicle detail, media visibility, stable URLs, sharing/printing, metadata, and public data projection.
 - Verify the phase acceptance criteria, required mock/API boundaries and required automated/container evidence are present in the PR diff or its committed execution records.
+
+- Verify Playwright MCP evidence for every completed UI task in this phase: client, URL, themes, viewports, console/network result, findings/corrections, MCP PASS and automated Playwright Test PASS. Missing or contradictory evidence is blocking.
 
 ## Mandatory preflight and blocker protocol
 
