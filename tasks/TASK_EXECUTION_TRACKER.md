@@ -46,7 +46,7 @@
 | [D01-P02-T003](delivery_01/phase_02/D01-P02-T003.md) | Implement exact POC visual parity for the Public Home and Showroom | COMPLETE | self_ai | playwright_mcp | Antigravity | `feat_delivery01_phase_02` | D01-P02-CODE_REVIEW (IN_PROGRESS) | D01-P02-T002, INF-P00-T006 | P02-C | 2026-08-10T09:58:59.568Z |
 | [D01-P02-T004](delivery_01/phase_02/D01-P02-T004.md) | Validate the POC-parity Home and Showroom UI with Playwright MCP | COMPLETE | self_ai | playwright_mcp | Antigravity | `feat_delivery01_phase_02` | D01-P02-CODE_REVIEW (IN_PROGRESS) | D01-P02-T003 | P02-D | 2026-08-10T08:33:35.681Z |
 | [D01-P02-T005](delivery_01/phase_02/D01-P02-T005.md) | Reconcile mixed PR review defects and hygiene | COMPLETE | self_ai | not_applicable | Codex | `feat_delivery01_phase_02` | D01-P02-CODE_REVIEW (IN_PROGRESS) | D01-P02-T004 | P02-E | 2026-08-10T09:05:19.148Z |
-| [D01-P02-T006](delivery_01/phase_02/D01-P02-T006.md) | Move Home and Showroom static inline styling to reusable semantic CSS | IN_PROGRESS | self_ai | playwright_mcp | Antigravity | `feat_delivery01_phase_02` | D01-P02-CODE_REVIEW (IN_PROGRESS) | D01-P02-T005 | P02-F | 2026-08-10T10:43:46.429Z |
+| [D01-P02-T006](delivery_01/phase_02/D01-P02-T006.md) | Move Home and Showroom static inline styling to reusable semantic CSS | BLOCKED | self_ai | playwright_mcp | Antigravity | `feat_delivery01_phase_02` | D01-P02-CODE_REVIEW (IN_PROGRESS) | D01-P02-T005 | P02-F | 2026-08-10T10:53:49.562Z |
 | [D01-P02-CODE_REVIEW](delivery_01/phase_02/D01-P02-CODE_REVIEW.md) | Phase 1.2 mixed-PR code review and tech-lead approval | IN_PROGRESS | phase_manual | not_applicable | Codex | `feat_delivery01_phase_02` | D01-P02-CODE_REVIEW (IN_PROGRESS) | D01-P02-T006 | P02-REVIEW | 2026-08-10T10:41:57.914Z |
 | [D01-P03-T001](delivery_01/phase_03/D01-P03-T001.md) | Add vehicle query, dynamic filters, sorting and pagination | NOT_STARTED | self_ai | not_applicable | — | `feat_delivery01_phase_03` | D01-P03-CODE_REVIEW (NOT_STARTED) | D01-P02-CODE_REVIEW | P03-A | — |
 | [D01-P03-T002](delivery_01/phase_03/D01-P03-T002.md) | Build search orchestration, URL state and natural parsing | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery01_phase_03` | D01-P03-CODE_REVIEW (NOT_STARTED) | D01-P03-T001 | P03-B | — |
@@ -125,7 +125,7 @@
 
 ## Current execution frontier
 
-- Sequential next: D01-P02-T006 — Move Home and Showroom static inline styling to reusable semantic CSS (IN_PROGRESS)
+- Sequential next: D01-P02-T006 — Move Home and Showroom static inline styling to reusable semantic CSS (BLOCKED)
 - Optional same-group parallel tasks: None
 - Downstream work waits for COMPLETE or SUPERSEDED; IN_REVIEW is not complete.
 - Later tasks cannot be bypassed; use taskctl sequence TASK-ID for the exact blocker.

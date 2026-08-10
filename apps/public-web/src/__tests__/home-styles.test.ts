@@ -36,4 +36,13 @@ describe('Home Components Style Ownership & Static Inline Style Source Guard', (
 
     expect(globalsContent).toContain('@import "../features/home/home.css";');
   });
+
+  it('uses theme variables without feature-level fallback palettes', () => {
+    const homeStylesPath = path.resolve(__dirname, '../features/home/home.css');
+    const homeStyles = fs.readFileSync(homeStylesPath, 'utf-8');
+
+    expect(homeStyles).not.toMatch(/var\([^)]*,/);
+    expect(homeStyles).not.toMatch(/#[0-9a-f]{3,8}\b/i);
+    expect(homeStyles).not.toMatch(/rgba?\(/i);
+  });
 });

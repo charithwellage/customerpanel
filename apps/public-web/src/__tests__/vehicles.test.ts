@@ -64,7 +64,7 @@ describe('Vehicle Collection & Mock Store Tests', () => {
         Fragment,
         null,
         createElement(VehicleCollectionPrimitive, { title: 'Featured vehicles', vehicles: vehicles.slice(0, 1) }),
-        createElement(VehicleCollectionPrimitive, { title: 'Latest arrivals', vehicles: vehicles.slice(0, 1) }),
+        createElement(VehicleCollectionPrimitive, { title: 'Featured vehicles', vehicles: vehicles.slice(0, 1) }),
       ),
     );
 
