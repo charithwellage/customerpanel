@@ -857,12 +857,15 @@ Each layer is tested at the level where failure is cheapest to find.
 | Feature hooks | Behaviour with a mocked service module | Vitest |
 | Service modules | Request shape and response mapping | Vitest + MSW |
 | Contract | Generated types match `openapi.yaml` | Type check in CI |
-| Journeys | Full user flows against the running mock | Playwright |
+| Journeys | Full user flows against the running mock | Playwright Test |
+| AI-assisted UI inspection | Accessibility snapshot, responsive/theme inspection, console/network diagnosis and correction loop | Playwright MCP |
 
 Responsive acceptance is required at package and application level: shared vehicle-search tests cover phone/tablet/desktop layouts, keyboard and touch interaction, and no-overflow behavior; each application adds route/permission/content variations without reimplementing the search module.
 | Money | Worked examples reconcile exactly | Vitest, run on every commit |
 
 **Shared test infrastructure lives in `packages/testing/`** — fixtures, custom render helpers that wrap components in the required providers (QueryClient, Theme, Auth), and Playwright utilities for signing in against the mock. Tests import from there rather than each app re-creating its own harness.
+
+Playwright MCP does not replace the automated Playwright Test suite. Every remaining task that creates or changes visible UI declares `ui_validation: "playwright_mcp"`, runs the MCP walkthrough after its initial AI review, corrects in-scope findings, repeats review after corrections and then runs deterministic tests. The execution log records the active client, target URL, both themes, phone/tablet/desktop viewports, console/network result, findings and both PASS outcomes. MCP tooling is verified by `INF-P00-T006`; user-level client configuration is changed only with developer approval.
 
 **Financial calculations get their own suite.** Quotation totals, tier discounts, tax, deposits and payment allocation are asserted against approved worked examples. The POC's arithmetic was actually correct; what failed was everything around it. These tests guard the whole chain.
 

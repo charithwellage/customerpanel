@@ -169,12 +169,12 @@ function validate({ quiet = false } = {}) {
     '## Completion, handoff and tracker update', '## Required final response',
   ];
   const containerGateTasks = new Set([
-    'D01-P01-T010', 'D01-P01-T012', 'D01-P02-T002', 'D01-P03-T004', 'D01-P04-T003',
+    'D01-P01-T010', 'D01-P01-T012', 'D01-P02-T002', 'D01-P02-T003', 'D01-P03-T004', 'D01-P04-T003',
     'D01-P05-T004', 'D01-P06-T005', 'D01-P07-T004', 'D01-P08-T004',
     'D02-P01-T003', 'D02-P02-T002', 'D02-P03-T003', 'D02-P04-T003',
     'D02-P05-T003', 'D02-P06-T004', 'D02-P07-T004', 'D02-P08-T003', 'D02-P09-T004',
   ]);
-  if (tasks.size !== 94) errors.push(`expected 94 task/gate files, found ${tasks.size}`);
+  if (tasks.size !== 96) errors.push(`expected 96 task/gate files, found ${tasks.size}`);
   for (const task of tasks.values()) {
     for (const field of ['task_id', 'title', 'delivery', 'phase', 'estimate', 'model_tier', 'parallel_group', 'phase_branch', 'task_branch']) {
       if (!task[field]) errors.push(`${task.task_id || task.file}: missing ${field}`);
@@ -199,6 +199,19 @@ function validate({ quiet = false } = {}) {
     }
     if (isPhaseReview(task) && task.review_mode !== 'phase_manual') errors.push(`${task.task_id}: phase review must use phase_manual review_mode`);
     if (!isPhaseReview(task) && /^D\d{2}-/.test(task.task_id) && task.review_mode !== 'self_ai') errors.push(`${task.task_id}: implementation task must use self_ai review_mode`);
+    const requiresUiMetadata = task.task_id === 'INF-P00-T006'
+      || task.task_id === 'D01-P02-T003'
+      || task.task_id === 'D01-P02-CODE_REVIEW'
+      || /^D01-P(?:0[3-8])-/.test(task.task_id)
+      || /^D02-/.test(task.task_id);
+    if (requiresUiMetadata) {
+      if (!['required', 'none'].includes(task.ui_scope)) errors.push(`${task.task_id}: ui_scope must be required or none`);
+      if (!['playwright_mcp', 'not_applicable'].includes(task.ui_validation)) errors.push(`${task.task_id}: ui_validation must be playwright_mcp or not_applicable`);
+      if ((task.ui_scope === 'required') !== (task.ui_validation === 'playwright_mcp')) {
+        errors.push(`${task.task_id}: UI metadata must pair required/playwright_mcp or none/not_applicable`);
+      }
+      if (isPhaseReview(task) && task.ui_validation !== 'not_applicable') errors.push(`${task.task_id}: phase review verifies evidence but does not run product UI validation`);
+    }
     const body = readFileSync(task.file, 'utf8');
     for (const heading of requiredHeadings) if (!body.includes(heading)) errors.push(`${task.task_id}: missing section ${heading}`);
     if (!body.includes('### Blockers\nNone')) errors.push(`${task.task_id}: final response does not require Blockers: None`);
@@ -208,6 +221,12 @@ function validate({ quiet = false } = {}) {
       if (!body.includes(`taskctl.mjs complete ${task.task_id} --review-agent`)) errors.push(`${task.task_id}: self_ai task is missing self-completion command`);
       if (!body.includes('### AI code review')) errors.push(`${task.task_id}: self_ai task is missing AI review final response heading`);
       if (body.includes('Obtain independent review.')) errors.push(`${task.task_id}: self_ai task must not require a manual task-level review`);
+    }
+    if (task.ui_validation === 'playwright_mcp') {
+      if (!body.includes('## Playwright MCP UI validation')) errors.push(`${task.task_id}: missing Playwright MCP UI validation section`);
+      for (const marker of ['AI client:', 'Target URL:', 'Viewports:', 'Themes:', 'Console/network result:', 'Findings and corrections:', 'Playwright MCP Result: PASS', 'Automated Playwright Test Result: PASS']) {
+        if (!body.includes(marker)) errors.push(`${task.task_id}: missing required MCP evidence marker ${marker}`);
+      }
     }
     if (/^D02-P\d{2}-T\d{3}$/.test(task.task_id) && !body.includes('### Frontend API integration')) {
       errors.push(`${task.task_id}: Delivery 02 implementation task is missing explicit frontend/mock HTTP integration instructions`);
@@ -374,7 +393,11 @@ function writeLog(id, status, fields = {}) {
     text = replaceFrontmatterField(text, 'status', status);
     for (const [field, value] of Object.entries(fields)) text = replaceFrontmatterField(text, field, value);
   } else {
+    const mcpSection = task?.ui_validation === 'playwright_mcp'
+      ? `\n## Playwright MCP UI validation\n\n- AI client: Not recorded.\n- Target URL: Not recorded.\n- Viewports: Not recorded.\n- Themes: Not recorded.\n- Console/network result: Not recorded.\n- Findings and corrections: Not recorded.\n- Playwright MCP Result: Not recorded.\n- Automated Playwright Test Result: Not recorded.\n`
+      : '';
     text = `---\ntask_id: "${id}"\nstatus: "${status}"\nowner: "${fields.owner || ''}"\nreviewer: "${fields.reviewer || ''}"\nreview_agent: "${fields.review_agent || ''}"\nreview_mode: "${task?.review_mode || ''}"\nphase_branch: "${task?.phase_branch || ''}"\ntask_branch: "${task?.task_branch || ''}"\nstarted_at: "${status === 'IN_PROGRESS' ? new Date().toISOString() : ''}"\nupdated_at: "${new Date().toISOString()}"\nblocker: "${fields.blocker || ''}"\n---\n\n# ${id} Execution Log\n\n## Preflight\n\n- Blockers: None\n- Clean-tree command/result: Passed\n- Phase branch: ${task?.phase_branch || 'Not recorded'}\n- Child task branch: ${task?.task_branch || 'Not recorded'}\n- Baseline commands: Not recorded\n\n## Completed work\n\nNot recorded.\n\n## AI code review\n\n- Reviewed range/files: Not recorded.\n- Rules checked: Not recorded.\n- Findings: Not recorded.\n- Fixes applied: Not recorded.\n- Remaining concerns: Not recorded.\n- Result: Not recorded.\n\n## Tests executed\n\nNot recorded.\n\n## Decisions and deviations\n\nNone recorded.\n\n## Blockers\n\nNone.\n`;
+    if (mcpSection) text = text.replace('\n## Tests executed', `${mcpSection}\n## Tests executed`);
   }
   if (status === 'BLOCKED' && fields.blocker) {
     const event = `\n## Blocker event — ${new Date().toISOString()}\n\n${fields.blocker}\n`;
@@ -388,7 +411,7 @@ function writeLog(id, status, fields = {}) {
   writeFileSync(path, text);
 }
 
-function requireSelfReviewEvidence(id) {
+function requireSelfReviewEvidence(id, task) {
   const log = loadLog(id);
   if (!log) die(`${id} requires an execution log`);
   if (!log.text.includes('## AI code review') || !log.text.includes('- Result: PASS')) {
@@ -396,6 +419,30 @@ function requireSelfReviewEvidence(id) {
   }
   const tests = log.text.match(/## Tests executed\n\n([\s\S]*?)(?=\n## )/)?.[1] || '';
   if (!tests.trim() || tests.includes('Not recorded.')) die(`${id} requires recorded passing test evidence before completion`);
+  if (task?.ui_validation === 'playwright_mcp') {
+    const requiredEvidence = [
+      ['AI client:', 'Not recorded'],
+      ['Target URL:', 'Not recorded'],
+      ['Viewports:', 'Not recorded'],
+      ['Themes:', 'Not recorded'],
+      ['Console/network result: PASS', null],
+      ['Findings and corrections:', 'Not recorded'],
+      ['Playwright MCP Result: PASS', null],
+      ['Automated Playwright Test Result: PASS', null],
+    ];
+    for (const [marker, invalid] of requiredEvidence) {
+      if (!log.text.includes(marker) || (invalid && log.text.includes(`${marker} ${invalid}`))) {
+        die(`${id} requires recorded Playwright MCP evidence: ${marker}`);
+      }
+    }
+  }
+  if (id === 'INF-P00-T006') {
+    for (const marker of ['Active AI client:', 'MCP configuration source:', 'MCP server process: PASS', 'MCP browser navigation: PASS', 'MCP accessibility snapshot: PASS']) {
+      if (!log.text.includes(marker) || log.text.includes(`${marker} Not recorded`)) {
+        die(`${id} requires recorded Playwright MCP readiness evidence: ${marker}`);
+      }
+    }
+  }
 }
 
 function appendReopenEvent(id, reason) {
@@ -483,9 +530,9 @@ function render() {
     const phaseReview = task.task_id.match(/^D(\d{2})-P(\d{2})-/);
     const phaseGateId = phaseReview ? `D${phaseReview[1]}-P${phaseReview[2]}-CODE_REVIEW` : '—';
     const phaseGate = tasks.has(phaseGateId) ? `${phaseGateId} (${rawStatus(phaseGateId)})` : '—';
-    return `| [${task.task_id}](${link}) | ${task.title} | ${displayStatus(task, tasks, decisions)} | ${task.review_mode || '—'} | ${log?.owner || '—'} | ${phaseBranch} | ${phaseGate} | ${task.dependencies.join(', ') || 'None'} | ${task.parallel_group} | ${log?.updated_at || '—'} |`;
+    return `| [${task.task_id}](${link}) | ${task.title} | ${displayStatus(task, tasks, decisions)} | ${task.review_mode || '—'} | ${task.ui_validation || 'legacy/not-applicable'} | ${log?.owner || '—'} | ${phaseBranch} | ${phaseGate} | ${task.dependencies.join(', ') || 'None'} | ${task.parallel_group} | ${log?.updated_at || '—'} |`;
   });
-  const text = `# CarChief Task Execution Tracker\n\n> Generated by \`node tasks/scripts/taskctl.mjs render\`. Do not edit the task rows manually.\n\n## Status meanings\n\n- \`NOT_STARTED\`: prerequisites or decisions are incomplete.\n- \`READY\`: dependencies and decision gates are complete.\n- \`IN_PROGRESS\`: claimed by an implementer.\n- \`IN_REVIEW\`: a phase-level PR review awaits the tech lead.\n- \`COMPLETE\`: a self-reviewed task passed tests, or a phase review was approved by the tech lead.\n- \`BLOCKED\`: work stopped and the execution log names the blocker.\n- \`SUPERSEDED\`: intentionally replaced by another approved task.\n\n## Review modes\n\n- \`self_ai\`: the implementing agent reviews its owned diff against \`CODE_REVIEW_RULES.md\`, fixes findings, records PASS and tests, then runs \`taskctl complete\`.\n- \`phase_manual\`: AI reviews the phase PR diff; the tech lead performs the only required manual code review and approves the task.\n\n## Tracker\n\n| ID | Task | Status | Review mode | Owner | Phase branch | Phase review gate | Dependencies | Parallel group | Last update |\n|---|---|---|---|---|---|---|---|---|---|\n${rows.join('\n')}\n\n## Continuation rule\n\nThe next developer starts with this tracker, then reads the latest phase summary and the execution log for the task being continued. A self-AI task may start only after the clean-tree \`taskctl precheck\`, branch preparation and final \`taskctl check\` succeed. A phase review waits for all phase work, a human-created PR and tech-lead approval.\n`;
+  const text = `# CarChief Task Execution Tracker\n\n> Generated by \`node tasks/scripts/taskctl.mjs render\`. Do not edit the task rows manually.\n\n## Status meanings\n\n- \`NOT_STARTED\`: prerequisites or decisions are incomplete.\n- \`READY\`: dependencies and decision gates are complete.\n- \`IN_PROGRESS\`: claimed by an implementer.\n- \`IN_REVIEW\`: a phase-level PR review awaits the tech lead.\n- \`COMPLETE\`: a self-reviewed task passed tests, or a phase review was approved by the tech lead.\n- \`BLOCKED\`: work stopped and the execution log names the blocker.\n- \`SUPERSEDED\`: intentionally replaced by another approved task.\n\n## Review modes\n\n- \`self_ai\`: the implementing agent reviews its owned diff against \`CODE_REVIEW_RULES.md\`, fixes findings, records PASS and tests, then runs \`taskctl complete\`.\n- \`phase_manual\`: AI reviews the phase PR diff; the tech lead performs the only required manual code review and approves the task.\n- \`playwright_mcp\`: an interactive UI task must also record MCP browser evidence and automated Playwright Test PASS before completion.\n\n## Tracker\n\n| ID | Task | Status | Review mode | UI validation | Owner | Phase branch | Phase review gate | Dependencies | Parallel group | Last update |\n|---|---|---|---|---|---|---|---|---|---|---|\n${rows.join('\n')}\n\n## Continuation rule\n\nThe next developer starts with this tracker, then reads the latest phase summary and the execution log for the task being continued. A self-AI task may start only after the clean-tree \`taskctl precheck\`, branch preparation and final \`taskctl check\` succeed. A phase review waits for all phase work, a human-created PR and tech-lead approval.\n`;
   const frontierSection = `\n## Current execution frontier\n\n- Sequential next: ${frontierLabel}\n- Optional same-group parallel tasks: ${optionalParallel.join(', ') || 'None'}\n- Downstream work waits for COMPLETE or SUPERSEDED; IN_REVIEW is not complete.\n- Later tasks cannot be bypassed; use taskctl sequence TASK-ID for the exact blocker.\n\n`;
   const enrichedText = text.replace('## Continuation rule', `${frontierSection}## Continuation rule`)
     .replace('A self-AI task may start only after', 'Sequential execution is the default; optional parallel work is limited to an approved same-group task after the group frontier is active. Blocked tasks cannot be bypassed. The working tree must be clean before a task starts; commit any previous task changes manually before continuing. Agents never commit, push, create PRs or merge. A self-AI task may start only after');
@@ -525,7 +572,7 @@ else if (command === 'start') {
   if (!['IN_PROGRESS', 'IN_REVIEW'].includes(rawStatus(id))) die(`${id} cannot complete from ${rawStatus(id)}`);
   const reviewAgent = option('--review-agent');
   if (!reviewAgent) die('complete requires --review-agent <name>');
-  requireSelfReviewEvidence(id);
+  requireSelfReviewEvidence(id, task);
   writeLog(id, 'COMPLETE', { review_agent: reviewAgent, reviewer: '' });
   render();
   console.log(`${id} is COMPLETE after AI self-review (review agent: ${reviewAgent}).`);

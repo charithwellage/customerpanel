@@ -34,6 +34,8 @@ Do not modify POC/**, invent unresolved business rules, commit, push, create a p
 
 For any UI task, also read `DEVELOPER_USER_GUIDE.md` and the theme section of `FRONT_END_ARCHITECTURE.md`. Use `packages/theme` and `packages/ui`, semantic tokens, reusable feature packages, and test both `carchief` and `ocean` at phone, tablet and desktop widths. Do not add page-local color/font/spacing values or duplicate shared vehicle/search/detail components.
 
+If the task frontmatter says `ui_validation: "playwright_mcp"`, confirm `INF-P00-T006` is COMPLETE and the active agent exposes Playwright MCP browser tools. After the initial AI code review, run the task's MCP walkthrough against the local app, inspect console/network and required UI states, fix in-scope defects, repeat code review after corrections, then run the automated Playwright Test suite. Do not mark the task complete without every required MCP evidence field and both PASS results. Playwright Test alone does not satisfy the MCP gate.
+
 Use the exact final-response headings required by the task file.
 ```
 

@@ -78,6 +78,51 @@ Visible screen work also requires the relevant integration and Playwright tests 
 
 Never import mock fixtures into a page. Use the generated API client and feature service boundary.
 
+## Playwright MCP setup and UI-validation workflow
+
+Playwright MCP and Playwright Test are complementary:
+
+- **Playwright MCP** lets Codex, Antigravity, Claude Code or another MCP-capable agent interactively navigate the running UI, inspect accessibility snapshots, resize the browser, interact with controls, inspect console/network activity and capture evidence.
+- **Playwright Test** is the repeatable automated suite run locally, in Docker and in CI.
+
+The repository pins Playwright MCP in `.mcp.json`; Antigravity also reads the workspace-local `.agents/mcp_config.json`. Do not replace the pinned version with `@latest` during a feature task.
+
+### Initial readiness check
+
+Run `INF-P00-T006` before the first task marked `ui_validation: "playwright_mcp"`. The task verifies Node 22, Corepack/pnpm, Docker, Chromium, the MCP server process and actual browser tools in the active agent session.
+
+Project-local browser installation is permitted:
+
+```bash
+corepack pnpm install --frozen-lockfile
+corepack pnpm exec playwright install chromium
+npx -y @playwright/mcp@0.0.79 --help
+```
+
+Changing a developer's user-level AI configuration requires their approval. Never edit these locations silently and never add secrets:
+
+- **Codex:** inspect with `codex mcp list`; after approval add with `codex mcp add playwright npx "-y" "@playwright/mcp@0.0.79" "--browser" "chromium"` when the workspace configuration is not discovered.
+- **Antigravity:** use the tracked `.agents/mcp_config.json`; alternatively open **Agent panel → MCP Servers → Manage MCP Servers** and reload the workspace configuration. Its global configuration is under `~/.gemini/config/mcp_config.json`.
+- **Claude Code:** inspect with `claude mcp list`; after approval use `claude mcp add playwright -- npx -y @playwright/mcp@0.0.79 --browser chromium` if needed.
+- **Other clients:** use the standard `mcpServers.playwright` definition from `.mcp.json` and the client's official MCP setup instructions.
+
+Restart or reload the AI-agent session after adding an MCP server when the tools do not appear immediately. A successful `--help` command proves only that the server package starts; the infrastructure task must also perform an actual browser navigation and accessibility snapshot through MCP.
+
+### UI task validation loop
+
+For a task marked `playwright_mcp`:
+
+1. Complete the implementation and initial AI code review.
+2. Start the required local application, Mock API and PostgreSQL services.
+3. Test `carchief` and `ocean` at `390x844`, `768x1024` and `1440x900`.
+4. Exercise the task's acceptance journey and loading, empty, error and success states.
+5. Inspect accessibility/keyboard/focus behavior, console messages and failed network requests.
+6. Fix every in-scope finding. Repeat code review and the MCP walkthrough after corrections.
+7. Run the automated Playwright Test suite and all task validation commands.
+8. Record the client, URL, viewports, themes, console/network result, findings/corrections, `Playwright MCP Result: PASS` and `Automated Playwright Test Result: PASS` in the execution log.
+
+If the MCP tools are unavailable, stop and resolve/re-run `INF-P00-T006`. Do not claim that Playwright Test, screenshots from an unrelated browser, or a server process check satisfies the MCP gate.
+
 ## Clean rebuild after pulling changes
 
 Use this procedure when a fresh checkout reports missing workspace declarations, stale compiler output, or Docker build errors. Run it from the repository root. It removes generated output only; it must not remove source files, package manifests, lockfiles, Docker files, environment files or task records.

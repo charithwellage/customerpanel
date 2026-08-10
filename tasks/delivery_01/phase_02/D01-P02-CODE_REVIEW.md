@@ -3,16 +3,18 @@ task_id: "D01-P02-CODE_REVIEW"
 title: "Phase 1.2 PR code review and tech-lead approval"
 delivery: "Delivery 01 — Public Website"
 phase: "Phase 1.2 — Home and showroom"
-execution_order: 21
+execution_order: 23
 estimate: "0.25 day"
 model_tier: "FRONTIER"
 parallel_group: "P02-REVIEW"
-dependencies: ["D01-P02-T002"]
+dependencies: ["D01-P02-T003"]
 decision_gates: []
 phase_branch: "feat_delivery01_phase_02"
 task_branch: "feat_delivery01_phase_02"
 product_source_mutation: "forbidden"
 review_mode: "phase_manual"
+ui_scope: "none"
+ui_validation: "not_applicable"
 ---
 
 # D01-P02-CODE_REVIEW — Phase PR code review and tech-lead approval
@@ -35,6 +37,8 @@ Apply every applicable shared code-review rule and these phase-specific checks:
 - Home/showroom content, vehicle-collection API integration, public routes, responsive visitor journey, and approved legacy-page parity.
 - Verify the phase acceptance criteria, required mock/API boundaries and required automated/container evidence are present in the PR diff or its committed execution records.
 - Verify the mock API starts cleanly against PostgreSQL: logs contain no initialization/schema errors, the live `vehicles` table contains every column used by seed/reset SQL, `/healthz`, `/openapi.json` and deterministic reset succeed, and the phase is not accepted from a frontend-only smoke test.
+
+- Verify Playwright MCP evidence for every completed UI task in this phase: client, URL, themes, viewports, console/network result, findings/corrections, MCP PASS and automated Playwright Test PASS. Missing or contradictory evidence is blocking.
 
 ## Mandatory preflight and blocker protocol
 

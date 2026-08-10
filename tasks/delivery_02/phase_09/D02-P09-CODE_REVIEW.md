@@ -3,7 +3,7 @@ task_id: "D02-P09-CODE_REVIEW"
 title: "Phase 2.9 PR code review and tech-lead approval"
 delivery: "Delivery 02 — Customer Application"
 phase: "Phase 2.9 — Customer Application acceptance"
-execution_order: 94
+execution_order: 96
 estimate: "0.25 day"
 model_tier: "FRONTIER"
 parallel_group: "D02-P09-REVIEW"
@@ -13,6 +13,8 @@ phase_branch: "feat_delivery02_phase_09"
 task_branch: "feat_delivery02_phase_09"
 product_source_mutation: "forbidden"
 review_mode: "phase_manual"
+ui_scope: "none"
+ui_validation: "not_applicable"
 ---
 
 # D02-P09-CODE_REVIEW — Phase 2.9 PR code review and tech-lead approval
@@ -33,6 +35,8 @@ review_mode: "phase_manual"
 Apply every shared code-review rule and specifically verify CUST/UI/PWA/BA traceability, IDOR/privacy/security, responsive accessibility, themes, PWA, performance, Docker UAT and Delivery 03 readiness.
 
 Customer compiled behavior is evidence only. Confirm known POC defects were prohibited and no unapproved business rule or external integration was invented.
+
+- Verify Playwright MCP evidence for every completed UI task in this phase: client, URL, themes, viewports, console/network result, findings/corrections, MCP PASS and automated Playwright Test PASS. Missing or contradictory evidence is blocking.
 
 ## Mandatory preflight and blocker protocol
 
