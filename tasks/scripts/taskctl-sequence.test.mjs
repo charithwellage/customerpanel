@@ -13,7 +13,7 @@ function run(...args) {
 test('task metadata and dependency graph validate', () => {
   const result = run('validate');
   assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stdout, /Validated 52 task\/gate files/);
+  assert.match(result.stdout, /Validated 94 task\/gate files/);
 });
 
 test('next reports the current tracker frontier', () => {
@@ -36,4 +36,12 @@ test('taskctl contains strict dependency-order and cycle guards', () => {
   assert.match(source, /command === 'complete'/);
   assert.match(source, /command === 'reopen'/);
   assert.match(source, /phase_manual/);
+  assert.match(source, /delivery_02_customer_application/);
+  assert.match(source, /Delivery 02 task set does not assign/);
+});
+
+test('Delivery 02 starts only after the final Delivery 01 review gate', () => {
+  const result = run('sequence', 'D02-P01-G001');
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /dependency D01-P08-CODE_REVIEW|execution frontier/);
 });
