@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { VehicleService } from '@carchief/api-client';
+import { VehicleService, HttpClient } from '@carchief/api-client';
 import type { VehicleDetail } from '@carchief/domain';
 import {
   formatVehicleTitle,
@@ -22,7 +22,10 @@ export default function VehicleDetailPage({ idOrSlug }: { idOrSlug: string }) {
   const touchStartX = React.useRef<number | null>(null);
 
   React.useEffect(() => {
-    const service = new VehicleService();
+    // Use same-origin proxy in browser (matches HomeShowroom.tsx pattern).
+    // The Next.js route at /api/v1/[...path] proxies to API_BASE_URL server-side.
+    const baseUrl = typeof window !== 'undefined' ? '' : (process.env.API_BASE_URL ?? 'http://localhost:4000');
+    const service = new VehicleService(new HttpClient({ baseUrl }));
     service
       .getVehicleDetail(idOrSlug)
       .then((data) => {
