@@ -35,9 +35,14 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
     res.json(await store.getConfig());
   });
 
-  // 3. Vehicles summary (Public)
+  // 3a. Vehicles summary (Public)
   app.get('/api/v1/vehicles', async (req: Request, res: Response) => {
     res.json(await store.getVehicles(req.query as Record<string, string>));
+  });
+
+  // 3b. Vehicle search with facets, pagination & sorting (Public)
+  app.get('/api/v1/vehicles/search', async (req: Request, res: Response) => {
+    res.json(await store.searchVehicles(req.query as Record<string, string>));
   });
 
   // 4. Auth identity inspection endpoint

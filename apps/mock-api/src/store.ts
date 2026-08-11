@@ -1,4 +1,5 @@
 import { Pool } from 'pg';
+import type { VehicleDomainSummary, VehicleStatus, VehicleSearchResult, VehicleFacets, SearchVehiclesQuery } from '@carchief/domain';
 
 export interface VehicleRecord {
   id: string;
@@ -18,6 +19,16 @@ export interface VehicleRecord {
   discountPercent?: number;
   internalNotes?: string;
   staffOwnerId?: string;
+
+  // Phase 1.3 Extensions
+  bodyStyle?: string;
+  fuelType?: string;
+  transmission?: string;
+  driveTrain?: string;
+  mileage?: number;
+  etd?: string;
+  eta?: string;
+  requestPrice?: boolean;
 }
 
 export interface PublicConfig {
@@ -26,16 +37,16 @@ export interface PublicConfig {
   contactPhone: string;
 }
 
-export interface GetVehiclesQuery {
+export interface GetVehiclesQuery extends SearchVehiclesQuery {
   collection?: string;
   market?: string;
   category?: string;
-  limit?: string;
+  limit?: number;
 }
 
 const seedConfig: PublicConfig = { siteName: 'CarChief', currency: 'USD', contactPhone: '+256 700 000 000' };
 
-// Reference date for deterministic 5-day window tests: 2026-08-10T10:00:00.000Z
+// Reference date for deterministic 5-day window & ETD/ETA tests: 2026-08-10T10:00:00.000Z
 const seedVehicles: VehicleRecord[] = [
   {
     id: 'veh-1',
@@ -46,12 +57,19 @@ const seedVehicles: VehicleRecord[] = [
     priceUsd: 8500,
     status: 'Available',
     category: 'arrival,premium',
-    locationStatus: 'In Japan',
-    createdAt: '2026-08-09T10:00:00.000Z', // 1 day old -> Latest Arrival eligible
+    createdAt: '2026-08-09T10:00:00.000Z',
     images: ['https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?w=400'],
     featured: true,
     stockType: 'J',
     destinationPort: 'Mombasa',
+    bodyStyle: 'Sedan',
+    fuelType: 'Petrol',
+    transmission: 'Automatic',
+    driveTrain: '2WD',
+    mileage: 32000,
+    etd: '2026-08-20T00:00:00.000Z', // Future ETD -> In Japan
+    eta: '2026-09-10T00:00:00.000Z',
+    requestPrice: false,
     internalNotes: 'Internal inspection passed',
     staffOwnerId: 'staff-99',
   },
@@ -64,12 +82,19 @@ const seedVehicles: VehicleRecord[] = [
     priceUsd: 14200,
     status: 'ReservedWithPI',
     category: 'arrival',
-    locationStatus: 'In Japan',
-    createdAt: '2026-08-08T14:30:00.000Z', // 2 days old -> Latest Arrival eligible
+    createdAt: '2026-08-08T14:30:00.000Z',
     images: ['https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=400'],
     featured: true,
     stockType: 'J',
     destinationPort: 'Mombasa',
+    bodyStyle: 'Van',
+    fuelType: 'Diesel',
+    transmission: 'Automatic',
+    driveTrain: '2WD',
+    mileage: 68000,
+    etd: '2026-08-01T00:00:00.000Z', // Past ETD, Future ETA -> In Transit
+    eta: '2026-08-25T00:00:00.000Z',
+    requestPrice: false,
   },
   {
     id: 'veh-3',
@@ -80,12 +105,19 @@ const seedVehicles: VehicleRecord[] = [
     priceUsd: 19500,
     status: 'Available',
     category: 'premium',
-    locationStatus: 'In Japan',
-    createdAt: '2026-07-30T09:00:00.000Z', // 11 days old -> NOT Latest Arrival
+    createdAt: '2026-07-30T09:00:00.000Z',
     images: ['https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=400'],
     featured: true,
     stockType: 'J',
     destinationPort: 'Mombasa',
+    bodyStyle: 'SUV',
+    fuelType: 'Petrol',
+    transmission: 'Automatic',
+    driveTrain: '4WD',
+    mileage: 18000,
+    etd: '2026-07-01T00:00:00.000Z', // Past ETD, Past ETA -> In Port
+    eta: '2026-07-25T00:00:00.000Z',
+    requestPrice: false,
   },
   {
     id: 'veh-4',
@@ -93,15 +125,20 @@ const seedVehicles: VehicleRecord[] = [
     make: 'Subaru',
     model: 'Forester',
     year: 2019,
-    priceUsd: 11800,
+    priceUsd: 0,
     status: 'Available',
     category: 'clearance',
-    locationStatus: 'In Port',
     createdAt: '2026-07-25T11:00:00.000Z',
     discountPercent: 10,
     featured: false,
     stockType: 'CRFO',
     destinationPort: 'Mombasa',
+    bodyStyle: 'SUV',
+    fuelType: 'Petrol',
+    transmission: 'Automatic',
+    driveTrain: 'AWD',
+    mileage: 54000,
+    requestPrice: true, // Price on request
   },
   {
     id: 'veh-5',
@@ -112,12 +149,19 @@ const seedVehicles: VehicleRecord[] = [
     priceUsd: 7900,
     status: 'Available',
     category: 'best_offer',
-    locationStatus: 'In Transit',
-    createdAt: '2026-08-07T08:00:00.000Z', // 3 days old
+    createdAt: '2026-08-07T08:00:00.000Z',
     discountPercent: 5,
     featured: true,
     stockType: 'J',
     destinationPort: 'Dar es Salaam',
+    bodyStyle: 'Hatchback',
+    fuelType: 'Hybrid',
+    transmission: 'Automatic',
+    driveTrain: '2WD',
+    mileage: 41000,
+    etd: '2026-08-05T00:00:00.000Z', // In Transit
+    eta: '2026-08-28T00:00:00.000Z',
+    requestPrice: false,
   },
   {
     id: 'veh-6',
@@ -128,12 +172,19 @@ const seedVehicles: VehicleRecord[] = [
     priceUsd: 16000,
     status: 'Available',
     category: 'clearance',
-    locationStatus: 'In Port',
     createdAt: '2026-07-20T10:00:00.000Z',
     discountPercent: 15,
     featured: false,
     stockType: 'CRFO',
     destinationPort: 'Mombasa',
+    bodyStyle: 'Truck',
+    fuelType: 'Diesel',
+    transmission: 'Manual',
+    driveTrain: '2WD',
+    mileage: 95000,
+    etd: '2026-06-15T00:00:00.000Z', // In Port
+    eta: '2026-07-10T00:00:00.000Z',
+    requestPrice: false,
   },
   {
     id: 'veh-7',
@@ -144,11 +195,16 @@ const seedVehicles: VehicleRecord[] = [
     priceUsd: 38000,
     status: 'Available',
     category: 'premium',
-    locationStatus: 'In Japan',
-    createdAt: '2026-08-09T16:00:00.000Z', // 1 day old
+    createdAt: '2026-08-09T16:00:00.000Z',
     featured: true,
     stockType: 'J',
     destinationPort: 'Mombasa',
+    bodyStyle: 'SUV',
+    fuelType: 'Hybrid',
+    transmission: 'Automatic',
+    driveTrain: 'AWD',
+    mileage: 12000,
+    requestPrice: false,
   },
   {
     id: 'veh-8',
@@ -159,24 +215,129 @@ const seedVehicles: VehicleRecord[] = [
     priceUsd: 13500,
     status: 'Available',
     category: 'arrival',
-    locationStatus: 'In Japan',
-    createdAt: '2026-08-06T12:00:00.000Z', // 4 days old -> Latest Arrival eligible
+    createdAt: '2026-08-06T12:00:00.000Z',
     featured: false,
     stockType: 'J',
     destinationPort: 'Mombasa',
+    bodyStyle: 'SUV',
+    fuelType: 'Diesel',
+    transmission: 'Automatic',
+    driveTrain: '2WD',
+    mileage: 49000,
+    requestPrice: false,
+  },
+  {
+    id: 'veh-9',
+    chassisNumber: 'WDD205-998877',
+    make: 'Mercedes-Benz',
+    model: 'C200 AMG Line',
+    year: 2019,
+    priceUsd: 17800,
+    status: 'Available',
+    category: 'premium',
+    createdAt: '2026-08-08T09:00:00.000Z',
+    featured: true,
+    stockType: 'J',
+    destinationPort: 'Mombasa',
+    bodyStyle: 'Sedan',
+    fuelType: 'Petrol',
+    transmission: 'Automatic',
+    driveTrain: '2WD',
+    mileage: 38000,
+    etd: '2026-08-18T00:00:00.000Z',
+    requestPrice: false,
+  },
+  {
+    id: 'veh-10',
+    chassisNumber: 'G01-112244',
+    make: 'BMW',
+    model: 'X3 xDrive20d',
+    year: 2021,
+    priceUsd: 26500,
+    status: 'Available',
+    category: 'premium',
+    createdAt: '2026-08-07T14:00:00.000Z',
+    featured: true,
+    stockType: 'J',
+    destinationPort: 'Mombasa',
+    bodyStyle: 'SUV',
+    fuelType: 'Diesel',
+    transmission: 'Automatic',
+    driveTrain: 'AWD',
+    mileage: 27000,
+    requestPrice: false,
+  },
+  {
+    id: 'veh-11',
+    chassisNumber: '8K-556677',
+    make: 'Audi',
+    model: 'A4 Avant',
+    year: 2020,
+    priceUsd: 15900,
+    status: 'Available',
+    category: 'best_offer',
+    createdAt: '2026-08-05T10:00:00.000Z',
+    featured: false,
+    stockType: 'J',
+    destinationPort: 'Dar es Salaam',
+    bodyStyle: 'Wagon',
+    fuelType: 'Petrol',
+    transmission: 'Automatic',
+    driveTrain: 'AWD',
+    mileage: 52000,
+    requestPrice: false,
+  },
+  {
+    id: 'veh-12',
+    chassisNumber: 'L663-778899',
+    make: 'Land Rover',
+    model: 'Defender 110',
+    year: 2022,
+    priceUsd: 49000,
+    status: 'Available',
+    category: 'premium',
+    createdAt: '2026-08-09T18:00:00.000Z',
+    featured: true,
+    stockType: 'J',
+    destinationPort: 'Mombasa',
+    bodyStyle: 'SUV',
+    fuelType: 'Diesel',
+    transmission: 'Automatic',
+    driveTrain: '4WD',
+    mileage: 15000,
+    requestPrice: false,
   },
 ];
 
 export interface DemoStore {
   ready(): Promise<void>;
   getConfig(): Promise<PublicConfig>;
-  getVehicles(query?: GetVehiclesQuery): Promise<VehicleRecord[]>;
+  getVehicles(query?: GetVehiclesQuery): Promise<VehicleDomainSummary[]>;
+  searchVehicles(query?: SearchVehiclesQuery): Promise<VehicleSearchResult>;
   reset(): Promise<void>;
   close(): Promise<void>;
 }
 
-function projectPublicVehicle(v: VehicleRecord): VehicleRecord {
-  // Public field projection: enforce that private/staff fields (like internalNotes, staffOwnerId) are stripped
+// Service-owned location projection based on ETD/ETA rules (PUB-08)
+export function resolveLocationStatus(v: VehicleRecord, nowISO = '2026-08-10T10:00:00.000Z'): 'In Japan' | 'In Transit' | 'In Port' {
+  if (!v.etd && !v.eta) {
+    return v.locationStatus || 'In Japan';
+  }
+  const now = new Date(nowISO).getTime();
+  const etdTime = v.etd ? new Date(v.etd).getTime() : null;
+  const etaTime = v.eta ? new Date(v.eta).getTime() : null;
+
+  if (etaTime && now >= etaTime) {
+    return 'In Port';
+  }
+  if (etdTime && now >= etdTime && (!etaTime || now < etaTime)) {
+    return 'In Transit';
+  }
+  return 'In Japan';
+}
+
+function projectPublicVehicle(v: VehicleRecord): VehicleDomainSummary {
+  const resolvedLoc = resolveLocationStatus(v);
   return {
     id: v.id,
     chassisNumber: v.chassisNumber,
@@ -184,20 +345,74 @@ function projectPublicVehicle(v: VehicleRecord): VehicleRecord {
     model: v.model,
     year: v.year,
     priceUsd: v.priceUsd,
-    status: v.status,
+    status: v.status as VehicleStatus,
     category: v.category,
-    locationStatus: v.locationStatus,
+    locationStatus: resolvedLoc,
     createdAt: v.createdAt,
     images: v.images ? [...v.images] : [],
     featured: v.featured,
     stockType: v.stockType,
     destinationPort: v.destinationPort,
     discountPercent: v.discountPercent,
+    bodyStyle: v.bodyStyle,
+    fuelType: v.fuelType,
+    transmission: v.transmission,
+    driveTrain: v.driveTrain,
+    mileage: v.mileage,
+    etd: v.etd,
+    eta: v.eta,
+    requestPrice: v.requestPrice ?? (v.priceUsd === 0),
   };
 }
 
-function filterAndSortVehicles(vehicles: VehicleRecord[], query?: GetVehiclesQuery): VehicleRecord[] {
-  let list = vehicles.map(projectPublicVehicle);
+function calculateFacets(vehicles: VehicleDomainSummary[]): VehicleFacets {
+  const makeMap = new Map<string, number>();
+  const bodyStyleMap = new Map<string, number>();
+  const fuelTypeMap = new Map<string, number>();
+
+  let minYear = 2026;
+  let maxYear = 1970;
+  let minPrice = Infinity;
+  let maxPrice = -Infinity;
+
+  vehicles.forEach((v) => {
+    if (v.make) makeMap.set(v.make, (makeMap.get(v.make) || 0) + 1);
+    if (v.bodyStyle) bodyStyleMap.set(v.bodyStyle, (bodyStyleMap.get(v.bodyStyle) || 0) + 1);
+    if (v.fuelType) fuelTypeMap.set(v.fuelType, (fuelTypeMap.get(v.fuelType) || 0) + 1);
+
+    if (v.year) {
+      if (v.year < minYear) minYear = v.year;
+      if (v.year > maxYear) maxYear = v.year;
+    }
+
+    if (v.priceUsd && !v.requestPrice) {
+      if (v.priceUsd < minPrice) minPrice = v.priceUsd;
+      if (v.priceUsd > maxPrice) maxPrice = v.priceUsd;
+    }
+  });
+
+  const sortFacets = (map: Map<string, number>) =>
+    Array.from(map.entries())
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+
+  return {
+    makes: sortFacets(makeMap),
+    bodyStyles: sortFacets(bodyStyleMap),
+    fuelTypes: sortFacets(fuelTypeMap),
+    yearRange: {
+      min: minYear <= maxYear ? minYear : 2015,
+      max: minYear <= maxYear ? maxYear : 2024,
+    },
+    priceRange: {
+      min: minPrice <= maxPrice ? minPrice : 0,
+      max: minPrice <= maxPrice ? maxPrice : 50000,
+    },
+  };
+}
+
+function filterAndSortVehicles(vehicles: VehicleRecord[], query?: GetVehiclesQuery): VehicleDomainSummary[] {
+  let list: VehicleDomainSummary[] = vehicles.map(projectPublicVehicle);
   const now = new Date('2026-08-10T10:00:00.000Z').getTime();
   const FIVE_DAYS_MS = 5 * 24 * 60 * 60 * 1000;
 
@@ -208,14 +423,12 @@ function filterAndSortVehicles(vehicles: VehicleRecord[], query?: GetVehiclesQue
   if (query?.collection) {
     switch (query.collection) {
       case 'latest_arrivals': {
-        // Eligible In Japan only, created in the last 5 days
         const eligible = list.filter((v) => {
           if (v.locationStatus !== 'In Japan') return false;
           if (!v.createdAt) return false;
           const createdTime = new Date(v.createdAt).getTime();
           return now - createdTime <= FIVE_DAYS_MS;
         });
-        // Fallback rule: if market/selection filter results in empty, fall back to all In Japan within 5 days
         if (eligible.length > 0) {
           list = eligible;
         } else {
@@ -224,7 +437,6 @@ function filterAndSortVehicles(vehicles: VehicleRecord[], query?: GetVehiclesQue
         break;
       }
       case 'premium_teaser': {
-        // Premium collection limited to at most 10 returned vehicles
         const premium = list.filter((v) => v.category?.split(',').includes('premium'));
         const limitNum = Math.min(query.limit ? Number(query.limit) : 10, 10);
         list = premium.slice(0, limitNum);
@@ -244,7 +456,6 @@ function filterAndSortVehicles(vehicles: VehicleRecord[], query?: GetVehiclesQue
       }
       case 'browse':
       default: {
-        // Order by In Port -> In Transit -> In Japan, and J stock -> CRFO stock
         const locationPriority: Record<string, number> = { 'In Port': 1, 'In Transit': 2, 'In Japan': 3 };
         const stockPriority: Record<string, number> = { J: 1, CRFO: 2 };
         list.sort((a, b) => {
@@ -263,7 +474,104 @@ function filterAndSortVehicles(vehicles: VehicleRecord[], query?: GetVehiclesQue
     }
   }
 
-  if (query?.limit && query.collection !== 'premium_teaser') {
+  // Keyword searchQuery
+  if (query?.searchQuery) {
+    const q = query.searchQuery.toLowerCase().trim();
+    list = list.filter(
+      (v) =>
+        v.make.toLowerCase().includes(q) ||
+        v.model.toLowerCase().includes(q) ||
+        v.chassisNumber.toLowerCase().includes(q) ||
+        (v.bodyStyle && v.bodyStyle.toLowerCase().includes(q)) ||
+        (v.destinationPort && v.destinationPort.toLowerCase().includes(q))
+    );
+  }
+
+  // Faceted query filters
+  if (query?.make) {
+    const makeVal = query.make.toLowerCase();
+    list = list.filter((v) => v.make.toLowerCase() === makeVal);
+  }
+
+  if (query?.model) {
+    const modelVal = query.model.toLowerCase();
+    list = list.filter((v) => v.model.toLowerCase().includes(modelVal));
+  }
+
+  if (query?.bodyStyle) {
+    const bodyVal = query.bodyStyle.toLowerCase();
+    list = list.filter((v) => v.bodyStyle && v.bodyStyle.toLowerCase() === bodyVal);
+  }
+
+  if (query?.fuelType) {
+    const fuelVal = query.fuelType.toLowerCase();
+    list = list.filter((v) => v.fuelType && v.fuelType.toLowerCase() === fuelVal);
+  }
+
+  if (query?.transmission) {
+    const transVal = query.transmission.toLowerCase();
+    list = list.filter((v) => v.transmission && v.transmission.toLowerCase() === transVal);
+  }
+
+  if (query?.driveTrain) {
+    const dtVal = query.driveTrain.toLowerCase();
+    list = list.filter((v) => v.driveTrain && v.driveTrain.toLowerCase() === dtVal);
+  }
+
+  if (query?.stockType) {
+    list = list.filter((v) => v.stockType === query.stockType);
+  }
+
+  if (query?.locationStatus) {
+    list = list.filter((v) => v.locationStatus === query.locationStatus);
+  }
+
+  if (query?.yearMin !== undefined) {
+    const minY = Number(query.yearMin);
+    list = list.filter((v) => v.year >= minY);
+  }
+
+  if (query?.yearMax !== undefined) {
+    const maxY = Number(query.yearMax);
+    list = list.filter((v) => v.year <= maxY);
+  }
+
+  if (query?.priceMin !== undefined) {
+    const minP = Number(query.priceMin);
+    list = list.filter((v) => v.requestPrice || v.priceUsd >= minP);
+  }
+
+  if (query?.priceMax !== undefined) {
+    const maxP = Number(query.priceMax);
+    list = list.filter((v) => v.requestPrice || v.priceUsd <= maxP);
+  }
+
+  // Sorting
+  if (query?.sortBy) {
+    switch (query.sortBy) {
+      case 'price_asc':
+        list.sort((a, b) => a.priceUsd - b.priceUsd);
+        break;
+      case 'price_desc':
+        list.sort((a, b) => b.priceUsd - a.priceUsd);
+        break;
+      case 'year_desc':
+        list.sort((a, b) => b.year - a.year);
+        break;
+      case 'year_asc':
+        list.sort((a, b) => a.year - b.year);
+        break;
+      case 'mileage_asc':
+        list.sort((a, b) => (a.mileage || 0) - (b.mileage || 0));
+        break;
+      case 'newest':
+      default:
+        list.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+        break;
+    }
+  }
+
+  if (query?.limit && query.collection !== 'premium_teaser' && !query.page) {
     const limitNum = Number(query.limit);
     if (!isNaN(limitNum) && limitNum > 0) {
       list = list.slice(0, limitNum);
@@ -285,8 +593,32 @@ class MemoryStore implements DemoStore {
     return Promise.resolve({ ...this.config });
   }
 
-  getVehicles(query?: GetVehiclesQuery): Promise<VehicleRecord[]> {
+  getVehicles(query?: GetVehiclesQuery): Promise<VehicleDomainSummary[]> {
     return Promise.resolve(filterAndSortVehicles(this.vehicles, query));
+  }
+
+  searchVehicles(query?: SearchVehiclesQuery): Promise<VehicleSearchResult> {
+    const filteredList = filterAndSortVehicles(this.vehicles, query);
+    const facets = calculateFacets(filteredList);
+
+    const page = Math.max(1, query?.page ? Number(query.page) : 1);
+    const limit = Math.max(1, query?.limit ? Number(query.limit) : 12);
+    const total = filteredList.length;
+    const totalPages = Math.max(1, Math.ceil(total / limit));
+
+    const startIndex = (page - 1) * limit;
+    const items = filteredList.slice(startIndex, startIndex + limit);
+
+    return Promise.resolve({
+      items,
+      total,
+      page,
+      limit,
+      totalPages,
+      hasNextPage: page < totalPages,
+      hasPrevPage: page > 1,
+      facets,
+    });
   }
 
   reset(): Promise<void> {
@@ -329,7 +661,15 @@ class PostgresStore implements DemoStore {
         destination_port text,
         discount_percent numeric,
         internal_notes text,
-        staff_owner_id text
+        staff_owner_id text,
+        body_style text,
+        fuel_type text,
+        transmission text,
+        drive_train text,
+        mileage integer,
+        etd text,
+        eta text,
+        request_price boolean
       );`
     );
     await this.pool.query(
@@ -343,7 +683,15 @@ class PostgresStore implements DemoStore {
         ADD COLUMN IF NOT EXISTS destination_port text,
         ADD COLUMN IF NOT EXISTS discount_percent numeric,
         ADD COLUMN IF NOT EXISTS internal_notes text,
-        ADD COLUMN IF NOT EXISTS staff_owner_id text;`
+        ADD COLUMN IF NOT EXISTS staff_owner_id text,
+        ADD COLUMN IF NOT EXISTS body_style text,
+        ADD COLUMN IF NOT EXISTS fuel_type text,
+        ADD COLUMN IF NOT EXISTS transmission text,
+        ADD COLUMN IF NOT EXISTS drive_train text,
+        ADD COLUMN IF NOT EXISTS mileage integer,
+        ADD COLUMN IF NOT EXISTS etd text,
+        ADD COLUMN IF NOT EXISTS eta text,
+        ADD COLUMN IF NOT EXISTS request_price boolean;`
     );
     await this.reset();
   }
@@ -354,9 +702,9 @@ class PostgresStore implements DemoStore {
     return row ? { siteName: row.site_name, currency: row.currency, contactPhone: row.contact_phone } : { ...seedConfig };
   }
 
-  async getVehicles(query?: GetVehiclesQuery): Promise<VehicleRecord[]> {
+  async getVehicles(query?: GetVehiclesQuery): Promise<VehicleDomainSummary[]> {
     const result = await this.pool.query(
-      'SELECT id, chassis_number, make, model, year, price_usd, status, category, location_status, created_at, images, featured, stock_type, destination_port, discount_percent FROM vehicles ORDER BY id'
+      'SELECT id, chassis_number, make, model, year, price_usd, status, category, location_status, created_at, images, featured, stock_type, destination_port, discount_percent, body_style, fuel_type, transmission, drive_train, mileage, etd, eta, request_price FROM vehicles ORDER BY id'
     );
     const rawRecords: VehicleRecord[] = result.rows.map((row) => ({
       id: row.id,
@@ -374,8 +722,72 @@ class PostgresStore implements DemoStore {
       stockType: row.stock_type,
       destinationPort: row.destination_port,
       discountPercent: row.discount_percent ? Number(row.discount_percent) : undefined,
+      bodyStyle: row.body_style,
+      fuelType: row.fuel_type,
+      transmission: row.transmission,
+      driveTrain: row.drive_train,
+      mileage: row.mileage ? Number(row.mileage) : undefined,
+      etd: row.etd,
+      eta: row.eta,
+      requestPrice: Boolean(row.request_price),
     }));
     return filterAndSortVehicles(rawRecords, query);
+  }
+
+  async searchVehicles(query?: SearchVehiclesQuery): Promise<VehicleSearchResult> {
+    const rawRecords = await this.getRawVehicles();
+    const filteredList = filterAndSortVehicles(rawRecords, query);
+    const facets = calculateFacets(filteredList);
+
+    const page = Math.max(1, query?.page ? Number(query.page) : 1);
+    const limit = Math.max(1, query?.limit ? Number(query.limit) : 12);
+    const total = filteredList.length;
+    const totalPages = Math.max(1, Math.ceil(total / limit));
+
+    const startIndex = (page - 1) * limit;
+    const items = filteredList.slice(startIndex, startIndex + limit);
+
+    return {
+      items,
+      total,
+      page,
+      limit,
+      totalPages,
+      hasNextPage: page < totalPages,
+      hasPrevPage: page > 1,
+      facets,
+    };
+  }
+
+  private async getRawVehicles(): Promise<VehicleRecord[]> {
+    const result = await this.pool.query(
+      'SELECT id, chassis_number, make, model, year, price_usd, status, category, location_status, created_at, images, featured, stock_type, destination_port, discount_percent, body_style, fuel_type, transmission, drive_train, mileage, etd, eta, request_price FROM vehicles ORDER BY id'
+    );
+    return result.rows.map((row) => ({
+      id: row.id,
+      chassisNumber: row.chassis_number,
+      make: row.make,
+      model: row.model,
+      year: Number(row.year),
+      priceUsd: Number(row.price_usd),
+      status: row.status,
+      category: row.category,
+      locationStatus: row.location_status,
+      createdAt: row.created_at,
+      images: row.images ? JSON.parse(row.images) : [],
+      featured: Boolean(row.featured),
+      stockType: row.stock_type,
+      destinationPort: row.destination_port,
+      discountPercent: row.discount_percent ? Number(row.discount_percent) : undefined,
+      bodyStyle: row.body_style,
+      fuelType: row.fuel_type,
+      transmission: row.transmission,
+      driveTrain: row.drive_train,
+      mileage: row.mileage ? Number(row.mileage) : undefined,
+      etd: row.etd,
+      eta: row.eta,
+      requestPrice: Boolean(row.request_price),
+    }));
   }
 
   async reset(): Promise<void> {
@@ -391,7 +803,7 @@ class PostgresStore implements DemoStore {
       ]);
       for (const vehicle of seedVehicles) {
         await client.query(
-          'INSERT INTO vehicles (id, chassis_number, make, model, year, price_usd, status, category, location_status, created_at, images, featured, stock_type, destination_port, discount_percent, internal_notes, staff_owner_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)',
+          'INSERT INTO vehicles (id, chassis_number, make, model, year, price_usd, status, category, location_status, created_at, images, featured, stock_type, destination_port, discount_percent, internal_notes, staff_owner_id, body_style, fuel_type, transmission, drive_train, mileage, etd, eta, request_price) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25)',
           [
             vehicle.id,
             vehicle.chassisNumber,
@@ -410,6 +822,14 @@ class PostgresStore implements DemoStore {
             vehicle.discountPercent || null,
             vehicle.internalNotes || null,
             vehicle.staffOwnerId || null,
+            vehicle.bodyStyle || null,
+            vehicle.fuelType || null,
+            vehicle.transmission || null,
+            vehicle.driveTrain || null,
+            vehicle.mileage || null,
+            vehicle.etd || null,
+            vehicle.eta || null,
+            vehicle.requestPrice ?? false,
           ]
         );
       }

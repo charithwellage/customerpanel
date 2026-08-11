@@ -48,9 +48,9 @@
 | [D01-P02-T005](delivery_01/phase_02/D01-P02-T005.md) | Reconcile mixed PR review defects and hygiene | COMPLETE | self_ai | not_applicable | Codex | `feat_delivery01_phase_02` | D01-P02-CODE_REVIEW (COMPLETE) | D01-P02-T004 | P02-E | 2026-08-10T09:05:19.148Z |
 | [D01-P02-T006](delivery_01/phase_02/D01-P02-T006.md) | Move Home and Showroom static inline styling to reusable semantic CSS | COMPLETE | self_ai | playwright_mcp | Codex | `feat_delivery01_phase_02` | D01-P02-CODE_REVIEW (COMPLETE) | D01-P02-T005 | P02-F | 2026-08-10T11:04:10.834Z |
 | [D01-P02-CODE_REVIEW](delivery_01/phase_02/D01-P02-CODE_REVIEW.md) | Phase 1.2 mixed-PR code review and tech-lead approval | COMPLETE | phase_manual | not_applicable | Codex | `feat_delivery01_phase_02` | D01-P02-CODE_REVIEW (COMPLETE) | D01-P02-T006 | P02-REVIEW | 2026-08-10T11:26:09.296Z |
-| [D01-P03-T001](delivery_01/phase_03/D01-P03-T001.md) | Add vehicle query, dynamic filters, sorting and pagination | READY | self_ai | not_applicable | — | `feat_delivery01_phase_03` | D01-P03-CODE_REVIEW (NOT_STARTED) | D01-P02-CODE_REVIEW | P03-A | — |
-| [D01-P03-T002](delivery_01/phase_03/D01-P03-T002.md) | Build search orchestration, URL state and natural parsing | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery01_phase_03` | D01-P03-CODE_REVIEW (NOT_STARTED) | D01-P03-T001 | P03-B | — |
-| [D01-P03-T003](delivery_01/phase_03/D01-P03-T003.md) | Build inventory filters and result presentations | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery01_phase_03` | D01-P03-CODE_REVIEW (NOT_STARTED) | D01-P03-T001 | P03-B | — |
+| [D01-P03-T001](delivery_01/phase_03/D01-P03-T001.md) | Add vehicle query, dynamic filters, sorting and pagination | COMPLETE | self_ai | not_applicable | Antigravity | `feat_delivery01_phase_03` | D01-P03-CODE_REVIEW (NOT_STARTED) | D01-P02-CODE_REVIEW | P03-A | 2026-08-11T04:31:37.385Z |
+| [D01-P03-T002](delivery_01/phase_03/D01-P03-T002.md) | Build search orchestration, URL state and natural parsing | READY | self_ai | playwright_mcp | — | `feat_delivery01_phase_03` | D01-P03-CODE_REVIEW (NOT_STARTED) | D01-P03-T001 | P03-B | — |
+| [D01-P03-T003](delivery_01/phase_03/D01-P03-T003.md) | Build inventory filters and result presentations | READY | self_ai | playwright_mcp | — | `feat_delivery01_phase_03` | D01-P03-CODE_REVIEW (NOT_STARTED) | D01-P03-T001 | P03-B | — |
 | [D01-P03-T004](delivery_01/phase_03/D01-P03-T004.md) | Integrate and accept inventory search | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery01_phase_03` | D01-P03-CODE_REVIEW (NOT_STARTED) | D01-P03-T002, D01-P03-T003 | P03-C | — |
 | [D01-P03-CODE_REVIEW](delivery_01/phase_03/D01-P03-CODE_REVIEW.md) | Phase 1.3 PR code review and tech-lead approval | NOT_STARTED | phase_manual | not_applicable | — | `feat_delivery01_phase_03` | D01-P03-CODE_REVIEW (NOT_STARTED) | D01-P03-T004 | P03-REVIEW | — |
 | [D01-P04-T001](delivery_01/phase_04/D01-P04-T001.md) | Add vehicle detail and public media service behavior | NOT_STARTED | self_ai | not_applicable | — | `feat_delivery01_phase_04` | D01-P04-CODE_REVIEW (NOT_STARTED) | D01-P03-CODE_REVIEW | P04-A | — |
@@ -129,7 +129,7 @@
 
 ## Current execution frontier
 
-- Sequential next: D01-P03-T001 — Add vehicle query, dynamic filters, sorting and pagination (NOT_STARTED)
+- Sequential next: D01-P03-T002 — Build search orchestration, URL state and natural parsing (NOT_STARTED)
 - Optional same-group parallel tasks: None
 - Downstream work waits for COMPLETE or SUPERSEDED; IN_REVIEW is not complete.
 - Later tasks cannot be bypassed; use taskctl sequence TASK-ID for the exact blocker.
