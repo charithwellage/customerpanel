@@ -11,10 +11,14 @@ Read, in this order:
 3. The latest applicable phase summary
 4. tasks/CODE_REVIEW_RULES.md
 5. tasks/COMMON_FRONTEND_RULES.md
-6. tasks/DELIVERY-NN/PHASE-NN/PHASE-REVIEW-TASK-ID.md
-7. Only the completed task files, execution logs, requirements, architecture sections, evidence and POC paths explicitly named by that phase-review task.
+6. tasks/TASK_EXECUTION_PROTOCOL.md
+7. tasks/DELIVERY-NN/PHASE-NN/PHASE-REVIEW-TASK-ID.md
+8. tasks/DELIVERY-NN/PHASE-NN/CONTEXT.md — the phase context pack, where one exists
+9. Only the completed task files, execution logs, requirements, architecture sections, evidence and POC paths explicitly named by that phase-review task.
 
 The phase-review task is the source of truth. Do not scan the entire project or unrelated modules. Do not treat POC code as production code to copy.
+
+Read `tasks/DEPENDENCY_INSTALLATION_POLICY.md` when evaluating build evidence. Treat cached dependency layers and reused workspace installations as expected; require a fresh package installation only when the lockfile, dependency graph or isolated build environment justifies it.
 
 For a Delivery 02 review, also read `tasks/delivery_02/REQUIREMENT_GAPS_AND_ASSUMPTIONS.md` when named by the task. Verify that every safe MVP default or skipped feature is recorded and honestly presented; do not reopen a task merely because a documented requirement gap remains unresolved.
 
@@ -39,7 +43,9 @@ Remain on the named phase branch. Do not create a task branch. Do not modify pro
 
 Review the diff against every applicable rule in tasks/CODE_REVIEW_RULES.md and every phase-specific rule in the phase review task. Check architecture boundaries, reusable packages, responsive behavior, accessibility, security, API/mock separation, tests, Docker/PWA requirements and the phase acceptance criteria.
 
-For every completed task marked `ui_validation: "playwright_mcp"`, verify its execution log proves a fresh runtime was built/recreated from the task's current worktree before browser validation. The evidence must identify the build/recreate command, target URL, runtime process/container identity, health/readiness results, both themes/viewports, console/network result and both MCP and automated Playwright PASS outcomes. Treat stale-image/unknown-server evidence, missing API readiness evidence, or browser tests aimed at a different target as a blocking finding; reopen the responsible task rather than approving the phase.
+For every completed task marked `ui_validation: "playwright_mcp"`, verify its execution log proves a fresh runtime was built/recreated from the task's current worktree before browser validation. The evidence must identify the build/start commands, runtime profile, target URL, runtime process/container identity, health/readiness results, the default `carchief` theme, the phone/tablet/desktop viewports covered by the automated Playwright projects, console/network result, and both MCP and automated Playwright PASS outcomes. Treat stale-image/unknown-server evidence, missing API readiness evidence, or browser tests aimed at a different target as a blocking finding; reopen the responsible task rather than approving the phase.
+
+Alternate-theme (`ocean`) evidence is not expected per task: it is verified once for the whole Public Website in Phase 1.9. The Phase 1.9 review is the exception — there, evidence for both themes is required, with the served `data-theme` value confirmed for each.
 
 For each finding, record:
 - severity (blocking or non-blocking)

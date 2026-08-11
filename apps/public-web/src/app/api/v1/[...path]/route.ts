@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 async function proxyRequest(request: NextRequest, paramsPromise: Promise<{ path: string[] }>) {
   const params = await paramsPromise;
   const path = (params.path || []).join('/');
-  const apiBaseUrl = process.env.API_BASE_URL || 'http://localhost:4000';
+  const apiBaseUrl = process.env.API_BASE_URL || 'http://127.0.0.1:4000';
   const search = request.nextUrl.search || '';
   const targetUrl = `${apiBaseUrl}/api/v1/${path}${search}`;
 

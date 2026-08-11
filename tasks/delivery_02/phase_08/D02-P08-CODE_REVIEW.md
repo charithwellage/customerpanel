@@ -3,7 +3,7 @@ task_id: "D02-P08-CODE_REVIEW"
 title: "Phase 2.8 PR code review and tech-lead approval"
 delivery: "Delivery 02 — Customer Application"
 phase: "Phase 2.8 — Notifications and profile"
-execution_order: 94
+execution_order: 97
 estimate: "0.25 day"
 model_tier: "FRONTIER"
 parallel_group: "D02-P08-REVIEW"

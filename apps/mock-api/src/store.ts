@@ -1,5 +1,6 @@
 import { Pool } from 'pg';
-import type { VehicleDomainSummary, VehicleStatus, VehicleSearchResult, VehicleFacets, SearchVehiclesQuery } from '@carchief/domain';
+import type { VehicleDomainSummary, VehicleStatus, VehicleSearchResult, VehicleFacets, SearchVehiclesQuery, VehicleDetail } from '@carchief/domain';
+import { generateVehicleSlug } from '@carchief/domain';
 
 export interface VehicleRecord {
   id: string;
@@ -58,7 +59,10 @@ const seedVehicles: VehicleRecord[] = [
     status: 'Available',
     category: 'arrival,premium',
     createdAt: '2026-08-09T10:00:00.000Z',
-    images: ['https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?w=400'],
+    images: [
+      'https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?w=400',
+      'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=400'
+    ],
     featured: true,
     stockType: 'J',
     destinationPort: 'Mombasa',
@@ -307,6 +311,67 @@ const seedVehicles: VehicleRecord[] = [
     mileage: 15000,
     requestPrice: false,
   },
+  {
+    id: 'veh-price-req',
+    chassisNumber: 'URJ201-998877',
+    make: 'Lexus',
+    model: 'LX570',
+    year: 2023,
+    priceUsd: 0,
+    status: 'Available',
+    category: 'premium',
+    createdAt: '2026-08-10T12:00:00.000Z',
+    featured: true,
+    stockType: 'J',
+    destinationPort: 'Mombasa',
+    bodyStyle: 'SUV',
+    fuelType: 'Petrol',
+    transmission: 'Automatic',
+    driveTrain: '4WD',
+    mileage: 5000,
+    requestPrice: true,
+  },
+  {
+    id: 'veh-sold',
+    chassisNumber: 'KF2P-554433',
+    make: 'Mazda',
+    model: 'CX-5',
+    year: 2019,
+    priceUsd: 12000,
+    status: 'Sold',
+    category: 'arrival',
+    createdAt: '2026-08-01T10:00:00.000Z',
+    featured: false,
+    stockType: 'J',
+    destinationPort: 'Mombasa',
+    bodyStyle: 'SUV',
+    fuelType: 'Diesel',
+    transmission: 'Automatic',
+    driveTrain: '2WD',
+    mileage: 45000,
+    requestPrice: false,
+  },
+  {
+    id: 'veh-no-media',
+    chassisNumber: 'SJ5-112233',
+    make: 'Subaru',
+    model: 'Forester',
+    year: 2018,
+    priceUsd: 9800,
+    status: 'Available',
+    category: 'clearance',
+    createdAt: '2026-07-25T10:00:00.000Z',
+    images: [],
+    featured: false,
+    stockType: 'J',
+    destinationPort: 'Dar es Salaam',
+    bodyStyle: 'SUV',
+    fuelType: 'Petrol',
+    transmission: 'Automatic',
+    driveTrain: 'AWD',
+    mileage: 72000,
+    requestPrice: false,
+  },
 ];
 
 export interface DemoStore {
@@ -314,6 +379,7 @@ export interface DemoStore {
   getConfig(): Promise<PublicConfig>;
   getVehicles(query?: GetVehiclesQuery): Promise<VehicleDomainSummary[]>;
   searchVehicles(query?: SearchVehiclesQuery): Promise<VehicleSearchResult>;
+  getVehicleDetail(idOrSlug: string): Promise<VehicleDetail | null>;
   reset(): Promise<void>;
   close(): Promise<void>;
 }
@@ -364,6 +430,91 @@ function projectPublicVehicle(v: VehicleRecord): VehicleDomainSummary {
     requestPrice: v.requestPrice ?? (v.priceUsd === 0),
   };
 }
+
+/**
+ * Demo-only stand-in for the country eligibility projection.
+ *
+ * The real projection is server-authoritative and per-vehicle (PUB-25), but the
+ * demo record carries no eligibility source data and `DEC-PUB-LEGACY-PARITY` is
+ * still OPEN. This constant is therefore an explicitly named placeholder, not a
+ * business rule: it must be replaced with per-vehicle data before any screen
+ * makes an eligibility claim to a visitor.
+ */
+export const DEMO_COUNTRY_ELIGIBILITY_PLACEHOLDER = ['UG', 'KE', 'TZ', 'RW', 'SS'] as const;
+
+export function buildVehicleDetail(v: VehicleRecord): VehicleDetail {
+  const slug = generateVehicleSlug(v.year, v.make, v.model, v.id);
+  const isRequestPrice = Boolean(v.requestPrice || !v.priceUsd || v.priceUsd <= 0);
+  const priceState = isRequestPrice ? 'request_price' : 'priced';
+  const priceUsd = isRequestPrice ? undefined : v.priceUsd;
+  const discountPercent = isRequestPrice ? undefined : v.discountPercent;
+  const discountedPriceUsd = (priceState === 'priced' && priceUsd && discountPercent)
+    ? Math.round(priceUsd * (1 - discountPercent / 100))
+    : undefined;
+
+  const gallery = v.images ? [...v.images] : [];
+  const locStatus = resolveLocationStatus(v);
+
+  return {
+    id: v.id,
+    chassisNumber: v.chassisNumber,
+    slug,
+    make: v.make,
+    model: v.model,
+    year: v.year,
+    status: (v.status as VehicleStatus) || 'Available',
+    priceState,
+    priceUsd,
+    requestPrice: isRequestPrice,
+    discountPercent,
+    discountedPriceUsd,
+    category: v.category,
+    locationStatus: locStatus,
+    stockType: v.stockType,
+    destinationPort: v.destinationPort,
+    bodyStyle: v.bodyStyle,
+    fuelType: v.fuelType,
+    transmission: v.transmission,
+    driveTrain: v.driveTrain,
+    mileage: v.mileage,
+    etd: v.etd,
+    eta: v.eta,
+    featured: v.featured,
+    countryEligibility: [...DEMO_COUNTRY_ELIGIBILITY_PLACEHOLDER],
+    // The demo record carries a single uncategorized `images` array, so only the
+    // general gallery is populated. Auction/Japan/Durban categories stay empty
+    // with their visibility flags false rather than re-labelling gallery images
+    // as a category the source system never asserted (PUB-25).
+    media: {
+      gallery,
+      auctionPictures: [],
+      auctionSheet: [],
+      japanPictures: [],
+      durbanPictures: [],
+      showAuctionPictures: false,
+      showJapanPictures: false,
+      showDurbanPictures: false,
+      totalPicturesCount: gallery.length,
+    },
+  };
+}
+
+export function findVehicleRecord(vehicles: VehicleRecord[], idOrSlug: string): VehicleRecord | undefined {
+  const norm = idOrSlug.toLowerCase();
+  const matchId = vehicles.find((v) => v.id.toLowerCase() === norm);
+  if (matchId) return matchId;
+
+  const matchChassis = vehicles.find((v) => v.chassisNumber.toLowerCase() === norm);
+  if (matchChassis) return matchChassis;
+
+  const matchSlug = vehicles.find((v) => generateVehicleSlug(v.year, v.make, v.model, v.id) === norm);
+  if (matchSlug) return matchSlug;
+
+  // Deliberately no suffix/partial fallback: any string ending in a known id would
+  // otherwise resolve to that vehicle, producing unlimited duplicate public URLs.
+  return undefined;
+}
+
 
 function calculateFacets(vehicles: VehicleDomainSummary[]): VehicleFacets {
   const makeMap = new Map<string, number>();
@@ -621,6 +772,12 @@ class MemoryStore implements DemoStore {
     });
   }
 
+  getVehicleDetail(idOrSlug: string): Promise<VehicleDetail | null> {
+    const record = findVehicleRecord(this.vehicles, idOrSlug);
+    if (!record) return Promise.resolve(null);
+    return Promise.resolve(buildVehicleDetail(record));
+  }
+
   reset(): Promise<void> {
     this.config = { ...seedConfig };
     this.vehicles = seedVehicles.map((vehicle) => ({ ...vehicle }));
@@ -757,6 +914,13 @@ class PostgresStore implements DemoStore {
       hasPrevPage: page > 1,
       facets,
     };
+  }
+
+  async getVehicleDetail(idOrSlug: string): Promise<VehicleDetail | null> {
+    const rawRecords = await this.getRawVehicles();
+    const record = findVehicleRecord(rawRecords, idOrSlug);
+    if (!record) return null;
+    return buildVehicleDetail(record);
   }
 
   private async getRawVehicles(): Promise<VehicleRecord[]> {

@@ -102,4 +102,65 @@ export interface SearchVehiclesQuery {
   limit?: number;
 }
 
+export interface CategorizedPublicMedia {
+  gallery: string[];
+  auctionPictures?: string[];
+  auctionSheet?: string[];
+  japanPictures?: string[];
+  durbanPictures?: string[];
+  showAuctionPictures?: boolean;
+  showJapanPictures?: boolean;
+  showDurbanPictures?: boolean;
+  totalPicturesCount: number;
+}
+
+export interface VehicleDetail {
+  id: string;
+  chassisNumber: string;
+  slug: string;
+  make: string;
+  model: string;
+  year: number;
+  status: VehicleStatus;
+  priceState: 'priced' | 'request_price';
+  priceUsd?: number;
+  requestPrice: boolean;
+  discountPercent?: number;
+  discountedPriceUsd?: number;
+  category?: string;
+  locationStatus?: VehicleLocationStatus;
+  stockType?: 'J' | 'CRFO';
+  destinationPort?: string;
+  bodyStyle?: string;
+  fuelType?: string;
+  transmission?: string;
+  driveTrain?: string;
+  mileage?: number;
+  engineSize?: string;
+  color?: string;
+  modelCode?: string;
+  versionClass?: string;
+  registerYear?: string;
+  mfgYear?: string;
+  dimensions?: {
+    lengthMm?: number;
+    widthMm?: number;
+    heightMm?: number;
+    m3?: number;
+  };
+  etd?: string;
+  eta?: string;
+  featured?: boolean;
+  countryEligibility?: string[];
+  media: CategorizedPublicMedia;
+}
+
+export function generateVehicleSlug(year: number, make: string, model: string, id: string): string {
+  const raw = `${year}-${make}-${model}-${id}`;
+  return raw
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
 export * from './auth.js';
