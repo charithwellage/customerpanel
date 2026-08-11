@@ -65,10 +65,7 @@
             "name": "market",
             "in": "query",
             "required": false,
-            "schema": {
-              "type": "string",
-              "example": "UG"
-            }
+            "schema": { "type": "string", "example": "UG" }
           },
           {
             "name": "category",
@@ -80,13 +77,103 @@
             }
           },
           {
-            "name": "limit",
+            "name": "searchQuery",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "example": "Toyota" }
+          },
+          {
+            "name": "make",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "example": "Toyota" }
+          },
+          {
+            "name": "model",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "example": "Corolla" }
+          },
+          {
+            "name": "bodyStyle",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "example": "SUV" }
+          },
+          {
+            "name": "fuelType",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "example": "Hybrid" }
+          },
+          {
+            "name": "transmission",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "example": "Automatic" }
+          },
+          {
+            "name": "driveTrain",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "example": "4WD" }
+          },
+          {
+            "name": "stockType",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "example": "J" }
+          },
+          {
+            "name": "locationStatus",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "example": "In Japan" }
+          },
+          {
+            "name": "yearMin",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "example": 2018 }
+          },
+          {
+            "name": "yearMax",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "example": 2024 }
+          },
+          {
+            "name": "priceMin",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "number", "example": 5000 }
+          },
+          {
+            "name": "priceMax",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "number", "example": 25000 }
+          },
+          {
+            "name": "sortBy",
             "in": "query",
             "required": false,
             "schema": {
-              "type": "integer",
-              "example": 10
+              "type": "string",
+              "enum": ["newest", "price_asc", "price_desc", "year_desc", "year_asc", "mileage_asc"]
             }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "example": 1 }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "example": 12 }
           }
         ],
         "responses": {
@@ -96,9 +183,144 @@
               "application/json": {
                 "schema": {
                   "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/VehicleSummary"
-                  }
+                  "items": { "$ref": "#/components/schemas/VehicleSummary" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/vehicles/search": {
+      "get": {
+        "summary": "Search vehicle inventory with dynamic facets, sorting and pagination",
+        "operationId": "searchVehicles",
+        "parameters": [
+          {
+            "name": "searchQuery",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "example": "Toyota" }
+          },
+          {
+            "name": "make",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "example": "Toyota" }
+          },
+          {
+            "name": "model",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "example": "Corolla" }
+          },
+          {
+            "name": "bodyStyle",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "example": "SUV" }
+          },
+          {
+            "name": "fuelType",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "example": "Hybrid" }
+          },
+          {
+            "name": "transmission",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "example": "Automatic" }
+          },
+          {
+            "name": "driveTrain",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "example": "4WD" }
+          },
+          {
+            "name": "stockType",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "example": "J" }
+          },
+          {
+            "name": "locationStatus",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "example": "In Japan" }
+          },
+          {
+            "name": "market",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "example": "UG" }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "example": "premium" }
+          },
+          {
+            "name": "collection",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "example": "latest_arrivals" }
+          },
+          {
+            "name": "yearMin",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "example": 2018 }
+          },
+          {
+            "name": "yearMax",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "example": 2024 }
+          },
+          {
+            "name": "priceMin",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "number", "example": 5000 }
+          },
+          {
+            "name": "priceMax",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "number", "example": 25000 }
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["newest", "price_asc", "price_desc", "year_desc", "year_asc", "mileage_asc"]
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "example": 1 }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "example": 12 }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated vehicle search result with facets",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleSearchResult"
                 }
               }
             }
@@ -161,9 +383,70 @@
           "featured": { "type": "boolean", "example": true },
           "stockType": { "type": "string", "example": "J" },
           "destinationPort": { "type": "string", "example": "Mombasa" },
-          "discountPercent": { "type": "number", "example": 5 }
+          "discountPercent": { "type": "number", "example": 5 },
+          "bodyStyle": { "type": "string", "example": "Sedan" },
+          "fuelType": { "type": "string", "example": "Petrol" },
+          "transmission": { "type": "string", "example": "Automatic" },
+          "driveTrain": { "type": "string", "example": "2WD" },
+          "mileage": { "type": "integer", "example": 45000 },
+          "etd": { "type": "string", "example": "2026-08-15T00:00:00.000Z" },
+          "eta": { "type": "string", "example": "2026-09-01T00:00:00.000Z" },
+          "requestPrice": { "type": "boolean", "example": false }
         },
         "required": ["id", "chassisNumber", "make", "model", "year", "priceUsd", "status"]
+      },
+      "FacetCount": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "example": "Toyota" },
+          "count": { "type": "integer", "example": 15 }
+        },
+        "required": ["name", "count"]
+      },
+      "RangeFacet": {
+        "type": "object",
+        "properties": {
+          "min": { "type": "number", "example": 2015 },
+          "max": { "type": "number", "example": 2024 }
+        },
+        "required": ["min", "max"]
+      },
+      "VehicleFacets": {
+        "type": "object",
+        "properties": {
+          "makes": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/FacetCount" }
+          },
+          "bodyStyles": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/FacetCount" }
+          },
+          "fuelTypes": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/FacetCount" }
+          },
+          "yearRange": { "$ref": "#/components/schemas/RangeFacet" },
+          "priceRange": { "$ref": "#/components/schemas/RangeFacet" }
+        },
+        "required": ["makes", "bodyStyles", "fuelTypes", "yearRange", "priceRange"]
+      },
+      "VehicleSearchResult": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/VehicleSummary" }
+          },
+          "total": { "type": "integer", "example": 25 },
+          "page": { "type": "integer", "example": 1 },
+          "limit": { "type": "integer", "example": 12 },
+          "totalPages": { "type": "integer", "example": 3 },
+          "hasNextPage": { "type": "boolean", "example": true },
+          "hasPrevPage": { "type": "boolean", "example": false },
+          "facets": { "$ref": "#/components/schemas/VehicleFacets" }
+        },
+        "required": ["items", "total", "page", "limit", "totalPages", "hasNextPage", "hasPrevPage", "facets"]
       },
       "ErrorResponse": {
         "type": "object",

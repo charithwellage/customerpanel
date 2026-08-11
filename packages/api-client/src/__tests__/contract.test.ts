@@ -97,6 +97,62 @@ describe('API Client & Contract Boundary Tests', () => {
     expect(result[0].locationStatus).toBe('In Japan');
   });
 
+  it('builds VehicleService searchVehicles query with filters, sorting and pagination', async () => {
+    let capturedUrl: string | undefined;
+    const mockFetch = vi.fn().mockImplementation(async (url) => {
+      capturedUrl = url;
+      return {
+        ok: true,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => ({
+          items: [
+            {
+              id: 'veh-1',
+              chassisNumber: 'NZE141-1234567',
+              make: 'Toyota',
+              model: 'Corolla Axio',
+              year: 2021,
+              priceUsd: 8500,
+              status: 'Available',
+              locationStatus: 'In Japan',
+            },
+          ],
+          total: 1,
+          page: 1,
+          limit: 12,
+          totalPages: 1,
+          hasNextPage: false,
+          hasPrevPage: false,
+          facets: {
+            makes: [{ name: 'Toyota', count: 1 }],
+            bodyStyles: [{ name: 'Sedan', count: 1 }],
+            fuelTypes: [{ name: 'Petrol', count: 1 }],
+            yearRange: { min: 2021, max: 2021 },
+            priceRange: { min: 8500, max: 8500 },
+          },
+        }),
+      };
+    });
+    global.fetch = mockFetch;
+
+    const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+    const { VehicleService } = await import('../services/vehicles.js');
+    const service = new VehicleService(client);
+
+    const res = await service.searchVehicles({
+      searchQuery: 'Toyota',
+      make: 'Toyota',
+      bodyStyle: 'Sedan',
+      sortBy: 'price_asc',
+      page: 1,
+      limit: 12,
+    });
+
+    expect(capturedUrl).toContain('/api/v1/vehicles/search?searchQuery=Toyota&make=Toyota&bodyStyle=Sedan&sortBy=price_asc&page=1&limit=12');
+    expect(res.total).toBe(1);
+    expect(res.facets.makes[0].name).toBe('Toyota');
+  });
+
   it('enforces public field projection and excludes private/staff fields', async () => {
     const mockFetch = vi.fn().mockResolvedValue({
       ok: true,
