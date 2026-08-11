@@ -27,7 +27,7 @@ function taskIds(root, throughOrder) {
     env: { ...process.env, TASKCTL_ROOT: root },
     encoding: 'utf8',
   });
-  assert.match(output, /Validated 103 task\/gate files/);
+  assert.match(output, /Validated 106 task\/gate files/);
   const ordered = readFileSync(join(root, 'tasks/EXECUTION_ORDER.md'), 'utf8')
     .split('\n')
     .map((line) => line.match(/^\|\s*(\d+)\s*\|\s*\[([^\]]+)\]/))
@@ -87,7 +87,7 @@ test('self-AI completion accepts legacy IN_REVIEW after recorded review and test
 test('Delivery 02 phase review uses its customer integration branch', () => {
   const root = setup('feat_delivery02_phase_01');
   try {
-    seedComplete(root, taskIds(root, 62));
+    seedComplete(root, taskIds(root, 65));
     shell(root, 'git', 'add', '.');
     shell(root, 'git', 'commit', '-qm', 'seed customer phase');
     const start = run(root, 'start', 'D02-P01-CODE_REVIEW', '--owner', 'review-agent');

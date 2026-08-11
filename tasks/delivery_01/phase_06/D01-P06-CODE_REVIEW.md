@@ -26,10 +26,10 @@ ui_validation: "not_applicable"
 
 ## Authority and context to read
 
-- [CODE_REVIEW_RULES.md](../../CODE_REVIEW_RULES.md).
-- [COMMON_FRONTEND_RULES.md](../../COMMON_FRONTEND_RULES.md) for shared frontend implementation and review conventions.
-- This phase's completed task files, execution logs and phase summary.
-- The requirements, architecture, implementation-plan and evidence explicitly named by those completed task files.
+1. [`CONTEXT.md`](CONTEXT.md) — Phase 1.6 context pack: requirement text, decisions, code map, file-path conventions and known pitfalls. **Read this first; it replaces the per-task document sweep.**
+2. [`../../TASK_EXECUTION_PROTOCOL.md`](../../TASK_EXECUTION_PROTOCOL.md) — preflight, runtime profiles, browser validation, evidence blocks and the final-response contract.
+3. [`../../COMMON_FRONTEND_RULES.md`](../../COMMON_FRONTEND_RULES.md) — mandatory shared frontend conventions.
+4. Open `REQUIREMENT.md`, `FRONT_END_ARCHITECTURE.md` (§2, §5, §16) or `docs/CarChief-Frontend-Implementation-plan.md` §5 Phase 1.6 only for an item the context pack marks unresolved.
 
 ## Requirements and rules
 

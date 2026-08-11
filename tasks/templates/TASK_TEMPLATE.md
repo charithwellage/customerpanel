@@ -2,6 +2,8 @@
 
 Copy the structure of an existing generated task. Every task must include frontmatter fields for ID, order, estimate, model, parallel group, dependencies, decision gates and the phase branch; authority/evidence; blocker preflight; outcome/scope/exclusions; owned paths; incremental API/mock work; UX/accessibility/authorization; automated tests and exact commands; acceptance; execution-log/tracker workflow; and the required final response with `Blockers: None` when unblocked. Tasks work directly on the phase branch and must not create task-specific child branches.
 
+Read `tasks/DEPENDENCY_INSTALLATION_POLICY.md` before package setup. Reuse the existing frozen installation; do not delete `node_modules`, pnpm caches, Docker caches or lockfiles during normal task execution. Use offline frozen verification first and install from the network only for the documented exceptional cases. Record any dependency reset and reason in the execution log.
+
 The first preflight command must always be:
 
 ```bash

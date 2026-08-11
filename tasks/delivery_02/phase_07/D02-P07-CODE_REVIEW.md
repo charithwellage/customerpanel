@@ -3,7 +3,7 @@ task_id: "D02-P07-CODE_REVIEW"
 title: "Phase 2.7 PR code review and tech-lead approval"
 delivery: "Delivery 02 — Customer Application"
 phase: "Phase 2.7 — Shipment tracking and secure documents"
-execution_order: 90
+execution_order: 93
 estimate: "0.25 day"
 model_tier: "FRONTIER"
 parallel_group: "D02-P07-REVIEW"
