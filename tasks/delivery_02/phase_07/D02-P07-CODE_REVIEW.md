@@ -28,12 +28,13 @@ ui_validation: "not_applicable"
 
 - [CODE_REVIEW_RULES.md](../../CODE_REVIEW_RULES.md).
 - [COMMON_FRONTEND_RULES.md](../../COMMON_FRONTEND_RULES.md) for shared frontend implementation and review conventions.
+- [REQUIREMENT_GAPS_AND_ASSUMPTIONS.md](../REQUIREMENT_GAPS_AND_ASSUMPTIONS.md); confirm each phase assumption is recorded, scoped and not presented as confirmed business behaviour.
 - This phase's completed task files, execution logs and `tasks/phase_summaries/D02-P07-SUMMARY.md`.
 - Only requirements, architecture sections and evidence explicitly named by those completed tasks.
 
 ## Requirements and rules
 
-Apply every shared code-review rule and specifically verify approved shipment vocabulary, Ship OK and document-release projections, approval-gated visibility, sensitive-cache restrictions and honest external labels.
+Apply every shared code-review rule and specifically verify approved shipment vocabulary, Finance-owned Ship OK/document-release projections, mandatory rejection-reason boundary, `visibleToCustomer` enforcement, sensitive-cache restrictions and honest external labels. The final repository policy is a non-blocking Phase 2.10 assumption review; confirm its safe MVP baseline is recorded rather than delaying this phase.
 
 Customer compiled behavior is evidence only. Confirm known POC defects were prohibited and no unapproved business rule or external integration was invented.
 

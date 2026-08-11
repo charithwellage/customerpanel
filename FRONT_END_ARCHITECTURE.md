@@ -182,13 +182,17 @@ The BA workflow baseline is documented in [`docs/CarChief-BA-Workflow-Coverage-M
 
 The service layer may grow incrementally across these domains: stock ingestion, publication/visibility, pricing readiness, enquiries and screening, negotiation, reservations, proforma invoices, TT/payment review, allocations, Ship OK, document release, documents and external-integration checkpoints. Final payloads remain open until the BA and AutoPulse/BFF teams approve the fields.
 
+### Non-blocking Delivery 02 requirement gaps
+
+Customer delivery records unanswered business detail in [`tasks/delivery_02/REQUIREMENT_GAPS_AND_ASSUMPTIONS.md`](tasks/delivery_02/REQUIREMENT_GAPS_AND_ASSUMPTIONS.md). During Phases 2.1–2.9, an approved rule takes precedence; otherwise the Mock API and UI use the smallest safe, conventional MVP default. If no safe default is possible, the isolated capability is omitted and the UI shows an honest unavailable state. The register identifies the mock/API effect, tests, risk and later review; it never authorizes browser-owned workflow/security decisions, invented AutoPulse payloads or false external-integration claims. Phase 2.10 reconciles all such assumptions without pausing earlier vertical slices.
+
 ### Server-authoritative transitions
 
-The API boundary must enforce active/inactive publication, under-negotiation, PI-created, payment held/approved/rejected, Ship OK approval, document-release approval, vehicle allocation and customer document visibility. The browser may hide unavailable actions but is never the security or workflow authority.
+The API boundary must enforce active/inactive publication, `Now On Sale`, under-negotiation, PI-created, payment held/approved/rejected, Ship OK approval, document-release approval, vehicle allocation and customer document visibility. It also owns 48-hour reservation/negotiation expiry, 72-hour PI expiry, rejection reasons and `visibleToCustomer`; the browser may hide unavailable actions but is never the security or workflow authority.
 
 ### State separation
 
-Operational lifecycle, commercial sale state, publication state, price readiness and country availability must not be collapsed into a single vehicle status. The existing 48-hour reservation rule and the BA negotiation timer remain separate concepts until the business resolves that decision. The 72-hour PI payment timer is a separate workflow stage.
+Operational lifecycle, commercial sale state, publication state, price readiness and country availability must not be collapsed into a single vehicle status. `Active` and `Now On Sale` are separate concepts. The 48-hour negotiation timer is the exclusive reservation hold and returns the vehicle to `Now On Sale` on expiry. The separate 72-hour PI payment stage retains the vehicle as `Under Negotiation With PI` and also returns it to `Now On Sale` on expiry.
 
 ### Public-website legacy parity boundary
 
@@ -715,7 +719,7 @@ That is the entire switch. There is no mock adapter, no service-locator, no `if 
 
 ## 10. Authentication and authorisation
 
-AutoPulse provides authentication in production. It is unavailable during this project, so the mock service issues an equivalent signed token. **The applications only ever see the token — never the issuer** — which is what makes the switch a configuration change.
+AutoPulse provides production authentication and authorisation through Keycloak, including password recovery and MFA. It is unavailable during this project, so the Mock API issues an equivalent signed demo token and supplies deterministic recovery/MFA/account-state presentation flows. **The applications only ever see the token — never the issuer** — which is what makes the switch a configuration change.
 
 ```mermaid
 sequenceDiagram
@@ -724,7 +728,7 @@ sequenceDiagram
     participant Auth as Sign-in provider
     participant API as Business API
 
-    Note over Auth: Mock service now · AutoPulse later
+    Note over Auth: Mock service now · AutoPulse/Keycloak later
     U->>App: credentials
     App->>Auth: POST /auth/login
     Auth-->>App: JWT { sub, role, permissions[] }
@@ -748,6 +752,13 @@ sequenceDiagram
 - **The token is attached in one place** — `packages/api-client/http.ts`. Features never touch headers.
 - **Permissions come from the token**, not from a local table. The 29-permission model from the POC is carried in the claims.
 - **A 401 clears the session and redirects** once, centrally, in the HTTP layer.
+- **Recovery and MFA are adapter-owned.** The frontend renders the approved state and sends commands through the generated client; neither browser storage nor feature components hold password or MFA secrets.
+
+### Notification and document adapters
+
+The Mock API exposes a deterministic notification outbox for tests and demonstrations. It records the intent, recipient projection, template/event key and simulated delivery result; it does not send browser-originated email. AutoPulse later replaces that adapter with its approved email capability.
+
+Document metadata includes a server-authoritative `visibleToCustomer` flag. Finance-approved document release plus this flag is required for a Customer Application projection. The future Salesperson Application owns the checkbox; source/uploader role alone never grants customer visibility.
 
 ---
 

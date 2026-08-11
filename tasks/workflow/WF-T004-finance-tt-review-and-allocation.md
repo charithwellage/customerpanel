@@ -8,7 +8,7 @@ Read `REQUIREMENT.md` WF-09–WF-10, RULE-01, the finance phases in the implemen
 
 ## Work
 
-Support TT creation, proof metadata, Finance review, hold with reason, salesperson re-submission, approval/rejection, allocation, remaining balances and second/due payment behavior. Bank verification and email remain manual/integration checkpoints unless explicitly approved.
+Support TT creation, PDF/JPG/PNG proof metadata with configurable demo limit/simulated scan, Finance review, hold with reason, salesperson re-submission, approval/rejection, allocation, remaining balances and second/due payment behavior. Bank verification remains manual; the Mock API creates deterministic email-outbox records now and AutoPulse performs real email delivery later.
 
 ## Tests and acceptance
 

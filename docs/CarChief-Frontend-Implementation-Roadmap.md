@@ -7,7 +7,7 @@
 **Build method:** Experienced engineers coordinate bounded AI agents, with daily human testing and review
 **Base scheduled delivery:** **93.5 working days ≈ 18–19 calendar weeks**
 **Programme allowance:** **2–3 weeks** for integration, review corrections, and accepted uncertainty
-**Management planning range:** **20–22 calendar weeks**
+**Management planning range:** **21–23 calendar weeks**
 **Detailed plan:** [CarChief Frontend Implementation Plan](./CarChief-Frontend-Implementation-plan.md)
 
 ### How a working day is spent
@@ -46,7 +46,7 @@ Three things have been added to this plan since the previous version:
 2. **A separate mock service is now explicit scope.** The applications need something to talk to before AutoPulse is available. That is now a small project of its own, described in section 3.
 3. **The visual design becomes a theme.** The look and feel of the proof of concept is kept as the default `carchief` theme, with an `ocean` alternate proving that colours, fonts and spacing can be changed later without rebuilding screens.
 
-The current **20–22-week** management range includes the newly decomposed Customer task set. Delivery 02 alone carries 25 planned task days plus a 15% review/correction allowance because customer source is missing and finance, document and identity decisions still require human authority.
+The current **21–23-week** management range includes the newly decomposed Customer task set. Delivery 02 carries 27.75 planned task days plus a 15% review/correction allowance, including a final assumption-reconciliation phase; missing POC source and unanswered business detail no longer pause Customer implementation.
 
 ## 1.1 What the BA workflow adds
 
@@ -89,10 +89,9 @@ Representative source evidence: [`POC/src/App.tsx`](../POC/src/App.tsx), [`POC/s
 
 ### Important limitations
 
-- The available source uses Firebase Authentication and Firestore, not Supabase.
-- The production frontend will use neither Firebase nor Supabase directly.
-- Customer portal source, customer types/context, Firebase configuration, Firestore cache/instrumentation, and the audit component are missing.
-- Detailed Customer Application behavior remains provisional until business owners approve it.
+- The POC source uses Firebase Authentication and Firestore, not Supabase; neither is part of the production frontend.
+- Customer portal source, customer types/context, Firebase configuration, Firestore cache/instrumentation, and the audit component are missing from the POC. This limits POC evidence only; approved requirements and BA decisions drive the replacement application.
+- AutoPulse/Keycloak will provide production sign-in, recovery, MFA and authorisation. The Mock API provides compatible demonstration behavior until AutoPulse is available.
 - PayPal, email, WhatsApp, AI, tracking, and download labels do not prove production vendor integration.
 - Sensitive credential-like bootstrap behavior exists in the POC source and must be reviewed/rotated where applicable; no values are reproduced here.
 
@@ -339,15 +338,15 @@ Open the home page, select a market, review its Latest Arrivals and Premium teas
 
 ## 6. Delivery 2 — Customer Application
 
-**Planned task capacity:** 25 working days; with a 15% review/correction allowance, approximately **29 working days or 5–6 calendar weeks**.
+**Planned task capacity:** 27.75 working days; with a 15% review/correction allowance, approximately **32 working days or 6–7 calendar weeks**.
 **Evidence caution:** The customer application was delivered only as a finished demonstration, with no underlying source. Every screen here was established by operating the running system, and each needs business confirmation before it is built.
 
-Engineering execution is defined by 42 AI-executable files across nine phases: 29 implementation/acceptance tasks, four decision/scope gates and nine phase PR-review gates. See the [Delivery 02 coverage matrix](../tasks/delivery_02/DELIVERY_02_COVERAGE_MATRIX.md), [execution order](../tasks/EXECUTION_ORDER.md) and [Excel-importable task list](../tasks/delivery_02/CarChief-Delivery-02-Tasks.csv).
+Engineering execution is defined by 46 AI-executable files across ten phases. Phases 2.1–2.9 use documented safe MVP defaults or isolated skipped features instead of waiting on requirement gaps; Phase 2.10 reviews and adjusts them. See the [assumption register](../tasks/delivery_02/REQUIREMENT_GAPS_AND_ASSUMPTIONS.md), [Delivery 02 coverage matrix](../tasks/delivery_02/DELIVERY_02_COVERAGE_MATRIX.md), [execution order](../tasks/EXECUTION_ORDER.md) and [Excel-importable task list](../tasks/delivery_02/CarChief-Delivery-02-Tasks.csv).
 
 | Phase | Page/component delivery | Visible result | Days |
 |---|---|---|---:|
 | 2.1 | Customer scope, shell and account access | Approved compiled scope, sign-in through the mock service, protected navigation, themes, PWA shell and account states | 3 |
-| 2.2 | Customer dashboard | Tier/account, reconciled vehicle, shipment, invoice, payment, alert and approved credit figures | 1.5 |
+| 2.2 | Customer dashboard | Tier/account and reconciled linked-record MVP figures; final finance mapping is documented for closure | 1.5 |
 | 2.3 | Customer showroom and vehicle search | Shared search/detail experience, customer-visible stock, tier pricing and reservation eligibility | 2.25 |
 | 2.4 | My Vehicles | Reserved, reserved with PI and invoiced groupings with unique counts, approved shipping filters and deposit | 2.25 |
 | 2.5 | Quotes and invoices | Quotation and invoice views, totals, paid and outstanding, print and download | 2 |
@@ -355,7 +354,8 @@ Engineering execution is defined by 42 AI-executable files across nine phases: 2
 | 2.7 | Shipment tracking and secure documents | Shipment exceptions, Ship OK/document release and approval-gated ten-category vault | 4 |
 | 2.8 | Notifications and profile | Linked read/unread alerts, fixed/editable profile fields and identity handoff | 2 |
 | 2.9 | Customer Application acceptance | Traceability, isolation/security, accessibility/PWA/performance, Docker UAT and Delivery 03 handoff | 4 |
-| — | Review/correction allowance | 15% for human/AI review findings, accepted-scope corrections and cross-feature reconciliation | 3.75 |
+| 2.10 | Assumption reconciliation and MVP closure | Review assumptions/skipped features, apply approved adjustments and rerun the complete Customer journey | 2.75 |
+| — | Review/correction allowance | 15% for human/AI review findings, accepted-scope corrections and cross-feature reconciliation | 4.16 |
 
 ### Business outcome
 
@@ -370,7 +370,7 @@ Sign in as a customer, search eligible stock, inspect reserved/invoiced vehicles
 - Final customer page inventory from the compiled artifact.
 - Identity, recovery and MFA.
 - Customer ownership and editable profile fields.
-- Credit/tier/dashboard definitions.
+- Final credit/tier/dashboard production definitions are captured as safe MVP assumptions and reconciled in Phase 2.10.
 - Payment-proof, document and KYC storage/retention.
 - Shipment status source and live-tracking requirement.
 
@@ -454,7 +454,7 @@ flowchart LR
 
 ### 7.1 Additional visible business outcomes
 
-The Customer Application task set now explicitly covers PI/payment deadlines, held or re-submission-required payments, allocation/remaining balance, Ship OK and document-release status. The Salesperson Application must later cover support-screened leads, country assignment, negotiation and PI timers, TT review exceptions, payment allocation, Ship OK approval and document-release approval. Delivery 02 is re-estimated at 5–6 calendar weeks; later Salesperson re-estimation still depends on its task audit.
+The Customer Application task set now explicitly covers PI/payment deadlines, held or re-submission-required payments, allocation/remaining balance, Ship OK and document-release status. It records safe defaults or isolated skipped features rather than pausing development for an unanswered detail, then reconciles them in Phase 2.10. The Salesperson Application must later cover support-screened leads, country assignment, negotiation and PI timers, TT review exceptions, payment allocation, Ship OK approval and document-release approval. Delivery 02 is re-estimated at 6–7 calendar weeks; later Salesperson re-estimation still depends on its task audit.
 
 ## 9. SEO within Public Website delivery
 
@@ -465,15 +465,15 @@ SEO is no longer a separate delivery. It is completed in Phase 1.8 as part of th
 | Calendar window | Primary delivery | Working days | Scheduled time |
 |---|---|---:|---:|
 | Weeks 1–6 | Public Website, shared foundation, POC theme parity, reusable packages, mock service and SEO | 31.0 | 6 weeks |
-| Weeks 6–11.8 | Customer Application | 28.75 | 5–6 weeks |
-| Weeks 11.8–18.8 | Salesperson Application | 35 | 7 weeks |
-| | **Base scheduled delivery** | **93.5** | **≈ 18–19 weeks** |
+| Weeks 6–12.4 | Customer Application | 31.91 | 6–7 weeks |
+| Weeks 12.4–19.4 | Salesperson Application | 35 | 7 weeks |
+| | **Base scheduled delivery** | **≈ 98** | **≈ 19–20 weeks** |
 | Distributed where required | Programme allowance | | **2–3 weeks** |
-| | **Management planning range** | | **20–22 weeks** |
+| | **Management planning range** | | **21–23 weeks** |
 
 ### Why the estimate changed
 
-The previous task-level figure was 18–20 weeks. The current figure is 20–22 weeks because the Customer delivery now explicitly includes decision gates, secure payment/document failure paths, Docker acceptance and one PR review per phase.
+The previous task-level figure was 18–20 weeks. The current figure is 21–23 weeks because the Customer delivery now includes secure payment/document failure paths, Docker acceptance, one PR review per phase and a final assumption-reconciliation stage instead of pausing earlier engineering work.
 
 **What made it shorter**
 
@@ -569,10 +569,10 @@ flowchart LR
 
 ### Management decisions
 
-1. Confirm or supply the missing customer, Firebase, cache and audit source.
-2. Confirm why the source uses Firebase/Firestore rather than the earlier Supabase description.
-3. Approve customer pages visible only in compiled output.
-4. Select production identity, recovery, MFA, roles and finance separation.
+1. Review the documented Customer MVP assumptions and skipped capabilities in Phase 2.10; approve adjustments where needed without interrupting earlier delivery phases.
+2. Provide AutoPulse entities, identifiers and API contracts when the backend becomes available.
+3. Confirm notification retention, audit requirements and customer document categories/retention/scanning.
+4. Confirm the remaining finance/pricing, import and external-integration decisions.
 5. Approve statuses and worked pricing, freight, tax, currency and allocation examples.
 6. Approve public/customer/staff field and media visibility.
 7. Approve document, KYC and payment-proof storage, scanning, privacy and retention.
@@ -580,20 +580,20 @@ flowchart LR
 9. Decide launch integrations and fund them separately.
 10. Provide final domains, public claims and legacy PHP URLs.
 11. Assign content, master-data, finance, security, UAT and release owners.
-12. Confirm the BA diagram colour ownership for ambiguous nodes; the JSON export does not preserve colours.
-13. Confirm whether negotiation and reservation timers are the same, and define expiry outcomes.
-14. Confirm the 72-hour PI payment window and vehicle-hold behavior.
-15. Confirm Active/Deactive/Now On Sale meanings, country visibility and price-request routing.
-16. Confirm whether CSV, auction media, bank checks, ERP/IBQ, email and WhatsApp remain manual for MVP.
-17. Confirm Ship OK and document-release approvers, rejection paths and customer-visible status names.
-18. Confirm second-payment behavior and document-release timing.
+12. The BA JPEG confirms workflow ownership: blue CarChief UI/state, clear manual operation and green ERP/IBQ boundary.
+13. The 48-hour negotiation timer is the exclusive reservation hold and expires to `Now On Sale`.
+14. The 72-hour PI window retains `Under Negotiation With PI` and expires to `Now On Sale`.
+15. `Active` and `Now On Sale` are separate fields; a price request creates a normal lead.
+16. AutoPulse owns real email; Mock API supplies testable outbox evidence until it is available. ERP/IBQ remains an external/manual checkpoint.
+17. Finance approves/rejects Ship OK and document release, with rejection reason, notification and resubmission.
+18. Customers see documents only after Finance-approved release and the Sales Portal `visibleToCustomer` setting is enabled.
 19. Confirm whether push notifications, background sync, camera/file capture and install analytics are required beyond the PWA baseline.
 
 ### Principal risks and controls
 
 | Risk | Control |
 |---|---|
-| Customer source is missing | Require business sign-off for every compiled-only page before acceptance |
+| Customer POC source is missing | Treat it as discovery evidence only; implement approved requirements and BA decisions, and defer unsupported compiled-only behaviour |
 | POC and AutoPulse fields differ | Confirm each business-area contract against AutoPulse before BFF integration |
 | Browser security patterns are copied | Use a clean implementation and authoritative BFF authorization |
 | Financial rules differ between teams | Approve worked examples and automate them |
@@ -602,7 +602,7 @@ flowchart LR
 | Documents, KYC or proofs are mishandled | Approve storage, scanning, access, privacy, retention and audit policies |
 | AI-agent output exceeds review capacity | Use bounded tasks, mandatory human review and automated gates |
 | App-first delivery delays end-to-end discovery | Maintain linked fixtures and run a connected demo at each application acceptance |
-| Upstream and approval workflow is under-specified | Resolve the BA workflow decision gate before generating Customer/Salesperson tasks and re-estimate |
+| Upstream and approval workflow is under-specified | Record a safe MVP default or isolated skipped feature; reconcile it in Phase 2.10 before final Customer closure |
 | Manual or external steps are mistaken for automation | Label them as checkpoints/integration intent and never claim completion without evidence |
 
 ## 13. Exclusions
@@ -640,6 +640,6 @@ This is the delivery in one table: four things are built, one at a time, each on
 | | | | **Base total** | **93.5** |
 | | | | **With programme allowance** | **≈ 101–106** |
 
-**In calendar time:** roughly **18–19 weeks** of scheduled application work and **20–22 weeks** once programme uncertainty is included. Delivery 02 assumes two experienced engineers coordinate bounded AI agents while retaining human authority for architecture, finance/security decisions, QA and phase PR approval.
+**In calendar time:** roughly **19–20 weeks** of scheduled application work and **21–23 weeks** once programme uncertainty is included. Delivery 02 assumes two experienced engineers coordinate bounded AI agents while retaining human authority for architecture, finance/security decisions, QA and phase PR approval.
 
 The open questions behind that allowance — including everything we could not confirm by operating the demonstration system ourselves — are tracked in [`implementation_risks.md`](./implementation_risks.md).

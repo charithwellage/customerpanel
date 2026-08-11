@@ -2,6 +2,8 @@
 
 This directory coordinates read-only infrastructure verification, Delivery 01 Public Website and Delivery 02 Customer Application. It deliberately contains no Salesperson implementation tasks. Complete public SEO is accepted inside Delivery 01 Phase 1.8; Delivery 02 remains blocked until that Public review is complete and merged.
 
+Delivery 02 requirement gaps are non-blocking in Phases 2.1–2.9. Agents record a safe MVP default or an isolated skipped capability in [`delivery_02/REQUIREMENT_GAPS_AND_ASSUMPTIONS.md`](delivery_02/REQUIREMENT_GAPS_AND_ASSUMPTIONS.md), then reconcile it in Phase 2.10. This never permits invented business rules, unsafe security/finance behaviour or false external-integration claims.
+
 The BA workflow reconciliation backlog is in `tasks/workflow/`. It is decision-gated and supplements the future Customer/Salesperson task sets; it must not be started while the workflow decisions remain open.
 
 ## Authority order
@@ -19,12 +21,12 @@ The BA workflow reconciliation backlog is in `tasks/workflow/`. It is decision-g
 
 1. Read `TASK_EXECUTION_TRACKER.md` and the latest applicable phase summary.
 2. Run `node tasks/scripts/taskctl.mjs next`, then select the execution-frontier task from `EXECUTION_ORDER.md`. Work is sequential by default; an optional same-`parallel_group` task is available only after the first task in that group is active.
-3. Read that single task file and only its named evidence/context.
+3. Read that single task file and only its named evidence/context. For Delivery 02 also read `delivery_02/REQUIREMENT_GAPS_AND_ASSUMPTIONS.md`.
 4. Before doing anything else, run `git status --porcelain=v1 --untracked-files=all`. If it prints anything, stop and ask the user to commit the changes first. Do not change branches or task state.
 5. Run the read-only `node tasks/scripts/taskctl.mjs precheck <ID>`.
 6. For an application task, create/resume its phase branch exactly as documented. Delivery 01 phases derive from `delivery_01_public_website`; Delivery 02 phases derive from `delivery_02_customer_application`. Do not create a child task branch. Phase 0 is branch-neutral.
 7. Run `node tasks/scripts/taskctl.mjs check <ID>`, report `Blockers: None`, then run `start` with an owner.
-8. Implement exactly the stated scope and its missing feature tests.
+8. Implement exactly the stated scope and its missing feature tests. For a Delivery 02 requirement gap, record a safe MVP default or skip only the unsafe capability; do not use `taskctl block` for requirement ambiguity alone.
 9. For a frontend task, read `COMMON_FRONTEND_RULES.md` before coding. For a `self_ai` task, review the owned diff against `CODE_REVIEW_RULES.md` and fix every in-scope finding.
 10. If frontmatter says `ui_validation: "playwright_mcp"`, first build/recreate a controlled runtime from the current worktree. Record the target URL, exact build/recreate command, process/container identity, and health/API readiness. Do not reuse an unknown server or image already listening on a standard port. Run the MCP browser walkthrough against that target, test both themes and phone/tablet/desktop viewports, inspect console/network behavior, fix in-scope findings, recreate the runtime after a correction, and repeat code review after any correction.
 11. Run feature tests plus `corepack pnpm lint`, `corepack pnpm typecheck` and `corepack pnpm -r build`. A UI task must also record `Playwright MCP Result: PASS` and `Automated Playwright Test Result: PASS`.
@@ -64,7 +66,7 @@ Delivery 02 repeats that container gate at the last implementation task in every
 - Delivery integration branch: `delivery_01_public_website`.
 - Public phase branches: `feat_delivery01_phase_01` through `feat_delivery01_phase_08`.
 - Customer integration branch: `delivery_02_customer_application`, created by a human from the fully accepted updated Public delivery branch.
-- Customer phase branches: `feat_delivery02_phase_01` through `feat_delivery02_phase_09`.
+- Customer phase branches: `feat_delivery02_phase_01` through `feat_delivery02_phase_10`.
 - Tasks do not create child branches. Every task works directly on its phase branch, for example `feat_delivery01_phase_01`; parallel groups are coordination lanes on that same branch, not separate Git branches.
 - A phase branch is created only from its latest local delivery integration branch after the task's `git pull --ff-only` succeeds.
 - After phase acceptance, the human owner reviews the phase diff, commits its tracker/summary and creates a PR from the phase branch into its delivery integration branch manually. Agents do not perform these actions.
@@ -81,7 +83,7 @@ Publishing the delivery branch is an explicitly authorized human action. If `del
 
 ## Commands
 
-`node tasks/scripts/taskctl.mjs validate` validates 99 task/gate files, UI-validation metadata, shared-frontend-rule references, decisions, delivery-specific branches, requirement coverage and the dependency DAG.
+`node tasks/scripts/taskctl.mjs validate` validates 103 task/gate files, UI-validation metadata, shared-frontend-rule references, Delivery 02 assumption-register references, decisions, delivery-specific branches, requirement coverage and the dependency DAG.
 
 `node tasks/scripts/taskctl.mjs next` reports the current execution frontier and permitted same-group parallel tasks.
 
@@ -106,7 +108,7 @@ The task files can be reviewed now, but implementation begins only after all of 
 
 1. `D01-P08-CODE_REVIEW` is `COMPLETE` and the complete Public Website PR is merged.
 2. A human synchronizes `delivery_01_public_website` and creates `delivery_02_customer_application` from that exact commit.
-3. `D02-P01-G001` is the global execution frontier and its three named decisions are `RESOLVED` with evidence.
+3. `D02-P01-G001` is the global execution frontier. Requirement gaps use the Delivery 02 assumption register and do not block Phases 2.1–2.9.
 4. The Customer compiled/runtime scope is treated as provisional and the negative POC evidence is not copied.
 
 After the Public PR is merged and the working tree is clean, an authorized human creates the one-time Customer integration branch manually:

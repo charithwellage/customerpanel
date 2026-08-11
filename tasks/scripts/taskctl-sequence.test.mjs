@@ -13,7 +13,7 @@ function run(...args) {
 test('task metadata and dependency graph validate', () => {
   const result = run('validate');
   assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stdout, /Validated 99 task\/gate files/);
+  assert.match(result.stdout, /Validated 103 task\/gate files/);
 });
 
 test('next reports the current tracker frontier', () => {
@@ -42,6 +42,7 @@ test('taskctl contains strict dependency-order and cycle guards', () => {
   assert.match(source, /MCP browser navigation: PASS/);
   assert.match(source, /ui_validation/);
   assert.match(source, /COMMON_FRONTEND_RULES\.md/);
+  assert.match(source, /must not retain an unresolved requirement decision gate/);
 });
 
 test('future frontend tasks use the shared frontend convention source', () => {
@@ -68,4 +69,20 @@ test('Delivery 02 starts only after the final Delivery 01 review gate', () => {
   const result = run('sequence', 'D02-P01-G001');
   assert.equal(result.status, 0, result.stderr);
   assert.match(result.stdout, /dependency D01-P08-CODE_REVIEW|execution frontier/);
+});
+
+test('Delivery 02 assumption reconciliation follows Customer acceptance', () => {
+  const source = readFileSync(new URL('../EXECUTION_ORDER.md', import.meta.url), 'utf8');
+  assert.match(source, /\[D02-P10-T001\].*D02-P09-CODE_REVIEW/);
+  assert.match(source, /\[D02-P10-CODE_REVIEW\]/);
+});
+
+test('Delivery 02 requirement gaps are documented rather than used as unresolved execution gates', () => {
+  const dashboard = readFileSync(new URL('../delivery_02/phase_02/D02-P02-G001.md', import.meta.url), 'utf8');
+  const documents = readFileSync(new URL('../delivery_02/phase_07/D02-P07-CODE_REVIEW.md', import.meta.url), 'utf8');
+  const register = readFileSync(new URL('../delivery_02/REQUIREMENT_GAPS_AND_ASSUMPTIONS.md', import.meta.url), 'utf8');
+  assert.match(dashboard, /decision_gates: \[\]/);
+  assert.match(documents, /decision_gates: \[\]/);
+  assert.match(register, /D02-ASM-001/);
+  assert.match(register, /Requirement uncertainty alone is never a `taskctl` blocker/);
 });

@@ -8,7 +8,7 @@ Read the architecture integration-boundary section and the BA coverage matrix. D
 
 ## Work
 
-Define provisional checkpoint records and adapter interfaces for VBMS, Oracle NetSuite, auction media, bank verification, email, WhatsApp and ERP/IBQ. Each records pending, acknowledged, failed and manually confirmed outcomes without claiming delivery.
+Define provisional checkpoint records and adapter interfaces for VBMS, Oracle NetSuite, auction media, bank verification, WhatsApp and ERP/IBQ; each records pending, acknowledged, failed and manually confirmed outcomes without claiming delivery. Define the AutoPulse email adapter as a future real integration and use only deterministic Mock API outbox/delivery records for the MVP.
 
 ## Tests and acceptance
 

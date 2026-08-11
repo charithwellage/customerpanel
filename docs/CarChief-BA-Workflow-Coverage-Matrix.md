@@ -1,10 +1,10 @@
 # CarChief BA Workflow Coverage Matrix
 
-**Source:** `/Users/prabodha/Downloads/car_chief_user_journey.json` (draw.io export, reviewed 7 August 2026)
+**Sources:** `/Users/prabodha/Downloads/car_chief_user_journey.json` and `/Users/prabodha/Downloads/ccc_current_user_journey.jpg` (BA workflow evidence, reconciled 11 August 2026)
 
 ## Evidence and colour limitation
 
-The export contains node labels and directed edges, but no encoded node style, fill or stroke colour. The blue/clear/green ownership classification below therefore follows the BA-provided legend and is provisional until the process owner confirms it. Labels are evidence of the described step; they are not proof that an external integration exists.
+The JSON export contains node labels and directed edges but not machine-readable node colour. The supplied JPEG and BA legend confirm the interpretation used here: **blue = CarChief UI**, **clear = current manual operation**, and **green = current external/ERP/IBQ operation**. Labels are evidence of the described step; they are not proof that a live integration exists.
 
 | Workflow step | Application/module | Actor | State / target state | BA classification | Manual/external dependency | Current coverage | Required correction / target task | Open decision |
 |---|---|---|---|---|---|---|---|---|
@@ -14,21 +14,21 @@ The export contains node labels and directed edges, but no encoded node style, f
 | Auction vehicle and collect auction pictures | Inventory/media | Auction/operations team | Media gathered | Manual / external | Auction website | Partial: Phase 3.2 media | Add manual media source and later adapter task | Automated retrieval required? |
 | Upload images to CarChief | Inventory/media | Staff operator | Media attached | CarChief | File handling and storage | Partial: Phase 3.2 | Add categorized media, ordering and visibility rules | File limits, scanning and retention |
 | Country manager updates prices and re-uploads CSV | Inventory/pricing | Country manager | Price pending → price ready | CarChief + manual | Spreadsheet exchange | Partial: Phase 3.3 and masters | Add price-readiness and country scope | Authoritative price source |
-| Price update completed? | Publication control | Staff operator | Pending → Active/Deactive | CarChief | None | Missing distinction | Add separate lifecycle, sale and publication fields | Meaning of “Now On Sale” |
+| Price update completed? | Publication control | Staff operator | Pending → Active/Deactive; separate Now On Sale | CarChief | None | Partial | Keep `Active` and `Now On Sale` distinct; model price readiness/country visibility | Final country policy remains open |
 | Stock displayed on Customer Portal | Customer inventory projection | Customer | Hidden → visible | CarChief | None | Partial: Customer showroom | Add customer/public projection rules | Country visibility |
-| Customer can request a price | Public/customer enquiry | Customer/support | Price unavailable → request created | CarChief + support | WhatsApp may be manual | Missing | Add price-request enquiry type and routing | Lead vs negotiation semantics |
+| Customer can request a price | Public/customer enquiry | Customer/support | Price unavailable → normal lead | CarChief + support | WhatsApp may be manual | Corrected | Route to normal lead with routing metadata | Country policy remains open |
 | Support screens and assigns country salesperson | Leads/CRM | Customer Support | New → screened → assigned | CarChief + manual | WhatsApp intake may be external | Partial: Phase 3.4 | Add screening and country assignment states | WhatsApp integration or source label only |
-| Start negotiation and 48-hour timer | Leads/reservations | Salesperson | Assigned → Under Negotiation | CarChief | Timer authority | Partial: 48-hour reservation only | Add negotiation state/timer separately | Same timer as reservation? |
-| Customer confirms or cancels | Negotiation | Customer/salesperson | Under Negotiation → confirmed/cancelled | CarChief | None | Missing | Add confirmation/cancellation transitions | Expiry outcome |
-| Create PI and start 72-hour timer | Quotations | Salesperson | Confirmed → Under Negotiation With PI | CarChief | Timer authority | Partial: PI builder | Add PI payment deadline and state | Vehicle hold during PI |
+| Start negotiation and 48-hour timer | Leads/reservations | Salesperson | Assigned → Under Negotiation | CarChief | Server timer authority | Corrected | Same exclusive 48-hour reservation hold; expiry → Now On Sale | None |
+| Customer confirms or cancels | Negotiation | Customer/salesperson | Under Negotiation → confirmed/cancelled | CarChief | None | Partial | Add confirmation/cancellation transitions; expiry releases to Now On Sale | Cancellation reason policy remains open |
+| Create PI and start 72-hour timer | Quotations | Salesperson | Confirmed → Under Negotiation With PI | CarChief | Server timer authority | Corrected | Vehicle stays reserved for 72 hours; expiry → Now On Sale | None |
 | Create TT and upload proof | Payments | Salesperson/customer | Payment pending | CarChief | Bank statement remains manual | Partial: payment submission | Add creator, proof and resubmission metadata | Who creates TT in each case |
-| Finance holds, requests resubmission, approves/rejects | Finance | Finance team | Pending ↔ Held → Approved/Rejected | CarChief + manual | Bank statement/manual verification | Partial: approve/reject | Add hold reason, resubmission and notification intent | Email integration |
+| Finance holds, requests resubmission, approves/rejects | Finance | Finance team | Pending ↔ Held → Approved/Rejected | CarChief + manual | Bank statement/manual verification | Corrected | Hold reason, resubmission, idempotent allocation and mock email outbox; AutoPulse email later | Second-payment rules remain open |
 | Allocate payment to invoice/vehicle | Finance/allocation | Finance/salesperson | Approved → allocated | CarChief | None | Partial: allocation | Add idempotency and remaining balance | Allocation authority |
-| Request and approve Ship OK | Logistics/approval | Salesperson, middle person, finance | Requested → Approved/Rejected | CarChief + ERP | ERP checkpoint | Missing | Add Ship OK task and state machine | Approver roles |
+| Request and approve Ship OK | Logistics/approval | Salesperson, Finance | Requested → Approved/Rejected | CarChief + ERP | ERP checkpoint | Corrected | Finance approval/rejection requires reason; notify Salesperson and permit resubmission | ERP return details remain open |
 | Initiate IBQ / ERP Ship OK | ERP checkpoint | Middle person/finance | ERP request → approval/rejection | Manual / external | ERP/IBQ | Missing | Add integration/manual checkpoint task | ERP ownership |
-| Request and approve document release | Document release | Salesperson, middle person, finance | Requested → Approved | CarChief + ERP | ERP payment/release workflow | Missing | Add release workflow and role checks | Rejection/return path |
-| Upload documents and expose to customer | Documents | Middle person/customer | Restricted → released/visible | CarChief | Storage/scanning policy | Partial: document vault | Add approval-gated visibility | Categories, retention and scanning |
+| Request and approve document release | Document release | Salesperson, Finance | Requested → Approved/Rejected | CarChief + ERP | ERP payment/release workflow | Corrected | Finance rejection requires reason; notify/resubmit; ERP remains checkpoint | ERP return details remain open |
+| Upload documents and expose to customer | Documents | Salesperson/Finance/customer | Restricted → released/visible | CarChief | Storage/scanning policy | Corrected | Require Finance-approved release and server `visibleToCustomer`; uploader role alone is insufficient | Categories, retention, file limits and scanning |
 
 ## Coverage conclusion
 
-The current documents cover the three applications and the broad customer journey, but they under-specify the upstream stock lifecycle, separate publication states, support screening, the 72-hour PI stage, payment hold/resubmission, Ship OK, ERP checkpoints and document release. These gaps are addressed by the reconciliation plan and must be resolved before the Customer and Salesperson task sets are generated.
+The confirmed workflow rules now map to Customer Delivery 02 and the future Salesperson workflow backlog. AutoPulse/Keycloak is the production backend/identity authority; the Mock API incrementally demonstrates only the required API, outbox and transition behavior until AutoPulse is available. Remaining decisions are limited to final document repository policy, country/publication rules, second-payment behaviour and live external/ERP details.
