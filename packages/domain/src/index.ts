@@ -90,6 +90,7 @@ export interface SearchVehiclesQuery {
   stockType?: string;
   locationStatus?: string;
   market?: string;
+  destinationPort?: string;
   category?: string;
   collection?: string;
   yearMin?: number;
