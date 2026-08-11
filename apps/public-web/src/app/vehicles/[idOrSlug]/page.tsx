@@ -13,3 +13,5 @@ export default async function VehicleDetailRoute({
   const { idOrSlug } = await params;
   return <VehicleDetailPage idOrSlug={idOrSlug} />;
 }
+
+

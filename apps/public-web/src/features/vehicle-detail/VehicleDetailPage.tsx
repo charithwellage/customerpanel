@@ -15,30 +15,60 @@ import {
  * It handles loading, error, not-found and success states.
  * The UI follows COMMON_FRONTEND_RULES and is fully accessible.
  */
-export default function VehicleDetailPage({ idOrSlug }: { idOrSlug: string }) {
-  const [vehicle, setVehicle] = React.useState<VehicleDetail | null>(null);
-  const [loading, setLoading] = React.useState(true);
+export default function VehicleDetailPage({
+  idOrSlug,
+  initialVehicle = null,
+}: {
+  idOrSlug: string;
+  initialVehicle?: VehicleDetail | null;
+}) {
+  const [vehicle, setVehicle] = React.useState<VehicleDetail | null>(initialVehicle);
+  const [loading, setLoading] = React.useState(!initialVehicle);
   const [error, setError] = React.useState<string | null>(null);
   const [galleryIndex, setGalleryIndex] = React.useState(0);
   const touchStartX = React.useRef<number | null>(null);
 
   React.useEffect(() => {
+    let cancelled = false;
+    if (initialVehicle) {
+      setVehicle(initialVehicle);
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    setError(null);
     // Use same-origin proxy in browser (matches HomeShowroom.tsx pattern).
     // The Next.js route at /api/v1/[...path] proxies to API_BASE_URL server-side.
-    const baseUrl = typeof window !== 'undefined' ? '' : (process.env.API_BASE_URL ?? 'http://localhost:4000');
+    const baseUrl = typeof window !== 'undefined' ? '' : (process.env.API_BASE_URL ?? 'http://127.0.0.1:4000');
     const service = new VehicleService(new HttpClient({ baseUrl }));
     service
       .getVehicleDetail(idOrSlug)
       .then((data) => {
-        setVehicle(data);
-        setLoading(false);
+        if (!cancelled) {
+          setVehicle(data);
+          setLoading(false);
+        }
       })
       .catch((err) => {
-        console.error(err);
-        setError('Unable to load vehicle details. Please try again later.');
-        setLoading(false);
+        if (!cancelled) {
+          console.error(err);
+          setError('Unable to load vehicle details. Please try again later.');
+          setLoading(false);
+        }
       });
-  }, [idOrSlug]);
+    return () => {
+      cancelled = true;
+    };
+  }, [idOrSlug, initialVehicle]);
+
+  const vehicleId = vehicle?.id;
+  const galleryImages = vehicle ? getVisibleGalleryImages(vehicle.media) : [];
+  const totalImages = galleryImages.length;
+  const activeGalleryIndex = totalImages > 0 && galleryIndex >= totalImages ? 0 : galleryIndex;
+
+  React.useEffect(() => {
+    setGalleryIndex(0);
+  }, [vehicleId]);
 
   if (loading) {
     return (
@@ -81,19 +111,6 @@ export default function VehicleDetailPage({ idOrSlug }: { idOrSlug: string }) {
   const { priceText, isRequestPrice } = getEffectivePrice(vehicle);
   const available = isVehicleAvailable(vehicle.status);
   const isSold = vehicle.status === 'Sold';
-
-  const galleryImages: string[] = getVisibleGalleryImages(vehicle.media);
-  const totalImages = galleryImages.length;
-
-  React.useEffect(() => {
-    setGalleryIndex(0);
-  }, [vehicle?.id]);
-
-  React.useEffect(() => {
-    if (galleryIndex >= totalImages) {
-      setGalleryIndex(0);
-    }
-  }, [galleryIndex, totalImages]);
 
   const specsRaw: { label: string; value: string | number | undefined }[] = [
     { label: 'Body Style', value: vehicle.bodyStyle },
@@ -178,7 +195,7 @@ export default function VehicleDetailPage({ idOrSlug }: { idOrSlug: string }) {
           <div
             className="cc-gallery"
             role="region"
-            aria-label={`Image ${galleryIndex + 1} of ${totalImages}`}
+            aria-label={`Image ${activeGalleryIndex + 1} of ${totalImages}`}
             tabIndex={0}
             onKeyDown={handleKeyDown}
             onTouchStart={handleTouchStart}
@@ -186,8 +203,8 @@ export default function VehicleDetailPage({ idOrSlug }: { idOrSlug: string }) {
           >
             <div className="cc-gallery__main">
               <img
-                src={galleryImages[galleryIndex]}
-                alt={`${title} — image ${galleryIndex + 1} of ${totalImages}`}
+                src={galleryImages[activeGalleryIndex]}
+                alt={`${title} — image ${activeGalleryIndex + 1} of ${totalImages}`}
                 className="cc-gallery__image"
                 loading="eager"
               />
@@ -219,9 +236,9 @@ export default function VehicleDetailPage({ idOrSlug }: { idOrSlug: string }) {
                     key={idx}
                     type="button"
                     role="tab"
-                    aria-selected={idx === galleryIndex}
+                    aria-selected={idx === activeGalleryIndex}
                     aria-label={`Image ${idx + 1}`}
-                    className={`cc-gallery__thumb${idx === galleryIndex ? ' cc-gallery__thumb--active' : ''}`}
+                    className={`cc-gallery__thumb${idx === activeGalleryIndex ? ' cc-gallery__thumb--active' : ''}`}
                     onClick={() => setGalleryIndex(idx)}
                   >
                     <img

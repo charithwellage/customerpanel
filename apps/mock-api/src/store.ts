@@ -59,7 +59,10 @@ const seedVehicles: VehicleRecord[] = [
     status: 'Available',
     category: 'arrival,premium',
     createdAt: '2026-08-09T10:00:00.000Z',
-    images: ['https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?w=400'],
+    images: [
+      'https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?w=400',
+      'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=400'
+    ],
     featured: true,
     stockType: 'J',
     destinationPort: 'Mombasa',
