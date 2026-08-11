@@ -1,6 +1,6 @@
 # CarChief Common Frontend Rules
 
-This is the mandatory shared frontend convention source for every future Delivery 01 and Delivery 02 task. Read it before changing frontend code. It complements, but does not replace, the task-specific scope, `FRONT_END_ARCHITECTURE.md`, `DEVELOPER_USER_GUIDE.md`, and `CODE_REVIEW_RULES.md`. The task-specific requirement takes precedence if it explicitly differs.
+This is the mandatory shared frontend convention source for every future Delivery 01 and Delivery 02 task. Read it before changing frontend code. It complements, but does not replace, the task-specific scope, `FRONT_END_ARCHITECTURE.md`, `DEVELOPER_USER_GUIDE.md`, `TASK_EXECUTION_PROTOCOL.md` and `CODE_REVIEW_RULES.md`. The task-specific requirement takes precedence if it explicitly differs.
 
 ## Architecture and reuse
 
@@ -13,7 +13,7 @@ This is the mandatory shared frontend convention source for every future Deliver
 - Use named semantic CSS classes and semantic tokens from `packages/theme`. Static styles do not belong in JSX/TSX attributes.
 - Do not use static `style={{...}}` objects or `style="..."`, literal colour/font/spacing/radius/shadow/animation values, visual fallback palettes, or app-local copies of shared package CSS in TSX.
 - A narrow `style` exception is allowed only for a validated runtime-data CSS custom property that cannot be represented by a class or data attribute. It must have no visual fallback value and be documented in the execution log and reviewed under `CODE_REVIEW_RULES.md`.
-- Keep the default `carchief` and alternate `ocean` themes markup-compatible. Components consume semantic roles, never a named theme object or palette directly.
+- Keep the default `carchief` and alternate `ocean` themes markup-compatible. Components consume semantic roles, never a named theme object or palette directly, and never branch on the active theme. This design rule is unchanged by the single-theme validation scope above.
 
 ## Accessible, responsive UI
 
@@ -24,5 +24,5 @@ This is the mandatory shared frontend convention source for every future Deliver
 ## Quality and evidence
 
 - Follow `CODE_REVIEW_RULES.md` before tests. Resolve every in-scope finding before completion.
-- UI tasks marked `playwright_mcp` must prove the current worktree in both themes and at the required viewports using Playwright MCP and automated Playwright Test. Record runtime provenance, console/network results, findings and both PASS outcomes.
+- UI tasks marked `playwright_mcp` must prove the current worktree using Playwright MCP and automated Playwright Test. The MCP walkthrough covers the default `carchief` theme at desktop; the required phone/tablet/desktop viewports are covered by the automated Playwright projects. Alternate-theme (`ocean`) parity is verified once for the whole Public Website in Phase 1.9, not per task. Record runtime provenance, console/network results, findings and both PASS outcomes.
 - Add a focused regression test whenever a reusable component or styling rule could be accidentally reintroduced. Record required token additions in the execution log instead of adding local visual literals.

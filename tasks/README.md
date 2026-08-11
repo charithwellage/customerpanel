@@ -28,7 +28,7 @@ The BA workflow reconciliation backlog is in `tasks/workflow/`. It is decision-g
 7. Run `node tasks/scripts/taskctl.mjs check <ID>`, report `Blockers: None`, then run `start` with an owner.
 8. Implement exactly the stated scope and its missing feature tests. For a Delivery 02 requirement gap, record a safe MVP default or skip only the unsafe capability; do not use `taskctl block` for requirement ambiguity alone.
 9. For a frontend task, read `COMMON_FRONTEND_RULES.md` before coding. For a `self_ai` task, review the owned diff against `CODE_REVIEW_RULES.md` and fix every in-scope finding.
-10. If frontmatter says `ui_validation: "playwright_mcp"`, first build/recreate a controlled runtime from the current worktree. Record the target URL, exact build/recreate command, process/container identity, and health/API readiness. Do not reuse an unknown server or image already listening on a standard port. Run the MCP browser walkthrough against that target, test both themes and phone/tablet/desktop viewports, inspect console/network behavior, fix in-scope findings, recreate the runtime after a correction, and repeat code review after any correction.
+10. If frontmatter says `ui_validation: "playwright_mcp"`, first build/recreate a controlled runtime from the current worktree. Record the target URL, exact build/recreate command, process/container identity, and health/API readiness. Do not reuse an unknown server or image already listening on a standard port. Use a runtime profile from `TASK_EXECUTION_PROTOCOL.md` §3 — Profile A (local, no Docker) unless the task is a container gate. Run one desktop MCP walkthrough under the default `carchief` theme, take phone/tablet/desktop coverage from the automated Playwright projects, inspect console/network behavior and fix in-scope findings. Repeat the code review after any correction, and repeat the MCP walkthrough only when the correction changed layout, tokens, CSS or markup structure. Alternate-theme (`ocean`) parity is verified once in Phase 1.9.
 11. Run feature tests plus `corepack pnpm lint`, `corepack pnpm typecheck` and `corepack pnpm -r build`. A UI task must also record `Playwright MCP Result: PASS` and `Automated Playwright Test Result: PASS`.
 12. After passing tests, run `taskctl complete <ID> --review-agent "<name>"`. Normal tasks do not require manual task-level PR review.
 13. A `phase_manual` code-review task is the one human review gate: the owner creates/updates the phase PR, AI records the phase-diff review, and the tech lead runs `approve` only after manual PR review.
@@ -70,7 +70,7 @@ Delivery 02 repeats that container gate at the last implementation task in every
 
 - Phase 0 is branch-neutral and runs on the approved clean baseline branch.
 - Delivery integration branch: `delivery_01_public_website`.
-- Public phase branches: `feat_delivery01_phase_01` through `feat_delivery01_phase_08`.
+- Public phase branches: `feat_delivery01_phase_01` through `feat_delivery01_phase_09`. Phase 1.9 verifies alternate-theme (`ocean`) parity across the whole Public Website; per-task UI validation in earlier phases covers the default `carchief` theme only.
 - Customer integration branch: `delivery_02_customer_application`, created by a human from the fully accepted updated Public delivery branch.
 - Customer phase branches: `feat_delivery02_phase_01` through `feat_delivery02_phase_10`.
 - Tasks do not create child branches. Every task works directly on its phase branch, for example `feat_delivery01_phase_01`; parallel groups are coordination lanes on that same branch, not separate Git branches.
@@ -89,7 +89,7 @@ Publishing the delivery branch is an explicitly authorized human action. If `del
 
 ## Commands
 
-`node tasks/scripts/taskctl.mjs validate` validates 103 task/gate files, UI-validation metadata, shared-frontend-rule references, Delivery 02 assumption-register references, decisions, delivery-specific branches, requirement coverage and the dependency DAG.
+`node tasks/scripts/taskctl.mjs validate` validates 106 task/gate files, UI-validation metadata, shared-frontend-rule references, Delivery 02 assumption-register references, decisions, delivery-specific branches, requirement coverage and the dependency DAG.
 
 `node tasks/scripts/taskctl.mjs next` reports the current execution frontier and permitted same-group parallel tasks.
 
@@ -112,7 +112,7 @@ Use the delivery integration branch named in the task, then its `feat_deliveryNN
 
 The task files can be reviewed now, but implementation begins only after all of the following are true:
 
-1. `D01-P08-CODE_REVIEW` is `COMPLETE` and the complete Public Website PR is merged.
+1. `D01-P09-CODE_REVIEW` is `COMPLETE` and the complete Public Website PR is merged. Phase 1.9 is the final Public gate; `D01-P08-CODE_REVIEW` alone is no longer sufficient.
 2. A human synchronizes `delivery_01_public_website` and creates `delivery_02_customer_application` from that exact commit.
 3. `D02-P01-G001` is the global execution frontier. Requirement gaps use the Delivery 02 assumption register and do not block Phases 2.1–2.9.
 4. The Customer compiled/runtime scope is treated as provisional and the negative POC evidence is not copied.

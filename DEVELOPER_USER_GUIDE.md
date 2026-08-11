@@ -84,7 +84,7 @@ corepack pnpm -r build
 node tasks/scripts/taskctl.mjs validate
 ```
 
-Visible screen work also requires the relevant integration and Playwright tests under both `carchief` and `ocean`. Record screenshots, commands, deviations and blockers in the task execution log.
+Visible screen work also requires the relevant integration and Playwright tests under the default `carchief` theme. Alternate-theme (`ocean`) parity is verified once for the whole Public Website in Phase 1.9, not per task. Record screenshots, commands, deviations and blockers in the task execution log.
 
 Never import mock fixtures into a page. Use the generated API client and feature service boundary.
 
@@ -125,7 +125,7 @@ For a task marked `playwright_mcp`:
 1. Complete the implementation and initial AI code review.
 2. Build and recreate a **controlled runtime from the current worktree**. Do not point a browser at an already-running server or Docker image unless the task rebuilt/recreated it and can prove its provenance.
 3. Record the exact build/recreate command, target URL, process ID or container identity, and start time. Check the web health endpoint; where the task uses backend data, also check Mock API health, `/openapi.json`, reset and clean startup logs.
-4. Test `carchief` and `ocean` at `390x844`, `768x1024` and `1440x900` against that exact URL.
+4. Test the default `carchief` theme at `390x844`, `768x1024` and `1440x900` against that exact URL. Repeat under `ocean` only for Phase 1.9, restarting the web process with `NEXT_PUBLIC_THEME_ID=ocean`; no rebuild is needed.
 5. Exercise the task's acceptance journey and loading, empty, error and success states.
 6. Inspect accessibility/keyboard/focus behavior, console messages and failed network requests.
 7. Fix every in-scope finding immediately. Rebuild/recreate the controlled runtime, repeat code review and repeat the MCP walkthrough after corrections. If the defect is genuinely owned by an earlier task, reopen that task rather than hiding the failure in phase review.
