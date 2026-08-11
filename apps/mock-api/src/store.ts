@@ -9,11 +9,11 @@ import type {
   FreightDestination,
   FreightPort,
   FreightRateRecord,
-  FreightRateStatus,
   FreightEstimateRequest,
   FreightEstimateResponse,
 } from '@carchief/domain';
-import { generateVehicleSlug } from '@carchief/domain';
+import { generateVehicleSlug, calculateFreightEstimate } from '@carchief/domain';
+export { FreightRequestError, resolveFreightRateStatus } from '@carchief/domain';
 
 export interface VehicleRecord {
   id: string;
@@ -446,72 +446,17 @@ const freightRateRecords: FreightRateRecord[] = [
   // RW and SS: intentionally no rate record supplied yet -> no_rate.
 ];
 
-export class FreightRequestError extends Error {
-  public readonly statusCode: number;
-  public readonly field?: string;
+// The calculation sequence itself (D01-P05-T002) lives in
+// `@carchief/domain`'s `calculateFreightEstimate` — the mock API supplies the
+// catalog/rate-record data below and calls it; the calculation stays
+// authoritative and server-side in both branches (never the browser).
+// `FreightRequestError` and `resolveFreightRateStatus` are re-exported above
+// unchanged so existing call sites and tests are unaffected by the move.
 
-  constructor(statusCode: number, message: string, field?: string) {
-    super(message);
-    this.name = 'FreightRequestError';
-    this.statusCode = statusCode;
-    this.field = field;
-  }
-}
-
-export function resolveFreightRateStatus(
-  records: FreightRateRecord[],
-  destinationCode: string,
-  portCode: string,
-  nowISO: string = FREIGHT_REFERENCE_DATE
-): { status: FreightRateStatus; record?: FreightRateRecord } {
-  const matches = records.filter((r) => r.destinationCode === destinationCode && r.portCode === portCode);
-  if (matches.length === 0) {
-    return { status: 'no_rate' };
-  }
-
-  const now = new Date(nowISO).getTime();
-  // The record with the latest effectiveFrom that has already started.
-  const started = matches
-    .filter((r) => new Date(r.effectiveFrom).getTime() <= now)
-    .sort((a, b) => new Date(b.effectiveFrom).getTime() - new Date(a.effectiveFrom).getTime());
-
-  if (started.length === 0) {
-    // Only future-dated records exist; nothing is effective yet.
-    return { status: 'no_rate' };
-  }
-
-  const candidate = started[0];
-  const stillOpen = !candidate.effectiveTo || new Date(candidate.effectiveTo).getTime() >= now;
-  return stillOpen ? { status: 'active', record: candidate } : { status: 'stale', record: candidate };
-}
-
-function validateFreightEstimateRequest(
-  destinations: FreightDestination[],
-  ports: FreightPort[],
-  request: FreightEstimateRequest
-): void {
-  if (!request || typeof request.destinationCode !== 'string' || !request.destinationCode.trim()) {
-    throw new FreightRequestError(400, 'destinationCode is required', 'destinationCode');
-  }
-  if (!request || typeof request.portCode !== 'string' || !request.portCode.trim()) {
-    throw new FreightRequestError(400, 'portCode is required', 'portCode');
-  }
-  if (!destinations.some((d) => d.code === request.destinationCode)) {
-    throw new FreightRequestError(400, `Unsupported destination '${request.destinationCode}'`, 'destinationCode');
-  }
-  if (!ports.some((p) => p.code === request.portCode)) {
-    throw new FreightRequestError(400, `Unsupported port '${request.portCode}'`, 'portCode');
-  }
-  if (request.dimensions) {
-    const { lengthMm, widthMm, heightMm } = request.dimensions;
-    for (const [field, value] of Object.entries({ lengthMm, widthMm, heightMm })) {
-      if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) {
-        throw new FreightRequestError(400, `dimensions.${field} must be a positive number`, `dimensions.${field}`);
-      }
-    }
-  }
-}
-
+/**
+ * Thin store-owned wrapper around the domain calculation sequence, supplying
+ * this store's default reference instant when the caller omits one.
+ */
 export function buildFreightEstimate(
   destinations: FreightDestination[],
   ports: FreightPort[],
@@ -519,24 +464,7 @@ export function buildFreightEstimate(
   request: FreightEstimateRequest,
   nowISO: string = FREIGHT_REFERENCE_DATE
 ): FreightEstimateResponse {
-  validateFreightEstimateRequest(destinations, ports, request);
-
-  const { status, record } = resolveFreightRateStatus(records, request.destinationCode, request.portCode, nowISO);
-
-  // D01-ASM-001: every supported destination/port pair returns the same
-  // deterministic unavailable outcome while DEC-PUB-FREIGHT-MODEL is OPEN,
-  // regardless of rate status. rateStatus/currency/effective dates are
-  // informational lookup context only — never a computed total.
-  return {
-    outcome: 'estimate_unavailable_pending_rate',
-    destinationCode: request.destinationCode,
-    portCode: request.portCode,
-    rateStatus: status,
-    currency: record?.currency,
-    rateEffectiveFrom: record?.effectiveFrom,
-    rateEffectiveTo: record?.effectiveTo,
-    message: 'Shipping estimate unavailable — pending a confirmed freight rate.',
-  };
+  return calculateFreightEstimate(destinations, ports, records, request, nowISO);
 }
 
 // Service-owned location projection based on ETD/ETA rules (PUB-08)
