@@ -40,7 +40,7 @@
 | [D01-P01-T011](delivery_01/phase_01/D01-P01-T011.md) | Align shared theme with the Unified POC Brand | COMPLETE | self_ai | legacy/not-applicable | Codex | `feat_delivery01_phase_01` | D01-P01-CODE_REVIEW (COMPLETE) | D01-P01-T010 | P01-H | 2026-08-09T16:29:39.602Z |
 | [D01-P01-T012](delivery_01/phase_01/D01-P01-T012.md) | Add alternate theme injection and developer guide | COMPLETE | self_ai | legacy/not-applicable | Codex | `feat_delivery01_phase_01` | D01-P01-CODE_REVIEW (COMPLETE) | D01-P01-T011 | P01-I | 2026-08-10T03:48:43.935Z |
 | [D01-P01-CODE_REVIEW](delivery_01/phase_01/D01-P01-CODE_REVIEW.md) | Phase 1.1 PR code review and tech-lead approval | COMPLETE | phase_manual | legacy/not-applicable | Codex | `feat_delivery01_phase_01` | D01-P01-CODE_REVIEW (COMPLETE) | D01-P01-T012 | P01-REVIEW | 2026-08-10T05:18:28.820Z |
-| [D01-P02-T001](delivery_01/phase_02/D01-P02-T001.md) | Add featured vehicle services and reusable vehicle collections | COMPLETE | self_ai | legacy/not-applicable | Antigravity | `feat_delivery01_phase_02` | D01-P02-CODE_REVIEW (COMPLETE) | D01-P01-CODE_REVIEW | P02-A | 2026-08-10T09:36:50.059Z |
+| [D01-P02-T001](delivery_01/phase_02/D01-P02-T001.md) | Add featured vehicle services and reusable vehicle collections | IN_PROGRESS | self_ai | legacy/not-applicable | Antigravity | `feat_delivery01_phase_02` | D01-P02-CODE_REVIEW (COMPLETE) | D01-P01-CODE_REVIEW | P02-A | 2026-08-11T07:34:14.219Z |
 | [D01-P02-T002](delivery_01/phase_02/D01-P02-T002.md) | Build and accept the home/showroom experience | COMPLETE | self_ai | legacy/not-applicable | Antigravity | `feat_delivery01_phase_02` | D01-P02-CODE_REVIEW (COMPLETE) | D01-P02-T001 | P02-B | 2026-08-10T05:48:14.754Z |
 | [INF-P00-T006](infra_check/INF-P00-T006.md) | Verify and provision Playwright MCP UI-testing tools | COMPLETE | self_ai | not_applicable | Antigravity | Branch-neutral | — | D01-P02-T002 | INF-D | 2026-08-10T08:20:46.398Z |
 | [D01-P02-T003](delivery_01/phase_02/D01-P02-T003.md) | Implement exact POC visual parity for the Public Home and Showroom | COMPLETE | self_ai | playwright_mcp | Antigravity | `feat_delivery01_phase_02` | D01-P02-CODE_REVIEW (COMPLETE) | D01-P02-T002, INF-P00-T006 | P02-C | 2026-08-10T09:58:59.568Z |
@@ -129,7 +129,7 @@
 
 ## Current execution frontier
 
-- Sequential next: D01-P03-T004 — Integrate and accept inventory search (BLOCKED)
+- Sequential next: D01-P02-T001 — Add featured vehicle services and reusable vehicle collections (IN_PROGRESS)
 - Optional same-group parallel tasks: None
 - Downstream work waits for COMPLETE or SUPERSEDED; IN_REVIEW is not complete.
 - Later tasks cannot be bypassed; use taskctl sequence TASK-ID for the exact blocker.
