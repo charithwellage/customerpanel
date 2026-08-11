@@ -174,7 +174,7 @@ function validate({ quiet = false } = {}) {
     'D02-P01-T003', 'D02-P02-T002', 'D02-P03-T003', 'D02-P04-T003',
     'D02-P05-T003', 'D02-P06-T004', 'D02-P07-T004', 'D02-P08-T003', 'D02-P09-T004', 'D02-P10-T003',
   ]);
-  if (tasks.size !== 106) errors.push(`expected 106 task/gate files, found ${tasks.size}`);
+  if (tasks.size !== 110) errors.push(`expected 110 task/gate files, found ${tasks.size}`);
   for (const task of tasks.values()) {
     for (const field of ['task_id', 'title', 'delivery', 'phase', 'estimate', 'model_tier', 'parallel_group', 'phase_branch', 'task_branch']) {
       if (!task[field]) errors.push(`${task.task_id || task.file}: missing ${field}`);
@@ -248,6 +248,12 @@ function validate({ quiet = false } = {}) {
     if (/^D02-/.test(task.task_id) && !body.includes('REQUIREMENT_GAPS_AND_ASSUMPTIONS.md')) {
       errors.push(`${task.task_id}: Delivery 02 task must reference REQUIREMENT_GAPS_AND_ASSUMPTIONS.md`);
     }
+    // Delivery 01 adopts the same non-blocking gap register, scoped to the phases
+    // that actually carry a recorded gap today (1.5) plus its reconciliation
+    // phase (1.10). A later Public phase opts in by adding the same reference.
+    if (/^D01-P(05|10)-/.test(task.task_id) && !body.includes('REQUIREMENT_GAPS_AND_ASSUMPTIONS.md')) {
+      errors.push(`${task.task_id}: Delivery 01 Phase 1.5/1.10 task must reference REQUIREMENT_GAPS_AND_ASSUMPTIONS.md`);
+    }
     if (task.review_mode === 'phase_manual') {
       const range = `${deliveryBranch(task)}...${task.phase_branch}`;
       if (!body.includes(range)) errors.push(`${task.task_id}: phase review must name comparison range ${range}`);
@@ -295,6 +301,9 @@ function validate({ quiet = false } = {}) {
       if (!decisions.has(gate)) errors.push(`${task.task_id}: unknown decision gate ${gate}`);
       else if (/^D02-P0[1-9]-/.test(task.task_id) && decisions.get(gate) !== 'RESOLVED') {
         errors.push(`${task.task_id}: Delivery 02 Phases 2.1–2.9 must not retain an unresolved requirement decision gate; record an assumption instead`);
+      }
+      else if (/^D01-P(05|10)-/.test(task.task_id) && decisions.get(gate) !== 'RESOLVED') {
+        errors.push(`${task.task_id}: Delivery 01 Phase 1.5/1.10 must not retain an unresolved requirement decision gate; record an assumption instead`);
       }
     }
   }
@@ -468,6 +477,13 @@ function requireSelfReviewEvidence(id, task) {
   }
   if (/^D02-P10-T\d{3}$/.test(id)) {
     for (const marker of ['Requirement-gap register:', 'Phase 2.10 disposition:']) {
+      if (!log.text.includes(marker) || log.text.includes(`${marker} Not recorded`)) {
+        die(`${id} requires recorded assumption-register evidence: ${marker}`);
+      }
+    }
+  }
+  if (/^D01-P10-T\d{3}$/.test(id)) {
+    for (const marker of ['Requirement-gap register:', 'Phase 1.10 disposition:']) {
       if (!log.text.includes(marker) || log.text.includes(`${marker} Not recorded`)) {
         die(`${id} requires recorded assumption-register evidence: ${marker}`);
       }

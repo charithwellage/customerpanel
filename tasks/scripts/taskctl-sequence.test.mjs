@@ -13,7 +13,7 @@ function run(...args) {
 test('task metadata and dependency graph validate', () => {
   const result = run('validate');
   assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stdout, /Validated 106 task\/gate files/);
+  assert.match(result.stdout, /Validated 110 task\/gate files/);
 });
 
 test('next reports the current tracker frontier', () => {
@@ -75,6 +75,39 @@ test('Delivery 02 assumption reconciliation follows Customer acceptance', () => 
   const source = readFileSync(new URL('../EXECUTION_ORDER.md', import.meta.url), 'utf8');
   assert.match(source, /\[D02-P10-T001\].*D02-P09-CODE_REVIEW/);
   assert.match(source, /\[D02-P10-CODE_REVIEW\]/);
+});
+
+test('Delivery 01 requirement gaps are documented rather than used as unresolved execution gates', () => {
+  const register = readFileSync(new URL('../delivery_01/REQUIREMENT_GAPS_AND_ASSUMPTIONS.md', import.meta.url), 'utf8');
+  assert.match(register, /D01-ASM-001/);
+  assert.match(register, /Requirement uncertainty alone is never a `taskctl` blocker/);
+  // A Finance-owned figure must never be presented as a safe default.
+  assert.match(register, /never `ASSUMED`/);
+
+  // Every Phase 1.5 task carries the gap instead of a hard decision gate.
+  for (const file of ['D01-P05-G001', 'D01-P05-T001', 'D01-P05-T002', 'D01-P05-T003', 'D01-P05-T004']) {
+    const body = readFileSync(new URL(`../delivery_01/phase_05/${file}.md`, import.meta.url), 'utf8');
+    assert.match(body, /decision_gates: \[\]/, `${file} must not retain a hard decision gate`);
+    assert.match(body, /REQUIREMENT_GAPS_AND_ASSUMPTIONS\.md/, `${file} must reference the gap register`);
+  }
+});
+
+test('Delivery 01 assumption reconciliation follows Public acceptance and precedes Delivery 02', () => {
+  const order = (id, phase) => {
+    const body = readFileSync(new URL(`../delivery_01/phase_${phase}/${id}.md`, import.meta.url), 'utf8');
+    return Number(body.match(/^execution_order: (\S+)$/m)[1]);
+  };
+  const publicReview = order('D01-P09-CODE_REVIEW', '09');
+  const reconcileStart = order('D01-P10-T001', '10');
+  const reconcileReview = order('D01-P10-CODE_REVIEW', '10');
+  const customerStart = Number(
+    readFileSync(new URL('../delivery_02/phase_01/D02-P01-G001.md', import.meta.url), 'utf8')
+      .match(/^execution_order: (\S+)$/m)[1],
+  );
+
+  assert.ok(publicReview < reconcileStart, 'Phase 1.10 must follow Phase 1.9 acceptance');
+  assert.ok(reconcileStart < reconcileReview, 'Phase 1.10 review must be last in its phase');
+  assert.ok(reconcileReview < customerStart, 'Phase 1.10 must gate the start of Delivery 02');
 });
 
 test('Delivery 02 requirement gaps are documented rather than used as unresolved execution gates', () => {

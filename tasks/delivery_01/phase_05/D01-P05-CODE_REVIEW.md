@@ -28,8 +28,9 @@ ui_validation: "not_applicable"
 
 1. [`CONTEXT.md`](CONTEXT.md) — Phase 1.5 context pack: requirement text, decisions, code map, file-path conventions and known pitfalls. **Read this first; it replaces the per-task document sweep.**
 2. [`../../TASK_EXECUTION_PROTOCOL.md`](../../TASK_EXECUTION_PROTOCOL.md) — preflight, runtime profiles, browser validation, evidence blocks and the final-response contract.
-3. [`../../COMMON_FRONTEND_RULES.md`](../../COMMON_FRONTEND_RULES.md) — mandatory shared frontend conventions.
-4. Open `REQUIREMENT.md`, `FRONT_END_ARCHITECTURE.md` (§2, §5, §16) or `docs/CarChief-Frontend-Implementation-plan.md` §5 Phase 1.5 only for an item the context pack marks unresolved.
+3. [`../REQUIREMENT_GAPS_AND_ASSUMPTIONS.md`](../REQUIREMENT_GAPS_AND_ASSUMPTIONS.md) — the Delivery 01 non-blocking requirement-gap register; `D01-ASM-001` governs what this phase was permitted to build.
+4. [`../../COMMON_FRONTEND_RULES.md`](../../COMMON_FRONTEND_RULES.md) — mandatory shared frontend conventions.
+5. Open `REQUIREMENT.md`, `FRONT_END_ARCHITECTURE.md` (§2, §5, §16) or `docs/CarChief-Frontend-Implementation-plan.md` §5 Phase 1.5 only for an item the context pack marks unresolved.
 
 ## Requirements and rules
 
@@ -37,7 +38,15 @@ Apply every applicable shared code-review rule and these phase-specific checks:
 
 - Verify every changed public screen under the default `carchief` theme against the authoritative POC visual baseline `docs/evidence/phase0/phase0-public-landing.png`; verify documented responsive/accessibility exceptions and confirm `ocean` uses the same shared components and behavior.
 
-- Approved freight calculations, worked examples, unavailable-rate states, and quotation-enquiry boundaries.
+- Freight calculations, worked examples, unavailable-rate states, and quotation-enquiry boundaries.
+
+### Requirement-gap review (blocking)
+
+Confirm which branch `D01-P05-T002` took and hold it to that branch's rules.
+
+- If `D01-ASM-001` is `SKIPPED`: **no** freight/city-delivery/insurance/discount formula, rate constant, placeholder amount or "indicative" total may appear anywhere in the diff — product code, fixtures, tests or UI copy. A fabricated monetary figure is blocking under RULE-09/RULE-10 and register operating rule 5, however it is labelled. Verify the unavailable state is a real, accessible, tested UI and contract state rather than an error or an empty amount.
+- If `D01-ASM-001` is `CONFIRMED`/`SUPERSEDED`: verify the implemented sequence, currency and rounding match the approved decision exactly, that rounding is applied once at the approved step, and that the business-approved worked examples are present as tests.
+- Verify the register row is accurate and that each affected task log records the row ID under **Decisions and deviations**. A phase that used a gap without recording it is blocking.
 - Verify the phase acceptance criteria, required mock/API boundaries and required automated/container evidence are present in the PR diff or its committed execution records.
 
 - Verify Playwright MCP evidence for every completed UI task in this phase: client, URL, themes, viewports, console/network result, findings/corrections, MCP PASS and automated Playwright Test PASS. Missing or contradictory evidence is blocking.
