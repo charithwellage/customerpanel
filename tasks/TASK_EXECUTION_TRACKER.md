@@ -53,20 +53,12 @@
 | [D01-P03-T003](delivery_01/phase_03/D01-P03-T003.md) | Build inventory filters and result presentations | COMPLETE | self_ai | playwright_mcp | Antigravity | `feat_delivery01_phase_03` | D01-P03-CODE_REVIEW (COMPLETE) | D01-P03-T001 | P03-B | 2026-08-11T05:04:00.648Z |
 | [D01-P03-T004](delivery_01/phase_03/D01-P03-T004.md) | Integrate and accept inventory search | COMPLETE | self_ai | playwright_mcp | Codex | `feat_delivery01_phase_03` | D01-P03-CODE_REVIEW (COMPLETE) | D01-P03-T002, D01-P03-T003 | P03-C | 2026-08-11T07:47:22.671Z |
 | [D01-P03-CODE_REVIEW](delivery_01/phase_03/D01-P03-CODE_REVIEW.md) | Phase 1.3 PR code review and tech-lead approval | COMPLETE | phase_manual | not_applicable | Codex | `feat_delivery01_phase_03` | D01-P03-CODE_REVIEW (COMPLETE) | D01-P03-T004 | P03-REVIEW | 2026-08-11T07:55:01.741Z |
-<<<<<<< Updated upstream
-| [D01-P04-T001](delivery_01/phase_04/D01-P04-T001.md) | Add vehicle detail and public media service behavior | READY | self_ai | not_applicable | — | `feat_delivery01_phase_04` | D01-P04-CODE_REVIEW (NOT_STARTED) | D01-P03-CODE_REVIEW | P04-A | — |
-| [D01-P04-T002](delivery_01/phase_04/D01-P04-T002.md) | Build vehicle detail page and gallery | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery01_phase_04` | D01-P04-CODE_REVIEW (NOT_STARTED) | D01-P04-T001 | P04-B | — |
-| [D01-P04-T003](delivery_01/phase_04/D01-P04-T003.md) | Add sharing, printing, metadata and detail acceptance | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery01_phase_04` | D01-P04-CODE_REVIEW (NOT_STARTED) | D01-P04-T002 | P04-C | — |
-| [D01-P04-CODE_REVIEW](delivery_01/phase_04/D01-P04-CODE_REVIEW.md) | Phase 1.4 PR code review and tech-lead approval | NOT_STARTED | phase_manual | not_applicable | — | `feat_delivery01_phase_04` | D01-P04-CODE_REVIEW (NOT_STARTED) | D01-P04-T003 | P04-REVIEW | — |
-| [D01-P05-G001](delivery_01/phase_05/D01-P05-G001.md) | Approve freight and city-delivery calculation decisions | NOT_STARTED | self_ai | not_applicable | — | `feat_delivery01_phase_05` | D01-P05-CODE_REVIEW (NOT_STARTED) | D01-P04-CODE_REVIEW | P05-GATE | — |
-=======
 | [D01-P04-T001](delivery_01/phase_04/D01-P04-T001.md) | Add vehicle detail and public media service behavior | COMPLETE | self_ai | not_applicable | Antigravity | `feat_delivery01_phase_04` | D01-P04-CODE_REVIEW (COMPLETE) | D01-P03-CODE_REVIEW | P04-A | 2026-08-11T14:01:46.436Z |
 | [D01-P04-T002](delivery_01/phase_04/D01-P04-T002.md) | Build vehicle detail page and gallery | COMPLETE | self_ai | playwright_mcp | Antigravity | `feat_delivery01_phase_04` | D01-P04-CODE_REVIEW (COMPLETE) | D01-P04-T001 | P04-B | 2026-08-11T14:25:51.191Z |
 | [D01-P04-T003](delivery_01/phase_04/D01-P04-T003.md) | Add sharing, printing, metadata and detail acceptance | COMPLETE | self_ai | playwright_mcp | Antigravity | `feat_delivery01_phase_04` | D01-P04-CODE_REVIEW (COMPLETE) | D01-P04-T002 | P04-C | 2026-08-11T14:25:51.257Z |
 | [D01-P04-CODE_REVIEW](delivery_01/phase_04/D01-P04-CODE_REVIEW.md) | Phase 1.4 PR code review and tech-lead approval | COMPLETE | phase_manual | not_applicable | Claude Opus 5 (AI review agent) | `feat_delivery01_phase_04` | D01-P04-CODE_REVIEW (COMPLETE) | D01-P04-T003 | P04-REVIEW | 2026-08-11T14:43:52.493Z |
-| [D01-P05-G001](delivery_01/phase_05/D01-P05-G001.md) | Approve freight and city-delivery calculation decisions | READY | self_ai | not_applicable | — | `feat_delivery01_phase_05` | D01-P05-CODE_REVIEW (NOT_STARTED) | D01-P04-CODE_REVIEW | P05-GATE | 2026-08-11T15:05:00.000Z |
->>>>>>> Stashed changes
-| [D01-P05-T001](delivery_01/phase_05/D01-P05-T001.md) | Add destinations, rates and freight estimate services | NOT_STARTED | self_ai | not_applicable | — | `feat_delivery01_phase_05` | D01-P05-CODE_REVIEW (NOT_STARTED) | D01-P05-G001 | P05-A | — |
+| [D01-P05-G001](delivery_01/phase_05/D01-P05-G001.md) | Approve freight and city-delivery calculation decisions | COMPLETE | self_ai | not_applicable | Claude Code | `feat_delivery01_phase_05` | D01-P05-CODE_REVIEW (NOT_STARTED) | D01-P04-CODE_REVIEW | P05-GATE | 2026-08-11T15:44:21.770Z |
+| [D01-P05-T001](delivery_01/phase_05/D01-P05-T001.md) | Add destinations, rates and freight estimate services | READY | self_ai | not_applicable | — | `feat_delivery01_phase_05` | D01-P05-CODE_REVIEW (NOT_STARTED) | D01-P05-G001 | P05-A | — |
 | [D01-P05-T002](delivery_01/phase_05/D01-P05-T002.md) | Implement approved freight calculations | NOT_STARTED | self_ai | not_applicable | — | `feat_delivery01_phase_05` | D01-P05-CODE_REVIEW (NOT_STARTED) | D01-P05-T001 | P05-B | — |
 | [D01-P05-T003](delivery_01/phase_05/D01-P05-T003.md) | Build freight estimate selection and explanation UI | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery01_phase_05` | D01-P05-CODE_REVIEW (NOT_STARTED) | D01-P05-T002 | P05-C | — |
 | [D01-P05-T004](delivery_01/phase_05/D01-P05-T004.md) | Add freight quotation enquiry and accept the phase | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery01_phase_05` | D01-P05-CODE_REVIEW (NOT_STARTED) | D01-P05-T003 | P05-D | — |
@@ -144,7 +136,7 @@
 
 ## Current execution frontier
 
-- Sequential next: D01-P05-G001 — Approve freight and city-delivery calculation decisions (NOT_STARTED)
+- Sequential next: D01-P05-T001 — Add destinations, rates and freight estimate services (NOT_STARTED)
 - Optional same-group parallel tasks: None
 - Downstream work waits for COMPLETE or SUPERSEDED; IN_REVIEW is not complete.
 - Later tasks cannot be bypassed; use taskctl sequence TASK-ID for the exact blocker.
