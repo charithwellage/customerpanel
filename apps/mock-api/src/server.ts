@@ -12,6 +12,18 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
   const app: Express = express();
   app.use(express.json());
 
+  // CORS middleware
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-Correlation-ID');
+    if (req.method === 'OPTIONS') {
+      res.sendStatus(200);
+      return;
+    }
+    next();
+  });
+
   // Auth parsing middleware
   app.use((req: AuthenticatedRequest, _res: Response, next: NextFunction) => {
     const authHeader = req.headers.authorization;
