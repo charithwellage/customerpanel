@@ -44,6 +44,10 @@ Agents never commit, push, create PRs, merge or rewrite history. They only imple
 
 The selected prompt is only common guidance. The individual task file remains authoritative for its exact commands, evidence paths, status transitions and final-response headings.
 
+## Dependency installation policy
+
+Read [`DEPENDENCY_INSTALLATION_POLICY.md`](DEPENDENCY_INSTALLATION_POLICY.md) before installing packages. Tasks reuse the existing frozen pnpm installation. They must not delete `node_modules`, pnpm stores, Docker build caches or lockfiles during normal work, and must not run a full install for every task. Use the offline frozen check first, then the network fallback only for a new checkout, changed dependency graph, missing/corrupt packages or an isolated CI/container environment. Record any exceptional reset in the execution log.
+
 Phase 0 may change only task logs, summaries and the generated tracker inside the repository. It must not change application source or product configuration. `INF-P00-T006` may install developer-local browser/package caches and, only after explicit user approval, register Playwright MCP in the developer's user-level AI-client configuration.
 
 ## Build and container verification policy
@@ -57,6 +61,8 @@ Playwright MCP and Playwright Test have different responsibilities. MCP gives th
 PWA support is also a shared baseline: `packages/pwa` supplies safe install/update/connectivity primitives and each application supplies its manifest, icons and offline shell. PWA tasks must prove that sensitive data is not broadly cached and that finance, approval, allocation, document and identity mutations are blocked while offline.
 
 Every UI task needs a fresh-runtime UI test; this is deliberately separate from the heavier phase Docker gate. A task may use a controlled local runtime or `docker-compose.frontend.yml`, but it must build/recreate the current worktree and record its exact target/provenance before MCP or Playwright starts. The phase gate remains responsible for the full container acceptance: build/start the stack, inspect `mock-api` logs and the live PostgreSQL schema, verify health/OpenAPI/reset, run container Playwright, complete the named manual supervisor smoke scenario, record evidence, and shut it down cleanly. These are the required Docker deployment gates, not the separate compiled-POC `docker-compose.poc.yml`.
+
+Docker builds install packages inside their isolated image by design. This is necessary for a self-contained image, but the dependency layer must normally be cached. Do not delete local `node_modules` before Docker validation. Use `docker compose ... build` for normal work; use `build --no-cache` only for dependency-layer, Dockerfile/base-image diagnosis or an explicitly required clean-image test. Container task logs record whether the dependency layer was reused or rebuilt.
 
 Delivery 02 repeats that container gate at the last implementation task in every customer phase. It builds `customer-app`, `mock-api` and PostgreSQL, verifies health and local Swagger/OpenAPI, runs customer container Playwright and records a manual supervisor smoke scenario. Frontend code reaches the mock only by HTTP through the generated client; it never imports fixtures.
 

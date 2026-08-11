@@ -42,3 +42,5 @@ Use the exact final-response headings required by the task file.
 ```
 
 The task file is the detailed source of truth. This prompt only provides the common startup context and token-saving guidance; do not duplicate the full task instructions here.
+
+Before package setup, read `tasks/DEPENDENCY_INSTALLATION_POLICY.md`. Reuse the current frozen pnpm installation and run the offline check first. Do not delete `node_modules`, pnpm stores, Docker caches or lockfiles, or repeat a full install for each task. Use the frozen network install only when the policy permits it, and record the reason.

@@ -16,6 +16,8 @@ Read, in this order:
 
 The phase-review task is the source of truth. Do not scan the entire project or unrelated modules. Do not treat POC code as production code to copy.
 
+Read `tasks/DEPENDENCY_INSTALLATION_POLICY.md` when evaluating build evidence. Treat cached dependency layers and reused workspace installations as expected; require a fresh package installation only when the lockfile, dependency graph or isolated build environment justifies it.
+
 For a Delivery 02 review, also read `tasks/delivery_02/REQUIREMENT_GAPS_AND_ASSUMPTIONS.md` when named by the task. Verify that every safe MVP default or skipped feature is recorded and honestly presented; do not reopen a task merely because a documented requirement gap remains unresolved.
 
 Follow the review task preflight exactly. Before any branch, source or task-state change, run:

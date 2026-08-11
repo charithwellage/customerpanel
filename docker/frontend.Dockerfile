@@ -2,10 +2,27 @@ FROM node:22-alpine AS build
 WORKDIR /workspace
 RUN corepack enable
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
+# Keep dependency installation in a stable Docker layer. Application source is
+# copied only after this step so normal source edits do not redownload packages.
+COPY apps/customer-app/package.json apps/customer-app/package.json
+COPY apps/mock-api/package.json apps/mock-api/package.json
+COPY apps/public-web/package.json apps/public-web/package.json
+COPY apps/salesperson-app/package.json apps/salesperson-app/package.json
+COPY packages/api-client/package.json packages/api-client/package.json
+COPY packages/config/package.json packages/config/package.json
+COPY packages/domain/package.json packages/domain/package.json
+COPY packages/pwa/package.json packages/pwa/package.json
+COPY packages/testing/package.json packages/testing/package.json
+COPY packages/theme/package.json packages/theme/package.json
+COPY packages/ui/package.json packages/ui/package.json
+COPY packages/validation/package.json packages/validation/package.json
+COPY packages/vehicle-detail/package.json packages/vehicle-detail/package.json
+COPY packages/vehicle-search/package.json packages/vehicle-search/package.json
+RUN pnpm install --frozen-lockfile
+# Source changes invalidate only the build layers below the cached install.
 COPY apps ./apps
 COPY packages ./packages
 COPY openapi ./openapi
-RUN pnpm install --frozen-lockfile
 RUN pnpm --filter @carchief/public-web build && pnpm --filter @carchief/mock-api build
 
 FROM node:22-alpine AS runtime

@@ -162,13 +162,20 @@ Use this procedure when a fresh checkout reports missing workspace declarations,
 
    If tracked `tsconfig.tsbuildinfo` files appear as deleted or modified, they are generated artifacts currently tracked by this branch. Do not commit those changes without an explicit repository decision; restore them after verification if necessary.
 
-3. Reinstall the locked dependencies:
+3. Verify and reuse the locked dependencies. For a normal task or checkout with a populated local store, use the offline fast path first:
+
+   ```bash
+   corepack pnpm --version
+   corepack pnpm install --frozen-lockfile --offline
+   ```
+
+   If the offline command reports packages are not cached, use the network fallback:
 
    ```bash
    corepack pnpm install --frozen-lockfile
    ```
 
-   If this fails with registry/DNS errors, retry with network access. If it reports a lockfile mismatch, stop and resolve the dependency change rather than regenerating the lockfile casually.
+   Do not delete `node_modules` or pnpm caches for a normal task. A full install is expected only for a new checkout, changed lockfile/dependency graph, missing packages, corrupted/incompatible local state, or an isolated CI/container environment. If a dependency reset is genuinely required, record the exact reason and paths in the execution log first.
 
 4. Build the two requested applications with their workspace dependencies in dependency order:
 
@@ -198,17 +205,21 @@ Use this procedure when a fresh checkout reports missing workspace declarations,
    git diff -- POC
    ```
 
-7. Rebuild and verify Docker when Docker is available:
+7. Rebuild and verify Docker when Docker is available. Use the cached build for normal validation:
 
    ```bash
    docker compose -f docker-compose.frontend.yml down --remove-orphans
-   docker compose -f docker-compose.frontend.yml build --no-cache
+   docker compose -f docker-compose.frontend.yml build
    docker compose -f docker-compose.frontend.yml up -d
    docker compose -f docker-compose.frontend.yml ps
    curl --fail http://127.0.0.1:3000/healthz
    curl --fail http://127.0.0.1:4000/healthz
    docker compose -f docker-compose.frontend.yml down
    ```
+
+   Use `build --no-cache` only to diagnose a Dockerfile, base-image or dependency-layer problem, or when a task explicitly requires a clean image. A fresh runtime means a newly recreated process/container from the current worktree; it does not require downloading all Node packages again.
+
+   Docker installs dependencies inside its isolated build image. This is required for a self-contained image, but `docker/frontend.Dockerfile` keeps manifests separate from source so unchanged dependency layers can be reused. Record `Dependency layer: REUSED` or `Dependency layer: REBUILT (<reason>)` in the task execution log based on the build output.
 
 If a failure remains, record the exact command, Node/Corepack/pnpm versions, `docker compose ps` output and relevant logs. Do not disable type checking, change dependency versions, or copy generated output into source directories to hide the failure.
 
