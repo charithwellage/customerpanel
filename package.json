@@ -15,6 +15,7 @@
     "api:generate": "node openapi/generate.mjs",
     "mock:reset": "node apps/mock-api/scripts/reset.mjs",
     "test:boundaries": "node scripts/check-boundaries.mjs",
+    "quality": "pnpm lint && pnpm typecheck && pnpm test:boundaries",
     "test": "vitest run",
     "test:contract": "vitest run packages/api-client",
     "test:integration": "vitest run packages/api-client",
