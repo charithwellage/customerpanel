@@ -66,8 +66,17 @@ test.describe('Vehicle detail share, print, and metadata', () => {
   test('accessibility scan verifies ARIA attributes and focusable elements', async ({ page }) => {
     await page.goto(`/vehicles/${detailSlug}`);
 
-    // Verify main landmarks and region accessibility
-    await expect(page.locator('article.cc-vehicle-detail')).toHaveAttribute('aria-labelledby', 'vehicle-title');
+    // The article is labelled by its own <h1>. The id is generated with useId(),
+    // so assert the relationship rather than a hardcoded value — a literal id
+    // here would be a collision risk if the component were ever rendered twice.
+    const article = page.locator('article.cc-vehicle-detail');
+    const labelledBy = await article.getAttribute('aria-labelledby');
+    expect(labelledBy).toBeTruthy();
+
+    const label = page.locator(`[id="${labelledBy}"]`);
+    await expect(label).toHaveText(/2021 Toyota Corolla Axio/i);
+    expect(await label.evaluate((el) => el.tagName)).toBe('H1');
+
     await expect(page.locator('[aria-label="Vehicle media gallery"]')).toBeVisible();
     await expect(page.locator('[aria-label="Status badges"]')).toBeVisible();
     await expect(page.locator('[aria-label="Contact options"]')).toBeVisible();

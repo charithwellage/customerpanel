@@ -1,114 +1,41 @@
 'use client';
 
 import React from 'react';
-import { VehicleService, HttpClient } from '@carchief/api-client';
 import type { VehicleDetail } from '@carchief/domain';
 import {
+  VehicleGalleryPrimitive,
   formatVehicleTitle,
   getEffectivePrice,
   getVisibleGalleryImages,
   isVehicleAvailable,
+  serializeJsonLd,
 } from '@carchief/vehicle-detail';
 
+const TOAST_DISMISS_MS = 3000;
+
+export interface VehicleDetailPageProps {
+  vehicle: VehicleDetail;
+}
+
 /**
- * VehicleDetailPage renders details for a single vehicle.
- * It handles loading, error, not-found and success states.
- * All hooks are declared unconditionally at the top level for 100% hook stability.
+ * Public vehicle detail composition.
+ *
+ * Presentational only: the route resolves the vehicle through
+ * `loadVehicleDetail` and answers 404s, so this component never fetches and has
+ * no not-found or loading branch of its own. Gallery behaviour is consumed from
+ * `@carchief/vehicle-detail` rather than reimplemented here.
  */
-export default function VehicleDetailPage({
-  idOrSlug,
-  initialVehicle = null,
-}: {
-  idOrSlug: string;
-  initialVehicle?: VehicleDetail | null;
-}) {
-  const [vehicle, setVehicle] = React.useState<VehicleDetail | null>(initialVehicle);
-  const [loading, setLoading] = React.useState(!initialVehicle);
-  const [error, setError] = React.useState<string | null>(null);
-  const [galleryIndex, setGalleryIndex] = React.useState(0);
+export default function VehicleDetailPage({ vehicle }: VehicleDetailPageProps) {
   const [copiedToast, setCopiedToast] = React.useState(false);
-  const touchStartX = React.useRef<number | null>(null);
-
-  React.useEffect(() => {
-    let cancelled = false;
-    if (initialVehicle) {
-      return;
-    }
-    setError(null);
-    const baseUrl = typeof window !== 'undefined' ? '' : (process.env.API_BASE_URL ?? 'http://127.0.0.1:4000');
-    const service = new VehicleService(new HttpClient({ baseUrl }));
-    service
-      .getVehicleDetail(idOrSlug)
-      .then((data) => {
-        if (!cancelled) {
-          setVehicle(data);
-          setLoading(false);
-        }
-      })
-      .catch((err) => {
-        if (!cancelled) {
-          console.error(err);
-          setError('Unable to load vehicle details. Please try again later.');
-          setLoading(false);
-        }
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [idOrSlug, initialVehicle]);
-
-  const vehicleId = vehicle?.id;
-  React.useEffect(() => {
-    setGalleryIndex(0);
-  }, [vehicleId]);
-
-  if (loading) {
-    return (
-      <section aria-label="Vehicle detail loading" className="cc-vehicle-detail__loading">
-        <div className="cc-spinner" role="status" aria-label="Loading vehicle details">
-          <span className="cc-spinner__ring" aria-hidden="true" />
-          <span className="sr-only">Loading&hellip;</span>
-        </div>
-      </section>
-    );
-  }
-
-  if (error) {
-    return (
-      <section aria-live="polite" className="cc-vehicle-detail__error">
-        <p role="alert" className="cc-vehicle-detail__error-text">
-          {error}
-        </p>
-        <a href="/vehicles" className="cc-vehicle-detail__back-link">
-          Back to inventory
-        </a>
-      </section>
-    );
-  }
-
-  if (!vehicle) {
-    return (
-      <section aria-live="polite" className="cc-vehicle-detail__not-found">
-        <p role="alert" className="cc-vehicle-detail__not-found-text">
-          Vehicle not found.
-        </p>
-        <a href="/vehicles" className="cc-vehicle-detail__back-link">
-          Browse all vehicles
-        </a>
-      </section>
-    );
-  }
+  const titleId = React.useId();
 
   const title = formatVehicleTitle(vehicle);
   const { priceText, isRequestPrice } = getEffectivePrice(vehicle);
   const available = isVehicleAvailable(vehicle.status);
   const isSold = vehicle.status === 'Sold';
-
   const galleryImages = getVisibleGalleryImages(vehicle.media);
-  const totalImages = galleryImages.length;
-  const activeGalleryIndex = totalImages > 0 && galleryIndex >= totalImages ? 0 : galleryIndex;
 
-  const specsRaw: { label: string; value: string | number | undefined }[] = [
+  const specRows: { label: string; value: string | number | undefined }[] = [
     { label: 'Body Style', value: vehicle.bodyStyle },
     { label: 'Fuel Type', value: vehicle.fuelType },
     { label: 'Transmission', value: vehicle.transmission },
@@ -122,63 +49,29 @@ export default function VehicleDetailPage({
     { label: 'ETD', value: vehicle.etd },
     { label: 'ETA', value: vehicle.eta },
   ];
-  const specs = specsRaw.filter(
-    (s): s is { label: string; value: string | number } =>
-      s.value !== undefined && s.value !== '',
+
+  const specs = specRows.filter(
+    (spec): spec is { label: string; value: string | number } => spec.value !== undefined && spec.value !== '',
   );
-
-  function prevImage() {
-    setGalleryIndex((i) => (i === 0 ? totalImages - 1 : i - 1));
-  }
-
-  function nextImage() {
-    setGalleryIndex((i) => (i === totalImages - 1 ? 0 : i + 1));
-  }
-
-  function handleKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
-    if (e.key === 'ArrowLeft') {
-      e.preventDefault();
-      prevImage();
-    } else if (e.key === 'ArrowRight') {
-      e.preventDefault();
-      nextImage();
-    }
-  }
-
-  function handleTouchStart(e: React.TouchEvent<HTMLDivElement>) {
-    touchStartX.current = e.touches[0]?.clientX ?? null;
-  }
-
-  function handleTouchEnd(e: React.TouchEvent<HTMLDivElement>) {
-    if (touchStartX.current === null) return;
-    const delta = (e.changedTouches[0]?.clientX ?? 0) - touchStartX.current;
-    if (Math.abs(delta) > 40) {
-      delta < 0 ? nextImage() : prevImage();
-    }
-    touchStartX.current = null;
-  }
 
   async function handleShare() {
     const url = typeof window !== 'undefined' ? window.location.href : '';
     if (typeof navigator !== 'undefined' && navigator.share) {
       try {
-        await navigator.share({
-          title,
-          text: `Check out this ${title} on CarChief!`,
-          url,
-        });
+        await navigator.share({ title, text: `Check out this ${title} on CarChief!`, url });
         return;
       } catch {
-        // Fallback to clipboard copy if user cancels or share API fails
+        // The visitor dismissed the share sheet, or the platform refused it.
+        // Fall through to the clipboard path rather than reporting a failure.
       }
     }
     if (typeof navigator !== 'undefined' && navigator.clipboard) {
       try {
         await navigator.clipboard.writeText(url);
         setCopiedToast(true);
-        setTimeout(() => setCopiedToast(false), 3000);
-      } catch (err) {
-        console.error('Clipboard copy failed', err);
+        setTimeout(() => setCopiedToast(false), TOAST_DISMISS_MS);
+      } catch (error) {
+        console.error('Clipboard copy failed', error);
       }
     }
   }
@@ -192,18 +85,12 @@ export default function VehicleDetailPage({
     name: title,
     description: `Buy ${vehicle.year} ${vehicle.make} ${vehicle.model} (${vehicle.bodyStyle ?? 'Vehicle'}). Mileage: ${vehicle.mileage ? vehicle.mileage.toLocaleString() + ' km' : 'N/A'}. Location: ${vehicle.locationStatus ?? 'In Stock'}. Stock ID: ${vehicle.slug}.`,
     vehicleModelDate: vehicle.year,
-    brand: {
-      '@type': 'Brand',
-      name: vehicle.make,
-    },
+    brand: { '@type': 'Brand', name: vehicle.make },
     model: vehicle.model,
     bodyType: vehicle.bodyStyle,
     fuelType: vehicle.fuelType,
     vehicleEngine: vehicle.engineSize
-      ? {
-          '@type': 'EngineSpecification',
-          engineDisplacement: vehicle.engineSize,
-        }
+      ? { '@type': 'EngineSpecification', engineDisplacement: vehicle.engineSize }
       : undefined,
     offers: {
       '@type': 'Offer',
@@ -215,16 +102,11 @@ export default function VehicleDetailPage({
   };
 
   return (
-    <article className="cc-vehicle-detail" aria-labelledby="vehicle-title">
-      {/* Schema.org JSON-LD Structured Data Hook */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
+    <article className="cc-vehicle-detail" aria-labelledby={titleId}>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }} />
 
-      {/* Header */}
       <header className="cc-vehicle-detail__header">
-        <h1 id="vehicle-title" className="cc-vehicle-detail__title">
+        <h1 id={titleId} className="cc-vehicle-detail__title">
           {title}
         </h1>
         <div className="cc-vehicle-detail__badge-row" aria-label="Status badges">
@@ -234,10 +116,7 @@ export default function VehicleDetailPage({
           >
             {priceText}
           </span>
-          <span
-            className={`cc-badge ${availabilityVariant}`}
-            aria-label={`Availability: ${availabilityLabel}`}
-          >
+          <span className={`cc-badge ${availabilityVariant}`} aria-label={`Availability: ${availabilityLabel}`}>
             {availabilityLabel}
           </span>
           {vehicle.discountPercent !== undefined && vehicle.discountPercent > 0 && (
@@ -247,7 +126,6 @@ export default function VehicleDetailPage({
           )}
         </div>
 
-        {/* Share & Print Utility Bar */}
         <div className="cc-vehicle-detail__utility-bar" aria-label="Page actions">
           <button
             type="button"
@@ -273,85 +151,16 @@ export default function VehicleDetailPage({
         </div>
       </header>
 
-      {/* Media Gallery */}
       <section className="cc-vehicle-detail__gallery" aria-label="Vehicle media gallery">
         <h2 className="sr-only">Media Gallery</h2>
-        {totalImages > 0 ? (
-          <div
-            className="cc-gallery"
-            role="region"
-            aria-label={`Image ${activeGalleryIndex + 1} of ${totalImages}`}
-            tabIndex={0}
-            onKeyDown={handleKeyDown}
-            onTouchStart={handleTouchStart}
-            onTouchEnd={handleTouchEnd}
-          >
-            <div className="cc-gallery__main">
-              <img
-                src={galleryImages[activeGalleryIndex]}
-                alt={`${title} — image ${activeGalleryIndex + 1} of ${totalImages}`}
-                className="cc-gallery__image"
-                loading="eager"
-              />
-              {totalImages > 1 && (
-                <>
-                  <button
-                    type="button"
-                    className="cc-gallery__nav cc-gallery__nav--prev"
-                    aria-label="Previous image"
-                    onClick={prevImage}
-                  >
-                    ‹
-                  </button>
-                  <button
-                    type="button"
-                    className="cc-gallery__nav cc-gallery__nav--next"
-                    aria-label="Next image"
-                    onClick={nextImage}
-                  >
-                    ›
-                  </button>
-                </>
-              )}
-            </div>
-            {totalImages > 1 && (
-              <div className="cc-gallery__thumbs" role="tablist" aria-label="Gallery thumbnails">
-                {galleryImages.map((src, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    role="tab"
-                    aria-selected={idx === activeGalleryIndex}
-                    aria-label={`Image ${idx + 1}`}
-                    className={`cc-gallery__thumb${idx === activeGalleryIndex ? ' cc-gallery__thumb--active' : ''}`}
-                    onClick={() => setGalleryIndex(idx)}
-                  >
-                    <img
-                      src={src}
-                      alt={`${title} thumbnail ${idx + 1}`}
-                      className="cc-gallery__thumb-img"
-                      loading="lazy"
-                    />
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        ) : (
-          <section className="cc-gallery cc-gallery--empty" aria-label="No images available">
-            <div className="cc-gallery__placeholder">
-              <p className="cc-gallery__placeholder-text">No images available for this vehicle yet.</p>
-            </div>
-          </section>
-        )}
+        <VehicleGalleryPrimitive images={galleryImages} title={title} />
       </section>
 
-      {/* Price CTA & Contact Intent Actions (PUB-28) */}
+      {/* Contact intent actions (PUB-28). These declare intent only — the site
+          never claims a message, call or hand-off completed (RULE-10). */}
       <section className="cc-vehicle-detail__cta" aria-label="Contact options">
         {isRequestPrice && (
-          <p className="cc-vehicle-detail__cta-text">
-            Contact us to get the best price for this vehicle.
-          </p>
+          <p className="cc-vehicle-detail__cta-text">Contact us to get the best price for this vehicle.</p>
         )}
         <div className="cc-vehicle-detail__actions">
           <a
@@ -380,7 +189,6 @@ export default function VehicleDetailPage({
         </div>
       </section>
 
-      {/* Specifications */}
       {specs.length > 0 && (
         <section className="cc-vehicle-detail__specs" aria-label="Vehicle specifications">
           <h2 className="cc-vehicle-detail__section-heading">Specifications</h2>

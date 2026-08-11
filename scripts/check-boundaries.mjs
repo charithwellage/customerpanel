@@ -55,9 +55,20 @@ function checkFrontendFile(filePath) {
     errors.push(`${relPath}: features must not import generated client directly; use service layer`);
   }
 
-  // Check direct service import in routes
-  if (relPath.includes('/routes/') && /from\s+['"].*services\/.*['"]/.test(content)) {
+  // Check direct service import in routes.
+  // Next.js App Router routes live under src/app/, not src/routes/, so both
+  // layouts are checked. `src/app/api/**` is excluded: those files are the
+  // server-side proxy/route handlers, which are themselves a service boundary.
+  const isRouteFile =
+    relPath.includes('/routes/') ||
+    (/\/src\/app\//.test(relPath) && !/\/src\/app\/api\//.test(relPath));
+  if (isRouteFile && /from\s+['"].*services\/.*['"]/.test(content)) {
     errors.push(`${relPath}: routes must not import service modules directly; use feature hooks`);
+  }
+  if (isRouteFile && /\b(VehicleService|HttpClient)\b/.test(content)) {
+    errors.push(
+      `${relPath}: routes must not construct API clients directly; load data through a feature hook or loader`,
+    );
   }
 
   // Check service import in ui package

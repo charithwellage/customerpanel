@@ -315,10 +315,7 @@ describe('VehicleDetailPage Component Presentation & Integration', () => {
     const { renderToStaticMarkup } = await import('react-dom/server');
 
     const html = renderToStaticMarkup(
-      React.createElement(VehicleDetailPage, {
-        idOrSlug: 'veh-1',
-        initialVehicle: basePricedVehicle,
-      })
+      React.createElement(VehicleDetailPage, { vehicle: basePricedVehicle })
     );
 
     expect(html).toContain('2021 Toyota Corolla Axio');
@@ -337,10 +334,7 @@ describe('VehicleDetailPage Component Presentation & Integration', () => {
     const { renderToStaticMarkup } = await import('react-dom/server');
 
     const html = renderToStaticMarkup(
-      React.createElement(VehicleDetailPage, {
-        idOrSlug: 'veh-req',
-        initialVehicle: requestPriceVehicle,
-      })
+      React.createElement(VehicleDetailPage, { vehicle: requestPriceVehicle })
     );
 
     expect(html).toContain('2020 Suzuki Jimny');
@@ -361,10 +355,7 @@ describe('VehicleDetailPage Component Presentation & Integration', () => {
     };
 
     const html = renderToStaticMarkup(
-      React.createElement(VehicleDetailPage, {
-        idOrSlug: 'veh-1',
-        initialVehicle: updatedFixture,
-      })
+      React.createElement(VehicleDetailPage, { vehicle: updatedFixture })
     );
 
     expect(html).toContain('2023 Lexus IS300');
@@ -383,20 +374,80 @@ describe('VehicleDetailPage Component Presentation & Integration', () => {
     } as unknown as VehicleDetail;
 
     const html = renderToStaticMarkup(
-      React.createElement(VehicleDetailPage, {
-        idOrSlug: 'veh-1',
-        initialVehicle: fixtureWithPrivateFields,
-      })
+      React.createElement(VehicleDetailPage, { vehicle: fixtureWithPrivateFields })
     );
 
     expect(html).not.toContain('SECRET_DEALER_NOTE');
     expect(html).not.toContain('STAFF_999');
   });
 
-  it('rendering VehicleGalleryPrimitive twice on one page produces no duplicate DOM id values', async () => {
+  it('cannot be broken out of the JSON-LD script element by vehicle text', async () => {
     const React = await import('react');
     const { renderToStaticMarkup } = await import('react-dom/server');
-    const { VehicleGalleryPrimitive } = await import('../features/vehicle-detail/components/VehicleGalleryPrimitive');
+
+    const hostile: VehicleDetail = {
+      ...basePricedVehicle,
+      model: 'Corolla</script><script>alert(1)</script>',
+    };
+
+    const html = renderToStaticMarkup(React.createElement(VehicleDetailPage, { vehicle: hostile }));
+
+    // Exactly one script element, and no injected one.
+    expect(html).not.toContain('<script>alert(1)</script>');
+    expect([...html.matchAll(/<script/g)]).toHaveLength(1);
+    expect(html).toContain('\\u003c');
+  });
+
+  it('renders the shared gallery primitive rather than an app-local copy', async () => {
+    const React = await import('react');
+    const { renderToStaticMarkup } = await import('react-dom/server');
+
+    const html = renderToStaticMarkup(React.createElement(VehicleDetailPage, { vehicle: basePricedVehicle }));
+
+    // Markup contract owned by @carchief/vehicle-detail's VehicleGalleryPrimitive.
+    expect(html).toContain('cc-gallery__main');
+    expect(html).toContain('cc-gallery__image');
+  });
+
+  it('renders the no-media fallback when the vehicle has no visible images', async () => {
+    const React = await import('react');
+    const { renderToStaticMarkup } = await import('react-dom/server');
+
+    const noMedia: VehicleDetail = {
+      ...basePricedVehicle,
+      media: { gallery: [], totalPicturesCount: 0 },
+    };
+
+    const html = renderToStaticMarkup(React.createElement(VehicleDetailPage, { vehicle: noMedia }));
+
+    expect(html).toContain('cc-gallery--empty');
+    expect(html).toContain('No images available for this vehicle yet.');
+  });
+
+  it('rendering two vehicle detail pages on one document produces no duplicate DOM id values', async () => {
+    const React = await import('react');
+    const { renderToStaticMarkup } = await import('react-dom/server');
+
+    const html = renderToStaticMarkup(
+      React.createElement(
+        'div',
+        null,
+        React.createElement(VehicleDetailPage, { vehicle: basePricedVehicle }),
+        React.createElement(VehicleDetailPage, { vehicle: requestPriceVehicle })
+      )
+    );
+
+    const idMatches = [...html.matchAll(/\sid="([^"]+)"/g)].map((m) => m[1]);
+    expect(idMatches.length).toBeGreaterThan(0);
+    expect(idMatches.length).toBe(new Set(idMatches).size);
+  });
+});
+
+describe('VehicleGalleryPrimitive (shared package)', () => {
+  it('renders twice on one page without emitting any duplicate DOM id', async () => {
+    const React = await import('react');
+    const { renderToStaticMarkup } = await import('react-dom/server');
+    const { VehicleGalleryPrimitive } = await import('@carchief/vehicle-detail');
 
     const html = renderToStaticMarkup(
       React.createElement(
@@ -408,11 +459,29 @@ describe('VehicleDetailPage Component Presentation & Integration', () => {
     );
 
     const idMatches = [...html.matchAll(/\sid="([^"]+)"/g)].map((m) => m[1]);
-    const uniqueIds = new Set(idMatches);
-    expect(idMatches.length).toBe(uniqueIds.size);
+    expect(idMatches.length).toBe(new Set(idMatches).size);
+  });
+
+  it('exposes accessible navigation controls only when there is more than one image', async () => {
+    const React = await import('react');
+    const { renderToStaticMarkup } = await import('react-dom/server');
+    const { VehicleGalleryPrimitive } = await import('@carchief/vehicle-detail');
+
+    const single = renderToStaticMarkup(
+      React.createElement(VehicleGalleryPrimitive, { images: ['https://example.com/1.jpg'], title: 'Car' })
+    );
+    expect(single).not.toContain('Previous image');
+    expect(single).not.toContain('role="tablist"');
+
+    const multiple = renderToStaticMarkup(
+      React.createElement(VehicleGalleryPrimitive, {
+        images: ['https://example.com/1.jpg', 'https://example.com/2.jpg'],
+        title: 'Car',
+      })
+    );
+    expect(multiple).toContain('aria-label="Previous image"');
+    expect(multiple).toContain('aria-label="Next image"');
+    expect(multiple).toContain('role="tablist"');
+    expect(multiple).toContain('aria-label="Image 1 of 2"');
   });
 });
-
-
-
-

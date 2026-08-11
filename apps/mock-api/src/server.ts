@@ -73,7 +73,6 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
     res.json(detail);
   });
 
-
   // 4. Auth identity inspection endpoint
   app.get('/api/v1/auth/me', (req: AuthenticatedRequest, res: Response) => {
     if (!req.user) {

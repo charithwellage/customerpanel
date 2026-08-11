@@ -1,7 +1,20 @@
 @import "../../../../packages/vehicle-search/src/vehicle-search.css";
+@import "../../../../packages/vehicle-detail/src/vehicle-detail.css";
 @import "../features/home/home.css";
 @import "../features/vehicle-detail/vehicle-detail.css";
 
+/*
+ * The only fallbacks retained in this file are the four below.
+ *
+ * `layout.tsx` applies the theme custom properties to <body>, so nothing above
+ * <body> — :root/<html> — can see them. These fallbacks paint the document root
+ * (visible during overscroll) and are therefore load-bearing, not a fallback
+ * palette. Everywhere else in this file the tokens resolve and fallbacks were
+ * inert, so they have been removed.
+ *
+ * Proper fix, deferred to Phase 1.9 alternate-theme parity: apply the theme
+ * variables to <html> instead, then drop these four as well.
+ */
 :root {
   font-family: var(--font-body, Inter, system-ui, sans-serif);
   color: var(--color-text-primary, #171717);
@@ -27,10 +40,10 @@ html, body {
   left: 1rem;
   z-index: 1000;
   padding: 0.5rem 1rem;
-  background: var(--color-primary, #dc2626);
-  color: var(--color-text-on-primary, #ffffff);
-  border-radius: var(--radius-sm, 0.375rem);
-  font-family: var(--font-display, sans-serif);
+  background: var(--color-primary);
+  color: var(--color-text-on-primary);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-display);
   font-weight: 700;
   text-decoration: none;
   transition: top 150ms ease;
@@ -44,7 +57,7 @@ html, body {
    Header Shell (POC Dark Theme Navigation)
    ========================================================================== */
 .header-shell {
-  background-color: var(--color-surface-dark, #0c0d10);
+  background-color: var(--color-surface-dark);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   position: sticky;
   top: 0;
@@ -70,18 +83,18 @@ html, body {
 }
 
 .brand-icon {
-  background: var(--color-primary, #dc2626);
+  background: var(--color-primary);
   color: #ffffff;
-  font-family: var(--font-display, sans-serif);
+  font-family: var(--font-display);
   font-weight: 800;
   font-size: 0.9rem;
   padding: 0.25rem 0.5rem;
-  border-radius: var(--radius-sm, 0.375rem);
+  border-radius: var(--radius-sm);
   letter-spacing: -0.05em;
 }
 
 .brand-name {
-  font-family: var(--font-display, sans-serif);
+  font-family: var(--font-display);
   font-weight: 800;
   font-size: 1.25rem;
   color: #ffffff;
@@ -96,8 +109,8 @@ html, body {
   color: #4ade80;
   border: 1px solid rgba(74, 222, 128, 0.3);
   padding: 0.15rem 0.5rem;
-  border-radius: var(--radius-pill, 999px);
-  font-family: var(--font-mono, monospace);
+  border-radius: var(--radius-pill);
+  font-family: var(--font-mono);
   font-size: 0.7rem;
   font-weight: 700;
 }
@@ -119,15 +132,15 @@ html, body {
 .nav-link {
   color: #a1a1aa;
   text-decoration: none;
-  font-family: var(--font-display, sans-serif);
+  font-family: var(--font-display);
   font-size: 0.8rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   padding: 0.4rem 0.85rem;
-  border-radius: var(--radius-pill, 999px);
+  border-radius: var(--radius-pill);
   transition: color 150ms ease, background-color 150ms ease;
-  min-height: var(--min-touch-target, 44px);
+  min-height: var(--min-touch-target);
   display: inline-flex;
   align-items: center;
 }
@@ -148,15 +161,15 @@ html, body {
   color: #ffffff;
   font-size: 1.25rem;
   padding: 0.4rem 0.75rem;
-  border-radius: var(--radius-sm, 0.375rem);
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  min-height: var(--min-touch-target, 44px);
+  min-height: var(--min-touch-target);
 }
 
 .mobile-nav-drawer {
   display: flex;
   flex-direction: column;
-  background: var(--color-surface-dark, #0c0d10);
+  background: var(--color-surface-dark);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   padding: 1rem 1.25rem;
   gap: 0.75rem;
@@ -165,12 +178,12 @@ html, body {
 .mobile-nav-link {
   color: #d4d4d8;
   text-decoration: none;
-  font-family: var(--font-display, sans-serif);
+  font-family: var(--font-display);
   font-size: 0.95rem;
   font-weight: 700;
   text-transform: uppercase;
   padding: 0.5rem 0;
-  min-height: var(--min-touch-target, 44px);
+  min-height: var(--min-touch-target);
   display: flex;
   align-items: center;
 }
@@ -180,8 +193,8 @@ html, body {
    ========================================================================== */
 .hero {
   background: radial-gradient(circle at 30% 20%, rgba(220, 38, 38, 0.25) 0%, transparent 65%),
-              linear-gradient(180deg, #180909 0%, var(--color-surface-dark, #0c0d10) 100%);
-  color: var(--color-text-on-dark, #ffffff);
+              linear-gradient(180deg, #180909 0%, var(--color-surface-dark) 100%);
+  color: var(--color-text-on-dark);
   padding: 4.5rem 1.25rem 3.5rem;
   position: relative;
   overflow: hidden;
@@ -195,7 +208,7 @@ html, body {
 
 .hero-eyebrow {
   display: inline-block;
-  font-family: var(--font-mono, monospace);
+  font-family: var(--font-mono);
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.1em;
@@ -204,12 +217,12 @@ html, body {
   background: rgba(234, 88, 12, 0.12);
   border: 1px solid rgba(234, 88, 12, 0.3);
   padding: 0.35rem 0.85rem;
-  border-radius: var(--radius-pill, 999px);
+  border-radius: var(--radius-pill);
   margin-bottom: 1rem;
 }
 
 .hero-title {
-  font-family: var(--font-display, sans-serif);
+  font-family: var(--font-display);
   font-size: clamp(2.2rem, 5vw, 3.8rem);
   font-weight: 800;
   line-height: 1.08;
@@ -244,12 +257,12 @@ html, body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: var(--min-touch-target, 44px);
+  min-height: var(--min-touch-target);
   border: 0;
-  border-radius: var(--radius-md, 0.5rem);
+  border-radius: var(--radius-md);
   padding: 0.8rem 1.5rem;
   text-decoration: none;
-  font-family: var(--font-display, sans-serif);
+  font-family: var(--font-display);
   font-weight: 700;
   font-size: 0.9rem;
   letter-spacing: 0.03em;
@@ -258,18 +271,18 @@ html, body {
 }
 
 .primary {
-  background: var(--color-primary, #dc2626);
-  color: var(--color-text-on-primary, #ffffff);
+  background: var(--color-primary);
+  color: var(--color-text-on-primary);
 }
 
 .primary:hover {
-  background: var(--color-primary-hover, #b91c1c);
+  background: var(--color-primary-hover);
 }
 
 .secondary {
-  background: var(--color-surface-elevated, #ffffff);
-  color: var(--color-text-primary, #171717);
-  border: 1px solid var(--color-border, #e5e5e5);
+  background: var(--color-surface-elevated);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
 }
 
 .hero-btn-primary {
@@ -298,7 +311,7 @@ html, body {
   gap: 1.25rem;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: var(--radius-lg, 0.75rem);
+  border-radius: var(--radius-lg);
   padding: 1.5rem;
 }
 
@@ -314,7 +327,7 @@ html, body {
 }
 
 .value-strip-title {
-  font-family: var(--font-display, sans-serif);
+  font-family: var(--font-display);
   font-weight: 700;
   font-size: 0.85rem;
   letter-spacing: 0.05em;
@@ -341,28 +354,28 @@ html, body {
 .theme-switcher {
   position: fixed;
   z-index: 100;
-  top: var(--spacing-sm, 0.5rem);
-  right: var(--spacing-sm, 0.5rem);
+  top: var(--spacing-sm);
+  right: var(--spacing-sm);
   display: flex;
-  gap: var(--spacing-xs, 0.25rem);
+  gap: var(--spacing-xs);
   align-items: center;
-  min-height: var(--min-touch-target, 44px);
+  min-height: var(--min-touch-target);
   padding: 0.25rem 0.75rem;
-  background: var(--color-surface-elevated, #ffffff);
-  border: 1px solid var(--color-border, #e5e5e5);
-  border-radius: var(--radius-pill, 999px);
-  color: var(--color-text-secondary, #525252);
-  font-family: var(--font-mono, monospace);
-  font-size: var(--font-size-xs, 0.75rem);
-  box-shadow: var(--shadow-md, 0 4px 16px rgba(0,0,0,0.1));
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  color: var(--color-text-secondary);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  box-shadow: var(--shadow-md);
 }
 
 .theme-switcher select {
-  min-height: var(--min-touch-target, 44px);
+  min-height: var(--min-touch-target);
   border: 0;
-  border-radius: var(--radius-sm, 0.375rem);
+  border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--color-text-primary, #171717);
+  color: var(--color-text-primary);
   font: inherit;
   cursor: pointer;
 }
@@ -373,7 +386,7 @@ button:focus-visible,
 input:focus-visible,
 select:focus-visible,
 [tabindex="0"]:focus-visible {
-  outline: var(--focus-ring-width, 3px) solid var(--color-focus, #dc2626);
+  outline: var(--focus-ring-width) solid var(--color-focus);
   outline-offset: 2px;
 }
 
@@ -389,42 +402,42 @@ select:focus-visible,
 .badge, .cc-badge {
   display: inline-block;
   padding: 0.2rem 0.5rem;
-  border-radius: var(--radius-pill, 999px);
-  font-family: var(--font-mono, monospace);
+  border-radius: var(--radius-pill);
+  font-family: var(--font-mono);
   font-size: 0.8rem;
   font-weight: 700;
 }
 
 .badge, .cc-badge-success {
-  background: var(--color-success-surface, #dcfce7);
-  color: var(--color-success, #166534);
+  background: var(--color-success-surface);
+  color: var(--color-success);
 }
 
 .cc-badge-warning {
-  background: var(--color-warning-surface, #fef3c7);
-  color: var(--color-warning, #92400e);
+  background: var(--color-warning-surface);
+  color: var(--color-warning);
 }
 
 .cc-badge-error {
-  background: var(--color-error-surface, #fee2e2);
-  color: var(--color-error, #b91c1c);
+  background: var(--color-error-surface);
+  color: var(--color-error);
 }
 
 .cc-badge-info {
-  background: var(--color-info-surface, #dbeafe);
-  color: var(--color-info, #1d4ed8);
+  background: var(--color-info-surface);
+  color: var(--color-info);
 }
 
 .cc-badge-neutral {
-  background: var(--color-neutral-surface, #f5f5f5);
-  color: var(--color-text-secondary, #525252);
+  background: var(--color-neutral-surface);
+  color: var(--color-text-secondary);
 }
 
 /* ==========================================================================
    Footer Shell (POC Dark Theme Footer)
    ========================================================================== */
 .footer-shell {
-  background-color: var(--color-surface-dark, #0c0d10);
+  background-color: var(--color-surface-dark);
   color: #a1a1aa;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   padding: 4rem 1.25rem 2rem;
@@ -447,7 +460,7 @@ select:focus-visible,
 }
 
 .footer-tagline {
-  font-family: var(--font-mono, monospace);
+  font-family: var(--font-mono);
   font-size: 0.75rem;
   font-weight: 700;
   color: #ea580c;
@@ -465,7 +478,7 @@ select:focus-visible,
 
 .footer-links-col h4,
 .footer-security-col h4 {
-  font-family: var(--font-display, sans-serif);
+  font-family: var(--font-display);
   font-size: 0.85rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -509,8 +522,8 @@ select:focus-visible,
   color: #f87171;
   border: 1px solid rgba(239, 68, 68, 0.2);
   padding: 0.35rem 0.75rem;
-  border-radius: var(--radius-sm, 0.375rem);
-  font-family: var(--font-mono, monospace);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
   font-size: 0.75rem;
   font-weight: 700;
 }
@@ -534,7 +547,7 @@ select:focus-visible,
 }
 
 .footer-protocol {
-  font-family: var(--font-mono, monospace);
+  font-family: var(--font-mono);
 }
 
 /* Media Queries & Responsive Adaptations */

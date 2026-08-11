@@ -4,9 +4,34 @@ import {
   isVehicleAvailable,
   getEffectivePrice,
   getVisibleGalleryImages,
+  serializeJsonLd,
   type VehicleDetail,
   type CategorizedPublicMedia,
 } from '../index.js';
+
+describe('serializeJsonLd', () => {
+  it('escapes a </script> breakout attempt in vehicle-supplied text', () => {
+    const payload = { name: 'Toyota</script><script>alert(1)</script>' };
+    const serialized = serializeJsonLd(payload);
+
+    expect(serialized).not.toContain('</script>');
+    expect(serialized).not.toContain('<script>');
+    expect(serialized).toContain('\\u003c');
+  });
+
+  it('escapes angle brackets and ampersands without changing the parsed value', () => {
+    const payload = { name: 'A & B <tag>', nested: { note: '5 > 3' } };
+    const serialized = serializeJsonLd(payload);
+
+    expect(serialized).not.toMatch(/[<>&]/);
+    expect(JSON.parse(serialized)).toEqual(payload);
+  });
+
+  it('round-trips an ordinary payload unchanged', () => {
+    const payload = { '@type': 'Vehicle', name: '2021 Toyota Corolla Axio', price: 8500 };
+    expect(JSON.parse(serializeJsonLd(payload))).toEqual(payload);
+  });
+});
 
 describe('Vehicle Detail Package Unit Tests', () => {
   it('formats vehicle title correctly', () => {
@@ -82,5 +107,3 @@ describe('Vehicle Detail Package Unit Tests', () => {
     expect(getVisibleGalleryImages(media)).toEqual(['https://example.com/japan1.jpg']);
   });
 });
-
-

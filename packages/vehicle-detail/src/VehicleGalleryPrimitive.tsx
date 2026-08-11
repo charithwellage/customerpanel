@@ -1,56 +1,76 @@
-import React, { useState, useRef } from 'react';
+import React from 'react';
 
 export interface VehicleGalleryPrimitiveProps {
   images: string[];
   title: string;
+  /** Minimum horizontal travel, in pixels, before a touch gesture counts as a swipe. */
+  swipeThresholdPx?: number;
 }
 
-export function VehicleGalleryPrimitive({ images, title }: VehicleGalleryPrimitiveProps) {
-  const [galleryIndex, setGalleryIndex] = useState(0);
-  const touchStartX = useRef<number | null>(null);
+const DEFAULT_SWIPE_THRESHOLD_PX = 40;
+
+/**
+ * Accessible vehicle media gallery shared by every CarChief application.
+ *
+ * Applications supply the already-projected, visibility-filtered image list; this
+ * primitive owns only presentation and interaction. It emits no fixed DOM `id`
+ * and nests no interactive controls, so it is safe to render more than once on a
+ * page.
+ */
+export function VehicleGalleryPrimitive({
+  images,
+  title,
+  swipeThresholdPx = DEFAULT_SWIPE_THRESHOLD_PX,
+}: VehicleGalleryPrimitiveProps) {
+  const [galleryIndex, setGalleryIndex] = React.useState(0);
+  const touchStartX = React.useRef<number | null>(null);
 
   const totalImages = images.length;
   const activeIndex = totalImages > 0 && galleryIndex >= totalImages ? 0 : galleryIndex;
 
-  if (totalImages === 0) {
-    return (
-      <section className="cc-gallery cc-gallery--empty" aria-label="No images available">
-        <div className="cc-gallery__placeholder">
-          <p className="cc-gallery__placeholder-text">No images available for this vehicle yet.</p>
-        </div>
-      </section>
-    );
-  }
+  const prevImage = React.useCallback(() => {
+    setGalleryIndex((i) => (i === 0 ? totalImages - 1 : i - 1));
+  }, [totalImages]);
 
-  function prevImage() {
-    setGalleryIndex((i: number) => (i === 0 ? totalImages - 1 : i - 1));
-  }
+  const nextImage = React.useCallback(() => {
+    setGalleryIndex((i) => (i === totalImages - 1 ? 0 : i + 1));
+  }, [totalImages]);
 
-  function nextImage() {
-    setGalleryIndex((i: number) => (i === totalImages - 1 ? 0 : i + 1));
-  }
-
-  function handleKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
-    if (e.key === 'ArrowLeft') {
-      e.preventDefault();
+  function handleKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
       prevImage();
-    } else if (e.key === 'ArrowRight') {
-      e.preventDefault();
+    } else if (event.key === 'ArrowRight') {
+      event.preventDefault();
       nextImage();
     }
   }
 
-  function handleTouchStart(e: React.TouchEvent<HTMLDivElement>) {
-    touchStartX.current = e.touches[0]?.clientX ?? null;
+  function handleTouchStart(event: React.TouchEvent<HTMLDivElement>) {
+    touchStartX.current = event.touches[0]?.clientX ?? null;
   }
 
-  function handleTouchEnd(e: React.TouchEvent<HTMLDivElement>) {
+  function handleTouchEnd(event: React.TouchEvent<HTMLDivElement>) {
     if (touchStartX.current === null) return;
-    const delta = (e.changedTouches[0]?.clientX ?? 0) - touchStartX.current;
-    if (Math.abs(delta) > 40) {
-      delta < 0 ? nextImage() : prevImage();
+    const delta = (event.changedTouches[0]?.clientX ?? 0) - touchStartX.current;
+    if (Math.abs(delta) > swipeThresholdPx) {
+      if (delta < 0) {
+        nextImage();
+      } else {
+        prevImage();
+      }
     }
     touchStartX.current = null;
+  }
+
+  if (totalImages === 0) {
+    return (
+      <div className="cc-gallery cc-gallery--empty">
+        <div className="cc-gallery__placeholder">
+          <p className="cc-gallery__placeholder-text">No images available for this vehicle yet.</p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -78,7 +98,7 @@ export function VehicleGalleryPrimitive({ images, title }: VehicleGalleryPrimiti
               aria-label="Previous image"
               onClick={prevImage}
             >
-              ‹
+              <span aria-hidden="true">&lsaquo;</span>
             </button>
             <button
               type="button"
@@ -86,7 +106,7 @@ export function VehicleGalleryPrimitive({ images, title }: VehicleGalleryPrimiti
               aria-label="Next image"
               onClick={nextImage}
             >
-              ›
+              <span aria-hidden="true">&rsaquo;</span>
             </button>
           </>
         )}
@@ -95,7 +115,7 @@ export function VehicleGalleryPrimitive({ images, title }: VehicleGalleryPrimiti
         <div className="cc-gallery__thumbs" role="tablist" aria-label="Gallery thumbnails">
           {images.map((src, idx) => (
             <button
-              key={idx}
+              key={`${src}-${idx}`}
               type="button"
               role="tab"
               aria-selected={idx === activeIndex}

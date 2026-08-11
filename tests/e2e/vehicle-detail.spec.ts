@@ -4,9 +4,6 @@ const detailSlug = '2021-toyota-corolla-axio-veh-1';
 
 test.describe('Vehicle detail page', () => {
   test('renders the vehicle detail page with gallery and price indicators', async ({ page }) => {
-    page.on('console', (msg) => console.log('PAGE LOG:', msg.type(), msg.text()));
-    page.on('pageerror', (err) => console.log('PAGE ERROR:', err.message));
-    page.on('response', (res) => console.log('RESPONSE:', res.status(), res.url()));
     await page.goto(`/vehicles/${detailSlug}`);
 
     await expect(page.locator('h1')).toContainText('2021 Toyota Corolla Axio');
@@ -43,11 +40,38 @@ test.describe('Vehicle detail page', () => {
     await expect(page.getByText('No images available for this vehicle yet.')).toBeVisible();
   });
 
-  test('renders not-found state for unknown vehicle slug or ID', async ({ page }) => {
-    await page.goto('/vehicles/non-existent-vehicle-slug-999');
+  test('returns a real 404 for an unknown vehicle slug, not a soft 404', async ({ page }) => {
+    const response = await page.goto('/vehicles/non-existent-vehicle-slug-999');
+
+    expect(response?.status()).toBe(404);
     await expect(page.locator('.cc-vehicle-detail__not-found-text')).toContainText('Vehicle not found.');
     await expect(page.getByRole('link', { name: /Browse all vehicles/i })).toBeVisible();
   });
 
-});
+  test('returns 404 for a fabricated slug that merely ends with a real vehicle id', async ({ page }) => {
+    // Guards the removed suffix matcher: these must not resolve to veh-1.
+    for (const fabricated of ['totally-bogus-junk-veh-1', 'XYZ-veh-1']) {
+      const response = await page.goto(`/vehicles/${fabricated}`);
+      expect(response?.status(), `expected 404 for /vehicles/${fabricated}`).toBe(404);
+    }
+  });
 
+  test('permanently redirects a bare id alias to the canonical slug', async ({ page }) => {
+    const response = await page.goto('/vehicles/veh-1');
+
+    expect(response?.status()).toBe(200);
+    expect(new URL(page.url()).pathname).toBe(`/vehicles/${detailSlug}`);
+
+    const redirectStatus = response?.request().redirectedFrom()?.response();
+    expect((await redirectStatus)?.status()).toBe(308);
+  });
+
+  test('declares the canonical URL of the resolved vehicle, never the requested alias', async ({ page }) => {
+    await page.goto('/vehicles/veh-1');
+
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+      'href',
+      new RegExp(`/vehicles/${detailSlug}$`),
+    );
+  });
+});

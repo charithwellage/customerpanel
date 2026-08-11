@@ -431,6 +431,17 @@ function projectPublicVehicle(v: VehicleRecord): VehicleDomainSummary {
   };
 }
 
+/**
+ * Demo-only stand-in for the country eligibility projection.
+ *
+ * The real projection is server-authoritative and per-vehicle (PUB-25), but the
+ * demo record carries no eligibility source data and `DEC-PUB-LEGACY-PARITY` is
+ * still OPEN. This constant is therefore an explicitly named placeholder, not a
+ * business rule: it must be replaced with per-vehicle data before any screen
+ * makes an eligibility claim to a visitor.
+ */
+export const DEMO_COUNTRY_ELIGIBILITY_PLACEHOLDER = ['UG', 'KE', 'TZ', 'RW', 'SS'] as const;
+
 export function buildVehicleDetail(v: VehicleRecord): VehicleDetail {
   const slug = generateVehicleSlug(v.year, v.make, v.model, v.id);
   const isRequestPrice = Boolean(v.requestPrice || !v.priceUsd || v.priceUsd <= 0);
@@ -443,7 +454,6 @@ export function buildVehicleDetail(v: VehicleRecord): VehicleDetail {
 
   const gallery = v.images ? [...v.images] : [];
   const locStatus = resolveLocationStatus(v);
-  const showJapan = locStatus === 'In Japan';
 
   return {
     id: v.id,
@@ -470,15 +480,19 @@ export function buildVehicleDetail(v: VehicleRecord): VehicleDetail {
     etd: v.etd,
     eta: v.eta,
     featured: v.featured,
-    countryEligibility: ['UG', 'KE', 'TZ', 'RW', 'SS'],
+    countryEligibility: [...DEMO_COUNTRY_ELIGIBILITY_PLACEHOLDER],
+    // The demo record carries a single uncategorized `images` array, so only the
+    // general gallery is populated. Auction/Japan/Durban categories stay empty
+    // with their visibility flags false rather than re-labelling gallery images
+    // as a category the source system never asserted (PUB-25).
     media: {
       gallery,
       auctionPictures: [],
       auctionSheet: [],
-      japanPictures: showJapan ? gallery : [],
+      japanPictures: [],
       durbanPictures: [],
       showAuctionPictures: false,
-      showJapanPictures: showJapan,
+      showJapanPictures: false,
       showDurbanPictures: false,
       totalPicturesCount: gallery.length,
     },
@@ -496,9 +510,8 @@ export function findVehicleRecord(vehicles: VehicleRecord[], idOrSlug: string): 
   const matchSlug = vehicles.find((v) => generateVehicleSlug(v.year, v.make, v.model, v.id) === norm);
   if (matchSlug) return matchSlug;
 
-  const matchSuffix = vehicles.find((v) => norm.endsWith(`-${v.id.toLowerCase()}`) || norm === v.id.toLowerCase());
-  if (matchSuffix) return matchSuffix;
-
+  // Deliberately no suffix/partial fallback: any string ending in a known id would
+  // otherwise resolve to that vehicle, producing unlimited duplicate public URLs.
   return undefined;
 }
 
@@ -909,7 +922,6 @@ class PostgresStore implements DemoStore {
     if (!record) return null;
     return buildVehicleDetail(record);
   }
-
 
   private async getRawVehicles(): Promise<VehicleRecord[]> {
     const result = await this.pool.query(

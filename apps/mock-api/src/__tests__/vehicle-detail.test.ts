@@ -36,15 +36,44 @@ describe('Vehicle Detail API & Contract Tests', () => {
     expect(detail?.id).toBe('veh-1');
   });
 
-  it('fetches vehicle detail via renamed/custom slug suffix fallback', async () => {
-    const detail = await store.getVehicleDetail('custom-renamed-title-veh-1');
-    expect(detail).not.toBeNull();
-    expect(detail?.id).toBe('veh-1');
-  });
-
   it('returns null for unknown vehicle ID or slug', async () => {
     const detail = await store.getVehicleDetail('unknown-vehicle-999');
     expect(detail).toBeNull();
+  });
+
+  it('does not resolve an arbitrary string that merely ends with a known vehicle id', async () => {
+    // A suffix fallback here would mint unlimited duplicate public URLs for one
+    // vehicle, each able to declare itself canonical (PUB-10, PUB-11).
+    for (const fabricated of [
+      'custom-renamed-title-veh-1',
+      'totally-bogus-junk-veh-1',
+      'XYZ-veh-1',
+      '-veh-1',
+    ]) {
+      expect(await store.getVehicleDetail(fabricated)).toBeNull();
+    }
+  });
+
+  it('resolves only the exact id, chassis number and canonical slug', async () => {
+    const byId = await store.getVehicleDetail('veh-1');
+    const byChassis = await store.getVehicleDetail('NZE141-1234567');
+    const bySlug = await store.getVehicleDetail('2021-toyota-corolla-axio-veh-1');
+
+    expect(byId?.id).toBe('veh-1');
+    expect(byChassis?.id).toBe('veh-1');
+    expect(bySlug?.id).toBe('veh-1');
+    expect(bySlug?.slug).toBe('2021-toyota-corolla-axio-veh-1');
+  });
+
+  it('does not re-label gallery images as an uncategorized media category', async () => {
+    const detail = await store.getVehicleDetail('veh-1');
+    expect(detail?.media.gallery.length).toBeGreaterThan(0);
+    expect(detail?.media.japanPictures).toEqual([]);
+    expect(detail?.media.auctionPictures).toEqual([]);
+    expect(detail?.media.durbanPictures).toEqual([]);
+    expect(detail?.media.showJapanPictures).toBe(false);
+    expect(detail?.media.showAuctionPictures).toBe(false);
+    expect(detail?.media.showDurbanPictures).toBe(false);
   });
 
   it('STRICTLY PREVENTS private field leakage (internalNotes, staffOwnerId, etc.)', async () => {

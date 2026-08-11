@@ -267,4 +267,3 @@ describe('API Client & Contract Boundary Tests', () => {
     expect(detail).toBeNull();
   });
 });
-

@@ -34,4 +34,3 @@ describe('Domain Package Unit Tests', () => {
     expect(slug).toBe('2021-toyota-corolla-axio-veh-1');
   });
 });
-

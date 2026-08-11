@@ -182,4 +182,3 @@ describe('Vehicle Query, Dynamic Filters, Sorting, and Pagination Tests (PUB-04.
     expect(res.total).toBe(15);
   });
 });
-
