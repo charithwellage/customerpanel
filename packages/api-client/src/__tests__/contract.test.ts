@@ -455,4 +455,134 @@ describe('API Client & Contract Boundary Tests', () => {
       }
     });
   });
+
+  describe('EnquiryService (PUB-13, PUB-15, D01-P05-T004)', () => {
+    it('submits a general enquiry and receives a receipt confirmation', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        status: 201,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => ({
+          id: 'enq-1',
+          receivedAt: '2026-08-11T12:00:00.000Z',
+          status: 'received',
+          duplicate: false,
+        }),
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { EnquiryService } = await import('../services/enquiries.js');
+      const service = new EnquiryService(client);
+
+      const receipt = await service.submit({
+        name: 'Jane Doe',
+        email: 'jane@example.com',
+        phone: '+256700111222',
+        message: 'General enquiry about your inventory.',
+      });
+      expect(receipt.status).toBe('received');
+      expect(receipt.duplicate).toBe(false);
+      // RULE-09/RULE-10: an enquiry receipt never carries a monetary total or
+      // a claim of staff notification/contact.
+      expect(receipt).not.toHaveProperty('total');
+      expect(JSON.stringify(receipt).toLowerCase()).not.toContain('notified');
+    });
+
+    it('submits a quotation enquiry carrying a server-resolved estimate snapshot with no monetary total', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        status: 201,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => ({
+          id: 'enq-2',
+          receivedAt: '2026-08-11T12:05:00.000Z',
+          status: 'received',
+          duplicate: false,
+          vehicleSlug: '2021-toyota-corolla-axio-veh-1',
+          estimateSnapshot: {
+            destinationCode: 'UG',
+            portCode: 'MBA',
+            rateStatus: 'active',
+            currency: 'USD',
+            rateEffectiveFrom: '2026-06-01T00:00:00.000Z',
+            message: 'Shipping estimate unavailable — pending a confirmed freight rate.',
+          },
+        }),
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { EnquiryService } = await import('../services/enquiries.js');
+      const service = new EnquiryService(client);
+
+      const receipt = await service.submit({
+        name: 'Amara Okoye',
+        email: 'amara@example.com',
+        phone: '+256700555666',
+        message: 'Please confirm shipping cost to Uganda.',
+        vehicleSlug: '2021-toyota-corolla-axio-veh-1',
+        destinationCode: 'UG',
+        portCode: 'MBA',
+      });
+      expect(receipt.estimateSnapshot?.destinationCode).toBe('UG');
+      expect(receipt.estimateSnapshot).not.toHaveProperty('total');
+      expect(receipt.estimateSnapshot).not.toHaveProperty('amount');
+    });
+
+    it('normalizes a 200 duplicate receipt distinct from a fresh submission', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => ({
+          id: 'enq-1',
+          receivedAt: '2026-08-11T12:00:00.000Z',
+          status: 'received',
+          duplicate: true,
+        }),
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { EnquiryService } = await import('../services/enquiries.js');
+      const service = new EnquiryService(client);
+
+      const receipt = await service.submit({
+        name: 'Jane Doe',
+        email: 'jane@example.com',
+        phone: '+256700111222',
+        message: 'General enquiry about your inventory.',
+      });
+      expect(receipt.duplicate).toBe(true);
+    });
+
+    it('normalizes a 400 validation error for a missing required field with a field reference', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 400,
+        statusText: 'Bad Request',
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => ({
+          statusCode: 400,
+          message: 'Email is required',
+          correlationId: 'corr-test-enquiry-1',
+          field: 'email',
+        }),
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { EnquiryService } = await import('../services/enquiries.js');
+      const service = new EnquiryService(client);
+
+      try {
+        await service.submit({ name: 'Jane Doe', email: '', phone: '+256700111222', message: 'Hello' });
+        expect.fail('Should have thrown NormalizedApiError');
+      } catch (err: unknown) {
+        expect(err).toBeInstanceOf(NormalizedApiError);
+        expect((err as NormalizedApiError).statusCode).toBe(400);
+      }
+    });
+  });
 });

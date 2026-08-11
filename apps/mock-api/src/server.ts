@@ -2,8 +2,8 @@ import express, { Request, Response, NextFunction, Express } from 'express';
 import { readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { parseDemoJwtToken, JwtClaims, hasPermission } from '@carchief/domain';
-import type { FreightEstimateRequest } from '@carchief/domain';
-import { createStore, type DemoStore, FreightRequestError } from './store.js';
+import type { FreightEstimateRequest, EnquiryRequest } from '@carchief/domain';
+import { createStore, type DemoStore, FreightRequestError, EnquiryRequestError } from './store.js';
 
 export interface AuthenticatedRequest extends Request {
   user?: JwtClaims;
@@ -95,6 +95,28 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
       res.json(estimate);
     } catch (error) {
       if (error instanceof FreightRequestError) {
+        res.status(error.statusCode).json({
+          statusCode: error.statusCode,
+          message: error.message,
+          correlationId: `corr-${error.statusCode}-${Date.now()}`,
+          ...(error.field ? { field: error.field } : {}),
+        });
+        return;
+      }
+      throw error;
+    }
+  });
+
+  // 3g. Quotation enquiry submission (Public) — PUB-13, PUB-15, D01-P05-T004.
+  // Independent of DEC-PUB-FREIGHT-MODEL/DEC-PUB-CITY-DELIVERY (D01-ASM-001):
+  // a visitor can submit an enquiry about a vehicle, a shipping destination,
+  // or neither, with no computed total ever attached to it (RULE-09).
+  app.post('/api/v1/enquiries', async (req: Request, res: Response) => {
+    try {
+      const enquiry = await store.createEnquiry((req.body ?? {}) as EnquiryRequest);
+      res.status(enquiry.duplicate ? 200 : 201).json(enquiry);
+    } catch (error) {
+      if (error instanceof EnquiryRequestError) {
         res.status(error.statusCode).json({
           statusCode: error.statusCode,
           message: error.message,

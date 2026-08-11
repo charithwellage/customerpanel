@@ -61,8 +61,8 @@
 | [D01-P05-T001](delivery_01/phase_05/D01-P05-T001.md) | Add destinations, rates and freight estimate services | COMPLETE | self_ai | not_applicable | Claude Code | `feat_delivery01_phase_05` | D01-P05-CODE_REVIEW (NOT_STARTED) | D01-P05-G001 | P05-A | 2026-08-11T17:39:20.468Z |
 | [D01-P05-T002](delivery_01/phase_05/D01-P05-T002.md) | Implement approved freight calculations | COMPLETE | self_ai | not_applicable | Claude Code | `feat_delivery01_phase_05` | D01-P05-CODE_REVIEW (NOT_STARTED) | D01-P05-T001 | P05-B | 2026-08-11T17:47:49.728Z |
 | [D01-P05-T003](delivery_01/phase_05/D01-P05-T003.md) | Build freight estimate selection and explanation UI | COMPLETE | self_ai | playwright_mcp | Claude Code | `feat_delivery01_phase_05` | D01-P05-CODE_REVIEW (NOT_STARTED) | D01-P05-T002 | P05-C | 2026-08-11T18:15:01.623Z |
-| [D01-P05-T004](delivery_01/phase_05/D01-P05-T004.md) | Add freight quotation enquiry and accept the phase | READY | self_ai | playwright_mcp | — | `feat_delivery01_phase_05` | D01-P05-CODE_REVIEW (NOT_STARTED) | D01-P05-T003 | P05-D | — |
-| [D01-P05-CODE_REVIEW](delivery_01/phase_05/D01-P05-CODE_REVIEW.md) | Phase 1.5 PR code review and tech-lead approval | NOT_STARTED | phase_manual | not_applicable | — | `feat_delivery01_phase_05` | D01-P05-CODE_REVIEW (NOT_STARTED) | D01-P05-T004 | P05-REVIEW | — |
+| [D01-P05-T004](delivery_01/phase_05/D01-P05-T004.md) | Add freight quotation enquiry and accept the phase | COMPLETE | self_ai | playwright_mcp | Claude Code | `feat_delivery01_phase_05` | D01-P05-CODE_REVIEW (NOT_STARTED) | D01-P05-T003 | P05-D | 2026-08-11T19:03:06.594Z |
+| [D01-P05-CODE_REVIEW](delivery_01/phase_05/D01-P05-CODE_REVIEW.md) | Phase 1.5 PR code review and tech-lead approval | READY | phase_manual | not_applicable | — | `feat_delivery01_phase_05` | D01-P05-CODE_REVIEW (NOT_STARTED) | D01-P05-T004 | P05-REVIEW | — |
 | [D01-P06-T001](delivery_01/phase_06/D01-P06-T001.md) | Add lead and enquiry contracts with persistent mock behavior | NOT_STARTED | self_ai | not_applicable | — | `feat_delivery01_phase_06` | D01-P06-CODE_REVIEW (NOT_STARTED) | D01-P05-CODE_REVIEW | P06-A | — |
 | [D01-P06-T002](delivery_01/phase_06/D01-P06-T002.md) | Build accessible contact and vehicle enquiry forms | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery01_phase_06` | D01-P06-CODE_REVIEW (NOT_STARTED) | D01-P06-T001 | P06-B | — |
 | [D01-P06-T003](delivery_01/phase_06/D01-P06-T003.md) | Build account entry and unauthenticated reservation guidance | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery01_phase_06` | D01-P06-CODE_REVIEW (NOT_STARTED) | D01-P06-T001 | P06-B | — |
@@ -136,7 +136,7 @@
 
 ## Current execution frontier
 
-- Sequential next: D01-P05-T004 — Add freight quotation enquiry and accept the phase (NOT_STARTED)
+- Sequential next: D01-P05-CODE_REVIEW — Phase 1.5 PR code review and tech-lead approval (NOT_STARTED)
 - Optional same-group parallel tasks: None
 - Downstream work waits for COMPLETE or SUPERSEDED; IN_REVIEW is not complete.
 - Later tasks cannot be bypassed; use taskctl sequence TASK-ID for the exact blocker.

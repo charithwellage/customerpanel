@@ -150,6 +150,38 @@ export interface FreightEstimateResponse {
   rateEffectiveTo?: string;
   message: string;
 }
+
+// Phase 1.5: quotation enquiry (PUB-13, PUB-15, D01-P05-T004). Independent of
+// DEC-PUB-FREIGHT-MODEL/DEC-PUB-CITY-DELIVERY; carries no monetary total.
+
+export interface EnquiryEstimateSnapshot {
+  destinationCode: string;
+  portCode: string;
+  rateStatus: 'active' | 'stale' | 'no_rate';
+  currency?: string;
+  rateEffectiveFrom?: string;
+  rateEffectiveTo?: string;
+  message: string;
+}
+
+export interface EnquiryRequest {
+  name: string;
+  email: string;
+  phone: string;
+  message: string;
+  vehicleSlug?: string;
+  destinationCode?: string;
+  portCode?: string;
+}
+
+export interface EnquiryResponse {
+  id: string;
+  receivedAt: string;
+  status: 'received';
+  duplicate: boolean;
+  vehicleSlug?: string;
+  estimateSnapshot?: EnquiryEstimateSnapshot;
+}
 `;
 
 mkdirSync(dirname(outputPath), { recursive: true });

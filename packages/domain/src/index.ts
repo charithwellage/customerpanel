@@ -230,6 +230,65 @@ export interface FreightEstimateResponse {
   message: string;
 }
 
+// --- Phase 1.5: quotation enquiry (PUB-13, PUB-15, D01-P05-T004) ---
+//
+// The enquiry flow does not depend on `DEC-PUB-FREIGHT-MODEL` /
+// `DEC-PUB-CITY-DELIVERY` (D01-ASM-001): a visitor can submit an enquiry
+// about a specific vehicle, a specific destination, or neither, whether or
+// not a priced freight estimate exists yet. When a destination/port pair is
+// supplied the mock captures a snapshot of the current, server-resolved
+// rate-lookup status alongside the enquiry for audit context — never a
+// client-supplied or fabricated figure (RULE-09).
+
+/**
+ * Server-resolved freight rate-lookup context captured at the moment an
+ * enquiry naming a destination/port pair is received. Informational only —
+ * it carries no monetary total, matching `FreightEstimateResponse`.
+ */
+export interface EnquiryEstimateSnapshot {
+  destinationCode: string;
+  portCode: string;
+  rateStatus: FreightRateStatus;
+  currency?: string;
+  rateEffectiveFrom?: string;
+  rateEffectiveTo?: string;
+  message: string;
+}
+
+/**
+ * A visitor-submitted enquiry (PUB-13): a general enquiry, an enquiry about a
+ * specific vehicle, or a quotation enquiry naming a shipping destination —
+ * any combination of `vehicleSlug`/`destinationCode`+`portCode` is valid, and
+ * none is required beyond the contact fields themselves.
+ */
+export interface EnquiryRequest {
+  name: string;
+  email: string;
+  phone: string;
+  message: string;
+  vehicleSlug?: string;
+  destinationCode?: string;
+  portCode?: string;
+}
+
+/**
+ * Receipt confirmation returned after a successful submission (PUB-15). This
+ * confirms only that the enquiry was received and persisted — it never
+ * claims a staff member was notified, contacted, or that any downstream
+ * action occurred (RULE-10). `duplicate` is true when an identical enquiry
+ * (same contact, vehicle, destination and message) was already on file and
+ * this submission was not persisted again, rather than silently discarded
+ * (RULE-08) — the visitor still receives their original receipt.
+ */
+export interface EnquiryResponse {
+  id: string;
+  receivedAt: string;
+  status: 'received';
+  duplicate: boolean;
+  vehicleSlug?: string;
+  estimateSnapshot?: EnquiryEstimateSnapshot;
+}
+
 export function generateVehicleSlug(year: number, make: string, model: string, id: string): string {
   const raw = `${year}-${make}-${model}-${id}`;
   return raw

@@ -22,9 +22,22 @@ export function FreightEstimateSection({ vehicleSlug, serviceOptions }: FreightE
   const headingId = useId();
   const freight = useFreightEstimate(serviceOptions);
 
-  const enquiryHref = vehicleSlug
-    ? `/contact?vehicle=${encodeURIComponent(vehicleSlug)}&topic=freight-estimate`
-    : '/contact?topic=freight-estimate';
+  // Carries the selected destination/port into the enquiry so the mock can
+  // attach a server-resolved rate-lookup snapshot to the resulting enquiry
+  // (D01-P05-T004) — only once a submission has actually resolved a result,
+  // never a value the visitor merely typed but never submitted. `vehicle`
+  // stays first and `topic` second to match the existing enquiry-link
+  // contract asserted by tests/e2e/freight-estimate.spec.ts (D01-P05-T003).
+  const enquiryParamPairs: [string, string][] = [];
+  if (vehicleSlug) {
+    enquiryParamPairs.push(['vehicle', vehicleSlug]);
+  }
+  enquiryParamPairs.push(['topic', 'freight-estimate']);
+  if (freight.result) {
+    enquiryParamPairs.push(['destinationCode', freight.result.destinationCode]);
+    enquiryParamPairs.push(['portCode', freight.result.portCode]);
+  }
+  const enquiryHref = `/contact?${new URLSearchParams(enquiryParamPairs).toString()}`;
 
   return (
     <section className="cc-freight-estimate" aria-labelledby={headingId}>
