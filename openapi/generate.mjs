@@ -99,6 +99,7 @@ export interface ErrorResponse {
   statusCode: number;
   message: string;
   correlationId: string;
+  field?: string;
 }
 
 export interface HealthResponse {
@@ -109,6 +110,77 @@ export interface HealthResponse {
 export interface ResetResponse {
   success: boolean;
   message: string;
+}
+
+// Phase 1.5: freight destination, port and rate lookup (D01-ASM-001).
+// No cubic-volume/freight formula and no computed total exist on this
+// contract while DEC-PUB-FREIGHT-MODEL is OPEN.
+
+export interface FreightDestination {
+  code: string;
+  name: string;
+  country: string;
+}
+
+export interface FreightPort {
+  code: string;
+  name: string;
+  country: string;
+}
+
+export interface FreightEstimateDimensions {
+  lengthMm: number;
+  widthMm: number;
+  heightMm: number;
+}
+
+export interface FreightEstimateRequest {
+  destinationCode: string;
+  portCode: string;
+  dimensions?: FreightEstimateDimensions;
+}
+
+export interface FreightEstimateResponse {
+  outcome: 'estimate_unavailable_pending_rate';
+  destinationCode: string;
+  portCode: string;
+  rateStatus: 'active' | 'stale' | 'no_rate';
+  currency?: string;
+  rateEffectiveFrom?: string;
+  rateEffectiveTo?: string;
+  message: string;
+}
+
+// Phase 1.5: quotation enquiry (PUB-13, PUB-15, D01-P05-T004). Independent of
+// DEC-PUB-FREIGHT-MODEL/DEC-PUB-CITY-DELIVERY; carries no monetary total.
+
+export interface EnquiryEstimateSnapshot {
+  destinationCode: string;
+  portCode: string;
+  rateStatus: 'active' | 'stale' | 'no_rate';
+  currency?: string;
+  rateEffectiveFrom?: string;
+  rateEffectiveTo?: string;
+  message: string;
+}
+
+export interface EnquiryRequest {
+  name: string;
+  email: string;
+  phone: string;
+  message: string;
+  vehicleSlug?: string;
+  destinationCode?: string;
+  portCode?: string;
+}
+
+export interface EnquiryResponse {
+  id: string;
+  receivedAt: string;
+  status: 'received';
+  duplicate: boolean;
+  vehicleSlug?: string;
+  estimateSnapshot?: EnquiryEstimateSnapshot;
 }
 `;
 

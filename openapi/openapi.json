@@ -364,6 +364,116 @@
         }
       }
     },
+    "/api/v1/freight/destinations": {
+      "get": {
+        "summary": "Get supported freight destinations catalog (D01-ASM-001)",
+        "operationId": "getFreightDestinations",
+        "responses": {
+          "200": {
+            "description": "List of supported freight destinations",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/FreightDestination" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/freight/ports": {
+      "get": {
+        "summary": "Get supported freight arrival ports catalog (D01-ASM-001)",
+        "operationId": "getFreightPorts",
+        "responses": {
+          "200": {
+            "description": "List of supported freight arrival ports",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/FreightPort" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/freight/estimate": {
+      "post": {
+        "summary": "Request a freight estimate lookup (D01-ASM-001 — no formula, no computed total)",
+        "operationId": "postFreightEstimate",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/FreightEstimateRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Deterministic estimate lookup outcome; no monetary total is present while DEC-PUB-FREIGHT-MODEL is unresolved",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/FreightEstimateResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or unsupported destination, port, or dimensions",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/enquiries": {
+      "post": {
+        "summary": "Submit a quotation enquiry (PUB-13, PUB-15, D01-P05-T004) — independent of DEC-PUB-FREIGHT-MODEL",
+        "operationId": "postEnquiry",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/EnquiryRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Enquiry received and persisted",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/EnquiryResponse" }
+              }
+            }
+          },
+          "200": {
+            "description": "An identical enquiry was already on file; the original receipt is returned (duplicate: true)",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/EnquiryResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid, missing or unsupported field",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/__reset": {
       "post": {
         "summary": "Deterministic non-production data reset",
@@ -569,9 +679,98 @@
         "properties": {
           "statusCode": { "type": "integer", "example": 400 },
           "message": { "type": "string", "example": "Bad Request" },
-          "correlationId": { "type": "string", "example": "corr-12345" }
+          "correlationId": { "type": "string", "example": "corr-12345" },
+          "field": { "type": "string", "example": "destinationCode" }
         },
         "required": ["statusCode", "message", "correlationId"]
+      },
+      "FreightDestination": {
+        "type": "object",
+        "properties": {
+          "code": { "type": "string", "example": "UG" },
+          "name": { "type": "string", "example": "Uganda" },
+          "country": { "type": "string", "example": "Uganda" }
+        },
+        "required": ["code", "name", "country"]
+      },
+      "FreightPort": {
+        "type": "object",
+        "properties": {
+          "code": { "type": "string", "example": "MBA" },
+          "name": { "type": "string", "example": "Mombasa" },
+          "country": { "type": "string", "example": "Kenya" }
+        },
+        "required": ["code", "name", "country"]
+      },
+      "FreightEstimateDimensions": {
+        "type": "object",
+        "properties": {
+          "lengthMm": { "type": "number", "example": 4500 },
+          "widthMm": { "type": "number", "example": 1800 },
+          "heightMm": { "type": "number", "example": 1500 }
+        },
+        "required": ["lengthMm", "widthMm", "heightMm"]
+      },
+      "FreightEstimateRequest": {
+        "type": "object",
+        "properties": {
+          "destinationCode": { "type": "string", "example": "UG" },
+          "portCode": { "type": "string", "example": "MBA" },
+          "dimensions": { "$ref": "#/components/schemas/FreightEstimateDimensions" }
+        },
+        "required": ["destinationCode", "portCode"]
+      },
+      "FreightEstimateResponse": {
+        "type": "object",
+        "properties": {
+          "outcome": { "type": "string", "enum": ["estimate_unavailable_pending_rate"], "example": "estimate_unavailable_pending_rate" },
+          "destinationCode": { "type": "string", "example": "UG" },
+          "portCode": { "type": "string", "example": "MBA" },
+          "rateStatus": { "type": "string", "enum": ["active", "stale", "no_rate"], "example": "active" },
+          "currency": { "type": "string", "example": "USD" },
+          "rateEffectiveFrom": { "type": "string", "example": "2026-06-01T00:00:00.000Z" },
+          "rateEffectiveTo": { "type": "string", "example": "2026-12-01T00:00:00.000Z" },
+          "message": { "type": "string", "example": "Shipping estimate unavailable — pending a confirmed freight rate." }
+        },
+        "required": ["outcome", "destinationCode", "portCode", "rateStatus", "message"]
+      },
+      "EnquiryEstimateSnapshot": {
+        "type": "object",
+        "properties": {
+          "destinationCode": { "type": "string", "example": "UG" },
+          "portCode": { "type": "string", "example": "MBA" },
+          "rateStatus": { "type": "string", "enum": ["active", "stale", "no_rate"], "example": "active" },
+          "currency": { "type": "string", "example": "USD" },
+          "rateEffectiveFrom": { "type": "string", "example": "2026-06-01T00:00:00.000Z" },
+          "rateEffectiveTo": { "type": "string", "example": "2026-12-01T00:00:00.000Z" },
+          "message": { "type": "string", "example": "Shipping estimate unavailable — pending a confirmed freight rate." }
+        },
+        "required": ["destinationCode", "portCode", "rateStatus", "message"]
+      },
+      "EnquiryRequest": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "example": "Jane Doe" },
+          "email": { "type": "string", "example": "jane@example.com" },
+          "phone": { "type": "string", "example": "+256 700 111 222" },
+          "message": { "type": "string", "example": "Please send a shipping quotation for this vehicle." },
+          "vehicleSlug": { "type": "string", "example": "2021-toyota-corolla-axio-veh-1" },
+          "destinationCode": { "type": "string", "example": "UG" },
+          "portCode": { "type": "string", "example": "MBA" }
+        },
+        "required": ["name", "email", "phone", "message"]
+      },
+      "EnquiryResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "example": "enq-1723368000000-0" },
+          "receivedAt": { "type": "string", "example": "2026-08-11T12:00:00.000Z" },
+          "status": { "type": "string", "enum": ["received"], "example": "received" },
+          "duplicate": { "type": "boolean", "example": false },
+          "vehicleSlug": { "type": "string", "example": "2021-toyota-corolla-axio-veh-1" },
+          "estimateSnapshot": { "$ref": "#/components/schemas/EnquiryEstimateSnapshot" }
+        },
+        "required": ["id", "receivedAt", "status", "duplicate"]
       }
     }
   }

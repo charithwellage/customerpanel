@@ -57,6 +57,9 @@ importers:
       '@carchief/domain':
         specifier: workspace:*
         version: link:../../packages/domain
+      '@carchief/validation':
+        specifier: workspace:*
+        version: link:../../packages/validation
       express:
         specifier: ^4.21.2
         version: 4.22.2

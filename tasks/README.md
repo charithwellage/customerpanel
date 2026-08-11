@@ -4,6 +4,8 @@ This directory coordinates read-only infrastructure verification, Delivery 01 Pu
 
 Delivery 02 requirement gaps are non-blocking in Phases 2.1–2.9. Agents record a safe MVP default or an isolated skipped capability in [`delivery_02/REQUIREMENT_GAPS_AND_ASSUMPTIONS.md`](delivery_02/REQUIREMENT_GAPS_AND_ASSUMPTIONS.md), then reconcile it in Phase 2.10. This never permits invented business rules, unsafe security/finance behaviour or false external-integration claims.
 
+Delivery 01 uses the same mechanism, in [`delivery_01/REQUIREMENT_GAPS_AND_ASSUMPTIONS.md`](delivery_01/REQUIREMENT_GAPS_AND_ASSUMPTIONS.md), reconciled in Phase 1.10. Its operating rule adds one Public-specific constraint: a business-owned financial figure — a shipping rate, freight formula, price, discount, insurance basis or currency conversion — is never an `ASSUMED` safe default. Absent an approved rule it is `SKIPPED` with an honest unavailable state (RULE-09, RULE-10). A `SKIPPED` row does not have to wait for Phase 1.10: when its decision resolves, reopen the owning task with `taskctl reopen` and implement it there. Phase 1.10 is the backstop that guarantees every row is reviewed, not the earliest chance to close one.
+
 The BA workflow reconciliation backlog is in `tasks/workflow/`. It is decision-gated and supplements the future Customer/Salesperson task sets; it must not be started while the workflow decisions remain open.
 
 ## Authority order
@@ -112,7 +114,7 @@ Use the delivery integration branch named in the task, then its `feat_deliveryNN
 
 The task files can be reviewed now, but implementation begins only after all of the following are true:
 
-1. `D01-P09-CODE_REVIEW` is `COMPLETE` and the complete Public Website PR is merged. Phase 1.9 is the final Public gate; `D01-P08-CODE_REVIEW` alone is no longer sufficient.
+1. `D01-P10-CODE_REVIEW` is `COMPLETE` and the complete Public Website PR is merged. Phase 1.9 is functional Public acceptance and Phase 1.10 then reconciles the recorded requirement gaps; neither `D01-P08-CODE_REVIEW` nor `D01-P09-CODE_REVIEW` alone is sufficient.
 2. A human synchronizes `delivery_01_public_website` and creates `delivery_02_customer_application` from that exact commit.
 3. `D02-P01-G001` is the global execution frontier. Requirement gaps use the Delivery 02 assumption register and do not block Phases 2.1–2.9.
 4. The Customer compiled/runtime scope is treated as provisional and the negative POC evidence is not copied.

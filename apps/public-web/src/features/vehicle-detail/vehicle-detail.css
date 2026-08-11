@@ -134,6 +134,9 @@
   .cc-vehicle-detail__gallery { grid-area: gallery; }
   .cc-vehicle-detail__specs   { grid-area: specs; }
   .cc-vehicle-detail__cta     { grid-area: sidebar; }
+
+  /* Not part of the named template — spans the full row below it. */
+  .cc-vehicle-detail__freight { grid-column: 1 / -1; }
 }
 
 /* ==========================================================================
@@ -454,6 +457,7 @@
   .cc-theme-switcher,
   .cc-vehicle-detail__utility-bar,
   .cc-vehicle-detail__cta,
+  .cc-vehicle-detail__freight,
   .cc-toast {
     display: none !important;
   }

@@ -266,4 +266,323 @@ describe('API Client & Contract Boundary Tests', () => {
     const detail = await service.getVehicleDetail('missing-veh');
     expect(detail).toBeNull();
   });
+
+  // Phase 1.5 — freight destination, port and rate lookup (D01-ASM-001).
+  // DEC-PUB-FREIGHT-MODEL and DEC-PUB-CITY-DELIVERY are OPEN, so the estimate
+  // contract exposes a deterministic `estimate unavailable — pending
+  // confirmed rate` outcome and no formula/computed total (RULE-09, RULE-10).
+  describe('FreightService', () => {
+    it('fetches the freight destinations catalog', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => [
+          { code: 'UG', name: 'Uganda', country: 'Uganda' },
+          { code: 'KE', name: 'Kenya', country: 'Kenya' },
+        ],
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { FreightService } = await import('../services/freight.js');
+      const service = new FreightService(client);
+
+      const destinations = await service.getDestinations();
+      expect(destinations).toHaveLength(2);
+      expect(destinations[0].code).toBe('UG');
+    });
+
+    it('fetches the freight ports catalog', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => [{ code: 'MBA', name: 'Mombasa', country: 'Kenya' }],
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { FreightService } = await import('../services/freight.js');
+      const service = new FreightService(client);
+
+      const ports = await service.getPorts();
+      expect(ports).toHaveLength(1);
+      expect(ports[0].code).toBe('MBA');
+    });
+
+    it('posts an estimate request and returns the deterministic unavailable outcome for a valid-rate-record destination', async () => {
+      let capturedUrl: string | undefined;
+      let capturedBody: string | undefined;
+      const mockFetch = vi.fn().mockImplementation(async (url, options) => {
+        capturedUrl = url;
+        capturedBody = options.body;
+        return {
+          ok: true,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: async () => ({
+            outcome: 'estimate_unavailable_pending_rate',
+            destinationCode: 'UG',
+            portCode: 'MBA',
+            rateStatus: 'active',
+            currency: 'USD',
+            rateEffectiveFrom: '2026-06-01T00:00:00.000Z',
+            message: 'Shipping estimate unavailable — pending a confirmed freight rate.',
+          }),
+        };
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { FreightService } = await import('../services/freight.js');
+      const service = new FreightService(client);
+
+      const estimate = await service.estimate({ destinationCode: 'UG', portCode: 'MBA' });
+      expect(capturedUrl).toContain('/api/v1/freight/estimate');
+      expect(JSON.parse(capturedBody!)).toEqual({ destinationCode: 'UG', portCode: 'MBA' });
+      expect(estimate.outcome).toBe('estimate_unavailable_pending_rate');
+      expect(estimate.rateStatus).toBe('active');
+      // RULE-09: no fabricated/computed monetary total may ever reach the caller.
+      expect(estimate).not.toHaveProperty('total');
+    });
+
+    it('returns the unavailable outcome with rateStatus no_rate for a supported destination with no supplied rate', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => ({
+          outcome: 'estimate_unavailable_pending_rate',
+          destinationCode: 'RW',
+          portCode: 'MBA',
+          rateStatus: 'no_rate',
+          message: 'Shipping estimate unavailable — pending a confirmed freight rate.',
+        }),
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { FreightService } = await import('../services/freight.js');
+      const service = new FreightService(client);
+
+      const estimate = await service.estimate({ destinationCode: 'RW', portCode: 'MBA' });
+      expect(estimate.outcome).toBe('estimate_unavailable_pending_rate');
+      expect(estimate.rateStatus).toBe('no_rate');
+      expect(estimate.currency).toBeUndefined();
+      expect(estimate).not.toHaveProperty('total');
+    });
+
+    it('returns the unavailable outcome with rateStatus stale for an expired rate record', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => ({
+          outcome: 'estimate_unavailable_pending_rate',
+          destinationCode: 'KE',
+          portCode: 'MBA',
+          rateStatus: 'stale',
+          currency: 'USD',
+          rateEffectiveFrom: '2025-01-01T00:00:00.000Z',
+          rateEffectiveTo: '2026-01-01T00:00:00.000Z',
+          message: 'Shipping estimate unavailable — pending a confirmed freight rate.',
+        }),
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { FreightService } = await import('../services/freight.js');
+      const service = new FreightService(client);
+
+      const estimate = await service.estimate({ destinationCode: 'KE', portCode: 'MBA' });
+      expect(estimate.rateStatus).toBe('stale');
+      expect(estimate).not.toHaveProperty('total');
+    });
+
+    it('normalizes a 400 validation error for invalid dimensions with a field reference', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 400,
+        statusText: 'Bad Request',
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => ({
+          statusCode: 400,
+          message: 'dimensions.lengthMm must be a positive number',
+          correlationId: 'corr-test-freight-1',
+          field: 'dimensions.lengthMm',
+        }),
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { FreightService } = await import('../services/freight.js');
+      const service = new FreightService(client);
+
+      try {
+        await service.estimate({
+          destinationCode: 'UG',
+          portCode: 'MBA',
+          dimensions: { lengthMm: 0, widthMm: 1800, heightMm: 1500 },
+        });
+        expect.fail('Should have thrown NormalizedApiError');
+      } catch (err: unknown) {
+        expect(err).toBeInstanceOf(NormalizedApiError);
+        expect((err as NormalizedApiError).statusCode).toBe(400);
+      }
+    });
+
+    it('normalizes a 400 validation error for an unsupported destination', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 400,
+        statusText: 'Bad Request',
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => ({
+          statusCode: 400,
+          message: "Unsupported destination 'ZZ'",
+          correlationId: 'corr-test-freight-2',
+          field: 'destinationCode',
+        }),
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { FreightService } = await import('../services/freight.js');
+      const service = new FreightService(client);
+
+      try {
+        await service.estimate({ destinationCode: 'ZZ', portCode: 'MBA' });
+        expect.fail('Should have thrown NormalizedApiError');
+      } catch (err: unknown) {
+        expect(err).toBeInstanceOf(NormalizedApiError);
+        expect((err as NormalizedApiError).statusCode).toBe(400);
+      }
+    });
+  });
+
+  describe('EnquiryService (PUB-13, PUB-15, D01-P05-T004)', () => {
+    it('submits a general enquiry and receives a receipt confirmation', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        status: 201,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => ({
+          id: 'enq-1',
+          receivedAt: '2026-08-11T12:00:00.000Z',
+          status: 'received',
+          duplicate: false,
+        }),
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { EnquiryService } = await import('../services/enquiries.js');
+      const service = new EnquiryService(client);
+
+      const receipt = await service.submit({
+        name: 'Jane Doe',
+        email: 'jane@example.com',
+        phone: '+256700111222',
+        message: 'General enquiry about your inventory.',
+      });
+      expect(receipt.status).toBe('received');
+      expect(receipt.duplicate).toBe(false);
+      // RULE-09/RULE-10: an enquiry receipt never carries a monetary total or
+      // a claim of staff notification/contact.
+      expect(receipt).not.toHaveProperty('total');
+      expect(JSON.stringify(receipt).toLowerCase()).not.toContain('notified');
+    });
+
+    it('submits a quotation enquiry carrying a server-resolved estimate snapshot with no monetary total', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        status: 201,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => ({
+          id: 'enq-2',
+          receivedAt: '2026-08-11T12:05:00.000Z',
+          status: 'received',
+          duplicate: false,
+          vehicleSlug: '2021-toyota-corolla-axio-veh-1',
+          estimateSnapshot: {
+            destinationCode: 'UG',
+            portCode: 'MBA',
+            rateStatus: 'active',
+            currency: 'USD',
+            rateEffectiveFrom: '2026-06-01T00:00:00.000Z',
+            message: 'Shipping estimate unavailable — pending a confirmed freight rate.',
+          },
+        }),
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { EnquiryService } = await import('../services/enquiries.js');
+      const service = new EnquiryService(client);
+
+      const receipt = await service.submit({
+        name: 'Amara Okoye',
+        email: 'amara@example.com',
+        phone: '+256700555666',
+        message: 'Please confirm shipping cost to Uganda.',
+        vehicleSlug: '2021-toyota-corolla-axio-veh-1',
+        destinationCode: 'UG',
+        portCode: 'MBA',
+      });
+      expect(receipt.estimateSnapshot?.destinationCode).toBe('UG');
+      expect(receipt.estimateSnapshot).not.toHaveProperty('total');
+      expect(receipt.estimateSnapshot).not.toHaveProperty('amount');
+    });
+
+    it('normalizes a 200 duplicate receipt distinct from a fresh submission', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => ({
+          id: 'enq-1',
+          receivedAt: '2026-08-11T12:00:00.000Z',
+          status: 'received',
+          duplicate: true,
+        }),
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { EnquiryService } = await import('../services/enquiries.js');
+      const service = new EnquiryService(client);
+
+      const receipt = await service.submit({
+        name: 'Jane Doe',
+        email: 'jane@example.com',
+        phone: '+256700111222',
+        message: 'General enquiry about your inventory.',
+      });
+      expect(receipt.duplicate).toBe(true);
+    });
+
+    it('normalizes a 400 validation error for a missing required field with a field reference', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 400,
+        statusText: 'Bad Request',
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => ({
+          statusCode: 400,
+          message: 'Email is required',
+          correlationId: 'corr-test-enquiry-1',
+          field: 'email',
+        }),
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { EnquiryService } = await import('../services/enquiries.js');
+      const service = new EnquiryService(client);
+
+      try {
+        await service.submit({ name: 'Jane Doe', email: '', phone: '+256700111222', message: 'Hello' });
+        expect.fail('Should have thrown NormalizedApiError');
+      } catch (err: unknown) {
+        expect(err).toBeInstanceOf(NormalizedApiError);
+        expect((err as NormalizedApiError).statusCode).toBe(400);
+      }
+    });
+  });
 });

@@ -1,6 +1,23 @@
 import { Pool } from 'pg';
-import type { VehicleDomainSummary, VehicleStatus, VehicleSearchResult, VehicleFacets, SearchVehiclesQuery, VehicleDetail } from '@carchief/domain';
-import { generateVehicleSlug } from '@carchief/domain';
+import type {
+  VehicleDomainSummary,
+  VehicleStatus,
+  VehicleSearchResult,
+  VehicleFacets,
+  SearchVehiclesQuery,
+  VehicleDetail,
+  FreightDestination,
+  FreightPort,
+  FreightRateRecord,
+  FreightEstimateRequest,
+  FreightEstimateResponse,
+  EnquiryRequest,
+  EnquiryResponse,
+  EnquiryEstimateSnapshot,
+} from '@carchief/domain';
+import { generateVehicleSlug, calculateFreightEstimate, resolveFreightRateStatus } from '@carchief/domain';
+import { validateEmail } from '@carchief/validation';
+export { FreightRequestError, resolveFreightRateStatus } from '@carchief/domain';
 
 export interface VehicleRecord {
   id: string;
@@ -380,8 +397,254 @@ export interface DemoStore {
   getVehicles(query?: GetVehiclesQuery): Promise<VehicleDomainSummary[]>;
   searchVehicles(query?: SearchVehiclesQuery): Promise<VehicleSearchResult>;
   getVehicleDetail(idOrSlug: string): Promise<VehicleDetail | null>;
+  getFreightDestinations(): Promise<FreightDestination[]>;
+  getFreightPorts(): Promise<FreightPort[]>;
+  getFreightEstimate(request: FreightEstimateRequest): Promise<FreightEstimateResponse>;
+  createEnquiry(request: EnquiryRequest): Promise<EnquiryResponse>;
   reset(): Promise<void>;
   close(): Promise<void>;
+}
+
+// --- Phase 1.5: freight destination, port and rate lookup (D01-ASM-001) ---
+//
+// This reference data is Finance/logistics-owned catalog and rate data, not
+// per-tenant records, so both MemoryStore and PostgresStore serve it from the
+// same in-process constants rather than a new Postgres table — there is no
+// mutation path in this task's scope (no CRUD), so no schema/reset is needed.
+// See tasks/delivery_01/REQUIREMENT_GAPS_AND_ASSUMPTIONS.md row D01-ASM-001.
+
+// Reference instant used to evaluate rate effective windows deterministically,
+// matching the vehicle-location reference date used elsewhere in this store.
+const FREIGHT_REFERENCE_DATE = '2026-08-10T10:00:00.000Z';
+
+const freightDestinations: FreightDestination[] = [
+  { code: 'UG', name: 'Uganda', country: 'Uganda' },
+  { code: 'KE', name: 'Kenya', country: 'Kenya' },
+  { code: 'TZ', name: 'Tanzania', country: 'Tanzania' },
+  { code: 'RW', name: 'Rwanda', country: 'Rwanda' },
+  { code: 'SS', name: 'South Sudan', country: 'South Sudan' },
+];
+
+const freightPorts: FreightPort[] = [
+  { code: 'MBA', name: 'Mombasa', country: 'Kenya' },
+  { code: 'DAR', name: 'Dar es Salaam', country: 'Tanzania' },
+];
+
+// Rate records as supplied data only (D01-ASM-001): a placeholder `amount`
+// stands in for a real Finance-supplied figure so the lookup layer (active /
+// stale / no_rate) is demonstrable. No route ever surfaces `amount` as, or
+// folds it into, a computed total.
+const freightRateRecords: FreightRateRecord[] = [
+  // UG via Mombasa: currently active.
+  { destinationCode: 'UG', portCode: 'MBA', currency: 'USD', amount: 950, effectiveFrom: '2026-06-01T00:00:00.000Z' },
+  // KE via Mombasa: expired with no replacement supplied yet -> stale.
+  {
+    destinationCode: 'KE',
+    portCode: 'MBA',
+    currency: 'USD',
+    amount: 400,
+    effectiveFrom: '2025-01-01T00:00:00.000Z',
+    effectiveTo: '2026-01-01T00:00:00.000Z',
+  },
+  // TZ via Dar es Salaam: currently active.
+  { destinationCode: 'TZ', portCode: 'DAR', currency: 'USD', amount: 700, effectiveFrom: '2026-07-01T00:00:00.000Z' },
+  // RW and SS: intentionally no rate record supplied yet -> no_rate.
+];
+
+// The calculation sequence itself (D01-P05-T002) lives in
+// `@carchief/domain`'s `calculateFreightEstimate` — the mock API supplies the
+// catalog/rate-record data below and calls it; the calculation stays
+// authoritative and server-side in both branches (never the browser).
+// `FreightRequestError` and `resolveFreightRateStatus` are re-exported above
+// unchanged so existing call sites and tests are unaffected by the move.
+
+/**
+ * Thin store-owned wrapper around the domain calculation sequence, supplying
+ * this store's default reference instant when the caller omits one.
+ */
+export function buildFreightEstimate(
+  destinations: FreightDestination[],
+  ports: FreightPort[],
+  records: FreightRateRecord[],
+  request: FreightEstimateRequest,
+  nowISO: string = FREIGHT_REFERENCE_DATE
+): FreightEstimateResponse {
+  return calculateFreightEstimate(destinations, ports, records, request, nowISO);
+}
+
+// --- Phase 1.5: quotation enquiry persistence (PUB-13, PUB-15, D01-P05-T004) ---
+//
+// The enquiry flow is delivered in full regardless of DEC-PUB-FREIGHT-MODEL /
+// DEC-PUB-CITY-DELIVERY (D01-ASM-001): a visitor can submit an enquiry about
+// a vehicle, a shipping destination, or neither, and it is persisted with no
+// dependency on a priced estimate. When a destination/port pair is supplied
+// this captures a server-resolved rate-lookup snapshot for audit context only
+// — never a computed total (RULE-09).
+
+export class EnquiryRequestError extends Error {
+  public readonly statusCode: number;
+  public readonly field?: string;
+
+  constructor(statusCode: number, message: string, field?: string) {
+    super(message);
+    this.name = 'EnquiryRequestError';
+    this.statusCode = statusCode;
+    this.field = field;
+  }
+}
+
+export interface EnquiryRecord {
+  id: string;
+  dedupeKey: string;
+  name: string;
+  email: string;
+  phone: string;
+  message: string;
+  vehicleSlug?: string;
+  estimateSnapshot?: EnquiryEstimateSnapshot;
+  receivedAt: string;
+}
+
+interface PreparedEnquiry {
+  name: string;
+  email: string;
+  phone: string;
+  message: string;
+  vehicleSlug?: string;
+  estimateSnapshot?: EnquiryEstimateSnapshot;
+}
+
+function requireNonEmptyString(value: unknown, field: string, label: string): string {
+  if (typeof value !== 'string' || !value.trim()) {
+    throw new EnquiryRequestError(400, `${label} is required`, field);
+  }
+  return value.trim();
+}
+
+/**
+ * Validates and normalizes an enquiry request, resolving an optional vehicle
+ * link and an optional server-side freight rate-lookup snapshot. Throws a
+ * field-associated `EnquiryRequestError` (400) for anything invalid — never
+ * silently drops or substitutes a value.
+ */
+export function prepareEnquiry(
+  vehicles: VehicleRecord[],
+  destinations: FreightDestination[],
+  ports: FreightPort[],
+  records: FreightRateRecord[],
+  request: EnquiryRequest,
+  nowISO: string
+): PreparedEnquiry {
+  if (!request || typeof request !== 'object') {
+    throw new EnquiryRequestError(400, 'A request body is required');
+  }
+
+  const name = requireNonEmptyString(request.name, 'name', 'Name');
+  const email = requireNonEmptyString(request.email, 'email', 'Email');
+  if (!validateEmail(email)) {
+    throw new EnquiryRequestError(400, 'Enter a valid email address', 'email');
+  }
+  const phone = requireNonEmptyString(request.phone, 'phone', 'Phone number');
+  const message = requireNonEmptyString(request.message, 'message', 'Message');
+
+  let vehicleSlug: string | undefined;
+  if (request.vehicleSlug !== undefined && request.vehicleSlug !== null && request.vehicleSlug !== '') {
+    if (typeof request.vehicleSlug !== 'string') {
+      throw new EnquiryRequestError(400, 'vehicleSlug must be a string', 'vehicleSlug');
+    }
+    const record = findVehicleRecord(vehicles, request.vehicleSlug);
+    if (!record) {
+      throw new EnquiryRequestError(400, `Unknown vehicle '${request.vehicleSlug}'`, 'vehicleSlug');
+    }
+    vehicleSlug = generateVehicleSlug(record.year, record.make, record.model, record.id);
+  }
+
+  const hasDestination = Boolean(request.destinationCode);
+  const hasPort = Boolean(request.portCode);
+  let estimateSnapshot: EnquiryEstimateSnapshot | undefined;
+  if (hasDestination !== hasPort) {
+    throw new EnquiryRequestError(
+      400,
+      'Provide both destinationCode and portCode, or neither',
+      hasDestination ? 'portCode' : 'destinationCode'
+    );
+  }
+  if (hasDestination && hasPort) {
+    const destinationCode = request.destinationCode as string;
+    const portCode = request.portCode as string;
+    if (!destinations.some((d) => d.code === destinationCode)) {
+      throw new EnquiryRequestError(400, `Unsupported destination '${destinationCode}'`, 'destinationCode');
+    }
+    if (!ports.some((p) => p.code === portCode)) {
+      throw new EnquiryRequestError(400, `Unsupported port '${portCode}'`, 'portCode');
+    }
+    const { status, record } = resolveFreightRateStatus(records, destinationCode, portCode, nowISO);
+    estimateSnapshot = {
+      destinationCode,
+      portCode,
+      rateStatus: status,
+      currency: record?.currency,
+      rateEffectiveFrom: record?.effectiveFrom,
+      rateEffectiveTo: record?.effectiveTo,
+      message: 'Shipping estimate unavailable — pending a confirmed freight rate.',
+    };
+  }
+
+  return { name, email, phone, message, vehicleSlug, estimateSnapshot };
+}
+
+/**
+ * A resubmission is the same enquiry, not a new lead: identical contact
+ * email, vehicle, destination/port and message text collapse to one stored
+ * record (RULE-08) rather than creating unlimited duplicates from a
+ * double-click or retry.
+ */
+export function buildEnquiryDedupeKey(prepared: PreparedEnquiry): string {
+  return [
+    prepared.email.trim().toLowerCase(),
+    prepared.vehicleSlug ?? '',
+    prepared.estimateSnapshot?.destinationCode ?? '',
+    prepared.estimateSnapshot?.portCode ?? '',
+    prepared.message.trim().toLowerCase(),
+  ].join('|');
+}
+
+function rowToEnquiryRecord(row: Record<string, unknown>): EnquiryRecord {
+  const destinationCode = row.destination_code as string | null;
+  const portCode = row.port_code as string | null;
+  return {
+    id: row.id as string,
+    dedupeKey: row.dedupe_key as string,
+    name: row.name as string,
+    email: row.email as string,
+    phone: row.phone as string,
+    message: row.message as string,
+    vehicleSlug: (row.vehicle_slug as string | null) || undefined,
+    receivedAt: row.received_at as string,
+    estimateSnapshot:
+      destinationCode && portCode
+        ? {
+            destinationCode,
+            portCode,
+            rateStatus: row.rate_status as EnquiryEstimateSnapshot['rateStatus'],
+            currency: (row.currency as string | null) || undefined,
+            rateEffectiveFrom: (row.rate_effective_from as string | null) || undefined,
+            rateEffectiveTo: (row.rate_effective_to as string | null) || undefined,
+            message: row.estimate_message as string,
+          }
+        : undefined,
+  };
+}
+
+function toEnquiryResponse(record: EnquiryRecord, duplicate: boolean): EnquiryResponse {
+  return {
+    id: record.id,
+    receivedAt: record.receivedAt,
+    status: 'received',
+    duplicate,
+    vehicleSlug: record.vehicleSlug,
+    estimateSnapshot: record.estimateSnapshot,
+  };
 }
 
 // Service-owned location projection based on ETD/ETA rules (PUB-08)
@@ -735,6 +998,8 @@ function filterAndSortVehicles(vehicles: VehicleRecord[], query?: GetVehiclesQue
 class MemoryStore implements DemoStore {
   private config = { ...seedConfig };
   private vehicles = seedVehicles.map((vehicle) => ({ ...vehicle }));
+  private enquiries: EnquiryRecord[] = [];
+  private enquirySeq = 0;
 
   ready(): Promise<void> {
     return Promise.resolve();
@@ -778,9 +1043,41 @@ class MemoryStore implements DemoStore {
     return Promise.resolve(buildVehicleDetail(record));
   }
 
+  getFreightDestinations(): Promise<FreightDestination[]> {
+    return Promise.resolve(freightDestinations.map((d) => ({ ...d })));
+  }
+
+  getFreightPorts(): Promise<FreightPort[]> {
+    return Promise.resolve(freightPorts.map((p) => ({ ...p })));
+  }
+
+  async getFreightEstimate(request: FreightEstimateRequest): Promise<FreightEstimateResponse> {
+    return buildFreightEstimate(freightDestinations, freightPorts, freightRateRecords, request);
+  }
+
+  async createEnquiry(request: EnquiryRequest): Promise<EnquiryResponse> {
+    const prepared = prepareEnquiry(this.vehicles, freightDestinations, freightPorts, freightRateRecords, request, FREIGHT_REFERENCE_DATE);
+    const dedupeKey = buildEnquiryDedupeKey(prepared);
+
+    const existing = this.enquiries.find((e) => e.dedupeKey === dedupeKey);
+    if (existing) {
+      return toEnquiryResponse(existing, true);
+    }
+
+    const record: EnquiryRecord = {
+      id: `enq-${Date.now()}-${this.enquirySeq++}`,
+      dedupeKey,
+      receivedAt: new Date().toISOString(),
+      ...prepared,
+    };
+    this.enquiries.push(record);
+    return toEnquiryResponse(record, false);
+  }
+
   reset(): Promise<void> {
     this.config = { ...seedConfig };
     this.vehicles = seedVehicles.map((vehicle) => ({ ...vehicle }));
+    this.enquiries = [];
     return Promise.resolve();
   }
 
@@ -849,6 +1146,25 @@ class PostgresStore implements DemoStore {
         ADD COLUMN IF NOT EXISTS etd text,
         ADD COLUMN IF NOT EXISTS eta text,
         ADD COLUMN IF NOT EXISTS request_price boolean;`
+    );
+    await this.pool.query(
+      `CREATE TABLE IF NOT EXISTS enquiries (
+        id text PRIMARY KEY,
+        dedupe_key text NOT NULL,
+        name text NOT NULL,
+        email text NOT NULL,
+        phone text NOT NULL,
+        message text NOT NULL,
+        vehicle_slug text,
+        destination_code text,
+        port_code text,
+        rate_status text,
+        currency text,
+        rate_effective_from text,
+        rate_effective_to text,
+        estimate_message text,
+        received_at text NOT NULL
+      );`
     );
     await this.reset();
   }
@@ -923,6 +1239,58 @@ class PostgresStore implements DemoStore {
     return buildVehicleDetail(record);
   }
 
+  async getFreightDestinations(): Promise<FreightDestination[]> {
+    return freightDestinations.map((d) => ({ ...d }));
+  }
+
+  async getFreightPorts(): Promise<FreightPort[]> {
+    return freightPorts.map((p) => ({ ...p }));
+  }
+
+  async getFreightEstimate(request: FreightEstimateRequest): Promise<FreightEstimateResponse> {
+    return buildFreightEstimate(freightDestinations, freightPorts, freightRateRecords, request);
+  }
+
+  async createEnquiry(request: EnquiryRequest): Promise<EnquiryResponse> {
+    const rawVehicles = await this.getRawVehicles();
+    const prepared = prepareEnquiry(rawVehicles, freightDestinations, freightPorts, freightRateRecords, request, FREIGHT_REFERENCE_DATE);
+    const dedupeKey = buildEnquiryDedupeKey(prepared);
+
+    const existingResult = await this.pool.query(
+      'SELECT id, dedupe_key, name, email, phone, message, vehicle_slug, destination_code, port_code, rate_status, currency, rate_effective_from, rate_effective_to, estimate_message, received_at FROM enquiries WHERE dedupe_key = $1 LIMIT 1',
+      [dedupeKey]
+    );
+    if (existingResult.rows[0]) {
+      return toEnquiryResponse(rowToEnquiryRecord(existingResult.rows[0]), true);
+    }
+
+    const id = `enq-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const receivedAt = new Date().toISOString();
+    await this.pool.query(
+      'INSERT INTO enquiries (id, dedupe_key, name, email, phone, message, vehicle_slug, destination_code, port_code, rate_status, currency, rate_effective_from, rate_effective_to, estimate_message, received_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)',
+      [
+        id,
+        dedupeKey,
+        prepared.name,
+        prepared.email,
+        prepared.phone,
+        prepared.message,
+        prepared.vehicleSlug || null,
+        prepared.estimateSnapshot?.destinationCode || null,
+        prepared.estimateSnapshot?.portCode || null,
+        prepared.estimateSnapshot?.rateStatus || null,
+        prepared.estimateSnapshot?.currency || null,
+        prepared.estimateSnapshot?.rateEffectiveFrom || null,
+        prepared.estimateSnapshot?.rateEffectiveTo || null,
+        prepared.estimateSnapshot?.message || null,
+        receivedAt,
+      ]
+    );
+
+    const record: EnquiryRecord = { id, dedupeKey, receivedAt, ...prepared };
+    return toEnquiryResponse(record, false);
+  }
+
   private async getRawVehicles(): Promise<VehicleRecord[]> {
     const result = await this.pool.query(
       'SELECT id, chassis_number, make, model, year, price_usd, status, category, location_status, created_at, images, featured, stock_type, destination_port, discount_percent, body_style, fuel_type, transmission, drive_train, mileage, etd, eta, request_price FROM vehicles ORDER BY id'
@@ -960,6 +1328,7 @@ class PostgresStore implements DemoStore {
       await client.query('BEGIN');
       await client.query('DELETE FROM vehicles');
       await client.query('DELETE FROM public_config');
+      await client.query('DELETE FROM enquiries');
       await client.query('INSERT INTO public_config (id, site_name, currency, contact_phone) VALUES (1, $1, $2, $3)', [
         seedConfig.siteName,
         seedConfig.currency,

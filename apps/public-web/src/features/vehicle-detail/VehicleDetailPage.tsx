@@ -10,6 +10,7 @@ import {
   isVehicleAvailable,
   serializeJsonLd,
 } from '@carchief/vehicle-detail';
+import { FreightEstimateSection } from '../freight';
 
 const TOAST_DISMISS_MS = 3000;
 
@@ -202,6 +203,13 @@ export default function VehicleDetailPage({ vehicle }: VehicleDetailPageProps) {
           </dl>
         </section>
       )}
+
+      {/* Freight estimate selection, request and explanation (PUB-12). Renders
+          the service's honest unavailable state while DEC-PUB-FREIGHT-MODEL
+          remains OPEN (D01-ASM-001) — never a placeholder total. */}
+      <section className="cc-vehicle-detail__freight" aria-label="Shipping cost estimate">
+        <FreightEstimateSection vehicleSlug={vehicle.slug} />
+      </section>
     </article>
   );
 }
