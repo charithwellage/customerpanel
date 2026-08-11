@@ -42,10 +42,10 @@ test.describe('Inventory Search and Showroom Phase 1.3 tests', () => {
     
     // Expected to parse "newer than 2018" into year_min
     // The visual tokens should render
-    await expect(page.getByText('Make: Honda', { exact: false })).toBeVisible();
+    await expect(page.locator('.cc-understood-token-chip', { hasText: 'Make: Honda' }).first()).toBeVisible();
     // 'Civic' should just be left as the search input value
     await expect(searchInput).toHaveValue('Civic');
-    await expect(page.getByText('From Year: 2018', { exact: false })).toBeVisible();
+    await expect(page.locator('.cc-understood-token-chip', { hasText: 'From Year: 2018' }).first()).toBeVisible();
     
     // Click reset
     await page.getByRole('button', { name: 'Reset All' }).click();

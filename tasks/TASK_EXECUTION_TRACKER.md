@@ -51,8 +51,8 @@
 | [D01-P03-T001](delivery_01/phase_03/D01-P03-T001.md) | Add vehicle query, dynamic filters, sorting and pagination | COMPLETE | self_ai | not_applicable | Antigravity | `feat_delivery01_phase_03` | D01-P03-CODE_REVIEW (NOT_STARTED) | D01-P02-CODE_REVIEW | P03-A | 2026-08-11T04:31:37.385Z |
 | [D01-P03-T002](delivery_01/phase_03/D01-P03-T002.md) | Build search orchestration, URL state and natural parsing | COMPLETE | self_ai | playwright_mcp | Antigravity | `feat_delivery01_phase_03` | D01-P03-CODE_REVIEW (NOT_STARTED) | D01-P03-T001 | P03-B | 2026-08-11T04:53:55.486Z |
 | [D01-P03-T003](delivery_01/phase_03/D01-P03-T003.md) | Build inventory filters and result presentations | COMPLETE | self_ai | playwright_mcp | Antigravity | `feat_delivery01_phase_03` | D01-P03-CODE_REVIEW (NOT_STARTED) | D01-P03-T001 | P03-B | 2026-08-11T05:04:00.648Z |
-| [D01-P03-T004](delivery_01/phase_03/D01-P03-T004.md) | Integrate and accept inventory search | IN_PROGRESS | self_ai | playwright_mcp | Antigravity | `feat_delivery01_phase_03` | D01-P03-CODE_REVIEW (NOT_STARTED) | D01-P03-T002, D01-P03-T003 | P03-C | 2026-08-11T05:16:36.496Z |
-| [D01-P03-CODE_REVIEW](delivery_01/phase_03/D01-P03-CODE_REVIEW.md) | Phase 1.3 PR code review and tech-lead approval | NOT_STARTED | phase_manual | not_applicable | — | `feat_delivery01_phase_03` | D01-P03-CODE_REVIEW (NOT_STARTED) | D01-P03-T004 | P03-REVIEW | — |
+| [D01-P03-T004](delivery_01/phase_03/D01-P03-T004.md) | Integrate and accept inventory search | COMPLETE | self_ai | playwright_mcp | Antigravity | `feat_delivery01_phase_03` | D01-P03-CODE_REVIEW (NOT_STARTED) | D01-P03-T002, D01-P03-T003 | P03-C | 2026-08-11T06:50:09.103Z |
+| [D01-P03-CODE_REVIEW](delivery_01/phase_03/D01-P03-CODE_REVIEW.md) | Phase 1.3 PR code review and tech-lead approval | READY | phase_manual | not_applicable | — | `feat_delivery01_phase_03` | D01-P03-CODE_REVIEW (NOT_STARTED) | D01-P03-T004 | P03-REVIEW | — |
 | [D01-P04-T001](delivery_01/phase_04/D01-P04-T001.md) | Add vehicle detail and public media service behavior | NOT_STARTED | self_ai | not_applicable | — | `feat_delivery01_phase_04` | D01-P04-CODE_REVIEW (NOT_STARTED) | D01-P03-CODE_REVIEW | P04-A | — |
 | [D01-P04-T002](delivery_01/phase_04/D01-P04-T002.md) | Build vehicle detail page and gallery | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery01_phase_04` | D01-P04-CODE_REVIEW (NOT_STARTED) | D01-P04-T001 | P04-B | — |
 | [D01-P04-T003](delivery_01/phase_04/D01-P04-T003.md) | Add sharing, printing, metadata and detail acceptance | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery01_phase_04` | D01-P04-CODE_REVIEW (NOT_STARTED) | D01-P04-T002 | P04-C | — |
@@ -129,7 +129,7 @@
 
 ## Current execution frontier
 
-- Sequential next: D01-P03-T004 — Integrate and accept inventory search (IN_PROGRESS)
+- Sequential next: D01-P03-CODE_REVIEW — Phase 1.3 PR code review and tech-lead approval (NOT_STARTED)
 - Optional same-group parallel tasks: None
 - Downstream work waits for COMPLETE or SUPERSEDED; IN_REVIEW is not complete.
 - Later tasks cannot be bypassed; use taskctl sequence TASK-ID for the exact blocker.
