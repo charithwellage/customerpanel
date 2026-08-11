@@ -266,4 +266,193 @@ describe('API Client & Contract Boundary Tests', () => {
     const detail = await service.getVehicleDetail('missing-veh');
     expect(detail).toBeNull();
   });
+
+  // Phase 1.5 — freight destination, port and rate lookup (D01-ASM-001).
+  // DEC-PUB-FREIGHT-MODEL and DEC-PUB-CITY-DELIVERY are OPEN, so the estimate
+  // contract exposes a deterministic `estimate unavailable — pending
+  // confirmed rate` outcome and no formula/computed total (RULE-09, RULE-10).
+  describe('FreightService', () => {
+    it('fetches the freight destinations catalog', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => [
+          { code: 'UG', name: 'Uganda', country: 'Uganda' },
+          { code: 'KE', name: 'Kenya', country: 'Kenya' },
+        ],
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { FreightService } = await import('../services/freight.js');
+      const service = new FreightService(client);
+
+      const destinations = await service.getDestinations();
+      expect(destinations).toHaveLength(2);
+      expect(destinations[0].code).toBe('UG');
+    });
+
+    it('fetches the freight ports catalog', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => [{ code: 'MBA', name: 'Mombasa', country: 'Kenya' }],
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { FreightService } = await import('../services/freight.js');
+      const service = new FreightService(client);
+
+      const ports = await service.getPorts();
+      expect(ports).toHaveLength(1);
+      expect(ports[0].code).toBe('MBA');
+    });
+
+    it('posts an estimate request and returns the deterministic unavailable outcome for a valid-rate-record destination', async () => {
+      let capturedUrl: string | undefined;
+      let capturedBody: string | undefined;
+      const mockFetch = vi.fn().mockImplementation(async (url, options) => {
+        capturedUrl = url;
+        capturedBody = options.body;
+        return {
+          ok: true,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: async () => ({
+            outcome: 'estimate_unavailable_pending_rate',
+            destinationCode: 'UG',
+            portCode: 'MBA',
+            rateStatus: 'active',
+            currency: 'USD',
+            rateEffectiveFrom: '2026-06-01T00:00:00.000Z',
+            message: 'Shipping estimate unavailable — pending a confirmed freight rate.',
+          }),
+        };
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { FreightService } = await import('../services/freight.js');
+      const service = new FreightService(client);
+
+      const estimate = await service.estimate({ destinationCode: 'UG', portCode: 'MBA' });
+      expect(capturedUrl).toContain('/api/v1/freight/estimate');
+      expect(JSON.parse(capturedBody!)).toEqual({ destinationCode: 'UG', portCode: 'MBA' });
+      expect(estimate.outcome).toBe('estimate_unavailable_pending_rate');
+      expect(estimate.rateStatus).toBe('active');
+      // RULE-09: no fabricated/computed monetary total may ever reach the caller.
+      expect(estimate).not.toHaveProperty('total');
+    });
+
+    it('returns the unavailable outcome with rateStatus no_rate for a supported destination with no supplied rate', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => ({
+          outcome: 'estimate_unavailable_pending_rate',
+          destinationCode: 'RW',
+          portCode: 'MBA',
+          rateStatus: 'no_rate',
+          message: 'Shipping estimate unavailable — pending a confirmed freight rate.',
+        }),
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { FreightService } = await import('../services/freight.js');
+      const service = new FreightService(client);
+
+      const estimate = await service.estimate({ destinationCode: 'RW', portCode: 'MBA' });
+      expect(estimate.outcome).toBe('estimate_unavailable_pending_rate');
+      expect(estimate.rateStatus).toBe('no_rate');
+      expect(estimate.currency).toBeUndefined();
+      expect(estimate).not.toHaveProperty('total');
+    });
+
+    it('returns the unavailable outcome with rateStatus stale for an expired rate record', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => ({
+          outcome: 'estimate_unavailable_pending_rate',
+          destinationCode: 'KE',
+          portCode: 'MBA',
+          rateStatus: 'stale',
+          currency: 'USD',
+          rateEffectiveFrom: '2025-01-01T00:00:00.000Z',
+          rateEffectiveTo: '2026-01-01T00:00:00.000Z',
+          message: 'Shipping estimate unavailable — pending a confirmed freight rate.',
+        }),
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { FreightService } = await import('../services/freight.js');
+      const service = new FreightService(client);
+
+      const estimate = await service.estimate({ destinationCode: 'KE', portCode: 'MBA' });
+      expect(estimate.rateStatus).toBe('stale');
+      expect(estimate).not.toHaveProperty('total');
+    });
+
+    it('normalizes a 400 validation error for invalid dimensions with a field reference', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 400,
+        statusText: 'Bad Request',
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => ({
+          statusCode: 400,
+          message: 'dimensions.lengthMm must be a positive number',
+          correlationId: 'corr-test-freight-1',
+          field: 'dimensions.lengthMm',
+        }),
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { FreightService } = await import('../services/freight.js');
+      const service = new FreightService(client);
+
+      try {
+        await service.estimate({
+          destinationCode: 'UG',
+          portCode: 'MBA',
+          dimensions: { lengthMm: 0, widthMm: 1800, heightMm: 1500 },
+        });
+        expect.fail('Should have thrown NormalizedApiError');
+      } catch (err: unknown) {
+        expect(err).toBeInstanceOf(NormalizedApiError);
+        expect((err as NormalizedApiError).statusCode).toBe(400);
+      }
+    });
+
+    it('normalizes a 400 validation error for an unsupported destination', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 400,
+        statusText: 'Bad Request',
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => ({
+          statusCode: 400,
+          message: "Unsupported destination 'ZZ'",
+          correlationId: 'corr-test-freight-2',
+          field: 'destinationCode',
+        }),
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { FreightService } = await import('../services/freight.js');
+      const service = new FreightService(client);
+
+      try {
+        await service.estimate({ destinationCode: 'ZZ', portCode: 'MBA' });
+        expect.fail('Should have thrown NormalizedApiError');
+      } catch (err: unknown) {
+        expect(err).toBeInstanceOf(NormalizedApiError);
+        expect((err as NormalizedApiError).statusCode).toBe(400);
+      }
+    });
+  });
 });

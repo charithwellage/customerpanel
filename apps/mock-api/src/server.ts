@@ -2,7 +2,8 @@ import express, { Request, Response, NextFunction, Express } from 'express';
 import { readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { parseDemoJwtToken, JwtClaims, hasPermission } from '@carchief/domain';
-import { createStore, type DemoStore } from './store.js';
+import type { FreightEstimateRequest } from '@carchief/domain';
+import { createStore, type DemoStore, FreightRequestError } from './store.js';
 
 export interface AuthenticatedRequest extends Request {
   user?: JwtClaims;
@@ -71,6 +72,39 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
       return;
     }
     res.json(detail);
+  });
+
+  // 3d. Freight destinations catalog (Public) — D01-ASM-001
+  app.get('/api/v1/freight/destinations', async (_req: Request, res: Response) => {
+    res.json(await store.getFreightDestinations());
+  });
+
+  // 3e. Freight ports catalog (Public) — D01-ASM-001
+  app.get('/api/v1/freight/ports', async (_req: Request, res: Response) => {
+    res.json(await store.getFreightPorts());
+  });
+
+  // 3f. Freight estimate lookup (Public) — D01-ASM-001: DEC-PUB-FREIGHT-MODEL
+  // is OPEN, so every supported destination/port pair deterministically
+  // returns the `estimate unavailable — pending confirmed rate` outcome.
+  // No cubic-volume/freight formula and no computed total are implemented
+  // here (RULE-09, RULE-10); that belongs to D01-P05-T002 once approved.
+  app.post('/api/v1/freight/estimate', async (req: Request, res: Response) => {
+    try {
+      const estimate = await store.getFreightEstimate((req.body ?? {}) as FreightEstimateRequest);
+      res.json(estimate);
+    } catch (error) {
+      if (error instanceof FreightRequestError) {
+        res.status(error.statusCode).json({
+          statusCode: error.statusCode,
+          message: error.message,
+          correlationId: `corr-${error.statusCode}-${Date.now()}`,
+          ...(error.field ? { field: error.field } : {}),
+        });
+        return;
+      }
+      throw error;
+    }
   });
 
   // 4. Auth identity inspection endpoint

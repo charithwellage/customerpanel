@@ -364,6 +364,76 @@
         }
       }
     },
+    "/api/v1/freight/destinations": {
+      "get": {
+        "summary": "Get supported freight destinations catalog (D01-ASM-001)",
+        "operationId": "getFreightDestinations",
+        "responses": {
+          "200": {
+            "description": "List of supported freight destinations",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/FreightDestination" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/freight/ports": {
+      "get": {
+        "summary": "Get supported freight arrival ports catalog (D01-ASM-001)",
+        "operationId": "getFreightPorts",
+        "responses": {
+          "200": {
+            "description": "List of supported freight arrival ports",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/FreightPort" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/freight/estimate": {
+      "post": {
+        "summary": "Request a freight estimate lookup (D01-ASM-001 — no formula, no computed total)",
+        "operationId": "postFreightEstimate",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/FreightEstimateRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Deterministic estimate lookup outcome; no monetary total is present while DEC-PUB-FREIGHT-MODEL is unresolved",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/FreightEstimateResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or unsupported destination, port, or dimensions",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/__reset": {
       "post": {
         "summary": "Deterministic non-production data reset",
@@ -569,9 +639,60 @@
         "properties": {
           "statusCode": { "type": "integer", "example": 400 },
           "message": { "type": "string", "example": "Bad Request" },
-          "correlationId": { "type": "string", "example": "corr-12345" }
+          "correlationId": { "type": "string", "example": "corr-12345" },
+          "field": { "type": "string", "example": "destinationCode" }
         },
         "required": ["statusCode", "message", "correlationId"]
+      },
+      "FreightDestination": {
+        "type": "object",
+        "properties": {
+          "code": { "type": "string", "example": "UG" },
+          "name": { "type": "string", "example": "Uganda" },
+          "country": { "type": "string", "example": "Uganda" }
+        },
+        "required": ["code", "name", "country"]
+      },
+      "FreightPort": {
+        "type": "object",
+        "properties": {
+          "code": { "type": "string", "example": "MBA" },
+          "name": { "type": "string", "example": "Mombasa" },
+          "country": { "type": "string", "example": "Kenya" }
+        },
+        "required": ["code", "name", "country"]
+      },
+      "FreightEstimateDimensions": {
+        "type": "object",
+        "properties": {
+          "lengthMm": { "type": "number", "example": 4500 },
+          "widthMm": { "type": "number", "example": 1800 },
+          "heightMm": { "type": "number", "example": 1500 }
+        },
+        "required": ["lengthMm", "widthMm", "heightMm"]
+      },
+      "FreightEstimateRequest": {
+        "type": "object",
+        "properties": {
+          "destinationCode": { "type": "string", "example": "UG" },
+          "portCode": { "type": "string", "example": "MBA" },
+          "dimensions": { "$ref": "#/components/schemas/FreightEstimateDimensions" }
+        },
+        "required": ["destinationCode", "portCode"]
+      },
+      "FreightEstimateResponse": {
+        "type": "object",
+        "properties": {
+          "outcome": { "type": "string", "enum": ["estimate_unavailable_pending_rate"], "example": "estimate_unavailable_pending_rate" },
+          "destinationCode": { "type": "string", "example": "UG" },
+          "portCode": { "type": "string", "example": "MBA" },
+          "rateStatus": { "type": "string", "enum": ["active", "stale", "no_rate"], "example": "active" },
+          "currency": { "type": "string", "example": "USD" },
+          "rateEffectiveFrom": { "type": "string", "example": "2026-06-01T00:00:00.000Z" },
+          "rateEffectiveTo": { "type": "string", "example": "2026-12-01T00:00:00.000Z" },
+          "message": { "type": "string", "example": "Shipping estimate unavailable — pending a confirmed freight rate." }
+        },
+        "required": ["outcome", "destinationCode", "portCode", "rateStatus", "message"]
       }
     }
   }

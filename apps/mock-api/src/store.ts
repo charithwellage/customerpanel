@@ -1,5 +1,18 @@
 import { Pool } from 'pg';
-import type { VehicleDomainSummary, VehicleStatus, VehicleSearchResult, VehicleFacets, SearchVehiclesQuery, VehicleDetail } from '@carchief/domain';
+import type {
+  VehicleDomainSummary,
+  VehicleStatus,
+  VehicleSearchResult,
+  VehicleFacets,
+  SearchVehiclesQuery,
+  VehicleDetail,
+  FreightDestination,
+  FreightPort,
+  FreightRateRecord,
+  FreightRateStatus,
+  FreightEstimateRequest,
+  FreightEstimateResponse,
+} from '@carchief/domain';
 import { generateVehicleSlug } from '@carchief/domain';
 
 export interface VehicleRecord {
@@ -380,8 +393,150 @@ export interface DemoStore {
   getVehicles(query?: GetVehiclesQuery): Promise<VehicleDomainSummary[]>;
   searchVehicles(query?: SearchVehiclesQuery): Promise<VehicleSearchResult>;
   getVehicleDetail(idOrSlug: string): Promise<VehicleDetail | null>;
+  getFreightDestinations(): Promise<FreightDestination[]>;
+  getFreightPorts(): Promise<FreightPort[]>;
+  getFreightEstimate(request: FreightEstimateRequest): Promise<FreightEstimateResponse>;
   reset(): Promise<void>;
   close(): Promise<void>;
+}
+
+// --- Phase 1.5: freight destination, port and rate lookup (D01-ASM-001) ---
+//
+// This reference data is Finance/logistics-owned catalog and rate data, not
+// per-tenant records, so both MemoryStore and PostgresStore serve it from the
+// same in-process constants rather than a new Postgres table — there is no
+// mutation path in this task's scope (no CRUD), so no schema/reset is needed.
+// See tasks/delivery_01/REQUIREMENT_GAPS_AND_ASSUMPTIONS.md row D01-ASM-001.
+
+// Reference instant used to evaluate rate effective windows deterministically,
+// matching the vehicle-location reference date used elsewhere in this store.
+const FREIGHT_REFERENCE_DATE = '2026-08-10T10:00:00.000Z';
+
+const freightDestinations: FreightDestination[] = [
+  { code: 'UG', name: 'Uganda', country: 'Uganda' },
+  { code: 'KE', name: 'Kenya', country: 'Kenya' },
+  { code: 'TZ', name: 'Tanzania', country: 'Tanzania' },
+  { code: 'RW', name: 'Rwanda', country: 'Rwanda' },
+  { code: 'SS', name: 'South Sudan', country: 'South Sudan' },
+];
+
+const freightPorts: FreightPort[] = [
+  { code: 'MBA', name: 'Mombasa', country: 'Kenya' },
+  { code: 'DAR', name: 'Dar es Salaam', country: 'Tanzania' },
+];
+
+// Rate records as supplied data only (D01-ASM-001): a placeholder `amount`
+// stands in for a real Finance-supplied figure so the lookup layer (active /
+// stale / no_rate) is demonstrable. No route ever surfaces `amount` as, or
+// folds it into, a computed total.
+const freightRateRecords: FreightRateRecord[] = [
+  // UG via Mombasa: currently active.
+  { destinationCode: 'UG', portCode: 'MBA', currency: 'USD', amount: 950, effectiveFrom: '2026-06-01T00:00:00.000Z' },
+  // KE via Mombasa: expired with no replacement supplied yet -> stale.
+  {
+    destinationCode: 'KE',
+    portCode: 'MBA',
+    currency: 'USD',
+    amount: 400,
+    effectiveFrom: '2025-01-01T00:00:00.000Z',
+    effectiveTo: '2026-01-01T00:00:00.000Z',
+  },
+  // TZ via Dar es Salaam: currently active.
+  { destinationCode: 'TZ', portCode: 'DAR', currency: 'USD', amount: 700, effectiveFrom: '2026-07-01T00:00:00.000Z' },
+  // RW and SS: intentionally no rate record supplied yet -> no_rate.
+];
+
+export class FreightRequestError extends Error {
+  public readonly statusCode: number;
+  public readonly field?: string;
+
+  constructor(statusCode: number, message: string, field?: string) {
+    super(message);
+    this.name = 'FreightRequestError';
+    this.statusCode = statusCode;
+    this.field = field;
+  }
+}
+
+export function resolveFreightRateStatus(
+  records: FreightRateRecord[],
+  destinationCode: string,
+  portCode: string,
+  nowISO: string = FREIGHT_REFERENCE_DATE
+): { status: FreightRateStatus; record?: FreightRateRecord } {
+  const matches = records.filter((r) => r.destinationCode === destinationCode && r.portCode === portCode);
+  if (matches.length === 0) {
+    return { status: 'no_rate' };
+  }
+
+  const now = new Date(nowISO).getTime();
+  // The record with the latest effectiveFrom that has already started.
+  const started = matches
+    .filter((r) => new Date(r.effectiveFrom).getTime() <= now)
+    .sort((a, b) => new Date(b.effectiveFrom).getTime() - new Date(a.effectiveFrom).getTime());
+
+  if (started.length === 0) {
+    // Only future-dated records exist; nothing is effective yet.
+    return { status: 'no_rate' };
+  }
+
+  const candidate = started[0];
+  const stillOpen = !candidate.effectiveTo || new Date(candidate.effectiveTo).getTime() >= now;
+  return stillOpen ? { status: 'active', record: candidate } : { status: 'stale', record: candidate };
+}
+
+function validateFreightEstimateRequest(
+  destinations: FreightDestination[],
+  ports: FreightPort[],
+  request: FreightEstimateRequest
+): void {
+  if (!request || typeof request.destinationCode !== 'string' || !request.destinationCode.trim()) {
+    throw new FreightRequestError(400, 'destinationCode is required', 'destinationCode');
+  }
+  if (!request || typeof request.portCode !== 'string' || !request.portCode.trim()) {
+    throw new FreightRequestError(400, 'portCode is required', 'portCode');
+  }
+  if (!destinations.some((d) => d.code === request.destinationCode)) {
+    throw new FreightRequestError(400, `Unsupported destination '${request.destinationCode}'`, 'destinationCode');
+  }
+  if (!ports.some((p) => p.code === request.portCode)) {
+    throw new FreightRequestError(400, `Unsupported port '${request.portCode}'`, 'portCode');
+  }
+  if (request.dimensions) {
+    const { lengthMm, widthMm, heightMm } = request.dimensions;
+    for (const [field, value] of Object.entries({ lengthMm, widthMm, heightMm })) {
+      if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) {
+        throw new FreightRequestError(400, `dimensions.${field} must be a positive number`, `dimensions.${field}`);
+      }
+    }
+  }
+}
+
+export function buildFreightEstimate(
+  destinations: FreightDestination[],
+  ports: FreightPort[],
+  records: FreightRateRecord[],
+  request: FreightEstimateRequest,
+  nowISO: string = FREIGHT_REFERENCE_DATE
+): FreightEstimateResponse {
+  validateFreightEstimateRequest(destinations, ports, request);
+
+  const { status, record } = resolveFreightRateStatus(records, request.destinationCode, request.portCode, nowISO);
+
+  // D01-ASM-001: every supported destination/port pair returns the same
+  // deterministic unavailable outcome while DEC-PUB-FREIGHT-MODEL is OPEN,
+  // regardless of rate status. rateStatus/currency/effective dates are
+  // informational lookup context only — never a computed total.
+  return {
+    outcome: 'estimate_unavailable_pending_rate',
+    destinationCode: request.destinationCode,
+    portCode: request.portCode,
+    rateStatus: status,
+    currency: record?.currency,
+    rateEffectiveFrom: record?.effectiveFrom,
+    rateEffectiveTo: record?.effectiveTo,
+    message: 'Shipping estimate unavailable — pending a confirmed freight rate.',
+  };
 }
 
 // Service-owned location projection based on ETD/ETA rules (PUB-08)
@@ -778,6 +933,18 @@ class MemoryStore implements DemoStore {
     return Promise.resolve(buildVehicleDetail(record));
   }
 
+  getFreightDestinations(): Promise<FreightDestination[]> {
+    return Promise.resolve(freightDestinations.map((d) => ({ ...d })));
+  }
+
+  getFreightPorts(): Promise<FreightPort[]> {
+    return Promise.resolve(freightPorts.map((p) => ({ ...p })));
+  }
+
+  async getFreightEstimate(request: FreightEstimateRequest): Promise<FreightEstimateResponse> {
+    return buildFreightEstimate(freightDestinations, freightPorts, freightRateRecords, request);
+  }
+
   reset(): Promise<void> {
     this.config = { ...seedConfig };
     this.vehicles = seedVehicles.map((vehicle) => ({ ...vehicle }));
@@ -921,6 +1088,18 @@ class PostgresStore implements DemoStore {
     const record = findVehicleRecord(rawRecords, idOrSlug);
     if (!record) return null;
     return buildVehicleDetail(record);
+  }
+
+  async getFreightDestinations(): Promise<FreightDestination[]> {
+    return freightDestinations.map((d) => ({ ...d }));
+  }
+
+  async getFreightPorts(): Promise<FreightPort[]> {
+    return freightPorts.map((p) => ({ ...p }));
+  }
+
+  async getFreightEstimate(request: FreightEstimateRequest): Promise<FreightEstimateResponse> {
+    return buildFreightEstimate(freightDestinations, freightPorts, freightRateRecords, request);
   }
 
   private async getRawVehicles(): Promise<VehicleRecord[]> {
