@@ -64,7 +64,7 @@ Delivery 02 repeats that container gate at the last implementation task in every
 
 - Phase 0 is branch-neutral and runs on the approved clean baseline branch.
 - Delivery integration branch: `delivery_01_public_website`.
-- Public phase branches: `feat_delivery01_phase_01` through `feat_delivery01_phase_08`.
+- Public phase branches: `feat_delivery01_phase_01` through `feat_delivery01_phase_09`. Phase 1.9 verifies alternate-theme (`ocean`) parity across the whole Public Website; per-task UI validation in earlier phases covers the default `carchief` theme only.
 - Customer integration branch: `delivery_02_customer_application`, created by a human from the fully accepted updated Public delivery branch.
 - Customer phase branches: `feat_delivery02_phase_01` through `feat_delivery02_phase_10`.
 - Tasks do not create child branches. Every task works directly on its phase branch, for example `feat_delivery01_phase_01`; parallel groups are coordination lanes on that same branch, not separate Git branches.
@@ -83,7 +83,7 @@ Publishing the delivery branch is an explicitly authorized human action. If `del
 
 ## Commands
 
-`node tasks/scripts/taskctl.mjs validate` validates 103 task/gate files, UI-validation metadata, shared-frontend-rule references, Delivery 02 assumption-register references, decisions, delivery-specific branches, requirement coverage and the dependency DAG.
+`node tasks/scripts/taskctl.mjs validate` validates 106 task/gate files, UI-validation metadata, shared-frontend-rule references, Delivery 02 assumption-register references, decisions, delivery-specific branches, requirement coverage and the dependency DAG.
 
 `node tasks/scripts/taskctl.mjs next` reports the current execution frontier and permitted same-group parallel tasks.
 
@@ -106,7 +106,7 @@ Use the delivery integration branch named in the task, then its `feat_deliveryNN
 
 The task files can be reviewed now, but implementation begins only after all of the following are true:
 
-1. `D01-P08-CODE_REVIEW` is `COMPLETE` and the complete Public Website PR is merged.
+1. `D01-P09-CODE_REVIEW` is `COMPLETE` and the complete Public Website PR is merged. Phase 1.9 is the final Public gate; `D01-P08-CODE_REVIEW` alone is no longer sufficient.
 2. A human synchronizes `delivery_01_public_website` and creates `delivery_02_customer_application` from that exact commit.
 3. `D02-P01-G001` is the global execution frontier. Requirement gaps use the Delivery 02 assumption register and do not block Phases 2.1–2.9.
 4. The Customer compiled/runtime scope is treated as provisional and the negative POC evidence is not copied.

@@ -50,3 +50,6 @@
 1.8,D01-P08-T003,"Complete accessibility, browser and performance acceptance",D01-P07-T004,15
 1.8,D01-P08-T004,Produce Public Website UAT and Delivery 1 handoff,D01-P08-T001; D01-P08-T002; D01-P08-T003,18
 1.8,D01-P08-CODE_REVIEW,Phase 1.8 PR code review and tech-lead approval,D01-P08-T004,3
+1.9,D01-P09-T001,Add automated ocean theme-parity and contrast suite,D01-P08-CODE_REVIEW,6
+1.9,D01-P09-T002,Validate the ocean theme with Playwright MCP and fix parity defects,D01-P09-T001,6
+1.9,D01-P09-CODE_REVIEW,Phase 1.9 PR code review and tech-lead approval,D01-P09-T002,3

@@ -3,7 +3,7 @@ task_id: "D02-P10-CODE_REVIEW"
 title: "Phase 2.10 PR code review and tech-lead approval"
 delivery: "Delivery 02 — Customer Application"
 phase: "Phase 2.10 — Assumption reconciliation and MVP closure"
-execution_order: 103
+execution_order: 106
 estimate: "0.25 day"
 model_tier: "FRONTIER"
 parallel_group: "D02-P10-REVIEW"
