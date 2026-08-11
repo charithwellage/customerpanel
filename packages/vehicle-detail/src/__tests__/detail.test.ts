@@ -1,9 +1,31 @@
 import { describe, it, expect } from 'vitest';
-import { formatVehicleTitle, isVehicleAvailable, getEffectivePrice, type VehicleDetail } from '../index.js';
+import {
+  formatVehicleTitle,
+  isVehicleAvailable,
+  getEffectivePrice,
+  getVisibleGalleryImages,
+  type VehicleDetail,
+  type CategorizedPublicMedia,
+} from '../index.js';
 
 describe('Vehicle Detail Package Unit Tests', () => {
   it('formats vehicle title correctly', () => {
     expect(formatVehicleTitle({ year: 2021, make: 'Toyota', model: 'Corolla' })).toBe('2021 Toyota Corolla');
+  });
+
+  it('selects gallery images from public media fallback categories when gallery is empty', () => {
+    const media: CategorizedPublicMedia = {
+      gallery: [],
+      auctionPictures: ['https://example.com/auction1.jpg'],
+      japanPictures: ['https://example.com/japan1.jpg'],
+      durbanPictures: ['https://example.com/durban1.jpg'],
+      showAuctionPictures: false,
+      showJapanPictures: true,
+      showDurbanPictures: true,
+      totalPicturesCount: 3,
+    };
+
+    expect(getVisibleGalleryImages(media)).toEqual(['https://example.com/japan1.jpg']);
   });
 
   it('checks vehicle availability status', () => {
@@ -42,5 +64,21 @@ describe('Vehicle Detail Package Unit Tests', () => {
       media: { gallery: [], totalPicturesCount: 0 },
     };
     expect(getEffectivePrice(requestPriceVehicle)).toEqual({ priceText: 'Request Price', isRequestPrice: true });
+  });
+
+  it('selects gallery images from allowed media categories when gallery is empty', () => {
+    const media: CategorizedPublicMedia = {
+      gallery: [],
+      auctionPictures: ['https://example.com/auction1.jpg'],
+      auctionSheet: [],
+      japanPictures: ['https://example.com/japan1.jpg'],
+      durbanPictures: ['https://example.com/durban1.jpg'],
+      showAuctionPictures: false,
+      showJapanPictures: true,
+      showDurbanPictures: true,
+      totalPicturesCount: 3,
+    };
+
+    expect(getVisibleGalleryImages(media)).toEqual(['https://example.com/japan1.jpg']);
   });
 });

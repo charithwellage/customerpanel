@@ -23,3 +23,23 @@ export function getEffectivePrice(detail: VehicleDetail): { priceText: string; i
   return { priceText: `$${finalPrice.toLocaleString()}`, isRequestPrice: false };
 }
 
+export function getVisibleGalleryImages(media: CategorizedPublicMedia): string[] {
+  if (media.gallery?.length) {
+    return media.gallery;
+  }
+
+  if (media.showAuctionPictures && media.auctionPictures?.length) {
+    return media.auctionPictures;
+  }
+
+  if (media.showJapanPictures && media.japanPictures?.length) {
+    return media.japanPictures;
+  }
+
+  if (media.showDurbanPictures && media.durbanPictures?.length) {
+    return media.durbanPictures;
+  }
+
+  return [];
+}
+

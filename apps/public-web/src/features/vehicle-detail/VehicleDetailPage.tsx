@@ -6,6 +6,7 @@ import type { VehicleDetail } from '@carchief/domain';
 import {
   formatVehicleTitle,
   getEffectivePrice,
+  getVisibleGalleryImages,
   isVehicleAvailable,
 } from '@carchief/vehicle-detail';
 
@@ -81,7 +82,18 @@ export default function VehicleDetailPage({ idOrSlug }: { idOrSlug: string }) {
   const available = isVehicleAvailable(vehicle.status);
   const isSold = vehicle.status === 'Sold';
 
-  const galleryImages: string[] = vehicle.media.gallery ?? [];
+  const galleryImages: string[] = getVisibleGalleryImages(vehicle.media);
+  const totalImages = galleryImages.length;
+
+  React.useEffect(() => {
+    setGalleryIndex(0);
+  }, [vehicle?.id]);
+
+  React.useEffect(() => {
+    if (galleryIndex >= totalImages) {
+      setGalleryIndex(0);
+    }
+  }, [galleryIndex, totalImages]);
 
   const specsRaw: { label: string; value: string | number | undefined }[] = [
     { label: 'Body Style', value: vehicle.bodyStyle },
@@ -101,8 +113,6 @@ export default function VehicleDetailPage({ idOrSlug }: { idOrSlug: string }) {
     (s): s is { label: string; value: string | number } =>
       s.value !== undefined && s.value !== '',
   );
-
-  const totalImages = galleryImages.length;
 
   function prevImage() {
     setGalleryIndex((i) => (i === 0 ? totalImages - 1 : i - 1));
@@ -226,13 +236,11 @@ export default function VehicleDetailPage({ idOrSlug }: { idOrSlug: string }) {
             )}
           </div>
         ) : (
-          <div className="cc-gallery cc-gallery--empty" aria-label="No images available">
-            <img
-              src="/static/placeholder-vehicle.png"
-              alt={`${title} — no images available`}
-              className="cc-gallery__image cc-gallery__image--placeholder"
-            />
-          </div>
+          <section className="cc-gallery cc-gallery--empty" aria-label="No images available">
+            <div className="cc-gallery__placeholder">
+              <p className="cc-gallery__placeholder-text">No images available for this vehicle yet.</p>
+            </div>
+          </section>
         )}
       </section>
 
