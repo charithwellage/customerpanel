@@ -2,20 +2,23 @@
 
 Read this file first. It carries the requirement text, decisions, code map and conventions the Phase 1.5 tasks need, so `REQUIREMENT.md` and `FRONT_END_ARCHITECTURE.md` only need to be opened for an item this pack marks unresolved.
 
-## 0. Blocking gate — read before planning any work
+## 0. Requirement gap — read before planning any work
 
-**Phase 1.5 cannot start until `DEC-PUB-FREIGHT-MODEL` and `DEC-PUB-CITY-DELIVERY` are `RESOLVED` in [`../../DECISION_REGISTER.md`](../../DECISION_REGISTER.md).** Both are `OPEN` today. `D01-P05-G001` is the gate task that records the named business approval; it cannot invent, infer or derive a formula from the POC or the legacy site.
+`DEC-PUB-FREIGHT-MODEL` and `DEC-PUB-CITY-DELIVERY` are `OPEN` in [`../../DECISION_REGISTER.md`](../../DECISION_REGISTER.md). **This no longer blocks Phase 1.5.** The phase proceeds under the Delivery 01 non-blocking requirement-gap register, [`../REQUIREMENT_GAPS_AND_ASSUMPTIONS.md`](../REQUIREMENT_GAPS_AND_ASSUMPTIONS.md), row `D01-ASM-001`.
 
-The approval must supply, in writing, from the named Finance/logistics owner:
+**What that row permits and forbids.** A shipping rate is a Finance-owned financial figure, so it is `SKIPPED`, never `ASSUMED` (register operating rule 5). No task in this phase may invent, infer or derive a formula from the POC or the legacy site. Everything that does not depend on the formula is built normally:
 
-- The cubic-volume formula and its input units.
-- Rate selection, the rate effective date, and behaviour when no rate or only a stale rate exists.
-- Currency and the rounding rule, at each step and on the total.
-- Whether insurance and discount apply, and the exact order of the calculation sequence.
-- Whether optional city delivery is offered, its lookup inputs, how it combines with freight, and its no-rate behaviour.
-- At least two worked examples with expected outputs, usable directly as test fixtures.
+| Built now | Deferred until the decision resolves |
+|---|---|
+| Destinations, ports, rate records, effective dates, currencies | The cubic-volume formula and its input units |
+| No-rate and stale-rate handling | Freight, city-delivery, insurance and discount amounts |
+| The estimate request/response contract and its line-item structure | Rate selection and the rounding rule |
+| A first-class `estimate unavailable — pending confirmed rate` state, server and UI | Any computed monetary total |
+| The full quotation-enquiry flow (`PUB-13`, `PUB-15`) and its confirmation | `PUB-12`'s priced estimate |
 
-Without those, `D01-P05-T002` has nothing to implement. Record a blocker rather than guessing.
+When the business approval arrives it must supply, in writing, from the named Finance/logistics owner: the cubic-volume formula and input units; rate selection, effective date and no-rate/stale-rate behaviour; currency and the rounding rule at each step and on the total; whether insurance and discount apply and the exact calculation order; whether city delivery is offered, its lookup inputs, how it combines with freight and its no-rate behaviour; and at least two worked examples usable directly as test fixtures.
+
+That approval does **not** have to wait for Phase 1.10. Reopen `D01-P05-T002` with `taskctl reopen` the moment the decision is `RESOLVED` and take its Branch A. Phase 1.10 is the backstop that guarantees the row is reviewed, not the earliest chance to close it.
 
 ## 1. Requirements in scope (verbatim from `REQUIREMENT.md`)
 
@@ -37,11 +40,11 @@ Without those, `D01-P05-T002` has nothing to implement. Record a blocker rather 
 
 | Item | Status | Disposition for Phase 1.5 |
 |---|---|---|
-| `DEC-PUB-FREIGHT-MODEL` | OPEN | Hard gate. Resolved by `D01-P05-G001` with worked examples. |
-| `DEC-PUB-CITY-DELIVERY` | OPEN | Hard gate. If city delivery is declined, record that decision and omit the feature — do not build a disabled placeholder. |
+| `DEC-PUB-FREIGHT-MODEL` | OPEN | Not a gate. Recorded as `SKIPPED` in `D01-ASM-001`; no formula is implemented until it resolves. |
+| `DEC-PUB-CITY-DELIVERY` | OPEN | Not a gate. Covered by the same row. If city delivery is later declined, record that decision and omit the feature — do not build a disabled placeholder. |
 | `UV-3`, `UV-4` (`docs/implementation_risks.md` §5) | Unable to verify | The freight inputs and rate source could not be confirmed from evidence. They are resolved by the same business approval; cite the approval, not the risk register, in the implementation. |
 
-Every estimate shown to a visitor is labelled **indicative** until an approved rate source is confirmed. Never present an estimate as a quotation or a final price (RULE-10).
+While `D01-ASM-001` is `SKIPPED` there is no estimate to label: the visitor is told plainly that an estimate is not yet available. Once the rule is approved, every estimate shown to a visitor is labelled **indicative** until an approved rate source is confirmed. Never present an estimate as a quotation or a final price, and never substitute a placeholder figure for a missing one (RULE-09, RULE-10).
 
 ## 3. Code map — what already exists
 

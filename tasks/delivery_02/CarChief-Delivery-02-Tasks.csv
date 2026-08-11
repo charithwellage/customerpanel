@@ -1,5 +1,5 @@
 ﻿Phase Number,Task Number,Task Summary,Dependent Task,AI Estimation (Luna Medium Hours)
-2.1,D02-P01-G001,"Record Customer scope, BA workflow ownership and Keycloak identity baseline",D01-P09-CODE_REVIEW,3
+2.1,D02-P01-G001,"Record Customer scope, BA workflow ownership and Keycloak identity baseline",D01-P10-CODE_REVIEW,3
 2.1,D02-P01-T001,Complete the customer application shell and responsive navigation,D02-P01-G001,9
 2.1,D02-P01-T002,"Add customer session, account states and protected access",D02-P01-T001,12
 2.1,D02-P01-T003,"Accept customer themes, PWA shell, accessibility and Docker deployment",D02-P01-T002,9
