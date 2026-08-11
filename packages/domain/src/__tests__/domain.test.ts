@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import type { VehicleDomainSummary } from '../index.js';
+import { generateVehicleSlug, type VehicleDomainSummary } from '../index.js';
 
 function createMockVehicle(overrides?: Partial<VehicleDomainSummary>): VehicleDomainSummary {
   return {
@@ -28,4 +28,10 @@ describe('Domain Package Unit Tests', () => {
     expect(vehicle.model).toBe('X-Trail');
     expect(vehicle.year).toBe(2022);
   });
+
+  it('generates clean vehicle slugs', () => {
+    const slug = generateVehicleSlug(2021, 'Toyota', 'Corolla Axio!', 'veh-1');
+    expect(slug).toBe('2021-toyota-corolla-axio-veh-1');
+  });
 });
+

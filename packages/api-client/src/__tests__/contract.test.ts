@@ -211,4 +211,60 @@ describe('API Client & Contract Boundary Tests', () => {
       expect(cat).not.toContain('New');
     });
   });
+
+  it('fetches vehicle detail via VehicleService getVehicleDetail', async () => {
+    let capturedUrl: string | undefined;
+    const mockFetch = vi.fn().mockImplementation(async (url) => {
+      capturedUrl = url;
+      return {
+        ok: true,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => ({
+          id: 'veh-1',
+          chassisNumber: 'NZE141-1234567',
+          slug: '2021-toyota-corolla-axio-veh-1',
+          make: 'Toyota',
+          model: 'Corolla Axio',
+          year: 2021,
+          status: 'Available',
+          priceState: 'priced',
+          priceUsd: 8500,
+          requestPrice: false,
+          media: {
+            gallery: ['https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?w=400'],
+            totalPicturesCount: 1,
+          },
+        }),
+      };
+    });
+    global.fetch = mockFetch;
+
+    const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+    const { VehicleService } = await import('../services/vehicles.js');
+    const service = new VehicleService(client);
+
+    const detail = await service.getVehicleDetail('2021-toyota-corolla-axio-veh-1');
+    expect(capturedUrl).toContain('/api/v1/vehicles/2021-toyota-corolla-axio-veh-1');
+    expect(detail).not.toBeNull();
+    expect(detail?.id).toBe('veh-1');
+    expect(detail?.priceState).toBe('priced');
+  });
+
+  it('returns null from VehicleService getVehicleDetail when API returns 404', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 404,
+      headers: new Headers({ 'content-type': 'application/json' }),
+      json: async () => ({ statusCode: 404, message: 'Vehicle not found', correlationId: 'corr-404' }),
+    });
+    global.fetch = mockFetch;
+
+    const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+    const { VehicleService } = await import('../services/vehicles.js');
+    const service = new VehicleService(client);
+
+    const detail = await service.getVehicleDetail('missing-veh');
+    expect(detail).toBeNull();
+  });
 });
+

@@ -57,6 +57,23 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
     res.json(await store.searchVehicles(req.query as Record<string, string>));
   });
 
+  // 3c. Vehicle detail lookup by ID, chassis, or slug (Public)
+  app.get('/api/v1/vehicles/:idOrSlug', async (req: Request, res: Response) => {
+    const rawParam = req.params.idOrSlug;
+    const idOrSlug = Array.isArray(rawParam) ? rawParam[0] : rawParam;
+    const detail = await store.getVehicleDetail(idOrSlug);
+    if (!detail) {
+      res.status(404).json({
+        statusCode: 404,
+        message: `Vehicle '${idOrSlug}' not found`,
+        correlationId: `corr-404-${Date.now()}`,
+      });
+      return;
+    }
+    res.json(detail);
+  });
+
+
   // 4. Auth identity inspection endpoint
   app.get('/api/v1/auth/me', (req: AuthenticatedRequest, res: Response) => {
     if (!req.user) {

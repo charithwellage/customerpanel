@@ -328,6 +328,42 @@
         }
       }
     },
+    "/api/v1/vehicles/{idOrSlug}": {
+      "get": {
+        "summary": "Get public vehicle detail by ID, chassis number, or stable slug",
+        "operationId": "getVehicleDetail",
+        "parameters": [
+          {
+            "name": "idOrSlug",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "example": "veh-1" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Public vehicle detail and categorized media",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleDetail"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Vehicle not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/__reset": {
       "post": {
         "summary": "Deterministic non-production data reset",
@@ -394,6 +430,86 @@
           "requestPrice": { "type": "boolean", "example": false }
         },
         "required": ["id", "chassisNumber", "make", "model", "year", "priceUsd", "status"]
+      },
+      "CategorizedPublicMedia": {
+        "type": "object",
+        "properties": {
+          "gallery": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "auctionPictures": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "auctionSheet": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "japanPictures": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "durbanPictures": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "showAuctionPictures": { "type": "boolean", "example": false },
+          "showJapanPictures": { "type": "boolean", "example": true },
+          "showDurbanPictures": { "type": "boolean", "example": false },
+          "totalPicturesCount": { "type": "integer", "example": 5 }
+        },
+        "required": ["gallery", "totalPicturesCount"]
+      },
+      "VehicleDetail": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "example": "veh-1" },
+          "chassisNumber": { "type": "string", "example": "NZE141-1234567" },
+          "slug": { "type": "string", "example": "2021-toyota-corolla-axio-veh-1" },
+          "make": { "type": "string", "example": "Toyota" },
+          "model": { "type": "string", "example": "Corolla Axio" },
+          "year": { "type": "integer", "example": 2021 },
+          "status": { "type": "string", "example": "Available" },
+          "priceState": { "type": "string", "enum": ["priced", "request_price"], "example": "priced" },
+          "priceUsd": { "type": "number", "example": 8500 },
+          "requestPrice": { "type": "boolean", "example": false },
+          "discountPercent": { "type": "number", "example": 5 },
+          "discountedPriceUsd": { "type": "number", "example": 8075 },
+          "category": { "type": "string", "example": "premium" },
+          "locationStatus": { "type": "string", "example": "In Japan" },
+          "stockType": { "type": "string", "example": "J" },
+          "destinationPort": { "type": "string", "example": "Mombasa" },
+          "bodyStyle": { "type": "string", "example": "Sedan" },
+          "fuelType": { "type": "string", "example": "Petrol" },
+          "transmission": { "type": "string", "example": "Automatic" },
+          "driveTrain": { "type": "string", "example": "2WD" },
+          "mileage": { "type": "integer", "example": 32000 },
+          "engineSize": { "type": "string", "example": "1500 cc" },
+          "color": { "type": "string", "example": "White" },
+          "modelCode": { "type": "string", "example": "DBA-NZE141" },
+          "versionClass": { "type": "string", "example": "1.5X" },
+          "registerYear": { "type": "string", "example": "2021/04" },
+          "mfgYear": { "type": "string", "example": "2021/03" },
+          "dimensions": {
+            "type": "object",
+            "properties": {
+              "lengthMm": { "type": "number", "example": 4410 },
+              "widthMm": { "type": "number", "example": 1695 },
+              "heightMm": { "type": "number", "example": 1460 },
+              "m3": { "type": "number", "example": 10.91 }
+            }
+          },
+          "etd": { "type": "string", "example": "2026-08-20T00:00:00.000Z" },
+          "eta": { "type": "string", "example": "2026-09-10T00:00:00.000Z" },
+          "featured": { "type": "boolean", "example": true },
+          "countryEligibility": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "media": { "$ref": "#/components/schemas/CategorizedPublicMedia" }
+        },
+        "required": ["id", "chassisNumber", "slug", "make", "model", "year", "status", "priceState", "requestPrice", "media"]
       },
       "FacetCount": {
         "type": "object",

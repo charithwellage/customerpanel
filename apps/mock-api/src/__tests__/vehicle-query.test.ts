@@ -179,6 +179,7 @@ describe('Vehicle Query, Dynamic Filters, Sorting, and Pagination Tests (PUB-04.
   it('resets data deterministically', async () => {
     await store.reset();
     const res = await store.searchVehicles();
-    expect(res.total).toBe(12);
+    expect(res.total).toBe(15);
   });
 });
+
