@@ -1,7 +1,7 @@
 # Phase 03 Summary: Inventory and Search
 
 ## Overview
-Phase 1.3 integrates the inventory search functionality for the public-facing application, combining the URL-backed search orchestration with shared components. 
+Phase 1.3 integrates the inventory search functionality for the public-facing application, combining the URL-backed search orchestration with shared components.
 
 ## Key Deliverables Completed
 - Implemented and integrated natural language parsing for search queries (e.g. "Toyota hybrid under $15000").
