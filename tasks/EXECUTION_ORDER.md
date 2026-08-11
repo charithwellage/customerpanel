@@ -116,7 +116,7 @@ Delivery 02 contains **25 delivery days** of gate, implementation, acceptance an
 | 55 | [D01-P08-T003](delivery_01/phase_08/D01-P08-T003.md) | Complete accessibility, browser and performance acceptance | D01-P07-T004 | P08-A | self_ai | playwright_mcp | 1.25 days |
 | 56 | [D01-P08-T004](delivery_01/phase_08/D01-P08-T004.md) | Produce Public Website UAT and Delivery 1 handoff | D01-P08-T001, D01-P08-T002, D01-P08-T003 | P08-B | self_ai | playwright_mcp | 1.5 days |
 | 57 | [D01-P08-CODE_REVIEW](delivery_01/phase_08/D01-P08-CODE_REVIEW.md) | Phase 1.8 PR code review and tech-lead approval | D01-P08-T004 | P08-REVIEW | phase_manual | not_applicable | 0.25 day |
-| 58 | [D02-P01-G001](delivery_02/phase_01/D02-P01-G001.md) | Confirm compiled Customer scope, BA workflow ownership and identity decisions | D01-P08-CODE_REVIEW | D02-P01-GATE | self_ai | not_applicable | 0.25 days |
+| 58 | [D02-P01-G001](delivery_02/phase_01/D02-P01-G001.md) | Record Customer scope, BA workflow ownership and Keycloak identity baseline | D01-P08-CODE_REVIEW | D02-P01-GATE | self_ai | not_applicable | 0.25 days |
 | 59 | [D02-P01-T001](delivery_02/phase_01/D02-P01-T001.md) | Complete the customer application shell and responsive navigation | D02-P01-G001 | D02-P01-SEQUENTIAL | self_ai | playwright_mcp | 0.75 days |
 | 60 | [D02-P01-T002](delivery_02/phase_01/D02-P01-T002.md) | Add customer session, account states and protected access | D02-P01-T001 | D02-P01-SEQUENTIAL | self_ai | playwright_mcp | 1 day |
 | 61 | [D02-P01-T003](delivery_02/phase_01/D02-P01-T003.md) | Accept customer themes, PWA shell, accessibility and Docker deployment | D02-P01-T002 | D02-P01-SEQUENTIAL | self_ai | playwright_mcp | 0.75 days |
@@ -162,7 +162,7 @@ Delivery 02 contains **25 delivery days** of gate, implementation, acceptance an
 ## Merge and continuation protocol
 
 1. A normal task becomes COMPLETE only after its AI review and tests pass.
-2. After all normal tasks in a phase are COMPLETE, the human owner manually commits phase work and creates/updates the PR to `delivery_01_public_website`.
+2. After all normal tasks in a phase are COMPLETE, the human owner manually commits phase work and creates/updates the PR to that delivery's integration branch (`delivery_01_public_website` for Delivery 01; `delivery_02_customer_application` for Delivery 02).
 3. The phase code-review task performs AI review of that exact branch comparison and moves to IN_REVIEW.
 4. The tech lead manually reviews the PR and approves the phase code-review task.
 5. The human owner merges the approved PR. Only then may the next phase begin from the synchronized delivery branch.

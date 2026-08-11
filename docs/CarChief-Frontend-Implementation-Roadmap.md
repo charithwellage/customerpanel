@@ -89,10 +89,9 @@ Representative source evidence: [`POC/src/App.tsx`](../POC/src/App.tsx), [`POC/s
 
 ### Important limitations
 
-- The available source uses Firebase Authentication and Firestore, not Supabase.
-- The production frontend will use neither Firebase nor Supabase directly.
-- Customer portal source, customer types/context, Firebase configuration, Firestore cache/instrumentation, and the audit component are missing.
-- Detailed Customer Application behavior remains provisional until business owners approve it.
+- The POC source uses Firebase Authentication and Firestore, not Supabase; neither is part of the production frontend.
+- Customer portal source, customer types/context, Firebase configuration, Firestore cache/instrumentation, and the audit component are missing from the POC. This limits POC evidence only; approved requirements and BA decisions drive the replacement application.
+- AutoPulse/Keycloak will provide production sign-in, recovery, MFA and authorisation. The Mock API provides compatible demonstration behavior until AutoPulse is available.
 - PayPal, email, WhatsApp, AI, tracking, and download labels do not prove production vendor integration.
 - Sensitive credential-like bootstrap behavior exists in the POC source and must be reviewed/rotated where applicable; no values are reproduced here.
 
@@ -569,10 +568,10 @@ flowchart LR
 
 ### Management decisions
 
-1. Confirm or supply the missing customer, Firebase, cache and audit source.
-2. Confirm why the source uses Firebase/Firestore rather than the earlier Supabase description.
-3. Approve customer pages visible only in compiled output.
-4. Select production identity, recovery, MFA, roles and finance separation.
+1. Approve the remaining customer dashboard definitions and secure-document repository policy.
+2. Provide AutoPulse entities, identifiers and API contracts when the backend becomes available.
+3. Confirm notification retention, audit requirements and customer document categories/retention/scanning.
+4. Confirm the remaining finance/pricing, import and external-integration decisions.
 5. Approve statuses and worked pricing, freight, tax, currency and allocation examples.
 6. Approve public/customer/staff field and media visibility.
 7. Approve document, KYC and payment-proof storage, scanning, privacy and retention.
@@ -580,20 +579,20 @@ flowchart LR
 9. Decide launch integrations and fund them separately.
 10. Provide final domains, public claims and legacy PHP URLs.
 11. Assign content, master-data, finance, security, UAT and release owners.
-12. Confirm the BA diagram colour ownership for ambiguous nodes; the JSON export does not preserve colours.
-13. Confirm whether negotiation and reservation timers are the same, and define expiry outcomes.
-14. Confirm the 72-hour PI payment window and vehicle-hold behavior.
-15. Confirm Active/Deactive/Now On Sale meanings, country visibility and price-request routing.
-16. Confirm whether CSV, auction media, bank checks, ERP/IBQ, email and WhatsApp remain manual for MVP.
-17. Confirm Ship OK and document-release approvers, rejection paths and customer-visible status names.
-18. Confirm second-payment behavior and document-release timing.
+12. The BA JPEG confirms workflow ownership: blue CarChief UI/state, clear manual operation and green ERP/IBQ boundary.
+13. The 48-hour negotiation timer is the exclusive reservation hold and expires to `Now On Sale`.
+14. The 72-hour PI window retains `Under Negotiation With PI` and expires to `Now On Sale`.
+15. `Active` and `Now On Sale` are separate fields; a price request creates a normal lead.
+16. AutoPulse owns real email; Mock API supplies testable outbox evidence until it is available. ERP/IBQ remains an external/manual checkpoint.
+17. Finance approves/rejects Ship OK and document release, with rejection reason, notification and resubmission.
+18. Customers see documents only after Finance-approved release and the Sales Portal `visibleToCustomer` setting is enabled.
 19. Confirm whether push notifications, background sync, camera/file capture and install analytics are required beyond the PWA baseline.
 
 ### Principal risks and controls
 
 | Risk | Control |
 |---|---|
-| Customer source is missing | Require business sign-off for every compiled-only page before acceptance |
+| Customer POC source is missing | Treat it as discovery evidence only; implement approved requirements and BA decisions, and defer unsupported compiled-only behaviour |
 | POC and AutoPulse fields differ | Confirm each business-area contract against AutoPulse before BFF integration |
 | Browser security patterns are copied | Use a clean implementation and authoritative BFF authorization |
 | Financial rules differ between teams | Approve worked examples and automate them |

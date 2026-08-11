@@ -10,7 +10,7 @@ Read `REQUIREMENT.md` WF-05–WF-08, RULE-02 and RULE-05, Sales phases 3.4–3.5
 
 Consume the shared vehicle-search/detail packages for staff inventory and customer/vehicle selection; staff-only filters and commands belong in app wrappers or dedicated staff features.
 
-Implement the staff workflow for screened lead intake, country salesperson assignment, Under Negotiation, customer confirmation/cancellation, PI creation, Under Negotiation With PI and the approved 48-hour/72-hour timer semantics. The server/mock service owns transitions and expiry; the UI only presents commands and states.
+Implement the staff workflow for screened lead intake, country salesperson assignment, Under Negotiation, customer confirmation/cancellation, PI creation and Under Negotiation With PI. The 48-hour timer is the exclusive reservation hold and the 72-hour PI window retains the reservation; either expiry returns the vehicle to `Now On Sale`. The server/mock service owns transitions and expiry; the UI only presents commands and states.
 
 ## Tests and acceptance
 

@@ -14,7 +14,7 @@
 
 The CarChief POC demonstrates a broad vehicle-export operation across three user experiences: a public website, a customer application, and a staff application containing sales, finance, and administration functions. The POC is valuable evidence for screens, workflows, calculations, statuses, and visual behavior, but it should not be converted directly into production code.
 
-The supplied source is a large React/Vite single-page application that accesses Firebase Authentication and Firestore from browser components. It is not Supabase-based in the available revision. Important authorization, calculation, identity-administration, and multi-record update logic currently runs in the browser. The customer TypeScript source, Firebase configuration, Firestore cache layer, and Firestore audit component are missing.
+The supplied POC source is a large React/Vite single-page application that accesses Firebase Authentication and Firestore from browser components. Firebase/Firestore are POC-only demonstration dependencies and are not part of the target solution. Important authorization, calculation, identity-administration, and multi-record update logic currently runs in the browser. Missing Customer source and POC Firebase/cache/audit modules limit POC evidence confidence, but do not block approved requirements-based implementation.
 
 The target will be a clean React/TypeScript implementation with:
 
@@ -941,11 +941,11 @@ Runtime additions: the profile separates fixed identity fields from editable con
 - Password-change handoff if supported by identity provider.
 - Customer activity presentation where approved.
 
-**Evidence:** Compiled customer artifact; notification/activity collection usage in public/staff source.
+**Evidence:** Compiled customer artifact; notification/activity collection usage in public/staff source. Approved requirements and BA workflow decisions override compiled-only behavior.
 
 **Incremental mock capability:** Notification query/read/dismiss and profile read/update.
 
-**Dependencies/open questions:** Editable fields, notification retention, required reauthentication, audit requirements.
+**Dependencies/open questions:** AutoPulse/Keycloak owns production recovery/MFA/reauthentication; Mock API supplies compatible demonstration states. Notification retention and audit requirements remain open.
 
 **Supervisor demo:** Filter unread notifications, open a linked transaction, mark all read, and update contact details.
 
@@ -973,7 +973,7 @@ Runtime additions: the profile separates fixed identity fields from editable con
 
 ### 6.10 BA workflow additions to Customer Application
 
-Add customer-facing status and notification coverage for PI-created/under-negotiation-with-PI, the approved 72-hour payment deadline, held or re-submission-required TT evidence, payment allocation and remaining balance, Ship OK, document-release pending/approved, and documents becoming visible only after approved upload. All views remain customer-isolated and must use the same authoritative balance and status projections. The Customer Application consumes `packages/pwa` for installability and offline shell behavior but never caches sensitive customer data or permits offline mutations.
+Add customer-facing status and notification coverage for PI-created/under-negotiation-with-PI, the approved 72-hour payment deadline, held or re-submission-required TT evidence, payment allocation and remaining balance, Ship OK, document-release pending/approved, and documents becoming visible only after Finance-approved release and server-side `visibleToCustomer` is enabled. The Mock API records testable email/outbox evidence until AutoPulse delivers real email. All views remain customer-isolated and must use the same authoritative balance and status projections. The Customer Application consumes `packages/pwa` for installability and offline shell behavior but never caches sensitive customer data or permits offline mutations.
 
 ## 7. Delivery 3 — Salesperson Application
 
@@ -1349,12 +1349,12 @@ Runtime finding: branding in the demonstration covers the header logo only, not 
 The Salesperson Application must also cover the operational path that the original plan only described at a high level:
 
 - Support-screened lead intake, country assignment and price-request enquiries.
-- Separate negotiation state and 48-hour timer, customer confirmation/cancellation and expiry handling.
-- PI-created state and separate 72-hour payment timer.
-- TT creation, proof upload, Finance hold/re-submit/approve/reject and notification intent.
+- Negotiation state and the exclusive 48-hour reservation hold, customer confirmation/cancellation and expiry back to `Now On Sale`.
+- `Under Negotiation With PI` state and the 72-hour payment timer; expiry releases the vehicle to `Now On Sale`.
+- TT creation, proof upload, Finance hold/re-submit/approve/reject with mandatory rejection reasons and Mock API email/outbox evidence.
 - Payment allocation, remaining balance and second/due payment behavior.
-- Ship OK request/approval, ERP/IBQ manual checkpoint recording and rejection paths.
-- Document-release request/approval, upload and customer-visibility transition.
+- Finance-owned Ship OK request/approval, ERP/IBQ manual checkpoint recording, rejection reason, notification and resubmission paths.
+- Finance-owned document-release request/approval, upload and customer-visibility transition through `visibleToCustomer`.
 - Publication, price-readiness, country visibility, CSV source/reference and image-source controls.
 
 These are mock/API operations only until the BFF and external-system responsibilities are approved. The frontend must never claim that VBMS, NetSuite, bank verification, ERP/IBQ, email or WhatsApp completed an action without an integration result or recorded manual checkpoint.
@@ -1384,7 +1384,7 @@ The allowance is not a separate feature phase. It protects the management commit
 
 ### BA workflow mock scenario
 
-The linked deterministic fixture scenario must include imported-but-unpublished stock, price-unready country stock, price request, screened/assigned lead, negotiation timer, customer confirmation, PI/payment timer, TT hold and re-submission, approval/allocation, Ship OK, ERP checkpoint, document release and approved customer document visibility. Every command is permission-checked, transition-validated, idempotent, resettable and covered by conflict/failure tests. External actions remain explicit intent or manual checkpoint records.
+The linked deterministic fixture scenario must include imported-but-unpublished stock, price-unready country stock, normal-lead price request, screened/assigned lead, 48-hour negotiation/reservation hold and expiry, customer confirmation, 72-hour PI hold and expiry, TT hold/re-submission, approval/allocation, testable email outbox evidence, Finance Ship OK, ERP checkpoint, Finance document release and approved `visibleToCustomer` document projection. Every command is permission-checked, transition-validated, idempotent, resettable and covered by conflict/failure tests. External actions remain explicit intent or manual checkpoint records.
 
 ### 10.1 Provisional frontend service domains
 
@@ -1517,27 +1517,22 @@ These are capability groups, not approved REST endpoints or payloads.
 | Delivery 3 | UV-1 currency conversion, UV-2 rate history, UV-5 import duty, UV-6 spreadsheet import, UV-7 image management, UV-8 quotation conversion, UV-9 registers, UV-10 and UV-11 allocations, UV-12 reservation expiry, UV-16 global search, UV-17 bulk payment entry |
 | Delivery 1, Phases 1.1 and 1.8 | PWA installability, offline shell, update/cache safety and online-only sensitive mutations |
 
-### BA workflow decisions that now gate implementation
+### BA workflow decisions and remaining gates
 
-Before Customer and Salesperson task generation, resolve the colour ownership classification, authoritative inventory/price source, publication and country visibility semantics, negotiation versus reservation timer relationship, 72-hour PI window, payment hold/re-submission policy, Ship OK/document-release approvers, ERP/IBQ responsibilities, second-payment behavior and manual versus integrated boundaries. The full list is recorded in `tasks/DECISION_REGISTER.md` as `DEC-WF-*` entries.
+The BA JPEG and stakeholder decisions resolve ownership classification, the reservation/negotiation timer relationship, the 72-hour PI window, publication separation, price-request lead handling, Finance approval ownership, mock email-outbox behaviour and per-document customer visibility. Delivery 02 may implement those approved behaviours from requirements and BA decisions; missing Customer POC source and Firebase/Firestore evidence do not block it. Remaining gates are authoritative inventory/price source, detailed country rules, second-payment behaviour, ERP/IBQ return checkpoints and the final document repository policy. The full record is in `tasks/DECISION_REGISTER.md`.
 
 PWA baseline decisions are already set: all three applications are installable and provide a safe offline shell, but sensitive data and all financial/approval mutations stay online-only. Decide separately whether push notifications, background sync, camera/file capture or install analytics should be added.
 
 Then, in order:
 
-1. Supply or confirm the absence of missing customer, Firebase, cache and audit source.
-2. Explain the Firebase/Firestore versus earlier Supabase revision difference.
-3. Provide relevant AutoPulse entities, identifiers, constraints and existing APIs.
-4. Select production identity, MFA/recovery and session approach.
-5. Approve roles, permissions and finance segregation of duties.
-6. Approve vehicle, reservation, PI/invoice, payment/allocation and shipment lifecycles.
-7. Approve worked pricing, discount, freight, insurance, tax, exchange, rounding, commission and allocation examples.
-8. Confirm every compiled-only Customer Application page.
-9. Approve public/customer/staff field and media visibility.
-10. Approve file/document/KYC/proof storage, scanning, access, retention and privacy.
-11. Approve CSV templates, mapping, limits, duplicates and partial-failure policy.
-12. Confirm markets, countries, ports, currencies, languages and time zones.
-13. Decide launch integrations and fund them separately.
+1. Provide relevant AutoPulse entities, identifiers, constraints and existing APIs when the backend is available.
+2. Approve roles, permissions and finance segregation of duties.
+3. Approve worked pricing, discount, freight, insurance, tax, exchange, rounding, commission and allocation examples.
+4. Confirm the detailed country/publication and price-readiness rules.
+5. Approve file/document/KYC/proof storage, scanning, access, retention and privacy.
+6. Approve CSV templates, mapping, limits, duplicates and partial-failure policy.
+7. Confirm markets, countries, ports, currencies, languages and time zones.
+8. Decide launch integrations and fund them separately.
 14. Provide final domains and legacy PHP URL inventory.
 15. Assign content, master-data, finance, security, UAT and release owners.
 

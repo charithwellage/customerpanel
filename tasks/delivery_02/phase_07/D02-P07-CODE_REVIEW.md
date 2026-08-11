@@ -8,7 +8,7 @@ estimate: "0.25 day"
 model_tier: "FRONTIER"
 parallel_group: "D02-P07-REVIEW"
 dependencies: ["D02-P07-T004"]
-decision_gates: []
+decision_gates: ["DEC-CUST-DOCUMENT-POLICY"]
 phase_branch: "feat_delivery02_phase_07"
 task_branch: "feat_delivery02_phase_07"
 product_source_mutation: "forbidden"
@@ -33,7 +33,7 @@ ui_validation: "not_applicable"
 
 ## Requirements and rules
 
-Apply every shared code-review rule and specifically verify approved shipment vocabulary, Ship OK and document-release projections, approval-gated visibility, sensitive-cache restrictions and honest external labels.
+Apply every shared code-review rule and specifically verify approved shipment vocabulary, Finance-owned Ship OK/document-release projections, mandatory rejection-reason boundary, `visibleToCustomer` enforcement, sensitive-cache restrictions and honest external labels. The still-open repository policy applies only to final categories, type/size, retention, storage, scanning and preview/download policy.
 
 Customer compiled behavior is evidence only. Confirm known POC defects were prohibited and no unapproved business rule or external integration was invented.
 

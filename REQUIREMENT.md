@@ -52,9 +52,9 @@ A finance person and an administrator use the same application as a salesperson 
 
 ## BA operational workflow baseline
 
-The following workflow was supplied by the business analyst in [`docs/CarChief-BA-Workflow-Coverage-Matrix.md`](docs/CarChief-BA-Workflow-Coverage-Matrix.md), based on the draw.io export `/Users/prabodha/Downloads/car_chief_user_journey.json`. It extends the application requirements below; it does not replace them.
+The following workflow was supplied by the business analyst in [`docs/CarChief-BA-Workflow-Coverage-Matrix.md`](docs/CarChief-BA-Workflow-Coverage-Matrix.md), based on the draw.io export and the visual JPEG interpretation recorded in [`docs/CarChief-BA-Workflow-JPEG-Interpretation.md`](docs/CarChief-BA-Workflow-JPEG-Interpretation.md). It extends the application requirements below; it does not replace them.
 
-> **Colour evidence limitation:** the JSON export contains labels and edges but no encoded fill/stroke colours. Blue/clear/green ownership is therefore provisional from the BA legend and must be confirmed by the process owner before implementation.
+> **Ownership evidence:** the JSON export contains labels and edges but no encoded fill/stroke colours. The supplied JPEG and business-owner clarification confirm blue as CarChief UI/state, clear as manual operation and green as external ERP/IBQ operation.
 
 ### Upstream stock and publication
 
@@ -62,19 +62,19 @@ The following workflow was supplied by the business analyst in [`docs/CarChief-B
 
 **WF-02 — Recommendation:** CarChief shall validate imported vehicle and shipment data before commit, report duplicates and partial failures, and retain source/reference metadata. It shall not silently become the authoritative procurement or ERP record.
 
-**WF-03 — Open question:** Operational lifecycle, price readiness, commercial sale state, public visibility, customer visibility and country availability shall be represented as distinct concepts until management approves the canonical field vocabulary.
+**WF-03 — Confirmed business rule:** Operational lifecycle, price readiness, commercial sale state, public visibility, customer visibility and country availability are distinct concepts. `Active` and `Now On Sale` are separate fields; the service owns their permitted combinations and customer/public projections.
 
-**WF-04 — BA-confirmed workflow:** A vehicle may be available to selected countries before its price is ready, subject to the approved visibility policy. A customer may request a price when the price is unavailable; the resulting request type and routing require confirmation.
+**WF-04 — Confirmed business rule:** A vehicle may be available to selected countries before its price is ready, subject to the service-owned visibility policy. A customer price request creates a normal lead.
 
 ### Enquiry, negotiation and PI
 
 **WF-05 — BA-confirmed workflow:** An enquiry may enter through Customer Support, be screened, and be assigned to the relevant country salesperson before negotiation starts. WhatsApp is a lead-source/integration boundary until an actual provider is approved.
 
-**WF-06 — BA-confirmed workflow:** A salesperson can start negotiation and the record becomes “Under Negotiation”. The negotiation timer and expiry outcome require business approval.
+**WF-06 — Confirmed business rule:** A salesperson can start negotiation and the record becomes `Under Negotiation`. The 48-hour negotiation timer is also the exclusive reservation hold: another customer cannot reserve the vehicle while it is active.
 
-**WF-07 — Open question:** Confirm whether the negotiation timer is the same as, or separate from, the existing 48-hour reservation hold. The implementation shall model them separately until confirmed.
+**WF-07 — Confirmed business rule:** When the 48-hour negotiation/reservation hold expires, the vehicle is released and becomes `Now On Sale` for customers to reserve again.
 
-**WF-08 — BA-confirmed workflow:** After customer confirmation, a salesperson can create a proforma invoice and the record can become “Under Negotiation With PI”. A 72-hour payment timer and its expiry/cancellation behavior require approval.
+**WF-08 — Confirmed business rule:** After customer confirmation, a salesperson can create a proforma invoice and the record becomes `Under Negotiation With PI`. The vehicle remains reserved during the 72-hour PI payment window. On expiry, it is released and becomes `Now On Sale`.
 
 ### Payment, Ship OK and documents
 
@@ -88,7 +88,13 @@ The following workflow was supplied by the business analyst in [`docs/CarChief-B
 
 **WF-13 — Recommendation:** The BFF/mock service, not the browser, shall enforce workflow transitions, timers, role checks, idempotency, allocation rules and approval-gated document visibility.
 
-**WF-14 — Open question:** Confirm the approvers, rejection/return paths, notification channels, document categories, retention and scanning rules for Ship OK and document release.
+**WF-14 — Open question:** Finance approver ownership, rejection reason, notification/resubmission and customer visibility are confirmed. Confirm the detailed ERP/IBQ return checkpoint, document categories, retention, file policy, storage and scanning rules.
+
+**WF-15 — Confirmed business rule:** Finance approves or rejects Ship OK and document release in the Salesperson Application. A rejection requires a reason, creates a Salesperson portal notification and a testable email notification, and permits the salesperson to resubmit the requested material.
+
+**WF-16 — Confirmed business rule:** Email is a future AutoPulse integration. Until AutoPulse is available, the Mock API records deterministic notification/outbox delivery evidence; the browser must never claim direct email delivery.
+
+**WF-17 — Confirmed business rule:** A customer may view a document only after document release is Finance-approved and the server-authoritative `visibleToCustomer` setting is enabled. This future Salesperson Application checkbox is independent of the uploader's role. Document categories, retention, type/size, scanning and storage remain open decisions.
 
 ## Progressive Web App requirements
 
@@ -725,22 +731,17 @@ Each of these needs an answer from the business before the related part of the s
 | 5 | What should happen with a spreadsheet of vehicles or shipments once it is uploaded? | Bad data could be accepted with no warning | SALES-20 |
 | 6 | If a spreadsheet leaves a vehicle's price blank, should the system guess a price automatically, or reject it? | An automatically guessed price could be wrong and nobody would know | SALES-20 |
 | 7 | What exactly happens when a quotation is turned into a final invoice? | Affects what a salesperson expects to happen at that point | SALES-38 |
-| 8 | Should customers be able to recover a forgotten password themselves, and is an extra security step needed when signing in? | Customers with a forgotten password may be locked out | CUST-03 |
-| 9 | What are the rules for a customer uploading their own documents — size limits, file types, who can see them, and how long they are kept? | Affects privacy and storage planning | CUST-21 |
 | 10 | What is needed for managing a vehicle's photos — how many, in what order, which are public? | Affects how much work this feature needs | SALES-15 |
 | 11 | Should commission or credit ever be split between more than one salesperson on the same sale? | Affects how commission is calculated and paid | SALES-48 |
-| 12 | What happens automatically when a reservation's time limit runs out — does the vehicle return to stock by itself, or does a person need to release it? | Affects whether vehicles get stuck as unavailable | RULE-05 |
-| 13 | Should printed documents and emails to customers connect to a real printer or email service from the start, or can that wait? | Affects what "done" means for those features | SALES-36 |
 | 14 | How wide and how fast does the staff search need to be — searching customers, vehicles and invoices together? | Affects how much work this feature needs | SALES-09 |
 | 15 | What exactly should be recorded in the system activity log, and who should be able to see it? | Affects trust and accountability inside the company | SALES-62 |
 | 16 | Should entering several payments at once (bulk entry) work differently from entering one payment, and is a preview of the proof needed before approving? | Affects how finance staff's daily work is designed | SALES-45 |
 | 17 | Does the system require push notifications, background sync, camera/file capture or install analytics beyond the approved installable PWA shell? | These capabilities affect security, permissions, support and device behavior | PWA-05 |
 | 18 | Which of CarChief's old website addresses need to keep working after the new Public App launches? | Old links and search results could lead to broken pages if this list is missing | PUB-24 |
-| 19 | Are the negotiation and reservation 48-hour timers the same or separate, and what happens when either expires? | A vehicle or negotiation could be released at the wrong time | WF-06, WF-07, RULE-05 |
 | 20 | What is the authoritative source for vehicle, price and publication data: CarChief, VBMS or Oracle NetSuite? | Conflicting records could overwrite one another | WF-01 to WF-04, SALES-20 |
-| 21 | Which countries may see price-unready stock, and does a price request create a lead, negotiation or another enquiry type? | Customers could see unavailable or incorrect commercial information | WF-03, WF-04 |
-| 22 | What is the 72-hour PI payment expiry and does the vehicle remain held during it? | Reservations and invoices could remain stuck or be released incorrectly | WF-08 |
-| 23 | Who may approve Ship OK and document release, and how are ERP/IBQ rejections returned to CarChief? | Unauthorized shipment or document release could occur | WF-11, WF-12, WF-14 |
+| 9 | What document categories, file types, size limits, storage, retention, scanning and preview/download rules apply? | The visibility rule is agreed, but repository policy affects privacy and storage planning | WF-17, CUST-20, CUST-21 |
+| 13 | What printed-document integration is required at launch? Email is an AutoPulse integration with deterministic Mock API evidence until available. | Printed delivery remains separate from notification email | SALES-36, WF-16 |
+| 23 | How are ERP/IBQ rejection checkpoints recorded in CarChief after Finance rejects Ship OK or document release? | Finance approval and in-app rejection reason are agreed; ERP return details remain open | WF-11, WF-12, WF-15 |
 | 24 | Does the second payment follow Ship OK, and how are due balance, invoice status and allocation represented? | Finance and customer balances could disagree | WF-09, WF-10 |
 | 25 | Are bank verification, notifications, WhatsApp support and ERP checkpoints manual for MVP or integration scope? | UI could falsely claim external work completed | WF-05, WF-09, WF-11, WF-14 |
 | 26 | Which approved service, consent wording, fallback and override rules govern automatic country detection, and which ports belong to each public market? | The wrong visitor could see stock for the wrong market or port, and location processing could breach privacy expectations | PUB-32, PUB-33 |
