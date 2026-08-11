@@ -10,8 +10,12 @@ Read:
 2. tasks/TASK_EXECUTION_TRACKER.md
 3. The latest applicable phase summary
 4. tasks/**/TASK-ID.md
+5. The CONTEXT.md in the same phase folder as the task file
+6. tasks/TASK_EXECUTION_PROTOCOL.md
 
-Use the task file as the source of truth. Read only the documents, evidence and POC paths named there. Do not scan the entire project or unrelated modules.
+Use the task file as the source of truth. The phase CONTEXT.md carries the requirement text, decision dispositions, code map and file-path conventions for that phase; it replaces the per-task sweep of REQUIREMENT.md and FRONT_END_ARCHITECTURE.md. Open those larger documents only for an item the context pack marks unresolved. Read only the documents, evidence and POC paths named by the task. Do not scan the entire project or unrelated modules.
+
+tasks/TASK_EXECUTION_PROTOCOL.md carries the shared execution mechanics: agent portability rules, preflight semantics, runtime profiles, browser-validation split, evidence block templates and the final-response contract.
 
 For a Delivery 02 task, also read `tasks/delivery_02/REQUIREMENT_GAPS_AND_ASSUMPTIONS.md`. A requirement gap does not block Phases 2.1–2.9: use an approved rule, then the documented safe MVP default, or skip only the unsafe capability with an honest unavailable state. Record the assumption or skipped feature in that register and the execution log; never invent a business rule or claim a live integration.
 
@@ -34,9 +38,13 @@ For a `phase_manual` task, review only the exact delivery-integration-to-phase r
 
 Do not modify POC/**, invent unresolved business rules, commit, push, create a pull request, merge, rewrite history or self-approve. The agent must leave implementation changes as a working-tree diff for the human owner to review and commit manually. Updating the task execution log and generated tracker is required and permitted.
 
-For any UI task, also read `DEVELOPER_USER_GUIDE.md`, the theme section of `FRONT_END_ARCHITECTURE.md`, and `tasks/COMMON_FRONTEND_RULES.md`. The common rules are mandatory for semantic tokens, reusable packages, CSS ownership, static-inline-style restrictions, responsive/accessibility checks and UI evidence. Task-specific requirements remain authoritative.
+For any UI task, `tasks/COMMON_FRONTEND_RULES.md` is mandatory: semantic tokens, reusable packages, CSS ownership, static-inline-style restrictions, responsive/accessibility checks and UI evidence. The phase CONTEXT.md summarizes the theme and boundary rules that apply; open `DEVELOPER_USER_GUIDE.md` or the theme section of `FRONT_END_ARCHITECTURE.md` only when the context pack marks an item unresolved. Task-specific requirements remain authoritative.
 
-If the task frontmatter says `ui_validation: "playwright_mcp"`, confirm `INF-P00-T006` is COMPLETE and the active agent exposes Playwright MCP browser tools. After the initial AI code review, build/recreate a controlled runtime from the current worktree; do not reuse an unknown process or Docker image already listening on the usual port. Record the target URL, exact command, runtime process/container identity, and health/API readiness. Run the task's MCP walkthrough and automated Playwright suite against that recorded URL, inspect console/network and required UI states, fix every in-scope defect, recreate/retest after corrections, and reopen another task only when its owned path is genuinely required. Do not mark the task complete without fresh-runtime, readiness, MCP and automated-test PASS evidence. Playwright Test alone does not satisfy the MCP gate.
+If the task frontmatter says `ui_validation: "playwright_mcp"`, confirm `INF-P00-T006` is COMPLETE and the active agent exposes MCP browser capabilities: navigate, accessibility snapshot, resize, console messages, network requests and screenshot. After the initial AI code review, build and start a runtime from the current worktree using a profile from `tasks/TASK_EXECUTION_PROTOCOL.md` §3 — Profile A (local, no Docker) unless the task is a container gate, which requires Profile B. Do not reuse an unknown process or Docker image already listening on the usual port. Record the exact commands, target URL, runtime process/container identity and health/API readiness.
+
+Run one desktop MCP walkthrough of the task journey under the default `carchief` theme, inspecting required UI states, accessibility/keyboard/focus behavior, console messages and failed network requests. Viewport coverage comes from the automated Playwright projects (`chromium`, `mobile-chromium`, `tablet-chromium`) run against the same recorded URL, not from repeating the walkthrough at each size. Alternate-theme (`ocean`) parity is verified once in Phase 1.9, not per task.
+
+Fix every in-scope defect, then repeat the AI code review and re-run the automated suite. Repeat the MCP walkthrough only when the correction changed layout, semantic tokens, CSS or markup structure, and record which applied. Reopen another task only when its owned path is genuinely required. Do not mark the task complete without fresh-runtime, readiness, MCP and automated-test PASS evidence. Playwright Test alone does not satisfy the MCP gate.
 
 Use the exact final-response headings required by the task file.
 ```
