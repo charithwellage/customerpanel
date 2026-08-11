@@ -407,6 +407,23 @@
   transform: translateY(0);
 }
 
+.cc-btn--secondary {
+  background: var(--color-surface, #ffffff);
+  color: var(--color-text-primary, #171717);
+  border: 1px solid var(--color-border, #e5e5e5);
+}
+
+.cc-btn--secondary:hover {
+  background: var(--color-neutral-surface, #f5f5f5);
+  border-color: var(--color-text-primary, #171717);
+}
+
+.cc-vehicle-detail__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm, 0.5rem);
+}
+
 /* ==========================================================================
    Specifications table
    ========================================================================== */

@@ -82,3 +82,5 @@ describe('Vehicle Detail Package Unit Tests', () => {
     expect(getVisibleGalleryImages(media)).toEqual(['https://example.com/japan1.jpg']);
   });
 });
+
+

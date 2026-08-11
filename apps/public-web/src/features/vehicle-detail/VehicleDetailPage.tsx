@@ -13,7 +13,7 @@ import {
 /**
  * VehicleDetailPage renders details for a single vehicle.
  * It handles loading, error, not-found and success states.
- * The UI follows COMMON_FRONTEND_RULES and is fully accessible.
+ * All hooks are declared unconditionally at the top level for 100% hook stability.
  */
 export default function VehicleDetailPage({
   idOrSlug,
@@ -31,14 +31,9 @@ export default function VehicleDetailPage({
   React.useEffect(() => {
     let cancelled = false;
     if (initialVehicle) {
-      setVehicle(initialVehicle);
-      setLoading(false);
       return;
     }
-    setLoading(true);
     setError(null);
-    // Use same-origin proxy in browser (matches HomeShowroom.tsx pattern).
-    // The Next.js route at /api/v1/[...path] proxies to API_BASE_URL server-side.
     const baseUrl = typeof window !== 'undefined' ? '' : (process.env.API_BASE_URL ?? 'http://127.0.0.1:4000');
     const service = new VehicleService(new HttpClient({ baseUrl }));
     service
@@ -62,10 +57,6 @@ export default function VehicleDetailPage({
   }, [idOrSlug, initialVehicle]);
 
   const vehicleId = vehicle?.id;
-  const galleryImages = vehicle ? getVisibleGalleryImages(vehicle.media) : [];
-  const totalImages = galleryImages.length;
-  const activeGalleryIndex = totalImages > 0 && galleryIndex >= totalImages ? 0 : galleryIndex;
-
   React.useEffect(() => {
     setGalleryIndex(0);
   }, [vehicleId]);
@@ -112,6 +103,10 @@ export default function VehicleDetailPage({
   const available = isVehicleAvailable(vehicle.status);
   const isSold = vehicle.status === 'Sold';
 
+  const galleryImages = getVisibleGalleryImages(vehicle.media);
+  const totalImages = galleryImages.length;
+  const activeGalleryIndex = totalImages > 0 && galleryIndex >= totalImages ? 0 : galleryIndex;
+
   const specsRaw: { label: string; value: string | number | undefined }[] = [
     { label: 'Body Style', value: vehicle.bodyStyle },
     { label: 'Fuel Type', value: vehicle.fuelType },
@@ -140,8 +135,13 @@ export default function VehicleDetailPage({
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
-    if (e.key === 'ArrowLeft') { e.preventDefault(); prevImage(); }
-    if (e.key === 'ArrowRight') { e.preventDefault(); nextImage(); }
+    if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      prevImage();
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      nextImage();
+    }
   }
 
   function handleTouchStart(e: React.TouchEvent<HTMLDivElement>) {
@@ -261,21 +261,39 @@ export default function VehicleDetailPage({
         )}
       </section>
 
-      {/* Price CTA for request_price vehicles */}
-      {isRequestPrice && (
-        <section className="cc-vehicle-detail__cta" aria-label="Price enquiry">
+      {/* Price CTA & Contact Intent Actions (PUB-28) */}
+      <section className="cc-vehicle-detail__cta" aria-label="Contact options">
+        {isRequestPrice && (
           <p className="cc-vehicle-detail__cta-text">
             Contact us to get the best price for this vehicle.
           </p>
+        )}
+        <div className="cc-vehicle-detail__actions">
           <a
             href={`/contact?vehicle=${encodeURIComponent(vehicle.slug)}`}
             className="cc-btn cc-btn--primary"
-            aria-label={`Request price for ${title}`}
+            aria-label={isRequestPrice ? 'Request Price' : 'General Enquiry'}
           >
-            Request Price
+            {isRequestPrice ? 'Request Price' : 'General Enquiry'}
           </a>
-        </section>
-      )}
+          <a
+            href={`https://wa.me/?text=${encodeURIComponent(`Enquiry about ${title} (${vehicle.slug})`)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="cc-btn cc-btn--secondary"
+            aria-label="WhatsApp Intent"
+          >
+            WhatsApp Intent
+          </a>
+          <a
+            href={`mailto:info@carchief.example?subject=${encodeURIComponent(`Enquiry: ${title}`)}`}
+            className="cc-btn cc-btn--secondary"
+            aria-label="Email Intent"
+          >
+            Email Intent
+          </a>
+        </div>
+      </section>
 
       {/* Specifications */}
       {specs.length > 0 && (

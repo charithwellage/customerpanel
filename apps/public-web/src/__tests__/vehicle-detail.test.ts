@@ -19,6 +19,7 @@ import {
   getEffectivePrice,
   isVehicleAvailable,
 } from '@carchief/vehicle-detail';
+import VehicleDetailPage from '../features/vehicle-detail/VehicleDetailPage';
 
 /* --------------------------------------------------------------------------
    Fixtures — public projection only, no private fields
@@ -304,3 +305,114 @@ describe('Gallery image index cycling logic (unit)', () => {
     expect(nextIndex(0)).toBe(1);
   });
 });
+
+/* --------------------------------------------------------------------------
+   VehicleDetailPage Component Rendering & Fixture Integration Tests
+   -------------------------------------------------------------------------- */
+describe('VehicleDetailPage Component Presentation & Integration', () => {
+  it('renders priced vehicle details, specs, and contact intent actions', async () => {
+    const React = await import('react');
+    const { renderToStaticMarkup } = await import('react-dom/server');
+
+    const html = renderToStaticMarkup(
+      React.createElement(VehicleDetailPage, {
+        idOrSlug: 'veh-1',
+        initialVehicle: basePricedVehicle,
+      })
+    );
+
+    expect(html).toContain('2021 Toyota Corolla Axio');
+    expect(html).toContain('$8,500');
+    expect(html).toContain('Available');
+    expect(html).toContain('Sedan');
+    expect(html).toContain('Petrol');
+    expect(html).toContain('54,000 km');
+    expect(html).toContain('General Enquiry');
+    expect(html).toContain('WhatsApp Intent');
+    expect(html).toContain('Email Intent');
+  });
+
+  it('renders request_price vehicle with Request Price CTA', async () => {
+    const React = await import('react');
+    const { renderToStaticMarkup } = await import('react-dom/server');
+
+    const html = renderToStaticMarkup(
+      React.createElement(VehicleDetailPage, {
+        idOrSlug: 'veh-req',
+        initialVehicle: requestPriceVehicle,
+      })
+    );
+
+    expect(html).toContain('2020 Suzuki Jimny');
+    expect(html).toContain('Request Price');
+    expect(html).toContain('Contact us to get the best price for this vehicle.');
+  });
+
+  it('fixture-change integration test: updating detail response updates rendered output', async () => {
+    const React = await import('react');
+    const { renderToStaticMarkup } = await import('react-dom/server');
+
+    const updatedFixture: VehicleDetail = {
+      ...basePricedVehicle,
+      make: 'Lexus',
+      model: 'IS300',
+      year: 2023,
+      priceUsd: 25000,
+    };
+
+    const html = renderToStaticMarkup(
+      React.createElement(VehicleDetailPage, {
+        idOrSlug: 'veh-1',
+        initialVehicle: updatedFixture,
+      })
+    );
+
+    expect(html).toContain('2023 Lexus IS300');
+    expect(html).toContain('$25,000');
+    expect(html).not.toContain('Toyota');
+  });
+
+  it('never outputs private fields (internalNotes, staffOwnerId) in rendered HTML', async () => {
+    const React = await import('react');
+    const { renderToStaticMarkup } = await import('react-dom/server');
+
+    const fixtureWithPrivateFields = {
+      ...basePricedVehicle,
+      internalNotes: 'SECRET_DEALER_NOTE',
+      staffOwnerId: 'STAFF_999',
+    } as unknown as VehicleDetail;
+
+    const html = renderToStaticMarkup(
+      React.createElement(VehicleDetailPage, {
+        idOrSlug: 'veh-1',
+        initialVehicle: fixtureWithPrivateFields,
+      })
+    );
+
+    expect(html).not.toContain('SECRET_DEALER_NOTE');
+    expect(html).not.toContain('STAFF_999');
+  });
+
+  it('rendering VehicleGalleryPrimitive twice on one page produces no duplicate DOM id values', async () => {
+    const React = await import('react');
+    const { renderToStaticMarkup } = await import('react-dom/server');
+    const { VehicleGalleryPrimitive } = await import('../features/vehicle-detail/components/VehicleGalleryPrimitive');
+
+    const html = renderToStaticMarkup(
+      React.createElement(
+        'div',
+        null,
+        React.createElement(VehicleGalleryPrimitive, { images: ['https://example.com/1.jpg'], title: 'Car 1' }),
+        React.createElement(VehicleGalleryPrimitive, { images: ['https://example.com/2.jpg'], title: 'Car 2' })
+      )
+    );
+
+    const idMatches = [...html.matchAll(/\sid="([^"]+)"/g)].map((m) => m[1]);
+    const uniqueIds = new Set(idMatches);
+    expect(idMatches.length).toBe(uniqueIds.size);
+  });
+});
+
+
+
+
