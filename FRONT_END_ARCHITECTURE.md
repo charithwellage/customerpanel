@@ -182,6 +182,10 @@ The BA workflow baseline is documented in [`docs/CarChief-BA-Workflow-Coverage-M
 
 The service layer may grow incrementally across these domains: stock ingestion, publication/visibility, pricing readiness, enquiries and screening, negotiation, reservations, proforma invoices, TT/payment review, allocations, Ship OK, document release, documents and external-integration checkpoints. Final payloads remain open until the BA and AutoPulse/BFF teams approve the fields.
 
+### Non-blocking Delivery 02 requirement gaps
+
+Customer delivery records unanswered business detail in [`tasks/delivery_02/REQUIREMENT_GAPS_AND_ASSUMPTIONS.md`](tasks/delivery_02/REQUIREMENT_GAPS_AND_ASSUMPTIONS.md). During Phases 2.1–2.9, an approved rule takes precedence; otherwise the Mock API and UI use the smallest safe, conventional MVP default. If no safe default is possible, the isolated capability is omitted and the UI shows an honest unavailable state. The register identifies the mock/API effect, tests, risk and later review; it never authorizes browser-owned workflow/security decisions, invented AutoPulse payloads or false external-integration claims. Phase 2.10 reconciles all such assumptions without pausing earlier vertical slices.
+
 ### Server-authoritative transitions
 
 The API boundary must enforce active/inactive publication, `Now On Sale`, under-negotiation, PI-created, payment held/approved/rejected, Ship OK approval, document-release approval, vehicle allocation and customer document visibility. It also owns 48-hour reservation/negotiation expiry, 72-hour PI expiry, rejection reasons and `visibleToCustomer`; the browser may hide unavailable actions but is never the security or workflow authority.

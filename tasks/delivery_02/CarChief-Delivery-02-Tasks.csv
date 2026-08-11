@@ -4,7 +4,7 @@
 2.1,D02-P01-T002,"Add customer session, account states and protected access",D02-P01-T001,12
 2.1,D02-P01-T003,"Accept customer themes, PWA shell, accessibility and Docker deployment",D02-P01-T002,9
 2.1,D02-P01-CODE_REVIEW,Phase 2.1 PR code review and tech-lead approval,D02-P01-T003,3
-2.2,D02-P02-G001,"Approve customer balance, credit and dashboard KPI definitions",D02-P01-CODE_REVIEW,3
+2.2,D02-P02-G001,"Establish non-blocking customer dashboard KPI baseline",D02-P01-CODE_REVIEW,3
 2.2,D02-P02-T001,Add customer dashboard aggregate contracts and linked mock scenarios,D02-P02-G001,6
 2.2,D02-P02-T002,Build and accept the customer Overview page,D02-P02-T001,6
 2.2,D02-P02-CODE_REVIEW,Phase 2.2 PR code review and tech-lead approval,D02-P02-T002,3
@@ -41,3 +41,7 @@
 2.9,D02-P09-T003,"Complete responsive, accessibility, theme, PWA and performance acceptance",D02-P09-T002,12
 2.9,D02-P09-T004,Run Customer Docker UAT and produce Delivery 03 handoff,D02-P09-T003,18
 2.9,D02-P09-CODE_REVIEW,Phase 2.9 PR code review and tech-lead approval,D02-P09-T004,3
+2.10,D02-P10-T001,Reconcile Delivery 02 requirement gaps and assumption evidence,D02-P09-CODE_REVIEW,6
+2.10,D02-P10-T002,Apply approved Delivery 02 assumption adjustments,D02-P10-T001,12
+2.10,D02-P10-T003,Run final Customer assumption Docker and golden-journey acceptance,D02-P10-T002,12
+2.10,D02-P10-CODE_REVIEW,Phase 2.10 PR code review and tech-lead approval,D02-P10-T003,3

@@ -42,7 +42,7 @@ function parseCsv(source) {
 
 for (const [path, expectedRows] of [
   ['tasks/delivery_01/CarChief-Delivery-01-Tasks.csv', 51],
-  ['tasks/delivery_02/CarChief-Delivery-02-Tasks.csv', 42],
+  ['tasks/delivery_02/CarChief-Delivery-02-Tasks.csv', 46],
 ]) {
   test(`${path} is an Excel-compatible UTF-8 BOM/LF CSV export`, () => {
     const raw = readFileSync(`${root}/${path}`, 'utf8');

@@ -13,6 +13,8 @@ Read:
 
 Use the task file as the source of truth. Read only the documents, evidence and POC paths named there. Do not scan the entire project or unrelated modules.
 
+For a Delivery 02 task, also read `tasks/delivery_02/REQUIREMENT_GAPS_AND_ASSUMPTIONS.md`. A requirement gap does not block Phases 2.1–2.9: use an approved rule, then the documented safe MVP default, or skip only the unsafe capability with an honest unavailable state. Record the assumption or skipped feature in that register and the execution log; never invent a business rule or claim a live integration.
+
 Follow the task’s preflight exactly. Before any branch, source or task-state change, run:
 
 git status --porcelain=v1 --untracked-files=all

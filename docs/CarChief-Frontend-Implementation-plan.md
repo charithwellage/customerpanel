@@ -5,7 +5,7 @@
 **Delivery order:** Public Website (including SEO) → Customer Application → Salesperson Application
 **Base scheduled delivery:** **93.5 working days ≈ 18–19 calendar weeks**
 **Programme allowance:** **2–3 weeks** for integration, review corrections, and accepted-scope uncertainty
-**Management planning range:** **20–22 calendar weeks**
+**Management planning range:** **21–23 calendar weeks**
 **Delivery model:** Experienced engineers coordinate bounded AI-agent work while retaining architecture, security, QA and acceptance responsibility
 
 > This is a frontend delivery plan. It does not approve a database design, accounting policy, identity platform, external vendor, or final ASP.NET Core BFF wire contract.
@@ -81,11 +81,11 @@ Each delivery phase is built by an AI agent, driven and checked by one accountab
 | Delivery | Phase days | Correction allowance | Total days | Calendar |
 |---|---:|---:|---:|---:|
 | Public Website (incl. foundation, POC theme parity, mock service, Playwright MCP UI validation and complete SEO) | 31.0 | 0.5 | **31.5** | 6 weeks |
-| Customer Application | 25 | 3.75 (15%) | **28.75 ≈ 29** | 5–6 weeks |
+| Customer Application | 27.75 | 4.16 (15%) | **31.91 ≈ 32** | 6–7 weeks |
 | Salesperson Application | 28.5 | 6.5 | **35** | 7 weeks |
-| **Base scheduled delivery** | **84.5** | **10.75** | **95.25** | **≈ 18–19 weeks** |
+| **Base scheduled delivery** | **87.25** | **11.16** | **98.41** | **≈ 19–20 weeks** |
 | Programme allowance | | | | **2–3 weeks** |
-| **Management planning range** | | | | **20–22 weeks** |
+| **Management planning range** | | | | **21–23 weeks** |
 
 **Why this differs from the previous 21–22 weeks.**
 
@@ -709,11 +709,11 @@ The table below is the execution view of the existing `tasks/delivery_01` files.
 
 ## 6. Delivery 2 — Customer Application
 
-**Planned task capacity:** 25 working days
-**Review/correction allowance:** 15% (3.75 days)
-**Management baseline:** approximately 29 working days or 5–6 calendar weeks with two experienced engineers coordinating bounded AI agents and timely human decisions.
+**Planned task capacity:** 27.75 working days
+**Review/correction allowance:** 15% (4.16 days)
+**Management baseline:** approximately 32 working days or 6–7 calendar weeks with two experienced engineers coordinating bounded AI agents. Requirement gaps use safe MVP defaults and do not pause Phases 2.1–2.9.
 
-Delivery 02 is now represented by 42 executable files: 29 feature/acceptance implementation tasks, four decision/scope gates and nine phase PR-review gates. This is the mathematically consistent classification of the approved inventory, which explicitly lists gates in Phases 2.1, 2.2, 2.6 and 2.7. See [`tasks/delivery_02/DELIVERY_02_COVERAGE_MATRIX.md`](../tasks/delivery_02/DELIVERY_02_COVERAGE_MATRIX.md) and [`tasks/EXECUTION_ORDER.md`](../tasks/EXECUTION_ORDER.md).
+Delivery 02 is now represented by 46 executable files across ten phases. The final Phase 2.10 reconciles documented assumptions after the Customer app is functioning; it does not interrupt Phases 2.1–2.9. See [`tasks/delivery_02/REQUIREMENT_GAPS_AND_ASSUMPTIONS.md`](../tasks/delivery_02/REQUIREMENT_GAPS_AND_ASSUMPTIONS.md), [`tasks/delivery_02/DELIVERY_02_COVERAGE_MATRIX.md`](../tasks/delivery_02/DELIVERY_02_COVERAGE_MATRIX.md) and [`tasks/EXECUTION_ORDER.md`](../tasks/EXECUTION_ORDER.md).
 
 **Evidence warning:** Customer TypeScript source is missing. Detailed behavior below is compiled-artifact evidence until business approval.
 
@@ -748,7 +748,7 @@ Delivery 02 is now represented by 42 executable files: 29 feature/acceptance imp
 
 ### Phase 2.2 — Customer dashboard
 
-**Phase days:** 1.5 days, including the decision gate and phase PR review
+**Phase days:** 1.5 days, including the non-blocking KPI-baseline task and phase PR review
 
 Runtime additions: credit limit displayed with utilisation against it.
 
@@ -770,11 +770,11 @@ Runtime additions: credit limit displayed with utilisation against it.
 
 **Incremental mock capability:** Customer dashboard aggregate linked to vehicles, invoices, shipments, documents and notifications.
 
-**Dependencies/open questions:** KPI definitions, credit policy, count/status mapping, freshness indicators.
+**Dependencies/open questions:** Safe linked-record baseline now; final KPI definitions, credit policy, count/status mapping and freshness indicators are recorded for Phase 2.10.
 
 **Supervisor demo:** Compare a new customer, an active buyer, and a customer with overdue/pending items.
 
-**Testing and acceptance:** Aggregates reconcile with linked records; no data from another customer appears; business signs off dashboard definitions.
+**Testing and acceptance:** Aggregates reconcile with linked records; no data from another customer appears; any final finance variance is recorded rather than blocking implementation.
 
 ### Phase 2.3 — Customer showroom and vehicle search
 
@@ -893,7 +893,7 @@ Runtime additions: three vehicle folders (reserved, reserved with quotation, inv
 
 ### Phase 2.7 — Shipment tracking and documents
 
-**Phase days:** 4 days, including the decision gate, secure-document failure paths, Docker acceptance and phase PR review
+**Phase days:** 4 days, including the non-blocking document-policy baseline, secure-document failure paths, Docker acceptance and phase PR review
 
 Runtime additions: the document vault carries ten named categories — proforma invoice, commercial invoice, bill of lading, inspection certificate, export certificate, insurance, packing list, vehicle photos, auction sheet and other. `UNABLE_TO_VERIFY_WITH_POC` — **UV-14** document upload; no documents exist in the demonstration and none could be added.
 
@@ -915,7 +915,7 @@ Runtime additions: the document vault carries ten named categories — proforma 
 
 **Incremental mock capability:** Shipment list/detail/timeline, document metadata, authorized preview/download scenarios.
 
-**Dependencies/open questions:** Shipment source, status mapping, live tracking provider, document categories/storage/retention.
+**Dependencies/open questions:** Shipment source, status mapping, live tracking provider and final document repository policy are recorded for Phase 2.10; existing categories are MVP display labels.
 
 **Supervisor demo:** Track an invoiced car, show a delayed stage, search documents, download an allowed file, and block a restricted file.
 
@@ -970,6 +970,24 @@ Runtime additions: the profile separates fixed identity fields from editable con
 **Supervisor demo:** Login → dashboard → showroom/my vehicles → PI/invoice → TT → shipment/document → notification/profile.
 
 **Testing and acceptance:** Every customer page has business approval; isolation tests pass; no unresolved critical source-confidence issue remains hidden.
+
+### Phase 2.10 — Assumption reconciliation and MVP closure
+
+**Phase days:** 2.75 days, including final regression and phase PR review
+
+**Business outcome:** Management can see every safe default or deliberately skipped Customer capability, approve late adjustments and accept an honest MVP without interrupting earlier engineering work.
+
+**Pages/modules:** Requirement-gap register, affected customer screens only, full Customer acceptance journey.
+
+**Sub-delivery components:** Reconcile assumptions; apply only backed adjustments; retain unresolved items as accepted MVP assumptions or skipped features; complete Docker, API, PWA, accessibility, security and golden-journey acceptance.
+
+**Incremental mock capability:** Only the Mock API operations needed by newly approved adjustments; the UI/domain layer remains unchanged when AutoPulse adapters replace mocks.
+
+**Dependencies/open questions:** [`REQUIREMENT_GAPS_AND_ASSUMPTIONS.md`](../tasks/delivery_02/REQUIREMENT_GAPS_AND_ASSUMPTIONS.md) is the authority. Unresolved business detail is transparent, not an implementation blocker.
+
+**Supervisor demo:** Run the complete Customer journey, show the assumption register, demonstrate any approved adjustment, and identify any intentionally unavailable MVP capability.
+
+**Testing and acceptance:** Fresh Docker runtime, Mock API health/OpenAPI/reset, both themes/viewports, Playwright MCP, automated suite, data isolation, offline safety and final phase PR review all pass.
 
 ### 6.10 BA workflow additions to Customer Application
 
@@ -1374,7 +1392,7 @@ Complete SEO and public release-readiness work is delivered in Phase 1.8 before 
 | Weeks 11.8–18.8 | Salesperson Application | 35 | Accepted sales, finance and administration application plus full connected journey |
 | | **Base scheduled delivery** | **93.5** | **≈ 18–19 calendar weeks** |
 | Programme allowance | Integration/review corrections and accepted uncertainty | | 2–3 weeks distributed where needed |
-| **Management planning range** | | | **20–22 calendar weeks** |
+| **Management planning range** | | | **21–23 calendar weeks** |
 
 Every day in this table follows the fixed pattern of five hours building with an AI agent, two hours manual testing and one hour review.
 
@@ -1585,11 +1603,11 @@ For the management summary, see [CarChief Frontend Implementation Roadmap](./Car
 | # | Delivery | What we are delivering | Summary | Timeline (days) |
 |---|---|---|---|---:|
 | 1 | Public Website (including SEO) | The public-facing website, shared foundations, Unified POC Brand theme with exact POC visual-parity acceptance, reusable vehicle packages, complete public SEO and the first working version of the separate mock service. | Where a visitor finds and enquires about a vehicle. No sign-in required. | 31.0 |
-| 2 | Customer Application | A sign-in-protected application for existing customers to track their own vehicles, quotations, invoices, payments, shipment status and documents. | The customer's private account view. | 28.75 (25 planned + 15%) |
+| 2 | Customer Application | A sign-in-protected application for existing customers to track their own vehicles, quotations, invoices, payments, shipment status and documents. | The customer's private account view. | 31.91 (27.75 planned + 15%) |
 | 3 | Salesperson Application | The staff-facing system covering sales, finance and administration — leads, inventory, quotations, payments, master data, users and permissions. | The day-to-day tool used by CarChief's own team. | 35 |
 | | | | **Base total** | **93.5** |
 | | | | **With programme allowance** | **≈ 101–106** |
 
-**93.5 working days is roughly 18–19 calendar weeks; with allowance, 20–22 weeks.** Delivery 02 is a 5–6-week management baseline under its two-engineer, AI-assisted staffing assumption; human decisions, testing and phase PR review remain mandatory.
+**About 98 working days is roughly 19–20 calendar weeks; with programme allowance, 21–23 weeks.** Delivery 02 is a 6–7-week management baseline under its two-engineer, AI-assisted staffing assumption; documented requirement assumptions keep engineering moving, while Phase 2.10 performs final reconciliation.
 
 Full detail, evidence and acceptance criteria for each phase are in sections 5–8 above. Open questions that shape this timeline — including the eighteen items that could not be confirmed by operating the demonstration system — are tracked separately in [`implementation_risks.md`](./implementation_risks.md).

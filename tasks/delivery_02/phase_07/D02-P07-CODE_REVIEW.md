@@ -8,7 +8,7 @@ estimate: "0.25 day"
 model_tier: "FRONTIER"
 parallel_group: "D02-P07-REVIEW"
 dependencies: ["D02-P07-T004"]
-decision_gates: ["DEC-CUST-DOCUMENT-POLICY"]
+decision_gates: []
 phase_branch: "feat_delivery02_phase_07"
 task_branch: "feat_delivery02_phase_07"
 product_source_mutation: "forbidden"
@@ -28,12 +28,13 @@ ui_validation: "not_applicable"
 
 - [CODE_REVIEW_RULES.md](../../CODE_REVIEW_RULES.md).
 - [COMMON_FRONTEND_RULES.md](../../COMMON_FRONTEND_RULES.md) for shared frontend implementation and review conventions.
+- [REQUIREMENT_GAPS_AND_ASSUMPTIONS.md](../REQUIREMENT_GAPS_AND_ASSUMPTIONS.md); confirm each phase assumption is recorded, scoped and not presented as confirmed business behaviour.
 - This phase's completed task files, execution logs and `tasks/phase_summaries/D02-P07-SUMMARY.md`.
 - Only requirements, architecture sections and evidence explicitly named by those completed tasks.
 
 ## Requirements and rules
 
-Apply every shared code-review rule and specifically verify approved shipment vocabulary, Finance-owned Ship OK/document-release projections, mandatory rejection-reason boundary, `visibleToCustomer` enforcement, sensitive-cache restrictions and honest external labels. The still-open repository policy applies only to final categories, type/size, retention, storage, scanning and preview/download policy.
+Apply every shared code-review rule and specifically verify approved shipment vocabulary, Finance-owned Ship OK/document-release projections, mandatory rejection-reason boundary, `visibleToCustomer` enforcement, sensitive-cache restrictions and honest external labels. The final repository policy is a non-blocking Phase 2.10 assumption review; confirm its safe MVP baseline is recorded rather than delaying this phase.
 
 Customer compiled behavior is evidence only. Confirm known POC defects were prohibited and no unapproved business rule or external integration was invented.
 

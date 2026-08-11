@@ -172,9 +172,9 @@ function validate({ quiet = false } = {}) {
     'D01-P01-T010', 'D01-P01-T012', 'D01-P02-T002', 'D01-P02-T004', 'D01-P02-T006', 'D01-P03-T004', 'D01-P04-T003',
     'D01-P05-T004', 'D01-P06-T005', 'D01-P07-T004', 'D01-P08-T004',
     'D02-P01-T003', 'D02-P02-T002', 'D02-P03-T003', 'D02-P04-T003',
-    'D02-P05-T003', 'D02-P06-T004', 'D02-P07-T004', 'D02-P08-T003', 'D02-P09-T004',
+    'D02-P05-T003', 'D02-P06-T004', 'D02-P07-T004', 'D02-P08-T003', 'D02-P09-T004', 'D02-P10-T003',
   ]);
-  if (tasks.size !== 99) errors.push(`expected 99 task/gate files, found ${tasks.size}`);
+  if (tasks.size !== 103) errors.push(`expected 103 task/gate files, found ${tasks.size}`);
   for (const task of tasks.values()) {
     for (const field of ['task_id', 'title', 'delivery', 'phase', 'estimate', 'model_tier', 'parallel_group', 'phase_branch', 'task_branch']) {
       if (!task[field]) errors.push(`${task.task_id || task.file}: missing ${field}`);
@@ -245,6 +245,9 @@ function validate({ quiet = false } = {}) {
     if (/^D02-P\d{2}-T\d{3}$/.test(task.task_id) && !body.includes('### Frontend API integration')) {
       errors.push(`${task.task_id}: Delivery 02 implementation task is missing explicit frontend/mock HTTP integration instructions`);
     }
+    if (/^D02-/.test(task.task_id) && !body.includes('REQUIREMENT_GAPS_AND_ASSUMPTIONS.md')) {
+      errors.push(`${task.task_id}: Delivery 02 task must reference REQUIREMENT_GAPS_AND_ASSUMPTIONS.md`);
+    }
     if (task.review_mode === 'phase_manual') {
       const range = `${deliveryBranch(task)}...${task.phase_branch}`;
       if (!body.includes(range)) errors.push(`${task.task_id}: phase review must name comparison range ${range}`);
@@ -290,6 +293,9 @@ function validate({ quiet = false } = {}) {
     }
     for (const gate of task.decision_gates) {
       if (!decisions.has(gate)) errors.push(`${task.task_id}: unknown decision gate ${gate}`);
+      else if (/^D02-P0[1-9]-/.test(task.task_id) && decisions.get(gate) !== 'RESOLVED') {
+        errors.push(`${task.task_id}: Delivery 02 Phases 2.1–2.9 must not retain an unresolved requirement decision gate; record an assumption instead`);
+      }
     }
   }
   const visiting = new Set();
@@ -457,6 +463,13 @@ function requireSelfReviewEvidence(id, task) {
     for (const marker of ['Active AI client:', 'MCP configuration source:', 'MCP server process: PASS', 'MCP browser navigation: PASS', 'MCP accessibility snapshot: PASS']) {
       if (!log.text.includes(marker) || log.text.includes(`${marker} Not recorded`)) {
         die(`${id} requires recorded Playwright MCP readiness evidence: ${marker}`);
+      }
+    }
+  }
+  if (/^D02-P10-T\d{3}$/.test(id)) {
+    for (const marker of ['Requirement-gap register:', 'Phase 2.10 disposition:']) {
+      if (!log.text.includes(marker) || log.text.includes(`${marker} Not recorded`)) {
+        die(`${id} requires recorded assumption-register evidence: ${marker}`);
       }
     }
   }

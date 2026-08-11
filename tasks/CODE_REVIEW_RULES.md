@@ -4,7 +4,7 @@ Every Delivery 01 and Delivery 02 implementation task performs this review befor
 
 ## Review checklist
 
-1. **Requirements and scope** — The implementation satisfies the assigned requirements and acceptance criteria, does not invent unresolved business rules, and does not change POC source, unrelated modules, API contracts, fixtures or database behavior outside its stated scope.
+1. **Requirements and scope** — The implementation satisfies the assigned requirements and acceptance criteria, does not invent unresolved business rules, and does not change POC source, unrelated modules, API contracts, fixtures or database behavior outside its stated scope. For Delivery 02 Phases 2.1–2.9, a documented entry in `delivery_02/REQUIREMENT_GAPS_AND_ASSUMPTIONS.md` is the required treatment for a safe MVP default or skipped isolated capability; it is not itself a review failure.
 2. **Architecture and reuse** — Package boundaries, dependency direction, generated API client/service boundaries, shared `packages/ui`, `packages/theme`, feature packages and mock/BFF separation are preserved. Reusable behavior is not copied into an application.
 3. **Code quality and SOLID** — TypeScript remains strict; types express the domain; modules have one clear responsibility; dependencies are injected at boundaries where needed; duplication, dead code, hidden side effects and unnecessary abstractions are removed.
 4. **React and frontend quality** — Components keep data orchestration outside presentational UI where the architecture requires it; loading, empty, error, validation, responsive, keyboard, focus, browser-zoom and reduced-motion behavior are addressed. Reusable components must not emit fixed DOM `id` values that can collide when rendered more than once; use `useId` or a caller-supplied unique identifier. Do not nest or overlap interactive controls (for example, a clickable card containing a link); select one interaction model or expose separate controls.
@@ -27,7 +27,7 @@ Every Delivery 01 and Delivery 02 implementation task performs this review befor
 7. Only when the final review and MCP result are **PASS** run the task’s automated tests, lint, typecheck and build commands.
 8. Record exact MCP and test results, then use `taskctl complete` for a `self_ai` task.
 
-If an issue needs a business decision, another task’s owned path, or a prerequisite change, record it as a blocker rather than guessing or expanding scope.
+If an issue needs another task’s owned path or a prerequisite change, record it as a blocker rather than guessing or expanding scope. For a Delivery 02 requirement gap in Phases 2.1–2.9, record the safe default or skipped capability in the assumption register and continue; block only if no secure, honest implementation boundary can be preserved.
 
 ## Required review record
 
@@ -42,4 +42,4 @@ If an issue needs a business decision, another task’s owned path, or a prerequ
 - Result: PASS | FAIL
 ```
 
-For a phase review, the same record must also identify the PR, the `delivery_01_public_website...feat_delivery01_phase_NN` comparison range, phase-specific checks, and the tech-lead decision.
+For a phase review, the same record must also identify the PR, the exact delivery-integration-to-phase comparison range named in the task, phase-specific checks, assumption-register disposition where applicable, and the tech-lead decision.

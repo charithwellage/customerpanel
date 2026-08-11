@@ -28,6 +28,7 @@ ui_validation: "not_applicable"
 
 - [CODE_REVIEW_RULES.md](../../CODE_REVIEW_RULES.md).
 - [COMMON_FRONTEND_RULES.md](../../COMMON_FRONTEND_RULES.md) for shared frontend implementation and review conventions.
+- [REQUIREMENT_GAPS_AND_ASSUMPTIONS.md](../REQUIREMENT_GAPS_AND_ASSUMPTIONS.md); confirm each phase assumption is recorded, scoped and not presented as confirmed business behaviour.
 - This phase's completed task files, execution logs and `tasks/phase_summaries/D02-P03-SUMMARY.md`.
 - Only requirements, architecture sections and evidence explicitly named by those completed tasks.
 
