@@ -26,6 +26,7 @@ export default function VehicleDetailPage({
   const [loading, setLoading] = React.useState(!initialVehicle);
   const [error, setError] = React.useState<string | null>(null);
   const [galleryIndex, setGalleryIndex] = React.useState(0);
+  const [copiedToast, setCopiedToast] = React.useState(false);
   const touchStartX = React.useRef<number | null>(null);
 
   React.useEffect(() => {
@@ -157,11 +158,70 @@ export default function VehicleDetailPage({
     touchStartX.current = null;
   }
 
+  async function handleShare() {
+    const url = typeof window !== 'undefined' ? window.location.href : '';
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try {
+        await navigator.share({
+          title,
+          text: `Check out this ${title} on CarChief!`,
+          url,
+        });
+        return;
+      } catch {
+        // Fallback to clipboard copy if user cancels or share API fails
+      }
+    }
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      try {
+        await navigator.clipboard.writeText(url);
+        setCopiedToast(true);
+        setTimeout(() => setCopiedToast(false), 3000);
+      } catch (err) {
+        console.error('Clipboard copy failed', err);
+      }
+    }
+  }
+
   const availabilityLabel = isSold ? 'Sold' : available ? 'Available' : vehicle.status;
   const availabilityVariant = isSold ? 'cc-badge--error' : available ? 'cc-badge--success' : 'cc-badge--warning';
 
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Vehicle',
+    name: title,
+    description: `Buy ${vehicle.year} ${vehicle.make} ${vehicle.model} (${vehicle.bodyStyle ?? 'Vehicle'}). Mileage: ${vehicle.mileage ? vehicle.mileage.toLocaleString() + ' km' : 'N/A'}. Location: ${vehicle.locationStatus ?? 'In Stock'}. Stock ID: ${vehicle.slug}.`,
+    vehicleModelDate: vehicle.year,
+    brand: {
+      '@type': 'Brand',
+      name: vehicle.make,
+    },
+    model: vehicle.model,
+    bodyType: vehicle.bodyStyle,
+    fuelType: vehicle.fuelType,
+    vehicleEngine: vehicle.engineSize
+      ? {
+          '@type': 'EngineSpecification',
+          engineDisplacement: vehicle.engineSize,
+        }
+      : undefined,
+    offers: {
+      '@type': 'Offer',
+      priceCurrency: 'USD',
+      price: vehicle.discountedPriceUsd ?? vehicle.priceUsd,
+      availability: available ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+      itemCondition: 'https://schema.org/UsedCondition',
+    },
+  };
+
   return (
     <article className="cc-vehicle-detail" aria-labelledby="vehicle-title">
+      {/* Schema.org JSON-LD Structured Data Hook */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+
       {/* Header */}
       <header className="cc-vehicle-detail__header">
         <h1 id="vehicle-title" className="cc-vehicle-detail__title">
@@ -183,6 +243,31 @@ export default function VehicleDetailPage({
           {vehicle.discountPercent !== undefined && vehicle.discountPercent > 0 && (
             <span className="cc-badge cc-badge--warning" aria-label={`Discount: ${vehicle.discountPercent}%`}>
               {vehicle.discountPercent}% off
+            </span>
+          )}
+        </div>
+
+        {/* Share & Print Utility Bar */}
+        <div className="cc-vehicle-detail__utility-bar" aria-label="Page actions">
+          <button
+            type="button"
+            className="cc-btn cc-btn--secondary cc-btn--sm"
+            onClick={handleShare}
+            aria-label="Share vehicle page"
+          >
+            Share
+          </button>
+          <button
+            type="button"
+            className="cc-btn cc-btn--secondary cc-btn--sm"
+            onClick={() => typeof window !== 'undefined' && window.print()}
+            aria-label="Print spec sheet"
+          >
+            Print Spec Sheet
+          </button>
+          {copiedToast && (
+            <span className="cc-toast" role="status" aria-live="polite">
+              Link copied to clipboard!
             </span>
           )}
         </div>

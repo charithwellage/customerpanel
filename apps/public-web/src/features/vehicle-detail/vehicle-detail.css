@@ -1,6 +1,6 @@
 /*
  * vehicle-detail.css
- * Feature-level styles for the vehicle detail page and media gallery.
+ * Feature-level styles for the vehicle detail page, media gallery, utility actions & print.
  * Owned path: apps/public-web/src/features/vehicle-detail/
  * All values use semantic tokens from packages/theme via CSS custom properties.
  * No static literal colours, fonts or spacing values — all use var().
@@ -136,7 +136,7 @@
 }
 
 /* ==========================================================================
-   Header (Title + Badges)
+   Header (Title + Badges + Utility Bar)
    ========================================================================== */
 .cc-vehicle-detail__header {
   border-bottom: 1px solid var(--color-border, #e5e5e5);
@@ -159,6 +159,33 @@
   flex-wrap: wrap;
   gap: var(--spacing-sm, 0.5rem);
   margin-top: var(--spacing-sm, 0.5rem);
+}
+
+/* Share & Print Utility Bar */
+.cc-vehicle-detail__utility-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm, 0.5rem);
+  margin-top: var(--spacing-md, 1rem);
+}
+
+.cc-toast {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.4rem 0.85rem;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--color-success-surface, #dcfce7);
+  color: var(--color-success, #166534);
+  font-family: var(--font-body, Inter, system-ui, sans-serif);
+  font-size: var(--font-size-xs, 0.75rem);
+  font-weight: 600;
+  animation: cc-fade-in var(--duration-fast, 150ms) ease;
+}
+
+@keyframes cc-fade-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* ==========================================================================
@@ -284,7 +311,6 @@
   overflow-x: auto;
   padding: var(--spacing-sm, 0.5rem) var(--spacing-sm, 0.5rem);
   background: rgba(0, 0, 0, 0.85);
-  /* thin scrollbar */
   scrollbar-width: thin;
   scrollbar-color: rgba(255,255,255,0.2) transparent;
 }
@@ -389,6 +415,12 @@
               box-shadow var(--duration-fast, 150ms) ease;
   border: 0;
   text-align: center;
+}
+
+.cc-btn--sm {
+  min-height: 2.25rem;
+  padding: 0.4rem 0.9rem;
+  font-size: var(--font-size-xs, 0.75rem);
 }
 
 .cc-btn--primary {
@@ -538,22 +570,61 @@
   .cc-gallery__nav,
   .cc-gallery__thumb,
   .cc-gallery__image,
-  .cc-btn {
+  .cc-btn,
+  .cc-toast {
     transition-duration: 0.01ms;
+    animation-duration: 0.01ms;
   }
 }
 
 /* ==========================================================================
-   Print
+   Print Stylesheet
    ========================================================================== */
 @media print {
+  #site-header,
+  #site-footer,
+  .skip-link,
+  .cc-theme-switcher,
+  .cc-vehicle-detail__utility-bar,
+  .cc-vehicle-detail__cta,
   .cc-gallery__nav,
   .cc-gallery__thumbs,
-  .cc-vehicle-detail__cta {
-    display: none;
+  .cc-toast {
+    display: none !important;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
   }
 
   .cc-vehicle-detail {
-    display: block;
+    display: block !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .cc-vehicle-detail__header {
+    border-bottom: 2px solid #000000 !important;
+    padding-bottom: 1rem !important;
+    margin-bottom: 1.5rem !important;
+  }
+
+  .cc-vehicle-detail__title {
+    color: #000000 !important;
+    font-size: 2rem !important;
+  }
+
+  .cc-specs-list {
+    grid-template-columns: 1fr 1fr !important;
+    page-break-inside: avoid;
+  }
+
+  .cc-specs-list__item dt,
+  .cc-specs-list__item dd {
+    border-bottom: 1px solid #cccccc !important;
+    color: #000000 !important;
+    background: transparent !important;
   }
 }
