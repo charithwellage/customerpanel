@@ -1,7 +1,7 @@
 'use client';
 
 import React, { Suspense } from 'react';
-import { SearchShowroom } from '../../features/vehicle-search/index.js';
+import { SearchShowroom } from '../../features/vehicle-search';
 
 export default function VehiclesPage() {
   return (

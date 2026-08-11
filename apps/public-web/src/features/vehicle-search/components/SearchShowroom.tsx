@@ -2,12 +2,12 @@
 
 import React from 'react';
 import { VehicleCollectionPrimitive } from '@carchief/vehicle-search';
-import { useVehicleSearchOrchestration, type UseVehicleSearchOrchestrationOptions } from '../hooks/useVehicleSearchOrchestration.js';
-import { SearchFilterBar } from './SearchFilterBar.js';
-import { SearchResultsHeader } from './SearchResultsHeader.js';
-import { SearchEmptyState } from './SearchEmptyState.js';
-import { SearchErrorState } from './SearchErrorState.js';
-import { SearchPagination } from './SearchPagination.js';
+import { useVehicleSearchOrchestration, type UseVehicleSearchOrchestrationOptions } from '../hooks/useVehicleSearchOrchestration';
+import { SearchFilterBar } from './SearchFilterBar';
+import { SearchResultsHeader } from './SearchResultsHeader';
+import { SearchEmptyState } from './SearchEmptyState';
+import { SearchErrorState } from './SearchErrorState';
+import { SearchPagination } from './SearchPagination';
 import '../vehicle-search.css';
 
 export interface SearchShowroomProps extends UseVehicleSearchOrchestrationOptions {
