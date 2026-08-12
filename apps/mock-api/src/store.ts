@@ -65,6 +65,11 @@ export interface PublicConfig {
   siteName: string;
   currency: string;
   contactPhone: string;
+  // PUB-27, D01-P06-T003, D01-ASM-002: gates the account-gated Live Auction
+  // entry. Left unset — no approved external auction destination exists yet
+  // — so the entry point stays hidden rather than pointing at an invented
+  // URL (RULE-10). Reopen D01-P06-T003 once a destination is approved.
+  liveAuctionUrl?: string;
 }
 
 export interface GetVehiclesQuery extends SearchVehiclesQuery {

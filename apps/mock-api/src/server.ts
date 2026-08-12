@@ -1,7 +1,7 @@
 import express, { Request, Response, NextFunction, Express } from 'express';
 import { readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { parseDemoJwtToken, JwtClaims, hasPermission } from '@carchief/domain';
+import { parseDemoJwtToken, createDemoJwtToken, JwtClaims, hasPermission } from '@carchief/domain';
 import type { FreightEstimateRequest, EnquiryRequest } from '@carchief/domain';
 import { createStore, type DemoStore, FreightRequestError, EnquiryRequestError } from './store.js';
 
@@ -166,6 +166,22 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
       return;
     }
     res.json(lead);
+  });
+
+  // 3i. Stand-in demo customer session (PUB-22, DEC-PUB-AUTH-BOUNDARY,
+  // D01-P06-T003). Always mints a CustomerBuyer identity — a public visitor
+  // can never self-elevate to a staff role through this endpoint. Never a
+  // production identity; the response's `nonProduction: true` lets the
+  // browser render an honest demo-mode label rather than inferring one
+  // (RULE-10).
+  app.post('/api/v1/auth/demo-session', (_req: Request, res: Response) => {
+    const token = createDemoJwtToken('CustomerBuyer');
+    const claims = parseDemoJwtToken(token);
+    if (!claims) {
+      res.status(500).json({ statusCode: 500, message: 'Failed to mint demo session', correlationId: `corr-500-${Date.now()}` });
+      return;
+    }
+    res.status(201).json({ token, claims, nonProduction: true });
   });
 
   // 4. Auth identity inspection endpoint

@@ -706,4 +706,86 @@ describe('API Client & Contract Boundary Tests', () => {
       expect(list.items[0].name).toBe('Jane Doe');
     });
   });
+
+  describe('SessionService (PUB-22, DEC-PUB-AUTH-BOUNDARY, D01-P06-T003)', () => {
+    it('mints a demo session via SessionService.startDemoSession, always labelled non-production', async () => {
+      let capturedUrl: string | undefined;
+      let capturedMethod: string | undefined;
+      const mockFetch = vi.fn().mockImplementation(async (url, options) => {
+        capturedUrl = url;
+        capturedMethod = options?.method;
+        return {
+          ok: true,
+          status: 201,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: async () => ({
+            token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.demo.demo-signature',
+            claims: { sub: 'user-123', email: 'user@carchief.com', role: 'CustomerBuyer', permissions: ['read:public'], exp: 9999999999 },
+            nonProduction: true,
+          }),
+        };
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { SessionService } = await import('../services/session.js');
+      const service = new SessionService(client);
+
+      const session = await service.startDemoSession();
+      expect(capturedUrl).toContain('/api/v1/auth/demo-session');
+      expect(capturedMethod).toBe('POST');
+      expect(session.nonProduction).toBe(true);
+      expect(session.claims.role).toBe('CustomerBuyer');
+    });
+
+    it('returns the current claims via SessionService.getCurrentSession when authenticated', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => ({ sub: 'user-123', email: 'user@carchief.com', role: 'CustomerBuyer', permissions: ['read:public'], exp: 9999999999 }),
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000', getAuthToken: () => 'demo-token' });
+      const { SessionService } = await import('../services/session.js');
+      const service = new SessionService(client);
+
+      const claims = await service.getCurrentSession();
+      expect(claims?.role).toBe('CustomerBuyer');
+    });
+
+    it('returns null from SessionService.getCurrentSession for an unauthenticated 401 (never throws for the honest anonymous state)', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 401,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => ({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' }),
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { SessionService } = await import('../services/session.js');
+      const service = new SessionService(client);
+
+      expect(await service.getCurrentSession()).toBeNull();
+    });
+  });
+
+  describe('ConfigService (D01-P06-T003)', () => {
+    it('fetches public config, including an optional liveAuctionUrl when approved', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => ({ siteName: 'CarChief', currency: 'USD', contactPhone: '+256 700 000 000', liveAuctionUrl: 'https://auctions.example.com/live' }),
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { ConfigService } = await import('../services/config.js');
+      const service = new ConfigService(client);
+
+      const config = await service.getPublicConfig();
+      expect(config.liveAuctionUrl).toBe('https://auctions.example.com/live');
+    });
+  });
 });

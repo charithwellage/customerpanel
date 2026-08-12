@@ -22,6 +22,21 @@ export interface PublicConfig {
   siteName: string;
   currency: string;
   contactPhone: string;
+  liveAuctionUrl?: string;
+}
+
+export interface SessionClaims {
+  sub: string;
+  email: string;
+  role: 'PublicVisitor' | 'CustomerBuyer' | 'Salesperson' | 'StockController' | 'FinanceManager' | 'SystemAdmin';
+  permissions: string[];
+  exp: number;
+}
+
+export interface DemoSessionResponse {
+  token: string;
+  claims: SessionClaims;
+  nonProduction: boolean;
 }
 
 export interface VehicleSummary {

@@ -364,6 +364,20 @@ export interface LeadListResponse {
   total: number;
 }
 
+/**
+ * Public branding/site configuration (`GET /api/v1/config/public`).
+ * `liveAuctionUrl` gates the account-gated Live Auction entry (PUB-27,
+ * D01-P06-T003, `D01-ASM-002`): absent/undefined means no approved external
+ * destination is configured, so the entry point is never rendered — this
+ * repo never claims a live auction capability it does not have (RULE-10).
+ */
+export interface PublicConfig {
+  siteName: string;
+  currency: string;
+  contactPhone: string;
+  liveAuctionUrl?: string;
+}
+
 export function generateVehicleSlug(year: number, make: string, model: string, id: string): string {
   const raw = `${year}-${make}-${model}-${id}`;
   return raw

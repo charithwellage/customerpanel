@@ -47,6 +47,22 @@
         }
       }
     },
+    "/api/v1/auth/demo-session": {
+      "post": {
+        "summary": "Mint a stand-in demo customer session (DEC-PUB-AUTH-BOUNDARY, PUB-22, D01-P06-T003) — never a production identity",
+        "operationId": "startDemoSession",
+        "responses": {
+          "201": {
+            "description": "A CustomerBuyer stand-in session was minted",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/DemoSessionResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/vehicles": {
       "get": {
         "summary": "Get vehicle domain summaries",
@@ -584,9 +600,39 @@
         "properties": {
           "siteName": { "type": "string", "example": "CarChief" },
           "currency": { "type": "string", "example": "USD" },
-          "contactPhone": { "type": "string", "example": "+256 700 000 000" }
+          "contactPhone": { "type": "string", "example": "+256 700 000 000" },
+          "liveAuctionUrl": {
+            "type": "string",
+            "description": "Approved external Live Auction destination (PUB-27, D01-ASM-002). Absent when no destination is approved — the account-gated Live Auction entry is hidden, never a placeholder link (RULE-10).",
+            "example": "https://auctions.example.com/live"
+          }
         },
         "required": ["siteName", "currency", "contactPhone"]
+      },
+      "SessionClaims": {
+        "type": "object",
+        "description": "Stand-in demo JWT claims (DEC-PUB-AUTH-BOUNDARY). Never a production identity.",
+        "properties": {
+          "sub": { "type": "string", "example": "user-123" },
+          "email": { "type": "string", "example": "user@carchief.com" },
+          "role": {
+            "type": "string",
+            "enum": ["PublicVisitor", "CustomerBuyer", "Salesperson", "StockController", "FinanceManager", "SystemAdmin"],
+            "example": "CustomerBuyer"
+          },
+          "permissions": { "type": "array", "items": { "type": "string" } },
+          "exp": { "type": "integer", "description": "Unix seconds", "example": 1723371600 }
+        },
+        "required": ["sub", "email", "role", "permissions", "exp"]
+      },
+      "DemoSessionResponse": {
+        "type": "object",
+        "properties": {
+          "token": { "type": "string" },
+          "claims": { "$ref": "#/components/schemas/SessionClaims" },
+          "nonProduction": { "type": "boolean", "example": true }
+        },
+        "required": ["token", "claims", "nonProduction"]
       },
       "VehicleSummary": {
         "type": "object",
