@@ -1,14 +1,16 @@
 /**
- * Quotation enquiry form and confirmation UI tests (D01-P05-T004, PUB-13,
- * PUB-15).
+ * General/vehicle/Premium Vehicle/quotation enquiry form and confirmation UI
+ * tests (D01-P05-T004, D01-P06-T002, PUB-13, PUB-14, PUB-15).
  *
- * Tests observable behavior and contracts of:
- * - `validateEnquiryFormValues` client-side validation (mirrors, never
- *   overrides, the mock's own `prepareEnquiry` validation)
+ * Schema boundary tests for the shared `enquiryFormSchema` (Zod) live in
+ * `packages/validation/src/__tests__/enquiry.test.ts` — this file tests
+ * observable behavior and contracts of:
  * - `EnquiryService` HTTP contract as consumed from a browser context (via
  *   fetch mock), including the duplicate-receipt and 400 validation paths
  * - `EnquiryForm` / `EnquiryConfirmation` presentational rendering across
- *   loading, empty, validation-error, service-failure and success states
+ *   loading, empty, validation-error, service-failure and success states,
+ *   including the new consent field and the optional vehicle-preference
+ *   fieldset (D01-P06-T002)
  * - `EnquirySection` composition (form <-> confirmation swap) and DOM id
  *   hygiene across repeated sections
  *
@@ -18,10 +20,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { HttpClient, EnquiryService } from '@carchief/api-client';
 import type { FreightDestination, FreightPort, EnquiryResponse } from '@carchief/domain';
-import {
-  validateEnquiryFormValues,
-  type EnquiryFormValues,
-} from '../features/enquiry/hooks/useEnquiryForm.js';
+import type { EnquiryFormValues } from '../features/enquiry/hooks/useEnquiryForm.js';
 import { EnquiryForm } from '../features/enquiry/components/EnquiryForm.js';
 import { EnquiryConfirmation } from '../features/enquiry/components/EnquiryConfirmation.js';
 import { EnquirySection } from '../features/enquiry/EnquirySection.js';
@@ -35,8 +34,15 @@ const EMPTY_VALUES: EnquiryFormValues = {
   email: '',
   phone: '',
   message: '',
+  consent: false,
   destinationCode: '',
   portCode: '',
+  source: 'form',
+  preferredMake: '',
+  preferredModel: '',
+  preferredDriveSide: '',
+  preferredYear: '',
+  targetPriceUsd: '',
 };
 
 const destinationsFixture: FreightDestination[] = [
@@ -74,60 +80,6 @@ const quotationReceiptFixture: EnquiryResponse = {
 };
 
 /* --------------------------------------------------------------------------
-   validateEnquiryFormValues (client-side validation)
-   -------------------------------------------------------------------------- */
-describe('validateEnquiryFormValues', () => {
-  it('requires name, email, phone and message', () => {
-    const errors = validateEnquiryFormValues(EMPTY_VALUES);
-    expect(errors.name).toBeTruthy();
-    expect(errors.email).toBeTruthy();
-    expect(errors.phone).toBeTruthy();
-    expect(errors.message).toBeTruthy();
-  });
-
-  it('rejects an invalid email format', () => {
-    const errors = validateEnquiryFormValues({ ...EMPTY_VALUES, email: 'not-an-email' });
-    expect(errors.email).toBeTruthy();
-  });
-
-  it('passes with only the required contact fields and no destination', () => {
-    const errors = validateEnquiryFormValues({
-      ...EMPTY_VALUES,
-      name: 'Jane Doe',
-      email: 'jane@example.com',
-      phone: '+256700111222',
-      message: 'General enquiry.',
-    });
-    expect(errors).toEqual({});
-  });
-
-  it('requires both destinationCode and portCode when either one is filled', () => {
-    const errors = validateEnquiryFormValues({
-      ...EMPTY_VALUES,
-      name: 'Jane Doe',
-      email: 'jane@example.com',
-      phone: '+256700111222',
-      message: 'General enquiry.',
-      destinationCode: 'UG',
-    });
-    expect(errors.portCode).toBeTruthy();
-  });
-
-  it('passes with a complete destination/port pair supplied', () => {
-    const errors = validateEnquiryFormValues({
-      ...EMPTY_VALUES,
-      name: 'Jane Doe',
-      email: 'jane@example.com',
-      phone: '+256700111222',
-      message: 'Quotation enquiry.',
-      destinationCode: 'UG',
-      portCode: 'MBA',
-    });
-    expect(errors).toEqual({});
-  });
-});
-
-/* --------------------------------------------------------------------------
    EnquiryService HTTP contract (via fetch mock)
    -------------------------------------------------------------------------- */
 describe('EnquiryService HTTP contract', () => {
@@ -138,6 +90,7 @@ describe('EnquiryService HTTP contract', () => {
     const service = new EnquiryService(new HttpClient({ baseUrl: 'http://mock-api.test' }));
     const result = await service.submit({
       name: 'Jane Doe',
+      consent: true,
       email: 'jane@example.com',
       phone: '+256700111222',
       message: 'General enquiry.',
@@ -154,6 +107,7 @@ describe('EnquiryService HTTP contract', () => {
     const service = new EnquiryService(new HttpClient({ baseUrl: 'http://mock-api.test' }));
     const result = await service.submit({
       name: 'Jane Doe',
+      consent: true,
       email: 'jane@example.com',
       phone: '+256700111222',
       message: 'General enquiry.',
@@ -170,7 +124,7 @@ describe('EnquiryService HTTP contract', () => {
     );
     const service = new EnquiryService(new HttpClient({ baseUrl: 'http://mock-api.test' }));
     await expect(
-      service.submit({ name: 'Jane Doe', email: '', phone: '+256700111222', message: 'General enquiry.' })
+      service.submit({ name: 'Jane Doe', consent: true, email: '', phone: '+256700111222', message: 'General enquiry.' })
     ).rejects.toBeTruthy();
   });
 
@@ -183,7 +137,7 @@ describe('EnquiryService HTTP contract', () => {
     );
     const service = new EnquiryService(new HttpClient({ baseUrl: 'http://mock-api.test' }));
     await expect(
-      service.submit({ name: 'Jane Doe', email: 'jane@example.com', phone: '+256700111222', message: 'General enquiry.' })
+      service.submit({ name: 'Jane Doe', consent: true, email: 'jane@example.com', phone: '+256700111222', message: 'General enquiry.' })
     ).rejects.toBeTruthy();
   });
 });

@@ -17,3 +17,6 @@ export function isValidVehicleStatus(status: string): status is VehicleStatus {
 export function validateEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
+
+export { enquiryFormSchema } from './enquiry.js';
+export type { EnquiryFormSchemaValues, EnquiryFormSchemaInput } from './enquiry.js';

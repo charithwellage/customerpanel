@@ -7,7 +7,7 @@ import type { EnquiryFieldErrors, EnquiryFormValues } from '../hooks/useEnquiryF
 export interface EnquiryFormProps {
   vehicleSlug?: string;
   values: EnquiryFormValues;
-  onFieldChange: (field: keyof EnquiryFormValues, value: string) => void;
+  onFieldChange: (field: keyof EnquiryFormValues, value: string | boolean) => void;
   fieldErrors: EnquiryFieldErrors;
   destinations: FreightDestination[];
   ports: FreightPort[];
@@ -21,11 +21,14 @@ export interface EnquiryFormProps {
 }
 
 /**
- * Quotation enquiry form (PUB-13): name, email, phone and message are always
- * required; the destination/arrival port pair is an optional pairing so the
- * same form serves a general enquiry, a vehicle enquiry, or a quotation
- * enquiry naming a shipping destination. Presentational only — all data and
- * submission come from `useEnquiryForm`.
+ * General/vehicle/Premium Vehicle/quotation enquiry form (PUB-13, PUB-14,
+ * D01-P06-T002): name, email, phone, message and consent are always
+ * required; the destination/arrival port pair, preferred contact method and
+ * vehicle-preference capture are optional. The vehicle-preference fieldset
+ * only appears when no specific vehicle is already named (`vehicleSlug`) —
+ * describing preferences for a vehicle already identified would be
+ * contradictory. Presentational only — all data and submission come from
+ * `useEnquiryForm`.
  */
 export function EnquiryForm({
   vehicleSlug,
@@ -49,12 +52,24 @@ export function EnquiryForm({
   const messageId = `enquiry-message-${autoId}`;
   const destinationId = `enquiry-destination-${autoId}`;
   const portId = `enquiry-port-${autoId}`;
+  const sourceId = `enquiry-source-${autoId}`;
+  const preferredMakeId = `enquiry-preferred-make-${autoId}`;
+  const preferredModelId = `enquiry-preferred-model-${autoId}`;
+  const preferredDriveSideId = `enquiry-preferred-drive-side-${autoId}`;
+  const preferredYearId = `enquiry-preferred-year-${autoId}`;
+  const targetPriceId = `enquiry-target-price-${autoId}`;
+  const consentId = `enquiry-consent-${autoId}`;
   const nameErrorId = `enquiry-name-error-${autoId}`;
   const emailErrorId = `enquiry-email-error-${autoId}`;
   const phoneErrorId = `enquiry-phone-error-${autoId}`;
   const messageErrorId = `enquiry-message-error-${autoId}`;
   const destinationErrorId = `enquiry-destination-error-${autoId}`;
   const portErrorId = `enquiry-port-error-${autoId}`;
+  const preferredYearErrorId = `enquiry-preferred-year-error-${autoId}`;
+  const targetPriceErrorId = `enquiry-target-price-error-${autoId}`;
+  const consentErrorId = `enquiry-consent-error-${autoId}`;
+
+  const showVehiclePreferences = !vehicleSlug;
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -62,7 +77,7 @@ export function EnquiryForm({
   }
 
   return (
-    <form className="cc-enquiry-form" onSubmit={handleSubmit} noValidate aria-label="Quotation enquiry">
+    <form className="cc-enquiry-form" onSubmit={handleSubmit} noValidate aria-label="Enquiry">
       {vehicleSlug && (
         <p className="cc-enquiry-form__context">
           Enquiring about vehicle <strong>{vehicleSlug}</strong>.
@@ -136,6 +151,23 @@ export function EnquiryForm({
             {fieldErrors.phone}
           </p>
         )}
+      </div>
+
+      <div className="cc-enquiry-form__field">
+        <label htmlFor={sourceId} className="cc-enquiry-form__label">
+          Preferred contact method
+        </label>
+        <select
+          id={sourceId}
+          className="cc-enquiry-form__select"
+          value={values.source}
+          onChange={(e) => onFieldChange('source', e.target.value)}
+        >
+          <option value="form">This form / email</option>
+          <option value="call">Phone call</option>
+          <option value="whatsapp">WhatsApp</option>
+          <option value="email">Email</option>
+        </select>
       </div>
 
       <fieldset className="cc-enquiry-form__destination">
@@ -214,6 +246,98 @@ export function EnquiryForm({
         )}
       </fieldset>
 
+      {showVehiclePreferences && (
+        <fieldset className="cc-enquiry-form__preferences">
+          <legend className="cc-enquiry-form__label">Tell us what you&rsquo;re looking for (optional)</legend>
+          <p className="cc-enquiry-form__context">
+            No specific vehicle in mind yet? Share a few preferences and we&rsquo;ll follow up directly — this is not a
+            saved search or an automatic match.
+          </p>
+          <div className="cc-enquiry-form__preferences-grid">
+            <div className="cc-enquiry-form__field">
+              <label htmlFor={preferredMakeId} className="cc-enquiry-form__label cc-enquiry-form__label--sm">
+                Make
+              </label>
+              <input
+                id={preferredMakeId}
+                type="text"
+                className="cc-enquiry-form__input"
+                value={values.preferredMake}
+                onChange={(e) => onFieldChange('preferredMake', e.target.value)}
+              />
+            </div>
+            <div className="cc-enquiry-form__field">
+              <label htmlFor={preferredModelId} className="cc-enquiry-form__label cc-enquiry-form__label--sm">
+                Model
+              </label>
+              <input
+                id={preferredModelId}
+                type="text"
+                className="cc-enquiry-form__input"
+                value={values.preferredModel}
+                onChange={(e) => onFieldChange('preferredModel', e.target.value)}
+              />
+            </div>
+            <div className="cc-enquiry-form__field">
+              <label htmlFor={preferredDriveSideId} className="cc-enquiry-form__label cc-enquiry-form__label--sm">
+                Drive side
+              </label>
+              <select
+                id={preferredDriveSideId}
+                className="cc-enquiry-form__select"
+                value={values.preferredDriveSide}
+                onChange={(e) => onFieldChange('preferredDriveSide', e.target.value)}
+              >
+                <option value="">No preference</option>
+                <option value="left">Left-hand drive</option>
+                <option value="right">Right-hand drive</option>
+              </select>
+            </div>
+            <div className="cc-enquiry-form__field">
+              <label htmlFor={preferredYearId} className="cc-enquiry-form__label cc-enquiry-form__label--sm">
+                Preferred year
+              </label>
+              <input
+                id={preferredYearId}
+                type="number"
+                inputMode="numeric"
+                className="cc-enquiry-form__number-input"
+                value={values.preferredYear}
+                onChange={(e) => onFieldChange('preferredYear', e.target.value)}
+                aria-invalid={Boolean(fieldErrors.preferredYear)}
+                aria-describedby={fieldErrors.preferredYear ? preferredYearErrorId : undefined}
+              />
+              {fieldErrors.preferredYear && (
+                <p id={preferredYearErrorId} role="alert" className="cc-enquiry-form__field-error">
+                  {fieldErrors.preferredYear}
+                </p>
+              )}
+            </div>
+            <div className="cc-enquiry-form__field">
+              <label htmlFor={targetPriceId} className="cc-enquiry-form__label cc-enquiry-form__label--sm">
+                Target price (USD)
+              </label>
+              <input
+                id={targetPriceId}
+                type="number"
+                inputMode="numeric"
+                min="0"
+                className="cc-enquiry-form__number-input"
+                value={values.targetPriceUsd}
+                onChange={(e) => onFieldChange('targetPriceUsd', e.target.value)}
+                aria-invalid={Boolean(fieldErrors.targetPriceUsd)}
+                aria-describedby={fieldErrors.targetPriceUsd ? targetPriceErrorId : undefined}
+              />
+              {fieldErrors.targetPriceUsd && (
+                <p id={targetPriceErrorId} role="alert" className="cc-enquiry-form__field-error">
+                  {fieldErrors.targetPriceUsd}
+                </p>
+              )}
+            </div>
+          </div>
+        </fieldset>
+      )}
+
       <div className="cc-enquiry-form__field">
         <label htmlFor={messageId} className="cc-enquiry-form__label">
           Message
@@ -232,6 +356,29 @@ export function EnquiryForm({
         {fieldErrors.message && (
           <p id={messageErrorId} role="alert" className="cc-enquiry-form__field-error">
             {fieldErrors.message}
+          </p>
+        )}
+      </div>
+
+      <div className="cc-enquiry-form__consent">
+        <label htmlFor={consentId} className="cc-enquiry-form__consent-label">
+          <input
+            id={consentId}
+            type="checkbox"
+            checked={values.consent}
+            onChange={(e) => onFieldChange('consent', e.target.checked)}
+            aria-required="true"
+            aria-invalid={Boolean(fieldErrors.consent)}
+            aria-describedby={fieldErrors.consent ? consentErrorId : undefined}
+          />
+          <span>
+            I agree to be contacted by CarChief about this enquiry.
+            <span aria-hidden="true"> *</span>
+          </span>
+        </label>
+        {fieldErrors.consent && (
+          <p id={consentErrorId} role="alert" className="cc-enquiry-form__field-error">
+            {fieldErrors.consent}
           </p>
         )}
       </div>

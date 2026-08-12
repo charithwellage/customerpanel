@@ -16,10 +16,18 @@ import type {
   EnquiryEstimateSnapshot,
   EnquiryType,
   EnquirySource,
+  EnquiryPreferredDriveSide,
   LeadRecord,
   LeadListResponse,
 } from '@carchief/domain';
-import { generateVehicleSlug, calculateFreightEstimate, resolveFreightRateStatus, ENQUIRY_TYPES, ENQUIRY_SOURCES } from '@carchief/domain';
+import {
+  generateVehicleSlug,
+  calculateFreightEstimate,
+  resolveFreightRateStatus,
+  ENQUIRY_TYPES,
+  ENQUIRY_SOURCES,
+  ENQUIRY_PREFERRED_DRIVE_SIDES,
+} from '@carchief/domain';
 import { validateEmail } from '@carchief/validation';
 export { FreightRequestError, resolveFreightRateStatus } from '@carchief/domain';
 
@@ -506,12 +514,18 @@ export interface EnquiryRecord {
   email: string;
   phone: string;
   message: string;
+  consent: boolean;
   vehicleSlug?: string;
   estimateSnapshot?: EnquiryEstimateSnapshot;
   receivedAt: string;
   enquiryType: EnquiryType;
   source: EnquirySource;
   duplicateResubmissionCount: number;
+  preferredMake?: string;
+  preferredModel?: string;
+  preferredDriveSide?: EnquiryPreferredDriveSide;
+  preferredYear?: number;
+  targetPriceUsd?: number;
 }
 
 interface PreparedEnquiry {
@@ -519,10 +533,16 @@ interface PreparedEnquiry {
   email: string;
   phone: string;
   message: string;
+  consent: boolean;
   vehicleSlug?: string;
   estimateSnapshot?: EnquiryEstimateSnapshot;
   enquiryType: EnquiryType;
   source: EnquirySource;
+  preferredMake?: string;
+  preferredModel?: string;
+  preferredDriveSide?: EnquiryPreferredDriveSide;
+  preferredYear?: number;
+  targetPriceUsd?: number;
 }
 
 function requireNonEmptyString(value: unknown, field: string, label: string): string {
@@ -557,6 +577,14 @@ export function prepareEnquiry(
   }
   const phone = requireNonEmptyString(request.phone, 'phone', 'Phone number');
   const message = requireNonEmptyString(request.message, 'message', 'Message');
+
+  // D01-P06-T002 (PUB-14): consent is validated beyond native browser
+  // checkbox validation — the server rejects any submission that does not
+  // explicitly agree to be contacted, never inferring or defaulting it.
+  if (request.consent !== true) {
+    throw new EnquiryRequestError(400, 'You must agree to be contacted before sending this enquiry.', 'consent');
+  }
+  const consent = true;
 
   let vehicleSlug: string | undefined;
   if (request.vehicleSlug !== undefined && request.vehicleSlug !== null && request.vehicleSlug !== '') {
@@ -625,7 +653,58 @@ export function prepareEnquiry(
     source = 'form';
   }
 
-  return { name, email, phone, message, vehicleSlug, estimateSnapshot, enquiryType, source };
+  // D01-P06-T002 "In scope": optional vehicle-preference capture for a
+  // visitor with no specific vehicle in mind yet. Informal intent only —
+  // never a saved search, and never inferred when omitted.
+  let preferredMake: string | undefined;
+  if (request.preferredMake !== undefined && request.preferredMake !== null && request.preferredMake !== '') {
+    preferredMake = requireNonEmptyString(request.preferredMake, 'preferredMake', 'Preferred make');
+  }
+  let preferredModel: string | undefined;
+  if (request.preferredModel !== undefined && request.preferredModel !== null && request.preferredModel !== '') {
+    preferredModel = requireNonEmptyString(request.preferredModel, 'preferredModel', 'Preferred model');
+  }
+  let preferredDriveSide: EnquiryPreferredDriveSide | undefined;
+  if (request.preferredDriveSide !== undefined && request.preferredDriveSide !== null && (request.preferredDriveSide as unknown) !== '') {
+    if (!ENQUIRY_PREFERRED_DRIVE_SIDES.includes(request.preferredDriveSide)) {
+      throw new EnquiryRequestError(400, `Unsupported preferredDriveSide '${String(request.preferredDriveSide)}'`, 'preferredDriveSide');
+    }
+    preferredDriveSide = request.preferredDriveSide;
+  }
+  let preferredYear: number | undefined;
+  if (request.preferredYear !== undefined && request.preferredYear !== null && (request.preferredYear as unknown) !== '') {
+    const year = Number(request.preferredYear);
+    const maxYear = new Date(nowISO).getFullYear() + 1;
+    if (!Number.isInteger(year) || year < 1990 || year > maxYear) {
+      throw new EnquiryRequestError(400, `Enter a preferred year between 1990 and ${maxYear}`, 'preferredYear');
+    }
+    preferredYear = year;
+  }
+  let targetPriceUsd: number | undefined;
+  if (request.targetPriceUsd !== undefined && request.targetPriceUsd !== null && (request.targetPriceUsd as unknown) !== '') {
+    const price = Number(request.targetPriceUsd);
+    if (!Number.isFinite(price) || price < 0) {
+      throw new EnquiryRequestError(400, 'Enter a target price of 0 or more', 'targetPriceUsd');
+    }
+    targetPriceUsd = price;
+  }
+
+  return {
+    name,
+    email,
+    phone,
+    message,
+    consent,
+    vehicleSlug,
+    estimateSnapshot,
+    enquiryType,
+    source,
+    preferredMake,
+    preferredModel,
+    preferredDriveSide,
+    preferredYear,
+    targetPriceUsd,
+  };
 }
 
 /**
@@ -642,11 +721,16 @@ export function buildEnquiryDedupeKey(prepared: PreparedEnquiry): string {
     prepared.estimateSnapshot?.portCode ?? '',
     prepared.enquiryType,
     prepared.message.trim().toLowerCase(),
+    prepared.preferredMake?.trim().toLowerCase() ?? '',
+    prepared.preferredModel?.trim().toLowerCase() ?? '',
+    prepared.preferredDriveSide ?? '',
+    prepared.preferredYear ?? '',
+    prepared.targetPriceUsd ?? '',
   ].join('|');
 }
 
 const ENQUIRY_SELECT_COLUMNS =
-  'SELECT id, dedupe_key, name, email, phone, message, vehicle_slug, destination_code, port_code, rate_status, currency, rate_effective_from, rate_effective_to, estimate_message, received_at, enquiry_type, source, duplicate_resubmission_count';
+  'SELECT id, dedupe_key, name, email, phone, message, consent, vehicle_slug, destination_code, port_code, rate_status, currency, rate_effective_from, rate_effective_to, estimate_message, received_at, enquiry_type, source, duplicate_resubmission_count, preferred_make, preferred_model, preferred_drive_side, preferred_year, target_price_usd';
 
 function rowToEnquiryRecord(row: Record<string, unknown>): EnquiryRecord {
   const destinationCode = row.destination_code as string | null;
@@ -658,11 +742,17 @@ function rowToEnquiryRecord(row: Record<string, unknown>): EnquiryRecord {
     email: row.email as string,
     phone: row.phone as string,
     message: row.message as string,
+    consent: row.consent === undefined || row.consent === null ? true : Boolean(row.consent),
     vehicleSlug: (row.vehicle_slug as string | null) || undefined,
     receivedAt: row.received_at as string,
     enquiryType: (row.enquiry_type as EnquiryType | null) || 'general',
     source: (row.source as EnquirySource | null) || 'form',
     duplicateResubmissionCount: Number(row.duplicate_resubmission_count ?? 0),
+    preferredMake: (row.preferred_make as string | null) || undefined,
+    preferredModel: (row.preferred_model as string | null) || undefined,
+    preferredDriveSide: (row.preferred_drive_side as EnquiryPreferredDriveSide | null) || undefined,
+    preferredYear: row.preferred_year !== undefined && row.preferred_year !== null ? Number(row.preferred_year) : undefined,
+    targetPriceUsd: row.target_price_usd !== undefined && row.target_price_usd !== null ? Number(row.target_price_usd) : undefined,
     estimateSnapshot:
       destinationCode && portCode
         ? {
@@ -709,9 +799,15 @@ function toLeadRecord(record: EnquiryRecord): LeadRecord {
     email: record.email,
     phone: record.phone,
     message: record.message,
+    consent: record.consent,
     vehicleSlug: record.vehicleSlug,
     estimateSnapshot: record.estimateSnapshot,
     duplicateResubmissionCount: record.duplicateResubmissionCount,
+    preferredMake: record.preferredMake,
+    preferredModel: record.preferredModel,
+    preferredDriveSide: record.preferredDriveSide,
+    preferredYear: record.preferredYear,
+    targetPriceUsd: record.targetPriceUsd,
   };
 }
 
@@ -1258,6 +1354,19 @@ class PostgresStore implements DemoStore {
         ADD COLUMN IF NOT EXISTS source text,
         ADD COLUMN IF NOT EXISTS duplicate_resubmission_count integer;`
     );
+    // Phase 1.6 (D01-P06-T002): consent and the optional vehicle-preference
+    // capture fields — same ADD COLUMN IF NOT EXISTS schema-drift pattern as
+    // above, since an already-existing local volume never gets these columns
+    // from CREATE TABLE IF NOT EXISTS alone.
+    await this.pool.query(
+      `ALTER TABLE enquiries
+        ADD COLUMN IF NOT EXISTS consent boolean,
+        ADD COLUMN IF NOT EXISTS preferred_make text,
+        ADD COLUMN IF NOT EXISTS preferred_model text,
+        ADD COLUMN IF NOT EXISTS preferred_drive_side text,
+        ADD COLUMN IF NOT EXISTS preferred_year integer,
+        ADD COLUMN IF NOT EXISTS target_price_usd numeric;`
+    );
     await this.reset();
   }
 
@@ -1367,7 +1476,7 @@ class PostgresStore implements DemoStore {
     const id = `enq-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     const receivedAt = new Date().toISOString();
     await this.pool.query(
-      'INSERT INTO enquiries (id, dedupe_key, name, email, phone, message, vehicle_slug, destination_code, port_code, rate_status, currency, rate_effective_from, rate_effective_to, estimate_message, received_at, enquiry_type, source, duplicate_resubmission_count) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)',
+      'INSERT INTO enquiries (id, dedupe_key, name, email, phone, message, consent, vehicle_slug, destination_code, port_code, rate_status, currency, rate_effective_from, rate_effective_to, estimate_message, received_at, enquiry_type, source, duplicate_resubmission_count, preferred_make, preferred_model, preferred_drive_side, preferred_year, target_price_usd) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24)',
       [
         id,
         dedupeKey,
@@ -1375,6 +1484,7 @@ class PostgresStore implements DemoStore {
         prepared.email,
         prepared.phone,
         prepared.message,
+        prepared.consent,
         prepared.vehicleSlug || null,
         prepared.estimateSnapshot?.destinationCode || null,
         prepared.estimateSnapshot?.portCode || null,
@@ -1387,6 +1497,11 @@ class PostgresStore implements DemoStore {
         prepared.enquiryType,
         prepared.source,
         0,
+        prepared.preferredMake || null,
+        prepared.preferredModel || null,
+        prepared.preferredDriveSide || null,
+        prepared.preferredYear ?? null,
+        prepared.targetPriceUsd ?? null,
       ]
     );
 

@@ -33,6 +33,7 @@ describe('Quotation enquiry submission (PUB-13, PUB-15, D01-ASM-001)', () => {
     it('persists a general enquiry with just contact fields and no vehicle/destination', async () => {
       const result = await store.createEnquiry({
         name: 'Jane Doe',
+        consent: true,
         email: 'jane@example.com',
         phone: '+256700111222',
         message: 'I would like more information about your inventory.',
@@ -48,6 +49,7 @@ describe('Quotation enquiry submission (PUB-13, PUB-15, D01-ASM-001)', () => {
     it('persists a vehicle enquiry linked by slug', async () => {
       const result = await store.createEnquiry({
         name: 'John Smith',
+        consent: true,
         email: 'john@example.com',
         phone: '+256700333444',
         message: 'Is this vehicle still available?',
@@ -61,6 +63,7 @@ describe('Quotation enquiry submission (PUB-13, PUB-15, D01-ASM-001)', () => {
       await expect(
         store.createEnquiry({
           name: 'John Smith',
+          consent: true,
           email: 'john@example.com',
           phone: '+256700333444',
           message: 'Is this vehicle still available?',
@@ -72,6 +75,7 @@ describe('Quotation enquiry submission (PUB-13, PUB-15, D01-ASM-001)', () => {
     it('persists a quotation enquiry linked to a destination/port pair with a server-resolved estimate snapshot', async () => {
       const result = await store.createEnquiry({
         name: 'Amara Okoye',
+        consent: true,
         email: 'amara@example.com',
         phone: '+256700555666',
         message: 'Please confirm shipping cost to Uganda.',
@@ -93,6 +97,7 @@ describe('Quotation enquiry submission (PUB-13, PUB-15, D01-ASM-001)', () => {
       await expect(
         store.createEnquiry({
           name: 'Amara Okoye',
+          consent: true,
           email: 'amara@example.com',
           phone: '+256700555666',
           message: 'Please confirm shipping cost to Uganda.',
@@ -105,6 +110,7 @@ describe('Quotation enquiry submission (PUB-13, PUB-15, D01-ASM-001)', () => {
       await expect(
         store.createEnquiry({
           name: 'Amara Okoye',
+          consent: true,
           email: 'amara@example.com',
           phone: '+256700555666',
           message: 'Please confirm shipping cost.',
@@ -118,6 +124,7 @@ describe('Quotation enquiry submission (PUB-13, PUB-15, D01-ASM-001)', () => {
       await expect(
         store.createEnquiry({
           name: '',
+          consent: true,
           email: 'amara@example.com',
           phone: '+256700555666',
           message: 'Please confirm shipping cost.',
@@ -129,6 +136,7 @@ describe('Quotation enquiry submission (PUB-13, PUB-15, D01-ASM-001)', () => {
       await expect(
         store.createEnquiry({
           name: 'Amara Okoye',
+          consent: true,
           email: 'not-an-email',
           phone: '+256700555666',
           message: 'Please confirm shipping cost.',
@@ -139,6 +147,7 @@ describe('Quotation enquiry submission (PUB-13, PUB-15, D01-ASM-001)', () => {
     it('collapses an identical resubmission into the original receipt instead of creating a duplicate lead (RULE-08)', async () => {
       const request = {
         name: 'Amara Okoye',
+        consent: true,
         email: 'amara@example.com',
         phone: '+256700555666',
         message: 'Please confirm shipping cost to Uganda.',
@@ -158,6 +167,7 @@ describe('Quotation enquiry submission (PUB-13, PUB-15, D01-ASM-001)', () => {
     it('treats a materially different message from the same visitor as a new enquiry, not a duplicate', async () => {
       const base = {
         name: 'Amara Okoye',
+        consent: true,
         email: 'amara@example.com',
         phone: '+256700555666',
         vehicleSlug: VALID_VEHICLE_SLUG,
@@ -178,6 +188,7 @@ describe('Quotation enquiry submission (PUB-13, PUB-15, D01-ASM-001)', () => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             name: 'Jane Doe',
+            consent: true,
             email: 'jane@example.com',
             phone: '+256700111222',
             message: 'I would like more information about your inventory.',
@@ -198,6 +209,7 @@ describe('Quotation enquiry submission (PUB-13, PUB-15, D01-ASM-001)', () => {
       try {
         const body = JSON.stringify({
           name: 'Jane Doe',
+          consent: true,
           email: 'jane@example.com',
           phone: '+256700111222',
           message: 'Same enquiry twice.',
@@ -245,6 +257,7 @@ describe('Quotation enquiry submission (PUB-13, PUB-15, D01-ASM-001)', () => {
       try {
         const body = JSON.stringify({
           name: 'Jane Doe',
+          consent: true,
           email: 'jane@example.com',
           phone: '+256700111222',
           message: 'Reset test enquiry.',
@@ -282,6 +295,7 @@ describe('Quotation enquiry submission (PUB-13, PUB-15, D01-ASM-001)', () => {
       it('defaults enquiryType to general and source to form when omitted', async () => {
         const result = await store.createEnquiry({
           name: 'Jane Doe',
+          consent: true,
           email: 'jane@example.com',
           phone: '+256700111222',
           message: 'General enquiry about your inventory.',
@@ -293,6 +307,7 @@ describe('Quotation enquiry submission (PUB-13, PUB-15, D01-ASM-001)', () => {
       it('defaults enquiryType to vehicle when a vehicleSlug is supplied without an explicit type', async () => {
         const result = await store.createEnquiry({
           name: 'John Smith',
+          consent: true,
           email: 'john@example.com',
           phone: '+256700333444',
           message: 'Is this vehicle still available?',
@@ -304,6 +319,7 @@ describe('Quotation enquiry submission (PUB-13, PUB-15, D01-ASM-001)', () => {
       it('preserves an explicit price-request enquiryType and whatsapp source', async () => {
         const result = await store.createEnquiry({
           name: 'Amara Okoye',
+          consent: true,
           email: 'amara@example.com',
           phone: '+256700555666',
           message: 'What is the best price for this vehicle?',
@@ -318,6 +334,7 @@ describe('Quotation enquiry submission (PUB-13, PUB-15, D01-ASM-001)', () => {
       it('preserves an explicit premium-vehicle enquiryType (PUB-34)', async () => {
         const result = await store.createEnquiry({
           name: 'Amara Okoye',
+          consent: true,
           email: 'amara+premium@example.com',
           phone: '+256700555666',
           message: 'Please tell me more about this Premium Stock vehicle.',
@@ -331,6 +348,7 @@ describe('Quotation enquiry submission (PUB-13, PUB-15, D01-ASM-001)', () => {
         await expect(
           store.createEnquiry({
             name: 'Amara Okoye',
+            consent: true,
             email: 'amara@example.com',
             phone: '+256700555666',
             message: 'Hello',
@@ -344,6 +362,7 @@ describe('Quotation enquiry submission (PUB-13, PUB-15, D01-ASM-001)', () => {
         await expect(
           store.createEnquiry({
             name: 'Amara Okoye',
+            consent: true,
             email: 'amara@example.com',
             phone: '+256700555666',
             message: 'Hello',
@@ -356,6 +375,7 @@ describe('Quotation enquiry submission (PUB-13, PUB-15, D01-ASM-001)', () => {
       it('treats an otherwise-identical enquiry with a different enquiryType as a distinct lead, not a duplicate', async () => {
         const base = {
           name: 'Amara Okoye',
+          consent: true,
           email: 'amara@example.com',
           phone: '+256700555666',
           message: 'Please confirm shipping cost to Uganda.',
@@ -363,6 +383,140 @@ describe('Quotation enquiry submission (PUB-13, PUB-15, D01-ASM-001)', () => {
         };
         const first = await store.createEnquiry({ ...base, enquiryType: 'vehicle' });
         const second = await store.createEnquiry({ ...base, enquiryType: 'price-request' });
+        expect(second.duplicate).toBe(false);
+        expect(second.id).not.toBe(first.id);
+      });
+    });
+
+    // D01-P06-T002 (PUB-14): consent validated beyond a browser's own native
+    // checkbox check — the server rejects any submission that does not
+    // explicitly agree, never inferring or defaulting it.
+    describe('consent (D01-P06-T002, PUB-14)', () => {
+      it('rejects a submission with consent omitted as a field-associated 400', async () => {
+        await expect(
+          store.createEnquiry({
+            name: 'Jane Doe',
+            email: 'jane@example.com',
+            phone: '+256700111222',
+            message: 'General enquiry.',
+          } as never)
+        ).rejects.toMatchObject({ statusCode: 400, field: 'consent' });
+      });
+
+      it('rejects a submission with consent explicitly false as a field-associated 400', async () => {
+        await expect(
+          store.createEnquiry({
+            name: 'Jane Doe',
+            consent: false,
+            email: 'jane@example.com',
+            phone: '+256700111222',
+            message: 'General enquiry.',
+          } as never)
+        ).rejects.toMatchObject({ statusCode: 400, field: 'consent' });
+      });
+
+      it('accepts a submission with consent explicitly true and persists it on the staff-visible lead', async () => {
+        const receipt = await store.createEnquiry({
+          name: 'Jane Doe',
+          consent: true,
+          email: 'jane@example.com',
+          phone: '+256700111222',
+          message: 'General enquiry.',
+        });
+        const lead = await store.getLeadById(receipt.id);
+        expect((lead as LeadRecord).consent).toBe(true);
+      });
+    });
+
+    // D01-P06-T002 "In scope": optional vehicle-preference capture for a
+    // visitor with no specific vehicle in mind yet. Informal intent only —
+    // never inferred, never a saved search or matching guarantee.
+    describe('vehicle-preference capture (D01-P06-T002)', () => {
+      it('persists an optional vehicle preference on the staff-visible lead', async () => {
+        const receipt = await store.createEnquiry({
+          name: 'Jane Doe',
+          consent: true,
+          email: 'jane@example.com',
+          phone: '+256700111222',
+          message: 'Looking for a specific type of vehicle.',
+          preferredMake: 'Toyota',
+          preferredModel: 'Corolla',
+          preferredDriveSide: 'right',
+          preferredYear: 2021,
+          targetPriceUsd: 12000,
+        });
+        const lead = await store.getLeadById(receipt.id);
+        expect((lead as LeadRecord).preferredMake).toBe('Toyota');
+        expect((lead as LeadRecord).preferredModel).toBe('Corolla');
+        expect((lead as LeadRecord).preferredDriveSide).toBe('right');
+        expect((lead as LeadRecord).preferredYear).toBe(2021);
+        expect((lead as LeadRecord).targetPriceUsd).toBe(12000);
+      });
+
+      it('omits vehicle-preference fields entirely when not supplied, never fabricating a default', async () => {
+        const receipt = await store.createEnquiry({
+          name: 'Jane Doe',
+          consent: true,
+          email: 'jane@example.com',
+          phone: '+256700111222',
+          message: 'General enquiry.',
+        });
+        const lead = await store.getLeadById(receipt.id);
+        expect((lead as LeadRecord).preferredMake).toBeUndefined();
+        expect((lead as LeadRecord).preferredYear).toBeUndefined();
+        expect((lead as LeadRecord).targetPriceUsd).toBeUndefined();
+      });
+
+      it('rejects an unsupported preferredDriveSide as a field-associated 400', async () => {
+        await expect(
+          store.createEnquiry({
+            name: 'Jane Doe',
+            consent: true,
+            email: 'jane@example.com',
+            phone: '+256700111222',
+            message: 'General enquiry.',
+            // @ts-expect-error deliberately invalid for the validation test
+            preferredDriveSide: 'center',
+          })
+        ).rejects.toMatchObject({ statusCode: 400, field: 'preferredDriveSide' });
+      });
+
+      it('rejects a preferredYear outside the sane range as a field-associated 400', async () => {
+        await expect(
+          store.createEnquiry({
+            name: 'Jane Doe',
+            consent: true,
+            email: 'jane@example.com',
+            phone: '+256700111222',
+            message: 'General enquiry.',
+            preferredYear: 1899,
+          })
+        ).rejects.toMatchObject({ statusCode: 400, field: 'preferredYear' });
+      });
+
+      it('rejects a negative targetPriceUsd as a field-associated 400', async () => {
+        await expect(
+          store.createEnquiry({
+            name: 'Jane Doe',
+            consent: true,
+            email: 'jane@example.com',
+            phone: '+256700111222',
+            message: 'General enquiry.',
+            targetPriceUsd: -100,
+          })
+        ).rejects.toMatchObject({ statusCode: 400, field: 'targetPriceUsd' });
+      });
+
+      it('two otherwise-identical enquiries with different target prices are distinct leads, not deduped', async () => {
+        const base = {
+          name: 'Jane Doe',
+          consent: true,
+          email: 'jane@example.com',
+          phone: '+256700111222',
+          message: 'Looking for a specific type of vehicle.',
+        };
+        const first = await store.createEnquiry({ ...base, targetPriceUsd: 10000 });
+        const second = await store.createEnquiry({ ...base, targetPriceUsd: 15000 });
         expect(second.duplicate).toBe(false);
         expect(second.id).not.toBe(first.id);
       });
@@ -377,6 +531,7 @@ describe('Quotation enquiry submission (PUB-13, PUB-15, D01-ASM-001)', () => {
       it('makes a submitted enquiry retrievable by id through the staff-facing lead boundary, carrying full contact fields', async () => {
         const receipt = await store.createEnquiry({
           name: 'Jane Doe',
+          consent: true,
           email: 'jane@example.com',
           phone: '+256700111222',
           message: 'General enquiry about your inventory.',
@@ -393,6 +548,7 @@ describe('Quotation enquiry submission (PUB-13, PUB-15, D01-ASM-001)', () => {
       it('lists every persisted lead and increments duplicateResubmissionCount on an identical resubmission (audit/activity intent)', async () => {
         const request = {
           name: 'Amara Okoye',
+          consent: true,
           email: 'amara@example.com',
           phone: '+256700555666',
           message: 'Please confirm shipping cost to Uganda.',
@@ -409,8 +565,8 @@ describe('Quotation enquiry submission (PUB-13, PUB-15, D01-ASM-001)', () => {
       });
 
       it('lists multiple distinct leads', async () => {
-        await store.createEnquiry({ name: 'A', email: 'a@example.com', phone: '+256700000001', message: 'First enquiry.' });
-        await store.createEnquiry({ name: 'B', email: 'b@example.com', phone: '+256700000002', message: 'Second enquiry.' });
+        await store.createEnquiry({ name: 'A', email: 'a@example.com', phone: '+256700000001', message: 'First enquiry.', consent: true });
+        await store.createEnquiry({ name: 'B', email: 'b@example.com', phone: '+256700000002', message: 'Second enquiry.', consent: true });
         const list = await store.listLeads();
         expect(list.total).toBe(2);
       });
@@ -448,6 +604,7 @@ describe('Quotation enquiry submission (PUB-13, PUB-15, D01-ASM-001)', () => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               name: 'Jane Doe',
+              consent: true,
               email: 'jane@example.com',
               phone: '+256700111222',
               message: 'General enquiry about your inventory.',
@@ -475,6 +632,7 @@ describe('Quotation enquiry submission (PUB-13, PUB-15, D01-ASM-001)', () => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               name: 'John Smith',
+              consent: true,
               email: 'john@example.com',
               phone: '+256700333444',
               message: 'Is this vehicle still available?',
@@ -518,6 +676,7 @@ describe('Quotation enquiry submission (PUB-13, PUB-15, D01-ASM-001)', () => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               name: 'Jane Doe',
+              consent: true,
               email: 'jane@example.com',
               phone: '+256700111222',
               message: 'General enquiry about your inventory.',

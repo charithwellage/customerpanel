@@ -165,7 +165,9 @@ export default function VehicleDetailPage({ vehicle }: VehicleDetailPageProps) {
         )}
         <div className="cc-vehicle-detail__actions">
           <a
-            href={`/contact?vehicle=${encodeURIComponent(vehicle.slug)}`}
+            href={`/contact?vehicle=${encodeURIComponent(vehicle.slug)}&enquiryType=${encodeURIComponent(
+              vehicle.category === 'premium' ? 'premium-vehicle' : isRequestPrice ? 'price-request' : 'vehicle'
+            )}`}
             className="cc-btn cc-btn--primary"
             aria-label={isRequestPrice ? 'Request Price' : 'General Enquiry'}
           >

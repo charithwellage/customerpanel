@@ -268,9 +268,11 @@ export interface EnquiryEstimateSnapshot {
 
 export type EnquiryType = 'general' | 'vehicle' | 'price-request' | 'premium-vehicle';
 export type EnquirySource = 'form' | 'whatsapp' | 'email' | 'call';
+export type EnquiryPreferredDriveSide = 'left' | 'right';
 
 export const ENQUIRY_TYPES: readonly EnquiryType[] = ['general', 'vehicle', 'price-request', 'premium-vehicle'];
 export const ENQUIRY_SOURCES: readonly EnquirySource[] = ['form', 'whatsapp', 'email', 'call'];
+export const ENQUIRY_PREFERRED_DRIVE_SIDES: readonly EnquiryPreferredDriveSide[] = ['left', 'right'];
 
 /**
  * A visitor-submitted enquiry (PUB-13): a general enquiry, an enquiry about a
@@ -279,17 +281,29 @@ export const ENQUIRY_SOURCES: readonly EnquirySource[] = ['form', 'whatsapp', 'e
  * none is required beyond the contact fields themselves. `enquiryType` and
  * `source` are optional on the request; the server resolves and persists a
  * definite value for both (never left ambiguous) — see `EnquiryResponse`.
+ * `consent` is required (D01-P06-T002, PUB-14): the server rejects any
+ * request that does not explicitly agree to be contacted, beyond what a
+ * browser's own native checkbox validation would catch. The `preferred*`
+ * fields are an optional vehicle-preference capture (D01-P06-T002 "In
+ * scope") for a visitor who has no specific vehicle in mind yet — informal
+ * intent only, never a saved search or matching guarantee.
  */
 export interface EnquiryRequest {
   name: string;
   email: string;
   phone: string;
   message: string;
+  consent: boolean;
   vehicleSlug?: string;
   destinationCode?: string;
   portCode?: string;
   enquiryType?: EnquiryType;
   source?: EnquirySource;
+  preferredMake?: string;
+  preferredModel?: string;
+  preferredDriveSide?: EnquiryPreferredDriveSide;
+  preferredYear?: number;
+  targetPriceUsd?: number;
 }
 
 /**
@@ -333,9 +347,15 @@ export interface LeadRecord {
   email: string;
   phone: string;
   message: string;
+  consent: boolean;
   vehicleSlug?: string;
   estimateSnapshot?: EnquiryEstimateSnapshot;
   duplicateResubmissionCount: number;
+  preferredMake?: string;
+  preferredModel?: string;
+  preferredDriveSide?: EnquiryPreferredDriveSide;
+  preferredYear?: number;
+  targetPriceUsd?: number;
 }
 
 /** Staff-facing lead list proof operation (PUB-16, D01-P06-T001). */

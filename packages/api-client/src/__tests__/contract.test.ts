@@ -479,6 +479,7 @@ describe('API Client & Contract Boundary Tests', () => {
 
       const receipt = await service.submit({
         name: 'Jane Doe',
+        consent: true,
         email: 'jane@example.com',
         phone: '+256700111222',
         message: 'General enquiry about your inventory.',
@@ -522,6 +523,7 @@ describe('API Client & Contract Boundary Tests', () => {
 
       const receipt = await service.submit({
         name: 'Amara Okoye',
+        consent: true,
         email: 'amara@example.com',
         phone: '+256700555666',
         message: 'Please confirm shipping cost to Uganda.',
@@ -554,6 +556,7 @@ describe('API Client & Contract Boundary Tests', () => {
 
       const receipt = await service.submit({
         name: 'Jane Doe',
+        consent: true,
         email: 'jane@example.com',
         phone: '+256700111222',
         message: 'General enquiry about your inventory.',
@@ -581,7 +584,7 @@ describe('API Client & Contract Boundary Tests', () => {
       const service = new EnquiryService(client);
 
       try {
-        await service.submit({ name: 'Jane Doe', email: '', phone: '+256700111222', message: 'Hello' });
+        await service.submit({ name: 'Jane Doe', consent: true, email: '', phone: '+256700111222', message: 'Hello' });
         expect.fail('Should have thrown NormalizedApiError');
       } catch (err: unknown) {
         expect(err).toBeInstanceOf(NormalizedApiError);

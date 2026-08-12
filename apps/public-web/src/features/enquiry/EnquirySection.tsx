@@ -11,9 +11,17 @@ export interface EnquirySectionProps {
   serviceOptions?: UseEnquiryFormOptions;
 }
 
+const ENQUIRY_HEADINGS: Record<string, string> = {
+  'premium-vehicle': 'Premium Vehicle Enquiry',
+  'price-request': 'Request a Price',
+  vehicle: 'Vehicle Enquiry',
+  general: 'Contact Us',
+};
+
 /**
- * Quotation enquiry composition (PUB-13, PUB-15). A visitor can submit a
- * general enquiry, a vehicle enquiry, or a quotation enquiry naming a
+ * General/vehicle/Premium Vehicle/quotation enquiry composition (PUB-13,
+ * PUB-15, PUB-34, D01-P06-T002). A visitor can submit a general enquiry, a
+ * vehicle enquiry, a Premium Vehicle enquiry, or a quotation enquiry naming a
  * shipping destination — delivered in full independent of
  * DEC-PUB-FREIGHT-MODEL/DEC-PUB-CITY-DELIVERY (D01-ASM-001). After a
  * successful submission this renders the receipt confirmation in place of
@@ -24,10 +32,14 @@ export function EnquirySection({ context = {}, serviceOptions }: EnquirySectionP
   const headingId = useId();
   const enquiry = useEnquiryForm(context, serviceOptions);
 
+  const heading = context.destinationCode
+    ? 'Request a Formal Quotation'
+    : ENQUIRY_HEADINGS[context.enquiryType ?? ''] ?? ENQUIRY_HEADINGS.general;
+
   return (
     <section className="cc-enquiry" aria-labelledby={headingId}>
       <h1 id={headingId} className="cc-enquiry__heading">
-        {context.destinationCode ? 'Request a Formal Quotation' : 'Contact Us'}
+        {heading}
       </h1>
       <p className="cc-enquiry__intro">
         Tell us about your enquiry and how to reach you. We record every enquiry and follow up directly — this form does not

@@ -154,11 +154,17 @@ export interface EnquiryRequest {
   email: string;
   phone: string;
   message: string;
+  consent: boolean;
   vehicleSlug?: string;
   destinationCode?: string;
   portCode?: string;
   enquiryType?: 'general' | 'vehicle' | 'price-request' | 'premium-vehicle';
   source?: 'form' | 'whatsapp' | 'email' | 'call';
+  preferredMake?: string;
+  preferredModel?: string;
+  preferredDriveSide?: 'left' | 'right';
+  preferredYear?: number;
+  targetPriceUsd?: number;
 }
 
 export interface EnquiryResponse {
@@ -187,9 +193,15 @@ export interface LeadRecord {
   email: string;
   phone: string;
   message: string;
+  consent: boolean;
   vehicleSlug?: string;
   estimateSnapshot?: EnquiryEstimateSnapshot;
   duplicateResubmissionCount: number;
+  preferredMake?: string;
+  preferredModel?: string;
+  preferredDriveSide?: 'left' | 'right';
+  preferredYear?: number;
+  targetPriceUsd?: number;
 }
 
 export interface LeadListResponse {

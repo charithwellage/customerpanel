@@ -833,6 +833,11 @@
           "email": { "type": "string", "example": "jane@example.com" },
           "phone": { "type": "string", "example": "+256 700 111 222" },
           "message": { "type": "string", "example": "Please send a shipping quotation for this vehicle." },
+          "consent": {
+            "type": "boolean",
+            "description": "Required (D01-P06-T002, PUB-14): explicit agreement to be contacted, validated server-side beyond native browser checks.",
+            "example": true
+          },
           "vehicleSlug": { "type": "string", "example": "2021-toyota-corolla-axio-veh-1" },
           "destinationCode": { "type": "string", "example": "UG" },
           "portCode": { "type": "string", "example": "MBA" },
@@ -845,9 +850,14 @@
             "type": "string",
             "enum": ["form", "whatsapp", "email", "call"],
             "example": "form"
-          }
+          },
+          "preferredMake": { "type": "string", "example": "Toyota" },
+          "preferredModel": { "type": "string", "example": "Corolla" },
+          "preferredDriveSide": { "type": "string", "enum": ["left", "right"], "example": "right" },
+          "preferredYear": { "type": "integer", "example": 2021 },
+          "targetPriceUsd": { "type": "number", "example": 12000 }
         },
-        "required": ["name", "email", "phone", "message"]
+        "required": ["name", "email", "phone", "message", "consent"]
       },
       "EnquiryResponse": {
         "type": "object",
@@ -892,9 +902,15 @@
           "email": { "type": "string", "example": "jane@example.com" },
           "phone": { "type": "string", "example": "+256 700 111 222" },
           "message": { "type": "string", "example": "Please send a shipping quotation for this vehicle." },
+          "consent": { "type": "boolean", "example": true },
           "vehicleSlug": { "type": "string", "example": "2021-toyota-corolla-axio-veh-1" },
           "estimateSnapshot": { "$ref": "#/components/schemas/EnquiryEstimateSnapshot" },
-          "duplicateResubmissionCount": { "type": "integer", "example": 0 }
+          "duplicateResubmissionCount": { "type": "integer", "example": 0 },
+          "preferredMake": { "type": "string", "example": "Toyota" },
+          "preferredModel": { "type": "string", "example": "Corolla" },
+          "preferredDriveSide": { "type": "string", "enum": ["left", "right"], "example": "right" },
+          "preferredYear": { "type": "integer", "example": 2021 },
+          "targetPriceUsd": { "type": "number", "example": 12000 }
         },
         "required": [
           "id",
@@ -906,6 +922,7 @@
           "email",
           "phone",
           "message",
+          "consent",
           "duplicateResubmissionCount"
         ]
       },
