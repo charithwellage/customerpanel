@@ -94,4 +94,20 @@ test.describe('Public Content & Information Pages E2E Suite (PUB-17..PUB-35, D01
     await expect(page.getByRole('status')).toContainText('Submission Received!');
     await expect(page.getByRole('status')).toContainText('pending review');
   });
+
+  test('renders FAQ page with 12 categories, keyword search and grounded no-answer escalation (PUB-20)', async ({ page }) => {
+    await page.goto('/faq');
+    await expect(page.locator('h1')).toHaveText('Frequently Asked Questions');
+    await expect(page.getByText('Category Count: 12 Categories')).toBeVisible();
+
+    // Verify category tab
+    await expect(page.getByRole('tab', { name: /Auction Services/ })).toBeVisible();
+
+    // Search for non-existent keyword to trigger grounded no-answer state
+    await page.fill('#faq-search-input', 'xyzunmatchedquery999');
+    await page.click('button[type="submit"]');
+
+    await expect(page.getByRole('heading', { level: 2, name: 'No Matching Verified Answer Found' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Contact Operations & Support' })).toHaveAttribute('href', '/contact');
+  });
 });

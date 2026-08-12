@@ -72,11 +72,11 @@
 | [D01-P07-T001](delivery_01/phase_07/D01-P07-T001.md) | Add public content, FAQ and testimonial services | COMPLETE | self_ai | not_applicable | Antigravity | `feat_delivery01_phase_07` | D01-P07-CODE_REVIEW (NOT_STARTED) | D01-P06-CODE_REVIEW | P07-A | 2026-08-12T03:44:06.356Z |
 | [D01-P07-T002](delivery_01/phase_07/D01-P07-T002.md) | Build About, How to Buy and Contact information pages | COMPLETE | self_ai | playwright_mcp | Antigravity | `feat_delivery01_phase_07` | D01-P07-CODE_REVIEW (NOT_STARTED) | D01-P07-T001 | P07-B | 2026-08-12T04:37:00.000Z |
 | [D01-P07-T003](delivery_01/phase_07/D01-P07-T003.md) | Build testimonial display and moderated submission | COMPLETE | self_ai | playwright_mcp | Antigravity | `feat_delivery01_phase_07` | D01-P07-CODE_REVIEW (NOT_STARTED) | D01-P07-T001 | P07-B | 2026-08-12T05:10:12.581Z |
-| [D01-P07-T004](delivery_01/phase_07/D01-P07-T004.md) | Build FAQ browsing/search and accept public content | READY | self_ai | playwright_mcp | — | `feat_delivery01_phase_07` | D01-P07-CODE_REVIEW (NOT_STARTED) | D01-P07-T002, D01-P07-T003 | P07-C | — |
-| [D01-P07-CODE_REVIEW](delivery_01/phase_07/D01-P07-CODE_REVIEW.md) | Phase 1.7 PR code review and tech-lead approval | NOT_STARTED | phase_manual | not_applicable | — | `feat_delivery01_phase_07` | D01-P07-CODE_REVIEW (NOT_STARTED) | D01-P07-T004 | P07-REVIEW | — |
+| [D01-P07-T004](delivery_01/phase_07/D01-P07-T004.md) | Build FAQ browsing/search and accept public content | COMPLETE | self_ai | playwright_mcp | Antigravity | `feat_delivery01_phase_07` | D01-P07-CODE_REVIEW (NOT_STARTED) | D01-P07-T002, D01-P07-T003 | P07-C | 2026-08-12T05:36:36.822Z |
+| [D01-P07-CODE_REVIEW](delivery_01/phase_07/D01-P07-CODE_REVIEW.md) | Phase 1.7 PR code review and tech-lead approval | READY | phase_manual | not_applicable | — | `feat_delivery01_phase_07` | D01-P07-CODE_REVIEW (NOT_STARTED) | D01-P07-T004 | P07-REVIEW | — |
 | [D01-P08-T001](delivery_01/phase_08/D01-P08-T001.md) | Complete public SEO policy and visitor regression | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery01_phase_08` | D01-P08-CODE_REVIEW (NOT_STARTED) | D01-P07-CODE_REVIEW | P08-A | — |
-| [D01-P08-T002](delivery_01/phase_08/D01-P08-T002.md) | Complete data projection, privacy and production-safety checks | NOT_STARTED | self_ai | not_applicable | — | `feat_delivery01_phase_08` | D01-P08-CODE_REVIEW (NOT_STARTED) | D01-P07-T004 | P08-A | — |
-| [D01-P08-T003](delivery_01/phase_08/D01-P08-T003.md) | Complete accessibility, browser and performance acceptance | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery01_phase_08` | D01-P08-CODE_REVIEW (NOT_STARTED) | D01-P07-T004 | P08-A | — |
+| [D01-P08-T002](delivery_01/phase_08/D01-P08-T002.md) | Complete data projection, privacy and production-safety checks | READY | self_ai | not_applicable | — | `feat_delivery01_phase_08` | D01-P08-CODE_REVIEW (NOT_STARTED) | D01-P07-T004 | P08-A | — |
+| [D01-P08-T003](delivery_01/phase_08/D01-P08-T003.md) | Complete accessibility, browser and performance acceptance | READY | self_ai | playwright_mcp | — | `feat_delivery01_phase_08` | D01-P08-CODE_REVIEW (NOT_STARTED) | D01-P07-T004 | P08-A | — |
 | [D01-P08-T004](delivery_01/phase_08/D01-P08-T004.md) | Produce Public Website UAT and Delivery 1 handoff | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery01_phase_08` | D01-P08-CODE_REVIEW (NOT_STARTED) | D01-P08-T001, D01-P08-T002, D01-P08-T003 | P08-B | — |
 | [D01-P08-CODE_REVIEW](delivery_01/phase_08/D01-P08-CODE_REVIEW.md) | Phase 1.8 PR code review and tech-lead approval | NOT_STARTED | phase_manual | not_applicable | — | `feat_delivery01_phase_08` | D01-P08-CODE_REVIEW (NOT_STARTED) | D01-P08-T004 | P08-REVIEW | — |
 | [D01-P09-T001](delivery_01/phase_09/D01-P09-T001.md) | Add automated ocean theme-parity and contrast suite | NOT_STARTED | self_ai | not_applicable | — | `feat_delivery01_phase_09` | D01-P09-CODE_REVIEW (NOT_STARTED) | D01-P08-CODE_REVIEW | P09-A | — |
@@ -136,7 +136,7 @@
 
 ## Current execution frontier
 
-- Sequential next: D01-P07-T004 — Build FAQ browsing/search and accept public content (NOT_STARTED)
+- Sequential next: D01-P07-CODE_REVIEW — Phase 1.7 PR code review and tech-lead approval (NOT_STARTED)
 - Optional same-group parallel tasks: None
 - Downstream work waits for COMPLETE or SUPERSEDED; IN_REVIEW is not complete.
 - Later tasks cannot be bypassed; use taskctl sequence TASK-ID for the exact blocker.
