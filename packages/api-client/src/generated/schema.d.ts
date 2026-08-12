@@ -100,6 +100,7 @@ export interface ErrorResponse {
   message: string;
   correlationId: string;
   field?: string;
+  reason?: string;
 }
 
 export interface HealthResponse {
@@ -222,4 +223,25 @@ export interface LeadRecord {
 export interface LeadListResponse {
   items: LeadRecord[];
   total: number;
+}
+
+// Phase 1.6: transactional reservation eligibility and hold (PUB-23,
+// RULE-05, RULE-08, RULE-10, D01-P06-T004). `status` is always computed live
+// from `expiresAt` versus the current instant — DEC-PUB-RESERVATION-EXPIRY-ACTION
+// is OPEN, so no automatic release action is ever claimed to have occurred.
+
+export interface ReservationRequest {
+  vehicleSlug: string;
+}
+
+export interface ReservationResponse {
+  id: string;
+  vehicleSlug: string;
+  vehicleId: string;
+  customerId: string;
+  customerEmail: string;
+  status: 'active' | 'expired';
+  createdAt: string;
+  expiresAt: string;
+  holdHours: number;
 }

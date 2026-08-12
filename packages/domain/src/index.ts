@@ -364,6 +364,51 @@ export interface LeadListResponse {
   total: number;
 }
 
+// --- Phase 1.6: transactional reservation eligibility and hold (PUB-23,
+// RULE-05, RULE-08, RULE-10, D01-P06-T004) ---
+//
+// A reservation is a transactional 48-hour hold on one vehicle for one
+// authenticated demo customer (`DEC-PUB-AUTH-BOUNDARY`). `status` is always
+// computed live from `expiresAt` versus the current instant — never a stored
+// field flipped by a background job — because `DEC-PUB-RESERVATION-EXPIRY-ACTION`
+// is OPEN: automatic versus manual release is unconfirmed, so this contract
+// exposes the expiry timestamp and lets a caller derive "active"/"expired"
+// itself, but never claims an automatic release action occurred (RULE-10).
+// `RESERVATION_HOLD_HOURS` matches RULE-05's default; an administrator
+// changing it is out of this task's scope. `MAX_ACTIVE_RESERVATIONS_PER_CUSTOMER`
+// is a safe MVP anti-abuse ceiling applied uniformly to every `CustomerBuyer`
+// — no approved per-tier reservation-count limit exists anywhere in
+// `REQUIREMENT.md`, and `CustomerTier` is not part of the demo session's
+// claims, so no tier-differentiated figure is invented here (see
+// `tasks/delivery_01/REQUIREMENT_GAPS_AND_ASSUMPTIONS.md` row `D01-ASM-003`).
+export const RESERVATION_HOLD_HOURS = 48;
+export const MAX_ACTIVE_RESERVATIONS_PER_CUSTOMER = 3;
+
+export type ReservationStatus = 'active' | 'expired';
+
+export interface ReservationRequest {
+  vehicleSlug: string;
+}
+
+/**
+ * A persisted reservation, returned both from the create operation and the
+ * read-by-id operation. `customerEmail` is the requesting customer's own
+ * contact detail, not a third party's private field — the read operation is
+ * gated to the owning customer or a staff identity with `read:leads`
+ * (never a public, unauthenticated response).
+ */
+export interface ReservationResponse {
+  id: string;
+  vehicleSlug: string;
+  vehicleId: string;
+  customerId: string;
+  customerEmail: string;
+  status: ReservationStatus;
+  createdAt: string;
+  expiresAt: string;
+  holdHours: number;
+}
+
 /**
  * Public branding/site configuration (`GET /api/v1/config/public`).
  * `liveAuctionUrl` gates the account-gated Live Auction entry (PUB-27,

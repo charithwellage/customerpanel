@@ -1,4 +1,4 @@
-import { Pool } from 'pg';
+import { Pool, PoolClient } from 'pg';
 import type {
   VehicleDomainSummary,
   VehicleStatus,
@@ -19,6 +19,9 @@ import type {
   EnquiryPreferredDriveSide,
   LeadRecord,
   LeadListResponse,
+  ReservationRequest,
+  ReservationResponse,
+  ReservationStatus,
 } from '@carchief/domain';
 import {
   generateVehicleSlug,
@@ -27,6 +30,8 @@ import {
   ENQUIRY_TYPES,
   ENQUIRY_SOURCES,
   ENQUIRY_PREFERRED_DRIVE_SIDES,
+  RESERVATION_HOLD_HOURS,
+  MAX_ACTIVE_RESERVATIONS_PER_CUSTOMER,
 } from '@carchief/domain';
 import { validateEmail } from '@carchief/validation';
 export { FreightRequestError, resolveFreightRateStatus } from '@carchief/domain';
@@ -420,6 +425,8 @@ export interface DemoStore {
   createEnquiry(request: EnquiryRequest): Promise<EnquiryResponse>;
   getLeadById(id: string): Promise<LeadRecord | null>;
   listLeads(): Promise<LeadListResponse>;
+  createReservation(customerId: string, customerEmail: string, request: ReservationRequest, nowISO?: string): Promise<ReservationResponse>;
+  getReservationById(id: string): Promise<ReservationResponse | null>;
   reset(): Promise<void>;
   close(): Promise<void>;
 }
@@ -1164,11 +1171,141 @@ function filterAndSortVehicles(vehicles: VehicleRecord[], query?: GetVehiclesQue
   return list;
 }
 
+// --- Phase 1.6: transactional reservation eligibility and hold (PUB-23,
+// RULE-05, RULE-08, RULE-10, D01-P06-T004) ---
+//
+// A reservation is a transactional 48-hour hold on one vehicle for one
+// authenticated demo customer. Authorization (an authenticated identity
+// carrying `create:reservation`) is enforced in `server.ts`, matching the
+// existing staff-route pattern; this module owns the vehicle-availability,
+// conflict/duplicate and per-customer-limit checks plus the atomic hold
+// itself. `DEC-PUB-RESERVATION-EXPIRY-ACTION` is OPEN (automatic vs. manual
+// release unconfirmed): an expired hold is recognized live, at request time,
+// by comparing `expiresAt` to the current instant — no background job or
+// scheduled status flip is implemented, and the underlying vehicle's
+// persisted `status` is never silently reverted by this check alone
+// (RULE-10). This still lets WF-07's confirmed end-state ("the vehicle ...
+// becomes Now On Sale for customers to reserve again") govern *new*
+// reservation eligibility without inventing the unapproved automatic
+// display-update mechanism.
+
+export class ReservationRequestError extends Error {
+  public readonly statusCode: number;
+  public readonly field?: string;
+  public readonly reason?: string;
+
+  constructor(statusCode: number, message: string, field?: string, reason?: string) {
+    super(message);
+    this.name = 'ReservationRequestError';
+    this.statusCode = statusCode;
+    this.field = field;
+    this.reason = reason;
+  }
+}
+
+/** Vehicle statuses a fresh reservation attempt may ever apply to, once any blocking active hold is excluded. */
+const RESERVABLE_VEHICLE_STATUSES = new Set(['Available', 'Reserved']);
+
+export interface ReservationRecord {
+  id: string;
+  vehicleId: string;
+  vehicleSlug: string;
+  customerId: string;
+  customerEmail: string;
+  createdAt: string;
+  expiresAt: string;
+  holdHours: number;
+}
+
+function computeReservationStatus(record: Pick<ReservationRecord, 'expiresAt'>, nowISO: string): ReservationStatus {
+  return new Date(record.expiresAt).getTime() > new Date(nowISO).getTime() ? 'active' : 'expired';
+}
+
+function isReservationActive(record: Pick<ReservationRecord, 'expiresAt'>, nowISO: string): boolean {
+  return computeReservationStatus(record, nowISO) === 'active';
+}
+
+function toReservationResponse(record: ReservationRecord, nowISO: string): ReservationResponse {
+  return {
+    id: record.id,
+    vehicleSlug: record.vehicleSlug,
+    vehicleId: record.vehicleId,
+    customerId: record.customerId,
+    customerEmail: record.customerEmail,
+    status: computeReservationStatus(record, nowISO),
+    createdAt: record.createdAt,
+    expiresAt: record.expiresAt,
+    holdHours: record.holdHours,
+  };
+}
+
+/**
+ * Validates the reservation request and resolves the target vehicle. Throws
+ * a field-associated `ReservationRequestError` (400) for a malformed
+ * request, or a `reason`-tagged 404 for an unknown vehicle — never silently
+ * substitutes or drops the target.
+ */
+function resolveReservationVehicle(vehicles: VehicleRecord[], request: ReservationRequest): VehicleRecord {
+  if (!request || typeof request !== 'object' || typeof request.vehicleSlug !== 'string' || !request.vehicleSlug.trim()) {
+    throw new ReservationRequestError(400, 'vehicleSlug is required', 'vehicleSlug');
+  }
+  const record = findVehicleRecord(vehicles, request.vehicleSlug.trim());
+  if (!record) {
+    throw new ReservationRequestError(404, `Unknown vehicle '${request.vehicleSlug}'`, 'vehicleSlug', 'vehicle_not_found');
+  }
+  return record;
+}
+
+/**
+ * Checks eligibility (conflict/duplicate/unavailable/limit) against the
+ * existing reservations for this customer/vehicle and throws a
+ * `reason`-tagged `ReservationRequestError` (409) on the first violation.
+ * Returns nothing — the caller performs the atomic create/mutate once this
+ * passes. Both `MemoryStore` and `PostgresStore` call this with the same
+ * semantics so behavior never forks between runtime profiles.
+ */
+function checkReservationEligibility(
+  vehicle: VehicleRecord,
+  existingReservations: ReservationRecord[],
+  customerId: string,
+  nowISO: string
+): void {
+  const activeForVehicle = existingReservations.filter((r) => r.vehicleId === vehicle.id && isReservationActive(r, nowISO));
+  const activeConflict = activeForVehicle.find((r) => r.customerId !== customerId);
+  if (activeConflict) {
+    throw new ReservationRequestError(409, 'This vehicle is already on hold for another customer', undefined, 'conflict');
+  }
+  const activeDuplicate = activeForVehicle.find((r) => r.customerId === customerId);
+  if (activeDuplicate) {
+    throw new ReservationRequestError(409, 'You already have an active reservation on this vehicle', undefined, 'duplicate');
+  }
+
+  // No active hold blocks this vehicle (any earlier hold on it has expired,
+  // or none ever existed). Any status outside the reservable set is
+  // ineligible on its own merits (Draft/Pending/ReservedWithPI/InvoiceCreated/
+  // Invoiced/Sold) regardless of hold history.
+  if (!RESERVABLE_VEHICLE_STATUSES.has(vehicle.status)) {
+    throw new ReservationRequestError(409, `Vehicle is not available to reserve (status: ${vehicle.status})`, undefined, 'vehicle_unavailable');
+  }
+
+  const activeCountForCustomer = existingReservations.filter((r) => r.customerId === customerId && isReservationActive(r, nowISO)).length;
+  if (activeCountForCustomer >= MAX_ACTIVE_RESERVATIONS_PER_CUSTOMER) {
+    throw new ReservationRequestError(
+      409,
+      `You already have ${MAX_ACTIVE_RESERVATIONS_PER_CUSTOMER} active reservations, the maximum allowed at once`,
+      undefined,
+      'limit_exceeded'
+    );
+  }
+}
+
 class MemoryStore implements DemoStore {
   private config = { ...seedConfig };
   private vehicles = seedVehicles.map((vehicle) => ({ ...vehicle }));
   private enquiries: EnquiryRecord[] = [];
   private enquirySeq = 0;
+  private reservations: ReservationRecord[] = [];
+  private reservationSeq = 0;
 
   ready(): Promise<void> {
     return Promise.resolve();
@@ -1257,10 +1394,43 @@ class MemoryStore implements DemoStore {
     });
   }
 
+  // No `await` between the eligibility check and the mutation below, so two
+  // concurrent calls (e.g. `Promise.all([...])`) resolve this async function
+  // body to completion, one after the other, without interleaving — the
+  // second call always observes the first call's already-applied mutation
+  // (RULE-08's "never both succeed" transactional requirement for a single
+  // Node.js event loop).
+  async createReservation(customerId: string, customerEmail: string, request: ReservationRequest, nowISO: string = new Date().toISOString()): Promise<ReservationResponse> {
+    const vehicle = resolveReservationVehicle(this.vehicles, request);
+    checkReservationEligibility(vehicle, this.reservations, customerId, nowISO);
+
+    const expiresAt = new Date(new Date(nowISO).getTime() + RESERVATION_HOLD_HOURS * 60 * 60 * 1000).toISOString();
+    const record: ReservationRecord = {
+      id: `res-${Date.now()}-${this.reservationSeq++}`,
+      vehicleId: vehicle.id,
+      vehicleSlug: generateVehicleSlug(vehicle.year, vehicle.make, vehicle.model, vehicle.id),
+      customerId,
+      customerEmail,
+      createdAt: nowISO,
+      expiresAt,
+      holdHours: RESERVATION_HOLD_HOURS,
+    };
+    this.reservations.push(record);
+    vehicle.status = 'Reserved';
+
+    return Promise.resolve(toReservationResponse(record, nowISO));
+  }
+
+  getReservationById(id: string): Promise<ReservationResponse | null> {
+    const record = this.reservations.find((r) => r.id === id);
+    return Promise.resolve(record ? toReservationResponse(record, new Date().toISOString()) : null);
+  }
+
   reset(): Promise<void> {
     this.config = { ...seedConfig };
     this.vehicles = seedVehicles.map((vehicle) => ({ ...vehicle }));
     this.enquiries = [];
+    this.reservations = [];
     return Promise.resolve();
   }
 
@@ -1371,6 +1541,19 @@ class PostgresStore implements DemoStore {
         ADD COLUMN IF NOT EXISTS preferred_drive_side text,
         ADD COLUMN IF NOT EXISTS preferred_year integer,
         ADD COLUMN IF NOT EXISTS target_price_usd numeric;`
+    );
+    // Phase 1.6 (D01-P06-T004): transactional reservation hold persistence.
+    await this.pool.query(
+      `CREATE TABLE IF NOT EXISTS reservations (
+        id text PRIMARY KEY,
+        vehicle_id text NOT NULL,
+        vehicle_slug text NOT NULL,
+        customer_id text NOT NULL,
+        customer_email text NOT NULL,
+        created_at text NOT NULL,
+        expires_at text NOT NULL,
+        hold_hours integer NOT NULL
+      );`
     );
     await this.reset();
   }
@@ -1526,6 +1709,112 @@ class PostgresStore implements DemoStore {
     return { items, total: items.length };
   }
 
+  private static rowToReservationRecord(row: Record<string, unknown>): ReservationRecord {
+    return {
+      id: row.id as string,
+      vehicleId: row.vehicle_id as string,
+      vehicleSlug: row.vehicle_slug as string,
+      customerId: row.customer_id as string,
+      customerEmail: row.customer_email as string,
+      createdAt: row.created_at as string,
+      expiresAt: row.expires_at as string,
+      holdHours: Number(row.hold_hours),
+    };
+  }
+
+  // A single fixed-key Postgres advisory transaction lock serializes every
+  // reservation create against every other one, for the lifetime of this
+  // demo mock's single connection pool — a simple, correct way to guarantee
+  // the "two concurrent attempts on one vehicle must not both succeed"
+  // transactional requirement (Phase 1.6 CONTEXT.md §6) without a more
+  // elaborate per-vehicle/per-customer locking scheme this mock does not
+  // need. The eligibility check and the insert/status-update both happen
+  // inside the same lock-held transaction, so no other reservation create
+  // can observe or act on stale state in between.
+  private static readonly RESERVATION_LOCK_KEY = 872_364_501;
+
+  async createReservation(
+    customerId: string,
+    customerEmail: string,
+    request: ReservationRequest,
+    nowISO: string = new Date().toISOString()
+  ): Promise<ReservationResponse> {
+    const client = await this.pool.connect();
+    try {
+      await client.query('BEGIN');
+      await client.query('SELECT pg_advisory_xact_lock($1)', [PostgresStore.RESERVATION_LOCK_KEY]);
+
+      const rawVehicles = await this.getRawVehiclesWith(client);
+      const vehicle = resolveReservationVehicle(rawVehicles, request);
+
+      const existingResult = await client.query(
+        'SELECT id, vehicle_id, vehicle_slug, customer_id, customer_email, created_at, expires_at, hold_hours FROM reservations WHERE vehicle_id = $1 OR customer_id = $2',
+        [vehicle.id, customerId]
+      );
+      const existingReservations = existingResult.rows.map(PostgresStore.rowToReservationRecord);
+      checkReservationEligibility(vehicle, existingReservations, customerId, nowISO);
+
+      const expiresAt = new Date(new Date(nowISO).getTime() + RESERVATION_HOLD_HOURS * 60 * 60 * 1000).toISOString();
+      const id = `res-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      const vehicleSlug = generateVehicleSlug(vehicle.year, vehicle.make, vehicle.model, vehicle.id);
+      await client.query(
+        'INSERT INTO reservations (id, vehicle_id, vehicle_slug, customer_id, customer_email, created_at, expires_at, hold_hours) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
+        [id, vehicle.id, vehicleSlug, customerId, customerEmail, nowISO, expiresAt, RESERVATION_HOLD_HOURS]
+      );
+      await client.query('UPDATE vehicles SET status = $1 WHERE id = $2', ['Reserved', vehicle.id]);
+
+      await client.query('COMMIT');
+
+      const record: ReservationRecord = { id, vehicleId: vehicle.id, vehicleSlug, customerId, customerEmail, createdAt: nowISO, expiresAt, holdHours: RESERVATION_HOLD_HOURS };
+      return toReservationResponse(record, nowISO);
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  async getReservationById(id: string): Promise<ReservationResponse | null> {
+    const result = await this.pool.query(
+      'SELECT id, vehicle_id, vehicle_slug, customer_id, customer_email, created_at, expires_at, hold_hours FROM reservations WHERE id = $1 LIMIT 1',
+      [id]
+    );
+    const row = result.rows[0];
+    return row ? toReservationResponse(PostgresStore.rowToReservationRecord(row), new Date().toISOString()) : null;
+  }
+
+  private async getRawVehiclesWith(client: PoolClient): Promise<VehicleRecord[]> {
+    const result = await client.query(
+      'SELECT id, chassis_number, make, model, year, price_usd, status, category, location_status, created_at, images, featured, stock_type, destination_port, discount_percent, body_style, fuel_type, transmission, drive_train, mileage, etd, eta, request_price FROM vehicles ORDER BY id'
+    );
+    return result.rows.map((row: Record<string, unknown>) => ({
+      id: row.id as string,
+      chassisNumber: row.chassis_number as string,
+      make: row.make as string,
+      model: row.model as string,
+      year: Number(row.year),
+      priceUsd: Number(row.price_usd),
+      status: row.status as string,
+      category: row.category as string | undefined,
+      locationStatus: row.location_status as VehicleRecord['locationStatus'],
+      createdAt: row.created_at as string | undefined,
+      images: row.images ? JSON.parse(row.images as string) : [],
+      featured: Boolean(row.featured),
+      stockType: row.stock_type as VehicleRecord['stockType'],
+      destinationPort: row.destination_port as string | undefined,
+      discountPercent: row.discount_percent ? Number(row.discount_percent) : undefined,
+      bodyStyle: row.body_style as string | undefined,
+      fuelType: row.fuel_type as string | undefined,
+      transmission: row.transmission as string | undefined,
+      driveTrain: row.drive_train as string | undefined,
+      mileage: row.mileage ? Number(row.mileage) : undefined,
+      etd: row.etd as string | undefined,
+      eta: row.eta as string | undefined,
+      requestPrice: Boolean(row.request_price),
+    }));
+  }
+
   private async getRawVehicles(): Promise<VehicleRecord[]> {
     const result = await this.pool.query(
       'SELECT id, chassis_number, make, model, year, price_usd, status, category, location_status, created_at, images, featured, stock_type, destination_port, discount_percent, body_style, fuel_type, transmission, drive_train, mileage, etd, eta, request_price FROM vehicles ORDER BY id'
@@ -1564,6 +1853,7 @@ class PostgresStore implements DemoStore {
       await client.query('DELETE FROM vehicles');
       await client.query('DELETE FROM public_config');
       await client.query('DELETE FROM enquiries');
+      await client.query('DELETE FROM reservations');
       await client.query('INSERT INTO public_config (id, site_name, currency, contact_phone) VALUES (1, $1, $2, $3)', [
         seedConfig.siteName,
         seedConfig.currency,
