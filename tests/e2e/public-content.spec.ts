@@ -74,4 +74,24 @@ test.describe('Public Content & Information Pages E2E Suite (PUB-17..PUB-35, D01
     await expect(page.getByRole('heading', { level: 3, name: 'Tendai Mutasa' })).toBeVisible();
     await expect(page.getByRole('heading', { level: 2, name: 'Latest Arrivals for Durban' })).toBeVisible();
   });
+
+  test('renders Testimonials page and submits a new testimonial for moderation (PUB-19)', async ({ page }) => {
+    await page.goto('/testimonials');
+    await expect(page.getByRole('heading', { level: 2, name: 'Customer Testimonials & Success Stories' })).toBeVisible();
+    await expect(page.getByText('John K.')).toBeVisible();
+    await expect(page.getByText('Harare, Zimbabwe')).toBeVisible();
+
+    // Submit testimonial form
+    await page.fill('#authorName', 'Patrick M.');
+    await page.fill('#authorLocation', 'Lusaka, Zambia');
+    await page.fill('#vehiclePurchased', '2022 Toyota Land Cruiser Prado');
+    await page.selectOption('#rating', '5');
+    await page.fill('#content', 'Outstanding vehicle quality and smooth customs documentation handling.');
+    await page.check('#consent');
+
+    await page.click('button[type="submit"]');
+
+    await expect(page.getByRole('status')).toContainText('Submission Received!');
+    await expect(page.getByRole('status')).toContainText('pending review');
+  });
 });
