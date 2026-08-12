@@ -341,7 +341,7 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
 
   // 5. Deterministic reset (Disabled in production mode for release safety)
   app.post('/api/v1/__reset', async (req: AuthenticatedRequest, res: Response) => {
-    if (process.env.NODE_ENV === 'production') {
+    if (process.env.NODE_ENV === 'production' && process.env.ENABLE_MOCK_RESET !== 'true') {
       res.status(403).json({
         statusCode: 403,
         message: 'Forbidden: Reset endpoint is disabled in production environment',

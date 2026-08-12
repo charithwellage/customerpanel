@@ -76,8 +76,8 @@
 | [D01-P07-CODE_REVIEW](delivery_01/phase_07/D01-P07-CODE_REVIEW.md) | Phase 1.7 PR code review and tech-lead approval | COMPLETE | phase_manual | not_applicable | Claude Code | `feat_delivery01_phase_07` | D01-P07-CODE_REVIEW (COMPLETE) | D01-P07-T004 | P07-REVIEW | 2026-08-12T07:57:55.000Z |
 | [D01-P08-T005](delivery_01/phase_08/D01-P08-T005.md) | Restore the contact/quotation enquiry form removed during Phase 1.7 | COMPLETE | self_ai | playwright_mcp | Antigravity | `feat_delivery01_phase_08` | D01-P08-CODE_REVIEW (NOT_STARTED) | D01-P07-CODE_REVIEW | P08-PRE | 2026-08-12T10:24:30.000Z |
 | [D01-P08-T001](delivery_01/phase_08/D01-P08-T001.md) | Complete public SEO policy and visitor regression | COMPLETE | self_ai | playwright_mcp | Antigravity | `feat_delivery01_phase_08` | D01-P08-CODE_REVIEW (NOT_STARTED) | D01-P07-CODE_REVIEW | P08-A | 2026-08-12T11:17:30.000Z |
-| [D01-P08-T002](delivery_01/phase_08/D01-P08-T002.md) | Complete data projection, privacy and production-safety checks | IN_PROGRESS | self_ai | not_applicable | Antigravity | `feat_delivery01_phase_08` | D01-P08-CODE_REVIEW (NOT_STARTED) | D01-P07-T004 | P08-A | 2026-08-12T11:34:29.168Z |
-| [D01-P08-T003](delivery_01/phase_08/D01-P08-T003.md) | Complete accessibility, browser and performance acceptance | READY | self_ai | playwright_mcp | — | `feat_delivery01_phase_08` | D01-P08-CODE_REVIEW (NOT_STARTED) | D01-P07-T004 | P08-A | — |
+| [D01-P08-T002](delivery_01/phase_08/D01-P08-T002.md) | Complete data projection, privacy and production-safety checks | COMPLETE | self_ai | not_applicable | Antigravity | `feat_delivery01_phase_08` | D01-P08-CODE_REVIEW (NOT_STARTED) | D01-P07-T004 | P08-A | 2026-08-12T11:55:15.000Z |
+| [D01-P08-T003](delivery_01/phase_08/D01-P08-T003.md) | Complete accessibility, browser and performance acceptance | IN_PROGRESS | self_ai | playwright_mcp | Antigravity | `feat_delivery01_phase_08` | D01-P08-CODE_REVIEW (NOT_STARTED) | D01-P07-T004 | P08-A | 2026-08-12T12:04:15.107Z |
 | [D01-P08-T004](delivery_01/phase_08/D01-P08-T004.md) | Produce Public Website UAT and Delivery 1 handoff | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery01_phase_08` | D01-P08-CODE_REVIEW (NOT_STARTED) | D01-P08-T001, D01-P08-T002, D01-P08-T003 | P08-B | — |
 | [D01-P08-CODE_REVIEW](delivery_01/phase_08/D01-P08-CODE_REVIEW.md) | Phase 1.8 PR code review and tech-lead approval | NOT_STARTED | phase_manual | not_applicable | — | `feat_delivery01_phase_08` | D01-P08-CODE_REVIEW (NOT_STARTED) | D01-P08-T004 | P08-REVIEW | — |
 | [D01-P09-T001](delivery_01/phase_09/D01-P09-T001.md) | Add automated ocean theme-parity and contrast suite | NOT_STARTED | self_ai | not_applicable | — | `feat_delivery01_phase_09` | D01-P09-CODE_REVIEW (NOT_STARTED) | D01-P08-CODE_REVIEW | P09-A | — |
@@ -137,8 +137,8 @@
 
 ## Current execution frontier
 
-- Sequential next: D01-P08-T002 — Complete data projection, privacy and production-safety checks (IN_PROGRESS)
-- Optional same-group parallel tasks: D01-P08-T003
+- Sequential next: D01-P08-T003 — Complete accessibility, browser and performance acceptance (IN_PROGRESS)
+- Optional same-group parallel tasks: None
 - Downstream work waits for COMPLETE or SUPERSEDED; IN_REVIEW is not complete.
 - Later tasks cannot be bypassed; use taskctl sequence TASK-ID for the exact blocker.
 
