@@ -26,7 +26,7 @@ test.describe('Quotation enquiry submission', () => {
   test('a visitor can send a general enquiry directly and see a receipt confirmation', async ({ page }) => {
     await page.goto('/contact');
 
-    await expect(page.getByRole('heading', { name: 'Contact Us' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'Contact Us' })).toBeVisible();
 
     await page.getByLabel('Name').fill('Jane Doe');
     await page.getByLabel('Email').fill('jane@example.com');

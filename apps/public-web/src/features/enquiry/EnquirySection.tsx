@@ -7,6 +7,7 @@ import { useEnquiryForm, type EnquiryContext, type UseEnquiryFormOptions } from 
 
 export interface EnquirySectionProps {
   context?: EnquiryContext;
+  headingLevel?: 'h1' | 'h2';
   /** Injectable for tests; production callers omit this and let the hook construct its own services. */
   serviceOptions?: UseEnquiryFormOptions;
 }
@@ -28,7 +29,7 @@ const ENQUIRY_HEADINGS: Record<string, string> = {
  * the form (RULE-08); the enquiry link never claims a staff response beyond
  * receipt (RULE-10).
  */
-export function EnquirySection({ context = {}, serviceOptions }: EnquirySectionProps) {
+export function EnquirySection({ context = {}, headingLevel = 'h1', serviceOptions }: EnquirySectionProps) {
   const headingId = useId();
   const enquiry = useEnquiryForm(context, serviceOptions);
 
@@ -36,11 +37,13 @@ export function EnquirySection({ context = {}, serviceOptions }: EnquirySectionP
     ? 'Request a Formal Quotation'
     : ENQUIRY_HEADINGS[context.enquiryType ?? ''] ?? ENQUIRY_HEADINGS.general;
 
+  const HeadingTag = headingLevel;
+
   return (
     <section className="cc-enquiry" aria-labelledby={headingId}>
-      <h1 id={headingId} className="cc-enquiry__heading">
+      <HeadingTag id={headingId} className="cc-enquiry__heading">
         {heading}
-      </h1>
+      </HeadingTag>
       <p className="cc-enquiry__intro">
         Tell us about your enquiry and how to reach you. We record every enquiry and follow up directly — this form does not
         send an automatic price or shipping quote.

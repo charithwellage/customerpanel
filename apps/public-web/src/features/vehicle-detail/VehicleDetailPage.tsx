@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import type { VehicleDetail } from '@carchief/domain';
 import {
   VehicleGalleryPrimitive,
@@ -165,7 +166,7 @@ export default function VehicleDetailPage({ vehicle }: VehicleDetailPageProps) {
           <p className="cc-vehicle-detail__cta-text">Contact us to get the best price for this vehicle.</p>
         )}
         <div className="cc-vehicle-detail__actions">
-          <a
+          <Link
             href={`/contact?vehicle=${encodeURIComponent(vehicle.slug)}&enquiryType=${encodeURIComponent(
               vehicle.category === 'premium' ? 'premium-vehicle' : isRequestPrice ? 'price-request' : 'vehicle'
             )}`}
@@ -173,7 +174,7 @@ export default function VehicleDetailPage({ vehicle }: VehicleDetailPageProps) {
             aria-label={isRequestPrice ? 'Request Price' : 'General Enquiry'}
           >
             {isRequestPrice ? 'Request Price' : 'General Enquiry'}
-          </a>
+          </Link>
           <a
             href={`https://wa.me/?text=${encodeURIComponent(`Enquiry about ${title} (${vehicle.slug})`)}`}
             target="_blank"

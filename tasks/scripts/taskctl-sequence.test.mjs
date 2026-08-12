@@ -13,7 +13,7 @@ function run(...args) {
 test('task metadata and dependency graph validate', () => {
   const result = run('validate');
   assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stdout, /Validated 110 task\/gate files/);
+  assert.match(result.stdout, /Validated 111 task\/gate files/);
 });
 
 test('next reports the current tracker frontier', () => {
@@ -43,6 +43,48 @@ test('taskctl contains strict dependency-order and cycle guards', () => {
   assert.match(source, /ui_validation/);
   assert.match(source, /COMMON_FRONTEND_RULES\.md/);
   assert.match(source, /must not retain an unresolved requirement decision gate/);
+});
+
+test('completion evidence is a validate-time invariant, not only a complete-time check', () => {
+  const source = readFileSync(new URL('./taskctl.mjs', import.meta.url), 'utf8');
+  // The evidence check must be callable without exiting, so validate can report it.
+  assert.match(source, /function collectSelfReviewEvidenceErrors/);
+  // ...and must actually be invoked from validate for every COMPLETE self_ai task,
+  // so a hand-written COMPLETE log cannot bypass the gate the CLI would have applied.
+  assert.match(source, /status === 'COMPLETE' && task\.review_mode === 'self_ai'/);
+  // A marker string alone is not evidence: provenance must identify the runtime.
+  assert.match(source, /Runtime provenance line naming a PID/);
+  // The legacy grandfather set must stay explicit and frozen rather than open-ended.
+  assert.match(source, /const legacyLogFormatTasks = new Set\(\[/);
+
+  // The invariant must currently hold across the whole task set.
+  const result = run('validate');
+  assert.equal(result.status, 0, result.stderr);
+});
+
+test('a phase review cannot be submitted without a real review record', () => {
+  const source = readFileSync(new URL('./taskctl.mjs', import.meta.url), 'utf8');
+  assert.match(source, /function requirePhaseReviewRecord/);
+  assert.match(source, /requirePhaseReviewRecord\(id\);/);
+  // The specific holes that let an empty record reach tech-lead approval.
+  assert.match(source, /## Findings/);
+  assert.match(source, /Result: Not recorded/);
+  assert.match(source, /Full suite result:/);
+});
+
+test('the phase-review record accepts every documented Result form and rejects placeholders', () => {
+  const source = readFileSync(new URL('./taskctl.mjs', import.meta.url), 'utf8');
+  const pattern = source.match(/if \(!\((\/\^\[#[^\n]*?)\)\.test\(log\.text\)\)/)?.[1]
+    || source.match(/(\/\^\[#\\-\*\\s\][^\n]*?\/mi)/)?.[1];
+  assert.ok(pattern, 'expected the Result: matcher to be present in taskctl.mjs');
+  const body = pattern.replace(/^\//, '').replace(/\/mi$/, '');
+  const re = new RegExp(body, 'mi');
+  for (const accepted of ['- Result: PASS', '## Result: PASS', 'Result: FAIL', '**Result:** PASS']) {
+    assert.ok(re.test(accepted), `expected the matcher to accept ${JSON.stringify(accepted)}`);
+  }
+  for (const rejected of ['- Result: Not recorded.', 'Results were mixed']) {
+    assert.ok(!re.test(rejected), `expected the matcher to reject ${JSON.stringify(rejected)}`);
+  }
 });
 
 test('future frontend tasks use the shared frontend convention source', () => {

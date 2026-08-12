@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useId } from 'react';
+import Link from 'next/link';
 import type { FreightEstimateResponse, FreightRateStatus } from '@carchief/domain';
 
 export interface FreightEstimatePanelProps {
@@ -80,9 +81,9 @@ export function FreightEstimatePanel({
         We have not yet published an approved shipping rate for this route, so we cannot show a price here. This is not an
         error — our team can still confirm a shipping cost for you directly.
       </p>
-      <a href={enquiryHref} className="cc-btn cc-btn--primary">
+      <Link href={enquiryHref} className="cc-btn cc-btn--primary">
         Request a formal quotation
-      </a>
+      </Link>
     </div>
   );
 }

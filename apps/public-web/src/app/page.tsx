@@ -1,5 +1,26 @@
+import type { Metadata } from 'next';
 import type { VehicleDomainSummary } from '@carchief/domain';
 import { HomeShowroom } from '../features/home';
+
+export const metadata: Metadata = {
+  title: 'CarChief | Premium Japanese Used Vehicles & Direct Global Export',
+  description: 'Browse curated, hand-picked Japanese used vehicles. Verified inspections, digital logs, and worldwide container freight.',
+  alternates: {
+    canonical: process.env.NEXT_PUBLIC_SITE_URL ? `${process.env.NEXT_PUBLIC_SITE_URL}` : 'http://127.0.0.1:3000',
+  },
+  openGraph: {
+    title: 'CarChief | Premium Japanese Used Vehicles',
+    description: 'Browse curated, hand-picked Japanese used vehicles with verified inspections and global export.',
+    url: process.env.NEXT_PUBLIC_SITE_URL ? `${process.env.NEXT_PUBLIC_SITE_URL}` : 'http://127.0.0.1:3000',
+    siteName: 'CarChief',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'CarChief | Premium Japanese Used Vehicles',
+    description: 'Browse curated, hand-picked Japanese used vehicles with verified inspections and global export.',
+  },
+};
 
 async function getInitialVehicles(): Promise<VehicleDomainSummary[]> {
   const baseUrl = process.env.API_BASE_URL || 'http://localhost:4000';

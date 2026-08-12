@@ -21,8 +21,14 @@ services:
       dockerfile: docker/frontend.Dockerfile
       target: runtime
     command: [ "node", "apps/mock-api/dist/server.js" ]
+    # This compose file is the UI/container validation gate, not a production deployment
+    # manifest — Playwright specs rely on POST /api/v1/__reset for test isolation, so the
+    # existing ENABLE_MOCK_RESET escape hatch is enabled here. The real production block is
+    # proven independently by `build:production`/`test:production-guard` and by the real-route
+    # tests in apps/mock-api/src/__tests__/security-projection.test.ts, none of which use Docker.
     environment:
       NODE_ENV: production
+      ENABLE_MOCK_RESET: "true"
       MOCK_API_PORT: 4000
       DATABASE_URL: postgresql://carchief:carchief_dev_pass@postgres:5432/carchief_mock
     depends_on:

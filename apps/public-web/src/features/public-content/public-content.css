@@ -309,6 +309,39 @@
   color: var(--cc-color-text-secondary, #9da4b4);
 }
 
+/* Branches Directory Grid (Regional Branch Directory page) */
+.cc-branches-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--spacing-lg);
+  margin-top: var(--spacing-lg);
+}
+
+.cc-branch-card {
+  padding: var(--spacing-lg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.cc-branch-card__title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-text-on-dark);
+  margin: 0 0 var(--spacing-sm);
+}
+
+.cc-branch-card__country {
+  font-size: 0.875rem;
+  color: color-mix(in srgb, var(--color-text-on-dark) 75%, transparent);
+  margin: 0 0 var(--spacing-sm);
+}
+
+.cc-branch-card__address {
+  font-size: 0.875rem;
+  color: color-mix(in srgb, var(--color-text-on-dark) 75%, transparent);
+  margin: 0 0 var(--spacing-md);
+}
+
 /* Branch Page Component Styles */
 .cc-branch-page {
   display: flex;

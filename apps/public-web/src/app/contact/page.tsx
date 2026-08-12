@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import type { Metadata } from 'next';
 import { loadContentPageBySlug, loadOffices } from '../../features/public-content/loadPublicContent';
 import { ContentPageTemplate } from '../../features/public-content/components/ContentPageTemplate';
 import { ContactPageContent } from '../../features/public-content/components/ContactPageContent';
+import { ContactEnquirySection } from '../../features/enquiry';
 import '../../features/public-content/public-content.css';
 
 export const dynamic = 'force-dynamic';
@@ -13,7 +14,19 @@ export const metadata: Metadata = {
     'Get in touch with CarChief customer support, regional office locations, operating hours, and WhatsApp inquiry specialists.',
 };
 
-export default async function ContactPage() {
+interface ContactPageProps {
+  searchParams?: Promise<{
+    vehicle?: string;
+    vehicleSlug?: string;
+    destinationCode?: string;
+    portCode?: string;
+    message?: string;
+    enquiryType?: string;
+  }>;
+}
+
+export default async function ContactPage({ searchParams }: ContactPageProps) {
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const page = await loadContentPageBySlug('contact');
   const officesResponse = await loadOffices();
 
@@ -30,6 +43,10 @@ export default async function ContactPage() {
       status={page?.status ?? 'approved'}
       body={page?.body}
     >
+      <Suspense fallback={<div role="status">Loading enquiry form...</div>}>
+        <ContactEnquirySection searchParams={resolvedSearchParams} />
+      </Suspense>
+
       <ContactPageContent offices={officesResponse.items} />
     </ContentPageTemplate>
   );

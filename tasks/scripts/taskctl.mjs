@@ -155,6 +155,16 @@ function localBranchExists(branch) {
   }
 }
 
+// Frozen set. These Phase 1.1 tasks were completed and human-reviewed (reviewer "rimaz")
+// under an older execution-log template that predates the `## AI code review` section —
+// they record `## Review corrections` instead. Their evidence is not missing, it is in a
+// superseded shape, so the completion-invariant check below skips exactly these and
+// nothing else. Never extend this list: a newly completed task must satisfy the invariant.
+const legacyLogFormatTasks = new Set([
+  'D01-P01-T001', 'D01-P01-T002', 'D01-P01-T003', 'D01-P01-T004', 'D01-P01-T005',
+  'D01-P01-T006', 'D01-P01-T007', 'D01-P01-T008', 'D01-P01-T009', 'D01-P01-T010',
+]);
+
 function validate({ quiet = false } = {}) {
   const tasks = loadTasks();
   const decisions = loadDecisions();
@@ -343,6 +353,12 @@ function validate({ quiet = false } = {}) {
   for (const task of tasks.values()) {
     const status = rawStatus(task.task_id);
     if (!validStatuses.has(status)) errors.push(`${task.task_id}: invalid status ${status}`);
+    // Completion evidence is an invariant of being COMPLETE, not merely a check run at
+    // the moment `complete` executes. Enforcing it here means a log hand-written to
+    // COMPLETE — bypassing the CLI — fails the very next validate instead of shipping.
+    if (status === 'COMPLETE' && task.review_mode === 'self_ai' && !legacyLogFormatTasks.has(task.task_id)) {
+      errors.push(...collectSelfReviewEvidenceErrors(task.task_id, task));
+    }
   }
   if (errors.length) die(errors.join('\n'));
   if (!quiet) console.log(`Validated ${tasks.size} task/gate files; dependency graph is complete and acyclic.`);
@@ -440,14 +456,19 @@ function writeLog(id, status, fields = {}) {
   writeFileSync(path, text);
 }
 
-function requireSelfReviewEvidence(id, task) {
+// Returns the list of completion-evidence violations for a task, rather than exiting.
+// `complete` turns these into a hard failure; `validate` reports them for every task
+// already recorded COMPLETE, so hand-writing a COMPLETE log cannot bypass the gate.
+function collectSelfReviewEvidenceErrors(id, task) {
+  const errors = [];
   const log = loadLog(id);
-  if (!log) die(`${id} requires an execution log`);
+  if (!log) return [`${id} requires an execution log`];
   if (!log.text.includes('## AI code review') || !log.text.includes('- Result: PASS')) {
-    die(`${id} requires a PASS AI code-review record before completion`);
+    errors.push(`${id} requires a PASS AI code-review record before completion`);
   }
-  const tests = log.text.match(/## Tests executed\n\n([\s\S]*?)(?=\n## )/)?.[1] || '';
-  if (!tests.trim() || tests.includes('Not recorded.')) die(`${id} requires recorded passing test evidence before completion`);
+  // Tolerate content starting immediately after the heading; earlier logs omit the blank line.
+  const tests = log.text.match(/## Tests executed\n+([\s\S]*?)(?=\n## )/)?.[1] || '';
+  if (!tests.trim() || tests.includes('Not recorded.')) errors.push(`${id} requires recorded passing test evidence before completion`);
   if (task?.ui_validation === 'playwright_mcp') {
     const requiredEvidence = [
       ['AI client:', 'Not recorded'],
@@ -464,31 +485,71 @@ function requireSelfReviewEvidence(id, task) {
     ];
     for (const [marker, invalid] of requiredEvidence) {
       if (!log.text.includes(marker) || (invalid && log.text.includes(`${marker} ${invalid}`))) {
-        die(`${id} requires recorded Playwright MCP evidence: ${marker}`);
+        errors.push(`${id} requires recorded Playwright MCP evidence: ${marker}`);
       }
+    }
+    // A marker alone is not evidence. At least one provenance line must actually
+    // identify the runtime that was browsed — a PID, a container/service name or a
+    // Docker/Compose reference. A bare "PASS" or a vague "dev server on port 3000"
+    // records no identity and cannot be audited later.
+    const provenanceLines = log.text.split('\n').filter((line) => line.includes('Runtime provenance:'));
+    const identified = provenanceLines.some((line) => /\bPID\b/i.test(line) || /container|compose|docker/i.test(line) || /-\d+\b/.test(line));
+    if (provenanceLines.length && !identified) {
+      errors.push(`${id} requires a Runtime provenance line naming a PID, container/service identity or Docker/Compose target`);
     }
   }
   if (id === 'INF-P00-T006') {
     for (const marker of ['Active AI client:', 'MCP configuration source:', 'MCP server process: PASS', 'MCP browser navigation: PASS', 'MCP accessibility snapshot: PASS']) {
       if (!log.text.includes(marker) || log.text.includes(`${marker} Not recorded`)) {
-        die(`${id} requires recorded Playwright MCP readiness evidence: ${marker}`);
+        errors.push(`${id} requires recorded Playwright MCP readiness evidence: ${marker}`);
       }
     }
   }
-  if (/^D02-P10-T\d{3}$/.test(id)) {
-    for (const marker of ['Requirement-gap register:', 'Phase 2.10 disposition:']) {
+  for (const [pattern, phase] of [[/^D02-P10-T\d{3}$/, '2.10'], [/^D01-P10-T\d{3}$/, '1.10']]) {
+    if (!pattern.test(id)) continue;
+    for (const marker of ['Requirement-gap register:', `Phase ${phase} disposition:`]) {
       if (!log.text.includes(marker) || log.text.includes(`${marker} Not recorded`)) {
-        die(`${id} requires recorded assumption-register evidence: ${marker}`);
+        errors.push(`${id} requires recorded assumption-register evidence: ${marker}`);
       }
     }
   }
-  if (/^D01-P10-T\d{3}$/.test(id)) {
-    for (const marker of ['Requirement-gap register:', 'Phase 1.10 disposition:']) {
-      if (!log.text.includes(marker) || log.text.includes(`${marker} Not recorded`)) {
-        die(`${id} requires recorded assumption-register evidence: ${marker}`);
-      }
-    }
+  return errors;
+}
+
+function requireSelfReviewEvidence(id, task) {
+  const errors = collectSelfReviewEvidenceErrors(id, task);
+  if (errors.length) die(errors.join('\n'));
+}
+
+// A phase review may only be submitted for tech-lead approval once it has actually
+// recorded a review. Without this, `submit` checked the status transition alone, so a
+// placeholder log reading "Not recorded" everywhere could be submitted and approved —
+// producing an approved phase with no review content behind it.
+function requirePhaseReviewRecord(id) {
+  const log = loadLog(id);
+  const errors = [];
+  if (!log) die(`${id} requires an execution log`);
+  if (!log.text.includes('## Findings')) {
+    errors.push(`${id} requires a '## Findings' section cataloguing every finding (record "None." when the review is clean)`);
   }
+  if (log.text.includes('Result: Not recorded')) {
+    errors.push(`${id} still carries a placeholder 'Result: Not recorded' — record the real review outcome`);
+  }
+  if (!/^[#\-*\s]*\**Result\**:\s*\**\s*(PASS|FAIL)\b/mi.test(log.text)) {
+    errors.push(`${id} requires an explicit 'Result: PASS' or 'Result: FAIL' in the review record`);
+  }
+  // The full Playwright suite is the gate; a spec-scoped run never satisfies it. Phase 1.7's
+  // deleted-enquiry-form regression survived six review passes precisely because every pass
+  // ran one narrow spec. Requiring the marker here enforces the suite regardless of what an
+  // individual review task file happens to list under its validation commands.
+  if (!log.text.includes('Full suite result:')) {
+    errors.push(`${id} requires a 'Full suite result:' line recording the full Playwright suite run across all viewport projects`);
+  }
+  const notRecorded = (log.text.match(/Not recorded/g) || []).length;
+  if (notRecorded >= 3) {
+    errors.push(`${id} still contains ${notRecorded} 'Not recorded' placeholders — complete the review record before submitting`);
+  }
+  if (errors.length) die(errors.join('\n'));
 }
 
 function appendReopenEvent(id, reason) {
@@ -628,6 +689,7 @@ else if (command === 'start') {
   if (!id || !task || !loadLog(id)) die('submit requires a started task with an execution log');
   if (task.review_mode !== 'phase_manual') die(`${id} is a self_ai task; use complete after AI review and tests`);
   if (rawStatus(id) !== 'IN_PROGRESS') die(`${id} cannot submit from ${rawStatus(id)}`);
+  requirePhaseReviewRecord(id);
   writeLog(id, 'IN_REVIEW');
   render();
   console.log(`${id} is IN_REVIEW.`);
