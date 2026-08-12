@@ -42,6 +42,7 @@ export const ContentPageTemplate: React.FC<ContentPageTemplateProps> = ({
         year: 'numeric',
         month: 'short',
         day: 'numeric',
+        timeZone: 'UTC',
       })
     : undefined;
 

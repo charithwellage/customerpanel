@@ -68,6 +68,7 @@ export const TestimonialListPrimitive: React.FC<TestimonialListPrimitiveProps> =
                   year: 'numeric',
                   month: 'short',
                   day: 'numeric',
+                  timeZone: 'UTC',
                 })
               : undefined;
 

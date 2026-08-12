@@ -213,7 +213,15 @@ export const FaqBrowserPrimitive: React.FC<FaqBrowserPrimitiveProps> = ({
                       <div className="cc-faq-item__answer">{item.answer}</div>
                       <div className="cc-faq-item__footer">
                         <span>Owner: {item.owner}</span>
-                        <span>Updated: {new Date(item.updatedAt).toLocaleDateString()}</span>
+                        <span>
+                          Updated:{' '}
+                          {new Date(item.updatedAt).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                            timeZone: 'UTC',
+                          })}
+                        </span>
                       </div>
                     </div>
                   )}
