@@ -444,3 +444,5 @@ export function generateVehicleSlug(year: number, make: string, model: string, i
 
 export * from './auth.js';
 export * from './freight.js';
+export * from './content.js';
+

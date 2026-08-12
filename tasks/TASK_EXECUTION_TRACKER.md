@@ -69,9 +69,9 @@
 | [D01-P06-T004](delivery_01/phase_06/D01-P06-T004.md) | Add transactional reservation eligibility and hold behavior | COMPLETE | self_ai | not_applicable | Claude Code | `feat_delivery01_phase_06` | D01-P06-CODE_REVIEW (COMPLETE) | D01-P06-T001 | P06-C | 2026-08-12T02:01:38.930Z |
 | [D01-P06-T005](delivery_01/phase_06/D01-P06-T005.md) | Build reservation UI and accept enquiry/reservation journeys | COMPLETE | self_ai | playwright_mcp | Claude Code | `feat_delivery01_phase_06` | D01-P06-CODE_REVIEW (COMPLETE) | D01-P06-T002, D01-P06-T003, D01-P06-T004 | P06-D | 2026-08-12T02:28:01.517Z |
 | [D01-P06-CODE_REVIEW](delivery_01/phase_06/D01-P06-CODE_REVIEW.md) | Phase 1.6 PR code review and tech-lead approval | COMPLETE | phase_manual | not_applicable | Claude Code | `feat_delivery01_phase_06` | D01-P06-CODE_REVIEW (COMPLETE) | D01-P06-T005 | P06-REVIEW | 2026-08-12T02:38:40.473Z |
-| [D01-P07-T001](delivery_01/phase_07/D01-P07-T001.md) | Add public content, FAQ and testimonial services | READY | self_ai | not_applicable | — | `feat_delivery01_phase_07` | D01-P07-CODE_REVIEW (NOT_STARTED) | D01-P06-CODE_REVIEW | P07-A | — |
-| [D01-P07-T002](delivery_01/phase_07/D01-P07-T002.md) | Build About, How to Buy and Contact information pages | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery01_phase_07` | D01-P07-CODE_REVIEW (NOT_STARTED) | D01-P07-T001 | P07-B | — |
-| [D01-P07-T003](delivery_01/phase_07/D01-P07-T003.md) | Build testimonial display and moderated submission | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery01_phase_07` | D01-P07-CODE_REVIEW (NOT_STARTED) | D01-P07-T001 | P07-B | — |
+| [D01-P07-T001](delivery_01/phase_07/D01-P07-T001.md) | Add public content, FAQ and testimonial services | COMPLETE | self_ai | not_applicable | Antigravity | `feat_delivery01_phase_07` | D01-P07-CODE_REVIEW (NOT_STARTED) | D01-P06-CODE_REVIEW | P07-A | 2026-08-12T03:44:06.356Z |
+| [D01-P07-T002](delivery_01/phase_07/D01-P07-T002.md) | Build About, How to Buy and Contact information pages | READY | self_ai | playwright_mcp | — | `feat_delivery01_phase_07` | D01-P07-CODE_REVIEW (NOT_STARTED) | D01-P07-T001 | P07-B | — |
+| [D01-P07-T003](delivery_01/phase_07/D01-P07-T003.md) | Build testimonial display and moderated submission | READY | self_ai | playwright_mcp | — | `feat_delivery01_phase_07` | D01-P07-CODE_REVIEW (NOT_STARTED) | D01-P07-T001 | P07-B | — |
 | [D01-P07-T004](delivery_01/phase_07/D01-P07-T004.md) | Build FAQ browsing/search and accept public content | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery01_phase_07` | D01-P07-CODE_REVIEW (NOT_STARTED) | D01-P07-T002, D01-P07-T003 | P07-C | — |
 | [D01-P07-CODE_REVIEW](delivery_01/phase_07/D01-P07-CODE_REVIEW.md) | Phase 1.7 PR code review and tech-lead approval | NOT_STARTED | phase_manual | not_applicable | — | `feat_delivery01_phase_07` | D01-P07-CODE_REVIEW (NOT_STARTED) | D01-P07-T004 | P07-REVIEW | — |
 | [D01-P08-T001](delivery_01/phase_08/D01-P08-T001.md) | Complete public SEO policy and visitor regression | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery01_phase_08` | D01-P08-CODE_REVIEW (NOT_STARTED) | D01-P07-CODE_REVIEW | P08-A | — |
@@ -136,7 +136,7 @@
 
 ## Current execution frontier
 
-- Sequential next: D01-P07-T001 — Add public content, FAQ and testimonial services (NOT_STARTED)
+- Sequential next: D01-P07-T002 — Build About, How to Buy and Contact information pages (NOT_STARTED)
 - Optional same-group parallel tasks: None
 - Downstream work waits for COMPLETE or SUPERSEDED; IN_REVIEW is not complete.
 - Later tasks cannot be bypassed; use taskctl sequence TASK-ID for the exact blocker.

@@ -932,4 +932,110 @@ describe('API Client & Contract Boundary Tests', () => {
       expect(config.liveAuctionUrl).toBe('https://auctions.example.com/live');
     });
   });
+
+  describe('ContentService (D01-P07-T001)', () => {
+    it('calls getFaqs with category and query parameters', async () => {
+      let capturedUrl: string | undefined;
+      const mockFetch = vi.fn().mockImplementation(async (url) => {
+        capturedUrl = url;
+        return {
+          ok: true,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: async () => ({
+            categories: [{ id: 'cat-buying-process', name: 'Buying Process', order: 1 }],
+            items: [],
+            total: 1,
+            matchedCount: 0,
+            groundedNoAnswer: false,
+          }),
+        };
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { ContentService } = await import('../services/content.js');
+      const service = new ContentService(client);
+
+      await service.getFaqs({ category: 'cat-buying-process', q: 'buying' });
+      expect(capturedUrl).toContain('/api/v1/content/faq?category=cat-buying-process&q=buying');
+    });
+
+    it('submits testimonial payload to ContentService', async () => {
+      let capturedUrl: string | undefined;
+      let capturedBody: unknown;
+      const mockFetch = vi.fn().mockImplementation(async (url, options) => {
+        capturedUrl = url;
+        capturedBody = JSON.parse(options.body as string);
+        return {
+          ok: true,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: async () => ({
+            id: 'testim-100',
+            status: 'pending',
+            submittedAt: '2026-08-12T10:00:00.000Z',
+            message: 'Testimonial submitted successfully and is pending review.',
+          }),
+        };
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { ContentService } = await import('../services/content.js');
+      const service = new ContentService(client);
+
+      const res = await service.submitTestimonial({
+        authorName: 'Jane Doe',
+        authorLocation: 'Kampala',
+        content: 'Great service!',
+        rating: 5,
+        consent: true,
+      });
+
+      expect(capturedUrl).toBe('http://localhost:4000/api/v1/content/testimonials');
+      expect(capturedBody).toEqual({
+        authorName: 'Jane Doe',
+        authorLocation: 'Kampala',
+        content: 'Great service!',
+        rating: 5,
+        consent: true,
+      });
+      expect(res.status).toBe('pending');
+    });
+
+    it('fetches public content page by slug and handles 404', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 404,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => ({ statusCode: 404, message: 'Content page missing not found', correlationId: 'corr-404' }),
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { ContentService } = await import('../services/content.js');
+      const service = new ContentService(client);
+
+      const page = await service.getContentPageBySlug('missing');
+      expect(page).toBeNull();
+    });
+
+    it('fetches offices and branches list', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => ({ items: [], total: 0 }),
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { ContentService } = await import('../services/content.js');
+      const service = new ContentService(client);
+
+      const offices = await service.getOffices();
+      const branches = await service.getBranches();
+      expect(offices.items).toEqual([]);
+      expect(branches.items).toEqual([]);
+    });
+  });
 });
+
