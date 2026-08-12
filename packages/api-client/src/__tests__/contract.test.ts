@@ -467,6 +467,8 @@ describe('API Client & Contract Boundary Tests', () => {
           receivedAt: '2026-08-11T12:00:00.000Z',
           status: 'received',
           duplicate: false,
+          enquiryType: 'general',
+          source: 'form',
         }),
       });
       global.fetch = mockFetch;
@@ -483,6 +485,8 @@ describe('API Client & Contract Boundary Tests', () => {
       });
       expect(receipt.status).toBe('received');
       expect(receipt.duplicate).toBe(false);
+      expect(receipt.enquiryType).toBe('general');
+      expect(receipt.source).toBe('form');
       // RULE-09/RULE-10: an enquiry receipt never carries a monetary total or
       // a claim of staff notification/contact.
       expect(receipt).not.toHaveProperty('total');
@@ -583,6 +587,120 @@ describe('API Client & Contract Boundary Tests', () => {
         expect(err).toBeInstanceOf(NormalizedApiError);
         expect((err as NormalizedApiError).statusCode).toBe(400);
       }
+    });
+
+    // Phase 1.6 (D01-P06-T001): staff-facing lead read-by-ID/list proof
+    // operation, the regression fix proving a submitted enquiry is
+    // retrievable through the Salesperson service boundary (PUB-16).
+    it('fetches a lead by id via EnquiryService.getLeadById, carrying full staff-visible contact fields', async () => {
+      let capturedUrl: string | undefined;
+      const mockFetch = vi.fn().mockImplementation(async (url) => {
+        capturedUrl = url;
+        return {
+          ok: true,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: async () => ({
+            id: 'enq-1',
+            receivedAt: '2026-08-11T12:00:00.000Z',
+            status: 'New',
+            enquiryType: 'general',
+            source: 'form',
+            name: 'Jane Doe',
+            email: 'jane@example.com',
+            phone: '+256700111222',
+            message: 'General enquiry about your inventory.',
+            duplicateResubmissionCount: 0,
+          }),
+        };
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { EnquiryService } = await import('../services/enquiries.js');
+      const service = new EnquiryService(client);
+
+      const lead = await service.getLeadById('enq-1');
+      expect(capturedUrl).toContain('/api/v1/enquiries/enq-1');
+      expect(lead).not.toBeNull();
+      expect(lead?.name).toBe('Jane Doe');
+      expect(lead?.status).toBe('New');
+    });
+
+    it('returns null from EnquiryService.getLeadById when the mock returns 404', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 404,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => ({ statusCode: 404, message: "Enquiry 'missing' not found", correlationId: 'corr-404' }),
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { EnquiryService } = await import('../services/enquiries.js');
+      const service = new EnquiryService(client);
+
+      const lead = await service.getLeadById('missing');
+      expect(lead).toBeNull();
+    });
+
+    it('normalizes a 401/403 from EnquiryService.getLeadById as a NormalizedApiError (not silently null)', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 403,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => ({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' }),
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { EnquiryService } = await import('../services/enquiries.js');
+      const service = new EnquiryService(client);
+
+      try {
+        await service.getLeadById('enq-1');
+        expect.fail('Should have thrown NormalizedApiError');
+      } catch (err: unknown) {
+        expect(err).toBeInstanceOf(NormalizedApiError);
+        expect((err as NormalizedApiError).statusCode).toBe(403);
+      }
+    });
+
+    it('fetches the staff-facing lead list via EnquiryService.listLeads', async () => {
+      let capturedUrl: string | undefined;
+      const mockFetch = vi.fn().mockImplementation(async (url) => {
+        capturedUrl = url;
+        return {
+          ok: true,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: async () => ({
+            items: [
+              {
+                id: 'enq-1',
+                receivedAt: '2026-08-11T12:00:00.000Z',
+                status: 'New',
+                enquiryType: 'general',
+                source: 'form',
+                name: 'Jane Doe',
+                email: 'jane@example.com',
+                phone: '+256700111222',
+                message: 'General enquiry about your inventory.',
+                duplicateResubmissionCount: 0,
+              },
+            ],
+            total: 1,
+          }),
+        };
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { EnquiryService } = await import('../services/enquiries.js');
+      const service = new EnquiryService(client);
+
+      const list = await service.listLeads();
+      expect(capturedUrl).toContain('/api/v1/enquiries');
+      expect(list.total).toBe(1);
+      expect(list.items[0].name).toBe('Jane Doe');
     });
   });
 });

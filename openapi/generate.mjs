@@ -172,6 +172,8 @@ export interface EnquiryRequest {
   vehicleSlug?: string;
   destinationCode?: string;
   portCode?: string;
+  enquiryType?: 'general' | 'vehicle' | 'price-request' | 'premium-vehicle';
+  source?: 'form' | 'whatsapp' | 'email' | 'call';
 }
 
 export interface EnquiryResponse {
@@ -179,8 +181,35 @@ export interface EnquiryResponse {
   receivedAt: string;
   status: 'received';
   duplicate: boolean;
+  enquiryType: 'general' | 'vehicle' | 'price-request' | 'premium-vehicle';
+  source: 'form' | 'whatsapp' | 'email' | 'call';
   vehicleSlug?: string;
   estimateSnapshot?: EnquiryEstimateSnapshot;
+}
+
+// Phase 1.6: lead and enquiry contracts (PUB-16, D01-P06-T001). The canonical
+// staff-visible lead record, retrievable through the future Salesperson
+// service boundary — the explicit regression fix for the POC
+// disconnected-lead defect.
+
+export interface LeadRecord {
+  id: string;
+  receivedAt: string;
+  status: 'New' | 'Contacted' | 'InProgress' | 'Sold' | 'Archived';
+  enquiryType: 'general' | 'vehicle' | 'price-request' | 'premium-vehicle';
+  source: 'form' | 'whatsapp' | 'email' | 'call';
+  name: string;
+  email: string;
+  phone: string;
+  message: string;
+  vehicleSlug?: string;
+  estimateSnapshot?: EnquiryEstimateSnapshot;
+  duplicateResubmissionCount: number;
+}
+
+export interface LeadListResponse {
+  items: LeadRecord[];
+  total: number;
 }
 `;
 

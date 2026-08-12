@@ -14,8 +14,12 @@ import type {
   EnquiryRequest,
   EnquiryResponse,
   EnquiryEstimateSnapshot,
+  EnquiryType,
+  EnquirySource,
+  LeadRecord,
+  LeadListResponse,
 } from '@carchief/domain';
-import { generateVehicleSlug, calculateFreightEstimate, resolveFreightRateStatus } from '@carchief/domain';
+import { generateVehicleSlug, calculateFreightEstimate, resolveFreightRateStatus, ENQUIRY_TYPES, ENQUIRY_SOURCES } from '@carchief/domain';
 import { validateEmail } from '@carchief/validation';
 export { FreightRequestError, resolveFreightRateStatus } from '@carchief/domain';
 
@@ -401,6 +405,8 @@ export interface DemoStore {
   getFreightPorts(): Promise<FreightPort[]>;
   getFreightEstimate(request: FreightEstimateRequest): Promise<FreightEstimateResponse>;
   createEnquiry(request: EnquiryRequest): Promise<EnquiryResponse>;
+  getLeadById(id: string): Promise<LeadRecord | null>;
+  listLeads(): Promise<LeadListResponse>;
   reset(): Promise<void>;
   close(): Promise<void>;
 }
@@ -503,6 +509,9 @@ export interface EnquiryRecord {
   vehicleSlug?: string;
   estimateSnapshot?: EnquiryEstimateSnapshot;
   receivedAt: string;
+  enquiryType: EnquiryType;
+  source: EnquirySource;
+  duplicateResubmissionCount: number;
 }
 
 interface PreparedEnquiry {
@@ -512,6 +521,8 @@ interface PreparedEnquiry {
   message: string;
   vehicleSlug?: string;
   estimateSnapshot?: EnquiryEstimateSnapshot;
+  enquiryType: EnquiryType;
+  source: EnquirySource;
 }
 
 function requireNonEmptyString(value: unknown, field: string, label: string): string {
@@ -590,7 +601,31 @@ export function prepareEnquiry(
     };
   }
 
-  return { name, email, phone, message, vehicleSlug, estimateSnapshot };
+  let enquiryType: EnquiryType;
+  if (request.enquiryType !== undefined && request.enquiryType !== null) {
+    if (!ENQUIRY_TYPES.includes(request.enquiryType)) {
+      throw new EnquiryRequestError(400, `Unsupported enquiryType '${String(request.enquiryType)}'`, 'enquiryType');
+    }
+    enquiryType = request.enquiryType;
+  } else {
+    // Safe MVP default (D01-P06-T001): a vehicle-linked enquiry with no
+    // explicit type is a 'vehicle' enquiry; everything else defaults to
+    // 'general'. 'price-request' and 'premium-vehicle' are never inferred —
+    // the caller must state them explicitly.
+    enquiryType = vehicleSlug ? 'vehicle' : 'general';
+  }
+
+  let source: EnquirySource;
+  if (request.source !== undefined && request.source !== null) {
+    if (!ENQUIRY_SOURCES.includes(request.source)) {
+      throw new EnquiryRequestError(400, `Unsupported source '${String(request.source)}'`, 'source');
+    }
+    source = request.source;
+  } else {
+    source = 'form';
+  }
+
+  return { name, email, phone, message, vehicleSlug, estimateSnapshot, enquiryType, source };
 }
 
 /**
@@ -605,9 +640,13 @@ export function buildEnquiryDedupeKey(prepared: PreparedEnquiry): string {
     prepared.vehicleSlug ?? '',
     prepared.estimateSnapshot?.destinationCode ?? '',
     prepared.estimateSnapshot?.portCode ?? '',
+    prepared.enquiryType,
     prepared.message.trim().toLowerCase(),
   ].join('|');
 }
+
+const ENQUIRY_SELECT_COLUMNS =
+  'SELECT id, dedupe_key, name, email, phone, message, vehicle_slug, destination_code, port_code, rate_status, currency, rate_effective_from, rate_effective_to, estimate_message, received_at, enquiry_type, source, duplicate_resubmission_count';
 
 function rowToEnquiryRecord(row: Record<string, unknown>): EnquiryRecord {
   const destinationCode = row.destination_code as string | null;
@@ -621,6 +660,9 @@ function rowToEnquiryRecord(row: Record<string, unknown>): EnquiryRecord {
     message: row.message as string,
     vehicleSlug: (row.vehicle_slug as string | null) || undefined,
     receivedAt: row.received_at as string,
+    enquiryType: (row.enquiry_type as EnquiryType | null) || 'general',
+    source: (row.source as EnquirySource | null) || 'form',
+    duplicateResubmissionCount: Number(row.duplicate_resubmission_count ?? 0),
     estimateSnapshot:
       destinationCode && portCode
         ? {
@@ -642,8 +684,34 @@ function toEnquiryResponse(record: EnquiryRecord, duplicate: boolean): EnquiryRe
     receivedAt: record.receivedAt,
     status: 'received',
     duplicate,
+    enquiryType: record.enquiryType,
+    source: record.source,
     vehicleSlug: record.vehicleSlug,
     estimateSnapshot: record.estimateSnapshot,
+  };
+}
+
+/**
+ * Projects a persisted enquiry into the canonical staff-visible lead record
+ * (PUB-16, D01-P06-T001) — the explicit regression fix proving a submitted
+ * enquiry is retrievable through the salesperson-facing service boundary,
+ * not only writable. `status` starts and stays `'New'`; later staff
+ * workflow transitions are a future task, not invented here.
+ */
+function toLeadRecord(record: EnquiryRecord): LeadRecord {
+  return {
+    id: record.id,
+    receivedAt: record.receivedAt,
+    status: 'New',
+    enquiryType: record.enquiryType,
+    source: record.source,
+    name: record.name,
+    email: record.email,
+    phone: record.phone,
+    message: record.message,
+    vehicleSlug: record.vehicleSlug,
+    estimateSnapshot: record.estimateSnapshot,
+    duplicateResubmissionCount: record.duplicateResubmissionCount,
   };
 }
 
@@ -1061,6 +1129,7 @@ class MemoryStore implements DemoStore {
 
     const existing = this.enquiries.find((e) => e.dedupeKey === dedupeKey);
     if (existing) {
+      existing.duplicateResubmissionCount += 1;
       return toEnquiryResponse(existing, true);
     }
 
@@ -1068,10 +1137,23 @@ class MemoryStore implements DemoStore {
       id: `enq-${Date.now()}-${this.enquirySeq++}`,
       dedupeKey,
       receivedAt: new Date().toISOString(),
+      duplicateResubmissionCount: 0,
       ...prepared,
     };
     this.enquiries.push(record);
     return toEnquiryResponse(record, false);
+  }
+
+  getLeadById(id: string): Promise<LeadRecord | null> {
+    const record = this.enquiries.find((e) => e.id === id);
+    return Promise.resolve(record ? toLeadRecord(record) : null);
+  }
+
+  listLeads(): Promise<LeadListResponse> {
+    return Promise.resolve({
+      items: this.enquiries.map(toLeadRecord),
+      total: this.enquiries.length,
+    });
   }
 
   reset(): Promise<void> {
@@ -1166,6 +1248,16 @@ class PostgresStore implements DemoStore {
         received_at text NOT NULL
       );`
     );
+    // Phase 1.6 (D01-P06-T001): ADD COLUMN IF NOT EXISTS because
+    // CREATE TABLE IF NOT EXISTS above does not add columns to an
+    // already-existing volume (see TASK_EXECUTION_PROTOCOL.md §3 Docker
+    // schema-drift note).
+    await this.pool.query(
+      `ALTER TABLE enquiries
+        ADD COLUMN IF NOT EXISTS enquiry_type text,
+        ADD COLUMN IF NOT EXISTS source text,
+        ADD COLUMN IF NOT EXISTS duplicate_resubmission_count integer;`
+    );
     await this.reset();
   }
 
@@ -1257,17 +1349,25 @@ class PostgresStore implements DemoStore {
     const dedupeKey = buildEnquiryDedupeKey(prepared);
 
     const existingResult = await this.pool.query(
-      'SELECT id, dedupe_key, name, email, phone, message, vehicle_slug, destination_code, port_code, rate_status, currency, rate_effective_from, rate_effective_to, estimate_message, received_at FROM enquiries WHERE dedupe_key = $1 LIMIT 1',
+      `${ENQUIRY_SELECT_COLUMNS} FROM enquiries WHERE dedupe_key = $1 LIMIT 1`,
       [dedupeKey]
     );
     if (existingResult.rows[0]) {
-      return toEnquiryResponse(rowToEnquiryRecord(existingResult.rows[0]), true);
+      const updateResult = await this.pool.query(
+        `UPDATE enquiries SET duplicate_resubmission_count = COALESCE(duplicate_resubmission_count, 0) + 1 WHERE id = $1 RETURNING duplicate_resubmission_count`,
+        [existingResult.rows[0].id]
+      );
+      const record = rowToEnquiryRecord({
+        ...existingResult.rows[0],
+        duplicate_resubmission_count: updateResult.rows[0].duplicate_resubmission_count,
+      });
+      return toEnquiryResponse(record, true);
     }
 
     const id = `enq-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     const receivedAt = new Date().toISOString();
     await this.pool.query(
-      'INSERT INTO enquiries (id, dedupe_key, name, email, phone, message, vehicle_slug, destination_code, port_code, rate_status, currency, rate_effective_from, rate_effective_to, estimate_message, received_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)',
+      'INSERT INTO enquiries (id, dedupe_key, name, email, phone, message, vehicle_slug, destination_code, port_code, rate_status, currency, rate_effective_from, rate_effective_to, estimate_message, received_at, enquiry_type, source, duplicate_resubmission_count) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)',
       [
         id,
         dedupeKey,
@@ -1284,11 +1384,26 @@ class PostgresStore implements DemoStore {
         prepared.estimateSnapshot?.rateEffectiveTo || null,
         prepared.estimateSnapshot?.message || null,
         receivedAt,
+        prepared.enquiryType,
+        prepared.source,
+        0,
       ]
     );
 
-    const record: EnquiryRecord = { id, dedupeKey, receivedAt, ...prepared };
+    const record: EnquiryRecord = { id, dedupeKey, receivedAt, duplicateResubmissionCount: 0, ...prepared };
     return toEnquiryResponse(record, false);
+  }
+
+  async getLeadById(id: string): Promise<LeadRecord | null> {
+    const result = await this.pool.query(`${ENQUIRY_SELECT_COLUMNS} FROM enquiries WHERE id = $1 LIMIT 1`, [id]);
+    const row = result.rows[0];
+    return row ? toLeadRecord(rowToEnquiryRecord(row)) : null;
+  }
+
+  async listLeads(): Promise<LeadListResponse> {
+    const result = await this.pool.query(`${ENQUIRY_SELECT_COLUMNS} FROM enquiries ORDER BY received_at ASC, id ASC`);
+    const items = result.rows.map((row) => toLeadRecord(rowToEnquiryRecord(row)));
+    return { items, total: items.length };
   }
 
   private async getRawVehicles(): Promise<VehicleRecord[]> {

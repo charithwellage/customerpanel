@@ -255,11 +255,30 @@ export interface EnquiryEstimateSnapshot {
   message: string;
 }
 
+// --- Phase 1.6: lead and enquiry contracts (PUB-13, PUB-14, PUB-16, PUB-28,
+// PUB-34, D01-P06-T001) ---
+//
+// `enquiryType` preserves what kind of enquiry this was (general, vehicle,
+// price-request or Premium Vehicle) for later staff triage — support-
+// screening and country assignment remain later staff workflow states
+// (Phase 1.6 CONTEXT.md §2). `source` preserves the approved public contact
+// channel the visitor used. WhatsApp/email/call remain contact *intent*
+// only: no external notification or provider delivery is implemented or
+// claimed by this contract (RULE-10, DEC-WF-EXTERNAL-BOUNDARIES).
+
+export type EnquiryType = 'general' | 'vehicle' | 'price-request' | 'premium-vehicle';
+export type EnquirySource = 'form' | 'whatsapp' | 'email' | 'call';
+
+export const ENQUIRY_TYPES: readonly EnquiryType[] = ['general', 'vehicle', 'price-request', 'premium-vehicle'];
+export const ENQUIRY_SOURCES: readonly EnquirySource[] = ['form', 'whatsapp', 'email', 'call'];
+
 /**
  * A visitor-submitted enquiry (PUB-13): a general enquiry, an enquiry about a
  * specific vehicle, or a quotation enquiry naming a shipping destination —
  * any combination of `vehicleSlug`/`destinationCode`+`portCode` is valid, and
- * none is required beyond the contact fields themselves.
+ * none is required beyond the contact fields themselves. `enquiryType` and
+ * `source` are optional on the request; the server resolves and persists a
+ * definite value for both (never left ambiguous) — see `EnquiryResponse`.
  */
 export interface EnquiryRequest {
   name: string;
@@ -269,6 +288,8 @@ export interface EnquiryRequest {
   vehicleSlug?: string;
   destinationCode?: string;
   portCode?: string;
+  enquiryType?: EnquiryType;
+  source?: EnquirySource;
 }
 
 /**
@@ -276,17 +297,51 @@ export interface EnquiryRequest {
  * confirms only that the enquiry was received and persisted — it never
  * claims a staff member was notified, contacted, or that any downstream
  * action occurred (RULE-10). `duplicate` is true when an identical enquiry
- * (same contact, vehicle, destination and message) was already on file and
- * this submission was not persisted again, rather than silently discarded
- * (RULE-08) — the visitor still receives their original receipt.
+ * (same contact, vehicle, destination, enquiry type and message) was already
+ * on file and this submission was not persisted again, rather than silently
+ * discarded (RULE-08) — the visitor still receives their original receipt.
  */
 export interface EnquiryResponse {
   id: string;
   receivedAt: string;
   status: 'received';
   duplicate: boolean;
+  enquiryType: EnquiryType;
+  source: EnquirySource;
   vehicleSlug?: string;
   estimateSnapshot?: EnquiryEstimateSnapshot;
+}
+
+/**
+ * The canonical staff-visible lead record a submitted enquiry becomes,
+ * retrievable through the future Salesperson service boundary (PUB-16). This
+ * is the explicit regression fix for the POC disconnected-lead defect: a
+ * submitted enquiry must be readable back through a staff-facing operation,
+ * not only writable from the public form. `status` starts and stays `'New'`
+ * in this task's scope — later staff workflow transitions (contacted,
+ * archived, ...) are a future task, not invented here. `duplicateResubmissionCount`
+ * is the audit/activity signal (D01-P06-T001 "In scope") that an identical
+ * enquiry was resubmitted, without inventing a full activity-log subsystem.
+ */
+export interface LeadRecord {
+  id: string;
+  receivedAt: string;
+  status: LeadStatus;
+  enquiryType: EnquiryType;
+  source: EnquirySource;
+  name: string;
+  email: string;
+  phone: string;
+  message: string;
+  vehicleSlug?: string;
+  estimateSnapshot?: EnquiryEstimateSnapshot;
+  duplicateResubmissionCount: number;
+}
+
+/** Staff-facing lead list proof operation (PUB-16, D01-P06-T001). */
+export interface LeadListResponse {
+  items: LeadRecord[];
+  total: number;
 }
 
 export function generateVehicleSlug(year: number, make: string, model: string, id: string): string {

@@ -129,6 +129,45 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
     }
   });
 
+  // 3h. Staff-facing lead read-by-ID/list proof operations (PUB-16,
+  // D01-P06-T001) — the explicit regression fix for the POC disconnected-lead
+  // defect: a submitted enquiry must be readable back through the future
+  // Salesperson service boundary, not only writable from the public form.
+  // Authorization runs here at the service/BFF boundary, never only in a
+  // future browser UI (FRONT_END_ARCHITECTURE.md §16). Limited to the fields
+  // required to verify handoff; no private/staff-only escalation fields are
+  // added beyond the lead record itself.
+  app.get('/api/v1/enquiries', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) {
+      res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+      return;
+    }
+    if (!hasPermission(req.user.role, 'read:leads')) {
+      res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
+      return;
+    }
+    res.json(await store.listLeads());
+  });
+
+  app.get('/api/v1/enquiries/:id', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) {
+      res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+      return;
+    }
+    if (!hasPermission(req.user.role, 'read:leads')) {
+      res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
+      return;
+    }
+    const rawParam = req.params.id;
+    const id = Array.isArray(rawParam) ? rawParam[0] : rawParam;
+    const lead = await store.getLeadById(id);
+    if (!lead) {
+      res.status(404).json({ statusCode: 404, message: `Enquiry '${id}' not found`, correlationId: `corr-404-${Date.now()}` });
+      return;
+    }
+    res.json(lead);
+  });
+
   // 4. Auth identity inspection endpoint
   app.get('/api/v1/auth/me', (req: AuthenticatedRequest, res: Response) => {
     if (!req.user) {

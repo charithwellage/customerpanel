@@ -2,7 +2,8 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import type { Server } from 'node:http';
 import { createStore } from '../store.js';
 import { createMockApiApp } from '../server.js';
-import type { EnquiryResponse } from '@carchief/domain';
+import type { EnquiryResponse, LeadRecord, LeadListResponse } from '@carchief/domain';
+import { createDemoJwtToken } from '@carchief/domain';
 
 // PUB-13, PUB-15, D01-P05-T004. The enquiry flow does not depend on
 // DEC-PUB-FREIGHT-MODEL/DEC-PUB-CITY-DELIVERY (D01-ASM-001): a visitor can
@@ -269,6 +270,273 @@ describe('Quotation enquiry submission (PUB-13, PUB-15, D01-ASM-001)', () => {
       } finally {
         await new Promise((resolve) => server.close(resolve));
       }
+    });
+  });
+
+  // Phase 1.6 (D01-P06-T001): enquiry type / contact-source metadata (PUB-28,
+  // PUB-34) and the staff-facing lead read-by-ID/list proof operation
+  // (PUB-16) — the explicit regression fix for the POC disconnected-lead
+  // defect.
+  describe('Lead and enquiry contracts (PUB-13, PUB-14, PUB-16, PUB-28, PUB-34, D01-P06-T001)', () => {
+    describe('enquiryType / source persistence', () => {
+      it('defaults enquiryType to general and source to form when omitted', async () => {
+        const result = await store.createEnquiry({
+          name: 'Jane Doe',
+          email: 'jane@example.com',
+          phone: '+256700111222',
+          message: 'General enquiry about your inventory.',
+        });
+        expect(result.enquiryType).toBe('general');
+        expect(result.source).toBe('form');
+      });
+
+      it('defaults enquiryType to vehicle when a vehicleSlug is supplied without an explicit type', async () => {
+        const result = await store.createEnquiry({
+          name: 'John Smith',
+          email: 'john@example.com',
+          phone: '+256700333444',
+          message: 'Is this vehicle still available?',
+          vehicleSlug: VALID_VEHICLE_SLUG,
+        });
+        expect(result.enquiryType).toBe('vehicle');
+      });
+
+      it('preserves an explicit price-request enquiryType and whatsapp source', async () => {
+        const result = await store.createEnquiry({
+          name: 'Amara Okoye',
+          email: 'amara@example.com',
+          phone: '+256700555666',
+          message: 'What is the best price for this vehicle?',
+          vehicleSlug: VALID_VEHICLE_SLUG,
+          enquiryType: 'price-request',
+          source: 'whatsapp',
+        });
+        expect(result.enquiryType).toBe('price-request');
+        expect(result.source).toBe('whatsapp');
+      });
+
+      it('preserves an explicit premium-vehicle enquiryType (PUB-34)', async () => {
+        const result = await store.createEnquiry({
+          name: 'Amara Okoye',
+          email: 'amara+premium@example.com',
+          phone: '+256700555666',
+          message: 'Please tell me more about this Premium Stock vehicle.',
+          vehicleSlug: VALID_VEHICLE_SLUG,
+          enquiryType: 'premium-vehicle',
+        });
+        expect(result.enquiryType).toBe('premium-vehicle');
+      });
+
+      it('rejects an unsupported enquiryType as a field-associated 400', async () => {
+        await expect(
+          store.createEnquiry({
+            name: 'Amara Okoye',
+            email: 'amara@example.com',
+            phone: '+256700555666',
+            message: 'Hello',
+            // @ts-expect-error deliberately invalid for the validation test
+            enquiryType: 'not-a-real-type',
+          })
+        ).rejects.toMatchObject({ statusCode: 400, field: 'enquiryType' });
+      });
+
+      it('rejects an unsupported source as a field-associated 400', async () => {
+        await expect(
+          store.createEnquiry({
+            name: 'Amara Okoye',
+            email: 'amara@example.com',
+            phone: '+256700555666',
+            message: 'Hello',
+            // @ts-expect-error deliberately invalid for the validation test
+            source: 'carrier-pigeon',
+          })
+        ).rejects.toMatchObject({ statusCode: 400, field: 'source' });
+      });
+
+      it('treats an otherwise-identical enquiry with a different enquiryType as a distinct lead, not a duplicate', async () => {
+        const base = {
+          name: 'Amara Okoye',
+          email: 'amara@example.com',
+          phone: '+256700555666',
+          message: 'Please confirm shipping cost to Uganda.',
+          vehicleSlug: VALID_VEHICLE_SLUG,
+        };
+        const first = await store.createEnquiry({ ...base, enquiryType: 'vehicle' });
+        const second = await store.createEnquiry({ ...base, enquiryType: 'price-request' });
+        expect(second.duplicate).toBe(false);
+        expect(second.id).not.toBe(first.id);
+      });
+    });
+
+    describe('DemoStore.getLeadById / listLeads (PUB-16 staff-boundary regression)', () => {
+      it('returns null for an unknown lead id', async () => {
+        const lead = await store.getLeadById('not-a-real-id');
+        expect(lead).toBeNull();
+      });
+
+      it('makes a submitted enquiry retrievable by id through the staff-facing lead boundary, carrying full contact fields', async () => {
+        const receipt = await store.createEnquiry({
+          name: 'Jane Doe',
+          email: 'jane@example.com',
+          phone: '+256700111222',
+          message: 'General enquiry about your inventory.',
+        });
+        const lead = await store.getLeadById(receipt.id);
+        expect(lead).not.toBeNull();
+        expect((lead as LeadRecord).id).toBe(receipt.id);
+        expect((lead as LeadRecord).name).toBe('Jane Doe');
+        expect((lead as LeadRecord).email).toBe('jane@example.com');
+        expect((lead as LeadRecord).status).toBe('New');
+        expect((lead as LeadRecord).duplicateResubmissionCount).toBe(0);
+      });
+
+      it('lists every persisted lead and increments duplicateResubmissionCount on an identical resubmission (audit/activity intent)', async () => {
+        const request = {
+          name: 'Amara Okoye',
+          email: 'amara@example.com',
+          phone: '+256700555666',
+          message: 'Please confirm shipping cost to Uganda.',
+        };
+        const first = await store.createEnquiry(request);
+        await store.createEnquiry(request);
+        await store.createEnquiry(request);
+
+        const list = await store.listLeads();
+        expect(list.total).toBe(1);
+        expect(list.items).toHaveLength(1);
+        expect(list.items[0].id).toBe(first.id);
+        expect(list.items[0].duplicateResubmissionCount).toBe(2);
+      });
+
+      it('lists multiple distinct leads', async () => {
+        await store.createEnquiry({ name: 'A', email: 'a@example.com', phone: '+256700000001', message: 'First enquiry.' });
+        await store.createEnquiry({ name: 'B', email: 'b@example.com', phone: '+256700000002', message: 'Second enquiry.' });
+        const list = await store.listLeads();
+        expect(list.total).toBe(2);
+      });
+    });
+
+    describe('HTTP contract: staff-facing GET /api/v1/enquiries and /api/v1/enquiries/:id', () => {
+      it('returns 401 for GET /api/v1/enquiries without an authenticated identity', async () => {
+        const { server, port } = await startServer(store);
+        try {
+          const res = await fetch(`http://localhost:${port}/api/v1/enquiries`);
+          expect(res.status).toBe(401);
+        } finally {
+          await new Promise((resolve) => server.close(resolve));
+        }
+      });
+
+      it('returns 403 for GET /api/v1/enquiries when authenticated as a role without read:leads', async () => {
+        const { server, port } = await startServer(store);
+        try {
+          const token = createDemoJwtToken('CustomerBuyer');
+          const res = await fetch(`http://localhost:${port}/api/v1/enquiries`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          expect(res.status).toBe(403);
+        } finally {
+          await new Promise((resolve) => server.close(resolve));
+        }
+      });
+
+      it('returns 200 with the full lead list for an authenticated Salesperson (read:leads)', async () => {
+        const { server, port } = await startServer(store);
+        try {
+          await fetch(`http://localhost:${port}/api/v1/enquiries`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              name: 'Jane Doe',
+              email: 'jane@example.com',
+              phone: '+256700111222',
+              message: 'General enquiry about your inventory.',
+            }),
+          });
+
+          const token = createDemoJwtToken('Salesperson');
+          const res = await fetch(`http://localhost:${port}/api/v1/enquiries`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          expect(res.status).toBe(200);
+          const data = (await res.json()) as LeadListResponse;
+          expect(data.total).toBe(1);
+          expect(data.items[0].name).toBe('Jane Doe');
+        } finally {
+          await new Promise((resolve) => server.close(resolve));
+        }
+      });
+
+      it('serves GET /api/v1/enquiries/:id returning the submitted enquiry through the staff boundary (POC disconnected-lead regression)', async () => {
+        const { server, port } = await startServer(store);
+        try {
+          const createRes = await fetch(`http://localhost:${port}/api/v1/enquiries`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              name: 'John Smith',
+              email: 'john@example.com',
+              phone: '+256700333444',
+              message: 'Is this vehicle still available?',
+              vehicleSlug: VALID_VEHICLE_SLUG,
+            }),
+          });
+          const created = (await createRes.json()) as EnquiryResponse;
+
+          const token = createDemoJwtToken('Salesperson');
+          const res = await fetch(`http://localhost:${port}/api/v1/enquiries/${created.id}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          expect(res.status).toBe(200);
+          const lead = (await res.json()) as LeadRecord;
+          expect(lead.id).toBe(created.id);
+          expect(lead.vehicleSlug).toBe(VALID_VEHICLE_SLUG);
+          expect(lead.email).toBe('john@example.com');
+        } finally {
+          await new Promise((resolve) => server.close(resolve));
+        }
+      });
+
+      it('returns 404 for GET /api/v1/enquiries/:id with an unknown id', async () => {
+        const { server, port } = await startServer(store);
+        try {
+          const token = createDemoJwtToken('Salesperson');
+          const res = await fetch(`http://localhost:${port}/api/v1/enquiries/not-a-real-id`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          expect(res.status).toBe(404);
+        } finally {
+          await new Promise((resolve) => server.close(resolve));
+        }
+      });
+
+      it('a __reset call clears leads so the staff-facing list returns empty', async () => {
+        const { server, port } = await startServer(store);
+        try {
+          await fetch(`http://localhost:${port}/api/v1/enquiries`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              name: 'Jane Doe',
+              email: 'jane@example.com',
+              phone: '+256700111222',
+              message: 'General enquiry about your inventory.',
+            }),
+          });
+
+          const resetRes = await fetch(`http://localhost:${port}/api/v1/__reset`, { method: 'POST' });
+          expect(resetRes.status).toBe(200);
+
+          const token = createDemoJwtToken('Salesperson');
+          const res = await fetch(`http://localhost:${port}/api/v1/enquiries`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const data = (await res.json()) as LeadListResponse;
+          expect(data.total).toBe(0);
+        } finally {
+          await new Promise((resolve) => server.close(resolve));
+        }
+      });
     });
   });
 });

@@ -51,6 +51,8 @@ const receiptFixture: EnquiryResponse = {
   receivedAt: '2026-08-11T12:00:00.000Z',
   status: 'received',
   duplicate: false,
+  enquiryType: 'general',
+  source: 'form',
 };
 
 const duplicateReceiptFixture: EnquiryResponse = {

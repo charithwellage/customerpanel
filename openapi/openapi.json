@@ -436,7 +436,7 @@
     },
     "/api/v1/enquiries": {
       "post": {
-        "summary": "Submit a quotation enquiry (PUB-13, PUB-15, D01-P05-T004) — independent of DEC-PUB-FREIGHT-MODEL",
+        "summary": "Submit a general, vehicle, price-request or Premium Vehicle enquiry (PUB-13, PUB-14, PUB-15, PUB-28, PUB-34, D01-P05-T004, D01-P06-T001) — independent of DEC-PUB-FREIGHT-MODEL",
         "operationId": "postEnquiry",
         "requestBody": {
           "required": true,
@@ -465,6 +465,85 @@
           },
           "400": {
             "description": "Invalid, missing or unsupported field",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "Staff-facing lead list proof operation (PUB-16, D01-P06-T001) — the regression fix proving a submitted enquiry is retrievable through the Salesperson service boundary, not only writable",
+        "operationId": "listLeads",
+        "responses": {
+          "200": {
+            "description": "All persisted leads, most-recently-received last",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/LeadListResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "No authenticated staff identity supplied",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated identity lacks the 'read:leads' permission",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/enquiries/{id}": {
+      "get": {
+        "summary": "Staff-facing lead read-by-ID proof operation (PUB-16, D01-P06-T001)",
+        "operationId": "getLeadById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "example": "enq-1723368000000-0"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The canonical lead record for this enquiry",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/LeadRecord" }
+              }
+            }
+          },
+          "401": {
+            "description": "No authenticated staff identity supplied",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated identity lacks the 'read:leads' permission",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "No enquiry exists with this id",
             "content": {
               "application/json": {
                 "schema": { "$ref": "#/components/schemas/ErrorResponse" }
@@ -756,7 +835,17 @@
           "message": { "type": "string", "example": "Please send a shipping quotation for this vehicle." },
           "vehicleSlug": { "type": "string", "example": "2021-toyota-corolla-axio-veh-1" },
           "destinationCode": { "type": "string", "example": "UG" },
-          "portCode": { "type": "string", "example": "MBA" }
+          "portCode": { "type": "string", "example": "MBA" },
+          "enquiryType": {
+            "type": "string",
+            "enum": ["general", "vehicle", "price-request", "premium-vehicle"],
+            "example": "vehicle"
+          },
+          "source": {
+            "type": "string",
+            "enum": ["form", "whatsapp", "email", "call"],
+            "example": "form"
+          }
         },
         "required": ["name", "email", "phone", "message"]
       },
@@ -767,10 +856,69 @@
           "receivedAt": { "type": "string", "example": "2026-08-11T12:00:00.000Z" },
           "status": { "type": "string", "enum": ["received"], "example": "received" },
           "duplicate": { "type": "boolean", "example": false },
+          "enquiryType": {
+            "type": "string",
+            "enum": ["general", "vehicle", "price-request", "premium-vehicle"],
+            "example": "vehicle"
+          },
+          "source": {
+            "type": "string",
+            "enum": ["form", "whatsapp", "email", "call"],
+            "example": "form"
+          },
           "vehicleSlug": { "type": "string", "example": "2021-toyota-corolla-axio-veh-1" },
           "estimateSnapshot": { "$ref": "#/components/schemas/EnquiryEstimateSnapshot" }
         },
-        "required": ["id", "receivedAt", "status", "duplicate"]
+        "required": ["id", "receivedAt", "status", "duplicate", "enquiryType", "source"]
+      },
+      "LeadRecord": {
+        "type": "object",
+        "description": "Canonical staff-visible lead record (PUB-16, D01-P06-T001) — the regression fix proving a submitted enquiry is retrievable through the Salesperson service boundary.",
+        "properties": {
+          "id": { "type": "string", "example": "enq-1723368000000-0" },
+          "receivedAt": { "type": "string", "example": "2026-08-11T12:00:00.000Z" },
+          "status": { "type": "string", "enum": ["New", "Contacted", "InProgress", "Sold", "Archived"], "example": "New" },
+          "enquiryType": {
+            "type": "string",
+            "enum": ["general", "vehicle", "price-request", "premium-vehicle"],
+            "example": "vehicle"
+          },
+          "source": {
+            "type": "string",
+            "enum": ["form", "whatsapp", "email", "call"],
+            "example": "form"
+          },
+          "name": { "type": "string", "example": "Jane Doe" },
+          "email": { "type": "string", "example": "jane@example.com" },
+          "phone": { "type": "string", "example": "+256 700 111 222" },
+          "message": { "type": "string", "example": "Please send a shipping quotation for this vehicle." },
+          "vehicleSlug": { "type": "string", "example": "2021-toyota-corolla-axio-veh-1" },
+          "estimateSnapshot": { "$ref": "#/components/schemas/EnquiryEstimateSnapshot" },
+          "duplicateResubmissionCount": { "type": "integer", "example": 0 }
+        },
+        "required": [
+          "id",
+          "receivedAt",
+          "status",
+          "enquiryType",
+          "source",
+          "name",
+          "email",
+          "phone",
+          "message",
+          "duplicateResubmissionCount"
+        ]
+      },
+      "LeadListResponse": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/LeadRecord" }
+          },
+          "total": { "type": "integer", "example": 1 }
+        },
+        "required": ["items", "total"]
       }
     }
   }
