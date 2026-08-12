@@ -21,7 +21,7 @@ test.describe('Public Web Accessibility & Keyboard Acceptance', () => {
   for (const route of publicRoutes) {
     test(`verifies accessibility semantics, headings, and landmark roles on ${route}`, async ({ page }) => {
       await page.goto(route);
-      
+
       // 1. Verify main content container exists
       const mainContainer = page.locator('main, section, body').first();
       await expect(mainContainer).toBeVisible();

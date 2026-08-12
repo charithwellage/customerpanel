@@ -4,6 +4,11 @@ import { loadOffices } from '../../features/public-content/loadPublicContent';
 import { ContentPageTemplate } from '../../features/public-content/components/ContentPageTemplate';
 import '../../features/public-content/public-content.css';
 
+// Office data is fetched from the mock API at request time (PUB-20); without
+// this directive Next.js would statically prerender the page at build time,
+// when no backend is reachable, permanently baking in an empty grid.
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Regional Branch Directory & Offices | CarChief',
   description: 'Explore CarChief regional branch hubs, office locations, opening hours, and dedicated sales teams.',
@@ -14,6 +19,7 @@ export const metadata: Metadata = {
 
 export default async function BranchesDirectoryPage() {
   const officesResponse = await loadOffices();
+  const hasOffices = officesResponse.items.length > 0;
 
   return (
     <ContentPageTemplate
@@ -23,17 +29,19 @@ export default async function BranchesDirectoryPage() {
       owner="LogisticsTeam"
       updatedAt="2026-08-10T10:00:00.000Z"
       status="approved"
+      isUnavailable={!hasOffices}
+      unavailableMessage="No regional branch offices are published yet. Check back soon or contact our support team for the office nearest you."
     >
-      <div className="cc-branches-grid" style={{ display: 'grid', gap: '1.5rem', marginTop: '1.5rem' }}>
+      <div className="cc-branches-grid">
         {officesResponse.items.map((office) => {
-          const branchCode = (office as any).code || office.id || office.city.toLowerCase();
+          const branchCode = office.id || office.city.toLowerCase();
           return (
-            <div key={office.id} className="cc-branch-card" style={{ padding: '1.5rem', border: '1px solid var(--color-border)', borderRadius: '8px' }}>
-              <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>
+            <div key={office.id} className="cc-branch-card">
+              <h2 className="cc-branch-card__title">
                 {office.city} ({office.name})
               </h2>
-              <p style={{ fontSize: '0.875rem', opacity: 0.8, marginBottom: '0.5rem' }}>{office.country}</p>
-              <p style={{ fontSize: '0.875rem', marginBottom: '1rem' }}>{office.address}</p>
+              <p className="cc-branch-card__country">{office.country}</p>
+              <p className="cc-branch-card__address">{office.address}</p>
               <a href={`/branches/${String(branchCode).toLowerCase()}-hub`} className="cc-btn cc-btn--secondary cc-btn--sm">
                 View Regional Branch Hub &rarr;
               </a>

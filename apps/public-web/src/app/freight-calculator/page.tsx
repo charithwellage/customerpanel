@@ -1,6 +1,8 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import { FreightEstimateSection } from '../../features/freight';
+import { ContentPageTemplate } from '../../features/public-content/components/ContentPageTemplate';
+import '../../features/public-content/public-content.css';
 
 export const metadata: Metadata = {
   title: 'Global Ocean Freight Shipping Calculator | CarChief',
@@ -28,14 +30,15 @@ export const metadata: Metadata = {
 
 export default function FreightCalculatorPage() {
   return (
-    <main className="min-h-screen py-12 px-4 max-w-5xl mx-auto">
-      <div className="mb-8 text-center">
-        <h1 className="text-3xl font-bold mb-3">Ocean Freight Calculator</h1>
-        <p className="text-gray-600 max-w-2xl mx-auto">
-          Get instantaneous shipping estimates, estimated transit schedules, and port availability for shipping Japanese vehicles to your destination port.
-        </p>
-      </div>
+    <ContentPageTemplate
+      title="Ocean Freight Calculator"
+      subtitle="Get instantaneous shipping estimates, estimated transit schedules, and port availability for shipping Japanese vehicles to your destination port."
+      badge="Shipping Cost Estimator"
+      owner="LogisticsTeam"
+      updatedAt="2026-08-10T10:00:00.000Z"
+      status="approved"
+    >
       <FreightEstimateSection />
-    </main>
+    </ContentPageTemplate>
   );
 }
