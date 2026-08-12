@@ -3,7 +3,7 @@ import { readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { parseDemoJwtToken, createDemoJwtToken, JwtClaims, hasPermission } from '@carchief/domain';
 import type { FreightEstimateRequest, EnquiryRequest, ReservationRequest } from '@carchief/domain';
-import { createStore, type DemoStore, FreightRequestError, EnquiryRequestError, ReservationRequestError } from './store.js';
+import { createStore, type DemoStore, FreightRequestError, EnquiryRequestError, ReservationRequestError, TestimonialRequestError } from './store.js';
 
 export interface AuthenticatedRequest extends Request {
   user?: JwtClaims;
@@ -252,6 +252,83 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
     }
     res.status(201).json({ token, claims, nonProduction: true });
   });
+
+  // 3j. FAQ query & grounding (Public) — PUB-20, DEC-PUB-FAQ-AI
+  app.get('/api/v1/content/faq', async (req: Request, res: Response) => {
+    const category = req.query.category as string | undefined;
+    const q = req.query.q as string | undefined;
+    res.json(await store.getFaqs({ category, q }));
+  });
+
+  // 3k. Approved testimonials list (Public) — PUB-19
+  app.get('/api/v1/content/testimonials', async (_req: Request, res: Response) => {
+    res.json(await store.getTestimonials());
+  });
+
+  // 3l. Testimonial submission (Public) — PUB-19
+  app.post('/api/v1/content/testimonials', async (req: Request, res: Response) => {
+    try {
+      const response = await store.submitTestimonial(req.body ?? {});
+      res.status(201).json(response);
+    } catch (error) {
+      if (error instanceof TestimonialRequestError) {
+        res.status(error.statusCode).json({
+          statusCode: error.statusCode,
+          message: error.message,
+          correlationId: `corr-${error.statusCode}-${Date.now()}`,
+          ...(error.field ? { field: error.field } : {}),
+        });
+        return;
+      }
+      throw error;
+    }
+  });
+
+  // 3m. Approved public content pages (Public) — PUB-17
+  app.get('/api/v1/content/pages', async (_req: Request, res: Response) => {
+    res.json(await store.getContentPages());
+  });
+
+  app.get('/api/v1/content/pages/:slug', async (req: Request, res: Response) => {
+    const rawParam = req.params.slug;
+    const slug = Array.isArray(rawParam) ? rawParam[0] : rawParam;
+    const page = await store.getContentPageBySlug(slug);
+    if (!page) {
+      res.status(404).json({
+        statusCode: 404,
+        message: `Content page '${slug}' not found`,
+        correlationId: `corr-404-${Date.now()}`,
+      });
+      return;
+    }
+    res.json(page);
+  });
+
+  // 3n. Approved office locations (Public) — PUB-18
+  app.get('/api/v1/content/offices', async (_req: Request, res: Response) => {
+    res.json(await store.getOffices());
+  });
+
+  // 3o. Approved branch hubs (Public) — PUB-18
+  app.get('/api/v1/content/branches', async (_req: Request, res: Response) => {
+    res.json(await store.getBranches());
+  });
+
+  app.get('/api/v1/content/branches/:id', async (req: Request, res: Response) => {
+    const rawParam = req.params.id;
+    const id = Array.isArray(rawParam) ? rawParam[0] : rawParam;
+    const branch = await store.getBranchById(id);
+    if (!branch) {
+      res.status(404).json({
+        statusCode: 404,
+        message: `Branch hub '${id}' not found`,
+        correlationId: `corr-404-${Date.now()}`,
+      });
+      return;
+    }
+    res.json(branch);
+  });
+
 
   // 4. Auth identity inspection endpoint
   app.get('/api/v1/auth/me', (req: AuthenticatedRequest, res: Response) => {

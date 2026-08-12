@@ -5,4 +5,6 @@ export * from './services/enquiries.js';
 export * from './services/reservations.js';
 export * from './services/session.js';
 export * from './services/config.js';
+export * from './services/content.js';
 export * from './http.js';
+

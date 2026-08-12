@@ -682,6 +682,199 @@
         }
       }
     },
+    "/api/v1/content/faq": {
+      "get": {
+        "summary": "Browse Frequently Asked Questions organized into 12 categories, with optional grounded keyword search (PUB-20, DEC-PUB-FAQ-AI)",
+        "operationId": "getFaqs",
+        "parameters": [
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "example": "buying-process" }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "example": "shipping" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "FAQ categories, matched items, and grounded search status",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/FaqQueryResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/content/testimonials": {
+      "get": {
+        "summary": "Fetch approved customer testimonials for public display (PUB-19)",
+        "operationId": "getTestimonials",
+        "responses": {
+          "200": {
+            "description": "List of approved testimonials",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/TestimonialListResponse" }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Submit a new customer testimonial (PUB-19) — persisted as pending with consent",
+        "operationId": "submitTestimonial",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/TestimonialSubmissionRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Testimonial submitted successfully and is pending review",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/TestimonialSubmissionResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid, missing field or missing consent",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/content/pages": {
+      "get": {
+        "summary": "List all approved public content pages (PUB-30)",
+        "operationId": "getContentPages",
+        "responses": {
+          "200": {
+            "description": "List of approved public content pages",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/PublicContentPage" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/content/pages/{slug}": {
+      "get": {
+        "summary": "Fetch a specific public content page by slug (PUB-17, PUB-18, PUB-21, PUB-27, PUB-29, PUB-30, PUB-31)",
+        "operationId": "getContentPageBySlug",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "example": "about-us"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The approved public content page",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PublicContentPage" }
+              }
+            }
+          },
+          "404": {
+            "description": "Page unavailable or not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/content/offices": {
+      "get": {
+        "summary": "Fetch office locations and operating hours (PUB-21)",
+        "operationId": "getOffices",
+        "responses": {
+          "200": {
+            "description": "List of office locations",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/OfficeListResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/content/branches": {
+      "get": {
+        "summary": "List approved branch content projections (PUB-35, DEC-PUB-BRANCH-PAGE)",
+        "operationId": "getBranches",
+        "responses": {
+          "200": {
+            "description": "List of approved branch content projections",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/BranchListResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/content/branches/{id}": {
+      "get": {
+        "summary": "Fetch a specific branch content projection by ID or code (PUB-35)",
+        "operationId": "getBranchById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "example": "harare-hub"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The approved branch content projection",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/BranchContent" }
+              }
+            }
+          },
+          "404": {
+            "description": "Branch content unavailable or not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/__reset": {
       "post": {
         "summary": "Deterministic non-production data reset",
@@ -1124,7 +1317,154 @@
           "holdHours": { "type": "integer", "example": 48 }
         },
         "required": ["id", "vehicleSlug", "vehicleId", "customerId", "customerEmail", "status", "createdAt", "expiresAt", "holdHours"]
+      },
+      "FaqCategory": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "example": "cat-buying-process" },
+          "name": { "type": "string", "example": "Buying Process" },
+          "description": { "type": "string", "example": "Step-by-step guidance on searching, reserving, and purchasing vehicles." },
+          "order": { "type": "integer", "example": 1 }
+        },
+        "required": ["id", "name", "order"]
+      },
+      "FaqItem": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "example": "faq-1" },
+          "categoryId": { "type": "string", "example": "cat-buying-process" },
+          "categoryName": { "type": "string", "example": "Buying Process" },
+          "question": { "type": "string", "example": "How do I purchase a vehicle on CarChief?" },
+          "answer": { "type": "string", "example": "Browse our available inventory..." },
+          "slug": { "type": "string", "example": "how-do-i-purchase-a-vehicle" },
+          "featured": { "type": "boolean", "example": true },
+          "order": { "type": "integer", "example": 1 },
+          "owner": { "type": "string", "example": "ContentTeam" },
+          "status": { "type": "string", "enum": ["approved", "pending", "draft", "unavailable", "rejected"], "example": "approved" },
+          "updatedAt": { "type": "string", "example": "2026-08-10T10:00:00.000Z" }
+        },
+        "required": ["id", "categoryId", "categoryName", "question", "answer", "slug", "owner", "status", "updatedAt"]
+      },
+      "FaqQueryResponse": {
+        "type": "object",
+        "properties": {
+          "categories": { "type": "array", "items": { "$ref": "#/components/schemas/FaqCategory" } },
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/FaqItem" } },
+          "total": { "type": "integer", "example": 12 },
+          "matchedCount": { "type": "integer", "example": 12 },
+          "groundedNoAnswer": { "type": "boolean", "example": false },
+          "message": { "type": "string", "example": "No grounded answer found matching your query." }
+        },
+        "required": ["categories", "items", "total", "matchedCount", "groundedNoAnswer"]
+      },
+      "TestimonialItem": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "example": "testim-1" },
+          "authorName": { "type": "string", "example": "John K." },
+          "authorLocation": { "type": "string", "example": "Harare, Zimbabwe" },
+          "avatarUrl": { "type": "string" },
+          "vehiclePurchased": { "type": "string", "example": "2021 Toyota Corolla Axio" },
+          "rating": { "type": "integer", "example": 5 },
+          "content": { "type": "string", "example": "Seamless import process!" },
+          "submittedAt": { "type": "string", "example": "2026-08-01T12:00:00.000Z" },
+          "status": { "type": "string", "enum": ["approved", "pending", "draft", "unavailable", "rejected"], "example": "approved" },
+          "consent": { "type": "boolean", "example": true }
+        },
+        "required": ["id", "authorName", "authorLocation", "rating", "content", "submittedAt", "status", "consent"]
+      },
+      "TestimonialSubmissionRequest": {
+        "type": "object",
+        "properties": {
+          "authorName": { "type": "string", "example": "Jane Doe" },
+          "authorLocation": { "type": "string", "example": "Nairobi, Kenya" },
+          "vehiclePurchased": { "type": "string", "example": "2020 Mazda CX-5" },
+          "rating": { "type": "integer", "example": 5 },
+          "content": { "type": "string", "example": "Great service from start to finish." },
+          "consent": { "type": "boolean", "example": true }
+        },
+        "required": ["authorName", "authorLocation", "rating", "content", "consent"]
+      },
+      "TestimonialSubmissionResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "example": "testim-1723368000000" },
+          "status": { "type": "string", "enum": ["pending"], "example": "pending" },
+          "submittedAt": { "type": "string", "example": "2026-08-11T12:00:00.000Z" },
+          "message": { "type": "string", "example": "Testimonial submitted successfully and is pending review." }
+        },
+        "required": ["id", "status", "submittedAt", "message"]
+      },
+      "TestimonialListResponse": {
+        "type": "object",
+        "properties": {
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/TestimonialItem" } },
+          "total": { "type": "integer", "example": 3 }
+        },
+        "required": ["items", "total"]
+      },
+      "PublicContentPage": {
+        "type": "object",
+        "properties": {
+          "slug": { "type": "string", "example": "about-us" },
+          "title": { "type": "string", "example": "About CarChief" },
+          "summary": { "type": "string", "example": "Leading Japanese vehicle export specialist..." },
+          "body": { "type": "string", "example": "CarChief is a premier Japanese vehicle export dealer..." },
+          "owner": { "type": "string", "example": "ExecutiveTeam" },
+          "status": { "type": "string", "enum": ["approved", "pending", "draft", "unavailable", "rejected"], "example": "approved" },
+          "updatedAt": { "type": "string", "example": "2026-08-10T10:00:00.000Z" }
+        },
+        "required": ["slug", "title", "summary", "body", "owner", "status", "updatedAt"]
+      },
+      "OfficeLocation": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "example": "off-1" },
+          "name": { "type": "string", "example": "Tokyo Head Office" },
+          "city": { "type": "string", "example": "Tokyo" },
+          "country": { "type": "string", "example": "Japan" },
+          "address": { "type": "string", "example": "Chiyoda-ku, Tokyo 100-0001, Japan" },
+          "phone": { "type": "string", "example": "+81 3 1234 5678" },
+          "email": { "type": "string", "example": "japan@carchief.com" },
+          "operatingHours": { "type": "string", "example": "Mon-Fri 09:00 - 18:00 JST" },
+          "isPrimary": { "type": "boolean", "example": true },
+          "status": { "type": "string", "enum": ["approved", "pending", "draft", "unavailable", "rejected"], "example": "approved" }
+        },
+        "required": ["id", "name", "city", "country", "address", "phone", "email", "operatingHours", "isPrimary", "status"]
+      },
+      "OfficeListResponse": {
+        "type": "object",
+        "properties": {
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/OfficeLocation" } },
+          "total": { "type": "integer", "example": 3 }
+        },
+        "required": ["items", "total"]
+      },
+      "BranchContent": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "example": "harare-hub" },
+          "name": { "type": "string", "example": "Harare Hub" },
+          "code": { "type": "string", "example": "HRE" },
+          "destinationPort": { "type": "string", "example": "Durban" },
+          "introduction": { "type": "string", "example": "CarChief Harare Hub connects buyers..." },
+          "welcomeBanner": { "type": "string", "example": "Welcome to CarChief Harare Hub" },
+          "contactBanner": { "type": "string", "example": "Contact our Harare import specialists" },
+          "meetAndGreetInfo": { "type": "string", "example": "Visit our representative office..." },
+          "contentOwner": { "type": "string", "example": "BranchTeam" },
+          "status": { "type": "string", "enum": ["approved", "pending", "draft", "unavailable", "rejected"], "example": "approved" }
+        },
+        "required": ["id", "name", "code", "destinationPort", "introduction", "welcomeBanner", "contactBanner", "meetAndGreetInfo", "contentOwner", "status"]
+      },
+      "BranchListResponse": {
+        "type": "object",
+        "properties": {
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/BranchContent" } },
+          "total": { "type": "integer", "example": 3 }
+        },
+        "required": ["items", "total"]
       }
     }
   }
 }
+
