@@ -1,0 +1,77 @@
+import { test, expect } from '@playwright/test';
+
+test.describe('Public Content & Information Pages E2E Suite (PUB-17..PUB-35, D01-P07-T002)', () => {
+  test('renders About Us page with title, badge and sections', async ({ page }) => {
+    await page.goto('/about');
+    await expect(page.locator('h1')).toHaveText('About CarChief');
+    await expect(page.getByText('Company Information')).toBeVisible();
+    await expect(page.getByRole('heading', { level: 2, name: 'Our Mission' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 2, name: 'Quality Standards' })).toBeVisible();
+  });
+
+  test('renders How to Buy guide page with steps', async ({ page }) => {
+    await page.goto('/how-to-buy');
+    await expect(page.locator('h1')).toHaveText('How to Buy a Vehicle Step-by-Step');
+    await expect(page.getByRole('heading', { level: 2, name: 'Step 1: Select Your Vehicle' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 2, name: 'Step 4: Shipping & Customs' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Browse Vehicles' })).toHaveAttribute('href', '/vehicles');
+  });
+
+  test('renders Contact page with office cards and WhatsApp link', async ({ page }) => {
+    await page.goto('/contact');
+    await expect(page.locator('h1')).toHaveText('Contact Us');
+    await expect(page.getByRole('heading', { level: 2, name: 'Global Customer Support' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 3, name: 'Tokyo Head Office' })).toBeVisible();
+    await expect(page.getByText('Headquarters')).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Contact via WhatsApp' })).toBeVisible();
+  });
+
+  test('renders Company Services page', async ({ page }) => {
+    await page.goto('/services');
+    await expect(page.locator('h1')).toHaveText('CarChief Company Services');
+    await expect(page.getByText('OperationsTeam')).toBeVisible();
+  });
+
+  test('renders Auction Services page', async ({ page }) => {
+    await page.goto('/auction');
+    await expect(page.locator('h1')).toHaveText('Japanese Auto Auction Services');
+    await expect(page.getByRole('heading', { level: 2, name: 'Bidding Portal' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 2, name: 'Auction Terms' })).toBeVisible();
+  });
+
+  test('renders Shipping Schedule page', async ({ page }) => {
+    await page.goto('/shipping-schedule');
+    await expect(page.locator('h1')).toHaveText('Ocean Shipping Schedule');
+    await expect(page.getByRole('heading', { level: 2, name: 'Yokohama to Mombasa / Dar es Salaam' })).toBeVisible();
+  });
+
+  test('renders Privacy Policy page with interactive cookie consent choices', async ({ page }) => {
+    await page.goto('/privacy');
+    await expect(page.locator('h1')).toHaveText('Privacy & Cookie Policy');
+    await expect(page.getByRole('heading', { level: 2, name: 'Cookie Preferences & Consent Choice' })).toBeVisible();
+
+    const essentialBtn = page.getByRole('button', { name: 'Essential Cookies Only' });
+    await essentialBtn.click();
+    await expect(page.getByRole('status')).toContainText('Essential Cookies Only');
+
+    const allBtn = page.getByRole('button', { name: 'Accept All Cookies' });
+    await allBtn.click();
+    await expect(page.getByRole('status')).toContainText('All Cookies Accepted');
+  });
+
+  test('renders dynamic Content Page by slug (security-bank-info)', async ({ page }) => {
+    await page.goto('/content/security-bank-info');
+    await expect(page.locator('h1')).toHaveText('Official Bank Details & Payment Security');
+    await expect(page.getByText('Owner: FinanceTeam')).toBeVisible();
+    await expect(page.getByRole('heading', { level: 2, name: 'Payment Verification Protocol' })).toBeVisible();
+  });
+
+  test('renders Branch Hub page for Harare Hub with collections', async ({ page }) => {
+    await page.goto('/branches/harare-hub');
+    await expect(page.locator('h1')).toHaveText('Harare Hub');
+    await expect(page.getByText(/Code: HRE/)).toBeVisible();
+    await expect(page.getByText('Welcome to CarChief Harare Hub — Direct Imports to Zimbabwe')).toBeVisible();
+    await expect(page.getByRole('heading', { level: 3, name: 'Tendai Mutasa' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 2, name: 'Latest Arrivals for Durban' })).toBeVisible();
+  });
+});

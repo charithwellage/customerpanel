@@ -1,50 +1,36 @@
-'use client';
+import React from 'react';
+import type { Metadata } from 'next';
+import { loadContentPageBySlug, loadOffices } from '../../features/public-content/loadPublicContent';
+import { ContentPageTemplate } from '../../features/public-content/components/ContentPageTemplate';
+import { ContactPageContent } from '../../features/public-content/components/ContactPageContent';
+import '../../features/public-content/public-content.css';
 
-import React, { Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
-import type { EnquiryType } from '@carchief/domain';
-import { EnquirySection, type EnquiryContext } from '../../features/enquiry';
+export const dynamic = 'force-dynamic';
 
-const KNOWN_ENQUIRY_TYPES: readonly EnquiryType[] = ['general', 'vehicle', 'price-request', 'premium-vehicle'];
+export const metadata: Metadata = {
+  title: 'Contact Us & Office Locations | CarChief',
+  description:
+    'Get in touch with CarChief customer support, regional office locations, operating hours, and WhatsApp inquiry specialists.',
+};
 
-function buildContextFromParams(params: URLSearchParams): EnquiryContext {
-  const vehicleSlug = params.get('vehicle') || undefined;
-  const destinationCode = params.get('destinationCode') || undefined;
-  const portCode = params.get('portCode') || undefined;
-  const topic = params.get('topic');
-  const enquiryTypeParam = params.get('enquiryType');
-  const enquiryType =
-    enquiryTypeParam && (KNOWN_ENQUIRY_TYPES as readonly string[]).includes(enquiryTypeParam)
-      ? (enquiryTypeParam as EnquiryType)
-      : undefined;
+export default async function ContactPage() {
+  const page = await loadContentPageBySlug('contact');
+  const officesResponse = await loadOffices();
 
-  let message: string | undefined;
-  if (topic === 'freight-estimate') {
-    message = vehicleSlug
-      ? `Please send a formal shipping quotation for vehicle ${vehicleSlug}.`
-      : 'Please send a formal shipping quotation.';
-  }
-
-  return { vehicleSlug, destinationCode, portCode, message, enquiryType };
-}
-
-function ContactPageContent() {
-  const searchParams = useSearchParams();
-  const context = buildContextFromParams(searchParams);
-  return <EnquirySection context={context} />;
-}
-
-/**
- * Quotation enquiry / contact route (PUB-13, PUB-15). Reached from the
- * vehicle detail page's declared-intent contact actions and from the freight
- * estimate section's "Request a formal quotation" link; also reachable
- * directly for a general enquiry. Delivered independent of
- * DEC-PUB-FREIGHT-MODEL/DEC-PUB-CITY-DELIVERY (D01-ASM-001).
- */
-export default function ContactPage() {
   return (
-    <Suspense fallback={<div className="cc-enquiry__intro">Loading contact form&hellip;</div>}>
-      <ContactPageContent />
-    </Suspense>
+    <ContentPageTemplate
+      title={page?.title ?? 'Contact Us'}
+      subtitle={
+        page?.summary ??
+        'Connect with our global sales specialists, logistics managers, and regional office hubs.'
+      }
+      badge="Global Contact Hubs"
+      owner={page?.owner ?? 'SupportTeam'}
+      updatedAt={page?.updatedAt ?? '2026-08-10T10:00:00.000Z'}
+      status={page?.status ?? 'approved'}
+      body={page?.body}
+    >
+      <ContactPageContent offices={officesResponse.items} />
+    </ContentPageTemplate>
   );
 }
