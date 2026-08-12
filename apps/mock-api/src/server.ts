@@ -339,8 +339,17 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
     res.json(req.user);
   });
 
-  // 5. Deterministic reset
+  // 5. Deterministic reset (Disabled in production mode for release safety)
   app.post('/api/v1/__reset', async (req: AuthenticatedRequest, res: Response) => {
+    if (process.env.NODE_ENV === 'production') {
+      res.status(403).json({
+        statusCode: 403,
+        message: 'Forbidden: Reset endpoint is disabled in production environment',
+        correlationId: `corr-403-${Date.now()}`,
+      });
+      return;
+    }
+
     // If token provided, enforce permission
     if (req.user && !hasPermission(req.user.role, 'reset:data')) {
       res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });

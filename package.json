@@ -22,6 +22,9 @@
     "test:seo-routes": "vitest run apps/public-web/src/__tests__/seo-routes.test.ts",
     "test:metadata": "vitest run apps/public-web/src/__tests__/metadata.test.ts",
     "test:traceability": "vitest run tests/traceability/requirement-coverage.test.ts",
+    "test:security": "vitest run apps/public-web/src/__tests__/security-projection.test.ts apps/mock-api/src/__tests__/security-projection.test.ts",
+    "build:production": "NODE_ENV=production pnpm --recursive --sort run build",
+    "test:production-guard": "vitest run apps/public-web/src/__tests__/production-guard.test.ts",
     "test:e2e": "playwright test"
   },
   "devDependencies": {
