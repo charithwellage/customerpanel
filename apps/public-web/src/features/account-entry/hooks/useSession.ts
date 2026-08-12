@@ -31,16 +31,18 @@ export interface UseSessionOptions {
 export interface UseSessionReturn {
   status: SessionStatus;
   claims: JwtClaims | null;
+  /** The bearer token backing an `active` session, for a caller (e.g. the reservation feature) that needs to authorize its own `HttpClient`. Always `null` outside `active`. */
+  token: string | null;
   isSigningIn: boolean;
   signInError: string | null;
   signInDemo: () => Promise<void>;
   signOut: () => void;
 }
 
-function deriveStatus(stored: StoredSession | null): { status: SessionStatus; claims: JwtClaims | null } {
-  if (!stored) return { status: 'anonymous', claims: null };
-  if (isStoredSessionExpired(stored.claims)) return { status: 'expired', claims: stored.claims };
-  return { status: 'active', claims: stored.claims };
+function deriveStatus(stored: StoredSession | null): { status: SessionStatus; claims: JwtClaims | null; token: string | null } {
+  if (!stored) return { status: 'anonymous', claims: null, token: null };
+  if (isStoredSessionExpired(stored.claims)) return { status: 'expired', claims: stored.claims, token: null };
+  return { status: 'active', claims: stored.claims, token: stored.token };
 }
 
 /**
@@ -107,7 +109,7 @@ export function useSession(options: UseSessionOptions = {}): UseSessionReturn {
     window.dispatchEvent(new Event(SESSION_EVENT));
   }, []);
 
-  const { status, claims } = deriveStatus(stored);
+  const { status, claims, token } = deriveStatus(stored);
 
-  return { status, claims, isSigningIn, signInError, signInDemo, signOut };
+  return { status, claims, token, isSigningIn, signInError, signInDemo, signOut };
 }

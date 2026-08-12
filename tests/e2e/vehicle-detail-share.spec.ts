@@ -43,8 +43,12 @@ test.describe('Vehicle detail share, print, and metadata', () => {
     // Click Share button
     await shareBtn.click();
 
-    // Verify toast notification appears accessibly (role="status", aria-live="polite")
-    const toast = page.locator('[role="status"]');
+    // Verify toast notification appears accessibly (role="status", aria-live="polite").
+    // Scoped to `.cc-toast` specifically (not a bare `[role="status"]`): the
+    // page also carries the reservation sign-in guidance's own `role="status"`
+    // region (D01-P06-T005), and Playwright's strict mode fails a locator
+    // matching more than one element (`tasks/delivery_01/phase_06/CONTEXT.md` §5).
+    const toast = page.locator('.cc-toast[role="status"]');
     await expect(toast).toBeVisible();
     await expect(toast).toContainText('Link copied to clipboard!');
   });

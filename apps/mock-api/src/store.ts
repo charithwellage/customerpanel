@@ -32,6 +32,7 @@ import {
   ENQUIRY_PREFERRED_DRIVE_SIDES,
   RESERVATION_HOLD_HOURS,
   MAX_ACTIVE_RESERVATIONS_PER_CUSTOMER,
+  RESERVABLE_VEHICLE_STATUSES,
 } from '@carchief/domain';
 import { validateEmail } from '@carchief/validation';
 export { FreightRequestError, resolveFreightRateStatus } from '@carchief/domain';
@@ -1203,8 +1204,14 @@ export class ReservationRequestError extends Error {
   }
 }
 
-/** Vehicle statuses a fresh reservation attempt may ever apply to, once any blocking active hold is excluded. */
-const RESERVABLE_VEHICLE_STATUSES = new Set(['Available', 'Reserved']);
+/**
+ * `RESERVABLE_VEHICLE_STATUSES` as a `Set` for `O(1)` membership checks; the
+ * vocabulary itself is shared with the public UI via `@carchief/domain`.
+ * `VehicleRecord.status` is `string` (not the narrower `VehicleStatus`)
+ * because the mock's seed/store layer predates that domain type, so the
+ * `Set` stays `string`-keyed to match without a forced cast.
+ */
+const RESERVABLE_VEHICLE_STATUS_SET = new Set<string>(RESERVABLE_VEHICLE_STATUSES);
 
 export interface ReservationRecord {
   id: string;
@@ -1284,7 +1291,7 @@ function checkReservationEligibility(
   // or none ever existed). Any status outside the reservable set is
   // ineligible on its own merits (Draft/Pending/ReservedWithPI/InvoiceCreated/
   // Invoiced/Sold) regardless of hold history.
-  if (!RESERVABLE_VEHICLE_STATUSES.has(vehicle.status)) {
+  if (!RESERVABLE_VEHICLE_STATUS_SET.has(vehicle.status)) {
     throw new ReservationRequestError(409, `Vehicle is not available to reserve (status: ${vehicle.status})`, undefined, 'vehicle_unavailable');
   }
 

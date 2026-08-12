@@ -384,6 +384,17 @@ export interface LeadListResponse {
 export const RESERVATION_HOLD_HOURS = 48;
 export const MAX_ACTIVE_RESERVATIONS_PER_CUSTOMER = 3;
 
+/**
+ * Vehicle statuses a fresh reservation attempt may ever apply to, once any
+ * blocking active hold on that vehicle is excluded (checked separately as
+ * `conflict`/`duplicate`). Shared by the mock's server-authoritative
+ * eligibility check and the public UI's honest "not available to reserve"
+ * empty state (RULE-09) — the browser never invents or forks this
+ * vocabulary; it only uses it to decide whether to show a Reserve action at
+ * all, never to grant eligibility itself.
+ */
+export const RESERVABLE_VEHICLE_STATUSES: readonly VehicleStatus[] = ['Available', 'Reserved'];
+
 export type ReservationStatus = 'active' | 'expired';
 
 export interface ReservationRequest {

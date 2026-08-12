@@ -11,6 +11,7 @@ import {
   serializeJsonLd,
 } from '@carchief/vehicle-detail';
 import { FreightEstimateSection } from '../freight';
+import { ReservationSection } from '../reservation';
 
 const TOAST_DISMISS_MS = 3000;
 
@@ -190,6 +191,13 @@ export default function VehicleDetailPage({ vehicle }: VehicleDetailPageProps) {
             Email Intent
           </a>
         </div>
+      </section>
+
+      {/* Reservation action (PUB-23, RULE-05, RULE-08, RULE-10). Composes the
+          account-entry sign-in guidance (D01-P06-T003) with the transactional
+          hold contract (D01-P06-T004) — see features/reservation/. */}
+      <section className="cc-vehicle-detail__reservation" aria-label="Reserve this vehicle">
+        <ReservationSection vehicleSlug={vehicle.slug} vehicleStatus={vehicle.status} vehicleLabel={title} />
       </section>
 
       {specs.length > 0 && (
