@@ -47,6 +47,22 @@
         }
       }
     },
+    "/api/v1/auth/demo-session": {
+      "post": {
+        "summary": "Mint a stand-in demo customer session (DEC-PUB-AUTH-BOUNDARY, PUB-22, D01-P06-T003) — never a production identity",
+        "operationId": "startDemoSession",
+        "responses": {
+          "201": {
+            "description": "A CustomerBuyer stand-in session was minted",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/DemoSessionResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/vehicles": {
       "get": {
         "summary": "Get vehicle domain summaries",
@@ -436,7 +452,7 @@
     },
     "/api/v1/enquiries": {
       "post": {
-        "summary": "Submit a quotation enquiry (PUB-13, PUB-15, D01-P05-T004) — independent of DEC-PUB-FREIGHT-MODEL",
+        "summary": "Submit a general, vehicle, price-request or Premium Vehicle enquiry (PUB-13, PUB-14, PUB-15, PUB-28, PUB-34, D01-P05-T004, D01-P06-T001) — independent of DEC-PUB-FREIGHT-MODEL",
         "operationId": "postEnquiry",
         "requestBody": {
           "required": true,
@@ -465,6 +481,198 @@
           },
           "400": {
             "description": "Invalid, missing or unsupported field",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "Staff-facing lead list proof operation (PUB-16, D01-P06-T001) — the regression fix proving a submitted enquiry is retrievable through the Salesperson service boundary, not only writable",
+        "operationId": "listLeads",
+        "responses": {
+          "200": {
+            "description": "All persisted leads, most-recently-received last",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/LeadListResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "No authenticated staff identity supplied",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated identity lacks the 'read:leads' permission",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/enquiries/{id}": {
+      "get": {
+        "summary": "Staff-facing lead read-by-ID proof operation (PUB-16, D01-P06-T001)",
+        "operationId": "getLeadById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "example": "enq-1723368000000-0"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The canonical lead record for this enquiry",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/LeadRecord" }
+              }
+            }
+          },
+          "401": {
+            "description": "No authenticated staff identity supplied",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated identity lacks the 'read:leads' permission",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "No enquiry exists with this id",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/reservations": {
+      "post": {
+        "summary": "Create a transactional 48-hour reservation hold on a vehicle for the authenticated demo customer (PUB-23, RULE-05, RULE-08, RULE-10, D01-P06-T004)",
+        "operationId": "createReservation",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ReservationRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Reservation created and the vehicle is on hold",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ReservationResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or missing vehicleSlug",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "No authenticated identity supplied (reason: unauthenticated)",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated identity lacks the 'create:reservation' permission (reason: forbidden)",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown vehicle (reason: vehicle_not_found)",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "409": {
+            "description": "Ineligible: vehicle unavailable, an active conflicting/duplicate hold, or the per-customer active-reservation limit is reached (reason: vehicle_unavailable | conflict | duplicate | limit_exceeded)",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/reservations/{id}": {
+      "get": {
+        "summary": "Read a reservation by id (D01-P06-T004) — the owning customer or a staff identity with 'read:leads'",
+        "operationId": "getReservationById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "example": "res-1723368000000-0"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The reservation record",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ReservationResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "No authenticated identity supplied",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated identity is neither the owning customer nor staff with 'read:leads'",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "No reservation exists with this id",
             "content": {
               "application/json": {
                 "schema": { "$ref": "#/components/schemas/ErrorResponse" }
@@ -505,9 +713,39 @@
         "properties": {
           "siteName": { "type": "string", "example": "CarChief" },
           "currency": { "type": "string", "example": "USD" },
-          "contactPhone": { "type": "string", "example": "+256 700 000 000" }
+          "contactPhone": { "type": "string", "example": "+256 700 000 000" },
+          "liveAuctionUrl": {
+            "type": "string",
+            "description": "Approved external Live Auction destination (PUB-27, D01-ASM-002). Absent when no destination is approved — the account-gated Live Auction entry is hidden, never a placeholder link (RULE-10).",
+            "example": "https://auctions.example.com/live"
+          }
         },
         "required": ["siteName", "currency", "contactPhone"]
+      },
+      "SessionClaims": {
+        "type": "object",
+        "description": "Stand-in demo JWT claims (DEC-PUB-AUTH-BOUNDARY). Never a production identity.",
+        "properties": {
+          "sub": { "type": "string", "example": "user-123" },
+          "email": { "type": "string", "example": "user@carchief.com" },
+          "role": {
+            "type": "string",
+            "enum": ["PublicVisitor", "CustomerBuyer", "Salesperson", "StockController", "FinanceManager", "SystemAdmin"],
+            "example": "CustomerBuyer"
+          },
+          "permissions": { "type": "array", "items": { "type": "string" } },
+          "exp": { "type": "integer", "description": "Unix seconds", "example": 1723371600 }
+        },
+        "required": ["sub", "email", "role", "permissions", "exp"]
+      },
+      "DemoSessionResponse": {
+        "type": "object",
+        "properties": {
+          "token": { "type": "string" },
+          "claims": { "$ref": "#/components/schemas/SessionClaims" },
+          "nonProduction": { "type": "boolean", "example": true }
+        },
+        "required": ["token", "claims", "nonProduction"]
       },
       "VehicleSummary": {
         "type": "object",
@@ -680,7 +918,12 @@
           "statusCode": { "type": "integer", "example": 400 },
           "message": { "type": "string", "example": "Bad Request" },
           "correlationId": { "type": "string", "example": "corr-12345" },
-          "field": { "type": "string", "example": "destinationCode" }
+          "field": { "type": "string", "example": "destinationCode" },
+          "reason": {
+            "type": "string",
+            "description": "Machine-readable reservation failure code (D01-P06-T004): unauthenticated, forbidden, vehicle_not_found, vehicle_unavailable, conflict, duplicate, limit_exceeded.",
+            "example": "conflict"
+          }
         },
         "required": ["statusCode", "message", "correlationId"]
       },
@@ -754,11 +997,31 @@
           "email": { "type": "string", "example": "jane@example.com" },
           "phone": { "type": "string", "example": "+256 700 111 222" },
           "message": { "type": "string", "example": "Please send a shipping quotation for this vehicle." },
+          "consent": {
+            "type": "boolean",
+            "description": "Required (D01-P06-T002, PUB-14): explicit agreement to be contacted, validated server-side beyond native browser checks.",
+            "example": true
+          },
           "vehicleSlug": { "type": "string", "example": "2021-toyota-corolla-axio-veh-1" },
           "destinationCode": { "type": "string", "example": "UG" },
-          "portCode": { "type": "string", "example": "MBA" }
+          "portCode": { "type": "string", "example": "MBA" },
+          "enquiryType": {
+            "type": "string",
+            "enum": ["general", "vehicle", "price-request", "premium-vehicle"],
+            "example": "vehicle"
+          },
+          "source": {
+            "type": "string",
+            "enum": ["form", "whatsapp", "email", "call"],
+            "example": "form"
+          },
+          "preferredMake": { "type": "string", "example": "Toyota" },
+          "preferredModel": { "type": "string", "example": "Corolla" },
+          "preferredDriveSide": { "type": "string", "enum": ["left", "right"], "example": "right" },
+          "preferredYear": { "type": "integer", "example": 2021 },
+          "targetPriceUsd": { "type": "number", "example": 12000 }
         },
-        "required": ["name", "email", "phone", "message"]
+        "required": ["name", "email", "phone", "message", "consent"]
       },
       "EnquiryResponse": {
         "type": "object",
@@ -767,10 +1030,100 @@
           "receivedAt": { "type": "string", "example": "2026-08-11T12:00:00.000Z" },
           "status": { "type": "string", "enum": ["received"], "example": "received" },
           "duplicate": { "type": "boolean", "example": false },
+          "enquiryType": {
+            "type": "string",
+            "enum": ["general", "vehicle", "price-request", "premium-vehicle"],
+            "example": "vehicle"
+          },
+          "source": {
+            "type": "string",
+            "enum": ["form", "whatsapp", "email", "call"],
+            "example": "form"
+          },
           "vehicleSlug": { "type": "string", "example": "2021-toyota-corolla-axio-veh-1" },
           "estimateSnapshot": { "$ref": "#/components/schemas/EnquiryEstimateSnapshot" }
         },
-        "required": ["id", "receivedAt", "status", "duplicate"]
+        "required": ["id", "receivedAt", "status", "duplicate", "enquiryType", "source"]
+      },
+      "LeadRecord": {
+        "type": "object",
+        "description": "Canonical staff-visible lead record (PUB-16, D01-P06-T001) — the regression fix proving a submitted enquiry is retrievable through the Salesperson service boundary.",
+        "properties": {
+          "id": { "type": "string", "example": "enq-1723368000000-0" },
+          "receivedAt": { "type": "string", "example": "2026-08-11T12:00:00.000Z" },
+          "status": { "type": "string", "enum": ["New", "Contacted", "InProgress", "Sold", "Archived"], "example": "New" },
+          "enquiryType": {
+            "type": "string",
+            "enum": ["general", "vehicle", "price-request", "premium-vehicle"],
+            "example": "vehicle"
+          },
+          "source": {
+            "type": "string",
+            "enum": ["form", "whatsapp", "email", "call"],
+            "example": "form"
+          },
+          "name": { "type": "string", "example": "Jane Doe" },
+          "email": { "type": "string", "example": "jane@example.com" },
+          "phone": { "type": "string", "example": "+256 700 111 222" },
+          "message": { "type": "string", "example": "Please send a shipping quotation for this vehicle." },
+          "consent": { "type": "boolean", "example": true },
+          "vehicleSlug": { "type": "string", "example": "2021-toyota-corolla-axio-veh-1" },
+          "estimateSnapshot": { "$ref": "#/components/schemas/EnquiryEstimateSnapshot" },
+          "duplicateResubmissionCount": { "type": "integer", "example": 0 },
+          "preferredMake": { "type": "string", "example": "Toyota" },
+          "preferredModel": { "type": "string", "example": "Corolla" },
+          "preferredDriveSide": { "type": "string", "enum": ["left", "right"], "example": "right" },
+          "preferredYear": { "type": "integer", "example": 2021 },
+          "targetPriceUsd": { "type": "number", "example": 12000 }
+        },
+        "required": [
+          "id",
+          "receivedAt",
+          "status",
+          "enquiryType",
+          "source",
+          "name",
+          "email",
+          "phone",
+          "message",
+          "consent",
+          "duplicateResubmissionCount"
+        ]
+      },
+      "LeadListResponse": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/LeadRecord" }
+          },
+          "total": { "type": "integer", "example": 1 }
+        },
+        "required": ["items", "total"]
+      },
+      "ReservationRequest": {
+        "type": "object",
+        "description": "PUB-23, RULE-05, D01-P06-T004: a transactional 48-hour reservation hold request for the authenticated demo customer.",
+        "properties": {
+          "vehicleSlug": { "type": "string", "example": "2021-toyota-corolla-axio-veh-1" }
+        },
+        "required": ["vehicleSlug"]
+      },
+      "ReservationResponse": {
+        "type": "object",
+        "description": "A persisted reservation hold. `status` is always computed live from `expiresAt` versus the current instant — DEC-PUB-RESERVATION-EXPIRY-ACTION is OPEN, so no automatic release action is ever claimed to have occurred (RULE-10).",
+        "properties": {
+          "id": { "type": "string", "example": "res-1723368000000-0" },
+          "vehicleSlug": { "type": "string", "example": "2021-toyota-corolla-axio-veh-1" },
+          "vehicleId": { "type": "string", "example": "veh-1" },
+          "customerId": { "type": "string", "example": "user-123" },
+          "customerEmail": { "type": "string", "example": "user@carchief.com" },
+          "status": { "type": "string", "enum": ["active", "expired"], "example": "active" },
+          "createdAt": { "type": "string", "example": "2026-08-11T12:00:00.000Z" },
+          "expiresAt": { "type": "string", "example": "2026-08-13T12:00:00.000Z" },
+          "holdHours": { "type": "integer", "example": 48 }
+        },
+        "required": ["id", "vehicleSlug", "vehicleId", "customerId", "customerEmail", "status", "createdAt", "expiresAt", "holdHours"]
       }
     }
   }

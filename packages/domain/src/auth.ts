@@ -53,3 +53,25 @@ export function hasPermission(role: UserRole, permission: string): boolean {
   const perms = ROLE_PERMISSIONS[role] || [];
   return perms.includes(permission) || perms.includes('write:all');
 }
+
+/**
+ * Response shape for the mock's demo sign-in endpoint (DEC-PUB-AUTH-BOUNDARY,
+ * PUB-22, D01-P06-T003). `nonProduction` is always `true` so a caller can
+ * render an honest "demo mode" label without inferring it from anything
+ * else (RULE-10) — there is no production identity path in this repo.
+ */
+export interface DemoSessionResponse {
+  token: string;
+  claims: JwtClaims;
+  nonProduction: true;
+}
+
+/**
+ * True once `claims.exp` (Unix seconds) has passed `nowSeconds`. The mock's
+ * `parseDemoJwtToken`/auth middleware does not itself enforce expiry (it
+ * only decodes), so a stand-in session's lifetime is enforced by the caller
+ * — see `apps/public-web/src/features/account-entry` (D01-P06-T003).
+ */
+export function isJwtExpired(claims: Pick<JwtClaims, 'exp'>, nowSeconds: number = Math.floor(Date.now() / 1000)): boolean {
+  return claims.exp <= nowSeconds;
+}

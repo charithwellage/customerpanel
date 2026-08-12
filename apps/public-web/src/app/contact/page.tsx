@@ -2,13 +2,21 @@
 
 import React, { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
+import type { EnquiryType } from '@carchief/domain';
 import { EnquirySection, type EnquiryContext } from '../../features/enquiry';
+
+const KNOWN_ENQUIRY_TYPES: readonly EnquiryType[] = ['general', 'vehicle', 'price-request', 'premium-vehicle'];
 
 function buildContextFromParams(params: URLSearchParams): EnquiryContext {
   const vehicleSlug = params.get('vehicle') || undefined;
   const destinationCode = params.get('destinationCode') || undefined;
   const portCode = params.get('portCode') || undefined;
   const topic = params.get('topic');
+  const enquiryTypeParam = params.get('enquiryType');
+  const enquiryType =
+    enquiryTypeParam && (KNOWN_ENQUIRY_TYPES as readonly string[]).includes(enquiryTypeParam)
+      ? (enquiryTypeParam as EnquiryType)
+      : undefined;
 
   let message: string | undefined;
   if (topic === 'freight-estimate') {
@@ -17,7 +25,7 @@ function buildContextFromParams(params: URLSearchParams): EnquiryContext {
       : 'Please send a formal shipping quotation.';
   }
 
-  return { vehicleSlug, destinationCode, portCode, message };
+  return { vehicleSlug, destinationCode, portCode, message, enquiryType };
 }
 
 function ContactPageContent() {

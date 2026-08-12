@@ -7,6 +7,21 @@ export interface PublicConfig {
   siteName: string;
   currency: string;
   contactPhone: string;
+  liveAuctionUrl?: string;
+}
+
+export interface SessionClaims {
+  sub: string;
+  email: string;
+  role: 'PublicVisitor' | 'CustomerBuyer' | 'Salesperson' | 'StockController' | 'FinanceManager' | 'SystemAdmin';
+  permissions: string[];
+  exp: number;
+}
+
+export interface DemoSessionResponse {
+  token: string;
+  claims: SessionClaims;
+  nonProduction: boolean;
 }
 
 export interface VehicleSummary {
@@ -85,6 +100,7 @@ export interface ErrorResponse {
   message: string;
   correlationId: string;
   field?: string;
+  reason?: string;
 }
 
 export interface HealthResponse {
@@ -154,9 +170,17 @@ export interface EnquiryRequest {
   email: string;
   phone: string;
   message: string;
+  consent: boolean;
   vehicleSlug?: string;
   destinationCode?: string;
   portCode?: string;
+  enquiryType?: 'general' | 'vehicle' | 'price-request' | 'premium-vehicle';
+  source?: 'form' | 'whatsapp' | 'email' | 'call';
+  preferredMake?: string;
+  preferredModel?: string;
+  preferredDriveSide?: 'left' | 'right';
+  preferredYear?: number;
+  targetPriceUsd?: number;
 }
 
 export interface EnquiryResponse {
@@ -164,6 +188,60 @@ export interface EnquiryResponse {
   receivedAt: string;
   status: 'received';
   duplicate: boolean;
+  enquiryType: 'general' | 'vehicle' | 'price-request' | 'premium-vehicle';
+  source: 'form' | 'whatsapp' | 'email' | 'call';
   vehicleSlug?: string;
   estimateSnapshot?: EnquiryEstimateSnapshot;
+}
+
+// Phase 1.6: lead and enquiry contracts (PUB-16, D01-P06-T001). The canonical
+// staff-visible lead record, retrievable through the future Salesperson
+// service boundary — the explicit regression fix for the POC
+// disconnected-lead defect.
+
+export interface LeadRecord {
+  id: string;
+  receivedAt: string;
+  status: 'New' | 'Contacted' | 'InProgress' | 'Sold' | 'Archived';
+  enquiryType: 'general' | 'vehicle' | 'price-request' | 'premium-vehicle';
+  source: 'form' | 'whatsapp' | 'email' | 'call';
+  name: string;
+  email: string;
+  phone: string;
+  message: string;
+  consent: boolean;
+  vehicleSlug?: string;
+  estimateSnapshot?: EnquiryEstimateSnapshot;
+  duplicateResubmissionCount: number;
+  preferredMake?: string;
+  preferredModel?: string;
+  preferredDriveSide?: 'left' | 'right';
+  preferredYear?: number;
+  targetPriceUsd?: number;
+}
+
+export interface LeadListResponse {
+  items: LeadRecord[];
+  total: number;
+}
+
+// Phase 1.6: transactional reservation eligibility and hold (PUB-23,
+// RULE-05, RULE-08, RULE-10, D01-P06-T004). `status` is always computed live
+// from `expiresAt` versus the current instant — DEC-PUB-RESERVATION-EXPIRY-ACTION
+// is OPEN, so no automatic release action is ever claimed to have occurred.
+
+export interface ReservationRequest {
+  vehicleSlug: string;
+}
+
+export interface ReservationResponse {
+  id: string;
+  vehicleSlug: string;
+  vehicleId: string;
+  customerId: string;
+  customerEmail: string;
+  status: 'active' | 'expired';
+  createdAt: string;
+  expiresAt: string;
+  holdHours: number;
 }

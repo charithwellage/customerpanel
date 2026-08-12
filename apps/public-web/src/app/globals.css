@@ -4,6 +4,8 @@
 @import "../features/vehicle-detail/vehicle-detail.css";
 @import "../features/freight/freight.css";
 @import "../features/enquiry/enquiry.css";
+@import "../features/account-entry/account-entry.css";
+@import "../features/reservation/reservation.css";
 
 /*
  * The only fallbacks retained in this file are the four below.

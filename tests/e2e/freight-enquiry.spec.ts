@@ -3,14 +3,17 @@ import { test, expect } from '@playwright/test';
 const detailSlug = '2021-toyota-corolla-axio-veh-1';
 
 /**
- * Quotation enquiry flow (PUB-13, PUB-15, D01-P05-T004).
+ * Quotation enquiry flow (PUB-13, PUB-14, PUB-15, D01-P05-T004,
+ * D01-P06-T002).
  *
  * The enquiry flow does not depend on `DEC-PUB-FREIGHT-MODEL` /
  * `DEC-PUB-CITY-DELIVERY` (D01-ASM-001): a visitor can select a destination
  * and submit a quotation enquiry even though the enquiry carries no computed
  * estimate. These tests use the running mock HTTP service end to end and
  * never assert a fabricated total/currency figure or a claim of staff
- * notification (RULE-09, RULE-10).
+ * notification (RULE-09, RULE-10). Every submitting test checks the
+ * required consent checkbox first (PUB-14, D01-P06-T002) — omitting it is
+ * covered separately by the accessible-validation test below.
  */
 test.describe('Quotation enquiry submission', () => {
   test.beforeEach(async ({ request, baseURL }) => {
@@ -29,6 +32,7 @@ test.describe('Quotation enquiry submission', () => {
     await page.getByLabel('Email').fill('jane@example.com');
     await page.getByLabel('Phone number').fill('+256700111222');
     await page.getByLabel('Message').fill('I would like more information about your inventory.');
+    await page.getByLabel('I agree to be contacted by CarChief about this enquiry.').check();
 
     const [response] = await Promise.all([
       page.waitForResponse((res) => res.url().includes('/api/v1/enquiries') && res.request().method() === 'POST'),
@@ -55,7 +59,14 @@ test.describe('Quotation enquiry submission', () => {
     await expect(page.getByRole('alert').filter({ hasText: 'Enter your email address.' })).toBeVisible();
     await expect(page.getByRole('alert').filter({ hasText: 'Enter your phone number.' })).toBeVisible();
     await expect(page.getByRole('alert').filter({ hasText: 'Enter your enquiry message.' })).toBeVisible();
+    await expect(
+      page.getByRole('alert').filter({ hasText: 'You must agree to be contacted before sending this enquiry.' })
+    ).toBeVisible();
     await expect(page.getByLabel('Name')).toHaveAttribute('aria-invalid', 'true');
+    await expect(page.getByLabel('I agree to be contacted by CarChief about this enquiry.')).toHaveAttribute(
+      'aria-invalid',
+      'true'
+    );
   });
 
   test('a resubmission of the same enquiry is recognized as a duplicate rather than creating a second lead', async ({
@@ -68,6 +79,7 @@ test.describe('Quotation enquiry submission', () => {
       await page.getByLabel('Email').fill('jane.duplicate@example.com');
       await page.getByLabel('Phone number').fill('+256700111222');
       await page.getByLabel('Message').fill('Same enquiry, sent twice.');
+      await page.getByLabel('I agree to be contacted by CarChief about this enquiry.').check();
       const [response] = await Promise.all([
         page.waitForResponse((res) => res.url().includes('/api/v1/enquiries') && res.request().method() === 'POST'),
         page.getByRole('button', { name: 'Send enquiry' }).click(),
@@ -108,6 +120,7 @@ test.describe('Quotation enquiry submission', () => {
     await page.getByLabel('Email').fill('jane.retry@example.com');
     await page.getByLabel('Phone number').fill('+256700111222');
     await page.getByLabel('Message').fill('Retry path enquiry.');
+    await page.getByLabel('I agree to be contacted by CarChief about this enquiry.').check();
     await page.getByRole('button', { name: 'Send enquiry' }).click();
 
     const errorState = page.getByRole('alert').filter({ hasText: 'We could not send your enquiry.' });
@@ -146,6 +159,7 @@ test.describe('Quotation enquiry submission', () => {
     await page.getByLabel('Name').fill('Amara Okoye');
     await page.getByLabel('Email').fill('amara@example.com');
     await page.getByLabel('Phone number').fill('+256700555666');
+    await page.getByLabel('I agree to be contacted by CarChief about this enquiry.').check();
 
     const [response] = await Promise.all([
       page.waitForResponse((res) => res.url().includes('/api/v1/enquiries') && res.request().method() === 'POST'),

@@ -1,0 +1,55 @@
+/*
+ * reservation.css
+ * Feature-level styles for the vehicle-detail Reserve action (PUB-23,
+ * RULE-05, RULE-08, RULE-10, D01-P06-T005).
+ * Owned path: apps/public-web/src/features/reservation/
+ *
+ * Every value uses a semantic token emitted by packages/theme/src/provider.ts.
+ * No literal colours, no fallback palettes. Shares its visual language with
+ * `features/account-entry/account-entry.css`'s `.cc-reservation-guidance`
+ * block so both states of this journey read as one system.
+ */
+
+.cc-reservation-action {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  background: var(--color-info-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+}
+
+.cc-reservation-action--active {
+  background: var(--color-success-surface);
+}
+
+.cc-reservation-action__heading {
+  font-family: var(--font-display);
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.cc-reservation-action__message {
+  font-family: var(--font-body);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin: 0;
+  line-height: 1.6;
+}
+
+.cc-reservation-action__error {
+  font-family: var(--font-body);
+  font-size: var(--font-size-sm);
+  color: var(--color-error);
+  background: var(--color-error-surface);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  margin: 0;
+}
+
+.cc-reservation-action .cc-btn {
+  align-self: flex-start;
+}

@@ -55,6 +55,9 @@ export function EnquiryConfirmation({ result, onStartNewEnquiry }: EnquiryConfir
       </dl>
       <p className="cc-enquiry-confirmation__note">
         Our team reviews enquiries directly; a specific reply time is not guaranteed here.
+        {result.source && result.source !== 'form'
+          ? ` We have noted your preferred contact method as ${result.source}, but we do not send an automatic ${result.source} message from this site.`
+          : ''}
       </p>
       <button type="button" className="cc-btn cc-btn--secondary" onClick={onStartNewEnquiry}>
         Send another enquiry

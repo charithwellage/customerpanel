@@ -1,32 +1,25 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
-import { HttpClient, EnquiryService, FreightService } from '@carchief/api-client';
-import type { EnquiryResponse, FreightDestination, FreightPort } from '@carchief/domain';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { HttpClient, EnquiryService, FreightService, NormalizedApiError } from '@carchief/api-client';
+import type { EnquiryResponse, EnquiryType, FreightDestination, FreightPort } from '@carchief/domain';
+import { enquiryFormSchema, type EnquiryFormSchemaValues, type EnquiryFormSchemaInput } from '@carchief/validation';
 
 /**
- * Quotation enquiry form values (PUB-13). Destination/port are optional — a
- * visitor can submit a general enquiry, a vehicle enquiry, or a quotation
- * enquiry naming a shipping destination, independent of whether a priced
- * freight estimate exists yet (D01-ASM-001).
+ * Quotation/general/vehicle/Premium Vehicle enquiry form values (PUB-13,
+ * D01-P06-T002). Field names match the flat `EnquiryRequest` wire contract
+ * 1:1 so a server-reported 400 `field` maps directly onto `setError(field)`
+ * with no translation table. `preferred*`/`targetPriceUsd` are the optional
+ * vehicle-preference capture for a visitor with no specific vehicle in mind
+ * yet — informal intent only, never a saved search. `EnquiryFormValues` is
+ * the input shape `react-hook-form` manages field-by-field (matching the
+ * zod schema's pre-`.default()` shape); `submit` receives the fully-resolved
+ * output shape once validation passes.
  */
-export interface EnquiryFormValues {
-  name: string;
-  email: string;
-  phone: string;
-  message: string;
-  destinationCode: string;
-  portCode: string;
-}
-
-export interface EnquiryFieldErrors {
-  name?: string;
-  email?: string;
-  phone?: string;
-  message?: string;
-  destinationCode?: string;
-  portCode?: string;
-}
+export type EnquiryFormValues = Required<EnquiryFormSchemaInput>;
+export type EnquiryFieldErrors = Partial<Record<keyof EnquiryFormValues, string>>;
 
 export interface EnquiryContext {
   vehicleSlug?: string;
@@ -34,56 +27,30 @@ export interface EnquiryContext {
   portCode?: string;
   /** Prefilled free-text message, e.g. carried from a specific product page. */
   message?: string;
+  /**
+   * Explicit enquiry type carried from the referring page (e.g. a Premium
+   * Stock teaser or a "Request Price" CTA). Never inferred beyond the safe
+   * MVP default the mock itself applies when this is omitted.
+   */
+  enquiryType?: EnquiryType;
 }
 
-function buildInitialValues(context: EnquiryContext): EnquiryFormValues {
+function buildDefaultValues(context: EnquiryContext): EnquiryFormValues {
   return {
     name: '',
     email: '',
     phone: '',
     message: context.message ?? '',
+    consent: false, // RHF default; the schema requires this to be explicitly `true` before submit succeeds.
     destinationCode: context.destinationCode ?? '',
     portCode: context.portCode ?? '',
+    source: 'form',
+    preferredMake: '',
+    preferredModel: '',
+    preferredDriveSide: '',
+    preferredYear: '',
+    targetPriceUsd: '',
   };
-}
-
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-/**
- * Client-side validation mirroring the mock's own `prepareEnquiry`. This is a
- * UX convenience only — the service revalidates authoritatively and this
- * function never overrides or suppresses a service-reported field error.
- */
-export function validateEnquiryFormValues(values: EnquiryFormValues): EnquiryFieldErrors {
-  const errors: EnquiryFieldErrors = {};
-
-  if (!values.name.trim()) {
-    errors.name = 'Enter your name.';
-  }
-  if (!values.email.trim()) {
-    errors.email = 'Enter your email address.';
-  } else if (!EMAIL_PATTERN.test(values.email.trim())) {
-    errors.email = 'Enter a valid email address.';
-  }
-  if (!values.phone.trim()) {
-    errors.phone = 'Enter your phone number.';
-  }
-  if (!values.message.trim()) {
-    errors.message = 'Enter your enquiry message.';
-  }
-
-  const hasDestination = values.destinationCode.trim() !== '';
-  const hasPort = values.portCode.trim() !== '';
-  if (hasDestination !== hasPort) {
-    const fieldErr = 'Select both a destination and an arrival port, or leave both blank.';
-    if (!hasDestination) {
-      errors.destinationCode = fieldErr;
-    } else {
-      errors.portCode = fieldErr;
-    }
-  }
-
-  return errors;
 }
 
 function resolveBaseUrl(): string {
@@ -101,7 +68,7 @@ export interface UseEnquiryFormOptions {
 
 export interface UseEnquiryFormReturn {
   values: EnquiryFormValues;
-  setField: (field: keyof EnquiryFormValues, value: string) => void;
+  setField: (field: keyof EnquiryFormValues, value: string | boolean) => void;
   fieldErrors: EnquiryFieldErrors;
   destinations: FreightDestination[];
   ports: FreightPort[];
@@ -116,10 +83,17 @@ export interface UseEnquiryFormReturn {
 }
 
 /**
- * Orchestrates the quotation enquiry form and confirmation (PUB-13, PUB-15).
- * Submits through the generated `EnquiryService`; the enquiry is delivered
- * end to end whether or not a priced freight estimate exists, per
+ * Orchestrates the general/vehicle/Premium Vehicle/quotation enquiry form
+ * and confirmation (PUB-13, PUB-14, PUB-15, D01-P06-T002) with
+ * `react-hook-form` + the shared `enquiryFormSchema` (Zod) resolver. The
+ * schema is a UX convenience mirroring the mock's own authoritative
+ * `prepareEnquiry` validation — it never suppresses a server-reported field
+ * error. Submits through the generated `EnquiryService`; the enquiry is
+ * delivered end to end whether or not a priced freight estimate exists, per
  * D01-ASM-001 — this hook never computes or displays a monetary total.
+ * `isSubmitting` disables the submit control and the mock's own
+ * content-based dedupe key guards a double submission server-side, so a
+ * disabled button is never the only protection (Phase 1.6 CONTEXT.md §5).
  */
 export function useEnquiryForm(context: EnquiryContext = {}, options: UseEnquiryFormOptions = {}): UseEnquiryFormReturn {
   const [enquiryService] = useState<EnquiryService>(
@@ -129,15 +103,44 @@ export function useEnquiryForm(context: EnquiryContext = {}, options: UseEnquiry
     () => options.freightService || new FreightService(new HttpClient({ baseUrl: resolveBaseUrl() }))
   );
 
-  const [values, setValues] = useState<EnquiryFormValues>(() => buildInitialValues(context));
-  const [fieldErrors, setFieldErrors] = useState<EnquiryFieldErrors>({});
+  const defaultValues = useMemo(() => buildDefaultValues(context), [context]);
+
+  const {
+    watch,
+    setValue,
+    handleSubmit,
+    setError,
+    clearErrors,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<EnquiryFormSchemaInput, unknown, EnquiryFormSchemaValues>({
+    resolver: zodResolver(enquiryFormSchema),
+    defaultValues,
+    mode: 'onSubmit',
+  });
+
+  // `watch()` is typed to the zod schema's pre-`.default()` input shape
+  // (optional fields); `buildDefaultValues` always supplies a concrete value
+  // for every field, so in practice this is never actually `undefined` —
+  // asserted here once so `EnquiryForm` can stay a plain, ergonomic
+  // controlled-input component with no per-field `?? ''` fallbacks.
+  const values = watch() as EnquiryFormValues;
+  const fieldErrors: EnquiryFieldErrors = useMemo(() => {
+    const mapped: EnquiryFieldErrors = {};
+    (Object.keys(errors) as (keyof EnquiryFormValues)[]).forEach((field) => {
+      const message = errors[field]?.message;
+      if (typeof message === 'string') {
+        mapped[field] = message;
+      }
+    });
+    return mapped;
+  }, [errors]);
 
   const [destinations, setDestinations] = useState<FreightDestination[]>([]);
   const [ports, setPorts] = useState<FreightPort[]>([]);
   const [catalogLoading, setCatalogLoading] = useState<boolean>(true);
   const [catalogError, setCatalogError] = useState<string | null>(null);
 
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [result, setResult] = useState<EnquiryResponse | null>(null);
 
@@ -159,43 +162,59 @@ export function useEnquiryForm(context: EnquiryContext = {}, options: UseEnquiry
     loadCatalog();
   }, [loadCatalog]);
 
-  const setField = useCallback((field: keyof EnquiryFormValues, value: string) => {
-    setValues((prev) => ({ ...prev, [field]: value }));
-    setFieldErrors((prev) => ({ ...prev, [field]: undefined }));
-  }, []);
+  const setField = useCallback(
+    (field: keyof EnquiryFormValues, value: string | boolean) => {
+      setValue(field, value as never, { shouldValidate: false });
+      clearErrors(field);
+    },
+    [setValue, clearErrors]
+  );
 
   const submit = useCallback(async () => {
-    const errors = validateEnquiryFormValues(values);
-    setFieldErrors(errors);
-    if (Object.keys(errors).length > 0) {
-      return;
-    }
-
-    setIsSubmitting(true);
     setSubmitError(null);
-    try {
-      const response = await enquiryService.submit({
-        name: values.name.trim(),
-        email: values.email.trim(),
-        phone: values.phone.trim(),
-        message: values.message.trim(),
-        vehicleSlug: context.vehicleSlug,
-        ...(values.destinationCode ? { destinationCode: values.destinationCode, portCode: values.portCode } : {}),
-      });
-      setResult(response);
-    } catch (err: unknown) {
-      setSubmitError(err instanceof Error ? err.message : 'Unable to send your enquiry. Please try again.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [enquiryService, values, context.vehicleSlug]);
+    await handleSubmit(async (formValues) => {
+      try {
+        const response = await enquiryService.submit({
+          name: formValues.name.trim(),
+          email: formValues.email.trim(),
+          phone: formValues.phone.trim(),
+          message: formValues.message.trim(),
+          consent: formValues.consent === true,
+          vehicleSlug: context.vehicleSlug,
+          enquiryType: context.enquiryType,
+          source: formValues.source,
+          ...(formValues.destinationCode ? { destinationCode: formValues.destinationCode, portCode: formValues.portCode } : {}),
+          ...(formValues.preferredMake ? { preferredMake: formValues.preferredMake.trim() } : {}),
+          ...(formValues.preferredModel ? { preferredModel: formValues.preferredModel.trim() } : {}),
+          ...(formValues.preferredDriveSide ? { preferredDriveSide: formValues.preferredDriveSide } : {}),
+          ...(formValues.preferredYear ? { preferredYear: Number(formValues.preferredYear) } : {}),
+          ...(formValues.targetPriceUsd ? { targetPriceUsd: Number(formValues.targetPriceUsd) } : {}),
+        });
+        setResult(response);
+      } catch (err: unknown) {
+        // Server-error mapping (D01-P06-T002 "In scope"): a field-associated
+        // 400 is attached to the matching RHF field instead of only a
+        // generic banner, so the visitor sees exactly what to fix.
+        if (err instanceof NormalizedApiError && err.statusCode === 400) {
+          const rawField =
+            err.rawError && typeof err.rawError === 'object' && 'field' in err.rawError
+              ? (err.rawError as { field?: unknown }).field
+              : undefined;
+          if (typeof rawField === 'string' && rawField in formValues) {
+            setError(rawField as keyof EnquiryFormValues, { type: 'server', message: err.message });
+            return;
+          }
+        }
+        setSubmitError(err instanceof Error ? err.message : 'Unable to send your enquiry. Please try again.');
+      }
+    })();
+  }, [enquiryService, handleSubmit, setError, context.vehicleSlug, context.enquiryType]);
 
   const startNewEnquiry = useCallback(() => {
-    setValues(buildInitialValues(context));
-    setFieldErrors({});
+    reset(buildDefaultValues(context));
     setSubmitError(null);
     setResult(null);
-  }, [context]);
+  }, [reset, context]);
 
   return {
     values,

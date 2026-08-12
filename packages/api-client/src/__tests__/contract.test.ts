@@ -467,6 +467,8 @@ describe('API Client & Contract Boundary Tests', () => {
           receivedAt: '2026-08-11T12:00:00.000Z',
           status: 'received',
           duplicate: false,
+          enquiryType: 'general',
+          source: 'form',
         }),
       });
       global.fetch = mockFetch;
@@ -477,12 +479,15 @@ describe('API Client & Contract Boundary Tests', () => {
 
       const receipt = await service.submit({
         name: 'Jane Doe',
+        consent: true,
         email: 'jane@example.com',
         phone: '+256700111222',
         message: 'General enquiry about your inventory.',
       });
       expect(receipt.status).toBe('received');
       expect(receipt.duplicate).toBe(false);
+      expect(receipt.enquiryType).toBe('general');
+      expect(receipt.source).toBe('form');
       // RULE-09/RULE-10: an enquiry receipt never carries a monetary total or
       // a claim of staff notification/contact.
       expect(receipt).not.toHaveProperty('total');
@@ -518,6 +523,7 @@ describe('API Client & Contract Boundary Tests', () => {
 
       const receipt = await service.submit({
         name: 'Amara Okoye',
+        consent: true,
         email: 'amara@example.com',
         phone: '+256700555666',
         message: 'Please confirm shipping cost to Uganda.',
@@ -550,6 +556,7 @@ describe('API Client & Contract Boundary Tests', () => {
 
       const receipt = await service.submit({
         name: 'Jane Doe',
+        consent: true,
         email: 'jane@example.com',
         phone: '+256700111222',
         message: 'General enquiry about your inventory.',
@@ -577,12 +584,352 @@ describe('API Client & Contract Boundary Tests', () => {
       const service = new EnquiryService(client);
 
       try {
-        await service.submit({ name: 'Jane Doe', email: '', phone: '+256700111222', message: 'Hello' });
+        await service.submit({ name: 'Jane Doe', consent: true, email: '', phone: '+256700111222', message: 'Hello' });
         expect.fail('Should have thrown NormalizedApiError');
       } catch (err: unknown) {
         expect(err).toBeInstanceOf(NormalizedApiError);
         expect((err as NormalizedApiError).statusCode).toBe(400);
       }
+    });
+
+    // Phase 1.6 (D01-P06-T001): staff-facing lead read-by-ID/list proof
+    // operation, the regression fix proving a submitted enquiry is
+    // retrievable through the Salesperson service boundary (PUB-16).
+    it('fetches a lead by id via EnquiryService.getLeadById, carrying full staff-visible contact fields', async () => {
+      let capturedUrl: string | undefined;
+      const mockFetch = vi.fn().mockImplementation(async (url) => {
+        capturedUrl = url;
+        return {
+          ok: true,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: async () => ({
+            id: 'enq-1',
+            receivedAt: '2026-08-11T12:00:00.000Z',
+            status: 'New',
+            enquiryType: 'general',
+            source: 'form',
+            name: 'Jane Doe',
+            email: 'jane@example.com',
+            phone: '+256700111222',
+            message: 'General enquiry about your inventory.',
+            duplicateResubmissionCount: 0,
+          }),
+        };
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { EnquiryService } = await import('../services/enquiries.js');
+      const service = new EnquiryService(client);
+
+      const lead = await service.getLeadById('enq-1');
+      expect(capturedUrl).toContain('/api/v1/enquiries/enq-1');
+      expect(lead).not.toBeNull();
+      expect(lead?.name).toBe('Jane Doe');
+      expect(lead?.status).toBe('New');
+    });
+
+    it('returns null from EnquiryService.getLeadById when the mock returns 404', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 404,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => ({ statusCode: 404, message: "Enquiry 'missing' not found", correlationId: 'corr-404' }),
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { EnquiryService } = await import('../services/enquiries.js');
+      const service = new EnquiryService(client);
+
+      const lead = await service.getLeadById('missing');
+      expect(lead).toBeNull();
+    });
+
+    it('normalizes a 401/403 from EnquiryService.getLeadById as a NormalizedApiError (not silently null)', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 403,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => ({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' }),
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { EnquiryService } = await import('../services/enquiries.js');
+      const service = new EnquiryService(client);
+
+      try {
+        await service.getLeadById('enq-1');
+        expect.fail('Should have thrown NormalizedApiError');
+      } catch (err: unknown) {
+        expect(err).toBeInstanceOf(NormalizedApiError);
+        expect((err as NormalizedApiError).statusCode).toBe(403);
+      }
+    });
+
+    it('fetches the staff-facing lead list via EnquiryService.listLeads', async () => {
+      let capturedUrl: string | undefined;
+      const mockFetch = vi.fn().mockImplementation(async (url) => {
+        capturedUrl = url;
+        return {
+          ok: true,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: async () => ({
+            items: [
+              {
+                id: 'enq-1',
+                receivedAt: '2026-08-11T12:00:00.000Z',
+                status: 'New',
+                enquiryType: 'general',
+                source: 'form',
+                name: 'Jane Doe',
+                email: 'jane@example.com',
+                phone: '+256700111222',
+                message: 'General enquiry about your inventory.',
+                duplicateResubmissionCount: 0,
+              },
+            ],
+            total: 1,
+          }),
+        };
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { EnquiryService } = await import('../services/enquiries.js');
+      const service = new EnquiryService(client);
+
+      const list = await service.listLeads();
+      expect(capturedUrl).toContain('/api/v1/enquiries');
+      expect(list.total).toBe(1);
+      expect(list.items[0].name).toBe('Jane Doe');
+    });
+  });
+
+  describe('SessionService (PUB-22, DEC-PUB-AUTH-BOUNDARY, D01-P06-T003)', () => {
+    it('mints a demo session via SessionService.startDemoSession, always labelled non-production', async () => {
+      let capturedUrl: string | undefined;
+      let capturedMethod: string | undefined;
+      const mockFetch = vi.fn().mockImplementation(async (url, options) => {
+        capturedUrl = url;
+        capturedMethod = options?.method;
+        return {
+          ok: true,
+          status: 201,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: async () => ({
+            token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.demo.demo-signature',
+            claims: { sub: 'user-123', email: 'user@carchief.com', role: 'CustomerBuyer', permissions: ['read:public'], exp: 9999999999 },
+            nonProduction: true,
+          }),
+        };
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { SessionService } = await import('../services/session.js');
+      const service = new SessionService(client);
+
+      const session = await service.startDemoSession();
+      expect(capturedUrl).toContain('/api/v1/auth/demo-session');
+      expect(capturedMethod).toBe('POST');
+      expect(session.nonProduction).toBe(true);
+      expect(session.claims.role).toBe('CustomerBuyer');
+    });
+
+    it('returns the current claims via SessionService.getCurrentSession when authenticated', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => ({ sub: 'user-123', email: 'user@carchief.com', role: 'CustomerBuyer', permissions: ['read:public'], exp: 9999999999 }),
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000', getAuthToken: () => 'demo-token' });
+      const { SessionService } = await import('../services/session.js');
+      const service = new SessionService(client);
+
+      const claims = await service.getCurrentSession();
+      expect(claims?.role).toBe('CustomerBuyer');
+    });
+
+    it('returns null from SessionService.getCurrentSession for an unauthenticated 401 (never throws for the honest anonymous state)', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 401,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => ({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' }),
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { SessionService } = await import('../services/session.js');
+      const service = new SessionService(client);
+
+      expect(await service.getCurrentSession()).toBeNull();
+    });
+  });
+
+  describe('ReservationService (PUB-23, RULE-05, RULE-08, RULE-10, D01-P06-T004)', () => {
+    it('creates a reservation via ReservationService.create, exposing status and expiresAt with no automatic-release claim', async () => {
+      let capturedUrl: string | undefined;
+      let capturedMethod: string | undefined;
+      let capturedBody: string | undefined;
+      const mockFetch = vi.fn().mockImplementation(async (url, options) => {
+        capturedUrl = url;
+        capturedMethod = options?.method;
+        capturedBody = options?.body;
+        return {
+          ok: true,
+          status: 201,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: async () => ({
+            id: 'res-1',
+            vehicleSlug: '2021-toyota-corolla-axio-veh-1',
+            vehicleId: 'veh-1',
+            customerId: 'user-123',
+            customerEmail: 'user@carchief.com',
+            status: 'active',
+            createdAt: '2026-08-11T12:00:00.000Z',
+            expiresAt: '2026-08-13T12:00:00.000Z',
+            holdHours: 48,
+          }),
+        };
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000', getAuthToken: () => 'demo-token' });
+      const { ReservationService } = await import('../services/reservations.js');
+      const service = new ReservationService(client);
+
+      const reservation = await service.create({ vehicleSlug: '2021-toyota-corolla-axio-veh-1' });
+      expect(capturedUrl).toContain('/api/v1/reservations');
+      expect(capturedMethod).toBe('POST');
+      expect(JSON.parse(capturedBody!)).toEqual({ vehicleSlug: '2021-toyota-corolla-axio-veh-1' });
+      expect(reservation.status).toBe('active');
+      expect(reservation.expiresAt).toBe('2026-08-13T12:00:00.000Z');
+      expect(reservation.holdHours).toBe(48);
+      // RULE-10: never a claim of automatic release/notification action.
+      expect(JSON.stringify(reservation).toLowerCase()).not.toContain('notified');
+      expect(JSON.stringify(reservation).toLowerCase()).not.toContain('released');
+    });
+
+    it('normalizes a 409 conflict from ReservationService.create with the reason field intact', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 409,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => ({
+          statusCode: 409,
+          message: 'This vehicle is already on hold for another customer',
+          correlationId: 'corr-409',
+          reason: 'conflict',
+        }),
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000', getAuthToken: () => 'demo-token' });
+      const { ReservationService } = await import('../services/reservations.js');
+      const service = new ReservationService(client);
+
+      try {
+        await service.create({ vehicleSlug: '2021-toyota-corolla-axio-veh-1' });
+        expect.fail('Should have thrown NormalizedApiError');
+      } catch (err: unknown) {
+        expect(err).toBeInstanceOf(NormalizedApiError);
+        expect((err as NormalizedApiError).statusCode).toBe(409);
+        expect((err as NormalizedApiError).rawError).toMatchObject({ reason: 'conflict' });
+      }
+    });
+
+    it('fetches a reservation by id via ReservationService.getById', async () => {
+      let capturedUrl: string | undefined;
+      const mockFetch = vi.fn().mockImplementation(async (url) => {
+        capturedUrl = url;
+        return {
+          ok: true,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: async () => ({
+            id: 'res-1',
+            vehicleSlug: '2021-toyota-corolla-axio-veh-1',
+            vehicleId: 'veh-1',
+            customerId: 'user-123',
+            customerEmail: 'user@carchief.com',
+            status: 'active',
+            createdAt: '2026-08-11T12:00:00.000Z',
+            expiresAt: '2026-08-13T12:00:00.000Z',
+            holdHours: 48,
+          }),
+        };
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000', getAuthToken: () => 'demo-token' });
+      const { ReservationService } = await import('../services/reservations.js');
+      const service = new ReservationService(client);
+
+      const reservation = await service.getById('res-1');
+      expect(capturedUrl).toContain('/api/v1/reservations/res-1');
+      expect(reservation).not.toBeNull();
+      expect(reservation?.id).toBe('res-1');
+    });
+
+    it('returns null from ReservationService.getById when the mock returns 404', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 404,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => ({ statusCode: 404, message: "Reservation 'missing' not found", correlationId: 'corr-404' }),
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000', getAuthToken: () => 'demo-token' });
+      const { ReservationService } = await import('../services/reservations.js');
+      const service = new ReservationService(client);
+
+      const reservation = await service.getById('missing');
+      expect(reservation).toBeNull();
+    });
+
+    it('normalizes a 403 from ReservationService.getById as a NormalizedApiError (not silently null)', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 403,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => ({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' }),
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000', getAuthToken: () => 'demo-token' });
+      const { ReservationService } = await import('../services/reservations.js');
+      const service = new ReservationService(client);
+
+      try {
+        await service.getById('res-1');
+        expect.fail('Should have thrown NormalizedApiError');
+      } catch (err: unknown) {
+        expect(err).toBeInstanceOf(NormalizedApiError);
+        expect((err as NormalizedApiError).statusCode).toBe(403);
+      }
+    });
+  });
+
+  describe('ConfigService (D01-P06-T003)', () => {
+    it('fetches public config, including an optional liveAuctionUrl when approved', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => ({ siteName: 'CarChief', currency: 'USD', contactPhone: '+256 700 000 000', liveAuctionUrl: 'https://auctions.example.com/live' }),
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { ConfigService } = await import('../services/config.js');
+      const service = new ConfigService(client);
+
+      const config = await service.getPublicConfig();
+      expect(config.liveAuctionUrl).toBe('https://auctions.example.com/live');
     });
   });
 });

@@ -10,7 +10,8 @@
     "build": "tsc"
   },
   "dependencies": {
-    "@carchief/domain": "workspace:*"
+    "@carchief/domain": "workspace:*",
+    "zod": "4.4.3"
   },
   "devDependencies": {
     "@carchief/config": "workspace:*",

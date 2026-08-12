@@ -1,9 +1,9 @@
 import express, { Request, Response, NextFunction, Express } from 'express';
 import { readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { parseDemoJwtToken, JwtClaims, hasPermission } from '@carchief/domain';
-import type { FreightEstimateRequest, EnquiryRequest } from '@carchief/domain';
-import { createStore, type DemoStore, FreightRequestError, EnquiryRequestError } from './store.js';
+import { parseDemoJwtToken, createDemoJwtToken, JwtClaims, hasPermission } from '@carchief/domain';
+import type { FreightEstimateRequest, EnquiryRequest, ReservationRequest } from '@carchief/domain';
+import { createStore, type DemoStore, FreightRequestError, EnquiryRequestError, ReservationRequestError } from './store.js';
 
 export interface AuthenticatedRequest extends Request {
   user?: JwtClaims;
@@ -127,6 +127,130 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
       }
       throw error;
     }
+  });
+
+  // 3h. Staff-facing lead read-by-ID/list proof operations (PUB-16,
+  // D01-P06-T001) — the explicit regression fix for the POC disconnected-lead
+  // defect: a submitted enquiry must be readable back through the future
+  // Salesperson service boundary, not only writable from the public form.
+  // Authorization runs here at the service/BFF boundary, never only in a
+  // future browser UI (FRONT_END_ARCHITECTURE.md §16). Limited to the fields
+  // required to verify handoff; no private/staff-only escalation fields are
+  // added beyond the lead record itself.
+  app.get('/api/v1/enquiries', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) {
+      res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+      return;
+    }
+    if (!hasPermission(req.user.role, 'read:leads')) {
+      res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
+      return;
+    }
+    res.json(await store.listLeads());
+  });
+
+  app.get('/api/v1/enquiries/:id', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) {
+      res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+      return;
+    }
+    if (!hasPermission(req.user.role, 'read:leads')) {
+      res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
+      return;
+    }
+    const rawParam = req.params.id;
+    const id = Array.isArray(rawParam) ? rawParam[0] : rawParam;
+    const lead = await store.getLeadById(id);
+    if (!lead) {
+      res.status(404).json({ statusCode: 404, message: `Enquiry '${id}' not found`, correlationId: `corr-404-${Date.now()}` });
+      return;
+    }
+    res.json(lead);
+  });
+
+  // 3i-r. Transactional reservation eligibility and hold (PUB-23, RULE-05,
+  // RULE-08, RULE-10, D01-P06-T004). Authorization, eligibility (vehicle
+  // availability, conflict/duplicate, the anti-abuse limit) and the atomic
+  // 48-hour hold all run here at the service/BFF boundary, never only in a
+  // future browser UI (FRONT_END_ARCHITECTURE.md §16). Only an authenticated
+  // identity carrying `create:reservation` (a demo `CustomerBuyer`) may
+  // reserve — a public visitor is told what to do next (PUB-23) by the
+  // account-entry UI (D01-P06-T003/T005), not by this route silently
+  // failing.
+  app.post('/api/v1/reservations', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) {
+      res.status(401).json({
+        statusCode: 401,
+        message: 'Sign in to reserve a vehicle',
+        correlationId: `corr-401-${Date.now()}`,
+        reason: 'unauthenticated',
+      });
+      return;
+    }
+    if (!hasPermission(req.user.role, 'create:reservation')) {
+      res.status(403).json({
+        statusCode: 403,
+        message: 'Forbidden: this identity cannot reserve a vehicle',
+        correlationId: `corr-403-${Date.now()}`,
+        reason: 'forbidden',
+      });
+      return;
+    }
+    try {
+      const reservation = await store.createReservation(req.user.sub, req.user.email, (req.body ?? {}) as ReservationRequest);
+      res.status(201).json(reservation);
+    } catch (error) {
+      if (error instanceof ReservationRequestError) {
+        res.status(error.statusCode).json({
+          statusCode: error.statusCode,
+          message: error.message,
+          correlationId: `corr-${error.statusCode}-${Date.now()}`,
+          ...(error.field ? { field: error.field } : {}),
+          ...(error.reason ? { reason: error.reason } : {}),
+        });
+        return;
+      }
+      throw error;
+    }
+  });
+
+  // Reservation read-by-id: gated to the owning customer or a staff identity
+  // with `read:leads` — never a public, unauthenticated response, and never
+  // another customer's reservation (no private-field leak across accounts).
+  app.get('/api/v1/reservations/:id', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) {
+      res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+      return;
+    }
+    const rawParam = req.params.id;
+    const id = Array.isArray(rawParam) ? rawParam[0] : rawParam;
+    const reservation = await store.getReservationById(id);
+    if (!reservation) {
+      res.status(404).json({ statusCode: 404, message: `Reservation '${id}' not found`, correlationId: `corr-404-${Date.now()}` });
+      return;
+    }
+    const isOwner = reservation.customerId === req.user.sub;
+    if (!isOwner && !hasPermission(req.user.role, 'read:leads')) {
+      res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
+      return;
+    }
+    res.json(reservation);
+  });
+
+  // 3i. Stand-in demo customer session (PUB-22, DEC-PUB-AUTH-BOUNDARY,
+  // D01-P06-T003). Always mints a CustomerBuyer identity — a public visitor
+  // can never self-elevate to a staff role through this endpoint. Never a
+  // production identity; the response's `nonProduction: true` lets the
+  // browser render an honest demo-mode label rather than inferring one
+  // (RULE-10).
+  app.post('/api/v1/auth/demo-session', (_req: Request, res: Response) => {
+    const token = createDemoJwtToken('CustomerBuyer');
+    const claims = parseDemoJwtToken(token);
+    if (!claims) {
+      res.status(500).json({ statusCode: 500, message: 'Failed to mint demo session', correlationId: `corr-500-${Date.now()}` });
+      return;
+    }
+    res.status(201).json({ token, claims, nonProduction: true });
   });
 
   // 4. Auth identity inspection endpoint
