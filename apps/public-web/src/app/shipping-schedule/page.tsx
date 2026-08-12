@@ -7,9 +7,9 @@ import '../../features/public-content/public-content.css';
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: 'Ocean Shipping Schedule | CarChief Vessel Schedules',
+  title: 'Ocean Shipping Schedule | CarChief',
   description:
-    'Vessel departure schedules from Yokohama and Kobe ports to destination ports in Kenya, Tanzania, South Africa, and Jamaica.',
+    'How ocean shipping works for CarChief vehicle exports from Japan, and where to get current sailing information for your route.',
 };
 
 export default async function ShippingSchedulePage() {
@@ -17,24 +17,14 @@ export default async function ShippingSchedulePage() {
 
   const defaultSections = [
     {
-      title: 'Yokohama to Mombasa / Dar es Salaam',
+      title: 'How Ocean Shipping Generally Works',
       content:
-        'Bi-monthly RORO and container vessel sailings departing 1st & 15th of each month. Estimated voyage duration: 22-26 days.',
+        'After purchase, vehicles are consolidated for RORO (Roll-on/Roll-off) or container shipment from a Japanese port to your destination port. Route and vessel choice depend on your destination.',
     },
     {
-      title: 'Kobe / Yokohama to Durban',
+      title: 'Current Sailing Information',
       content:
-        'Direct liner sailings departing 10th & 25th of each month. Estimated voyage duration: 25-28 days.',
-    },
-    {
-      title: 'Yokohama to Kingston (Jamaica)',
-      content:
-        'Monthly transshipment and direct container sailings. Estimated voyage duration: 32-35 days.',
-    },
-    {
-      title: 'Port Clearance & Shipping Advice',
-      content:
-        'Vessel ETD and ETA dates are updated dynamically based on carrier notices. Contact our shipping department for urgent space bookings.',
+        'Confirmed departure dates and transit times are pending approved carrier data and are not shown here. Contact our logistics team for the current schedule for your route.',
     },
   ];
 
@@ -43,7 +33,7 @@ export default async function ShippingSchedulePage() {
       title={page?.title ?? 'Ocean Shipping Schedule'}
       subtitle={
         page?.summary ??
-        'Monthly vessel departure schedules from Yokohama and Kobe to African and Caribbean destination ports.'
+        'How ocean shipping works for CarChief vehicle exports from Japan, and where to get current sailing information.'
       }
       badge="Ocean Freight Schedules"
       owner={page?.owner ?? 'LogisticsTeam'}

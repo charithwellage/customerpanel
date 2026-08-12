@@ -35,14 +35,14 @@ test.describe('Public Content & Information Pages E2E Suite (PUB-17..PUB-35, D01
   test('renders Auction Services page', async ({ page }) => {
     await page.goto('/auction');
     await expect(page.locator('h1')).toHaveText('Japanese Auto Auction Services');
-    await expect(page.getByRole('heading', { level: 2, name: 'Bidding Portal' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 2, name: 'Auction Sourcing Service' })).toBeVisible();
     await expect(page.getByRole('heading', { level: 2, name: 'Auction Terms' })).toBeVisible();
   });
 
   test('renders Shipping Schedule page', async ({ page }) => {
     await page.goto('/shipping-schedule');
     await expect(page.locator('h1')).toHaveText('Ocean Shipping Schedule');
-    await expect(page.getByRole('heading', { level: 2, name: 'Yokohama to Mombasa / Dar es Salaam' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 2, name: 'How Ocean Shipping Generally Works' })).toBeVisible();
   });
 
   test('renders Privacy Policy page with interactive cookie consent choices', async ({ page }) => {
@@ -68,10 +68,10 @@ test.describe('Public Content & Information Pages E2E Suite (PUB-17..PUB-35, D01
 
   test('renders Branch Hub page for Harare Hub with collections', async ({ page }) => {
     await page.goto('/branches/harare-hub');
-    await expect(page.locator('h1')).toHaveText('Harare Hub');
+    await expect(page.locator('h1')).toHaveText('Harare Hub (demo)');
     await expect(page.getByText(/Code: HRE/)).toBeVisible();
     await expect(page.getByText('Welcome to CarChief Harare Hub — Direct Imports to Zimbabwe')).toBeVisible();
-    await expect(page.getByRole('heading', { level: 3, name: 'Tendai Mutasa' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 3, name: 'Harare Branch Support' })).toBeVisible();
     await expect(page.getByRole('heading', { level: 2, name: 'Latest Arrivals for Durban' })).toBeVisible();
   });
 

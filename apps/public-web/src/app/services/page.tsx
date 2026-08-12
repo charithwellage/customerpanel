@@ -17,9 +17,9 @@ export default async function ServicesPage() {
 
   const defaultSections = [
     {
-      title: 'Direct Japanese Auto Auction Sourcing',
+      title: 'Japanese Auto Auction Sourcing',
       content:
-        'Access over 150,000 weekly listings across USS, TAA, CAA, and JU auto auctions with authentic condition grading.',
+        'Our team sources vehicles found at major Japanese auto auctions on your behalf, reviewing authentic condition grading and inspection sheets before purchase.',
     },
     {
       title: 'Pre-Shipment Inspections (JAVIC / QISJ)',

@@ -7,9 +7,9 @@ import '../../features/public-content/public-content.css';
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: 'Japanese Auto Auction Services & Calendar | CarChief',
+  title: 'Japanese Auto Auction Services | CarChief',
   description:
-    'Search and bid on live Japanese vehicle auto auctions (USS, TAA, CAA, JU) with translated inspection sheets and staff bidding guidance.',
+    'CarChief’s Japanese auction-sourcing service: buying guidance, translated inspection sheets and account-gated bidding access. This page does not provide live auction-site bidding.',
 };
 
 export default async function AuctionPage() {
@@ -17,9 +17,9 @@ export default async function AuctionPage() {
 
   const defaultSections = [
     {
-      title: 'Weekly Auction Coverage',
+      title: 'Auction Sourcing Service',
       content:
-        'We cover over 150,000 weekly vehicle auction listings across major Japanese auction halls including USS Tokyo, USS Yokohama, TAA Kanto, and CAA Chubu.',
+        'CarChief’s team sources vehicles found at major Japanese auto auctions on your behalf, coordinating inspection review and the purchase process for registered clients.',
     },
     {
       title: 'Translated Inspection Sheets',
@@ -31,11 +31,6 @@ export default async function AuctionPage() {
       content:
         'Live bidding access is account-gated for registered clients. A refundable security deposit is required prior to placing auction bids.',
     },
-    {
-      title: 'Auction Days Calendar',
-      content:
-        'Monday: JU Auctions | Tuesday: TAA & CAA | Wednesday: ARAI & BAYAUC | Thursday: USS Nagoya & JU | Friday: USS Tokyo | Saturday: HAA Kobe.',
-    },
   ];
 
   return (
@@ -43,9 +38,9 @@ export default async function AuctionPage() {
       title={page?.title ?? 'Japanese Auto Auction Services'}
       subtitle={
         page?.summary ??
-        'Access live Japanese auto auctions with over 150,000 vehicles listed weekly across USS, TAA, CAA, and JU halls.'
+        'CarChief’s Japanese auction-sourcing service: buying guidance, translated inspection sheets and account-gated bidding access.'
       }
-      badge="Live Auction Access"
+      badge="Auction Sourcing Service"
       owner={page?.owner ?? 'AuctionTeam'}
       updatedAt={page?.updatedAt ?? '2026-08-10T10:00:00.000Z'}
       status={page?.status ?? 'approved'}

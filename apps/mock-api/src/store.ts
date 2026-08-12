@@ -545,7 +545,7 @@ const seedFaqCategories: FaqCategory[] = [
   { id: 'cat-customs-duties', name: 'Customs & Import Duties', description: 'Import duty calculators, tax guidance, and country age restrictions.', order: 5 },
   { id: 'cat-documentation', name: 'Documents & Registration', description: 'Export certificates, Bills of Lading, JAVIC/QISJ inspection certificates.', order: 6 },
   { id: 'cat-warranty-returns', name: 'Warranty & Claims', description: 'Vehicle guarantee policies, claim submission, and dispute resolution.', order: 7 },
-  { id: 'cat-auction-services', name: 'Auction Services', description: 'Bidding on live Japanese auto auctions, deposit rules, and bidding fees.', order: 8 },
+  { id: 'cat-auction-services', name: 'Auction Services', description: 'Auction sourcing service, account-gated bidding access, and deposit/fee guidance.', order: 8 },
   { id: 'cat-account-security', name: 'Account & Security', description: 'Managing user profiles, demo sessions, and secure communication channels.', order: 9 },
   { id: 'cat-insurance-coverage', name: 'Insurance Coverage', description: 'Marine transit insurance, coverage limits, and damage claims during shipping.', order: 10 },
   { id: 'cat-country-regulations', name: 'Country Import Rules', description: 'Specific vehicle age limits, drive-side rules, and port requirements by country.', order: 11 },
@@ -648,8 +648,8 @@ const seedFaqItems: FaqItem[] = [
     id: 'faq-8',
     categoryId: 'cat-auction-services',
     categoryName: 'Auction Services',
-    question: 'Can I bid directly on Japanese car auctions via CarChief?',
-    answer: 'Yes! Account-gated auction services allow registered clients to search and bid on over 150,000 weekly auction listings across Japan with direct staff assistance.',
+    question: 'Does CarChief provide access to Japanese vehicle auctions?',
+    answer: 'CarChief’s team sources vehicles found at major Japanese auto auctions on your behalf and shares translated inspection sheets. Live bidding access on the auction sites themselves is account-gated for registered clients — this public website does not provide direct auction-site bidding or real-time auction data.',
     slug: 'bidding-on-japanese-auctions',
     featured: true,
     order: 1,
@@ -684,11 +684,17 @@ const seedFaqItems: FaqItem[] = [
     updatedAt: '2026-08-10T10:00:00.000Z',
   },
   {
+    // PUB-30, D01-ASM-006: no approved country-specific import-age/levy figure
+    // exists in REQUIREMENT.md or any approved decision. A specific numeric
+    // regulatory claim carries real legal/financial consequences for a buyer
+    // who relies on it (RULE-09, RULE-10), so this answer stays deliberately
+    // general and directs the buyer to confirm current rules rather than
+    // asserting an unverified threshold.
     id: 'faq-11',
     categoryId: 'cat-country-regulations',
     categoryName: 'Country Import Rules',
-    question: 'What age restrictions apply to importing cars to Kenya or Uganda?',
-    answer: 'Kenya restricts imports to vehicles under 8 years of age. Uganda applies environmental levies on vehicles older than 9 years. Always verify your local regulations.',
+    question: 'What import age restrictions or regulations apply in my destination country?',
+    answer: 'Import age restrictions, levies and other vehicle-import regulations vary by destination country and change over time. CarChief does not publish specific country-by-country figures on this page; please confirm the current requirements for your destination with your local customs/import authority or contact CarChief directly for guidance before purchase.',
     slug: 'country-vehicle-age-restrictions',
     featured: true,
     order: 1,
@@ -785,33 +791,45 @@ const seedPublicContentPages: PublicContentPage[] = [
     status: 'approved',
     updatedAt: '2026-08-10T10:00:00.000Z',
     sections: [
-      { title: 'Global Customer Support', content: 'Email: support@carchief.com | Direct Hotline: +256 700 000 000' },
+      // PUB-21, PUB-28, D01-ASM-004: no approved, verified hotline number
+      // exists yet. Labelled explicitly as a demo/placeholder value pending
+      // approval, matching the office/branch fixture convention below,
+      // rather than presenting an unverified number as a real contact line.
+      { title: 'Global Customer Support', content: 'Email: support@carchief.com | Hotline: +256 700 000 000 (demo number — pending approval)' },
     ],
   },
   {
+    // PUB-27, D01-ASM-005: Live Auction bidding/data integration is account-gated
+    // or an approved external destination and is not implied by this public page.
+    // This copy describes the sourcing service CarChief actually provides through
+    // this website; it must never claim direct auction-site bidding access or a
+    // specific listing-volume statistic that has not been approved.
     slug: 'auction-services',
     title: 'Japanese Auto Auction Services',
-    summary: 'Access live Japanese auto auctions with over 150,000 vehicles listed weekly.',
-    body: 'CarChief provides direct bidding access to all major Japanese vehicle auctions (USS, TAA, CAA, JU, BCN). Registered buyers can place bids and review authentic auction inspection sheets.',
+    summary: 'CarChief’s Japanese auction-sourcing service: buying guidance, translated inspection sheets and account-gated bidding access.',
+    body: 'CarChief’s team sources vehicles found at major Japanese auto auctions on behalf of buyers, reviewing translated inspection sheets and coordinating the purchase process. Live bidding access on the auction sites themselves is account-gated for registered clients and is not provided directly through this public website.',
     owner: 'AuctionTeam',
     status: 'approved',
     updatedAt: '2026-08-10T10:00:00.000Z',
     sections: [
-      { title: 'Bidding Portal', content: 'Access is account-gated. Contact a sales representative to activate live bidding credentials.' },
-      { title: 'Auction Terms', content: 'Bids require a refundable bidding deposit. Inspection sheets are translated by our staff prior to bidding.' },
+      { title: 'Auction Sourcing Service', content: 'Contact a sales representative to discuss vehicle sourcing from Japanese auto auctions and, where account-gated, to activate bidding access.' },
+      { title: 'Auction Terms', content: 'Bids placed through an activated account require a refundable bidding deposit. Inspection sheets are translated by our staff before a purchase decision is made.' },
     ],
   },
   {
+    // PUB-29, D01-ASM-005: no approved vessel-schedule data source exists. This
+    // page must describe how ocean shipping generally works without asserting
+    // specific departure dates or transit-time figures that were never approved.
     slug: 'shipping-schedule',
     title: 'Ocean Shipping Schedule',
-    summary: 'Vessel departure schedules from Yokohama and Kobe to African and Caribbean destination ports.',
-    body: 'Monthly shipping schedules for RORO (Roll-on/Roll-off) and container vessels departing Japan for Mombasa, Dar es Salaam, Durban, and Kingston.',
+    summary: 'How ocean shipping works for CarChief vehicle exports from Japan, and where to get current sailing information.',
+    body: 'Vehicles purchased through CarChief are shipped by RORO (Roll-on/Roll-off) or container vessel from Japan to your destination port. Confirmed vessel departure dates and transit-time estimates vary by carrier and route and are not published on this page.',
     owner: 'LogisticsTeam',
     status: 'approved',
     updatedAt: '2026-08-10T10:00:00.000Z',
     sections: [
-      { title: 'Yokohama to Mombasa / Dar es Salaam', content: 'Departures 1st & 15th of each month. Average transit time: 24 days.' },
-      { title: 'Kobe to Durban', content: 'Departures 10th & 25th of each month. Average transit time: 28 days.' },
+      { title: 'How Ocean Shipping Generally Works', content: 'After purchase, vehicles are consolidated for RORO or container shipment from a Japanese port to your destination port. Route and vessel choice depend on your destination.' },
+      { title: 'Current Sailing Information', content: 'Confirmed departure dates and transit times are pending approved carrier data and are not shown here. Contact our logistics team for the current schedule for your route.' },
     ],
   },
   {
@@ -827,7 +845,9 @@ const seedPublicContentPages: PublicContentPage[] = [
     slug: 'our-team',
     title: 'Meet Our Leadership & Global Team',
     summary: 'Dedicated automotive export specialists, logistics managers, and customer support representatives.',
-    body: 'Our multicultural team brings over 20 years of combined experience in Japanese auto auctions and international vehicle logistics.',
+    // PUB-30, D01-ASM-005: no approved source exists for a specific years-of-experience
+    // figure, so this copy describes the team's role composition without an ungrounded statistic.
+    body: 'Our multicultural team of automotive export specialists, logistics coordinators and customer support representatives works together to support buyers through every step of the Japanese vehicle import process.',
     owner: 'HRTeam',
     status: 'approved',
     updatedAt: '2026-08-10T10:00:00.000Z',
@@ -864,14 +884,18 @@ const seedPublicContentPages: PublicContentPage[] = [
   },
 ];
 
+// D01-ASM-004: office location roster and contact details are an illustrative MVP
+// demo projection (city/country level only — no street address, named individual or
+// verified phone/email is asserted as real). Pending DEC-PUB-BRANCH-PAGE and an
+// approved office/content owner sign-off. See REQUIREMENT_GAPS_AND_ASSUMPTIONS.md.
 const seedOfficeLocations: OfficeLocation[] = [
   {
     id: 'off-1',
-    name: 'Tokyo Head Office',
+    name: 'Tokyo Head Office (demo)',
     city: 'Tokyo',
     country: 'Japan',
-    address: 'Chiyoda-ku, Tokyo 100-0001, Japan',
-    phone: '+81 3 1234 5678',
+    address: 'Tokyo, Japan — exact office address pending approval',
+    phone: '+81 3 0000 0000',
     email: 'japan@carchief.com',
     operatingHours: 'Mon-Fri 09:00 - 18:00 JST',
     isPrimary: true,
@@ -879,11 +903,11 @@ const seedOfficeLocations: OfficeLocation[] = [
   },
   {
     id: 'off-2',
-    name: 'Durban Regional Hub',
+    name: 'Durban Regional Hub (demo)',
     city: 'Durban',
     country: 'South Africa',
-    address: 'Maydon Wharf, Port of Durban, 4001',
-    phone: '+27 31 987 6543',
+    address: 'Durban, South Africa — exact office address pending approval',
+    phone: '+27 31 000 0000',
     email: 'durban@carchief.com',
     operatingHours: 'Mon-Fri 08:00 - 17:00 SAST',
     isPrimary: false,
@@ -891,11 +915,11 @@ const seedOfficeLocations: OfficeLocation[] = [
   },
   {
     id: 'off-3',
-    name: 'Harare Representative Office',
+    name: 'Harare Representative Office (demo)',
     city: 'Harare',
     country: 'Zimbabwe',
-    address: 'Sam Nujoma St, Harare, Zimbabwe',
-    phone: '+263 24 2123456',
+    address: 'Harare, Zimbabwe — exact office address pending approval',
+    phone: '+263 24 000 0000',
     email: 'harare@carchief.com',
     operatingHours: 'Mon-Fri 08:30 - 16:30 CAT',
     isPrimary: false,
@@ -903,24 +927,30 @@ const seedOfficeLocations: OfficeLocation[] = [
   },
 ];
 
+// D01-ASM-004: the branch roster (which branches exist, their names/codes/ports) and
+// the "CarChief Team" entries within each branch are an illustrative MVP demo
+// projection, not an approved company definition. DEC-PUB-BRANCH-PAGE stays OPEN —
+// no branch list, staff roster or office address here is asserted as real/approved.
+// Team entries are role-only contact points; no named individual is invented.
+// See REQUIREMENT_GAPS_AND_ASSUMPTIONS.md (D01-ASM-004).
 const seedBranches: BranchContent[] = [
   {
     id: 'harare-hub',
-    name: 'Harare Hub',
+    name: 'Harare Hub (demo)',
     code: 'HRE',
     destinationPort: 'Durban',
-    introduction: 'CarChief Harare Hub connects buyers in Zimbabwe with direct imports routed via Durban port.',
+    introduction: 'CarChief Harare Hub connects buyers in Zimbabwe with direct imports routed via Durban port. This is a demo branch projection pending an approved branch definition.',
     welcomeBanner: 'Welcome to CarChief Harare Hub — Direct Imports to Zimbabwe',
-    contactBanner: 'Contact our Harare import specialists today for personalized vehicle sourcing',
+    contactBanner: 'Contact our Harare team today for personalized vehicle sourcing',
     teamMembers: [
-      { name: 'Tendai Mutasa', role: 'Harare Branch Manager', contactEmail: 't.mutasa@carchief.com' },
-      { name: 'Grace Moyo', role: 'Customer Success Advisor', contactEmail: 'g.moyo@carchief.com' },
+      { name: 'Harare Branch Support', role: 'Branch Manager (role contact — pending approved staff directory)', contactEmail: 'harare@carchief.com' },
+      { name: 'Harare Customer Success', role: 'Customer Success Advisor (role contact — pending approved staff directory)', contactEmail: 'harare@carchief.com' },
     ],
     meetAndGreetInfo: 'Visit our Harare representative office for in-person consultation and pro-forma invoice assistance.',
     contactDetails: {
-      phone: '+263 24 2123456',
+      phone: '+263 24 000 0000',
       email: 'harare@carchief.com',
-      address: 'Sam Nujoma St, Harare, Zimbabwe',
+      address: 'Harare, Zimbabwe — exact office address pending approval',
       hours: 'Mon-Fri 08:30 - 16:30 CAT',
     },
     contentOwner: 'BranchTeam',
@@ -930,20 +960,20 @@ const seedBranches: BranchContent[] = [
   },
   {
     id: 'kingston-hub',
-    name: 'Kingston Hub',
+    name: 'Kingston Hub (demo)',
     code: 'KIN',
     destinationPort: 'Kingston',
-    introduction: 'CarChief Kingston Hub offers Caribbean vehicle buyers direct access to top-grade Japanese stock.',
+    introduction: 'CarChief Kingston Hub offers Caribbean vehicle buyers direct access to top-grade Japanese stock. This is a demo branch projection pending an approved branch definition.',
     welcomeBanner: 'Welcome to CarChief Kingston Hub — Direct Imports to Jamaica',
     contactBanner: 'Connect with our Kingston team for fast quotes and shipping updates',
     teamMembers: [
-      { name: 'Marcus Brown', role: 'Caribbean Regional Director', contactEmail: 'm.brown@carchief.com' },
+      { name: 'Kingston Branch Support', role: 'Caribbean Regional Contact (role contact — pending approved staff directory)', contactEmail: 'kingston@carchief.com' },
     ],
-    meetAndGreetInfo: 'Our Kingston advisors assist with port clearance and Jamaican import compliance.',
+    meetAndGreetInfo: 'Our Kingston team assists with port clearance and Jamaican import compliance.',
     contactDetails: {
-      phone: '+1 876 555 0199',
+      phone: '+1 876 000 0000',
       email: 'kingston@carchief.com',
-      address: 'Kingston Wharves, Kingston, Jamaica',
+      address: 'Kingston, Jamaica — exact office address pending approval',
       hours: 'Mon-Fri 08:00 - 17:00 EST',
     },
     contentOwner: 'BranchTeam',
@@ -953,20 +983,20 @@ const seedBranches: BranchContent[] = [
   },
   {
     id: 'port-louis-hub',
-    name: 'Port Louis Hub',
+    name: 'Port Louis Hub (demo)',
     code: 'PLU',
     destinationPort: 'Port Louis',
-    introduction: 'CarChief Port Louis Hub serves buyers in Mauritius with quality Japanese vehicle imports.',
+    introduction: 'CarChief Port Louis Hub serves buyers in Mauritius with quality Japanese vehicle imports. This is a demo branch projection pending an approved branch definition.',
     welcomeBanner: 'Welcome to CarChief Port Louis Hub — Direct Imports to Mauritius',
     contactBanner: 'Speak with our Port Louis team for local clearance advice',
     teamMembers: [
-      { name: 'Rajen Seeneevassen', role: 'Mauritius Operations Manager', contactEmail: 'r.seeneevassen@carchief.com' },
+      { name: 'Port Louis Branch Support', role: 'Operations Contact (role contact — pending approved staff directory)', contactEmail: 'portlouis@carchief.com' },
     ],
-    meetAndGreetInfo: 'Our Port Louis office provides guidance on Mauritian duty structures and inspection certs.',
+    meetAndGreetInfo: 'Our Port Louis team provides guidance on Mauritian duty structures and inspection certs.',
     contactDetails: {
-      phone: '+230 211 4321',
+      phone: '+230 211 0000',
       email: 'portlouis@carchief.com',
-      address: 'Mer Rouge, Port Louis, Mauritius',
+      address: 'Port Louis, Mauritius — exact office address pending approval',
       hours: 'Mon-Fri 08:30 - 16:30 MUT',
     },
     contentOwner: 'BranchTeam',

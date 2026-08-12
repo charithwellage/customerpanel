@@ -33,7 +33,7 @@ export const ContactPageContent: React.FC<ContactPageContentProps> = ({
               <dt className="cc-contact-page__dt">Hotline & WhatsApp</dt>
               <dd className="cc-contact-page__dd">
                 <a href="tel:+256700000000" className="cc-contact-page__link">
-                  +256 700 000 000
+                  +256 700 000 000 (demo number — pending approval)
                 </a>
               </dd>
             </div>
