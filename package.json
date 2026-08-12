@@ -19,6 +19,9 @@
     "test": "vitest run",
     "test:contract": "vitest run packages/api-client",
     "test:integration": "vitest run packages/api-client",
+    "test:seo-routes": "vitest run apps/public-web/src/__tests__/seo-routes.test.ts",
+    "test:metadata": "vitest run apps/public-web/src/__tests__/metadata.test.ts",
+    "test:traceability": "vitest run tests/traceability/requirement-coverage.test.ts",
     "test:e2e": "playwright test"
   },
   "devDependencies": {
