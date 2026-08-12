@@ -36,11 +36,22 @@ export interface EnquiryContext {
 }
 
 function buildDefaultValues(context: EnquiryContext): EnquiryFormValues {
+  let defaultMessage = context.message ?? '';
+  if (!defaultMessage) {
+    if (context.destinationCode && context.portCode) {
+      defaultMessage = `I would like to request a formal quotation for shipping to ${context.destinationCode} via ${context.portCode}.`;
+    } else if (context.destinationCode) {
+      defaultMessage = `I would like to request a formal quotation for shipping to ${context.destinationCode}.`;
+    } else if (context.vehicleSlug) {
+      defaultMessage = `I am interested in vehicle ${context.vehicleSlug} and would like more details.`;
+    }
+  }
+
   return {
     name: '',
     email: '',
     phone: '',
-    message: context.message ?? '',
+    message: defaultMessage,
     consent: false, // RHF default; the schema requires this to be explicitly `true` before submit succeeds.
     destinationCode: context.destinationCode ?? '',
     portCode: context.portCode ?? '',
@@ -170,9 +181,13 @@ export function useEnquiryForm(context: EnquiryContext = {}, options: UseEnquiry
     [setValue, clearErrors]
   );
 
-  const submit = useCallback(async () => {
-    setSubmitError(null);
-    await handleSubmit(async (formValues) => {
+  const submit = useCallback(
+    async (e?: React.FormEvent) => {
+      if (e && typeof e.preventDefault === 'function') {
+        e.preventDefault();
+      }
+      setSubmitError(null);
+      await handleSubmit(async (formValues) => {
       try {
         const response = await enquiryService.submit({
           name: formValues.name.trim(),
@@ -207,7 +222,7 @@ export function useEnquiryForm(context: EnquiryContext = {}, options: UseEnquiry
         }
         setSubmitError(err instanceof Error ? err.message : 'Unable to send your enquiry. Please try again.');
       }
-    })();
+    })(e);
   }, [enquiryService, handleSubmit, setError, context.vehicleSlug, context.enquiryType]);
 
   const startNewEnquiry = useCallback(() => {

@@ -74,7 +74,7 @@
 | [D01-P07-T003](delivery_01/phase_07/D01-P07-T003.md) | Build testimonial display and moderated submission | COMPLETE | self_ai | playwright_mcp | Antigravity | `feat_delivery01_phase_07` | D01-P07-CODE_REVIEW (COMPLETE) | D01-P07-T001 | P07-B | 2026-08-12T06:52:00.461Z |
 | [D01-P07-T004](delivery_01/phase_07/D01-P07-T004.md) | Build FAQ browsing/search and accept public content | COMPLETE | self_ai | playwright_mcp | Antigravity | `feat_delivery01_phase_07` | D01-P07-CODE_REVIEW (COMPLETE) | D01-P07-T002, D01-P07-T003 | P07-C | 2026-08-12T05:36:36.822Z |
 | [D01-P07-CODE_REVIEW](delivery_01/phase_07/D01-P07-CODE_REVIEW.md) | Phase 1.7 PR code review and tech-lead approval | COMPLETE | phase_manual | not_applicable | Claude Code | `feat_delivery01_phase_07` | D01-P07-CODE_REVIEW (COMPLETE) | D01-P07-T004 | P07-REVIEW | 2026-08-12T07:57:55.000Z |
-| [D01-P08-T005](delivery_01/phase_08/D01-P08-T005.md) | Restore the contact/quotation enquiry form removed during Phase 1.7 | READY | self_ai | playwright_mcp | — | `feat_delivery01_phase_08` | D01-P08-CODE_REVIEW (NOT_STARTED) | D01-P07-CODE_REVIEW | P08-PRE | — |
+| [D01-P08-T005](delivery_01/phase_08/D01-P08-T005.md) | Restore the contact/quotation enquiry form removed during Phase 1.7 | COMPLETE | self_ai | playwright_mcp | Antigravity | `feat_delivery01_phase_08` | D01-P08-CODE_REVIEW (NOT_STARTED) | D01-P07-CODE_REVIEW | P08-PRE | 2026-08-12T10:17:45.000Z |
 | [D01-P08-T001](delivery_01/phase_08/D01-P08-T001.md) | Complete public SEO policy and visitor regression | READY | self_ai | playwright_mcp | — | `feat_delivery01_phase_08` | D01-P08-CODE_REVIEW (NOT_STARTED) | D01-P07-CODE_REVIEW | P08-A | — |
 | [D01-P08-T002](delivery_01/phase_08/D01-P08-T002.md) | Complete data projection, privacy and production-safety checks | READY | self_ai | not_applicable | — | `feat_delivery01_phase_08` | D01-P08-CODE_REVIEW (NOT_STARTED) | D01-P07-T004 | P08-A | — |
 | [D01-P08-T003](delivery_01/phase_08/D01-P08-T003.md) | Complete accessibility, browser and performance acceptance | READY | self_ai | playwright_mcp | — | `feat_delivery01_phase_08` | D01-P08-CODE_REVIEW (NOT_STARTED) | D01-P07-T004 | P08-A | — |
@@ -137,7 +137,7 @@
 
 ## Current execution frontier
 
-- Sequential next: D01-P08-T005 — Restore the contact/quotation enquiry form removed during Phase 1.7 (NOT_STARTED)
+- Sequential next: D01-P08-T005 — Restore the contact/quotation enquiry form removed during Phase 1.7 (IN_PROGRESS)
 - Optional same-group parallel tasks: None
 - Downstream work waits for COMPLETE or SUPERSEDED; IN_REVIEW is not complete.
 - Later tasks cannot be bypassed; use taskctl sequence TASK-ID for the exact blocker.
