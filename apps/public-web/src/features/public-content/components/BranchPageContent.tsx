@@ -76,7 +76,7 @@ export const BranchPageContent: React.FC<BranchPageContentProps> = ({
             vehicles={latestArrivals}
             emptyTitle={`No recent arrivals for ${branch.destinationPort}`}
             emptyDescription="There are currently no new stock items assigned to this destination port."
-            getVehicleHref={(v) => `/vehicles/${generateVehicleSlug(v.year, v.make, v.model, v.id)}`}
+            getVehicleHref={(v) => `/allstock/${generateVehicleSlug(v.year, v.make, v.model, v.id)}`}
           />
         </div>
 
@@ -87,7 +87,7 @@ export const BranchPageContent: React.FC<BranchPageContentProps> = ({
             vehicles={recentlyDiscounted}
             emptyTitle={`No discounted items for ${branch.destinationPort}`}
             emptyDescription="There are currently no promotional discount items for this port destination."
-            getVehicleHref={(v) => `/vehicles/${generateVehicleSlug(v.year, v.make, v.model, v.id)}`}
+            getVehicleHref={(v) => `/allstock/${generateVehicleSlug(v.year, v.make, v.model, v.id)}`}
           />
         </div>
       </section>
@@ -146,7 +146,7 @@ export const BranchPageContent: React.FC<BranchPageContentProps> = ({
           </dl>
 
           <div className="cc-branch-page__actions">
-            <a href="/vehicles" className="cc-btn cc-btn--primary">
+            <a href="/allstock" className="cc-btn cc-btn--primary">
               View All Vehicles
             </a>
             <a href="/contact" className="cc-btn cc-btn--secondary">

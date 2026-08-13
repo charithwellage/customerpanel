@@ -12,7 +12,7 @@ describe('SEO Routes & Policy (PUB-11, PUB-24, DEC-PUB-SEO-SCOPE)', () => {
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://127.0.0.1:3000';
 
     expect(urls).toContain(`${baseUrl}`);
-    expect(urls).toContain(`${baseUrl}/vehicles`);
+    expect(urls).toContain(`${baseUrl}/allstock`);
     expect(urls).toContain(`${baseUrl}/freight-calculator`);
     expect(urls).toContain(`${baseUrl}/contact`);
     expect(urls).toContain(`${baseUrl}/about`);
@@ -63,10 +63,10 @@ describe('SEO Routes & Policy (PUB-11, PUB-24, DEC-PUB-SEO-SCOPE)', () => {
     const redirectMap = new Map(redirects.map((r) => [r.source, r.destination]));
 
     expect(redirectMap.get('/index.php')).toBe('/');
-    expect(redirectMap.get('/stock.php')).toBe('/vehicles');
-    expect(redirectMap.get('/stock_list.php')).toBe('/vehicles');
-    expect(redirectMap.get('/search.php')).toBe('/vehicles');
-    expect(redirectMap.get('/stock_detail.php')).toBe('/vehicles');
+    expect(redirectMap.get('/stock.php')).toBe('/allstock');
+    expect(redirectMap.get('/stock_list.php')).toBe('/allstock');
+    expect(redirectMap.get('/search.php')).toBe('/allstock');
+    expect(redirectMap.get('/stock_detail.php')).toBe('/allstock');
     expect(redirectMap.get('/shipping.php')).toBe('/shipping-schedule');
     expect(redirectMap.get('/schedule.php')).toBe('/shipping-schedule');
     expect(redirectMap.get('/auction.php')).toBe('/auction');

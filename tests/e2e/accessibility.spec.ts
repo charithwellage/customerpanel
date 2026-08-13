@@ -3,8 +3,8 @@ import { test, expect } from '@playwright/test';
 test.describe('Public Web Accessibility & Keyboard Acceptance', () => {
   const publicRoutes = [
     '/',
-    '/vehicles',
-    '/vehicles/2021-toyota-corolla-axio-veh-1',
+    '/allstock',
+    '/allstock/2021-toyota-corolla-axio-veh-1',
     '/freight-calculator',
     '/contact',
     '/branches',
@@ -41,7 +41,7 @@ test.describe('Public Web Accessibility & Keyboard Acceptance', () => {
   }
 
   test('verifies keyboard navigation and focus management on search page', async ({ page }) => {
-    await page.goto('/vehicles');
+    await page.goto('/allstock');
 
     // Press Tab and verify focus outline / element target
     await page.keyboard.press('Tab');

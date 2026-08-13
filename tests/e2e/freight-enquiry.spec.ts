@@ -26,7 +26,7 @@ test.describe('Quotation enquiry submission', () => {
   test('a visitor can send a general enquiry directly and see a receipt confirmation', async ({ page }) => {
     await page.goto('/contact');
 
-    await expect(page.getByRole('heading', { level: 1, name: 'Contact Us' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'CONNECT WITH OUR OPERATIONS AGENTS' })).toBeVisible();
 
     await page.getByLabel('Name').fill('Jane Doe');
     await page.getByLabel('Email').fill('jane@example.com');
@@ -36,7 +36,7 @@ test.describe('Quotation enquiry submission', () => {
 
     const [response] = await Promise.all([
       page.waitForResponse((res) => res.url().includes('/api/v1/enquiries') && res.request().method() === 'POST'),
-      page.getByRole('button', { name: 'Send enquiry' }).click(),
+      page.getByRole('button', { name: 'SEND INQUIRY' }).click(),
     ]);
     expect(response.status()).toBe(201);
 
@@ -53,7 +53,7 @@ test.describe('Quotation enquiry submission', () => {
   test('shows accessible field validation when submitted with no fields filled in', async ({ page }) => {
     await page.goto('/contact');
 
-    await page.getByRole('button', { name: 'Send enquiry' }).click();
+    await page.getByRole('button', { name: 'SEND INQUIRY' }).click();
 
     await expect(page.getByRole('alert').filter({ hasText: 'Enter your name.' })).toBeVisible();
     await expect(page.getByRole('alert').filter({ hasText: 'Enter your email address.' })).toBeVisible();
@@ -82,7 +82,7 @@ test.describe('Quotation enquiry submission', () => {
       await page.getByLabel('I agree to be contacted by CarChief about this enquiry.').check();
       const [response] = await Promise.all([
         page.waitForResponse((res) => res.url().includes('/api/v1/enquiries') && res.request().method() === 'POST'),
-        page.getByRole('button', { name: 'Send enquiry' }).click(),
+        page.getByRole('button', { name: 'SEND INQUIRY' }).click(),
       ]);
       return response;
     }
@@ -121,7 +121,7 @@ test.describe('Quotation enquiry submission', () => {
     await page.getByLabel('Phone number').fill('+256700111222');
     await page.getByLabel('Message').fill('Retry path enquiry.');
     await page.getByLabel('I agree to be contacted by CarChief about this enquiry.').check();
-    await page.getByRole('button', { name: 'Send enquiry' }).click();
+    await page.getByRole('button', { name: 'SEND INQUIRY' }).click();
 
     const errorState = page.getByRole('alert').filter({ hasText: 'We could not send your enquiry.' });
     await expect(errorState).toBeVisible();
@@ -138,7 +138,7 @@ test.describe('Quotation enquiry submission', () => {
   test('the freight estimate "Request a formal quotation" link carries the selected destination into a quotation enquiry', async ({
     page,
   }) => {
-    await page.goto(`/vehicles/${detailSlug}`);
+    await page.goto(`/allstock/${detailSlug}`);
     const section = page.locator('[aria-label="Shipping cost estimate"]');
 
     await section.getByLabel('Destination country').selectOption({ label: 'Uganda (Uganda)' });
@@ -163,7 +163,7 @@ test.describe('Quotation enquiry submission', () => {
 
     const [response] = await Promise.all([
       page.waitForResponse((res) => res.url().includes('/api/v1/enquiries') && res.request().method() === 'POST'),
-      page.getByRole('button', { name: 'Send enquiry' }).click(),
+      page.getByRole('button', { name: 'SEND INQUIRY' }).click(),
     ]);
     expect(response.status()).toBe(201);
     const requestBody = response.request().postDataJSON() as { destinationCode?: string; portCode?: string };
