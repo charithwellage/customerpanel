@@ -88,8 +88,8 @@
 | [D01-P10-T002](delivery_01/phase_10/D01-P10-T002.md) | Apply approved Delivery 01 assumption adjustments | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery01_phase_10` | D01-P10-CODE_REVIEW (NOT_STARTED) | D01-P10-T001 | D01-P10-SEQUENTIAL | — |
 | [D01-P10-T003](delivery_01/phase_10/D01-P10-T003.md) | Re-verify theme parity and close Delivery 01 MVP acceptance | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery01_phase_10` | D01-P10-CODE_REVIEW (NOT_STARTED) | D01-P10-T002 | D01-P10-SEQUENTIAL | — |
 | [D01-P10-CODE_REVIEW](delivery_01/phase_10/D01-P10-CODE_REVIEW.md) | Phase 1.10 PR code review and tech-lead approval | NOT_STARTED | phase_manual | not_applicable | — | `feat_delivery01_phase_10` | D01-P10-CODE_REVIEW (NOT_STARTED) | D01-P10-T003 | D01-P10-REVIEW | — |
-| [D02-P01-G001](delivery_02/phase_01/D02-P01-G001.md) | Record Customer scope, BA workflow ownership and Keycloak identity baseline | NOT_STARTED | self_ai | not_applicable | — | `feat_delivery02_phase_01` | D02-P01-CODE_REVIEW (NOT_STARTED) | D01-P09-CODE_REVIEW | D02-P01-GATE | — |
-| [D02-P01-T001](delivery_02/phase_01/D02-P01-T001.md) | Complete the customer application shell and responsive navigation | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery02_phase_01` | D02-P01-CODE_REVIEW (NOT_STARTED) | D02-P01-G001 | D02-P01-SEQUENTIAL | — |
+| [D02-P01-G001](delivery_02/phase_01/D02-P01-G001.md) | Record Customer scope, BA workflow ownership and Keycloak identity baseline | COMPLETE | self_ai | not_applicable | Antigravity | `feat_delivery02_phase_01` | D02-P01-CODE_REVIEW (NOT_STARTED) | D01-P09-CODE_REVIEW | D02-P01-GATE | 2026-08-13T13:30:15.984Z |
+| [D02-P01-T001](delivery_02/phase_01/D02-P01-T001.md) | Complete the customer application shell and responsive navigation | READY | self_ai | playwright_mcp | — | `feat_delivery02_phase_01` | D02-P01-CODE_REVIEW (NOT_STARTED) | D02-P01-G001 | D02-P01-SEQUENTIAL | — |
 | [D02-P01-T002](delivery_02/phase_01/D02-P01-T002.md) | Add customer session, account states and protected access | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery02_phase_01` | D02-P01-CODE_REVIEW (NOT_STARTED) | D02-P01-T001 | D02-P01-SEQUENTIAL | — |
 | [D02-P01-T003](delivery_02/phase_01/D02-P01-T003.md) | Accept customer default theme, PWA shell, accessibility and Docker deployment | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery02_phase_01` | D02-P01-CODE_REVIEW (NOT_STARTED) | D02-P01-T002 | D02-P01-SEQUENTIAL | — |
 | [D02-P01-T004](delivery_02/phase_01/D02-P01-T004.md) | Establish Customer feature extension points and ownership registry | NOT_STARTED | self_ai | not_applicable | — | `feat_delivery02_phase_01` | D02-P01-CODE_REVIEW (NOT_STARTED) | D02-P01-T003 | D02-P01-SEQUENTIAL | — |
@@ -138,12 +138,20 @@
 | [D02-P10-T002](delivery_02/phase_10/D02-P10-T002.md) | Apply approved Delivery 02 assumption adjustments | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery02_phase_10` | D02-P10-CODE_REVIEW (NOT_STARTED) | D02-P10-T001 | D02-P10-SEQUENTIAL | — |
 | [D02-P10-T003](delivery_02/phase_10/D02-P10-T003.md) | Run final Customer assumption, Docker and golden-journey acceptance | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery02_phase_10` | D02-P10-CODE_REVIEW (NOT_STARTED) | D02-P10-T002 | D02-P10-SEQUENTIAL | — |
 | [D02-P10-CODE_REVIEW](delivery_02/phase_10/D02-P10-CODE_REVIEW.md) | Phase 2.10 PR code review and tech-lead approval | NOT_STARTED | phase_manual | not_applicable | — | `feat_delivery02_phase_10` | D02-P10-CODE_REVIEW (NOT_STARTED) | D02-P10-T003 | D02-P10-REVIEW | — |
+| [D02-P11-T001](delivery_02/phase_11/D02-P11-T001.md) | Add optional Customer theme configuration and provider integration | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery02_phase_11` | D02-P11-CODE_REVIEW (NOT_STARTED) | D02-P10-CODE_REVIEW | D02-P11-OPTIONAL | — |
+| [D02-P11-T002](delivery_02/phase_11/D02-P11-T002.md) | Enable and verify the optional ocean Customer theme | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery02_phase_11` | D02-P11-CODE_REVIEW (NOT_STARTED) | D02-P11-T001 | D02-P11-OPTIONAL | — |
+| [D02-P11-CODE_REVIEW](delivery_02/phase_11/D02-P11-CODE_REVIEW.md) | Optional Customer multi-theme PR code review and tech-lead approval | NOT_STARTED | phase_manual | not_applicable | — | `feat_delivery02_phase_11` | D02-P11-CODE_REVIEW (NOT_STARTED) | D02-P11-T002 | D02-P11-OPTIONAL | — |
 
 
-## Current execution frontier
+## Current execution frontiers
 
-- Sequential next: D01-P10-T001 — Reconcile Delivery 01 requirement gaps and assumption evidence (NOT_STARTED)
-- Optional same-group parallel tasks: None
+- D01-RECONCILIATION: D01-P10-T001 — Reconcile Delivery 01 requirement gaps and assumption evidence (NOT_STARTED)
+- D02-FOUNDATION: D02-P01-T001 — Complete the customer application shell and responsive navigation (NOT_STARTED)
+- D02-DASHBOARD-LOGISTICS: D02-P02-G001 — Establish non-blocking customer dashboard KPI baseline (NOT_STARTED)
+- D02-COMMERCE: D02-P03-T001 — Add customer inventory projection, tier pricing and reservation eligibility (NOT_STARTED)
+- D02-FINAL: D02-P09-T001 — Complete Customer requirement and compiled-behavior traceability (NOT_STARTED)
+- Sequential within each lane; dependencies coordinate work across lanes.
+- Optional Phase 2.11 is excluded until explicitly started with `--opt-in theme`.
 - Downstream work waits for COMPLETE or SUPERSEDED; IN_REVIEW is not complete.
 - Use `taskctl sequence TASK-ID` for the exact blocker.
 
