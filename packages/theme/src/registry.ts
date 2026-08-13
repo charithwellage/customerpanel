@@ -22,6 +22,10 @@ const oceanTheme: SemanticThemeTokens = {
     textSecondary: '#155e75',
     textOnDark: '#f0f9ff',
     textOnPrimary: '#ffffff',
+    // Same white as textOnPrimary: ocean's accent (#0e7490) is a dark teal,
+    // so white text already passes WCAG AA (5.36:1, verified via contrast.ts)
+    // -- unlike carchief, which needs a distinct dark value here.
+    textOnAccent: '#ffffff',
     border: '#bae6fd',
     focus: '#075985',
     success: '#166534',

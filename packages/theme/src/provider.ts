@@ -14,6 +14,7 @@ export function getThemeCssVariables(theme: SemanticThemeTokens = defaultSemanti
     '--color-text-secondary': theme.colors.textSecondary,
     '--color-text-on-dark': theme.colors.textOnDark,
     '--color-text-on-primary': theme.colors.textOnPrimary,
+    '--color-text-on-accent': theme.colors.textOnAccent,
     '--color-border': theme.colors.border,
     '--color-focus': theme.colors.focus,
     '--color-success': theme.colors.success,

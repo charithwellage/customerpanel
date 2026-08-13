@@ -38,6 +38,11 @@ const CONTRAST_PAIRS: ReadonlyArray<{
   { name: 'textOnDark on surfaceDark', foreground: (t) => t.colors.textOnDark, background: (t) => t.colors.surfaceDark },
   { name: 'textOnPrimary on primary', foreground: (t) => t.colors.textOnPrimary, background: (t) => t.colors.primary },
   { name: 'textOnPrimary on primaryHover', foreground: (t) => t.colors.textOnPrimary, background: (t) => t.colors.primaryHover },
+  // D01-P09-CODE_REVIEW Finding 3 regression guard: .hero-btn-primary and
+  // .nav-link-active render textOnAccent on accent (not textOnPrimary --
+  // that token is calibrated for primary and fails AA against carchief's
+  // lighter accent, 3.56:1). Guards both themes so this cannot regress.
+  { name: 'textOnAccent on accent', foreground: (t) => t.colors.textOnAccent, background: (t) => t.colors.accent },
   { name: 'success on successSurface', foreground: (t) => t.colors.success, background: (t) => t.colors.successSurface },
   { name: 'warning on warningSurface', foreground: (t) => t.colors.warning, background: (t) => t.colors.warningSurface },
   { name: 'error on errorSurface', foreground: (t) => t.colors.error, background: (t) => t.colors.errorSurface },

@@ -259,7 +259,7 @@
 
 .cc-btn--primary {
   background-color: var(--color-accent);
-  color: var(--color-text-on-primary);
+  color: var(--color-text-on-accent);
 }
 
 .cc-btn--secondary {
@@ -448,7 +448,7 @@
   height: 44px;
   border-radius: 50%;
   background-color: var(--color-accent);
-  color: var(--color-text-on-primary);
+  color: var(--color-text-on-accent);
   display: flex;
   align-items: center;
   justify-content: center;

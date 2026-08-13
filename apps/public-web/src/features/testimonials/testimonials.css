@@ -310,7 +310,7 @@
 
 .cc-btn--primary {
   background-color: var(--color-accent);
-  color: var(--color-text-on-primary);
+  color: var(--color-text-on-accent);
 }
 
 .cc-btn--primary:disabled {
