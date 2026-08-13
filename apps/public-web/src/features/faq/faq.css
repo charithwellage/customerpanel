@@ -74,7 +74,7 @@
 /* 2. Floating AI Search Bar Card */
 .faq-floating-search-card {
   max-width: 880px;
-  margin: -3.5rem auto 3.5rem;
+  margin: 3.5rem auto 3.5rem;
   background: #ffffff;
   border-radius: 20px;
   box-shadow: 0 20px 45px rgba(0, 0, 0, 0.08);
