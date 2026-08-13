@@ -12,6 +12,7 @@ const oceanTheme: SemanticThemeTokens = {
   colors: {
     primary: '#0369a1',
     primaryHover: '#075985',
+    accent: '#0e7490', // ocean-family cyan accent; AA contrast against white text (5.36:1)
     secondary: '#0f766e',
     background: '#f0f9ff',
     surface: '#ffffff',

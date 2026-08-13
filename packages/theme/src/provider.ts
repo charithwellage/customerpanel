@@ -4,6 +4,7 @@ export function getThemeCssVariables(theme: SemanticThemeTokens = defaultSemanti
   return {
     '--color-primary': theme.colors.primary,
     '--color-primary-hover': theme.colors.primaryHover,
+    '--color-accent': theme.colors.accent,
     '--color-secondary': theme.colors.secondary,
     '--color-background': theme.colors.background,
     '--color-surface': theme.colors.surface,
