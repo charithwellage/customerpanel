@@ -47,31 +47,65 @@ For every completed task marked `ui_validation: "playwright_mcp"`, verify its ex
 
 Alternate-theme (`ocean`) evidence is not expected per task: it is verified once for the whole Public Website in Phase 1.9. The Phase 1.9 review is the exception — there, evidence for both themes is required, with the served `data-theme` value confirmed for each.
 
-For each finding, record:
-- severity (blocking or non-blocking)
-- file/path and evidence
-- violated rule or acceptance criterion
-- responsible implementation task
-- required correction
+## Complete the whole review before stopping
 
-Do not fix product code in this review task. For a blocking defect, run:
+**Never stop at the first defect.** Work the entire checklist to the end and catalogue every finding, then act on all of them once. A review that reopens one task and stops forces the whole cycle to repeat per defect: Phase 1.7 took seven review passes and six fix passes (~1.6M tokens, ~95 minutes) to surface seven defects that one thorough pass would have found together.
 
-node tasks/scripts/taskctl.mjs reopen RESPONSIBLE-TASK-ID --reason "Exact finding"
+Run the checks in this order so the cheap ones fail fast and the expensive ones run once:
+
+1. **Deterministic gate** — `node tasks/scripts/taskctl.mjs validate`, `corepack pnpm quality`, `corepack pnpm -r build`, `corepack pnpm test`, `git diff --check <range>`, `git diff <range> -- POC`. Record each result; do not abort on the first failure, collect them.
+2. **Static sweep** of the diff against `CODE_REVIEW_RULES.md` and `COMMON_FRONTEND_RULES.md`.
+3. **One runtime build**, reused for everything that follows.
+4. **The full Playwright suite** (see below) against that runtime.
+5. **MCP inspection** last, since it is the most expensive step.
+
+Only genuinely unavailable infrastructure — cannot build, cannot start a runtime — justifies aborting early. Report that as a blocker.
+
+## Sweep systematically, not opportunistically
+
+For any defect class, examine **every** place it could occur in the diff, not the first place you find it. Phase 1.7 spent three separate review-and-fix cycles on one class of defect (fabricated business content) because each pass checked only the area it happened to look at: branch fixtures, then auction/shipping page copy, then FAQ and contact details. One systematic sweep across all seed data and all page copy would have found all three together.
+
+Apply this in particular to:
+
+- **Invented content** — statistics, prices, dates, schedules, regulations, certifications, named people, addresses and phone numbers. Sweep all fixtures *and* all page-level fallback copy; the same fabricated value is often duplicated in both, and fixing only one leaves the rendered page wrong.
+- **Evidence quality** — check every task declaring `ui_validation: "playwright_mcp"`, not a sample.
+- **Behaviour removal** — a route rewritten wholesale may have dropped capability delivered in an earlier phase. The full suite is what catches this.
+
+## The full suite is the gate
+
+Run the whole Playwright suite across all three viewport projects against the recorded target:
+
+PLAYWRIGHT_BASE_URL=<recorded-target-url> corepack pnpm exec playwright test --project=chromium --project=mobile-chromium --project=tablet-chromium
+
+A spec-scoped run never satisfies this gate. Phase 1.7's most serious defect — a deleted quotation form that broke 21 tests — survived six review passes because every pass ran one narrow spec. Record the outcome in the review log as:
+
+Full suite result: <passed>/<total> passed across chromium, mobile-chromium, tablet-chromium
+
+`taskctl submit` requires that line.
+
+## Record findings, then batch the reopens
+
+For each finding, record: severity (blocking or non-blocking), file/path and evidence, violated rule or acceptance criterion, responsible implementation task, required correction.
+
+Write the findings into `tasks/execution_logs/PHASE-REVIEW-TASK-ID.md` under a `## Findings` section, as a numbered table, **on every pass — whether the review passes or fails**. A failing pass that records nothing leaves the next reviewer to rediscover everything from scratch, and scatters the phase's history across the implementation logs instead of its own.
+
+| # | Severity | File:line | Rule / criterion | Responsible task | Required correction |
+|---|---|---|---|---|---|
+
+Do not fix product code in this review task. Once the catalogue is complete, reopen **every** responsible task in one batch — `taskctl reopen` may be called as many times as there are responsible tasks:
+
+node tasks/scripts/taskctl.mjs reopen RESPONSIBLE-TASK-ID --reason "Finding N — <exact finding>; see ## Findings in tasks/execution_logs/PHASE-REVIEW-TASK-ID.md"
 
 Then stop and report:
 
-Blocking finding identified. Responsible task reopened.
+Blocking findings identified: <count>. Responsible tasks reopened: <ids>.
 No implementation started.
 
-If the review passes, record the required AI review report in:
-
-tasks/execution_logs/PHASE-REVIEW-TASK-ID.md
-
-The report must include the exact comparison range, files reviewed, rules checked, findings, corrections/reopened tasks, remaining concerns, test evidence and:
+If nothing blocking was found, record `## Findings` (with `None.` or the non-blocking list), the exact comparison range, files reviewed, rules checked, remaining concerns, test evidence including the full-suite line, and:
 
 Result: PASS
 
-Run the phase review validation commands listed in the task file, including lint, typecheck, recursive build, task validation, diff checks and the required phase tests. Do not invent missing tests or business rules. Report unavailable infrastructure as a blocker.
+Run the phase review validation commands listed in the task file, plus the deterministic gate and full suite above, whether or not the task file happens to name them. Do not invent missing tests or business rules.
 
 After the AI review passes, run:
 

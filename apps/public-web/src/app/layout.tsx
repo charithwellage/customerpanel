@@ -14,13 +14,23 @@ export const metadata: Metadata = {
   },
 };
 
+/**
+ * The dev-only ThemeSwitcher must never render in a production build
+ * (RULE-08, RULE-10). Exported as a plain predicate — rather than left as an
+ * inline conditional — so production-guard tests can assert against the
+ * real check instead of a hand-rolled literal.
+ */
+export function isThemeSwitcherEnabled(nodeEnv: string | undefined = process.env.NODE_ENV): boolean {
+  return nodeEnv !== 'production';
+}
+
 export default function RootLayout({ children }: { children: ReactNode }) {
   const themeId = resolveThemeId(process.env.NEXT_PUBLIC_THEME_ID);
   const themeVariables = getThemeCssVariables(getThemeDefinition(themeId).tokens) as CSSProperties;
-  const isDevelopment = process.env.NODE_ENV !== 'production';
+  const isDevelopment = isThemeSwitcherEnabled();
 
   return (
-    <html lang="en" data-theme={themeId}>
+    <html lang="en" data-theme={themeId} style={themeVariables}>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -29,7 +39,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           rel="stylesheet"
         />
       </head>
-      <body style={themeVariables}>
+      <body>
         {isDevelopment ? <ThemeSwitcher initialThemeId={themeId} /> : null}
         <HeaderComponent />
         {children}

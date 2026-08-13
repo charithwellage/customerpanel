@@ -36,10 +36,34 @@ If an issue needs another task’s owned path or a prerequisite change, record i
 
 - Reviewed range/files: <paths or Git range>
 - Rules checked: <applicable checklist numbers>
-- Findings: None | <finding and severity>
+- Findings: None | <numbered list; one line per finding with its severity — never collapse several findings into one entry>
 - Fixes applied: None | <concise list>
 - Remaining concerns: None | <explicit approved deviation/blocker>
 - Result: PASS | FAIL
 ```
 
 For a phase review, the same record must also identify the PR, the exact delivery-integration-to-phase comparison range named in the task, phase-specific checks, assumption-register disposition where applicable, and the tech-lead decision.
+
+## Phase review: catalogue every finding, then batch the reopens
+
+A phase review does **not** stop at its first defect. It completes the entire checklist, records every finding, and only then reopens the responsible tasks — all of them, in one batch. `taskctl reopen` may be called once per responsible task in the same pass.
+
+Stopping early forces the whole cycle to repeat per defect. Phase 1.7 took seven review passes and six fix passes to surface seven defects that a single thorough pass would have catalogued together.
+
+The phase review log carries a `## Findings` section **on every pass, pass or fail** — a failing pass that records nothing forces the next reviewer to rediscover everything:
+
+```text
+## Findings
+
+| # | Severity | File:line | Rule / criterion | Responsible task | Required correction |
+|---|---|---|---|---|---|
+| 1 | blocking | apps/…/store.ts:912 | RULE-09 | D01-P07-T001 | … |
+
+Full suite result: <passed>/<total> passed across chromium, mobile-chromium, tablet-chromium
+
+Result: PASS | FAIL
+```
+
+`taskctl submit` rejects a review log that lacks `## Findings`, an explicit `Result:`, or the `Full suite result:` line — the full Playwright suite is the gate, and a spec-scoped run never satisfies it.
+
+Sweep each defect class across **every** place it can occur rather than the first place it appears; an invented value duplicated in a fixture and a page-level fallback must be corrected in both, since the live route may read only one.

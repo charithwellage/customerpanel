@@ -4,6 +4,7 @@ export function getThemeCssVariables(theme: SemanticThemeTokens = defaultSemanti
   return {
     '--color-primary': theme.colors.primary,
     '--color-primary-hover': theme.colors.primaryHover,
+    '--color-accent': theme.colors.accent,
     '--color-secondary': theme.colors.secondary,
     '--color-background': theme.colors.background,
     '--color-surface': theme.colors.surface,
@@ -13,6 +14,7 @@ export function getThemeCssVariables(theme: SemanticThemeTokens = defaultSemanti
     '--color-text-secondary': theme.colors.textSecondary,
     '--color-text-on-dark': theme.colors.textOnDark,
     '--color-text-on-primary': theme.colors.textOnPrimary,
+    '--color-text-on-accent': theme.colors.textOnAccent,
     '--color-border': theme.colors.border,
     '--color-focus': theme.colors.focus,
     '--color-success': theme.colors.success,

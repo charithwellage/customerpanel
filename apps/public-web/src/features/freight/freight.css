@@ -1,0 +1,231 @@
+/*
+ * freight.css
+ * Feature-level styles for the public freight-estimate selection, form and
+ * explanation UI (PUB-12, D01-P05-T003).
+ * Owned path: apps/public-web/src/features/freight/
+ *
+ * Every value uses a semantic token emitted by packages/theme/src/provider.ts.
+ * No literal colours, no fallback palettes.
+ */
+
+.cc-freight-estimate {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.cc-freight-estimate__heading {
+  font-family: var(--font-display);
+  font-size: var(--font-size-xl);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.cc-freight-estimate__intro {
+  font-family: var(--font-body);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin: 0;
+  line-height: 1.6;
+}
+
+.cc-freight-estimate__body {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-lg);
+}
+
+@media (min-width: 768px) {
+  .cc-freight-estimate__body {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+/* ==========================================================================
+   Form
+   ========================================================================== */
+.cc-freight-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.cc-freight-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.cc-freight-form__label {
+  font-family: var(--font-body);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.cc-freight-form__label--sm {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.cc-freight-form__select,
+.cc-freight-form__number-input {
+  min-height: var(--min-touch-target);
+  padding: 0.55rem 0.75rem;
+  font-family: var(--font-body);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.cc-freight-form__select[aria-invalid='true'],
+.cc-freight-form__number-input[aria-invalid='true'] {
+  border-color: var(--color-error);
+}
+
+.cc-freight-form__field-error {
+  font-family: var(--font-body);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-error);
+  margin: 0;
+}
+
+.cc-freight-form__dimensions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  margin: 0;
+}
+
+.cc-freight-form__dimensions-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--spacing-sm);
+}
+
+.cc-freight-form__note {
+  font-family: var(--font-body);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  background: var(--color-neutral-surface);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.cc-freight-form__state {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  background: var(--color-neutral-surface);
+}
+
+.cc-freight-form__state--error {
+  background: var(--color-error-surface);
+  color: var(--color-error);
+}
+
+.cc-freight-form__state--empty {
+  background: var(--color-neutral-surface);
+  color: var(--color-text-secondary);
+}
+
+/* ==========================================================================
+   Result panel
+   ========================================================================== */
+.cc-freight-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-size: var(--font-size-sm);
+  min-height: 100%;
+}
+
+.cc-freight-panel--idle {
+  background: var(--color-neutral-surface);
+  color: var(--color-text-secondary);
+}
+
+.cc-freight-panel--loading {
+  background: var(--color-info-surface);
+  color: var(--color-info);
+}
+
+.cc-freight-panel--error {
+  background: var(--color-error-surface);
+  color: var(--color-error);
+}
+
+.cc-freight-panel--unavailable {
+  background: var(--color-warning-surface);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-warning);
+}
+
+.cc-freight-panel__title {
+  font-family: var(--font-display);
+  font-size: var(--font-size-base);
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  color: var(--color-warning);
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.cc-freight-panel__message,
+.cc-freight-panel__context,
+.cc-freight-panel__explanation {
+  margin: 0;
+  line-height: 1.6;
+  color: var(--color-text-primary);
+}
+
+.cc-freight-panel__context {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+}
+
+/* ==========================================================================
+   Responsive adjustments
+   ========================================================================== */
+@media (max-width: 600px) {
+  .cc-freight-form__dimensions-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==========================================================================
+   Reduced motion — no motion is used in this feature, kept for parity with
+   the rest of the app's stylesheets in case a future transition is added.
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  .cc-freight-estimate * {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

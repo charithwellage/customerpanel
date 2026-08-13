@@ -18,8 +18,8 @@ export interface SearchShowroomProps extends UseVehicleSearchOrchestrationOption
 
 export function SearchShowroom({
   onSelectVehicle,
-  title = 'Inventory & Showroom Search',
-  description = 'Explore our verified Japan & Overseas inventory with real-time filters and search',
+  title = 'ALL STOCK INVENTORY',
+  description = 'Search and dynamically filter our entire live container-logistics fleet. Instantly reserve models or calculate customized shipping quotes.',
   ...orchestrationOptions
 }: SearchShowroomProps) {
   const {
@@ -38,64 +38,71 @@ export function SearchShowroom({
   } = useVehicleSearchOrchestration(orchestrationOptions);
 
   return (
-    <div className="cc-search-container" id="search-showroom-container">
-      {/* Page Title & Subtitle */}
-      <header className="cc-vehicle-collection__header">
-        <h1 className="cc-vehicle-collection__title">{title}</h1>
-        {description && <p className="cc-vehicle-collection__description">{description}</p>}
-      </header>
+    <div className="cc-search-wrapper" id="search-showroom-container">
+      {/* Dark Hero Header Banner */}
+      <section className="cc-allstock-hero">
+        <div className="cc-allstock-hero__badge">
+          FULL INVENTORY CATALOG
+        </div>
+        <h1 className="cc-allstock-hero__title">{title}</h1>
+        <p className="cc-allstock-hero__description">{description}</p>
+      </section>
 
-      {/* Filter Controls Bar */}
-      <SearchFilterBar
-        query={query}
-        facets={result?.facets}
-        naturalPhrase={naturalPhrase}
-        understoodTokens={understoodTokens}
-        onNaturalPhraseChange={setNaturalPhrase}
-        onApplyNaturalSearch={() => applyNaturalSearch()}
-        onUpdateQuery={updateQuery}
-        onResetFilters={resetFilters}
-      />
+      <div className="cc-search-container">
+        {/* Floating Filter Controls Bar */}
+        <SearchFilterBar
+          query={query}
+          facets={result?.facets}
+          naturalPhrase={naturalPhrase}
+          understoodTokens={understoodTokens}
+          onNaturalPhraseChange={setNaturalPhrase}
+          onApplyNaturalSearch={() => applyNaturalSearch()}
+          onUpdateQuery={updateQuery}
+          onResetFilters={resetFilters}
+        />
 
-      {/* Error Feedback State */}
-      {error && <SearchErrorState error={error} onRetry={refetch} />}
+        {/* Error Feedback State */}
+        {error && <SearchErrorState error={error} onRetry={refetch} />}
 
-      {/* Search Results Content */}
-      {!error && (
-        <>
-          <SearchResultsHeader
-            total={result?.total || 0}
-            itemCount={result?.items.length || 0}
-            query={query}
-            onUpdateQuery={updateQuery}
-          />
-
-          {/* Loading / Empty / Success Grid */}
-          {!isLoading && result?.items.length === 0 ? (
-            <SearchEmptyState onResetFilters={resetFilters} />
-          ) : (
-            <VehicleCollectionPrimitive
-              vehicles={result?.items || []}
-              isLoading={isLoading}
-              error={null}
-              onSelectVehicle={(v) => onSelectVehicle?.(v.id)}
+        {/* Search Results Content */}
+        {!error && (
+          <>
+            <SearchResultsHeader
+              total={result?.total || 0}
+              itemCount={result?.items.length || 0}
+              query={query}
+              onUpdateQuery={updateQuery}
+              onForceSync={refetch}
             />
-          )}
 
-          {/* Pagination Controls */}
-          {result && (
-            <SearchPagination
-              page={result.page}
-              totalPages={result.totalPages}
-              total={result.total}
-              limit={result.limit}
-              hasNextPage={result.hasNextPage}
-              hasPrevPage={result.hasPrevPage}
-              onPageChange={setPage}
-            />
-          )}
-        </>
-      )}
+            {/* Loading / Empty / Success Grid */}
+            {!isLoading && result?.items.length === 0 ? (
+              <SearchEmptyState onResetFilters={resetFilters} />
+            ) : (
+              <VehicleCollectionPrimitive
+                vehicles={result?.items || []}
+                isLoading={isLoading}
+                error={null}
+                onSelectVehicle={(v) => onSelectVehicle?.(v.id)}
+              />
+            )}
+
+            {/* Pagination Controls */}
+            {result && (
+              <SearchPagination
+                page={result.page}
+                totalPages={result.totalPages}
+                total={result.total}
+                limit={result.limit}
+                hasNextPage={result.hasNextPage}
+                hasPrevPage={result.hasPrevPage}
+                onPageChange={setPage}
+              />
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 }
+

@@ -32,6 +32,10 @@ On any non-dirty-tree preflight failure: `taskctl block <ID> --reason "<exact fa
 
 A UI task must browse a runtime built from the **current worktree**. Never point a browser at a process or image that was already listening on a port; its provenance is unknown.
 
+A **phase reviewer** stands one up too, and builds it **once** per pass — the same runtime serves the full Playwright suite, any MCP spot-checks and any behaviour the reviewer needs to confirm first-hand. A reviewer who only reads execution logs cannot detect a capability that was deleted, because the logs of the task that deleted it will look clean. Stop the runtime and free its ports before finishing.
+
+`Runtime provenance:` must name what was actually browsed — a PID, a container/service identity, or a Docker/Compose target, with the start time. `taskctl` rejects a provenance line that records no identity: `Fresh-runtime verification: PASS` beside a vague `dev server on port 3000` is an attestation, not evidence, and Profile A means `build` then `start`, never `next dev`.
+
 ### Profile A — local runtime (default)
 
 Fast, no Docker and no PostgreSQL: `createStore()` falls back to an in-memory store when `DATABASE_URL` is unset. Use this for every UI task that is not a container gate.
@@ -87,11 +91,21 @@ Two layers with different jobs; neither substitutes for the other.
 | Automated Playwright Test | Deterministic, repeatable proof | Viewport matrix via the existing `chromium`, `mobile-chromium` and `tablet-chromium` projects (desktop `1440x900`, phone `390x844`, tablet `768x1024`) |
 | Interactive MCP browser | Agent-driven inspection and correction | One desktop acceptance journey, plus accessibility/keyboard/focus behaviour, console messages and failed network requests |
 
-Run the automated suite against the exact recorded target:
+Run the automated suite against the exact recorded target. **The full suite is the gate:**
 
 ```bash
-PLAYWRIGHT_BASE_URL=http://127.0.0.1:3000 corepack pnpm exec playwright test <spec> --project=chromium --project=mobile-chromium --project=tablet-chromium
+PLAYWRIGHT_BASE_URL=http://127.0.0.1:3000 corepack pnpm exec playwright test --project=chromium --project=mobile-chromium --project=tablet-chromium
 ```
+
+Appending a `<spec>` filter is an inner-loop convenience while iterating on one area. **It never satisfies a gate** — not for a task's completion evidence, not for a container gate, and not for a phase review. Only the unfiltered suite proves a change did not break behaviour delivered by an earlier task or phase.
+
+This is not a theoretical rule. In Phase 1.7 every task and the first six review passes ran only `tests/e2e/public-content.spec.ts`. A route rewritten by one task had silently deleted a quotation form delivered two phases earlier, breaking 21 tests in specs nobody ran; the seventh review pass found it only by running the whole suite. Record the outcome as:
+
+```text
+Full suite result: <passed>/<total> passed across chromium, mobile-chromium, tablet-chromium
+```
+
+`taskctl submit` requires that line in a phase review log.
 
 Required MCP browser capabilities: navigate, accessibility snapshot, resize viewport, read console messages, read network requests, capture a screenshot. Any MCP-capable client is acceptable; per-client setup is documented in [`DEVELOPER_USER_GUIDE.md`](../DEVELOPER_USER_GUIDE.md) §"Playwright MCP setup and UI-validation workflow". If those capabilities are unavailable, stop and resolve `INF-P00-T006`; a server process check, an unrelated screenshot or the automated suite alone does not satisfy the MCP gate.
 
@@ -141,6 +155,16 @@ For a task with `ui_validation: "playwright_mcp"`:
 4. If a finding needs a decision, a prerequisite, or another task's owned path, record a blocker instead of expanding scope.
 
 Agents never commit, push, create pull requests, merge, rewrite history or self-approve. The human owner performs all Git operations after reviewing the working-tree diff.
+
+### Phase review lifecycle — three passes, not one per defect
+
+A phase review runs as three passes, regardless of how many defects it finds:
+
+1. **Review** — work the whole checklist, catalogue **every** finding in the review log's `## Findings` table, then reopen all responsible tasks in one batch. Never stop at the first defect. Prompt: [SAMPLE_MASTER_PROMPT_PR_REVIEW.md](SAMPLE_MASTER_PROMPT_PR_REVIEW.md).
+2. **Batched fix** — close every catalogued finding in one pass, grouped by defect class, then re-run the full gate. A content or fixture change usually invalidates a test assertion elsewhere; reconcile those in the same pass. Prompt: [SAMPLE_MASTER_PROMPT_BATCH_FIX.md](SAMPLE_MASTER_PROMPT_BATCH_FIX.md).
+3. **Verification** — re-run the deterministic gate and full suite, confirm each finding is genuinely closed, then record `Result: PASS` and `submit`.
+
+Completion evidence is an invariant of being `COMPLETE`, not a check that runs only at the moment `complete` executes: `taskctl validate` re-asserts it for every completed task, so hand-writing a log to `COMPLETE` fails the next validate rather than shipping.
 
 ## 7. POC handling
 

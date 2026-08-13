@@ -21,7 +21,7 @@ describe('Theme Package Unit & Accessibility Tests', () => {
     expect(vars['--font-display']).toContain('Space Grotesk');
     expect(vars['--radius-lg']).toBe('0.75rem');
     expect(vars['--focus-ring-width']).toBe('3px');
-    expect(Object.keys(vars)).toHaveLength(49);
+    expect(Object.keys(vars)).toHaveLength(51);
 
     const formatted = formatCssVariableString();
     expect(formatted).toContain('--color-primary: #dc2626;');

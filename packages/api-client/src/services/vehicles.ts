@@ -1,4 +1,4 @@
-import type { VehicleDomainSummary, VehicleSearchResult, SearchVehiclesQuery } from '@carchief/domain';
+import type { VehicleDomainSummary, VehicleSearchResult, SearchVehiclesQuery, VehicleDetail } from '@carchief/domain';
 import type { HttpClient } from '../http.js';
 
 export interface GetVehiclesOptions extends SearchVehiclesQuery {}
@@ -66,5 +66,19 @@ export class VehicleService {
     const queryString = params.toString();
     const path = `/api/v1/vehicles/search${queryString ? `?${queryString}` : ''}`;
     return this.httpClient.request<VehicleSearchResult>(path);
+  }
+
+  public async getVehicleDetail(idOrSlug: string): Promise<VehicleDetail | null> {
+    if (!this.httpClient) {
+      return null;
+    }
+    try {
+      return await this.httpClient.request<VehicleDetail>(`/api/v1/vehicles/${encodeURIComponent(idOrSlug)}`);
+    } catch (err: unknown) {
+      if (err && typeof err === 'object' && 'statusCode' in err && (err as { statusCode: number }).statusCode === 404) {
+        return null;
+      }
+      throw err;
+    }
   }
 }

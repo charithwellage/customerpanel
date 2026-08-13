@@ -14,12 +14,13 @@ describe('Public Web Shell Layout & Navigation Tests', () => {
 
   it('includes mandatory public route navigation items', () => {
     const labels = PUBLIC_NAV_ITEMS.map((item) => item.label);
-    expect(labels).toContain('Home');
-    expect(labels).toContain('Inventory');
-    expect(labels).toContain('Premium Stock');
-    expect(labels).toContain('How to Buy');
-    expect(labels).toContain('About Us');
-    expect(labels).toContain('Contact Us');
+    expect(labels).toContain('SHOWROOM');
+    expect(labels).toContain('ALL STOCK');
+    expect(labels).toContain('HOW TO BUY');
+    expect(labels).toContain('ABOUT US');
+    expect(labels).toContain('TESTIMONIALS');
+    expect(labels).toContain('FAQ');
+    expect(labels).toContain('CONTACT');
   });
 
   it('configures navigation drawer accessible modal properties when open', () => {

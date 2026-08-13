@@ -1,0 +1,171 @@
+/* ==========================================================================
+   Vehicle gallery primitive — shared across CarChief applications.
+
+   Semantic tokens only: every custom property here is emitted by
+   packages/theme/src/provider.ts, so both the default `carchief` theme and the
+   alternate `ocean` theme drive these rules without any markup change.
+   Translucent surfaces derive from theme tokens via color-mix() rather than
+   literal colours, so no theme-specific palette is baked in.
+   ========================================================================== */
+
+.cc-gallery {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Main image area */
+.cc-gallery__main {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background: var(--color-surface-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cc-gallery__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: opacity var(--motion-normal) ease;
+}
+
+.cc-gallery--empty .cc-gallery__main {
+  aspect-ratio: 16 / 10;
+}
+
+.cc-gallery__image--placeholder {
+  opacity: 0.4;
+  object-fit: contain;
+}
+
+/* Prev / Next nav buttons */
+.cc-gallery__nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: color-mix(in srgb, var(--color-surface-dark) 55%, transparent);
+  color: var(--color-text-on-dark);
+  border: 1px solid color-mix(in srgb, var(--color-text-on-dark) 15%, transparent);
+  border-radius: var(--radius-pill);
+  width: 2.5rem;
+  height: 2.5rem;
+  font-size: var(--font-size-xl);
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--motion-fast) ease,
+              background-color var(--motion-fast) ease;
+  z-index: 2;
+  min-height: var(--min-touch-target);
+  min-width: var(--min-touch-target);
+}
+
+.cc-gallery__main:hover .cc-gallery__nav,
+.cc-gallery:focus-within .cc-gallery__nav {
+  opacity: 1;
+}
+
+.cc-gallery__nav--prev { left: var(--spacing-sm); }
+.cc-gallery__nav--next { right: var(--spacing-sm); }
+
+.cc-gallery__nav:hover {
+  background: var(--color-primary);
+}
+
+/* Thumbnails strip */
+.cc-gallery__thumbs {
+  display: flex;
+  gap: var(--spacing-xs);
+  overflow-x: auto;
+  padding: var(--spacing-sm);
+  background: color-mix(in srgb, var(--color-surface-dark) 85%, transparent);
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--color-text-on-dark) 20%, transparent) transparent;
+}
+
+.cc-gallery__thumbs::-webkit-scrollbar {
+  height: 4px;
+}
+
+.cc-gallery__thumbs::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--color-text-on-dark) 20%, transparent);
+  border-radius: var(--radius-sm);
+}
+
+.cc-gallery__thumb {
+  flex-shrink: 0;
+  width: 4rem;
+  aspect-ratio: 16 / 10;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 2px solid transparent;
+  cursor: pointer;
+  padding: 0;
+  background: transparent;
+  opacity: 0.45;
+  transition: opacity var(--motion-fast) ease,
+              border-color var(--motion-fast) ease,
+              transform var(--motion-fast) ease;
+  min-height: var(--min-touch-target);
+  min-width: 3.5rem;
+}
+
+.cc-gallery__thumb:hover,
+.cc-gallery__thumb--active {
+  opacity: 1;
+  border-color: var(--color-primary);
+  transform: scale(0.95);
+}
+
+.cc-gallery__thumb-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+}
+
+.cc-gallery__placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 18rem;
+  padding: var(--spacing-lg);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  text-align: center;
+}
+
+.cc-gallery__placeholder-text {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--font-size-base);
+  line-height: 1.6;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cc-gallery__nav,
+  .cc-gallery__thumb,
+  .cc-gallery__image {
+    transition: none;
+  }
+
+  .cc-gallery__thumb:hover,
+  .cc-gallery__thumb--active {
+    transform: none;
+  }
+}
+
+@media print {
+  .cc-gallery__nav,
+  .cc-gallery__thumbs {
+    display: none;
+  }
+}

@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 async function proxyRequest(request: NextRequest, paramsPromise: Promise<{ path: string[] }>) {
   const params = await paramsPromise;
   const path = (params.path || []).join('/');
-  const apiBaseUrl = process.env.API_BASE_URL || 'http://localhost:4000';
+  const apiBaseUrl = process.env.API_BASE_URL || 'http://127.0.0.1:4000';
   const search = request.nextUrl.search || '';
   const targetUrl = `${apiBaseUrl}/api/v1/${path}${search}`;
 
@@ -11,6 +11,15 @@ async function proxyRequest(request: NextRequest, paramsPromise: Promise<{ path:
     const headers = new Headers();
     const contentType = request.headers.get('content-type');
     if (contentType) headers.set('content-type', contentType);
+    // Forward the bearer token so an authenticated same-origin browser call
+    // (e.g. `POST /api/v1/reservations`, D01-P06-T005) reaches the mock with
+    // the identity `HttpClient`'s `getAuthToken` hook attached — dropping it
+    // here would silently downgrade every authenticated request to
+    // anonymous, the opposite of RULE-08/RULE-10's "never appear to succeed
+    // while quietly not taking effect" and "never claim a capability it does
+    // not have".
+    const authorization = request.headers.get('authorization');
+    if (authorization) headers.set('authorization', authorization);
 
     const body = ['POST', 'PUT', 'PATCH'].includes(request.method) ? await request.text() : undefined;
 

@@ -47,6 +47,22 @@
         }
       }
     },
+    "/api/v1/auth/demo-session": {
+      "post": {
+        "summary": "Mint a stand-in demo customer session (DEC-PUB-AUTH-BOUNDARY, PUB-22, D01-P06-T003) — never a production identity",
+        "operationId": "startDemoSession",
+        "responses": {
+          "201": {
+            "description": "A CustomerBuyer stand-in session was minted",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/DemoSessionResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/vehicles": {
       "get": {
         "summary": "Get vehicle domain summaries",
@@ -328,6 +344,537 @@
         }
       }
     },
+    "/api/v1/vehicles/{idOrSlug}": {
+      "get": {
+        "summary": "Get public vehicle detail by ID, chassis number, or stable slug",
+        "operationId": "getVehicleDetail",
+        "parameters": [
+          {
+            "name": "idOrSlug",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "example": "veh-1" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Public vehicle detail and categorized media",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleDetail"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Vehicle not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/freight/destinations": {
+      "get": {
+        "summary": "Get supported freight destinations catalog (D01-ASM-001)",
+        "operationId": "getFreightDestinations",
+        "responses": {
+          "200": {
+            "description": "List of supported freight destinations",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/FreightDestination" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/freight/ports": {
+      "get": {
+        "summary": "Get supported freight arrival ports catalog (D01-ASM-001)",
+        "operationId": "getFreightPorts",
+        "responses": {
+          "200": {
+            "description": "List of supported freight arrival ports",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/FreightPort" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/freight/estimate": {
+      "post": {
+        "summary": "Request a freight estimate lookup (D01-ASM-001 — no formula, no computed total)",
+        "operationId": "postFreightEstimate",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/FreightEstimateRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Deterministic estimate lookup outcome; no monetary total is present while DEC-PUB-FREIGHT-MODEL is unresolved",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/FreightEstimateResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or unsupported destination, port, or dimensions",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/enquiries": {
+      "post": {
+        "summary": "Submit a general, vehicle, price-request or Premium Vehicle enquiry (PUB-13, PUB-14, PUB-15, PUB-28, PUB-34, D01-P05-T004, D01-P06-T001) — independent of DEC-PUB-FREIGHT-MODEL",
+        "operationId": "postEnquiry",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/EnquiryRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Enquiry received and persisted",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/EnquiryResponse" }
+              }
+            }
+          },
+          "200": {
+            "description": "An identical enquiry was already on file; the original receipt is returned (duplicate: true)",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/EnquiryResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid, missing or unsupported field",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "Staff-facing lead list proof operation (PUB-16, D01-P06-T001) — the regression fix proving a submitted enquiry is retrievable through the Salesperson service boundary, not only writable",
+        "operationId": "listLeads",
+        "responses": {
+          "200": {
+            "description": "All persisted leads, most-recently-received last",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/LeadListResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "No authenticated staff identity supplied",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated identity lacks the 'read:leads' permission",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/enquiries/{id}": {
+      "get": {
+        "summary": "Staff-facing lead read-by-ID proof operation (PUB-16, D01-P06-T001)",
+        "operationId": "getLeadById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "example": "enq-1723368000000-0"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The canonical lead record for this enquiry",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/LeadRecord" }
+              }
+            }
+          },
+          "401": {
+            "description": "No authenticated staff identity supplied",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated identity lacks the 'read:leads' permission",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "No enquiry exists with this id",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/reservations": {
+      "post": {
+        "summary": "Create a transactional 48-hour reservation hold on a vehicle for the authenticated demo customer (PUB-23, RULE-05, RULE-08, RULE-10, D01-P06-T004)",
+        "operationId": "createReservation",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ReservationRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Reservation created and the vehicle is on hold",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ReservationResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or missing vehicleSlug",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "No authenticated identity supplied (reason: unauthenticated)",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated identity lacks the 'create:reservation' permission (reason: forbidden)",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown vehicle (reason: vehicle_not_found)",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "409": {
+            "description": "Ineligible: vehicle unavailable, an active conflicting/duplicate hold, or the per-customer active-reservation limit is reached (reason: vehicle_unavailable | conflict | duplicate | limit_exceeded)",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/reservations/{id}": {
+      "get": {
+        "summary": "Read a reservation by id (D01-P06-T004) — the owning customer or a staff identity with 'read:leads'",
+        "operationId": "getReservationById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "example": "res-1723368000000-0"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The reservation record",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ReservationResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "No authenticated identity supplied",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated identity is neither the owning customer nor staff with 'read:leads'",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "No reservation exists with this id",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/content/faq": {
+      "get": {
+        "summary": "Browse Frequently Asked Questions organized into 12 categories, with optional grounded keyword search (PUB-20, DEC-PUB-FAQ-AI)",
+        "operationId": "getFaqs",
+        "parameters": [
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "example": "buying-process" }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "example": "shipping" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "FAQ categories, matched items, and grounded search status",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/FaqQueryResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/content/testimonials": {
+      "get": {
+        "summary": "Fetch approved customer testimonials for public display (PUB-19)",
+        "operationId": "getTestimonials",
+        "responses": {
+          "200": {
+            "description": "List of approved testimonials",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/TestimonialListResponse" }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Submit a new customer testimonial (PUB-19) — persisted as pending with consent",
+        "operationId": "submitTestimonial",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/TestimonialSubmissionRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Testimonial submitted successfully and is pending review",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/TestimonialSubmissionResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid, missing field or missing consent",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/content/pages": {
+      "get": {
+        "summary": "List all approved public content pages (PUB-30)",
+        "operationId": "getContentPages",
+        "responses": {
+          "200": {
+            "description": "List of approved public content pages",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/PublicContentPage" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/content/pages/{slug}": {
+      "get": {
+        "summary": "Fetch a specific public content page by slug (PUB-17, PUB-18, PUB-21, PUB-27, PUB-29, PUB-30, PUB-31)",
+        "operationId": "getContentPageBySlug",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "example": "about-us"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The approved public content page",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PublicContentPage" }
+              }
+            }
+          },
+          "404": {
+            "description": "Page unavailable or not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/content/offices": {
+      "get": {
+        "summary": "Fetch office locations and operating hours (PUB-21)",
+        "operationId": "getOffices",
+        "responses": {
+          "200": {
+            "description": "List of office locations",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/OfficeListResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/content/branches": {
+      "get": {
+        "summary": "List approved branch content projections (PUB-35, DEC-PUB-BRANCH-PAGE)",
+        "operationId": "getBranches",
+        "responses": {
+          "200": {
+            "description": "List of approved branch content projections",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/BranchListResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/content/branches/{id}": {
+      "get": {
+        "summary": "Fetch a specific branch content projection by ID or code (PUB-35)",
+        "operationId": "getBranchById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "example": "harare-hub"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The approved branch content projection",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/BranchContent" }
+              }
+            }
+          },
+          "404": {
+            "description": "Branch content unavailable or not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/__reset": {
       "post": {
         "summary": "Deterministic non-production data reset",
@@ -359,9 +906,39 @@
         "properties": {
           "siteName": { "type": "string", "example": "CarChief" },
           "currency": { "type": "string", "example": "USD" },
-          "contactPhone": { "type": "string", "example": "+256 700 000 000" }
+          "contactPhone": { "type": "string", "example": "+256 700 000 000" },
+          "liveAuctionUrl": {
+            "type": "string",
+            "description": "Approved external Live Auction destination (PUB-27, D01-ASM-002). Absent when no destination is approved — the account-gated Live Auction entry is hidden, never a placeholder link (RULE-10).",
+            "example": "https://auctions.example.com/live"
+          }
         },
         "required": ["siteName", "currency", "contactPhone"]
+      },
+      "SessionClaims": {
+        "type": "object",
+        "description": "Stand-in demo JWT claims (DEC-PUB-AUTH-BOUNDARY). Never a production identity.",
+        "properties": {
+          "sub": { "type": "string", "example": "user-123" },
+          "email": { "type": "string", "example": "user@carchief.com" },
+          "role": {
+            "type": "string",
+            "enum": ["PublicVisitor", "CustomerBuyer", "Salesperson", "StockController", "FinanceManager", "SystemAdmin"],
+            "example": "CustomerBuyer"
+          },
+          "permissions": { "type": "array", "items": { "type": "string" } },
+          "exp": { "type": "integer", "description": "Unix seconds", "example": 1723371600 }
+        },
+        "required": ["sub", "email", "role", "permissions", "exp"]
+      },
+      "DemoSessionResponse": {
+        "type": "object",
+        "properties": {
+          "token": { "type": "string" },
+          "claims": { "$ref": "#/components/schemas/SessionClaims" },
+          "nonProduction": { "type": "boolean", "example": true }
+        },
+        "required": ["token", "claims", "nonProduction"]
       },
       "VehicleSummary": {
         "type": "object",
@@ -394,6 +971,86 @@
           "requestPrice": { "type": "boolean", "example": false }
         },
         "required": ["id", "chassisNumber", "make", "model", "year", "priceUsd", "status"]
+      },
+      "CategorizedPublicMedia": {
+        "type": "object",
+        "properties": {
+          "gallery": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "auctionPictures": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "auctionSheet": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "japanPictures": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "durbanPictures": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "showAuctionPictures": { "type": "boolean", "example": false },
+          "showJapanPictures": { "type": "boolean", "example": true },
+          "showDurbanPictures": { "type": "boolean", "example": false },
+          "totalPicturesCount": { "type": "integer", "example": 5 }
+        },
+        "required": ["gallery", "totalPicturesCount"]
+      },
+      "VehicleDetail": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "example": "veh-1" },
+          "chassisNumber": { "type": "string", "example": "NZE141-1234567" },
+          "slug": { "type": "string", "example": "2021-toyota-corolla-axio-veh-1" },
+          "make": { "type": "string", "example": "Toyota" },
+          "model": { "type": "string", "example": "Corolla Axio" },
+          "year": { "type": "integer", "example": 2021 },
+          "status": { "type": "string", "example": "Available" },
+          "priceState": { "type": "string", "enum": ["priced", "request_price"], "example": "priced" },
+          "priceUsd": { "type": "number", "example": 8500 },
+          "requestPrice": { "type": "boolean", "example": false },
+          "discountPercent": { "type": "number", "example": 5 },
+          "discountedPriceUsd": { "type": "number", "example": 8075 },
+          "category": { "type": "string", "example": "premium" },
+          "locationStatus": { "type": "string", "example": "In Japan" },
+          "stockType": { "type": "string", "example": "J" },
+          "destinationPort": { "type": "string", "example": "Mombasa" },
+          "bodyStyle": { "type": "string", "example": "Sedan" },
+          "fuelType": { "type": "string", "example": "Petrol" },
+          "transmission": { "type": "string", "example": "Automatic" },
+          "driveTrain": { "type": "string", "example": "2WD" },
+          "mileage": { "type": "integer", "example": 32000 },
+          "engineSize": { "type": "string", "example": "1500 cc" },
+          "color": { "type": "string", "example": "White" },
+          "modelCode": { "type": "string", "example": "DBA-NZE141" },
+          "versionClass": { "type": "string", "example": "1.5X" },
+          "registerYear": { "type": "string", "example": "2021/04" },
+          "mfgYear": { "type": "string", "example": "2021/03" },
+          "dimensions": {
+            "type": "object",
+            "properties": {
+              "lengthMm": { "type": "number", "example": 4410 },
+              "widthMm": { "type": "number", "example": 1695 },
+              "heightMm": { "type": "number", "example": 1460 },
+              "m3": { "type": "number", "example": 10.91 }
+            }
+          },
+          "etd": { "type": "string", "example": "2026-08-20T00:00:00.000Z" },
+          "eta": { "type": "string", "example": "2026-09-10T00:00:00.000Z" },
+          "featured": { "type": "boolean", "example": true },
+          "countryEligibility": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "media": { "$ref": "#/components/schemas/CategorizedPublicMedia" }
+        },
+        "required": ["id", "chassisNumber", "slug", "make", "model", "year", "status", "priceState", "requestPrice", "media"]
       },
       "FacetCount": {
         "type": "object",
@@ -453,10 +1110,361 @@
         "properties": {
           "statusCode": { "type": "integer", "example": 400 },
           "message": { "type": "string", "example": "Bad Request" },
-          "correlationId": { "type": "string", "example": "corr-12345" }
+          "correlationId": { "type": "string", "example": "corr-12345" },
+          "field": { "type": "string", "example": "destinationCode" },
+          "reason": {
+            "type": "string",
+            "description": "Machine-readable reservation failure code (D01-P06-T004): unauthenticated, forbidden, vehicle_not_found, vehicle_unavailable, conflict, duplicate, limit_exceeded.",
+            "example": "conflict"
+          }
         },
         "required": ["statusCode", "message", "correlationId"]
+      },
+      "FreightDestination": {
+        "type": "object",
+        "properties": {
+          "code": { "type": "string", "example": "UG" },
+          "name": { "type": "string", "example": "Uganda" },
+          "country": { "type": "string", "example": "Uganda" }
+        },
+        "required": ["code", "name", "country"]
+      },
+      "FreightPort": {
+        "type": "object",
+        "properties": {
+          "code": { "type": "string", "example": "MBA" },
+          "name": { "type": "string", "example": "Mombasa" },
+          "country": { "type": "string", "example": "Kenya" }
+        },
+        "required": ["code", "name", "country"]
+      },
+      "FreightEstimateDimensions": {
+        "type": "object",
+        "properties": {
+          "lengthMm": { "type": "number", "example": 4500 },
+          "widthMm": { "type": "number", "example": 1800 },
+          "heightMm": { "type": "number", "example": 1500 }
+        },
+        "required": ["lengthMm", "widthMm", "heightMm"]
+      },
+      "FreightEstimateRequest": {
+        "type": "object",
+        "properties": {
+          "destinationCode": { "type": "string", "example": "UG" },
+          "portCode": { "type": "string", "example": "MBA" },
+          "dimensions": { "$ref": "#/components/schemas/FreightEstimateDimensions" }
+        },
+        "required": ["destinationCode", "portCode"]
+      },
+      "FreightEstimateResponse": {
+        "type": "object",
+        "properties": {
+          "outcome": { "type": "string", "enum": ["estimate_unavailable_pending_rate"], "example": "estimate_unavailable_pending_rate" },
+          "destinationCode": { "type": "string", "example": "UG" },
+          "portCode": { "type": "string", "example": "MBA" },
+          "rateStatus": { "type": "string", "enum": ["active", "stale", "no_rate"], "example": "active" },
+          "currency": { "type": "string", "example": "USD" },
+          "rateEffectiveFrom": { "type": "string", "example": "2026-06-01T00:00:00.000Z" },
+          "rateEffectiveTo": { "type": "string", "example": "2026-12-01T00:00:00.000Z" },
+          "message": { "type": "string", "example": "Shipping estimate unavailable — pending a confirmed freight rate." }
+        },
+        "required": ["outcome", "destinationCode", "portCode", "rateStatus", "message"]
+      },
+      "EnquiryEstimateSnapshot": {
+        "type": "object",
+        "properties": {
+          "destinationCode": { "type": "string", "example": "UG" },
+          "portCode": { "type": "string", "example": "MBA" },
+          "rateStatus": { "type": "string", "enum": ["active", "stale", "no_rate"], "example": "active" },
+          "currency": { "type": "string", "example": "USD" },
+          "rateEffectiveFrom": { "type": "string", "example": "2026-06-01T00:00:00.000Z" },
+          "rateEffectiveTo": { "type": "string", "example": "2026-12-01T00:00:00.000Z" },
+          "message": { "type": "string", "example": "Shipping estimate unavailable — pending a confirmed freight rate." }
+        },
+        "required": ["destinationCode", "portCode", "rateStatus", "message"]
+      },
+      "EnquiryRequest": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "example": "Jane Doe" },
+          "email": { "type": "string", "example": "jane@example.com" },
+          "phone": { "type": "string", "example": "+256 700 111 222" },
+          "message": { "type": "string", "example": "Please send a shipping quotation for this vehicle." },
+          "consent": {
+            "type": "boolean",
+            "description": "Required (D01-P06-T002, PUB-14): explicit agreement to be contacted, validated server-side beyond native browser checks.",
+            "example": true
+          },
+          "vehicleSlug": { "type": "string", "example": "2021-toyota-corolla-axio-veh-1" },
+          "destinationCode": { "type": "string", "example": "UG" },
+          "portCode": { "type": "string", "example": "MBA" },
+          "enquiryType": {
+            "type": "string",
+            "enum": ["general", "vehicle", "price-request", "premium-vehicle"],
+            "example": "vehicle"
+          },
+          "source": {
+            "type": "string",
+            "enum": ["form", "whatsapp", "email", "call"],
+            "example": "form"
+          },
+          "preferredMake": { "type": "string", "example": "Toyota" },
+          "preferredModel": { "type": "string", "example": "Corolla" },
+          "preferredDriveSide": { "type": "string", "enum": ["left", "right"], "example": "right" },
+          "preferredYear": { "type": "integer", "example": 2021 },
+          "targetPriceUsd": { "type": "number", "example": 12000 }
+        },
+        "required": ["name", "email", "phone", "message", "consent"]
+      },
+      "EnquiryResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "example": "enq-1723368000000-0" },
+          "receivedAt": { "type": "string", "example": "2026-08-11T12:00:00.000Z" },
+          "status": { "type": "string", "enum": ["received"], "example": "received" },
+          "duplicate": { "type": "boolean", "example": false },
+          "enquiryType": {
+            "type": "string",
+            "enum": ["general", "vehicle", "price-request", "premium-vehicle"],
+            "example": "vehicle"
+          },
+          "source": {
+            "type": "string",
+            "enum": ["form", "whatsapp", "email", "call"],
+            "example": "form"
+          },
+          "vehicleSlug": { "type": "string", "example": "2021-toyota-corolla-axio-veh-1" },
+          "estimateSnapshot": { "$ref": "#/components/schemas/EnquiryEstimateSnapshot" }
+        },
+        "required": ["id", "receivedAt", "status", "duplicate", "enquiryType", "source"]
+      },
+      "LeadRecord": {
+        "type": "object",
+        "description": "Canonical staff-visible lead record (PUB-16, D01-P06-T001) — the regression fix proving a submitted enquiry is retrievable through the Salesperson service boundary.",
+        "properties": {
+          "id": { "type": "string", "example": "enq-1723368000000-0" },
+          "receivedAt": { "type": "string", "example": "2026-08-11T12:00:00.000Z" },
+          "status": { "type": "string", "enum": ["New", "Contacted", "InProgress", "Sold", "Archived"], "example": "New" },
+          "enquiryType": {
+            "type": "string",
+            "enum": ["general", "vehicle", "price-request", "premium-vehicle"],
+            "example": "vehicle"
+          },
+          "source": {
+            "type": "string",
+            "enum": ["form", "whatsapp", "email", "call"],
+            "example": "form"
+          },
+          "name": { "type": "string", "example": "Jane Doe" },
+          "email": { "type": "string", "example": "jane@example.com" },
+          "phone": { "type": "string", "example": "+256 700 111 222" },
+          "message": { "type": "string", "example": "Please send a shipping quotation for this vehicle." },
+          "consent": { "type": "boolean", "example": true },
+          "vehicleSlug": { "type": "string", "example": "2021-toyota-corolla-axio-veh-1" },
+          "estimateSnapshot": { "$ref": "#/components/schemas/EnquiryEstimateSnapshot" },
+          "duplicateResubmissionCount": { "type": "integer", "example": 0 },
+          "preferredMake": { "type": "string", "example": "Toyota" },
+          "preferredModel": { "type": "string", "example": "Corolla" },
+          "preferredDriveSide": { "type": "string", "enum": ["left", "right"], "example": "right" },
+          "preferredYear": { "type": "integer", "example": 2021 },
+          "targetPriceUsd": { "type": "number", "example": 12000 }
+        },
+        "required": [
+          "id",
+          "receivedAt",
+          "status",
+          "enquiryType",
+          "source",
+          "name",
+          "email",
+          "phone",
+          "message",
+          "consent",
+          "duplicateResubmissionCount"
+        ]
+      },
+      "LeadListResponse": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/LeadRecord" }
+          },
+          "total": { "type": "integer", "example": 1 }
+        },
+        "required": ["items", "total"]
+      },
+      "ReservationRequest": {
+        "type": "object",
+        "description": "PUB-23, RULE-05, D01-P06-T004: a transactional 48-hour reservation hold request for the authenticated demo customer.",
+        "properties": {
+          "vehicleSlug": { "type": "string", "example": "2021-toyota-corolla-axio-veh-1" }
+        },
+        "required": ["vehicleSlug"]
+      },
+      "ReservationResponse": {
+        "type": "object",
+        "description": "A persisted reservation hold. `status` is always computed live from `expiresAt` versus the current instant — DEC-PUB-RESERVATION-EXPIRY-ACTION is OPEN, so no automatic release action is ever claimed to have occurred (RULE-10).",
+        "properties": {
+          "id": { "type": "string", "example": "res-1723368000000-0" },
+          "vehicleSlug": { "type": "string", "example": "2021-toyota-corolla-axio-veh-1" },
+          "vehicleId": { "type": "string", "example": "veh-1" },
+          "customerId": { "type": "string", "example": "user-123" },
+          "customerEmail": { "type": "string", "example": "user@carchief.com" },
+          "status": { "type": "string", "enum": ["active", "expired"], "example": "active" },
+          "createdAt": { "type": "string", "example": "2026-08-11T12:00:00.000Z" },
+          "expiresAt": { "type": "string", "example": "2026-08-13T12:00:00.000Z" },
+          "holdHours": { "type": "integer", "example": 48 }
+        },
+        "required": ["id", "vehicleSlug", "vehicleId", "customerId", "customerEmail", "status", "createdAt", "expiresAt", "holdHours"]
+      },
+      "FaqCategory": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "example": "cat-buying-process" },
+          "name": { "type": "string", "example": "Buying Process" },
+          "description": { "type": "string", "example": "Step-by-step guidance on searching, reserving, and purchasing vehicles." },
+          "order": { "type": "integer", "example": 1 }
+        },
+        "required": ["id", "name", "order"]
+      },
+      "FaqItem": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "example": "faq-1" },
+          "categoryId": { "type": "string", "example": "cat-buying-process" },
+          "categoryName": { "type": "string", "example": "Buying Process" },
+          "question": { "type": "string", "example": "How do I purchase a vehicle on CarChief?" },
+          "answer": { "type": "string", "example": "Browse our available inventory..." },
+          "slug": { "type": "string", "example": "how-do-i-purchase-a-vehicle" },
+          "featured": { "type": "boolean", "example": true },
+          "order": { "type": "integer", "example": 1 },
+          "owner": { "type": "string", "example": "ContentTeam" },
+          "status": { "type": "string", "enum": ["approved", "pending", "draft", "unavailable", "rejected"], "example": "approved" },
+          "updatedAt": { "type": "string", "example": "2026-08-10T10:00:00.000Z" }
+        },
+        "required": ["id", "categoryId", "categoryName", "question", "answer", "slug", "owner", "status", "updatedAt"]
+      },
+      "FaqQueryResponse": {
+        "type": "object",
+        "properties": {
+          "categories": { "type": "array", "items": { "$ref": "#/components/schemas/FaqCategory" } },
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/FaqItem" } },
+          "total": { "type": "integer", "example": 12 },
+          "matchedCount": { "type": "integer", "example": 12 },
+          "groundedNoAnswer": { "type": "boolean", "example": false },
+          "message": { "type": "string", "example": "No grounded answer found matching your query." }
+        },
+        "required": ["categories", "items", "total", "matchedCount", "groundedNoAnswer"]
+      },
+      "TestimonialItem": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "example": "testim-1" },
+          "authorName": { "type": "string", "example": "John K." },
+          "authorLocation": { "type": "string", "example": "Harare, Zimbabwe" },
+          "avatarUrl": { "type": "string" },
+          "vehiclePurchased": { "type": "string", "example": "2021 Toyota Corolla Axio" },
+          "rating": { "type": "integer", "example": 5 },
+          "content": { "type": "string", "example": "Seamless import process!" },
+          "submittedAt": { "type": "string", "example": "2026-08-01T12:00:00.000Z" },
+          "status": { "type": "string", "enum": ["approved", "pending", "draft", "unavailable", "rejected"], "example": "approved" },
+          "consent": { "type": "boolean", "example": true }
+        },
+        "required": ["id", "authorName", "authorLocation", "rating", "content", "submittedAt", "status", "consent"]
+      },
+      "TestimonialSubmissionRequest": {
+        "type": "object",
+        "properties": {
+          "authorName": { "type": "string", "example": "Jane Doe" },
+          "authorLocation": { "type": "string", "example": "Nairobi, Kenya" },
+          "vehiclePurchased": { "type": "string", "example": "2020 Mazda CX-5" },
+          "rating": { "type": "integer", "example": 5 },
+          "content": { "type": "string", "example": "Great service from start to finish." },
+          "consent": { "type": "boolean", "example": true }
+        },
+        "required": ["authorName", "authorLocation", "rating", "content", "consent"]
+      },
+      "TestimonialSubmissionResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "example": "testim-1723368000000" },
+          "status": { "type": "string", "enum": ["pending"], "example": "pending" },
+          "submittedAt": { "type": "string", "example": "2026-08-11T12:00:00.000Z" },
+          "message": { "type": "string", "example": "Testimonial submitted successfully and is pending review." }
+        },
+        "required": ["id", "status", "submittedAt", "message"]
+      },
+      "TestimonialListResponse": {
+        "type": "object",
+        "properties": {
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/TestimonialItem" } },
+          "total": { "type": "integer", "example": 3 }
+        },
+        "required": ["items", "total"]
+      },
+      "PublicContentPage": {
+        "type": "object",
+        "properties": {
+          "slug": { "type": "string", "example": "about-us" },
+          "title": { "type": "string", "example": "About CarChief" },
+          "summary": { "type": "string", "example": "Leading Japanese vehicle export specialist..." },
+          "body": { "type": "string", "example": "CarChief is a premier Japanese vehicle export dealer..." },
+          "owner": { "type": "string", "example": "ExecutiveTeam" },
+          "status": { "type": "string", "enum": ["approved", "pending", "draft", "unavailable", "rejected"], "example": "approved" },
+          "updatedAt": { "type": "string", "example": "2026-08-10T10:00:00.000Z" }
+        },
+        "required": ["slug", "title", "summary", "body", "owner", "status", "updatedAt"]
+      },
+      "OfficeLocation": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "example": "off-1" },
+          "name": { "type": "string", "example": "Tokyo Head Office" },
+          "city": { "type": "string", "example": "Tokyo" },
+          "country": { "type": "string", "example": "Japan" },
+          "address": { "type": "string", "example": "Chiyoda-ku, Tokyo 100-0001, Japan" },
+          "phone": { "type": "string", "example": "+81 3 1234 5678" },
+          "email": { "type": "string", "example": "japan@carchief.com" },
+          "operatingHours": { "type": "string", "example": "Mon-Fri 09:00 - 18:00 JST" },
+          "isPrimary": { "type": "boolean", "example": true },
+          "status": { "type": "string", "enum": ["approved", "pending", "draft", "unavailable", "rejected"], "example": "approved" }
+        },
+        "required": ["id", "name", "city", "country", "address", "phone", "email", "operatingHours", "isPrimary", "status"]
+      },
+      "OfficeListResponse": {
+        "type": "object",
+        "properties": {
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/OfficeLocation" } },
+          "total": { "type": "integer", "example": 3 }
+        },
+        "required": ["items", "total"]
+      },
+      "BranchContent": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "example": "harare-hub" },
+          "name": { "type": "string", "example": "Harare Hub" },
+          "code": { "type": "string", "example": "HRE" },
+          "destinationPort": { "type": "string", "example": "Durban" },
+          "introduction": { "type": "string", "example": "CarChief Harare Hub connects buyers..." },
+          "welcomeBanner": { "type": "string", "example": "Welcome to CarChief Harare Hub" },
+          "contactBanner": { "type": "string", "example": "Contact our Harare import specialists" },
+          "meetAndGreetInfo": { "type": "string", "example": "Visit our representative office..." },
+          "contentOwner": { "type": "string", "example": "BranchTeam" },
+          "status": { "type": "string", "enum": ["approved", "pending", "draft", "unavailable", "rejected"], "example": "approved" }
+        },
+        "required": ["id", "name", "code", "destinationPort", "introduction", "welcomeBanner", "contactBanner", "meetAndGreetInfo", "contentOwner", "status"]
+      },
+      "BranchListResponse": {
+        "type": "object",
+        "properties": {
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/BranchContent" } },
+          "total": { "type": "integer", "example": 3 }
+        },
+        "required": ["items", "total"]
       }
     }
   }
 }
+
