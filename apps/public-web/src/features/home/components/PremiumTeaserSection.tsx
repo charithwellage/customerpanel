@@ -32,7 +32,7 @@ export const PremiumTeaserSection: React.FC<PremiumTeaserSectionProps> = ({ vehi
       />
 
       <div className="premium-teaser-footer">
-        <a href="/inventory?category=premium" className="button primary premium-teaser-link">
+        <a href="/allstock?category=premium" className="button primary premium-teaser-link">
           Browse all Premium Stock
         </a>
 
