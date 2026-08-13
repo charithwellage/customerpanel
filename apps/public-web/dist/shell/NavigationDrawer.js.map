@@ -1,0 +1,1 @@
+{"version":3,"file":"NavigationDrawer.js","sourceRoot":"","sources":["../../src/shell/NavigationDrawer.ts"],"names":[],"mappings":";;AAOA,oEAQC;AAfD,2CAAwD;AAOxD,SAAgB,4BAA4B,CAAC,KAA4B;IACvE,OAAO;QACL,QAAQ,EAAE,KAAK;QACf,IAAI,EAAE,QAAQ;QACd,SAAS,EAAE,IAAI;QACf,MAAM,EAAE,KAAK,CAAC,MAAM;QACpB,QAAQ,EAAE,KAAK,CAAC,QAAQ,IAAI,4BAAgB;KAC7C,CAAC;AACJ,CAAC"}

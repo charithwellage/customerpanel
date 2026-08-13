@@ -1,0 +1,326 @@
+{
+  "version": 3,
+  "pages404": true,
+  "caseSensitive": false,
+  "basePath": "",
+  "redirects": [
+    {
+      "source": "/:path+/",
+      "destination": "/:path+",
+      "internal": true,
+      "statusCode": 308,
+      "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))/$"
+    },
+    {
+      "source": "/index.php",
+      "destination": "/",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/index\\.php(?:/)?$"
+    },
+    {
+      "source": "/stock.php",
+      "destination": "/vehicles",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/stock\\.php(?:/)?$"
+    },
+    {
+      "source": "/stock_list.php",
+      "destination": "/vehicles",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/stock_list\\.php(?:/)?$"
+    },
+    {
+      "source": "/search.php",
+      "destination": "/vehicles",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/search\\.php(?:/)?$"
+    },
+    {
+      "source": "/stock_detail.php",
+      "destination": "/vehicles",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/stock_detail\\.php(?:/)?$"
+    },
+    {
+      "source": "/shipping.php",
+      "destination": "/shipping-schedule",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/shipping\\.php(?:/)?$"
+    },
+    {
+      "source": "/schedule.php",
+      "destination": "/shipping-schedule",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/schedule\\.php(?:/)?$"
+    },
+    {
+      "source": "/auction.php",
+      "destination": "/auction",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/auction\\.php(?:/)?$"
+    },
+    {
+      "source": "/auctions.php",
+      "destination": "/auction",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/auctions\\.php(?:/)?$"
+    },
+    {
+      "source": "/company.php",
+      "destination": "/about",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/company\\.php(?:/)?$"
+    },
+    {
+      "source": "/about.php",
+      "destination": "/about",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/about\\.php(?:/)?$"
+    },
+    {
+      "source": "/about_us.php",
+      "destination": "/about",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/about_us\\.php(?:/)?$"
+    },
+    {
+      "source": "/contact.php",
+      "destination": "/contact",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/contact\\.php(?:/)?$"
+    },
+    {
+      "source": "/enquiry.php",
+      "destination": "/contact",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/enquiry\\.php(?:/)?$"
+    },
+    {
+      "source": "/inquiry.php",
+      "destination": "/contact",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/inquiry\\.php(?:/)?$"
+    },
+    {
+      "source": "/services.php",
+      "destination": "/services",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/services\\.php(?:/)?$"
+    },
+    {
+      "source": "/how_to_buy.php",
+      "destination": "/how-to-buy",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/how_to_buy\\.php(?:/)?$"
+    },
+    {
+      "source": "/buying_guide.php",
+      "destination": "/how-to-buy",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/buying_guide\\.php(?:/)?$"
+    },
+    {
+      "source": "/privacy.php",
+      "destination": "/privacy",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/privacy\\.php(?:/)?$"
+    },
+    {
+      "source": "/privacy_policy.php",
+      "destination": "/privacy",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/privacy_policy\\.php(?:/)?$"
+    },
+    {
+      "source": "/faq.php",
+      "destination": "/faq",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/faq\\.php(?:/)?$"
+    },
+    {
+      "source": "/testimonials.php",
+      "destination": "/testimonials",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/testimonials\\.php(?:/)?$"
+    },
+    {
+      "source": "/branch.php",
+      "destination": "/branches",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/branch\\.php(?:/)?$"
+    },
+    {
+      "source": "/branches.php",
+      "destination": "/branches",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/branches\\.php(?:/)?$"
+    }
+  ],
+  "headers": [],
+  "rewrites": {
+    "beforeFiles": [],
+    "afterFiles": [],
+    "fallback": []
+  },
+  "dynamicRoutes": [
+    {
+      "page": "/allstock/[slug]",
+      "regex": "^/allstock/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPslug": "nxtPslug"
+      },
+      "namedRegex": "^/allstock/(?<nxtPslug>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/v1/[...path]",
+      "regex": "^/api/v1/(.+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPpath": "nxtPpath"
+      },
+      "namedRegex": "^/api/v1/(?<nxtPpath>.+?)(?:/)?$"
+    },
+    {
+      "page": "/branches/[branch]",
+      "regex": "^/branches/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPbranch": "nxtPbranch"
+      },
+      "namedRegex": "^/branches/(?<nxtPbranch>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/content/[slug]",
+      "regex": "^/content/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPslug": "nxtPslug"
+      },
+      "namedRegex": "^/content/(?<nxtPslug>[^/]+?)(?:/)?$"
+    }
+  ],
+  "staticRoutes": [
+    {
+      "page": "/",
+      "regex": "^/(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/(?:/)?$"
+    },
+    {
+      "page": "/_not-found",
+      "regex": "^/_not\\-found(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_not\\-found(?:/)?$"
+    },
+    {
+      "page": "/about",
+      "regex": "^/about(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/about(?:/)?$"
+    },
+    {
+      "page": "/account",
+      "regex": "^/account(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/account(?:/)?$"
+    },
+    {
+      "page": "/allstock",
+      "regex": "^/allstock(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/allstock(?:/)?$"
+    },
+    {
+      "page": "/auction",
+      "regex": "^/auction(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/auction(?:/)?$"
+    },
+    {
+      "page": "/branches",
+      "regex": "^/branches(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/branches(?:/)?$"
+    },
+    {
+      "page": "/contact",
+      "regex": "^/contact(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/contact(?:/)?$"
+    },
+    {
+      "page": "/faq",
+      "regex": "^/faq(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/faq(?:/)?$"
+    },
+    {
+      "page": "/freight-calculator",
+      "regex": "^/freight\\-calculator(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/freight\\-calculator(?:/)?$"
+    },
+    {
+      "page": "/healthz",
+      "regex": "^/healthz(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/healthz(?:/)?$"
+    },
+    {
+      "page": "/how-to-buy",
+      "regex": "^/how\\-to\\-buy(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/how\\-to\\-buy(?:/)?$"
+    },
+    {
+      "page": "/privacy",
+      "regex": "^/privacy(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/privacy(?:/)?$"
+    },
+    {
+      "page": "/robots.txt",
+      "regex": "^/robots\\.txt(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/robots\\.txt(?:/)?$"
+    },
+    {
+      "page": "/services",
+      "regex": "^/services(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/services(?:/)?$"
+    },
+    {
+      "page": "/shipping-schedule",
+      "regex": "^/shipping\\-schedule(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/shipping\\-schedule(?:/)?$"
+    },
+    {
+      "page": "/sitemap.xml",
+      "regex": "^/sitemap\\.xml(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/sitemap\\.xml(?:/)?$"
+    },
+    {
+      "page": "/testimonials",
+      "regex": "^/testimonials(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/testimonials(?:/)?$"
+    }
+  ],
+  "dataRoutes": [],
+  "rsc": {
+    "header": "rsc",
+    "varyHeader": "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch",
+    "prefetchHeader": "next-router-prefetch",
+    "didPostponeHeader": "x-nextjs-postponed",
+    "contentTypeHeader": "text/x-component",
+    "suffix": ".rsc",
+    "prefetchSuffix": ".prefetch.rsc",
+    "prefetchSegmentHeader": "next-router-segment-prefetch",
+    "prefetchSegmentSuffix": ".segment.rsc",
+    "prefetchSegmentDirSuffix": ".segments"
+  },
+  "rewriteHeaders": {
+    "pathHeader": "x-nextjs-rewritten-path",
+    "queryHeader": "x-nextjs-rewritten-query"
+  }
+}

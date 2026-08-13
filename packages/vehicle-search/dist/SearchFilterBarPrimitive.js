@@ -1,0 +1,8 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.SearchFilterBarPrimitive = SearchFilterBarPrimitive;
+const jsx_runtime_1 = require("react/jsx-runtime");
+function SearchFilterBarPrimitive({ query, facets, naturalPhrase, understoodTokens, onNaturalPhraseChange, onApplyNaturalSearch, onUpdateQuery, onResetFilters, }) {
+    return ((0, jsx_runtime_1.jsxs)("div", { className: "cc-search-filter-panel", children: [(0, jsx_runtime_1.jsxs)("div", { className: "cc-search-input-group", children: [(0, jsx_runtime_1.jsx)("input", { type: "search", className: "cc-search-input", placeholder: "Search make, model, or try 'Toyota SUV under $20k'...", value: naturalPhrase, onChange: (e) => onNaturalPhraseChange(e.target.value), onKeyDown: (e) => e.key === 'Enter' && onApplyNaturalSearch(), "aria-label": "Search vehicles" }), (0, jsx_runtime_1.jsx)("button", { type: "button", className: "cc-search-action-btn", onClick: onApplyNaturalSearch, children: "Search" }), (0, jsx_runtime_1.jsx)("button", { type: "button", className: "cc-search-secondary-btn", onClick: onResetFilters, children: "Reset All" })] }), understoodTokens.length > 0 && ((0, jsx_runtime_1.jsx)("div", { className: "cc-understood-tokens", children: understoodTokens.map((t, i) => ((0, jsx_runtime_1.jsxs)("span", { className: "cc-understood-token-chip", children: ["\u2713 ", t.label] }, i))) }))] }));
+}
+//# sourceMappingURL=SearchFilterBarPrimitive.js.map

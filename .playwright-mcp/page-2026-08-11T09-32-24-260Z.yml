@@ -1,0 +1,66 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - link "Skip to main content" [ref=e3] [cursor=pointer]:
+      - /url: "#main-content"
+    - generic [ref=e4]:
+      - link "CarChief Home" [ref=e5] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e6]: CC
+        - generic [ref=e7]: CARCHIEF
+        - generic [ref=e8]: ONLINE
+      - navigation "Main Navigation" [ref=e10]:
+        - link "Home" [ref=e11] [cursor=pointer]:
+          - /url: /
+        - link "Inventory" [ref=e12] [cursor=pointer]:
+          - /url: /inventory
+        - link "Premium Stock" [ref=e13] [cursor=pointer]:
+          - /url: /inventory?category=premium
+        - link "How to Buy" [ref=e14] [cursor=pointer]:
+          - /url: /how-to-buy
+        - link "About Us" [ref=e15] [cursor=pointer]:
+          - /url: /about
+        - link "Contact Us" [ref=e16] [cursor=pointer]:
+          - /url: /contact
+  - generic [ref=e17]:
+    - alert [ref=e18]: Vehicle not found.
+    - link "Browse all vehicles" [ref=e19] [cursor=pointer]:
+      - /url: /vehicles
+  - contentinfo [ref=e20]:
+    - generic [ref=e21]:
+      - generic [ref=e22]:
+        - generic [ref=e23]:
+          - generic [ref=e24]: CC
+          - generic [ref=e25]: CARCHIEF
+        - paragraph [ref=e26]: PREMIUM GLOBAL VEHICLE EXPORTERS
+        - paragraph [ref=e27]: CarChief is a high-end showcase portal providing direct ocean-cargo logistics, certified pre-owned inspections, and custom spec tracking.
+      - generic [ref=e28]:
+        - heading "LOGISTICS CORE PORTALS" [level=4] [ref=e29]
+        - list [ref=e30]:
+          - listitem [ref=e31]:
+            - link "Showroom Catalog" [ref=e32] [cursor=pointer]:
+              - /url: "#showroom"
+          - listitem [ref=e33]:
+            - link "How to Buy" [ref=e34] [cursor=pointer]:
+              - /url: /how-to-buy
+          - listitem [ref=e35]:
+            - link "About Us" [ref=e36] [cursor=pointer]:
+              - /url: /about
+          - listitem [ref=e37]:
+            - link "Testimonials" [ref=e38] [cursor=pointer]:
+              - /url: /testimonials
+          - listitem [ref=e39]:
+            - link "FAQ" [ref=e40] [cursor=pointer]:
+              - /url: /faq
+          - listitem [ref=e41]:
+            - link "Contact Us" [ref=e42] [cursor=pointer]:
+              - /url: /contact
+      - generic [ref=e43]:
+        - heading "SECURE VERIFICATION" [level=4] [ref=e44]
+        - paragraph [ref=e45]: CarChief utilizes highly secure cloud-replicated server architectures for real-time transaction records and client logs.
+        - generic [ref=e46]:
+          - generic [ref=e47]: 🔒
+          - text: SECURED CLOUD ENVELOPE
+    - generic [ref=e48]:
+      - paragraph [ref=e49]: © 2026 CARCHIEF AUTO GROUP. ALL RIGHTS RESERVED.
+      - paragraph [ref=e50]: CLOUDRUN ENVIRONMENT · REGISTRY SECURITY PROTOCOL SHIELD-V2
+  - alert [ref=e51]

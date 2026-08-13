@@ -1,0 +1,1 @@
+{"version":3,"file":"NavigationDrawer.d.ts","sourceRoot":"","sources":["../../src/shell/NavigationDrawer.ts"],"names":[],"mappings":"AAAA,OAAO,EAAoB,OAAO,EAAE,MAAM,aAAa,CAAC;AAExD,MAAM,WAAW,qBAAqB;IACpC,MAAM,EAAE,OAAO,CAAC;IAChB,QAAQ,CAAC,EAAE,OAAO,EAAE,CAAC;CACtB;AAED,wBAAgB,4BAA4B,CAAC,KAAK,EAAE,qBAAqB;;;;;;EAQxE"}

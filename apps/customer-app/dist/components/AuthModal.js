@@ -1,0 +1,13 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.AuthModal = AuthModal;
+const jsx_runtime_1 = require("react/jsx-runtime");
+const react_1 = require("react");
+function AuthModal({ isOpen, onClose }) {
+    const [email, setEmail] = (0, react_1.useState)('');
+    const [password, setPassword] = (0, react_1.useState)('');
+    if (!isOpen)
+        return null;
+    return ((0, jsx_runtime_1.jsx)("div", { className: "fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xs p-4", children: (0, jsx_runtime_1.jsxs)("div", { className: "bg-neutral-900 border border-neutral-800 rounded-xl p-6 w-full max-w-md space-y-4 text-white", children: [(0, jsx_runtime_1.jsxs)("div", { className: "flex items-center justify-between border-b border-neutral-800 pb-3", children: [(0, jsx_runtime_1.jsx)("h3", { className: "font-extrabold text-sm uppercase tracking-wider text-amber-500", children: "Customer Sign In" }), (0, jsx_runtime_1.jsx)("button", { onClick: onClose, className: "text-neutral-400 hover:text-white text-xs font-bold uppercase", children: "Close" })] }), (0, jsx_runtime_1.jsxs)("form", { className: "space-y-3", onSubmit: (e) => { e.preventDefault(); onClose(); }, children: [(0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("label", { className: "block text-[10px] font-bold uppercase tracking-wider text-neutral-400 mb-1", children: "Email" }), (0, jsx_runtime_1.jsx)("input", { type: "email", value: email, onChange: (e) => setEmail(e.target.value), placeholder: "customer@example.com", className: "w-full bg-neutral-950 border border-neutral-800 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-amber-500" })] }), (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("label", { className: "block text-[10px] font-bold uppercase tracking-wider text-neutral-400 mb-1", children: "Password" }), (0, jsx_runtime_1.jsx)("input", { type: "password", value: password, onChange: (e) => setPassword(e.target.value), placeholder: "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022", className: "w-full bg-neutral-950 border border-neutral-800 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-amber-500" })] }), (0, jsx_runtime_1.jsx)("button", { type: "submit", className: "w-full bg-amber-500 hover:bg-amber-600 text-neutral-950 font-bold py-2.5 rounded-lg text-xs uppercase transition-colors", children: "Sign In to Customer Portal" })] })] }) }));
+}
+//# sourceMappingURL=AuthModal.js.map

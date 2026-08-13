@@ -1,0 +1,25 @@
+{
+  "name": "@carchief/vehicle-detail",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "lint": "echo \"vehicle-detail lint ok\"",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@carchief/domain": "workspace:*",
+    "@carchief/ui": "workspace:*"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0"
+  },
+  "devDependencies": {
+    "@carchief/config": "workspace:*",
+    "@types/react": "19.1.10",
+    "react": "19.1.1",
+    "typescript": "^5.7.2"
+  }
+}

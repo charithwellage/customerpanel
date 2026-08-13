@@ -1,0 +1,142 @@
+- generic [active] [ref=f2e1]:
+  - link "Skip to main content" [ref=f2e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - banner [ref=f2e3]:
+    - generic [ref=f2e4]:
+      - link [ref=f2e5] [cursor=pointer]:
+        - /url: /
+        - strong [ref=f2e6]: CarChief
+      - navigation "Main navigation" [ref=f2e7]:
+        - link "Home" [ref=f2e8] [cursor=pointer]:
+          - /url: /
+        - link "Inventory" [ref=f2e9] [cursor=pointer]:
+          - /url: /inventory
+        - link "Premium Stock" [ref=f2e10] [cursor=pointer]:
+          - /url: /inventory?category=premium
+        - link "How to Buy" [ref=f2e11] [cursor=pointer]:
+          - /url: /how-to-buy
+        - link "About Us" [ref=f2e12] [cursor=pointer]:
+          - /url: /about
+        - link "Contact Us" [ref=f2e13] [cursor=pointer]:
+          - /url: /contact
+  - main [ref=f2e14]:
+    - generic [ref=f2e16]:
+      - paragraph [ref=f2e17]: Japanese Used Vehicles • Direct Export Logistics
+      - heading "Find your next vehicle with confidence." [level=1] [ref=f2e18]
+      - paragraph [ref=f2e19]: Browse our current stock and connect with the CarChief team for a quotation.
+      - generic [ref=f2e20]:
+        - link "Browse stock" [ref=f2e21] [cursor=pointer]:
+          - /url: "#showroom"
+        - link "Explore Premium Stock" [ref=f2e22] [cursor=pointer]:
+          - /url: /inventory?category=premium
+    - generic [ref=f2e23]:
+      - generic [ref=f2e25]:
+        - generic [ref=f2e26]: "Destination Market:"
+        - combobox "Destination Market:" [ref=f2e27] [cursor=pointer]:
+          - option "🇺🇬 Uganda (Mombasa Port)" [selected]
+          - option "🇰🇪 Kenya (Mombasa Port)"
+          - option "🇹🇿 Tanzania (Dar es Salaam Port)"
+          - option "🌐 Global / All Ports"
+        - generic [ref=f2e28]: (Manual market selection active)
+      - region "Promotional campaign countdown" [ref=f2e29]:
+        - generic [ref=f2e30]:
+          - generic [ref=f2e31]: Limited Time Offer
+          - heading "Seasonal Clearance & Shipping Promotion" [level=3] [ref=f2e32]
+        - generic [ref=f2e33]:
+          - generic [ref=f2e34]:
+            - generic [ref=f2e35]: "21"
+            - text: Days
+          - generic [ref=f2e36]:
+            - generic [ref=f2e37]: "15"
+            - text: Hours
+          - generic [ref=f2e38]:
+            - generic [ref=f2e39]: "34"
+            - text: Mins
+          - generic [ref=f2e40]:
+            - generic [ref=f2e41]: "39"
+            - text: Secs
+      - region [ref=f2e43]:
+        - generic [ref=f2e44]:
+          - heading "Latest Arrivals (In Japan)" [level=2] [ref=f2e45]
+          - paragraph [ref=f2e46]: Eligible stock created within the last 5 days.
+        - status [ref=f2e47]: Loading vehicle collection...
+      - region [ref=f2e48]:
+        - generic [ref=f2e49]:
+          - generic [ref=f2e50]: Exclusive Collection
+          - heading "Premium Stock Teaser" [level=2] [ref=f2e51]
+          - paragraph [ref=f2e52]: Browse up to 10 curated high-grade vehicles available for immediate reservation.
+        - status [ref=f2e54]: Loading vehicle collection...
+        - generic [ref=f2e55]:
+          - link "Browse all Premium Stock" [ref=f2e56] [cursor=pointer]:
+            - /url: /inventory?category=premium
+          - link "💬 Chat with Sales on WhatsApp" [ref=f2e58] [cursor=pointer]:
+            - /url: https://wa.me/256700000000?text=Hello%20CarChief,%20I%20am%20interested%20in%20Premium%20Stock
+      - region "Latest Arrivals (In Japan)" [ref=f2e60]:
+        - generic [ref=f2e61]:
+          - heading "Browse All Stock" [level=2] [ref=f2e62]
+          - paragraph [ref=f2e63]: Available inventory ordered by location (In Port -> In Transit -> In Japan).
+        - status [ref=f2e64]: Loading vehicle collection...
+      - region [ref=f2e65]:
+        - generic [ref=f2e66]:
+          - text: Sourcing Guide
+          - heading "CarChief 5-Step Sourcing Process" [level=2] [ref=f2e67]
+        - generic [ref=f2e68]:
+          - generic [ref=f2e69]:
+            - generic [ref=f2e70]: "01"
+            - heading "Select Vehicle & Get Quote" [level=3] [ref=f2e71]
+            - paragraph [ref=f2e72]: Browse available stock and request a quotation for your destination port.
+          - generic [ref=f2e73]:
+            - generic [ref=f2e74]: "02"
+            - heading "Confirm Proforma Invoice" [level=3] [ref=f2e75]
+            - paragraph [ref=f2e76]: Review pricing breakdown and confirm payment terms with bank wire instructions.
+          - generic [ref=f2e77]:
+            - generic [ref=f2e78]: "03"
+            - heading "Complete Bank Transfer" [level=3] [ref=f2e79]
+            - paragraph [ref=f2e80]: Transfer funds securely and provide swift confirmation to our billing department.
+          - generic [ref=f2e81]:
+            - generic [ref=f2e82]: "04"
+            - heading "Maritime Vessel Shipping" [level=3] [ref=f2e83]
+            - paragraph [ref=f2e84]: Vehicle is loaded onto ocean carrier and shipping title documents dispatched.
+          - generic [ref=f2e85]:
+            - generic [ref=f2e86]: "05"
+            - heading "Port Delivery & Clearance" [level=3] [ref=f2e87]
+            - paragraph [ref=f2e88]: Receive vehicle at your local port, settle customs clearance, and take delivery.
+      - region [ref=f2e89]:
+        - generic [ref=f2e90]:
+          - text: Customer Feedback
+          - heading "Buyer Endorsements" [level=2] [ref=f2e91]
+        - generic [ref=f2e92]:
+          - blockquote [ref=f2e93]:
+            - paragraph [ref=f2e94]: "\"The pre-shipment diagnostic report and video inspections were thorough. Smooth delivery to port.\""
+            - generic [ref=f2e95]:
+              - strong [ref=f2e96]: Julian Vance
+              - generic [ref=f2e97]: Geneva, Switzerland • Porsche 911 GT3 RS
+          - blockquote [ref=f2e98]:
+            - paragraph [ref=f2e99]: "\"Clear communication throughout maritime transit and exact document dispatch upon vessel departure.\""
+            - generic [ref=f2e100]:
+              - strong [ref=f2e101]: Sophia Chen
+              - generic [ref=f2e102]: Kampala, Uganda • Toyota Land Cruiser Prado
+          - blockquote [ref=f2e103]:
+            - paragraph [ref=f2e104]: "\"Vehicle arrived in exact accordance with the auction sheet and inspection checklist.\""
+            - generic [ref=f2e105]:
+              - strong [ref=f2e106]: Marcus Sterling
+              - generic [ref=f2e107]: Mombasa, Kenya • Toyota HiAce Van
+      - region [ref=f2e108]:
+        - generic [ref=f2e109]:
+          - text: Help & Information
+          - heading "Frequently Asked Questions" [level=2] [ref=f2e110]
+        - generic [ref=f2e111]:
+          - generic [ref=f2e112]:
+            - button "Is CarChief an authorized exporter of Japanese used vehicles? −" [expanded] [ref=f2e113] [cursor=pointer]:
+              - generic [ref=f2e114]: Is CarChief an authorized exporter of Japanese used vehicles?
+              - generic [ref=f2e115]: −
+            - generic [ref=f2e116]: CarChief functions as a curated exporter and logistics coordinator, acquiring vehicles from certified Japanese auctions and networks with 150-point pre-export diagnostics.
+          - button "What shipping title documents are provided upon vessel departure? +" [ref=f2e118] [cursor=pointer]:
+            - generic [ref=f2e119]: What shipping title documents are provided upon vessel departure?
+            - generic [ref=f2e120]: +
+          - button "How are freight costs calculated for Mombasa and Dar es Salaam ports? +" [ref=f2e122] [cursor=pointer]:
+            - generic [ref=f2e123]: How are freight costs calculated for Mombasa and Dar es Salaam ports?
+            - generic [ref=f2e124]: +
+  - contentinfo [ref=f2e125]:
+    - generic [ref=f2e126]: © CarChief. Demo public website.
+  - alert [ref=f2e127]

@@ -1,0 +1,196 @@
+- generic [active] [ref=f3e1]:
+  - banner [ref=f3e2]:
+    - link "Skip to main content" [ref=f3e3] [cursor=pointer]:
+      - /url: "#main-content"
+    - generic [ref=f3e4]:
+      - link "CarChief Home" [ref=f3e5] [cursor=pointer]:
+        - /url: /
+        - generic [ref=f3e6]: CC
+        - generic [ref=f3e7]: CARCHIEF
+        - generic [ref=f3e8]: ONLINE
+      - navigation "Main Navigation" [ref=f3e10]:
+        - link "Home" [ref=f3e11] [cursor=pointer]:
+          - /url: /
+        - link "Inventory" [ref=f3e12] [cursor=pointer]:
+          - /url: /inventory
+        - link "Premium Stock" [ref=f3e13] [cursor=pointer]:
+          - /url: /inventory?category=premium
+        - link "How to Buy" [ref=f3e14] [cursor=pointer]:
+          - /url: /how-to-buy
+        - link "About Us" [ref=f3e15] [cursor=pointer]:
+          - /url: /about
+        - link "Contact Us" [ref=f3e16] [cursor=pointer]:
+          - /url: /contact
+  - main [ref=f3e17]:
+    - generic [ref=f3e19]:
+      - generic [ref=f3e20]: CURATED GLOBAL ACQUISITIONS
+      - heading "CHECK OUR SELECTION OF PREMIUM VEHICLES" [level=1] [ref=f3e21]
+      - paragraph [ref=f3e22]: Browse our hand-picked, premium global acquisitions of hypercars, custom performance coupes, and bespoke luxury SUVs. Every vehicle is thoroughly inspected, complete with detailed digital logs, and delivered via premium secure ocean transit.
+      - generic [ref=f3e23]:
+        - link "CHECK PREMIUM VEHICLES →" [ref=f3e24] [cursor=pointer]:
+          - /url: "#showroom"
+        - link "HOW TO PURCHASE" [ref=f3e25] [cursor=pointer]:
+          - /url: /how-to-buy
+      - generic [ref=f3e26]:
+        - generic [ref=f3e27]:
+          - generic [ref=f3e28]: 🛡️
+          - generic [ref=f3e29]:
+            - generic [ref=f3e30]: ELITE QUALITY SOURCING
+            - generic [ref=f3e31]: Strict inspection & technical logs for every chassis.
+        - generic [ref=f3e32]:
+          - generic [ref=f3e33]: 🚢
+          - generic [ref=f3e34]:
+            - generic [ref=f3e35]: CONTAINER OCEAN FREIGHT
+            - generic [ref=f3e36]: Secure maritime container pipelines & customs clearing.
+        - generic [ref=f3e37]:
+          - generic [ref=f3e38]: 🔒
+          - generic [ref=f3e39]:
+            - generic [ref=f3e40]: DEDICATED SECURE PORTAL
+            - generic [ref=f3e41]: Track order pipelines, invoices & documents live.
+    - generic [ref=f3e42]:
+      - generic [ref=f3e44]:
+        - generic [ref=f3e45]: "Destination Market:"
+        - combobox "Destination Market:" [ref=f3e46] [cursor=pointer]:
+          - option "🇺🇬 Uganda (Mombasa Port)" [selected]
+          - option "🇰🇪 Kenya (Mombasa Port)"
+          - option "🇹🇿 Tanzania (Dar es Salaam Port)"
+          - option "🌐 Global / All Ports"
+        - generic [ref=f3e47]: (Manual market selection active)
+      - region "Promotional campaign countdown" [ref=f3e48]:
+        - generic [ref=f3e49]:
+          - generic [ref=f3e50]: Limited Time Offer
+          - heading "Seasonal Clearance & Shipping Promotion" [level=3] [ref=f3e51]
+        - generic [ref=f3e52]:
+          - generic [ref=f3e53]:
+            - generic [ref=f3e54]: "21"
+            - text: Days
+          - generic [ref=f3e55]:
+            - generic [ref=f3e56]: "15"
+            - text: Hours
+          - generic [ref=f3e57]:
+            - generic [ref=f3e58]: "33"
+            - text: Mins
+          - generic [ref=f3e59]:
+            - generic [ref=f3e60]: "35"
+            - text: Secs
+      - region [ref=f3e62]:
+        - generic [ref=f3e63]:
+          - heading "Latest Arrivals (In Japan)" [level=2] [ref=f3e64]
+          - paragraph [ref=f3e65]: Eligible stock created within the last 5 days.
+        - status [ref=f3e66]: Loading vehicle collection...
+      - region [ref=f3e67]:
+        - generic [ref=f3e68]:
+          - generic [ref=f3e69]: Exclusive Collection
+          - heading "Premium Stock Teaser" [level=2] [ref=f3e70]
+          - paragraph [ref=f3e71]: Browse up to 10 curated high-grade vehicles available for immediate reservation.
+        - status [ref=f3e73]: Loading vehicle collection...
+        - generic [ref=f3e74]:
+          - link "Browse all Premium Stock" [ref=f3e75] [cursor=pointer]:
+            - /url: /inventory?category=premium
+          - link "💬 Chat with Sales on WhatsApp" [ref=f3e77] [cursor=pointer]:
+            - /url: https://wa.me/256700000000?text=Hello%20CarChief,%20I%20am%20interested%20in%20Premium%20Stock
+      - region "Latest Arrivals (In Japan)" [ref=f3e79]:
+        - generic [ref=f3e80]:
+          - heading "Browse All Stock" [level=2] [ref=f3e81]
+          - paragraph [ref=f3e82]: Available inventory ordered by location (In Port -> In Transit -> In Japan).
+        - status [ref=f3e83]: Loading vehicle collection...
+      - region [ref=f3e84]:
+        - generic [ref=f3e85]:
+          - text: Sourcing Guide
+          - heading "CarChief 5-Step Sourcing Process" [level=2] [ref=f3e86]
+        - generic [ref=f3e87]:
+          - generic [ref=f3e88]:
+            - generic [ref=f3e89]: "01"
+            - heading "Select Vehicle & Get Quote" [level=3] [ref=f3e90]
+            - paragraph [ref=f3e91]: Browse available stock and request a quotation for your destination port.
+          - generic [ref=f3e92]:
+            - generic [ref=f3e93]: "02"
+            - heading "Confirm Proforma Invoice" [level=3] [ref=f3e94]
+            - paragraph [ref=f3e95]: Review pricing breakdown and confirm payment terms with bank wire instructions.
+          - generic [ref=f3e96]:
+            - generic [ref=f3e97]: "03"
+            - heading "Complete Bank Transfer" [level=3] [ref=f3e98]
+            - paragraph [ref=f3e99]: Transfer funds securely and provide swift confirmation to our billing department.
+          - generic [ref=f3e100]:
+            - generic [ref=f3e101]: "04"
+            - heading "Maritime Vessel Shipping" [level=3] [ref=f3e102]
+            - paragraph [ref=f3e103]: Vehicle is loaded onto ocean carrier and shipping title documents dispatched.
+          - generic [ref=f3e104]:
+            - generic [ref=f3e105]: "05"
+            - heading "Port Delivery & Clearance" [level=3] [ref=f3e106]
+            - paragraph [ref=f3e107]: Receive vehicle at your local port, settle customs clearance, and take delivery.
+      - region [ref=f3e108]:
+        - generic [ref=f3e109]:
+          - text: Customer Feedback
+          - heading "Buyer Endorsements" [level=2] [ref=f3e110]
+        - generic [ref=f3e111]:
+          - blockquote [ref=f3e112]:
+            - paragraph [ref=f3e113]: "\"The pre-shipment diagnostic report and video inspections were thorough. Smooth delivery to port.\""
+            - generic [ref=f3e114]:
+              - strong [ref=f3e115]: Julian Vance
+              - generic [ref=f3e116]: Geneva, Switzerland • Porsche 911 GT3 RS
+          - blockquote [ref=f3e117]:
+            - paragraph [ref=f3e118]: "\"Clear communication throughout maritime transit and exact document dispatch upon vessel departure.\""
+            - generic [ref=f3e119]:
+              - strong [ref=f3e120]: Sophia Chen
+              - generic [ref=f3e121]: Kampala, Uganda • Toyota Land Cruiser Prado
+          - blockquote [ref=f3e122]:
+            - paragraph [ref=f3e123]: "\"Vehicle arrived in exact accordance with the auction sheet and inspection checklist.\""
+            - generic [ref=f3e124]:
+              - strong [ref=f3e125]: Marcus Sterling
+              - generic [ref=f3e126]: Mombasa, Kenya • Toyota HiAce Van
+      - region [ref=f3e127]:
+        - generic [ref=f3e128]:
+          - text: Help & Information
+          - heading "Frequently Asked Questions" [level=2] [ref=f3e129]
+        - generic [ref=f3e130]:
+          - generic [ref=f3e131]:
+            - button "Is CarChief an authorized exporter of Japanese used vehicles? −" [expanded] [ref=f3e132] [cursor=pointer]:
+              - generic [ref=f3e133]: Is CarChief an authorized exporter of Japanese used vehicles?
+              - generic [ref=f3e134]: −
+            - generic [ref=f3e135]: CarChief functions as a curated exporter and logistics coordinator, acquiring vehicles from certified Japanese auctions and networks with 150-point pre-export diagnostics.
+          - button "What shipping title documents are provided upon vessel departure? +" [ref=f3e137] [cursor=pointer]:
+            - generic [ref=f3e138]: What shipping title documents are provided upon vessel departure?
+            - generic [ref=f3e139]: +
+          - button "How are freight costs calculated for Mombasa and Dar es Salaam ports? +" [ref=f3e141] [cursor=pointer]:
+            - generic [ref=f3e142]: How are freight costs calculated for Mombasa and Dar es Salaam ports?
+            - generic [ref=f3e143]: +
+  - contentinfo [ref=f3e144]:
+    - generic [ref=f3e145]:
+      - generic [ref=f3e146]:
+        - generic [ref=f3e147]:
+          - generic [ref=f3e148]: CC
+          - generic [ref=f3e149]: CARCHIEF
+        - paragraph [ref=f3e150]: PREMIUM GLOBAL VEHICLE EXPORTERS
+        - paragraph [ref=f3e151]: CarChief is a high-end showcase portal providing direct ocean-cargo logistics, certified pre-owned inspections, and custom spec tracking.
+      - generic [ref=f3e152]:
+        - heading "LOGISTICS CORE PORTALS" [level=4] [ref=f3e153]
+        - list [ref=f3e154]:
+          - listitem [ref=f3e155]:
+            - link "Showroom Catalog" [ref=f3e156] [cursor=pointer]:
+              - /url: "#showroom"
+          - listitem [ref=f3e157]:
+            - link "How to Buy" [ref=f3e158] [cursor=pointer]:
+              - /url: /how-to-buy
+          - listitem [ref=f3e159]:
+            - link "About Us" [ref=f3e160] [cursor=pointer]:
+              - /url: /about
+          - listitem [ref=f3e161]:
+            - link "Testimonials" [ref=f3e162] [cursor=pointer]:
+              - /url: /testimonials
+          - listitem [ref=f3e163]:
+            - link "FAQ" [ref=f3e164] [cursor=pointer]:
+              - /url: /faq
+          - listitem [ref=f3e165]:
+            - link "Contact Us" [ref=f3e166] [cursor=pointer]:
+              - /url: /contact
+      - generic [ref=f3e167]:
+        - heading "SECURE VERIFICATION" [level=4] [ref=f3e168]
+        - paragraph [ref=f3e169]: CarChief utilizes highly secure cloud-replicated server architectures for real-time transaction records and client logs.
+        - generic [ref=f3e170]:
+          - generic [ref=f3e171]: 🔒
+          - text: SECURED CLOUD ENVELOPE
+    - generic [ref=f3e172]:
+      - paragraph [ref=f3e173]: © 2026 CARCHIEF AUTO GROUP. ALL RIGHTS RESERVED.
+      - paragraph [ref=f3e174]: CLOUDRUN ENVIRONMENT · REGISTRY SECURITY PROTOCOL SHIELD-V2
+  - alert [ref=f3e175]

@@ -1,0 +1,381 @@
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - banner [ref=e3]:
+    - generic [ref=e4]:
+      - link [ref=e5] [cursor=pointer]:
+        - /url: /
+        - strong [ref=e6]: CarChief
+      - navigation "Main navigation" [ref=e7]:
+        - link "Home" [ref=e8] [cursor=pointer]:
+          - /url: /
+        - link "Inventory" [ref=e9] [cursor=pointer]:
+          - /url: /inventory
+        - link "Premium Stock" [ref=e10] [cursor=pointer]:
+          - /url: /inventory?category=premium
+        - link "How to Buy" [ref=e11] [cursor=pointer]:
+          - /url: /how-to-buy
+        - link "About Us" [ref=e12] [cursor=pointer]:
+          - /url: /about
+        - link "Contact Us" [ref=e13] [cursor=pointer]:
+          - /url: /contact
+  - main [ref=e14]:
+    - generic [ref=e16]:
+      - paragraph [ref=e17]: Japanese Used Vehicles • Direct Export Logistics
+      - heading "Find your next vehicle with confidence." [level=1] [ref=e18]
+      - paragraph [ref=e19]: Browse our current stock and connect with the CarChief team for a quotation.
+      - generic [ref=e20]:
+        - link "Browse stock" [ref=e21] [cursor=pointer]:
+          - /url: "#showroom"
+        - link "Explore Premium Stock" [ref=e22] [cursor=pointer]:
+          - /url: /inventory?category=premium
+    - generic [ref=e23]:
+      - generic [ref=e25]:
+        - generic [ref=e26]: "Destination Market:"
+        - combobox "Destination Market:" [ref=e27] [cursor=pointer]:
+          - option "🇺🇬 Uganda (Mombasa Port)" [selected]
+          - option "🇰🇪 Kenya (Mombasa Port)"
+          - option "🇹🇿 Tanzania (Dar es Salaam Port)"
+          - option "🌐 Global / All Ports"
+        - generic [ref=e28]: (Manual market selection active)
+      - region "Promotional campaign countdown" [ref=e29]:
+        - generic [ref=e30]:
+          - generic [ref=e31]: Limited Time Offer
+          - heading "Seasonal Clearance & Shipping Promotion" [level=3] [ref=e32]
+        - generic [ref=e33]:
+          - generic [ref=e34]:
+            - generic [ref=e35]: "21"
+            - text: Days
+          - generic [ref=e36]:
+            - generic [ref=e37]: "15"
+            - text: Hours
+          - generic [ref=e38]:
+            - generic [ref=e39]: "40"
+            - text: Mins
+          - generic [ref=e40]:
+            - generic [ref=e41]: "16"
+            - text: Secs
+      - region [ref=e43]:
+        - generic [ref=e44]:
+          - heading "Latest Arrivals (In Japan)" [level=2] [ref=e45]
+          - paragraph [ref=e46]: Eligible stock created within the last 5 days.
+        - generic [ref=e47]:
+          - generic "2021 Toyota Corolla Axio - USD 8,500" [ref=e48]:
+            - generic [ref=e49]:
+              - img "Toyota Corolla Axio" [ref=e50]
+              - generic [ref=e51]: Available
+              - generic [ref=e53]: In Japan
+            - generic [ref=e54]:
+              - generic [ref=e55]:
+                - generic [ref=e56]: 2021 Toyota
+                - heading "Corolla Axio" [level=3] [ref=e57]
+              - generic [ref=e59]:
+                - generic [ref=e60]: Price
+                - generic [ref=e61]: $8,500
+          - generic "2020 Toyota HiAce Van - USD 14,200" [ref=e62]:
+            - generic [ref=e63]:
+              - img "Toyota HiAce Van" [ref=e64]
+              - generic [ref=e65]: ReservedWithPI
+              - generic [ref=e67]: In Japan
+            - generic [ref=e68]:
+              - generic [ref=e69]:
+                - generic [ref=e70]: 2020 Toyota
+                - heading "HiAce Van" [level=3] [ref=e71]
+              - generic [ref=e73]:
+                - generic [ref=e74]: Price
+                - generic [ref=e75]: $14,200
+          - generic "2023 Lexus RX450h - USD 38,000" [ref=e76]:
+            - generic [ref=e77]:
+              - generic [ref=e78]: Lexus RX450h
+              - generic [ref=e79]: Available
+              - generic [ref=e81]: In Japan
+            - generic [ref=e82]:
+              - generic [ref=e83]:
+                - generic [ref=e84]: 2023 Lexus
+                - heading "RX450h" [level=3] [ref=e85]
+              - generic [ref=e87]:
+                - generic [ref=e88]: Price
+                - generic [ref=e89]: $38,000
+          - generic "2020 Mazda CX-5 - USD 13,500" [ref=e90]:
+            - generic [ref=e91]:
+              - generic [ref=e92]: Mazda CX-5
+              - generic [ref=e93]: Available
+              - generic [ref=e95]: In Japan
+            - generic [ref=e96]:
+              - generic [ref=e97]:
+                - generic [ref=e98]: 2020 Mazda
+                - heading "CX-5" [level=3] [ref=e99]
+              - generic [ref=e101]:
+                - generic [ref=e102]: Price
+                - generic [ref=e103]: $13,500
+      - region [ref=e104]:
+        - generic [ref=e105]:
+          - generic [ref=e106]: Exclusive Collection
+          - heading "Premium Stock Teaser" [level=2] [ref=e107]
+          - paragraph [ref=e108]: Browse up to 10 curated high-grade vehicles available for immediate reservation.
+        - generic [ref=e110]:
+          - generic "2021 Toyota Corolla Axio - USD 8,500" [ref=e111]:
+            - generic [ref=e112]:
+              - img "Toyota Corolla Axio" [ref=e113]
+              - generic [ref=e114]: Available
+              - generic [ref=e116]: In Japan
+            - generic [ref=e117]:
+              - generic [ref=e118]:
+                - generic [ref=e119]: 2021 Toyota
+                - heading "Corolla Axio" [level=3] [ref=e120]
+              - generic [ref=e122]:
+                - generic [ref=e123]: Price
+                - generic [ref=e124]: $8,500
+          - generic "2022 Nissan X-Trail - USD 19,500" [ref=e125]:
+            - generic [ref=e126]:
+              - img "Nissan X-Trail" [ref=e127]
+              - generic [ref=e128]: Available
+              - generic [ref=e130]: In Japan
+            - generic [ref=e131]:
+              - generic [ref=e132]:
+                - generic [ref=e133]: 2022 Nissan
+                - heading "X-Trail" [level=3] [ref=e134]
+              - generic [ref=e136]:
+                - generic [ref=e137]: Price
+                - generic [ref=e138]: $19,500
+          - generic "2023 Lexus RX450h - USD 38,000" [ref=e139]:
+            - generic [ref=e140]:
+              - generic [ref=e141]: Lexus RX450h
+              - generic [ref=e142]: Available
+              - generic [ref=e144]: In Japan
+            - generic [ref=e145]:
+              - generic [ref=e146]:
+                - generic [ref=e147]: 2023 Lexus
+                - heading "RX450h" [level=3] [ref=e148]
+              - generic [ref=e150]:
+                - generic [ref=e151]: Price
+                - generic [ref=e152]: $38,000
+        - generic [ref=e153]:
+          - link "Browse all Premium Stock" [ref=e154] [cursor=pointer]:
+            - /url: /inventory?category=premium
+          - link "💬 Chat with Sales on WhatsApp" [ref=e156] [cursor=pointer]:
+            - /url: https://wa.me/256700000000?text=Hello%20CarChief,%20I%20am%20interested%20in%20Premium%20Stock
+      - region "Latest Arrivals (In Japan)" [ref=e158]:
+        - generic [ref=e159]:
+          - heading "Discounted & Clearance Stock" [level=2] [ref=e160]
+          - paragraph [ref=e161]: Special pricing and clearance offers.
+        - generic [ref=e162]:
+          - generic "2019 Subaru Forester - USD 11,800" [ref=e163]:
+            - generic [ref=e164]:
+              - generic [ref=e165]: Subaru Forester
+              - generic [ref=e166]: Available
+              - generic [ref=e168]: In Port
+            - generic [ref=e169]:
+              - generic [ref=e170]:
+                - generic [ref=e171]: 2019 Subaru
+                - heading "Forester" [level=3] [ref=e172]
+                - generic [ref=e173]: "-10% DISCOUNT"
+              - generic [ref=e176]:
+                - generic [ref=e177]: Price
+                - generic [ref=e178]:
+                  - generic [ref=e179]: $11,800
+                  - generic [ref=e180]: $10,620
+          - generic "2021 Honda Fit Hybrid - USD 7,900" [ref=e181]:
+            - generic [ref=e182]:
+              - generic [ref=e183]: Honda Fit Hybrid
+              - generic [ref=e184]: Available
+              - generic [ref=e186]: In Transit
+            - generic [ref=e187]:
+              - generic [ref=e188]:
+                - generic [ref=e189]: 2021 Honda
+                - heading "Fit Hybrid" [level=3] [ref=e190]
+                - generic [ref=e191]: "-5% DISCOUNT"
+              - generic [ref=e194]:
+                - generic [ref=e195]: Price
+                - generic [ref=e196]:
+                  - generic [ref=e197]: $7,900
+                  - generic [ref=e198]: $7,505
+          - generic "2018 Mitsubishi Fuso Canter - USD 16,000" [ref=e199]:
+            - generic [ref=e200]:
+              - generic [ref=e201]: Mitsubishi Fuso Canter
+              - generic [ref=e202]: Available
+              - generic [ref=e204]: In Port
+            - generic [ref=e205]:
+              - generic [ref=e206]:
+                - generic [ref=e207]: 2018 Mitsubishi
+                - heading "Fuso Canter" [level=3] [ref=e208]
+                - generic [ref=e209]: "-15% DISCOUNT"
+              - generic [ref=e212]:
+                - generic [ref=e213]: Price
+                - generic [ref=e214]:
+                  - generic [ref=e215]: $16,000
+                  - generic [ref=e216]: $13,600
+      - region "Latest Arrivals (In Japan)" [ref=e218]:
+        - generic [ref=e219]:
+          - heading "Browse All Stock" [level=2] [ref=e220]
+          - paragraph [ref=e221]: Available inventory ordered by location (In Port -> In Transit -> In Japan).
+        - generic [ref=e222]:
+          - generic "2019 Subaru Forester - USD 11,800" [ref=e223]:
+            - generic [ref=e224]:
+              - generic [ref=e225]: Subaru Forester
+              - generic [ref=e226]: Available
+              - generic [ref=e228]: In Port
+            - generic [ref=e229]:
+              - generic [ref=e230]:
+                - generic [ref=e231]: 2019 Subaru
+                - heading "Forester" [level=3] [ref=e232]
+                - generic [ref=e233]: "-10% DISCOUNT"
+              - generic [ref=e236]:
+                - generic [ref=e237]: Price
+                - generic [ref=e238]:
+                  - generic [ref=e239]: $11,800
+                  - generic [ref=e240]: $10,620
+          - generic "2018 Mitsubishi Fuso Canter - USD 16,000" [ref=e241]:
+            - generic [ref=e242]:
+              - generic [ref=e243]: Mitsubishi Fuso Canter
+              - generic [ref=e244]: Available
+              - generic [ref=e246]: In Port
+            - generic [ref=e247]:
+              - generic [ref=e248]:
+                - generic [ref=e249]: 2018 Mitsubishi
+                - heading "Fuso Canter" [level=3] [ref=e250]
+                - generic [ref=e251]: "-15% DISCOUNT"
+              - generic [ref=e254]:
+                - generic [ref=e255]: Price
+                - generic [ref=e256]:
+                  - generic [ref=e257]: $16,000
+                  - generic [ref=e258]: $13,600
+          - generic "2021 Honda Fit Hybrid - USD 7,900" [ref=e259]:
+            - generic [ref=e260]:
+              - generic [ref=e261]: Honda Fit Hybrid
+              - generic [ref=e262]: Available
+              - generic [ref=e264]: In Transit
+            - generic [ref=e265]:
+              - generic [ref=e266]:
+                - generic [ref=e267]: 2021 Honda
+                - heading "Fit Hybrid" [level=3] [ref=e268]
+                - generic [ref=e269]: "-5% DISCOUNT"
+              - generic [ref=e272]:
+                - generic [ref=e273]: Price
+                - generic [ref=e274]:
+                  - generic [ref=e275]: $7,900
+                  - generic [ref=e276]: $7,505
+          - generic "2021 Toyota Corolla Axio - USD 8,500" [ref=e277]:
+            - generic [ref=e278]:
+              - img "Toyota Corolla Axio" [ref=e279]
+              - generic [ref=e280]: Available
+              - generic [ref=e282]: In Japan
+            - generic [ref=e283]:
+              - generic [ref=e284]:
+                - generic [ref=e285]: 2021 Toyota
+                - heading "Corolla Axio" [level=3] [ref=e286]
+              - generic [ref=e288]:
+                - generic [ref=e289]: Price
+                - generic [ref=e290]: $8,500
+          - generic "2020 Toyota HiAce Van - USD 14,200" [ref=e291]:
+            - generic [ref=e292]:
+              - img "Toyota HiAce Van" [ref=e293]
+              - generic [ref=e294]: ReservedWithPI
+              - generic [ref=e296]: In Japan
+            - generic [ref=e297]:
+              - generic [ref=e298]:
+                - generic [ref=e299]: 2020 Toyota
+                - heading "HiAce Van" [level=3] [ref=e300]
+              - generic [ref=e302]:
+                - generic [ref=e303]: Price
+                - generic [ref=e304]: $14,200
+          - generic "2022 Nissan X-Trail - USD 19,500" [ref=e305]:
+            - generic [ref=e306]:
+              - img "Nissan X-Trail" [ref=e307]
+              - generic [ref=e308]: Available
+              - generic [ref=e310]: In Japan
+            - generic [ref=e311]:
+              - generic [ref=e312]:
+                - generic [ref=e313]: 2022 Nissan
+                - heading "X-Trail" [level=3] [ref=e314]
+              - generic [ref=e316]:
+                - generic [ref=e317]: Price
+                - generic [ref=e318]: $19,500
+          - generic "2023 Lexus RX450h - USD 38,000" [ref=e319]:
+            - generic [ref=e320]:
+              - generic [ref=e321]: Lexus RX450h
+              - generic [ref=e322]: Available
+              - generic [ref=e324]: In Japan
+            - generic [ref=e325]:
+              - generic [ref=e326]:
+                - generic [ref=e327]: 2023 Lexus
+                - heading "RX450h" [level=3] [ref=e328]
+              - generic [ref=e330]:
+                - generic [ref=e331]: Price
+                - generic [ref=e332]: $38,000
+          - generic "2020 Mazda CX-5 - USD 13,500" [ref=e333]:
+            - generic [ref=e334]:
+              - generic [ref=e335]: Mazda CX-5
+              - generic [ref=e336]: Available
+              - generic [ref=e338]: In Japan
+            - generic [ref=e339]:
+              - generic [ref=e340]:
+                - generic [ref=e341]: 2020 Mazda
+                - heading "CX-5" [level=3] [ref=e342]
+              - generic [ref=e344]:
+                - generic [ref=e345]: Price
+                - generic [ref=e346]: $13,500
+      - region [ref=e347]:
+        - generic [ref=e348]:
+          - text: Sourcing Guide
+          - heading "CarChief 5-Step Sourcing Process" [level=2] [ref=e349]
+        - generic [ref=e350]:
+          - generic [ref=e351]:
+            - generic [ref=e352]: "01"
+            - heading "Select Vehicle & Get Quote" [level=3] [ref=e353]
+            - paragraph [ref=e354]: Browse available stock and request a quotation for your destination port.
+          - generic [ref=e355]:
+            - generic [ref=e356]: "02"
+            - heading "Confirm Proforma Invoice" [level=3] [ref=e357]
+            - paragraph [ref=e358]: Review pricing breakdown and confirm payment terms with bank wire instructions.
+          - generic [ref=e359]:
+            - generic [ref=e360]: "03"
+            - heading "Complete Bank Transfer" [level=3] [ref=e361]
+            - paragraph [ref=e362]: Transfer funds securely and provide swift confirmation to our billing department.
+          - generic [ref=e363]:
+            - generic [ref=e364]: "04"
+            - heading "Maritime Vessel Shipping" [level=3] [ref=e365]
+            - paragraph [ref=e366]: Vehicle is loaded onto ocean carrier and shipping title documents dispatched.
+          - generic [ref=e367]:
+            - generic [ref=e368]: "05"
+            - heading "Port Delivery & Clearance" [level=3] [ref=e369]
+            - paragraph [ref=e370]: Receive vehicle at your local port, settle customs clearance, and take delivery.
+      - region [ref=e371]:
+        - generic [ref=e372]:
+          - text: Customer Feedback
+          - heading "Buyer Endorsements" [level=2] [ref=e373]
+        - generic [ref=e374]:
+          - blockquote [ref=e375]:
+            - paragraph [ref=e376]: "\"The pre-shipment diagnostic report and video inspections were thorough. Smooth delivery to port.\""
+            - generic [ref=e377]:
+              - strong [ref=e378]: Julian Vance
+              - generic [ref=e379]: Geneva, Switzerland • Porsche 911 GT3 RS
+          - blockquote [ref=e380]:
+            - paragraph [ref=e381]: "\"Clear communication throughout maritime transit and exact document dispatch upon vessel departure.\""
+            - generic [ref=e382]:
+              - strong [ref=e383]: Sophia Chen
+              - generic [ref=e384]: Kampala, Uganda • Toyota Land Cruiser Prado
+          - blockquote [ref=e385]:
+            - paragraph [ref=e386]: "\"Vehicle arrived in exact accordance with the auction sheet and inspection checklist.\""
+            - generic [ref=e387]:
+              - strong [ref=e388]: Marcus Sterling
+              - generic [ref=e389]: Mombasa, Kenya • Toyota HiAce Van
+      - region [ref=e390]:
+        - generic [ref=e391]:
+          - text: Help & Information
+          - heading "Frequently Asked Questions" [level=2] [ref=e392]
+        - generic [ref=e393]:
+          - generic [ref=e394]:
+            - button "Is CarChief an authorized exporter of Japanese used vehicles? −" [expanded] [ref=e395] [cursor=pointer]:
+              - generic [ref=e396]: Is CarChief an authorized exporter of Japanese used vehicles?
+              - generic [ref=e397]: −
+            - generic [ref=e398]: CarChief functions as a curated exporter and logistics coordinator, acquiring vehicles from certified Japanese auctions and networks with 150-point pre-export diagnostics.
+          - button "What shipping title documents are provided upon vessel departure? +" [ref=e400] [cursor=pointer]:
+            - generic [ref=e401]: What shipping title documents are provided upon vessel departure?
+            - generic [ref=e402]: +
+          - button "How are freight costs calculated for Mombasa and Dar es Salaam ports? +" [ref=e404] [cursor=pointer]:
+            - generic [ref=e405]: How are freight costs calculated for Mombasa and Dar es Salaam ports?
+            - generic [ref=e406]: +
+  - contentinfo [ref=e407]:
+    - generic [ref=e408]: © CarChief. Demo public website.
+  - alert [ref=e409]

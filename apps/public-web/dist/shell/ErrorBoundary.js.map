@@ -1,0 +1,1 @@
+{"version":3,"file":"ErrorBoundary.js","sourceRoot":"","sources":["../../src/shell/ErrorBoundary.ts"],"names":[],"mappings":";;AAKA,8DAUC;AAVD,SAAgB,yBAAyB,CAAC,KAAa;IACrD,IAAI,KAAK,EAAE,CAAC;QACV,OAAO;YACL,QAAQ,EAAE,IAAI;YACd,KAAK;SACN,CAAC;IACJ,CAAC;IACD,OAAO;QACL,QAAQ,EAAE,KAAK;KAChB,CAAC;AACJ,CAAC"}

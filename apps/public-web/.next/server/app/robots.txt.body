@@ -1,0 +1,8 @@
+User-Agent: *
+Allow: /
+Disallow: /account/dashboard
+Disallow: /account/settings
+Disallow: /account/orders
+Disallow: /api/
+
+Sitemap: http://127.0.0.1:3000/sitemap.xml
