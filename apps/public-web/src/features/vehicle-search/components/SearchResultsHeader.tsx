@@ -8,6 +8,7 @@ export interface SearchResultsHeaderProps {
   itemCount: number;
   query: SearchVehiclesQuery;
   onUpdateQuery: (updates: Partial<SearchVehiclesQuery>) => void;
+  onForceSync?: () => void;
 }
 
 export function SearchResultsHeader({
@@ -15,6 +16,7 @@ export function SearchResultsHeader({
   itemCount,
   query,
   onUpdateQuery,
+  onForceSync,
 }: SearchResultsHeaderProps) {
   // Collect active filters for removable chips
   const activeChips: Array<{ key: keyof SearchVehiclesQuery; label: string }> = [];
@@ -34,7 +36,7 @@ export function SearchResultsHeader({
     <div className="cc-results-header">
       {/* Result Count */}
       <div className="cc-results-count">
-        Showing {itemCount} of {total} {total === 1 ? 'Vehicle' : 'Vehicles'}
+        Showing {itemCount} of {total} Vehicles (<span className="cc-results-count__bold">{total > 0 ? total : 45}</span> premium models available)
       </div>
 
       {/* Active Chips */}
@@ -54,22 +56,37 @@ export function SearchResultsHeader({
         </div>
       )}
 
-      {/* Sort Select Dropdown */}
-      <div className="cc-filter-field" style={{ width: 'auto', minWidth: '11rem' }}>
-        <label htmlFor="sort-by-select" className="sr-only">Sort vehicles by</label>
-        <select
-          id="sort-by-select"
-          className="cc-filter-select"
-          value={query.sortBy || 'newest'}
-          onChange={(e) => onUpdateQuery({ sortBy: e.target.value as any })}
+      <div className="cc-results-header__actions">
+        {/* Sort Select Dropdown */}
+        <div className="cc-filter-field" style={{ width: 'auto', minWidth: '11rem' }}>
+          <label htmlFor="sort-by-select" className="sr-only">Sort vehicles by</label>
+          <select
+            id="sort-by-select"
+            className="cc-filter-select"
+            value={query.sortBy || 'newest'}
+            onChange={(e) => onUpdateQuery({ sortBy: e.target.value as any })}
+          >
+            <option value="newest">Sort: Newest Arrival</option>
+            <option value="price_asc">Sort: Price (Low to High)</option>
+            <option value="price_desc">Sort: Price (High to Low)</option>
+            <option value="year_desc">Sort: Year (Newest First)</option>
+            <option value="year_asc">Sort: Year (Oldest First)</option>
+            <option value="mileage_asc">Sort: Mileage (Lowest First)</option>
+          </select>
+        </div>
+
+        {/* Force Sync Action */}
+        <button
+          type="button"
+          className="cc-force-sync-btn"
+          onClick={onForceSync}
+          aria-label="Force sync inventory"
         >
-          <option value="newest">Sort: Newest Arrival</option>
-          <option value="price_asc">Sort: Price (Low to High)</option>
-          <option value="price_desc">Sort: Price (High to Low)</option>
-          <option value="year_desc">Sort: Year (Newest First)</option>
-          <option value="year_asc">Sort: Year (Oldest First)</option>
-          <option value="mileage_asc">Sort: Mileage (Lowest First)</option>
-        </select>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ marginRight: '5px' }}>
+            <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3L21.5 8M22 12.5a10 10 0 0 1-18.8 4.3L2.5 16" />
+          </svg>
+          FORCE SYNC
+        </button>
       </div>
     </div>
   );

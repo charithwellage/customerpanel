@@ -401,9 +401,9 @@ html, body {
    Showroom Surface & Components
    ========================================================================== */
 .showroom {
-  max-width: 1280px;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 2.5rem 1.25rem 4rem;
+  padding: 2rem 1.5rem 4rem;
 }
 
 .theme-switcher {

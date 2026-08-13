@@ -39,40 +39,40 @@ export function SearchFilterBar({
       {/* Search Input & Natural Parsing Bar */}
       <div className="cc-search-input-group">
         <div className="cc-search-input-wrapper">
-          <span className="cc-search-input-icon" aria-hidden="true">🔍</span>
+          <span className="cc-search-input-icon" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+          </span>
           <input
             type="search"
             id="vehicle-search-input"
             className="cc-search-input"
-            placeholder="Search make, model, or try 'Toyota SUV under $20k'..."
+            placeholder="Search by keyword (e.g., Porsche, GT3, Black, V8)..."
             value={naturalPhrase}
             onChange={(e) => onNaturalPhraseChange(e.target.value)}
             onKeyDown={handleKeyDown}
-            aria-label="Search vehicles by keyword or natural phrase"
+            aria-label="Search by keyword"
           />
         </div>
         <button
           type="button"
-          id="search-apply-btn"
-          className="cc-search-action-btn"
-          onClick={onApplyNaturalSearch}
-        >
-          Search
-        </button>
-        <button
-          type="button"
           id="filter-toggle-btn"
-          className="cc-search-secondary-btn"
+          className="cc-search-filter-toggle-btn"
           onClick={() => setIsExpanded((prev) => !prev)}
           aria-expanded={isExpanded}
           aria-controls="expanded-filters-section"
         >
-          {isExpanded ? 'Hide Filters ▲' : 'Filters ▼'}
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ marginRight: '6px' }}>
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+          </svg>
+          {isExpanded ? 'Minimize Filters ∧' : 'Maximize Filters ∨'}
         </button>
         <button
           type="button"
           id="reset-filters-btn"
-          className="cc-search-secondary-btn"
+          className="cc-search-reset-btn"
           onClick={onResetFilters}
         >
           Reset All
