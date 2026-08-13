@@ -315,8 +315,8 @@ function validate({ quiet = false } = {}) {
       else if (/^D02-P0[1-9]-/.test(task.task_id) && decisions.get(gate) !== 'RESOLVED') {
         errors.push(`${task.task_id}: Delivery 02 Phases 2.1–2.9 must not retain an unresolved requirement decision gate; record an assumption instead`);
       }
-      else if (/^D01-P(05|10)-/.test(task.task_id) && decisions.get(gate) !== 'RESOLVED') {
-        errors.push(`${task.task_id}: Delivery 01 Phase 1.5/1.10 must not retain an unresolved requirement decision gate; record an assumption instead`);
+      else if (/^D01-P(0[5-9]|10)-/.test(task.task_id) && decisions.get(gate) !== 'RESOLVED') {
+        errors.push(`${task.task_id}: Delivery 01 Phases 1.5-1.10 must not retain an unresolved requirement decision gate; record an assumption instead`);
       }
     }
   }
@@ -363,6 +363,7 @@ function validate({ quiet = false } = {}) {
       errors.push(...collectSelfReviewEvidenceErrors(task.task_id, task));
     }
   }
+  validateAssumptionRegister(errors);
   if (errors.length) die(errors.join('\n'));
   if (!quiet) console.log(`Validated ${tasks.size} task/gate files; dependency graph is complete and acyclic.`);
   return { tasks, decisions };
@@ -541,6 +542,44 @@ function collectSelfReviewEvidenceErrors(id, task) {
     }
   }
   return errors;
+}
+
+// D01-P10-T001 requires a task-system assertion that every Delivery 01 assumption
+// register row stays complete and auditable — an empty cell or an invalid status is
+// exactly the kind of silent drift Phase 1.10 exists to catch, so this checks the
+// register's actual table structure rather than trusting narrative review alone.
+function validateAssumptionRegister(errors) {
+  const path = join(tasksRoot, 'delivery_01', 'REQUIREMENT_GAPS_AND_ASSUMPTIONS.md');
+  if (!existsSync(path)) {
+    errors.push('delivery_01/REQUIREMENT_GAPS_AND_ASSUMPTIONS.md is missing');
+    return;
+  }
+  const columns = [
+    'ID', 'Status', 'Affected task / requirement', 'Date', 'Safe MVP default or skipped capability',
+    'Rationale and mock/API impact', 'Tests', 'Risk', 'Phase 1.10 outcome',
+  ];
+  const validRowStatuses = new Set(['ASSUMED', 'SKIPPED', 'CONFIRMED', 'SUPERSEDED']);
+  // Scope to the "## Register" section only — later sections (e.g. the Phase 1.10
+  // business-review checklist) cross-reference the same D01-ASM-* IDs in a narrower
+  // summary table and must not be mistaken for the authoritative register row.
+  const registerSection = readFileSync(path, 'utf8').match(/## Register\n([\s\S]*?)(?=\n## )/)?.[1] || '';
+  if (!registerSection) errors.push('delivery_01/REQUIREMENT_GAPS_AND_ASSUMPTIONS.md is missing its "## Register" section');
+  const rowLines = registerSection.split('\n').filter((line) => /^\|\s*D01-ASM-\d{3}\s*\|/.test(line));
+  if (!rowLines.length) errors.push('delivery_01/REQUIREMENT_GAPS_AND_ASSUMPTIONS.md has no D01-ASM-* register rows');
+  for (const line of rowLines) {
+    const cells = line.split('|').slice(1, -1).map((cell) => cell.trim());
+    const id = cells[0] || line.slice(0, 40);
+    if (cells.length !== columns.length) {
+      errors.push(`${id}: register row has ${cells.length} columns, expected ${columns.length} (${columns.join(', ')})`);
+      continue;
+    }
+    cells.forEach((cell, index) => {
+      if (!cell) errors.push(`${id}: register row is missing its "${columns[index]}" value`);
+    });
+    if (!validRowStatuses.has(cells[1])) {
+      errors.push(`${id}: register row status "${cells[1]}" must be one of ${[...validRowStatuses].join(', ')}`);
+    }
+  }
 }
 
 function requireSelfReviewEvidence(id, task) {

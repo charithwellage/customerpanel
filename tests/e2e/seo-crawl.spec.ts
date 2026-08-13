@@ -14,7 +14,7 @@ test.describe('Public Web SEO Crawl & Broken Link Audit', () => {
     expect(sitemapRes?.status()).toBe(200);
     const sitemapText = await page.content();
     expect(sitemapText).toContain('<urlset');
-    expect(sitemapText).toContain('/vehicles');
+    expect(sitemapText).toContain('/allstock');
   });
 
   test('crawls homepage internal links and verifies no broken links', async ({ page }) => {

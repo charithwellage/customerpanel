@@ -48,8 +48,8 @@ const claimsFixture: JwtClaims = {
    -------------------------------------------------------------------------- */
 describe('resolveReturnTarget', () => {
   it('accepts a same-origin relative path', () => {
-    expect(resolveReturnTarget('/vehicles/2021-toyota-corolla-axio-veh-1')).toBe(
-      '/vehicles/2021-toyota-corolla-axio-veh-1'
+    expect(resolveReturnTarget('/allstock/2021-toyota-corolla-axio-veh-1')).toBe(
+      '/allstock/2021-toyota-corolla-axio-veh-1'
     );
   });
 
@@ -68,7 +68,7 @@ describe('resolveReturnTarget', () => {
   });
 
   it('rejects an absolute URL, even one starting with a path-like segment', () => {
-    expect(resolveReturnTarget('https://evil.example.com/vehicles/1')).toBe('/');
+    expect(resolveReturnTarget('https://evil.example.com/allstock/1')).toBe('/');
   });
 
   it('rejects a value containing "://" anywhere', () => {
@@ -76,13 +76,13 @@ describe('resolveReturnTarget', () => {
   });
 
   it('honours a custom fallback', () => {
-    expect(resolveReturnTarget(undefined, '/vehicles')).toBe('/vehicles');
+    expect(resolveReturnTarget(undefined, '/allstock')).toBe('/allstock');
   });
 });
 
 describe('extractVehicleSlug', () => {
-  it('extracts the slug from a /vehicles/{slug} return target', () => {
-    expect(extractVehicleSlug('/vehicles/2021-toyota-corolla-axio-veh-1')).toBe('2021-toyota-corolla-axio-veh-1');
+  it('extracts the slug from an /allstock/{slug} return target', () => {
+    expect(extractVehicleSlug('/allstock/2021-toyota-corolla-axio-veh-1')).toBe('2021-toyota-corolla-axio-veh-1');
   });
 
   it('returns undefined for a non-vehicle return target', () => {
@@ -255,13 +255,13 @@ describe('ReservationSignInGuidance rendering', () => {
     const html = renderToStaticMarkup(
       React.createElement(ReservationSignInGuidance, {
         status: 'anonymous',
-        signInHref: '/account?returnTo=%2Fvehicles%2Fveh-1',
+        signInHref: '/account?returnTo=%2Fallstock%2Fveh-1',
         vehicleLabel: 'the vehicle you were viewing (veh-1)',
       })
     );
     expect(html).toContain('Sign in to reserve this vehicle');
     expect(html).toContain('Nothing has been reserved yet');
-    expect(html).toContain('/account?returnTo=%2Fvehicles%2Fveh-1');
+    expect(html).toContain('/account?returnTo=%2Fallstock%2Fveh-1');
   });
 
   it('renders honest expired-session guidance distinct from the first-visit copy', async () => {
@@ -297,8 +297,8 @@ describe('Account entry DOM id hygiene', () => {
       React.createElement(
         'div',
         null,
-        React.createElement(ReservationSignInGuidance, { status: 'anonymous', signInHref: '/account?returnTo=%2Fvehicles%2Fveh-a' }),
-        React.createElement(ReservationSignInGuidance, { status: 'anonymous', signInHref: '/account?returnTo=%2Fvehicles%2Fveh-b' })
+        React.createElement(ReservationSignInGuidance, { status: 'anonymous', signInHref: '/account?returnTo=%2Fallstock%2Fveh-a' }),
+        React.createElement(ReservationSignInGuidance, { status: 'anonymous', signInHref: '/account?returnTo=%2Fallstock%2Fveh-b' })
       )
     );
 

@@ -8,7 +8,7 @@ export default function VehicleNotFound() {
       <p role="alert" className="cc-vehicle-detail__not-found-text">
         Vehicle not found.
       </p>
-      <a href="/vehicles" className="cc-vehicle-detail__back-link">
+      <a href="/allstock" className="cc-vehicle-detail__back-link">
         Browse all vehicles
       </a>
     </section>

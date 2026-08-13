@@ -52,10 +52,10 @@ function craftDemoToken(role: string, sub: string, email: string): string {
 }
 
 async function signInViaUi(page: Page, returnToSlug?: string): Promise<void> {
-  const returnTo = returnToSlug ? `?returnTo=${encodeURIComponent(`/vehicles/${returnToSlug}`)}` : '';
+  const returnTo = returnToSlug ? `?returnTo=${encodeURIComponent(`/allstock/${returnToSlug}`)}` : '';
   await page.goto(`/account${returnTo}`);
   await Promise.all([
-    returnToSlug ? page.waitForURL(new RegExp(`/vehicles/${returnToSlug}$`)) : page.waitForURL((url) => url.pathname === '/'),
+    returnToSlug ? page.waitForURL(new RegExp(`/allstock/${returnToSlug}$`)) : page.waitForURL((url) => url.pathname === '/'),
     page.getByRole('button', { name: 'Continue with Demo Customer Account' }).click(),
   ]);
 }
@@ -76,7 +76,7 @@ test.describe('Contact and vehicle enquiry journeys', () => {
 
     const [response] = await Promise.all([
       page.waitForResponse((res) => res.url().includes('/api/v1/enquiries') && res.request().method() === 'POST'),
-      page.getByRole('button', { name: 'Send enquiry' }).click(),
+      page.getByRole('button', { name: 'SEND INQUIRY' }).click(),
     ]);
     expect(response.status()).toBe(201);
     await expect(page.getByRole('status').filter({ hasText: 'Your enquiry was received' })).toBeVisible();
@@ -87,7 +87,7 @@ test.describe('Contact and vehicle enquiry journeys', () => {
     request,
     baseURL,
   }) => {
-    await page.goto(`/vehicles/${AVAILABLE_VEHICLE.slug}`);
+    await page.goto(`/allstock/${AVAILABLE_VEHICLE.slug}`);
     await page.getByRole('link', { name: 'General Enquiry' }).click();
     await expect(page).toHaveURL(new RegExp(`/contact\\?vehicle=${AVAILABLE_VEHICLE.slug}&enquiryType=vehicle`));
 
@@ -99,7 +99,7 @@ test.describe('Contact and vehicle enquiry journeys', () => {
 
     const [response] = await Promise.all([
       page.waitForResponse((res) => res.url().includes('/api/v1/enquiries') && res.request().method() === 'POST'),
-      page.getByRole('button', { name: 'Send enquiry' }).click(),
+      page.getByRole('button', { name: 'SEND INQUIRY' }).click(),
     ]);
     expect(response.status()).toBe(201);
     await expect(page.getByRole('status').filter({ hasText: 'Your enquiry was received' })).toBeVisible();
@@ -126,20 +126,20 @@ test.describe('Anonymous reservation guidance on the vehicle detail page', () =>
   test('an anonymous visitor trying to reserve a vehicle is told clearly what to do next, not a silent failure (PUB-23)', async ({
     page,
   }) => {
-    await page.goto(`/vehicles/${AVAILABLE_VEHICLE.slug}`);
+    await page.goto(`/allstock/${AVAILABLE_VEHICLE.slug}`);
     const guidance = page.getByRole('status').filter({ hasText: 'Sign in to reserve this vehicle' });
     await expect(guidance).toBeVisible();
     await expect(guidance.getByText('Nothing has been reserved yet', { exact: false })).toBeVisible();
     await expect(guidance.getByRole('link', { name: 'Sign In to Reserve' })).toHaveAttribute(
       'href',
-      `/account?returnTo=%2Fvehicles%2F${AVAILABLE_VEHICLE.slug}`
+      `/account?returnTo=%2Fallstock%2F${AVAILABLE_VEHICLE.slug}`
     );
   });
 
   test('a vehicle that is not reservable shows an honest unavailable state, never a Reserve action that would fail (RULE-09)', async ({
     page,
   }) => {
-    await page.goto(`/vehicles/${SOLD_VEHICLE.slug}`);
+    await page.goto(`/allstock/${SOLD_VEHICLE.slug}`);
     const notice = page.getByRole('status').filter({ hasText: 'Reservation not available' });
     await expect(notice).toBeVisible();
     await expect(notice.getByText('status: Sold', { exact: false })).toBeVisible();

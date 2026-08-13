@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import type { VehicleDomainSummary } from '@carchief/domain';
 
