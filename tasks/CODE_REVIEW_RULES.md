@@ -23,8 +23,8 @@ Every Delivery 01 and Delivery 02 implementation task performs this review befor
 3. Record findings and fixes in the task execution log under `## AI code review`.
 4. Fix every in-scope violation, then repeat the review.
 5. For a task marked `playwright_mcp`, build/recreate a runtime from the current worktree before starting its MCP walkthrough. Record the exact command, URL, process/container identity and readiness checks. Do not treat a source-only build or a pre-existing port listener as runtime proof.
-6. Run the MCP walkthrough and the automated Playwright suite against that recorded target URL. Fix in-scope findings and repeat the code review and fresh-runtime validation after any correction.
-7. Only when the final review and MCP result are **PASS** run the task’s automated tests, lint, typecheck and build commands.
+6. Run the MCP walkthrough and the matrix-assigned automated Playwright spec against that recorded target URL. Delivery 02 Phases 2.1–2.8 use the focused suite in `delivery_02/D02_TEST_MATRIX.md`; final/reconciliation gates retain full regression. Fix in-scope findings and repeat the code review and fresh-runtime validation after any correction.
+7. Only when the final review and MCP result are **PASS** run the task’s named tests and dependency-closure build. Root lint, typecheck and recursive build remain final/reconciliation gates unless the task changes shared tooling/configuration.
 8. Record exact MCP and test results, then use `taskctl complete` for a `self_ai` task.
 
 If an issue needs another task’s owned path or a prerequisite change, record it as a blocker rather than guessing or expanding scope. For a Delivery 02 requirement gap in Phases 2.1–2.9, record the safe default or skipped capability in the assumption register and continue; block only if no secure, honest implementation boundary can be preserved.
@@ -64,6 +64,6 @@ Full suite result: <passed>/<total> passed across chromium, mobile-chromium, tab
 Result: PASS | FAIL
 ```
 
-`taskctl submit` rejects a review log that lacks `## Findings`, an explicit `Result:`, or the `Full suite result:` line — the full Playwright suite is the gate, and a spec-scoped run never satisfies it.
+`taskctl submit` rejects a review log that lacks `## Findings` or an explicit `Result:`. Delivery 02 Phase 2.1–2.8 reviews record `Focused suite result:` from `D02_TEST_MATRIX.md`; final/reconciliation reviews record the `Full suite result:` line.
 
 Sweep each defect class across **every** place it can occur rather than the first place it appears; an invented value duplicated in a fixture and a page-level fallback must be corrected in both, since the live route may read only one.
