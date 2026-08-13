@@ -1,44 +1,18 @@
 import React from 'react';
 import type { Metadata } from 'next';
-import { loadContentPageBySlug } from '../../features/public-content/loadPublicContent';
-import { ContentPageTemplate } from '../../features/public-content/components/ContentPageTemplate';
-import '../../features/public-content/public-content.css';
-
-export const dynamic = 'force-dynamic';
+import { AboutUsExperience } from '../../features/public-content/components/AboutUsExperience';
+import '../../features/public-content/about-us.css';
 
 export const metadata: Metadata = {
-  title: 'About CarChief | Japanese Used Vehicle Exporters',
+  title: 'About CarChief | Welcome to CarChief',
   description:
-    'Learn about CarChief, premier Japanese auto auction and used car export specialists supplying African and global markets.',
+    'Premier global automotive curators and logistics broker network, specializing in seamless intercontinental vehicle export and dealer empowerment.',
 };
 
-export default async function AboutPage() {
-  const page = await loadContentPageBySlug('about-us');
-
+export default function AboutPage() {
   return (
-    <ContentPageTemplate
-      title={page?.title ?? 'About CarChief'}
-      subtitle={
-        page?.summary ??
-        'Leading Japanese vehicle export specialist connecting global buyers with certified quality stock.'
-      }
-      badge="Company Information"
-      owner={page?.owner ?? 'ExecutiveTeam'}
-      updatedAt={page?.updatedAt ?? '2026-08-10T10:00:00.000Z'}
-      status={page?.status ?? 'approved'}
-      body={page?.body}
-      sections={page?.sections}
-      isUnavailable={!page}
-      heroActions={
-        <div className="cc-public-content-page__actions">
-          <a href="/how-to-buy" className="cc-btn cc-btn--primary">
-            How to Buy Guide
-          </a>
-          <a href="/contact" className="cc-btn cc-btn--secondary">
-            Contact Support
-          </a>
-        </div>
-      }
-    />
+    <main id="main-content" tabIndex={-1}>
+      <AboutUsExperience />
+    </main>
   );
 }

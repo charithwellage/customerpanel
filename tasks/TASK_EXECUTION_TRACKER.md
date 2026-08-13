@@ -80,11 +80,11 @@
 | [D01-P08-T003](delivery_01/phase_08/D01-P08-T003.md) | Complete accessibility, browser and performance acceptance | COMPLETE | self_ai | playwright_mcp | Antigravity | `feat_delivery01_phase_08` | D01-P08-CODE_REVIEW (COMPLETE) | D01-P07-T004 | P08-A | 2026-08-12T13:52:10.000Z |
 | [D01-P08-T004](delivery_01/phase_08/D01-P08-T004.md) | Produce Public Website UAT and Delivery 1 handoff | COMPLETE | self_ai | playwright_mcp | Antigravity | `feat_delivery01_phase_08` | D01-P08-CODE_REVIEW (COMPLETE) | D01-P08-T001, D01-P08-T002, D01-P08-T003 | P08-B | 2026-08-12T17:42:50.848Z |
 | [D01-P08-CODE_REVIEW](delivery_01/phase_08/D01-P08-CODE_REVIEW.md) | Phase 1.8 PR code review and tech-lead approval | COMPLETE | phase_manual | not_applicable | Claude Code | `feat_delivery01_phase_08` | D01-P08-CODE_REVIEW (COMPLETE) | D01-P08-T004 | P08-REVIEW | 2026-08-12T18:02:44.381Z |
-| [D01-P09-T001](delivery_01/phase_09/D01-P09-T001.md) | Add automated ocean theme-parity and contrast suite | COMPLETE | self_ai | not_applicable | Claude Code | `feat_delivery01_phase_09` | D01-P09-CODE_REVIEW (IN_PROGRESS) | D01-P08-CODE_REVIEW | P09-A | 2026-08-12T18:39:35.376Z |
-| [D01-P09-T002](delivery_01/phase_09/D01-P09-T002.md) | Validate the ocean theme with Playwright MCP and fix parity defects | IN_PROGRESS | self_ai | playwright_mcp | Claude Code | `feat_delivery01_phase_09` | D01-P09-CODE_REVIEW (IN_PROGRESS) | D01-P09-T001 | P09-B | 2026-08-13T08:03:37.000Z |
-| [D01-P09-T003](delivery_01/phase_09/D01-P09-T003.md) | Resume and complete Playwright MCP runtime verification for the textOnAccent contrast fix | READY | self_ai | playwright_mcp | — | `feat_delivery01_phase_09` | D01-P09-CODE_REVIEW (IN_PROGRESS) | None | P09-B | — |
-| [D01-P09-CODE_REVIEW](delivery_01/phase_09/D01-P09-CODE_REVIEW.md) | Phase 1.9 PR code review and tech-lead approval | IN_PROGRESS | phase_manual | not_applicable | Claude Code | `feat_delivery01_phase_09` | D01-P09-CODE_REVIEW (IN_PROGRESS) | D01-P09-T002 | P09-REVIEW | 2026-08-13T07:15:00.000Z |
-| [D01-P10-T001](delivery_01/phase_10/D01-P10-T001.md) | Reconcile Delivery 01 requirement gaps and assumption evidence | NOT_STARTED | self_ai | not_applicable | — | `feat_delivery01_phase_10` | D01-P10-CODE_REVIEW (NOT_STARTED) | D01-P09-CODE_REVIEW | D01-P10-SEQUENTIAL | — |
+| [D01-P09-T001](delivery_01/phase_09/D01-P09-T001.md) | Add automated ocean theme-parity and contrast suite | COMPLETE | self_ai | not_applicable | Claude Code | `feat_delivery01_phase_09` | D01-P09-CODE_REVIEW (COMPLETE) | D01-P08-CODE_REVIEW | P09-A | 2026-08-12T18:39:35.376Z |
+| [D01-P09-T002](delivery_01/phase_09/D01-P09-T002.md) | Validate the ocean theme with Playwright MCP and fix parity defects | COMPLETE | self_ai | playwright_mcp | Claude Code | `feat_delivery01_phase_09` | D01-P09-CODE_REVIEW (COMPLETE) | D01-P09-T001 | P09-B | 2026-08-13T10:13:06.509Z |
+| [D01-P09-T003](delivery_01/phase_09/D01-P09-T003.md) | Resume and complete Playwright MCP runtime verification for the textOnAccent contrast fix | COMPLETE | self_ai | playwright_mcp | Codex | `feat_delivery01_phase_09` | D01-P09-CODE_REVIEW (COMPLETE) | None | P09-B | 2026-08-13T10:13:10.057Z |
+| [D01-P09-CODE_REVIEW](delivery_01/phase_09/D01-P09-CODE_REVIEW.md) | Phase 1.9 PR code review and tech-lead approval | COMPLETE | phase_manual | not_applicable | Claude Code | `feat_delivery01_phase_09` | D01-P09-CODE_REVIEW (COMPLETE) | D01-P09-T002 | P09-REVIEW | 2026-08-13T11:30:33.771Z |
+| [D01-P10-T001](delivery_01/phase_10/D01-P10-T001.md) | Reconcile Delivery 01 requirement gaps and assumption evidence | READY | self_ai | not_applicable | — | `feat_delivery01_phase_10` | D01-P10-CODE_REVIEW (NOT_STARTED) | D01-P09-CODE_REVIEW | D01-P10-SEQUENTIAL | — |
 | [D01-P10-T002](delivery_01/phase_10/D01-P10-T002.md) | Apply approved Delivery 01 assumption adjustments | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery01_phase_10` | D01-P10-CODE_REVIEW (NOT_STARTED) | D01-P10-T001 | D01-P10-SEQUENTIAL | — |
 | [D01-P10-T003](delivery_01/phase_10/D01-P10-T003.md) | Re-verify theme parity and close Delivery 01 MVP acceptance | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery01_phase_10` | D01-P10-CODE_REVIEW (NOT_STARTED) | D01-P10-T002 | D01-P10-SEQUENTIAL | — |
 | [D01-P10-CODE_REVIEW](delivery_01/phase_10/D01-P10-CODE_REVIEW.md) | Phase 1.10 PR code review and tech-lead approval | NOT_STARTED | phase_manual | not_applicable | — | `feat_delivery01_phase_10` | D01-P10-CODE_REVIEW (NOT_STARTED) | D01-P10-T003 | D01-P10-REVIEW | — |
@@ -138,21 +138,12 @@
 | [D02-P10-T002](delivery_02/phase_10/D02-P10-T002.md) | Apply approved Delivery 02 assumption adjustments | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery02_phase_10` | D02-P10-CODE_REVIEW (NOT_STARTED) | D02-P10-T001 | D02-P10-SEQUENTIAL | — |
 | [D02-P10-T003](delivery_02/phase_10/D02-P10-T003.md) | Run final Customer assumption, Docker and golden-journey acceptance | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery02_phase_10` | D02-P10-CODE_REVIEW (NOT_STARTED) | D02-P10-T002 | D02-P10-SEQUENTIAL | — |
 | [D02-P10-CODE_REVIEW](delivery_02/phase_10/D02-P10-CODE_REVIEW.md) | Phase 2.10 PR code review and tech-lead approval | NOT_STARTED | phase_manual | not_applicable | — | `feat_delivery02_phase_10` | D02-P10-CODE_REVIEW (NOT_STARTED) | D02-P10-T003 | D02-P10-REVIEW | — |
-| [D02-P11-T001](delivery_02/phase_11/D02-P11-T001.md) | Add optional Customer theme configuration and provider integration | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery02_phase_11` | D02-P11-CODE_REVIEW (NOT_STARTED) | D02-P10-CODE_REVIEW | D02-P11-OPTIONAL | — |
-| [D02-P11-T002](delivery_02/phase_11/D02-P11-T002.md) | Enable and verify the optional ocean Customer theme | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery02_phase_11` | D02-P11-CODE_REVIEW (NOT_STARTED) | D02-P11-T001 | D02-P11-OPTIONAL | — |
-| [D02-P11-CODE_REVIEW](delivery_02/phase_11/D02-P11-CODE_REVIEW.md) | Optional Customer multi-theme PR code review and tech-lead approval | NOT_STARTED | phase_manual | not_applicable | — | `feat_delivery02_phase_11` | D02-P11-CODE_REVIEW (NOT_STARTED) | D02-P11-T002 | D02-P11-OPTIONAL | — |
 
 
-## Current execution frontiers
+## Current execution frontier
 
-- GLOBAL: D01-P09-T002 — Validate the ocean theme with Playwright MCP and fix parity defects (IN_PROGRESS)
-- D01-RECONCILIATION: D01-P10-T001 — Reconcile Delivery 01 requirement gaps and assumption evidence (NOT_STARTED)
-- D02-FOUNDATION: D02-P01-G001 — Record Customer scope, BA workflow ownership and Keycloak identity baseline (NOT_STARTED)
-- D02-DASHBOARD-LOGISTICS: D02-P02-G001 — Establish non-blocking customer dashboard KPI baseline (NOT_STARTED)
-- D02-COMMERCE: D02-P03-T001 — Add customer inventory projection, tier pricing and reservation eligibility (NOT_STARTED)
-- D02-FINAL: D02-P09-T001 — Complete Customer requirement and compiled-behavior traceability (NOT_STARTED)
-- Sequential within each lane; dependencies coordinate work across lanes.
-- Optional Phase 2.11 is excluded until explicitly started with `--opt-in theme`.
+- Sequential next: D01-P10-T001 — Reconcile Delivery 01 requirement gaps and assumption evidence (NOT_STARTED)
+- Optional same-group parallel tasks: None
 - Downstream work waits for COMPLETE or SUPERSEDED; IN_REVIEW is not complete.
 - Use `taskctl sequence TASK-ID` for the exact blocker.
 

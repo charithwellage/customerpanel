@@ -84,76 +84,147 @@ export function EnquiryForm({
         </p>
       )}
 
-      <div className="cc-enquiry-form__field">
-        <label htmlFor={nameId} className="cc-enquiry-form__label">
-          Name
-          <span aria-hidden="true"> *</span>
-        </label>
-        <input
-          id={nameId}
-          type="text"
-          autoComplete="name"
-          className="cc-enquiry-form__input"
-          value={values.name}
-          onChange={(e) => onFieldChange('name', e.target.value)}
-          aria-required="true"
-          aria-invalid={Boolean(fieldErrors.name)}
-          aria-describedby={fieldErrors.name ? nameErrorId : undefined}
-        />
-        {fieldErrors.name && (
-          <p id={nameErrorId} role="alert" className="cc-enquiry-form__field-error">
-            {fieldErrors.name}
-          </p>
-        )}
+      <div className="cnt-form-row-grid">
+        <div className="cc-enquiry-form__field cnt-field-wrap">
+          <label htmlFor={nameId} className="cc-enquiry-form__label cnt-form-label">
+            YOUR FULL NAME / Name
+            <span aria-hidden="true" className="cnt-required"> *</span>
+          </label>
+          <div className="cnt-input-with-icon">
+            <span className="cnt-input-icon">👤</span>
+            <input
+              id={nameId}
+              type="text"
+              autoComplete="name"
+              placeholder="e.g., Charles Sterling"
+              className="cc-enquiry-form__input cnt-form-input"
+              value={values.name}
+              onChange={(e) => onFieldChange('name', e.target.value)}
+              aria-required="true"
+              aria-invalid={Boolean(fieldErrors.name)}
+              aria-describedby={fieldErrors.name ? nameErrorId : undefined}
+            />
+          </div>
+          {fieldErrors.name && (
+            <p id={nameErrorId} role="alert" className="cc-enquiry-form__field-error cnt-error-msg">
+              {fieldErrors.name}
+            </p>
+          )}
+        </div>
+
+        <div className="cc-enquiry-form__field cnt-field-wrap">
+          <label htmlFor={emailId} className="cc-enquiry-form__label cnt-form-label">
+            WORK EMAIL ADDRESS / Email
+            <span aria-hidden="true" className="cnt-required"> *</span>
+          </label>
+          <div className="cnt-input-with-icon">
+            <span className="cnt-input-icon">✉</span>
+            <input
+              id={emailId}
+              type="email"
+              autoComplete="email"
+              placeholder="e.g., customer@sterling.com"
+              className="cc-enquiry-form__input cnt-form-input"
+              value={values.email}
+              onChange={(e) => onFieldChange('email', e.target.value)}
+              aria-required="true"
+              aria-invalid={Boolean(fieldErrors.email)}
+              aria-describedby={fieldErrors.email ? emailErrorId : undefined}
+            />
+          </div>
+          {fieldErrors.email && (
+            <p id={emailErrorId} role="alert" className="cc-enquiry-form__field-error cnt-error-msg">
+              {fieldErrors.email}
+            </p>
+          )}
+        </div>
       </div>
 
-      <div className="cc-enquiry-form__field">
-        <label htmlFor={emailId} className="cc-enquiry-form__label">
-          Email
-          <span aria-hidden="true"> *</span>
+      <div className="cc-enquiry-form__field cnt-field-wrap">
+        <label htmlFor={phoneId} className="cc-enquiry-form__label cnt-form-label">
+          MOBILE PHONE NUMBER / Phone number
+          <span aria-hidden="true" className="cnt-required"> *</span>
         </label>
-        <input
-          id={emailId}
-          type="email"
-          autoComplete="email"
-          className="cc-enquiry-form__input"
-          value={values.email}
-          onChange={(e) => onFieldChange('email', e.target.value)}
-          aria-required="true"
-          aria-invalid={Boolean(fieldErrors.email)}
-          aria-describedby={fieldErrors.email ? emailErrorId : undefined}
-        />
-        {fieldErrors.email && (
-          <p id={emailErrorId} role="alert" className="cc-enquiry-form__field-error">
-            {fieldErrors.email}
-          </p>
-        )}
-      </div>
-
-      <div className="cc-enquiry-form__field">
-        <label htmlFor={phoneId} className="cc-enquiry-form__label">
-          Phone number
-          <span aria-hidden="true"> *</span>
-        </label>
-        <input
-          id={phoneId}
-          type="tel"
-          autoComplete="tel"
-          className="cc-enquiry-form__input"
-          value={values.phone}
-          onChange={(e) => onFieldChange('phone', e.target.value)}
-          aria-required="true"
-          aria-invalid={Boolean(fieldErrors.phone)}
-          aria-describedby={fieldErrors.phone ? phoneErrorId : undefined}
-        />
+        <div className="cnt-input-with-icon">
+          <span className="cnt-input-icon">📞</span>
+          <input
+            id={phoneId}
+            type="tel"
+            autoComplete="tel"
+            placeholder="e.g., +1 (555) 019-2834"
+            className="cc-enquiry-form__input cnt-form-input"
+            value={values.phone}
+            onChange={(e) => onFieldChange('phone', e.target.value)}
+            aria-required="true"
+            aria-invalid={Boolean(fieldErrors.phone)}
+            aria-describedby={fieldErrors.phone ? phoneErrorId : undefined}
+          />
+        </div>
         {fieldErrors.phone && (
-          <p id={phoneErrorId} role="alert" className="cc-enquiry-form__field-error">
+          <p id={phoneErrorId} role="alert" className="cc-enquiry-form__field-error cnt-error-msg">
             {fieldErrors.phone}
           </p>
         )}
       </div>
 
-      <div className="cc-enquiry-form__field">
+      <div className="cc-enquiry-form__field cnt-field-wrap">
+        <label htmlFor={messageId} className="cc-enquiry-form__label cnt-form-label">
+          DETAILED MESSAGE / SPECIFICATIONS SOUGHT / Message
+          <span aria-hidden="true" className="cnt-required"> *</span>
+        </label>
+        <textarea
+          id={messageId}
+          className="cc-enquiry-form__textarea cnt-form-textarea"
+          rows={4}
+          placeholder="Provide details about the vehicles you are searching for, target shipping ports, or standard timing parameters..."
+          value={values.message}
+          onChange={(e) => onFieldChange('message', e.target.value)}
+          aria-required="true"
+          aria-invalid={Boolean(fieldErrors.message)}
+          aria-describedby={fieldErrors.message ? messageErrorId : undefined}
+        />
+        {fieldErrors.message && (
+          <p id={messageErrorId} role="alert" className="cc-enquiry-form__field-error cnt-error-msg">
+            {fieldErrors.message}
+          </p>
+        )}
+      </div>
+
+      <div className="cc-enquiry-form__consent cnt-consent-wrap">
+        <label htmlFor={consentId} className="cc-enquiry-form__consent-label cnt-consent-label">
+          <input
+            id={consentId}
+            type="checkbox"
+            checked={values.consent}
+            onChange={(e) => onFieldChange('consent', e.target.checked)}
+            aria-required="true"
+            aria-invalid={Boolean(fieldErrors.consent)}
+            aria-describedby={fieldErrors.consent ? consentErrorId : undefined}
+            className="cnt-checkbox"
+          />
+          <span>
+            I agree to be contacted by CarChief about this enquiry.
+            <span aria-hidden="true"> *</span>
+          </span>
+        </label>
+        {fieldErrors.consent && (
+          <p id={consentErrorId} role="alert" className="cc-enquiry-form__field-error cnt-error-msg">
+            {fieldErrors.consent}
+          </p>
+        )}
+      </div>
+
+      {submitError && (
+        <div role="alert" className="cc-enquiry-form__state cc-enquiry-form__state--error cnt-submit-error">
+          <strong>We could not send your enquiry.</strong>
+          <span>{submitError}</span>
+          <button type="button" className="cc-btn cc-btn--secondary cc-btn--sm" onClick={onRetrySubmit}>
+            Try again
+          </button>
+        </div>
+      )}
+
+      <div className="cc-enquiry-form__field" style={{ display: 'none' }}>
         <label htmlFor={sourceId} className="cc-enquiry-form__label">
           Preferred contact method
         </label>
@@ -170,7 +241,77 @@ export function EnquiryForm({
         </select>
       </div>
 
-      <fieldset className="cc-enquiry-form__destination">
+      {showVehiclePreferences && (
+        <fieldset className="cc-enquiry-form__preferences" style={{ display: 'none' }}>
+          <legend className="cc-enquiry-form__label">Tell us what you&rsquo;re looking for (optional)</legend>
+          <div className="cc-enquiry-form__preferences-grid">
+            <div className="cc-enquiry-form__field">
+              <label htmlFor={preferredMakeId} className="cc-enquiry-form__label">Make</label>
+              <input
+                id={preferredMakeId}
+                type="text"
+                value={values.preferredMake}
+                onChange={(e) => onFieldChange('preferredMake', e.target.value)}
+              />
+            </div>
+            <div className="cc-enquiry-form__field">
+              <label htmlFor={preferredModelId} className="cc-enquiry-form__label">Model</label>
+              <input
+                id={preferredModelId}
+                type="text"
+                value={values.preferredModel}
+                onChange={(e) => onFieldChange('preferredModel', e.target.value)}
+              />
+            </div>
+            <div className="cc-enquiry-form__field">
+              <label htmlFor={preferredDriveSideId} className="cc-enquiry-form__label">Drive side</label>
+              <select
+                id={preferredDriveSideId}
+                value={values.preferredDriveSide}
+                onChange={(e) => onFieldChange('preferredDriveSide', e.target.value)}
+              >
+                <option value="">No preference</option>
+                <option value="left">Left-hand drive</option>
+                <option value="right">Right-hand drive</option>
+              </select>
+            </div>
+            <div className="cc-enquiry-form__field">
+              <label htmlFor={preferredYearId} className="cc-enquiry-form__label">Preferred year</label>
+              <input
+                id={preferredYearId}
+                type="number"
+                value={values.preferredYear}
+                onChange={(e) => onFieldChange('preferredYear', e.target.value)}
+                aria-invalid={Boolean(fieldErrors.preferredYear)}
+                aria-describedby={fieldErrors.preferredYear ? preferredYearErrorId : undefined}
+              />
+              {fieldErrors.preferredYear && (
+                <p id={preferredYearErrorId} role="alert" className="cc-enquiry-form__field-error">
+                  {fieldErrors.preferredYear}
+                </p>
+              )}
+            </div>
+            <div className="cc-enquiry-form__field">
+              <label htmlFor={targetPriceId} className="cc-enquiry-form__label">Target price (USD)</label>
+              <input
+                id={targetPriceId}
+                type="number"
+                value={values.targetPriceUsd}
+                onChange={(e) => onFieldChange('targetPriceUsd', e.target.value)}
+                aria-invalid={Boolean(fieldErrors.targetPriceUsd)}
+                aria-describedby={fieldErrors.targetPriceUsd ? targetPriceErrorId : undefined}
+              />
+              {fieldErrors.targetPriceUsd && (
+                <p id={targetPriceErrorId} role="alert" className="cc-enquiry-form__field-error">
+                  {fieldErrors.targetPriceUsd}
+                </p>
+              )}
+            </div>
+          </div>
+        </fieldset>
+      )}
+
+      <fieldset className="cc-enquiry-form__destination" style={{ display: catalogLoading || catalogError || (destinations.length > 0 && values.destinationCode) ? 'block' : 'none' }}>
         <legend className="cc-enquiry-form__label">Shipping destination (optional)</legend>
 
         {catalogLoading && (
@@ -246,156 +387,12 @@ export function EnquiryForm({
         )}
       </fieldset>
 
-      {showVehiclePreferences && (
-        <fieldset className="cc-enquiry-form__preferences">
-          <legend className="cc-enquiry-form__label">Tell us what you&rsquo;re looking for (optional)</legend>
-          <p className="cc-enquiry-form__context">
-            No specific vehicle in mind yet? Share a few preferences and we&rsquo;ll follow up directly — this is not a
-            saved search or an automatic match.
-          </p>
-          <div className="cc-enquiry-form__preferences-grid">
-            <div className="cc-enquiry-form__field">
-              <label htmlFor={preferredMakeId} className="cc-enquiry-form__label cc-enquiry-form__label--sm">
-                Make
-              </label>
-              <input
-                id={preferredMakeId}
-                type="text"
-                className="cc-enquiry-form__input"
-                value={values.preferredMake}
-                onChange={(e) => onFieldChange('preferredMake', e.target.value)}
-              />
-            </div>
-            <div className="cc-enquiry-form__field">
-              <label htmlFor={preferredModelId} className="cc-enquiry-form__label cc-enquiry-form__label--sm">
-                Model
-              </label>
-              <input
-                id={preferredModelId}
-                type="text"
-                className="cc-enquiry-form__input"
-                value={values.preferredModel}
-                onChange={(e) => onFieldChange('preferredModel', e.target.value)}
-              />
-            </div>
-            <div className="cc-enquiry-form__field">
-              <label htmlFor={preferredDriveSideId} className="cc-enquiry-form__label cc-enquiry-form__label--sm">
-                Drive side
-              </label>
-              <select
-                id={preferredDriveSideId}
-                className="cc-enquiry-form__select"
-                value={values.preferredDriveSide}
-                onChange={(e) => onFieldChange('preferredDriveSide', e.target.value)}
-              >
-                <option value="">No preference</option>
-                <option value="left">Left-hand drive</option>
-                <option value="right">Right-hand drive</option>
-              </select>
-            </div>
-            <div className="cc-enquiry-form__field">
-              <label htmlFor={preferredYearId} className="cc-enquiry-form__label cc-enquiry-form__label--sm">
-                Preferred year
-              </label>
-              <input
-                id={preferredYearId}
-                type="number"
-                inputMode="numeric"
-                className="cc-enquiry-form__number-input"
-                value={values.preferredYear}
-                onChange={(e) => onFieldChange('preferredYear', e.target.value)}
-                aria-invalid={Boolean(fieldErrors.preferredYear)}
-                aria-describedby={fieldErrors.preferredYear ? preferredYearErrorId : undefined}
-              />
-              {fieldErrors.preferredYear && (
-                <p id={preferredYearErrorId} role="alert" className="cc-enquiry-form__field-error">
-                  {fieldErrors.preferredYear}
-                </p>
-              )}
-            </div>
-            <div className="cc-enquiry-form__field">
-              <label htmlFor={targetPriceId} className="cc-enquiry-form__label cc-enquiry-form__label--sm">
-                Target price (USD)
-              </label>
-              <input
-                id={targetPriceId}
-                type="number"
-                inputMode="numeric"
-                min="0"
-                className="cc-enquiry-form__number-input"
-                value={values.targetPriceUsd}
-                onChange={(e) => onFieldChange('targetPriceUsd', e.target.value)}
-                aria-invalid={Boolean(fieldErrors.targetPriceUsd)}
-                aria-describedby={fieldErrors.targetPriceUsd ? targetPriceErrorId : undefined}
-              />
-              {fieldErrors.targetPriceUsd && (
-                <p id={targetPriceErrorId} role="alert" className="cc-enquiry-form__field-error">
-                  {fieldErrors.targetPriceUsd}
-                </p>
-              )}
-            </div>
-          </div>
-        </fieldset>
-      )}
-
-      <div className="cc-enquiry-form__field">
-        <label htmlFor={messageId} className="cc-enquiry-form__label">
-          Message
-          <span aria-hidden="true"> *</span>
-        </label>
-        <textarea
-          id={messageId}
-          className="cc-enquiry-form__textarea"
-          rows={5}
-          value={values.message}
-          onChange={(e) => onFieldChange('message', e.target.value)}
-          aria-required="true"
-          aria-invalid={Boolean(fieldErrors.message)}
-          aria-describedby={fieldErrors.message ? messageErrorId : undefined}
-        />
-        {fieldErrors.message && (
-          <p id={messageErrorId} role="alert" className="cc-enquiry-form__field-error">
-            {fieldErrors.message}
-          </p>
-        )}
+      <div className="cnt-form-footer-actions">
+        <span className="cnt-pipeline-badge">🛡️ SECURE INTEGRATED PIPELINE</span>
+        <button type="submit" className="cc-btn cc-btn--primary cnt-send-btn" disabled={isSubmitting}>
+          {isSubmitting ? 'Sending enquiry…' : 'SEND INQUIRY 🚀'}
+        </button>
       </div>
-
-      <div className="cc-enquiry-form__consent">
-        <label htmlFor={consentId} className="cc-enquiry-form__consent-label">
-          <input
-            id={consentId}
-            type="checkbox"
-            checked={values.consent}
-            onChange={(e) => onFieldChange('consent', e.target.checked)}
-            aria-required="true"
-            aria-invalid={Boolean(fieldErrors.consent)}
-            aria-describedby={fieldErrors.consent ? consentErrorId : undefined}
-          />
-          <span>
-            I agree to be contacted by CarChief about this enquiry.
-            <span aria-hidden="true"> *</span>
-          </span>
-        </label>
-        {fieldErrors.consent && (
-          <p id={consentErrorId} role="alert" className="cc-enquiry-form__field-error">
-            {fieldErrors.consent}
-          </p>
-        )}
-      </div>
-
-      {submitError && (
-        <div role="alert" className="cc-enquiry-form__state cc-enquiry-form__state--error">
-          <strong>We could not send your enquiry.</strong>
-          <span>{submitError}</span>
-          <button type="button" className="cc-btn cc-btn--secondary cc-btn--sm" onClick={onRetrySubmit}>
-            Try again
-          </button>
-        </div>
-      )}
-
-      <button type="submit" className="cc-btn cc-btn--primary" disabled={isSubmitting}>
-        {isSubmitting ? 'Sending enquiry…' : 'Send enquiry'}
-      </button>
     </form>
   );
 }

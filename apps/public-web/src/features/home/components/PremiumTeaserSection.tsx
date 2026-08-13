@@ -11,7 +11,7 @@ export interface PremiumTeaserSectionProps {
 
 export const PremiumTeaserSection: React.FC<PremiumTeaserSectionProps> = ({ vehicles, isLoading, error, onRetry }) => {
   return (
-    <section aria-labelledby="premium-banner-heading" className="premium-teaser-banner">
+    <section id="premium-stock" aria-labelledby="premium-banner-heading" className="premium-teaser-banner">
       <div className="home-section-header">
         <span className="home-section-eyebrow">Exclusive Collection</span>
         <h2 id="premium-banner-heading" className="home-section-title-lg">

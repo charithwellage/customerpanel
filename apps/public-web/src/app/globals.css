@@ -1,6 +1,7 @@
 @import "../../../../packages/vehicle-search/src/vehicle-search.css";
 @import "../../../../packages/vehicle-detail/src/vehicle-detail.css";
 @import "../features/home/home.css";
+@import "../features/vehicle-search/vehicle-search.css";
 @import "../features/vehicle-detail/vehicle-detail.css";
 @import "../features/freight/freight.css";
 @import "../features/enquiry/enquiry.css";
@@ -16,6 +17,10 @@
 
 * {
   box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 html, body {
