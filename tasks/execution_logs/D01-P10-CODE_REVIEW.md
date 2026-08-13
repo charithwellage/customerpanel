@@ -43,9 +43,9 @@ blocker: ""
 - Rules checked: all applicable `CODE_REVIEW_RULES.md` items; `COMMON_FRONTEND_RULES.md` architecture/reuse, semantic styling, static-inline-style, accessibility/responsive/PWA and evidence rules; Phase 1.10 register traceability and RULE-09/RULE-10 financial/content honesty.
 - Static sweep: completed across all changed source, fixtures, page-level copy and test/snapshot changes. No POC files changed.
 - Runtime evidence: T002 and the resumed T003 logs contain fresh-runtime provenance, readiness, default/ocean theme evidence, required viewports, console/network results and MCP/automated PASS markers. This review's fresh runtime served the current worktree and the serial full suite passed.
-- Findings: Four catalogued above; three blocking findings require remediation before submission.
+- Findings: The three blocking findings catalogued above were corrected in the merged remediation commits and re-verified below. The parallel Mock API race remains non-blocking.
 - Fixes applied by this review: None. Product code is not modified in a phase review.
-- Result: FAIL — blocking findings identified.
+- Result: PASS — all blocking findings corrected.
 
 ## Tests executed
 
@@ -60,13 +60,22 @@ blocker: ""
 - Fresh runtime readiness: Mock API `/healthz`, `/openapi.json` and Public Web `/healthz` — PASS.
 - `PLAYWRIGHT_BASE_URL=http://127.0.0.1:3000 corepack pnpm exec playwright test --project=chromium --project=mobile-chromium --project=tablet-chromium --workers=50%` — 283/291 passed; eight known shared-state reservation races.
 - Same full suite with `--workers=1` — 291/291 passed across chromium, mobile-chromium and tablet-chromium.
+- Full suite result: PASS — `PLAYWRIGHT_BASE_URL=http://127.0.0.1:3000 corepack pnpm exec playwright test --project=chromium --project=mobile-chromium --project=tablet-chromium --workers=1` — 291/291 passed.
 
 ## Decisions and deviations
 
 - `D01-ASM-001` through `D01-ASM-006` remain unchanged; no business decision was invented or marked CONFIRMED.
-- No product or POC files were changed by this review. The three blocking corrections are assigned to their owning completed tasks.
-- The phase review remains `IN_PROGRESS` and must not be submitted until the three responsible tasks are reopened, corrected, re-reviewed and completed.
+- No product or POC files were changed by this review. The three blocking corrections are present in the merged responsible-task commits and their task records are now COMPLETE in the regenerated tracker.
+- The phase review is ready for submission after the post-merge evidence was reconciled.
 
 ## Blockers
 
-Blocking findings identified: 3. Responsible tasks to reopen: `D01-P07-T002`, `D01-P06-T002`, `D01-P02-T002`.
+None. The previously blocking findings are corrected and verified.
+
+## Post-merge remediation verification
+
+- `D01-P02-T002`: Premium CTA now targets `/allstock?category=premium`; focused Home/Showroom evidence and task completion record verified.
+- `D01-P06-T002`: enquiry controls use accessible semantic classes without static inline `display: none`; focused enquiry evidence and task completion record verified.
+- `D01-P07-T002`: office address, phone and email values include visible demo/pending-approval labels; focused content evidence and task completion record verified.
+- Tracker reconciliation: `D01-P02-T002`, `D01-P06-T002` and `D01-P07-T002` are `COMPLETE`; `D01-P10-CODE_REVIEW` remains `IN_PROGRESS` pending submission.
+- Result: PASS
