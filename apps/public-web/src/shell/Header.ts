@@ -4,12 +4,14 @@ export interface NavItem {
 }
 
 export const PUBLIC_NAV_ITEMS: NavItem[] = [
-  { label: 'Home', href: '/' },
-  { label: 'Inventory', href: '/inventory' },
-  { label: 'Premium Stock', href: '/inventory?category=premium' },
-  { label: 'How to Buy', href: '/how-to-buy' },
-  { label: 'About Us', href: '/about' },
-  { label: 'Contact Us', href: '/contact' },
+  { label: 'SHOWROOM', href: '/' },
+  { label: 'ALL STOCK', href: '/allstock' },
+  { label: 'PREMIUM STOCK', href: '/allstock?category=premium' },
+  { label: 'HOW TO BUY', href: '/how-to-buy' },
+  { label: 'ABOUT US', href: '/about' },
+  { label: 'TESTIMONIALS', href: '/testimonials' },
+  { label: 'FAQ', href: '/faq' },
+  { label: 'CONTACT', href: '/contact' },
 ];
 
 export interface HeaderProps {

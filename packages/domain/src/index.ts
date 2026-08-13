@@ -25,6 +25,7 @@ export type PublicVehicleCategory = 'arrival' | 'premium' | 'clearance' | 'best_
 export interface VehicleDomainSummary {
   id: string;
   chassisNumber: string;
+  slug?: string;
   make: string;
   model: string;
   year: number;

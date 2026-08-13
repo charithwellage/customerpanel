@@ -33,7 +33,7 @@ export async function generateMetadata({
 
   // Always the resolved vehicle's canonical slug, never the requested path, so
   // an alias can never declare itself canonical.
-  const canonicalUrl = `${siteUrl}/vehicles/${vehicle.slug}`;
+  const canonicalUrl = `${siteUrl}/allstock/${vehicle.slug}`;
 
   return {
     title,
@@ -77,7 +77,7 @@ export default async function VehicleDetailRoute({
   }
 
   if (vehicle.slug !== slug) {
-    permanentRedirect(`/vehicles/${vehicle.slug}`);
+    permanentRedirect(`/allstock/${vehicle.slug}`);
   }
 
   return <VehicleDetailPage vehicle={vehicle} />;
