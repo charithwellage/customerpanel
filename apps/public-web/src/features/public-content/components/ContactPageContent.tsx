@@ -24,7 +24,7 @@ export const ContactPageContent: React.FC<ContactPageContentProps> = ({
               <dt className="cc-contact-page__dt">Email Assistance</dt>
               <dd className="cc-contact-page__dd">
                 <a href="mailto:support@carchief.com" className="cc-contact-page__link">
-                  support@carchief.com
+                  support@carchief.com (demo contact — pending approval)
                 </a>
               </dd>
             </div>
@@ -92,13 +92,13 @@ export const ContactPageContent: React.FC<ContactPageContentProps> = ({
                       <strong>Location:</strong> {office.city}, {office.country}
                     </p>
                     <p className="cc-office-card__address">
-                      <strong>Address:</strong> {office.address}
+                      <strong>Address:</strong> {office.address} (demo location — pending approval)
                     </p>
                     <p className="cc-office-card__phone">
-                      <strong>Phone:</strong> {office.phone}
+                      <strong>Phone:</strong> {office.phone} (demo number — pending approval)
                     </p>
                     <p className="cc-office-card__email">
-                      <strong>Email:</strong> {office.email}
+                      <strong>Email:</strong> {office.email} (demo contact — pending approval)
                     </p>
                     <p className="cc-office-card__hours">
                       <strong>Operating Hours:</strong> {office.operatingHours}

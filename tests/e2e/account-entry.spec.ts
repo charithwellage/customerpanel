@@ -28,7 +28,7 @@ test.describe('Account entry and reservation sign-in guidance', () => {
   test('an anonymous visitor sees a Sign In entry point in the header', async ({ page }) => {
     await page.goto('/');
     await openMobileMenuIfNeeded(page);
-    const signInLink = page.getByRole('link', { name: 'Sign in or create an account' });
+    const signInLink = page.getByRole('link', { name: 'Access Customer Portal' });
     await expect(signInLink).toBeVisible();
     await expect(signInLink).toHaveAttribute('href', '/account?returnTo=%2F');
   });
@@ -41,7 +41,7 @@ test.describe('Account entry and reservation sign-in guidance', () => {
   });
 
   test('a visitor attempting to reserve a specific vehicle while anonymous is told clearly what to do next (PUB-23)', async ({ page }) => {
-    await page.goto(`/account?returnTo=%2Fvehicles%2F${detailSlug}`);
+    await page.goto(`/account?returnTo=%2Fallstock%2F${detailSlug}`);
     const guidance = page.getByRole('status').filter({ hasText: 'Sign in to reserve this vehicle' });
     await expect(guidance).toBeVisible();
     const guidanceText = await guidance.innerText();
@@ -50,7 +50,7 @@ test.describe('Account entry and reservation sign-in guidance', () => {
   });
 
   test('a demo sign-in mints a session via the mock HTTP service and returns the visitor to the vehicle they were viewing', async ({ page }) => {
-    await page.goto(`/account?returnTo=%2Fvehicles%2F${detailSlug}`);
+    await page.goto(`/account?returnTo=%2Fallstock%2F${detailSlug}`);
 
     const [response] = await Promise.all([
       page.waitForResponse((res) => res.url().includes('/api/v1/auth/demo-session') && res.request().method() === 'POST'),
@@ -61,7 +61,7 @@ test.describe('Account entry and reservation sign-in guidance', () => {
     expect(body.nonProduction).toBe(true);
     expect(body.claims.role).toBe('CustomerBuyer');
 
-    await expect(page).toHaveURL(new RegExp(`/vehicles/${detailSlug}$`));
+    await expect(page).toHaveURL(new RegExp(`/allstock/${detailSlug}$`));
     await openMobileMenuIfNeeded(page);
     await expect(page.getByRole('link', { name: 'View demo account' })).toBeVisible();
   });
@@ -88,16 +88,16 @@ test.describe('Account entry and reservation sign-in guidance', () => {
     await page.getByRole('button', { name: 'Sign out' }).click();
     await expect(page.getByRole('heading', { name: 'Sign in or create an account' })).toBeVisible();
     await openMobileMenuIfNeeded(page);
-    await expect(page.getByRole('link', { name: 'Sign in or create an account' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Access Customer Portal' })).toBeVisible();
   });
 
   test('an active demo session confirms readiness without claiming a reservation was created', async ({ page }) => {
-    await page.goto(`/account?returnTo=%2Fvehicles%2F${detailSlug}`);
+    await page.goto(`/account?returnTo=%2Fallstock%2F${detailSlug}`);
     await Promise.all([
-      page.waitForURL(new RegExp(`/vehicles/${detailSlug}$`)),
+      page.waitForURL(new RegExp(`/allstock/${detailSlug}$`)),
       page.getByRole('button', { name: 'Continue with Demo Customer Account' }).click(),
     ]);
-    await page.goto(`/account?returnTo=%2Fvehicles%2F${detailSlug}`);
+    await page.goto(`/account?returnTo=%2Fallstock%2F${detailSlug}`);
 
     const guidance = page.getByRole('status').filter({ hasText: "You’re signed in" });
     await expect(guidance).toBeVisible();

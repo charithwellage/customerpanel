@@ -101,7 +101,7 @@ export function useVehicleSearchOrchestration(
   const updateUrl = useCallback(
     (newQuery: SearchVehiclesQuery) => {
       const serialized = serializeSearchQuery(newQuery, searchParams || undefined);
-      const url = `${pathname || '/vehicles'}?${serialized.toString()}`;
+      const url = `${pathname || '/allstock'}?${serialized.toString()}`;
       startTransition(() => {
         router.push(url);
       });
