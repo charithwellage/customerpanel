@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
 import { metadata as homeMetadata } from '../app/page';
-import { metadata as vehiclesMetadata } from '../app/vehicles/layout';
+import { metadata as vehiclesMetadata } from '../app/allstock/layout';
 import { metadata as contactMetadata } from '../app/contact/page';
 import { metadata as aboutMetadata } from '../app/about/page';
 import { metadata as freightMetadata } from '../app/freight-calculator/page';
 import { metadata as accountMetadata } from '../app/account/layout';
-import { generateMetadata as generateVehicleDetailMetadata } from '../app/vehicles/[slug]/page';
+import { generateMetadata as generateVehicleDetailMetadata } from '../app/allstock/[slug]/page';
 import * as loadVehicleDetailModule from '../features/vehicle-detail/loadVehicleDetail';
 
 describe('Public Route Metadata (PUB-11, DEC-PUB-SEO-SCOPE)', () => {
@@ -58,7 +58,7 @@ describe('Public Route Metadata (PUB-11, DEC-PUB-SEO-SCOPE)', () => {
 
     expect(meta.title).toContain('Toyota RAV4');
     expect(meta.description).toContain('Stock ID: 2020-toyota-rav4-g-edition-trd-offroad');
-    expect(meta.alternates?.canonical).toContain('/vehicles/2020-toyota-rav4-g-edition-trd-offroad');
+    expect(meta.alternates?.canonical).toContain('/allstock/2020-toyota-rav4-g-edition-trd-offroad');
     expect(meta.openGraph?.title).toContain('Toyota RAV4');
   });
 
