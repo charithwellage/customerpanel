@@ -1,6 +1,7 @@
 import { defaultTheme, getThemeCssVariables, getThemeDefinition, resolveThemeId, ThemeId } from '@carchief/theme';
 
 export * from './features/shell/index.js';
+export * from './features/account/index.js';
 
 export function getCustomerAppTheme(themeId?: string): { id: ThemeId; variables: Record<string, string> } {
   const definition = getThemeDefinition(resolveThemeId(themeId));
