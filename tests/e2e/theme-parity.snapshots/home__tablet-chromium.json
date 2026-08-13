@@ -1,0 +1,530 @@
+{
+  "title": "CarChief | Premium Japanese Used Vehicles & Direct Global Export",
+  "entries": [
+    {
+      "tag": "header",
+      "role": "banner",
+      "name": ""
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "Skip to main content",
+      "href": "#main-content"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "CarChief Home",
+      "href": "/"
+    },
+    {
+      "tag": "nav",
+      "role": "navigation",
+      "name": "Main Navigation"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "Home",
+      "href": "/"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "Inventory",
+      "href": "/inventory"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "Premium Stock",
+      "href": "/inventory?category=premium"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "How to Buy",
+      "href": "/how-to-buy"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "About Us",
+      "href": "/about"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "Contact Us",
+      "href": "/contact"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "Sign in or create an account",
+      "href": "/account?returnTo=%2F"
+    },
+    {
+      "tag": "button",
+      "role": "button",
+      "name": "Toggle navigation menu"
+    },
+    {
+      "tag": "main",
+      "role": "main",
+      "name": ""
+    },
+    {
+      "tag": "h1",
+      "role": "heading",
+      "name": "CHECK OUR SELECTION OF PREMIUM VEHICLES",
+      "level": 1
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "CHECK PREMIUM VEHICLES →",
+      "href": "#showroom"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "HOW TO PURCHASE",
+      "href": "/how-to-buy"
+    },
+    {
+      "tag": "select",
+      "role": "combobox",
+      "name": "Destination Market:"
+    },
+    {
+      "tag": "div",
+      "role": "region",
+      "name": "Promotional campaign countdown"
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "Seasonal Clearance & Shipping Promotion",
+      "level": 3
+    },
+    {
+      "tag": "header",
+      "role": "banner",
+      "name": ""
+    },
+    {
+      "tag": "h2",
+      "role": "heading",
+      "name": "Latest Arrivals (In Japan)",
+      "level": 2
+    },
+    {
+      "tag": "img",
+      "role": "img",
+      "name": "Toyota Corolla Axio"
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "Corolla Axio",
+      "level": 3
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "RX450h",
+      "level": 3
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "CX-5",
+      "level": 3
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "C200 AMG Line",
+      "level": 3
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "X3 xDrive20d",
+      "level": 3
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "A4 Avant",
+      "level": 3
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "Defender 110",
+      "level": 3
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "LX570",
+      "level": 3
+    },
+    {
+      "tag": "h2",
+      "role": "heading",
+      "name": "Premium Stock Teaser",
+      "level": 2
+    },
+    {
+      "tag": "img",
+      "role": "img",
+      "name": "Toyota Corolla Axio"
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "Corolla Axio",
+      "level": 3
+    },
+    {
+      "tag": "img",
+      "role": "img",
+      "name": "Nissan X-Trail"
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "X-Trail",
+      "level": 3
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "RX450h",
+      "level": 3
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "C200 AMG Line",
+      "level": 3
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "X3 xDrive20d",
+      "level": 3
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "Defender 110",
+      "level": 3
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "LX570",
+      "level": 3
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "Browse all Premium Stock",
+      "href": "/inventory?category=premium"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "💬 Chat with Sales on WhatsApp",
+      "href": "https://wa.me/256700000000?text=Hello%20CarChief,%20I%20am%20interested%20in%20Premium%20Stock"
+    },
+    {
+      "tag": "header",
+      "role": "banner",
+      "name": ""
+    },
+    {
+      "tag": "h2",
+      "role": "heading",
+      "name": "Discounted & Clearance Stock",
+      "level": 2
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "Forester",
+      "level": 3
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "Fit Hybrid",
+      "level": 3
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "Fuso Canter",
+      "level": 3
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "A4 Avant",
+      "level": 3
+    },
+    {
+      "tag": "header",
+      "role": "banner",
+      "name": ""
+    },
+    {
+      "tag": "h2",
+      "role": "heading",
+      "name": "Browse All Stock",
+      "level": 2
+    },
+    {
+      "tag": "img",
+      "role": "img",
+      "name": "Nissan X-Trail"
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "X-Trail",
+      "level": 3
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "Fuso Canter",
+      "level": 3
+    },
+    {
+      "tag": "img",
+      "role": "img",
+      "name": "Toyota HiAce Van"
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "HiAce Van",
+      "level": 3
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "Fit Hybrid",
+      "level": 3
+    },
+    {
+      "tag": "img",
+      "role": "img",
+      "name": "Toyota Corolla Axio"
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "Corolla Axio",
+      "level": 3
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "X3 xDrive20d",
+      "level": 3
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "A4 Avant",
+      "level": 3
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "Defender 110",
+      "level": 3
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "RX450h",
+      "level": 3
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "CX-5",
+      "level": 3
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "C200 AMG Line",
+      "level": 3
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "Forester",
+      "level": 3
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "LX570",
+      "level": 3
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "CX-5",
+      "level": 3
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "Forester",
+      "level": 3
+    },
+    {
+      "tag": "h2",
+      "role": "heading",
+      "name": "CarChief 5-Step Sourcing Process",
+      "level": 2
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "Select Vehicle & Get Quote",
+      "level": 3
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "Confirm Proforma Invoice",
+      "level": 3
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "Complete Bank Transfer",
+      "level": 3
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "Maritime Vessel Shipping",
+      "level": 3
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "Port Delivery & Clearance",
+      "level": 3
+    },
+    {
+      "tag": "h2",
+      "role": "heading",
+      "name": "Buyer Endorsements",
+      "level": 2
+    },
+    {
+      "tag": "footer",
+      "role": "contentinfo",
+      "name": ""
+    },
+    {
+      "tag": "footer",
+      "role": "contentinfo",
+      "name": ""
+    },
+    {
+      "tag": "footer",
+      "role": "contentinfo",
+      "name": ""
+    },
+    {
+      "tag": "h2",
+      "role": "heading",
+      "name": "Frequently Asked Questions",
+      "level": 2
+    },
+    {
+      "tag": "button",
+      "role": "button",
+      "name": "Is CarChief an authorized exporter of Japanese used vehicles? −"
+    },
+    {
+      "tag": "button",
+      "role": "button",
+      "name": "What shipping title documents are provided upon vessel departure? +"
+    },
+    {
+      "tag": "button",
+      "role": "button",
+      "name": "How are freight costs calculated for Mombasa and Dar es Salaam ports? +"
+    },
+    {
+      "tag": "footer",
+      "role": "contentinfo",
+      "name": ""
+    },
+    {
+      "tag": "h4",
+      "role": "heading",
+      "name": "LOGISTICS CORE PORTALS",
+      "level": 4
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "Showroom Catalog",
+      "href": "#showroom"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "How to Buy",
+      "href": "/how-to-buy"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "About Us",
+      "href": "/about"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "Testimonials",
+      "href": "/testimonials"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "FAQ",
+      "href": "/faq"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "Contact Us",
+      "href": "/contact"
+    },
+    {
+      "tag": "h4",
+      "role": "heading",
+      "name": "SECURE VERIFICATION",
+      "level": 4
+    }
+  ],
+  "text": "Skip to main content CC CARCHIEF ONLINE ☰ CURATED GLOBAL ACQUISITIONS CHECK OUR SELECTION OF PREMIUM VEHICLES Browse our hand-picked, premium global acquisitions of hypercars, custom performance coupes, and bespoke luxury SUVs. Every vehicle is thoroughly inspected, complete with detailed digital logs, and delivered via premium secure ocean transit. CHECK PREMIUM VEHICLES → HOW TO PURCHASE 🛡️ ELITE QUALITY SOURCING Strict inspection & technical logs for every chassis. 🚢 CONTAINER OCEAN FREIGHT Secure maritime container pipelines & customs clearing. 🔒 DEDICATED SECURE PORTAL Track order pipelines, invoices & documents live. DESTINATION MARKET: 🇺🇬 Uganda (Mombasa Port) 🇰🇪 Kenya (Mombasa Port) 🇹🇿 Tanzania (Dar es Salaam Port) 🌐 Global / All Ports (Manual market selection active) [[countdown]] Latest Arrivals (In Japan) Eligible stock created within the last 5 days. AVAILABLE In Japan 2021 TOYOTA Corolla Axio PRICE $8,500 Lexus RX450h AVAILABLE In Japan 2023 LEXUS RX450h PRICE $38,000 Mazda CX-5 AVAILABLE In Japan 2020 MAZDA CX-5 PRICE $13,500 Mercedes-Benz C200 AMG Line AVAILABLE In Japan 2019 MERCEDES-BENZ C200 AMG Line PRICE $17,800 BMW X3 xDrive20d AVAILABLE In Japan 2021 BMW X3 xDrive20d PRICE $26,500 Audi A4 Avant AVAILABLE In Japan 2020 AUDI A4 Avant PRICE $15,900 Land Rover Defender 110 AVAILABLE In Japan 2022 LAND ROVER Defender 110 PRICE $49,000 Lexus LX570 AVAILABLE In Japan 2023 LEXUS LX570 PRICE $0 EXCLUSIVE COLLECTION Premium Stock Teaser Browse up to 10 curated high-grade vehicles available for immediate reservation. AVAILABLE In Japan 2021 TOYOTA Corolla Axio PRICE $8,500 AVAILABLE In Port 2022 NISSAN X-Trail PRICE $19,500 Lexus RX450h AVAILABLE In Japan 2023 LEXUS RX450h PRICE $38,000 Mercedes-Benz C200 AMG Line AVAILABLE In Japan 2019 MERCEDES-BENZ C200 AMG Line PRICE $17,800 BMW X3 xDrive20d AVAILABLE In Japan 2021 BMW X3 xDrive20d PRICE $26,500 Land Rover Defender 110 AVAILABLE In Japan 2022 LAND ROVER Defender 110 PRICE $49,000 Lexus LX570 AVAILABLE In Japan 2023 LEXUS LX570 PRICE $0 Browse all Premium Stock 💬 Chat with Sales on WhatsApp Discounted & Clearance Stock Special pricing and clearance offers. Subaru Forester AVAILABLE In Japan 2019 SUBARU Forester -10% DISCOUNT PRICE $0 $0 Honda Fit Hybrid AVAILABLE In Transit 2021 HONDA Fit Hybrid -5% DISCOUNT PRICE $7,900 $7,505 Mitsubishi Fuso Canter AVAILABLE In Port 2018 MITSUBISHI Fuso Canter -15% DISCOUNT PRICE $16,000 $13,600 Audi A4 Avant AVAILABLE In Japan 2020 AUDI A4 Avant PRICE $15,900 Browse All Stock Available inventory ordered by location (In Port -> In Transit -> In Japan). AVAILABLE In Port 2022 NISSAN X-Trail PRICE $19,500 Mitsubishi Fuso Canter AVAILABLE In Port 2018 MITSUBISHI Fuso Canter -15% DISCOUNT PRICE $16,000 $13,600 RESERVEDWITHPI In Transit 2020 TOYOTA HiAce Van PRICE $14,200 Honda Fit Hybrid AVAILABLE In Transit 2021 HONDA Fit Hybrid -5% DISCOUNT PRICE $7,900 $7,505 AVAILABLE In Japan 2021 TOYOTA Corolla Axio PRICE $8,500 BMW X3 xDrive20d AVAILABLE In Japan 2021 BMW X3 xDrive20d PRICE $26,500 Audi A4 Avant AVAILABLE In Japan 2020 AUDI A4 Avant PRICE $15,900 Land Rover Defender 110 AVAILABLE In Japan 2022 LAND ROVER Defender 110 PRICE $49,000 Lexus RX450h AVAILABLE In Japan 2023 LEXUS RX450h PRICE $38,000 Mazda CX-5 AVAILABLE In Japan 2020 MAZDA CX-5 PRICE $13,500 Mercedes-Benz C200 AMG Line AVAILABLE In Japan 2019 MERCEDES-BENZ C200 AMG Line PRICE $17,800 Subaru Forester AVAILABLE In Japan 2018 SUBARU Forester PRICE $9,800 Lexus LX570 AVAILABLE In Japan 2023 LEXUS LX570 PRICE $0 Mazda CX-5 SOLD In Japan 2019 MAZDA CX-5 PRICE $12,000 Subaru Forester AVAILABLE In Japan 2019 SUBARU Forester -10% DISCOUNT PRICE $0 $0 SOURCING GUIDE CarChief 5-Step Sourcing Process 01 Select Vehicle & Get Quote Browse available stock and request a quotation for your destination port. 02 Confirm Proforma Invoice Review pricing breakdown and confirm payment terms with bank wire instructions. 03 Complete Bank Transfer Transfer funds securely and provide swift confirmation to our billing department. 04 Maritime Vessel Shipping Vehicle is loaded onto ocean carrier and shipping title documents dispatched. 05 Port Delivery & Clearance Receive vehicle at your local port, settle customs clearance, and take delivery. CUSTOMER FEEDBACK Buyer Endorsements \"The pre-shipment diagnostic report and video inspections were thorough. Smooth delivery to port.\" Julian Vance Geneva, Switzerland • Porsche 911 GT3 RS \"Clear communication throughout maritime transit and exact document dispatch upon vessel departure.\" Sophia Chen Kampala, Uganda • Toyota Land Cruiser Prado \"Vehicle arrived in exact accordance with the auction sheet and inspection checklist.\" Marcus Sterling Mombasa, Kenya • Toyota HiAce Van HELP & INFORMATION Frequently Asked Questions Is CarChief an authorized exporter of Japanese used vehicles? − CarChief functions as a curated exporter and logistics coordinator, acquiring vehicles from certified Japanese auctions and networks with 150-point pre-export diagnostics. What shipping title documents are provided upon vessel departure? + How are freight costs calculated for Mombasa and Dar es Salaam ports? + CC CARCHIEF PREMIUM GLOBAL VEHICLE EXPORTERS CarChief is a high-end showcase portal providing direct ocean-cargo logistics, certified pre-owned inspections, and custom spec tracking. LOGISTICS CORE PORTALS Showroom Catalog How to Buy About Us Testimonials FAQ Contact Us SECURE VERIFICATION CarChief utilizes highly secure cloud-replicated server architectures for real-time transaction records and client logs. 🔒 SECURED CLOUD ENVELOPE © 2026 CARCHIEF AUTO GROUP. ALL RIGHTS RESERVED. CLOUDRUN ENVIRONMENT · REGISTRY SECURITY PROTOCOL SHIELD-V2"
+}

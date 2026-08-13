@@ -182,19 +182,27 @@ The BA workflow baseline is documented in [`docs/CarChief-BA-Workflow-Coverage-M
 
 The service layer may grow incrementally across these domains: stock ingestion, publication/visibility, pricing readiness, enquiries and screening, negotiation, reservations, proforma invoices, TT/payment review, allocations, Ship OK, document release, documents and external-integration checkpoints. Final payloads remain open until the BA and AutoPulse/BFF teams approve the fields.
 
+### Non-blocking Delivery 02 requirement gaps
+
+Customer delivery records unanswered business detail in [`tasks/delivery_02/REQUIREMENT_GAPS_AND_ASSUMPTIONS.md`](tasks/delivery_02/REQUIREMENT_GAPS_AND_ASSUMPTIONS.md). During Phases 2.1–2.9, an approved rule takes precedence; otherwise the Mock API and UI use the smallest safe, conventional MVP default. If no safe default is possible, the isolated capability is omitted and the UI shows an honest unavailable state. The register identifies the mock/API effect, tests, risk and later review; it never authorizes browser-owned workflow/security decisions, invented AutoPulse payloads or false external-integration claims. Phase 2.10 reconciles all such assumptions without pausing earlier vertical slices.
+
 ### Server-authoritative transitions
 
-The API boundary must enforce active/inactive publication, under-negotiation, PI-created, payment held/approved/rejected, Ship OK approval, document-release approval, vehicle allocation and customer document visibility. The browser may hide unavailable actions but is never the security or workflow authority.
+The API boundary must enforce active/inactive publication, `Now On Sale`, under-negotiation, PI-created, payment held/approved/rejected, Ship OK approval, document-release approval, vehicle allocation and customer document visibility. It also owns 48-hour reservation/negotiation expiry, 72-hour PI expiry, rejection reasons and `visibleToCustomer`; the browser may hide unavailable actions but is never the security or workflow authority.
 
 ### State separation
 
-Operational lifecycle, commercial sale state, publication state, price readiness and country availability must not be collapsed into a single vehicle status. The existing 48-hour reservation rule and the BA negotiation timer remain separate concepts until the business resolves that decision. The 72-hour PI payment timer is a separate workflow stage.
+Operational lifecycle, commercial sale state, publication state, price readiness and country availability must not be collapsed into a single vehicle status. `Active` and `Now On Sale` are separate concepts. The 48-hour negotiation timer is the exclusive reservation hold and returns the vehicle to `Now On Sale` on expiry. The separate 72-hour PI payment stage retains the vehicle as `Under Negotiation With PI` and also returns it to `Now On Sale` on expiry.
 
 ### Public-website legacy parity boundary
 
 The production public-site audit is recorded in [`docs/CarChief-Legacy-Public-Website-Audit.md`](docs/CarChief-Legacy-Public-Website-Audit.md) and its traceability matrix. `apps/public-web` preserves approved public information architecture through semantic Next.js routes and one responsive shell: home, stock/category/country queries, vehicle details, freight/price requests, enquiry/account entry, auction guidance, shipping schedule, company/services content, FAQ, policy and contact routes.
 
 - Public stock category, country, currency and language controls are typed **display/projection inputs**. The service decides their actual availability, currency and localization effect; the browser must not manufacture conversions or expose ineligible stock.
+- A public **market context** carries only the approved country, selected port/ports and selection source (automatic or manual). The mock API and future BFF own country-to-port eligibility, fallback and ordering; no page, shared component or service worker derives a visitor’s country from IP or calculates stock eligibility in the browser. Automatic country detection is an optional BFF/integration capability with an explicit manual fallback and approved privacy policy.
+- A vehicle’s public **current-location projection** is distinct from its operational/sale/publication state. The service derives In Japan, In Transit or In Port from ETD/ETA and the applicable port, then returns the public category. It re-evaluates the projection whenever ETD/ETA changes. The frontend renders the returned projection and never embeds date-transition rules that could drift from the BFF.
+- Market-aware collections—Latest Arrivals, Browse Stock, Discounted/Best Offers, Clearance and Premium—are named service projections. The service returns the already eligible, ordered result set and the filter universe for the current market; client components do not filter an unrestricted list or recreate the legacy “New” tag.
+- Premium Stock is a first-class public route and filter projection. Branch pages are content-plus-projection routes (for example, `/branches/[branchSlug]`) whose branch identity, team/contact content and stock collections are resolved by public-content and vehicle services. Branch meaning, market relationship and content ownership remain business decisions.
 - Legacy public pages become a route inventory for redirects and content migration. Repeated make/type/country/vehicle URLs map to stable route templates; the exhaustive redirect list is approved in Phase 1.8.
 - WhatsApp, email, phone, CAPTCHA, auction, shipping schedule, downloadable documents, stock counters and partner badges are external/content boundaries. UI actions are accessible and honestly labelled, but no provider/API behavior is assumed.
 - Error responses must be owned UI states. Never render upstream error pages, server paths, exception details or maintenance HTML inside the React application.
@@ -280,7 +288,7 @@ flowchart TB
 | **Features** | Screen behaviour, orchestration, feature-local state, validation schemas | Know the HTTP shape, know the base URL |
 | **Services** | How to call one domain; mapping wire shapes to domain types | Cache, hold React state, know about components |
 | **Generated client** | Typed HTTP calls, auth header, error normalisation | Anything hand-written — it is regenerated |
-| **ui + theme** | Presentational components, design tokens | Fetch, validate, or know any domain |
+| **ui + theme** | Presentational components, semantic tokens and the carchief/ocean registry | Fetch, validate, or know any domain |
 | **domain + validation** | Shared types, status vocabularies, business rules, Zod schemas | Import from any layer above |
 
 ---
@@ -711,7 +719,7 @@ That is the entire switch. There is no mock adapter, no service-locator, no `if 
 
 ## 10. Authentication and authorisation
 
-AutoPulse provides authentication in production. It is unavailable during this project, so the mock service issues an equivalent signed token. **The applications only ever see the token — never the issuer** — which is what makes the switch a configuration change.
+AutoPulse provides production authentication and authorisation through Keycloak, including password recovery and MFA. It is unavailable during this project, so the Mock API issues an equivalent signed demo token and supplies deterministic recovery/MFA/account-state presentation flows. **The applications only ever see the token — never the issuer** — which is what makes the switch a configuration change.
 
 ```mermaid
 sequenceDiagram
@@ -720,7 +728,7 @@ sequenceDiagram
     participant Auth as Sign-in provider
     participant API as Business API
 
-    Note over Auth: Mock service now · AutoPulse later
+    Note over Auth: Mock service now · AutoPulse/Keycloak later
     U->>App: credentials
     App->>Auth: POST /auth/login
     Auth-->>App: JWT { sub, role, permissions[] }
@@ -744,6 +752,13 @@ sequenceDiagram
 - **The token is attached in one place** — `packages/api-client/http.ts`. Features never touch headers.
 - **Permissions come from the token**, not from a local table. The 29-permission model from the POC is carried in the claims.
 - **A 401 clears the session and redirects** once, centrally, in the HTTP layer.
+- **Recovery and MFA are adapter-owned.** The frontend renders the approved state and sends commands through the generated client; neither browser storage nor feature components hold password or MFA secrets.
+
+### Notification and document adapters
+
+The Mock API exposes a deterministic notification outbox for tests and demonstrations. It records the intent, recipient projection, template/event key and simulated delivery result; it does not send browser-originated email. AutoPulse later replaces that adapter with its approved email capability.
+
+Document metadata includes a server-authoritative `visibleToCustomer` flag. Finance-approved document release plus this flag is required for a Customer Application projection. The future Salesperson Application owns the checkbox; source/uploader role alone never grants customer visibility.
 
 ---
 
@@ -753,9 +768,9 @@ The POC already uses Tailwind v4's `@theme` with CSS custom properties, so this 
 
 ```mermaid
 flowchart LR
-    T1["carchief theme<br/>the POC look"] --> TOK
-    T2["dark theme"] --> TOK
-    T3["future: partner brand"] -.-> TOK
+    T1["carchief theme<br/>Unified POC Brand"] --> TOK
+    T2["ocean theme<br/>alternate demo"] --> TOK
+    T3["future: approved brand"] -.-> TOK
     TOK["CSS custom properties<br/>--color-primary, --space-*, --radius-*"]
     TOK --> UI["packages/ui components"]
     UI --> APPS["All three applications"]
@@ -770,11 +785,15 @@ flowchart LR
     class APPS app
 ```
 
-**Mechanism.** Tokens are CSS custom properties scoped by a `data-theme` attribute on the root element. Switching themes sets that attribute — no re-render, no rebuild, no JavaScript theme objects passed through props.
+**Default and registry.** `carchief` is the default theme and must materially reproduce the POC visual system shown in `docs/evidence/phase0/phase0-public-landing.png`: Inter, Space Grotesk, JetBrains Mono, a dark header/hero, red-to-orange emphasis, accessible light showroom surfaces, and POC-equivalent navigation, actions, filters, cards and status badges. `ocean` is a complete blue/teal alternate used to prove that feature components are theme-independent. A typed registry rejects unknown names by falling back to `carchief`.
+
+**Mechanism.** Tokens are CSS custom properties scoped by a `data-theme` attribute on the root element. Switching themes sets that attribute — no feature re-render, no rebuild, no JavaScript theme objects passed through props. Applications select the theme through approved configuration; feature packages consume semantic roles and never import a concrete theme.
 
 **The rule:** components reference semantic roles (`bg-surface`, `text-primary`, `border-danger`), never literal values (`bg-[#dc2626]`, `p-[13px]`). A lint rule fails the build on raw colour or spacing literals in application code.
 
-This is what makes a rebrand a single-file change instead of a pass over every screen.
+**Visual-parity rule.** Theme parity is verified with reference-based Playwright MCP inspection and deterministic Playwright screenshots at phone, tablet and desktop widths. Both themes render the same DOM/component composition and business data. Any difference from the POC baseline must be recorded and justified by accessibility, responsive adaptation, content truthfulness or an approved requirement; a separate `carchief`-only page implementation is prohibited.
+
+This is what makes a rebrand a registry/configuration change instead of a pass over every screen. See [`DEVELOPER_USER_GUIDE.md`](DEVELOPER_USER_GUIDE.md) for local switching and extension instructions.
 
 ---
 
@@ -851,12 +870,15 @@ Each layer is tested at the level where failure is cheapest to find.
 | Feature hooks | Behaviour with a mocked service module | Vitest |
 | Service modules | Request shape and response mapping | Vitest + MSW |
 | Contract | Generated types match `openapi.yaml` | Type check in CI |
-| Journeys | Full user flows against the running mock | Playwright |
+| Journeys | Full user flows against the running mock | Playwright Test |
+| AI-assisted UI inspection | Accessibility snapshot, responsive/theme inspection, console/network diagnosis and correction loop | Playwright MCP |
 
 Responsive acceptance is required at package and application level: shared vehicle-search tests cover phone/tablet/desktop layouts, keyboard and touch interaction, and no-overflow behavior; each application adds route/permission/content variations without reimplementing the search module.
 | Money | Worked examples reconcile exactly | Vitest, run on every commit |
 
 **Shared test infrastructure lives in `packages/testing/`** — fixtures, custom render helpers that wrap components in the required providers (QueryClient, Theme, Auth), and Playwright utilities for signing in against the mock. Tests import from there rather than each app re-creating its own harness.
+
+Playwright MCP does not replace the automated Playwright Test suite. Every remaining task that creates or changes visible UI declares `ui_validation: "playwright_mcp"`, runs the MCP walkthrough after its initial AI review, corrects in-scope findings, repeats review after corrections and then runs deterministic tests. Before either browser layer runs, the task rebuilds/recreates a controlled runtime from the current worktree and records the command, target URL, runtime identity and health/readiness evidence; an unknown already-running server or stale Docker image is not acceptable evidence. Automated Playwright runs against that same recorded target. The execution log records the active client, both themes, phone/tablet/desktop viewports, console/network result, findings and all PASS outcomes. MCP tooling is verified by `INF-P00-T006`; user-level client configuration is changed only with developer approval.
 
 **Financial calculations get their own suite.** Quotation totals, tier discounts, tax, deposits and payment allocation are asserted against approved worked examples. The POC's arithmetic was actually correct; what failed was everything around it. These tests guard the whole chain.
 

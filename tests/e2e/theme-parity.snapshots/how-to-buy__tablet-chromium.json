@@ -1,0 +1,180 @@
+{
+  "title": "How to Buy a Vehicle | CarChief Step-by-Step Guide",
+  "entries": [
+    {
+      "tag": "header",
+      "role": "banner",
+      "name": ""
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "Skip to main content",
+      "href": "#main-content"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "CarChief Home",
+      "href": "/"
+    },
+    {
+      "tag": "nav",
+      "role": "navigation",
+      "name": "Main Navigation"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "Home",
+      "href": "/"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "Inventory",
+      "href": "/inventory"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "Premium Stock",
+      "href": "/inventory?category=premium"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "How to Buy",
+      "href": "/how-to-buy"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "About Us",
+      "href": "/about"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "Contact Us",
+      "href": "/contact"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "Sign in or create an account",
+      "href": "/account?returnTo=%2Fhow-to-buy"
+    },
+    {
+      "tag": "button",
+      "role": "button",
+      "name": "Toggle navigation menu"
+    },
+    {
+      "tag": "main",
+      "role": "main",
+      "name": ""
+    },
+    {
+      "tag": "header",
+      "role": "banner",
+      "name": ""
+    },
+    {
+      "tag": "h1",
+      "role": "heading",
+      "name": "How to Buy a Vehicle Step-by-Step",
+      "level": 1
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "BROWSE VEHICLES",
+      "href": "/vehicles"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "TALK TO AN ADVISOR",
+      "href": "/contact"
+    },
+    {
+      "tag": "h2",
+      "role": "heading",
+      "name": "Step 1: Select Your Vehicle",
+      "level": 2
+    },
+    {
+      "tag": "h2",
+      "role": "heading",
+      "name": "Step 2: Reserve & Quotation",
+      "level": 2
+    },
+    {
+      "tag": "h2",
+      "role": "heading",
+      "name": "Step 3: Payment",
+      "level": 2
+    },
+    {
+      "tag": "h2",
+      "role": "heading",
+      "name": "Step 4: Shipping & Customs",
+      "level": 2
+    },
+    {
+      "tag": "footer",
+      "role": "contentinfo",
+      "name": ""
+    },
+    {
+      "tag": "h4",
+      "role": "heading",
+      "name": "LOGISTICS CORE PORTALS",
+      "level": 4
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "Showroom Catalog",
+      "href": "#showroom"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "How to Buy",
+      "href": "/how-to-buy"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "About Us",
+      "href": "/about"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "Testimonials",
+      "href": "/testimonials"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "FAQ",
+      "href": "/faq"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "Contact Us",
+      "href": "/contact"
+    },
+    {
+      "tag": "h4",
+      "role": "heading",
+      "name": "SECURE VERIFICATION",
+      "level": 4
+    }
+  ],
+  "text": "Skip to main content CC CARCHIEF ONLINE ☰ Step-by-Step Buying Guide How to Buy a Vehicle Step-by-Step A clear four-step guide explaining search, reservation, payment, and port delivery. Owner: SalesTeam Updated: Aug 10, 2026 Status: Approved BROWSE VEHICLES TALK TO AN ADVISOR Buying your dream car from Japan is straightforward with CarChief. Follow our four simple steps to select, reserve, pay for, and receive your vehicle. Step 1: Select Your Vehicle Browse our stock online or request a specific model through our search and quotation form. Step 2: Reserve & Quotation Click Reserve or Request Quote to lock in vehicle availability and receive a formal Proforma Invoice. Step 3: Payment Complete wire transfer payment according to the Proforma Invoice instructions within the hold window. Step 4: Shipping & Customs Track ocean voyage progress, receive original documents via DHL, and clear the vehicle at destination port. CC CARCHIEF PREMIUM GLOBAL VEHICLE EXPORTERS CarChief is a high-end showcase portal providing direct ocean-cargo logistics, certified pre-owned inspections, and custom spec tracking. LOGISTICS CORE PORTALS Showroom Catalog How to Buy About Us Testimonials FAQ Contact Us SECURE VERIFICATION CarChief utilizes highly secure cloud-replicated server architectures for real-time transaction records and client logs. 🔒 SECURED CLOUD ENVELOPE © 2026 CARCHIEF AUTO GROUP. ALL RIGHTS RESERVED. CLOUDRUN ENVIRONMENT · REGISTRY SECURITY PROTOCOL SHIELD-V2"
+}

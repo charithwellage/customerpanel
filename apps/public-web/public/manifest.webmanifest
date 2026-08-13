@@ -1,0 +1,8 @@
+{
+  "name": "CarChief",
+  "short_name": "CarChief",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#102a43",
+  "background_color": "#f7f9fc"
+}

@@ -4,13 +4,13 @@
 
 ## Context
 
-Read `REQUIREMENT.md` CUST-14–CUST-22 and WF-08–WF-14, the Customer phases in the implementation plan, and the compiled customer evidence. Treat all compiled-only behavior as provisional until approved.
+Read `REQUIREMENT.md` CUST-14–CUST-22 and WF-08–WF-17, the Customer phases in the implementation plan, and the compiled customer evidence. Treat all compiled-only behavior as provisional until approved.
 
 ## Work
 
 Consume `packages/vehicle-search` and `packages/vehicle-detail` for the customer showroom; configure customer visibility, tier pricing and reservation actions without copying public components.
 
-Add customer projections for PI/payment deadline, held or re-submission-required TT, approved allocation, Ship OK, document-release status and approved document visibility. Notifications must identify intent versus real email delivery.
+Add customer projections for the `Under Negotiation With PI` 72-hour deadline/release, held or re-submission-required TT, approved allocation, Ship OK and document-release status. Only return a document after Finance-approved release and server-side `visibleToCustomer`; show mock outbox/email intent without claiming browser delivery.
 
 ## Tests and acceptance
 

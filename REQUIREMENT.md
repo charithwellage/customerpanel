@@ -14,6 +14,8 @@ Nothing marked this way should be treated as agreed. Everything else in this doc
 
 **How this document was produced.** CarChief already has a working demonstration system. It was tested by hand — every screen, button and form was tried — to understand what the finished product should do. Where the demonstration does something correctly, this document asks for that behaviour. Where the demonstration does something wrong (and a few things were found to be wrong), this document asks for the **correct** behaviour instead, not a copy of the mistake.
 
+**Additional legacy-business evidence (7 August 2026).** The supplied *Brach Page – Front End*, *Homepage Display as per country IP*, and *Premium Stocks Web Page* PDFs are valid business requirements for the replacement Public App. Their reconciliation and delivery mapping are recorded in [`docs/CarChief-Legacy-Public-Requirements-Reconciliation.md`](docs/CarChief-Legacy-Public-Requirements-Reconciliation.md). The PDF spelling “Brach” is retained only in the source title; this document uses **Branch**.
+
 ---
 
 ## What CarChief does
@@ -50,9 +52,9 @@ A finance person and an administrator use the same application as a salesperson 
 
 ## BA operational workflow baseline
 
-The following workflow was supplied by the business analyst in [`docs/CarChief-BA-Workflow-Coverage-Matrix.md`](docs/CarChief-BA-Workflow-Coverage-Matrix.md), based on the draw.io export `/Users/prabodha/Downloads/car_chief_user_journey.json`. It extends the application requirements below; it does not replace them.
+The following workflow was supplied by the business analyst in [`docs/CarChief-BA-Workflow-Coverage-Matrix.md`](docs/CarChief-BA-Workflow-Coverage-Matrix.md), based on the draw.io export and the visual JPEG interpretation recorded in [`docs/CarChief-BA-Workflow-JPEG-Interpretation.md`](docs/CarChief-BA-Workflow-JPEG-Interpretation.md). It extends the application requirements below; it does not replace them.
 
-> **Colour evidence limitation:** the JSON export contains labels and edges but no encoded fill/stroke colours. Blue/clear/green ownership is therefore provisional from the BA legend and must be confirmed by the process owner before implementation.
+> **Ownership evidence:** the JSON export contains labels and edges but no encoded fill/stroke colours. The supplied JPEG and business-owner clarification confirm blue as CarChief UI/state, clear as manual operation and green as external ERP/IBQ operation.
 
 ### Upstream stock and publication
 
@@ -60,19 +62,19 @@ The following workflow was supplied by the business analyst in [`docs/CarChief-B
 
 **WF-02 — Recommendation:** CarChief shall validate imported vehicle and shipment data before commit, report duplicates and partial failures, and retain source/reference metadata. It shall not silently become the authoritative procurement or ERP record.
 
-**WF-03 — Open question:** Operational lifecycle, price readiness, commercial sale state, public visibility, customer visibility and country availability shall be represented as distinct concepts until management approves the canonical field vocabulary.
+**WF-03 — Confirmed business rule:** Operational lifecycle, price readiness, commercial sale state, public visibility, customer visibility and country availability are distinct concepts. `Active` and `Now On Sale` are separate fields; the service owns their permitted combinations and customer/public projections.
 
-**WF-04 — BA-confirmed workflow:** A vehicle may be available to selected countries before its price is ready, subject to the approved visibility policy. A customer may request a price when the price is unavailable; the resulting request type and routing require confirmation.
+**WF-04 — Confirmed business rule:** A vehicle may be available to selected countries before its price is ready, subject to the service-owned visibility policy. A customer price request creates a normal lead.
 
 ### Enquiry, negotiation and PI
 
 **WF-05 — BA-confirmed workflow:** An enquiry may enter through Customer Support, be screened, and be assigned to the relevant country salesperson before negotiation starts. WhatsApp is a lead-source/integration boundary until an actual provider is approved.
 
-**WF-06 — BA-confirmed workflow:** A salesperson can start negotiation and the record becomes “Under Negotiation”. The negotiation timer and expiry outcome require business approval.
+**WF-06 — Confirmed business rule:** A salesperson can start negotiation and the record becomes `Under Negotiation`. The 48-hour negotiation timer is also the exclusive reservation hold: another customer cannot reserve the vehicle while it is active.
 
-**WF-07 — Open question:** Confirm whether the negotiation timer is the same as, or separate from, the existing 48-hour reservation hold. The implementation shall model them separately until confirmed.
+**WF-07 — Confirmed business rule:** When the 48-hour negotiation/reservation hold expires, the vehicle is released and becomes `Now On Sale` for customers to reserve again.
 
-**WF-08 — BA-confirmed workflow:** After customer confirmation, a salesperson can create a proforma invoice and the record can become “Under Negotiation With PI”. A 72-hour payment timer and its expiry/cancellation behavior require approval.
+**WF-08 — Confirmed business rule:** After customer confirmation, a salesperson can create a proforma invoice and the record becomes `Under Negotiation With PI`. The vehicle remains reserved during the 72-hour PI payment window. On expiry, it is released and becomes `Now On Sale`.
 
 ### Payment, Ship OK and documents
 
@@ -86,7 +88,13 @@ The following workflow was supplied by the business analyst in [`docs/CarChief-B
 
 **WF-13 — Recommendation:** The BFF/mock service, not the browser, shall enforce workflow transitions, timers, role checks, idempotency, allocation rules and approval-gated document visibility.
 
-**WF-14 — Open question:** Confirm the approvers, rejection/return paths, notification channels, document categories, retention and scanning rules for Ship OK and document release.
+**WF-14 — Open question:** Finance approver ownership, rejection reason, notification/resubmission and customer visibility are confirmed. Confirm the detailed ERP/IBQ return checkpoint, document categories, retention, file policy, storage and scanning rules.
+
+**WF-15 — Confirmed business rule:** Finance approves or rejects Ship OK and document release in the Salesperson Application. A rejection requires a reason, creates a Salesperson portal notification and a testable email notification, and permits the salesperson to resubmit the requested material.
+
+**WF-16 — Confirmed business rule:** Email is a future AutoPulse integration. Until AutoPulse is available, the Mock API records deterministic notification/outbox delivery evidence; the browser must never claim direct email delivery.
+
+**WF-17 — Confirmed business rule:** A customer may view a document only after document release is Finance-approved and the server-authoritative `visibleToCustomer` setting is enabled. This future Salesperson Application checkbox is independent of the uploader's role. Document categories, retention, type/size, scanning and storage remain open decisions.
 
 ## Progressive Web App requirements
 
@@ -101,6 +109,14 @@ The frontend shall be installable as a Progressive Web App on supported browsers
 **PWA-04 — Recommendation approved for planning:** Service-worker versioning, update notification, cache expiry, logout cache cleanup and recovery from stale/broken caches shall be tested. Production must never cache mock data or credentials.
 
 **PWA-05 — Open question:** Confirm whether push notifications, background sync, camera/file capture and install analytics are required. They are excluded from the initial PWA baseline until approved.
+
+## Shared frontend presentation requirements
+
+**UI-01 — Recommendation approved for planning:** The Unified POC Brand is the default visual theme for the Public, Customer and Salesperson applications. For the Public Website, [`docs/evidence/phase0/phase0-public-landing.png`](docs/evidence/phase0/phase0-public-landing.png) is the authoritative visual baseline: delivered content must materially match its dark header and hero, red/orange emphasis, typography hierarchy, navigation and action treatments, light showroom surface, filters, vehicle cards and status badges. Parity applies at phone, tablet and desktop sizes and may differ only for documented accessibility, responsiveness, truthful content or approved requirement reasons. The source POC remains visual evidence only; unsafe markup, fixed-width behavior, fabricated content and defects are not copied.
+
+**UI-02 — Recommendation approved for planning:** Theme values are defined in the shared theme package. The default `carchief` theme and the alternate `ocean` theme are selected through typed configuration. Feature components use semantic roles and shared UI packages; changing the theme must not require feature-component changes.
+
+**UI-03 — Security and usability rule:** All screens and reusable components must support phone, tablet and desktop widths, touch, keyboard navigation, browser zoom, visible focus, contrast, reduced motion and narrow/long content. App-local forks of shared vehicle search, vehicle detail or presentation components are not permitted when the behavior is shared.
 
 ---
 
@@ -233,6 +249,16 @@ flowchart TD
 **PUB-30 — Source-confirmed public content portfolio:** A visitor can read approved public company, services, team, gallery, news, security and bank-information content where management authorizes publication. Each item requires a content owner, approval state and safe public projection; sensitive bank, security or personal details are not published by default.
 
 **PUB-31 — Source-confirmed legacy behaviour; legal content open:** A visitor can access approved privacy/cookie information and make a consent choice where legally required. The new frontend uses an approved consent mechanism and copy; it does not reuse legacy scripts or treat prior acceptance as consent.
+
+**PUB-32 — Confirmed by legacy business requirements:** Public stock location and market eligibility are server-authoritative. For a vehicle’s relevant destination port, the service shall classify it as **In Japan** when both ETD and ETA are absent or ETD is in the future; **In Transit** when ETD has passed and ETA is in the future; and **In Port** when ETA has passed. A subsequent ETD or ETA update must update the returned category. The public app shall use an automatically detected country where an approved privacy-compliant service is available, and shall always allow a manual country selection. It shall show only stock eligible for that market’s approved port or ports; a market with several ports receives the union of eligible stock for those ports. The browser must never derive the category, infer a visitor’s location itself, or expose a vehicle merely because it exists in the database.
+
+> ⚠ **NEEDS A DECISION** — see Open Questions 26 and 27. The business must define the market-to-port mapping, the approved automatic-country provider/consent/fallback, the exact meaning of “J stock” and “CRFO”, and how their order combines with the required In Port → In Transit → In Japan order.
+
+**PUB-33 — Confirmed by legacy business requirements:** The home page and stock browsing experience shall provide market-aware collections. **Latest Arrivals** contains only eligible In Japan vehicles created within the previous five days. **Browse Stock** contains eligible In Port, In Transit and In Japan vehicles, in the approved display order. **Discounted/Best Offers** and **Clearance** contain only eligible vehicles in those categories. Where a selected market has no eligible stock, Browse Stock and Latest Arrivals fall back to eligible In Japan stock only, with the same five-day rule for Latest Arrivals. Filter options and result counts must reflect the selected market’s actual eligible stock. The replacement must not recreate the legacy “New” tag.
+
+**PUB-34 — Confirmed by legacy business requirements:** A visitor can reach a Premium Stock page from both a clearly labelled home-page banner and the Premium Stock navigation item. The page shows a Premium Stock teaser of up to ten eligible vehicles, an honest empty/fewer-results state, a **Browse all Premium Stock** action that opens the full Premium Stock list with the Premium filter applied, a Premium Vehicle enquiry action, and a clearly labelled WhatsApp chat intent. The UI must not claim that a WhatsApp message was delivered unless an approved integration confirms it.
+
+**PUB-35 — Confirmed by legacy business requirements; branch meaning open:** Each approved Branch page shall show the selected branch name; branch-specific Latest Arrivals and Recently Discounted collections using the same market/collection rules as the landing page; an introduction; welcome and contact banners; CarChief Team and Meet & Greet sections; and approved contact details. The page must have loading, empty, unavailable-content and no-eligible-stock states. The business must define what a Branch represents, the available branch list, its market/port relationship and the content owner before the route is released.
 
 ---
 
@@ -705,24 +731,23 @@ Each of these needs an answer from the business before the related part of the s
 | 5 | What should happen with a spreadsheet of vehicles or shipments once it is uploaded? | Bad data could be accepted with no warning | SALES-20 |
 | 6 | If a spreadsheet leaves a vehicle's price blank, should the system guess a price automatically, or reject it? | An automatically guessed price could be wrong and nobody would know | SALES-20 |
 | 7 | What exactly happens when a quotation is turned into a final invoice? | Affects what a salesperson expects to happen at that point | SALES-38 |
-| 8 | Should customers be able to recover a forgotten password themselves, and is an extra security step needed when signing in? | Customers with a forgotten password may be locked out | CUST-03 |
-| 9 | What are the rules for a customer uploading their own documents — size limits, file types, who can see them, and how long they are kept? | Affects privacy and storage planning | CUST-21 |
 | 10 | What is needed for managing a vehicle's photos — how many, in what order, which are public? | Affects how much work this feature needs | SALES-15 |
 | 11 | Should commission or credit ever be split between more than one salesperson on the same sale? | Affects how commission is calculated and paid | SALES-48 |
-| 12 | What happens automatically when a reservation's time limit runs out — does the vehicle return to stock by itself, or does a person need to release it? | Affects whether vehicles get stuck as unavailable | RULE-05 |
-| 13 | Should printed documents and emails to customers connect to a real printer or email service from the start, or can that wait? | Affects what "done" means for those features | SALES-36 |
 | 14 | How wide and how fast does the staff search need to be — searching customers, vehicles and invoices together? | Affects how much work this feature needs | SALES-09 |
 | 15 | What exactly should be recorded in the system activity log, and who should be able to see it? | Affects trust and accountability inside the company | SALES-62 |
 | 16 | Should entering several payments at once (bulk entry) work differently from entering one payment, and is a preview of the proof needed before approving? | Affects how finance staff's daily work is designed | SALES-45 |
 | 17 | Does the system require push notifications, background sync, camera/file capture or install analytics beyond the approved installable PWA shell? | These capabilities affect security, permissions, support and device behavior | PWA-05 |
 | 18 | Which of CarChief's old website addresses need to keep working after the new Public App launches? | Old links and search results could lead to broken pages if this list is missing | PUB-24 |
-| 19 | Are the negotiation and reservation 48-hour timers the same or separate, and what happens when either expires? | A vehicle or negotiation could be released at the wrong time | WF-06, WF-07, RULE-05 |
 | 20 | What is the authoritative source for vehicle, price and publication data: CarChief, VBMS or Oracle NetSuite? | Conflicting records could overwrite one another | WF-01 to WF-04, SALES-20 |
-| 21 | Which countries may see price-unready stock, and does a price request create a lead, negotiation or another enquiry type? | Customers could see unavailable or incorrect commercial information | WF-03, WF-04 |
-| 22 | What is the 72-hour PI payment expiry and does the vehicle remain held during it? | Reservations and invoices could remain stuck or be released incorrectly | WF-08 |
-| 23 | Who may approve Ship OK and document release, and how are ERP/IBQ rejections returned to CarChief? | Unauthorized shipment or document release could occur | WF-11, WF-12, WF-14 |
+| 9 | What document categories, file types, size limits, storage, retention, scanning and preview/download rules apply? | The visibility rule is agreed, but repository policy affects privacy and storage planning | WF-17, CUST-20, CUST-21 |
+| 13 | What printed-document integration is required at launch? Email is an AutoPulse integration with deterministic Mock API evidence until available. | Printed delivery remains separate from notification email | SALES-36, WF-16 |
+| 23 | How are ERP/IBQ rejection checkpoints recorded in CarChief after Finance rejects Ship OK or document release? | Finance approval and in-app rejection reason are agreed; ERP return details remain open | WF-11, WF-12, WF-15 |
 | 24 | Does the second payment follow Ship OK, and how are due balance, invoice status and allocation represented? | Finance and customer balances could disagree | WF-09, WF-10 |
 | 25 | Are bank verification, notifications, WhatsApp support and ERP checkpoints manual for MVP or integration scope? | UI could falsely claim external work completed | WF-05, WF-09, WF-11, WF-14 |
+| 26 | Which approved service, consent wording, fallback and override rules govern automatic country detection, and which ports belong to each public market? | The wrong visitor could see stock for the wrong market or port, and location processing could breach privacy expectations | PUB-32, PUB-33 |
+| 27 | What do “J stock” and “CRFO stock” mean, and how do their ordering rules combine with In Port → In Transit → In Japan? | The home page and Browse Stock could show the right vehicles in the wrong business priority | PUB-32, PUB-33 |
+| 28 | What is a Branch (office, country market, sales team or another unit), which branches launch, and who owns each branch’s content and contacts? | A Branch page could show the wrong vehicles, people or contact details | PUB-35 |
+| 29 | What content, eligibility rule and contact ownership apply to Premium Stock, and is WhatsApp a manual contact intent or an approved integration at launch? | The Premium page could promote the wrong stock or imply a message was sent when it was not | PUB-34, PUB-28 |
 
 ---
 

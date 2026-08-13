@@ -30,5 +30,16 @@ None.
 
 ## Review corrections
 
+## Playwright MCP UI validation
+
+- AI client: Not applicable or not recorded.
+- Target URL: Not applicable or not recorded.
+- Viewports: Not applicable or not recorded.
+- Themes: Not applicable or not recorded.
+- Console/network result: Not applicable or not recorded.
+- Findings and corrections: Not applicable or not recorded.
+- Playwright MCP Result: Not applicable or not recorded.
+- Automated Playwright Test Result: Not applicable or not recorded.
+
 ## Blockers
 None.

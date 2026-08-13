@@ -1,0 +1,11 @@
+{
+  "name": "@carchief/config",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./tsconfig.base.json",
+  "scripts": {
+    "lint": "echo \"config lint ok\"",
+    "typecheck": "echo \"config typecheck ok\"",
+    "build": "echo \"config build ok\""
+  }
+}

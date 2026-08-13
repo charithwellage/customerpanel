@@ -1,0 +1,20 @@
+{
+  "name": "@carchief/validation",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "lint": "echo \"validation lint ok\"",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@carchief/domain": "workspace:*",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@carchief/config": "workspace:*",
+    "typescript": "^5.7.2"
+  }
+}

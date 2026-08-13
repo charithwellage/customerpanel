@@ -8,7 +8,7 @@ Read `REQUIREMENT.md` WF-11–WF-14, the Sales 3.6–3.7 and Customer 2.7 phases
 
 ## Work
 
-Implement CarChief requests and approvals for Ship OK and document release, with explicit ERP/IBQ manual checkpoint records. Support approved upload and customer visibility only after release approval.
+Implement CarChief requests and Finance approvals/rejections for Ship OK and document release, with mandatory rejection reasons, Salesperson portal/email-intent notification and permitted resubmission. Keep ERP/IBQ as explicit manual/external checkpoints. Customer visibility requires Finance-approved release and a server-owned Salesperson `visibleToCustomer` checkbox; upload alone is insufficient.
 
 ## Tests and acceptance
 
