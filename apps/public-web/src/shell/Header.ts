@@ -5,11 +5,12 @@ export interface NavItem {
 
 export const PUBLIC_NAV_ITEMS: NavItem[] = [
   { label: 'Home', href: '/' },
-  { label: 'Inventory', href: '/inventory' },
-  { label: 'Premium Stock', href: '/inventory?category=premium' },
-  { label: 'How to Buy', href: '/how-to-buy' },
-  { label: 'About Us', href: '/about' },
-  { label: 'Contact Us', href: '/contact' },
+  { label: 'ALL STOCK', href: '/allstock' },
+  { label: 'PREMIUM STOCK', href: '/allstock?category=premium' },
+  { label: 'HOW TO BUY', href: '/how-to-buy' },
+  { label: 'ABOUT US', href: '/about' },
+  { label: 'CONTACT', href: '/contact' },
+  { label: 'TESTIMONIALS', href: '/testimonials' },
 ];
 
 export interface HeaderProps {
