@@ -16,7 +16,8 @@ test.describe('Home and Showroom Experience Phase 1.2 tests', () => {
     if (await mobileMenu.isVisible()) {
       await mobileMenu.click();
     }
-    await expect(page.getByRole('link', { name: 'PREMIUM STOCK', exact: true })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Premium Stock', exact: true })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Browse all Premium Stock' })).toHaveAttribute('href', '/allstock?category=premium');
     await expect(page.getByText('💬 Chat with Sales on WhatsApp')).toBeVisible();
   });
 });
