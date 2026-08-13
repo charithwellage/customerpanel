@@ -4,6 +4,8 @@ import { FreightEstimateSection } from '../../features/freight';
 import { ContentPageTemplate } from '../../features/public-content/components/ContentPageTemplate';
 import '../../features/public-content/public-content.css';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Global Ocean Freight Shipping Calculator | CarChief',
   description: 'Calculate ocean freight shipping costs, transit times, and port options for Japanese vehicle exports.',

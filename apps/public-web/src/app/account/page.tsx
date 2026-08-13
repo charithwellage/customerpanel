@@ -1,7 +1,7 @@
-'use client';
+import React from 'react';
+import { AccountPageClient } from './AccountPageClient';
 
-import React, { Suspense } from 'react';
-import { AccountEntrySection } from '../../features/account-entry';
+export const dynamic = 'force-dynamic';
 
 /**
  * Account entry route (PUB-22, PUB-23, DEC-PUB-AUTH-BOUNDARY, D01-P06-T003).
@@ -9,9 +9,5 @@ import { AccountEntrySection } from '../../features/account-entry';
  * `?returnTo=/vehicles/{slug}` reservation-guidance link.
  */
 export default function AccountPage() {
-  return (
-    <Suspense fallback={<div className="cc-account-entry__intro">Loading account access&hellip;</div>}>
-      <AccountEntrySection />
-    </Suspense>
-  );
+  return <AccountPageClient />;
 }

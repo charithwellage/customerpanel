@@ -7,22 +7,10 @@
 @import "../features/account-entry/account-entry.css";
 @import "../features/reservation/reservation.css";
 
-/*
- * The only fallbacks retained in this file are the four below.
- *
- * `layout.tsx` applies the theme custom properties to <body>, so nothing above
- * <body> — :root/<html> — can see them. These fallbacks paint the document root
- * (visible during overscroll) and are therefore load-bearing, not a fallback
- * palette. Everywhere else in this file the tokens resolve and fallbacks were
- * inert, so they have been removed.
- *
- * Proper fix, deferred to Phase 1.9 alternate-theme parity: apply the theme
- * variables to <html> instead, then drop these four as well.
- */
 :root {
   font-family: var(--font-body, Inter, system-ui, sans-serif);
-  color: var(--color-text-primary, #171717);
-  background: var(--color-background, #fafafa);
+  color: var(--color-text-primary);
+  background: var(--color-background);
   color-scheme: light;
 }
 
@@ -34,8 +22,8 @@ html, body {
   margin: 0;
   padding: 0;
   min-width: 320px;
-  background: var(--color-background, #fafafa);
-  color: var(--color-text-primary, #171717);
+  background: var(--color-background);
+  color: var(--color-text-primary);
 }
 
 .skip-link {
@@ -342,12 +330,19 @@ html, body {
 
 .hero-btn-primary {
   background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
-  color: var(--color-text-on-primary);
+  /* textOnAccent: the gradient's right stop is accent, and textOnPrimary
+     (calibrated for the left stop, primary) fails WCAG AA against it on
+     carchief -- see packages/theme/src/tokens.ts. */
+  color: var(--color-text-on-accent);
   box-shadow: 0 4px 14px color-mix(in srgb, var(--color-primary) 40%, transparent);
 }
 
 .hero-btn-primary:hover {
   background: linear-gradient(90deg, var(--color-primary-hover), color-mix(in srgb, black 18%, var(--color-accent)));
+  /* Both hover stops are darker than the resting gradient, so they need the
+     light textOnPrimary value here even on carchief (textOnAccent's dark
+     carchief value would fail against this darker pair). */
+  color: var(--color-text-on-primary);
 }
 
 .hero-btn-secondary {

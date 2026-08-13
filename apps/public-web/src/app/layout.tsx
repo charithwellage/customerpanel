@@ -30,7 +30,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   const isDevelopment = isThemeSwitcherEnabled();
 
   return (
-    <html lang="en" data-theme={themeId}>
+    <html lang="en" data-theme={themeId} style={themeVariables}>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -39,7 +39,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           rel="stylesheet"
         />
       </head>
-      <body style={themeVariables}>
+      <body>
         {isDevelopment ? <ThemeSwitcher initialThemeId={themeId} /> : null}
         <HeaderComponent />
         {children}
