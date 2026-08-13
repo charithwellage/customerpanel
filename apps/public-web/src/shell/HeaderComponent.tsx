@@ -68,7 +68,9 @@ export const HeaderComponent: React.FC<HeaderComponentProps> = ({ activePath: pr
           {PUBLIC_NAV_ITEMS.map((item) => {
             const isActive = item.href === '/'
               ? currentPath === '/'
-              : currentPath === item.href || currentPath.startsWith(item.href + '/') || currentPath.startsWith(item.href + '?');
+              : item.href.startsWith('/#')
+                ? currentPath === '/'
+                : currentPath === item.href || currentPath.startsWith(item.href + '/') || currentPath.startsWith(item.href + '?');
             return (
               <a
                 key={item.href}
