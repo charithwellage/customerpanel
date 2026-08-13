@@ -1,6 +1,13 @@
 export interface ColorTokens {
   primary: string;
   primaryHover: string;
+  /**
+   * Secondary brand accent used for gradient highlights and CTA emphasis
+   * (e.g. the home hero's title/button gradient stop, the active nav pill).
+   * Distinct from `primary`: some POC-era markup composed a two-tone
+   * primary -> accent gradient rather than a single flat brand colour.
+   */
+  accent: string;
   secondary: string;
   background: string;
   surface: string;
@@ -98,6 +105,7 @@ export const defaultSemanticTheme: SemanticThemeTokens = {
   colors: {
     primary: '#dc2626', // POC red; AA contrast against white
     primaryHover: '#b91c1c',
+    accent: '#ea580c', // POC hero gradient/active-nav orange
     secondary: '#525252',
     background: '#fafafa',
     surface: '#ffffff',

@@ -1,0 +1,321 @@
+{
+  "title": "Harare Hub (demo) (HRE) | CarChief Regional Hub",
+  "entries": [
+    {
+      "tag": "header",
+      "role": "banner",
+      "name": ""
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "Skip to main content",
+      "href": "#main-content"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "CarChief Home",
+      "href": "/"
+    },
+    {
+      "tag": "nav",
+      "role": "navigation",
+      "name": "Main Navigation"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "Home",
+      "href": "/"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "Inventory",
+      "href": "/inventory"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "Premium Stock",
+      "href": "/inventory?category=premium"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "How to Buy",
+      "href": "/how-to-buy"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "About Us",
+      "href": "/about"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "Contact Us",
+      "href": "/contact"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "Sign in or create an account",
+      "href": "/account?returnTo=%2Fbranches%2Fharare-hub"
+    },
+    {
+      "tag": "button",
+      "role": "button",
+      "name": "Toggle navigation menu"
+    },
+    {
+      "tag": "main",
+      "role": "main",
+      "name": ""
+    },
+    {
+      "tag": "header",
+      "role": "banner",
+      "name": ""
+    },
+    {
+      "tag": "h1",
+      "role": "heading",
+      "name": "Harare Hub (demo)",
+      "level": 1
+    },
+    {
+      "tag": "header",
+      "role": "banner",
+      "name": ""
+    },
+    {
+      "tag": "h2",
+      "role": "heading",
+      "name": "Latest Arrivals for Durban",
+      "level": 2
+    },
+    {
+      "tag": "img",
+      "role": "img",
+      "name": "Toyota Corolla Axio"
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "Corolla Axio",
+      "level": 3
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "View vehicle",
+      "href": "/vehicles/2021-toyota-corolla-axio-veh-1"
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "RX450h",
+      "level": 3
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "View vehicle",
+      "href": "/vehicles/2023-lexus-rx450h-veh-7"
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "CX-5",
+      "level": 3
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "View vehicle",
+      "href": "/vehicles/2020-mazda-cx-5-veh-8"
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "C200 AMG Line",
+      "level": 3
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "View vehicle",
+      "href": "/vehicles/2019-mercedes-benz-c200-amg-line-veh-9"
+    },
+    {
+      "tag": "header",
+      "role": "banner",
+      "name": ""
+    },
+    {
+      "tag": "h2",
+      "role": "heading",
+      "name": "Recently Discounted for Durban",
+      "level": 2
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "Forester",
+      "level": 3
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "View vehicle",
+      "href": "/vehicles/2019-subaru-forester-veh-4"
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "Fit Hybrid",
+      "level": 3
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "View vehicle",
+      "href": "/vehicles/2021-honda-fit-hybrid-veh-5"
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "Fuso Canter",
+      "level": 3
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "View vehicle",
+      "href": "/vehicles/2018-mitsubishi-fuso-canter-veh-6"
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "A4 Avant",
+      "level": 3
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "View vehicle",
+      "href": "/vehicles/2020-audi-a4-avant-veh-11"
+    },
+    {
+      "tag": "h2",
+      "role": "heading",
+      "name": "CarChief Team",
+      "level": 2
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "Harare Branch Support",
+      "level": 3
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "harare@carchief.com",
+      "href": "mailto:harare@carchief.com"
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "Harare Customer Success",
+      "level": 3
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "harare@carchief.com",
+      "href": "mailto:harare@carchief.com"
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "Meet & Greet Service",
+      "level": 3
+    },
+    {
+      "tag": "h2",
+      "role": "heading",
+      "name": "Branch Contact Details",
+      "level": 2
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "VIEW ALL VEHICLES",
+      "href": "/vehicles"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "ALL OFFICES",
+      "href": "/contact"
+    },
+    {
+      "tag": "footer",
+      "role": "contentinfo",
+      "name": ""
+    },
+    {
+      "tag": "h4",
+      "role": "heading",
+      "name": "LOGISTICS CORE PORTALS",
+      "level": 4
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "Showroom Catalog",
+      "href": "#showroom"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "How to Buy",
+      "href": "/how-to-buy"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "About Us",
+      "href": "/about"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "Testimonials",
+      "href": "/testimonials"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "FAQ",
+      "href": "/faq"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "Contact Us",
+      "href": "/contact"
+    },
+    {
+      "tag": "h4",
+      "role": "heading",
+      "name": "SECURE VERIFICATION",
+      "level": 4
+    }
+  ],
+  "text": "Skip to main content CC CARCHIEF ONLINE ☰ Regional Hub • Code: HRE • Port: Durban Harare Hub (demo) CarChief Harare Hub connects buyers in Zimbabwe with direct imports routed via Durban port. This is a demo branch projection pending an approved branch definition. 🌍 Welcome to CarChief Harare Hub — Direct Imports to Zimbabwe 📞 Contact our Harare team today for personalized vehicle sourcing Latest Arrivals for Durban Freshly inspected stock bound for Durban port. AVAILABLE In Japan 2021 TOYOTA Corolla Axio PRICE $8,500 View vehicle Lexus RX450h AVAILABLE In Japan 2023 LEXUS RX450h PRICE $38,000 View vehicle Mazda CX-5 AVAILABLE In Japan 2020 MAZDA CX-5 PRICE $13,500 View vehicle Mercedes-Benz C200 AMG Line AVAILABLE In Japan 2019 MERCEDES-BENZ C200 AMG Line PRICE $17,800 View vehicle Recently Discounted for Durban Special promotional offers available for Durban delivery. Subaru Forester AVAILABLE In Japan 2019 SUBARU Forester -10% DISCOUNT PRICE $0 $0 View vehicle Honda Fit Hybrid AVAILABLE In Transit 2021 HONDA Fit Hybrid -5% DISCOUNT PRICE $7,900 $7,505 View vehicle Mitsubishi Fuso Canter AVAILABLE In Port 2018 MITSUBISHI Fuso Canter -15% DISCOUNT PRICE $16,000 $13,600 View vehicle Audi A4 Avant AVAILABLE In Japan 2020 AUDI A4 Avant PRICE $15,900 View vehicle CarChief Team H Harare Branch Support Branch Manager (role contact — pending approved staff directory) harare@carchief.com H Harare Customer Success Customer Success Advisor (role contact — pending approved staff directory) harare@carchief.com Meet & Greet Service Visit our Harare representative office for in-person consultation and pro-forma invoice assistance. Branch Contact Details ADDRESS Harare, Zimbabwe — exact office address pending approval PHONE HOTLINE +263 24 000 0000 EMAIL harare@carchief.com HOURS Mon-Fri 08:30 - 16:30 CAT VIEW ALL VEHICLESALL OFFICES CC CARCHIEF PREMIUM GLOBAL VEHICLE EXPORTERS CarChief is a high-end showcase portal providing direct ocean-cargo logistics, certified pre-owned inspections, and custom spec tracking. LOGISTICS CORE PORTALS Showroom Catalog How to Buy About Us Testimonials FAQ Contact Us SECURE VERIFICATION CarChief utilizes highly secure cloud-replicated server architectures for real-time transaction records and client logs. 🔒 SECURED CLOUD ENVELOPE © 2026 CARCHIEF AUTO GROUP. ALL RIGHTS RESERVED. CLOUDRUN ENVIRONMENT · REGISTRY SECURITY PROTOCOL SHIELD-V2"
+}

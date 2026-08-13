@@ -1,0 +1,397 @@
+{
+  "title": "Frequently Asked Questions & Verified Import Knowledge | CarChief",
+  "entries": [
+    {
+      "tag": "header",
+      "role": "banner",
+      "name": ""
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "Skip to main content",
+      "href": "#main-content"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "CarChief Home",
+      "href": "/"
+    },
+    {
+      "tag": "nav",
+      "role": "navigation",
+      "name": "Main Navigation"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "HOME",
+      "href": "/"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "INVENTORY",
+      "href": "/inventory"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "PREMIUM STOCK",
+      "href": "/inventory?category=premium"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "HOW TO BUY",
+      "href": "/how-to-buy"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "ABOUT US",
+      "href": "/about"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "CONTACT US",
+      "href": "/contact"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "Sign in or create an account",
+      "href": "/account?returnTo=%2Ffaq"
+    },
+    {
+      "tag": "button",
+      "role": "button",
+      "name": "Toggle navigation menu"
+    },
+    {
+      "tag": "main",
+      "role": "main",
+      "name": ""
+    },
+    {
+      "tag": "header",
+      "role": "banner",
+      "name": ""
+    },
+    {
+      "tag": "h1",
+      "role": "heading",
+      "name": "Frequently Asked Questions",
+      "level": 1
+    },
+    {
+      "tag": "form",
+      "role": "search",
+      "name": "Search verified FAQ database Search FAQ"
+    },
+    {
+      "tag": "input",
+      "role": "textbox",
+      "name": "Search verified FAQ database"
+    },
+    {
+      "tag": "button",
+      "role": "button",
+      "name": "Search FAQ"
+    },
+    {
+      "tag": "div",
+      "role": "region",
+      "name": "FAQ Categories"
+    },
+    {
+      "tag": "div",
+      "role": "tablist",
+      "name": "All Categories (12) Buying Process Payment & Pricing Shipping & Logistics Vehicle Condition & Inspection Customs & Import Duties Documents & Registration Warranty & Claims Auction Services Account & Security Insurance Coverage Country Import Rules Customer Support & Service"
+    },
+    {
+      "tag": "button",
+      "role": "tab",
+      "name": "All Categories (12)"
+    },
+    {
+      "tag": "button",
+      "role": "tab",
+      "name": "Buying Process"
+    },
+    {
+      "tag": "button",
+      "role": "tab",
+      "name": "Payment & Pricing"
+    },
+    {
+      "tag": "button",
+      "role": "tab",
+      "name": "Shipping & Logistics"
+    },
+    {
+      "tag": "button",
+      "role": "tab",
+      "name": "Vehicle Condition & Inspection"
+    },
+    {
+      "tag": "button",
+      "role": "tab",
+      "name": "Customs & Import Duties"
+    },
+    {
+      "tag": "button",
+      "role": "tab",
+      "name": "Documents & Registration"
+    },
+    {
+      "tag": "button",
+      "role": "tab",
+      "name": "Warranty & Claims"
+    },
+    {
+      "tag": "button",
+      "role": "tab",
+      "name": "Auction Services"
+    },
+    {
+      "tag": "button",
+      "role": "tab",
+      "name": "Account & Security"
+    },
+    {
+      "tag": "button",
+      "role": "tab",
+      "name": "Insurance Coverage"
+    },
+    {
+      "tag": "button",
+      "role": "tab",
+      "name": "Country Import Rules"
+    },
+    {
+      "tag": "button",
+      "role": "tab",
+      "name": "Customer Support & Service"
+    },
+    {
+      "tag": "div",
+      "role": "status",
+      "name": "Showing 12 questions for all categories"
+    },
+    {
+      "tag": "h2",
+      "role": "heading",
+      "name": "Suggested Questions",
+      "level": 2
+    },
+    {
+      "tag": "button",
+      "role": "button",
+      "name": "BUYING PROCESS How do I purchase a vehicle on CarChief?"
+    },
+    {
+      "tag": "button",
+      "role": "button",
+      "name": "PAYMENT & PRICING What payment methods does CarChief accept?"
+    },
+    {
+      "tag": "button",
+      "role": "button",
+      "name": "SHIPPING & LOGISTICS Which ports does CarChief ship to in Africa and the Caribbean?"
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "How do I purchase a vehicle on CarChief? Buying Process −",
+      "level": 3
+    },
+    {
+      "tag": "button",
+      "role": "button",
+      "name": "How do I purchase a vehicle on CarChief? Buying Process −"
+    },
+    {
+      "tag": "div",
+      "role": "region",
+      "name": "How do I purchase a vehicle on CarChief?Buying Process−"
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "What payment methods does CarChief accept? Payment & Pricing +",
+      "level": 3
+    },
+    {
+      "tag": "button",
+      "role": "button",
+      "name": "What payment methods does CarChief accept? Payment & Pricing +"
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "Which ports does CarChief ship to in Africa and the Caribbean? Shipping & Logistics +",
+      "level": 3
+    },
+    {
+      "tag": "button",
+      "role": "button",
+      "name": "Which ports does CarChief ship to in Africa and the Caribbean? Shipping & Logistics +"
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "What do Japanese auction grades mean? Vehicle Condition & Inspection +",
+      "level": 3
+    },
+    {
+      "tag": "button",
+      "role": "button",
+      "name": "What do Japanese auction grades mean? Vehicle Condition & Inspection +"
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "Who pays customs duties and port clearance fees? Customs & Import Duties +",
+      "level": 3
+    },
+    {
+      "tag": "button",
+      "role": "button",
+      "name": "Who pays customs duties and port clearance fees? Customs & Import Duties +"
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "Which documents will I receive for vehicle registration? Documents & Registration +",
+      "level": 3
+    },
+    {
+      "tag": "button",
+      "role": "button",
+      "name": "Which documents will I receive for vehicle registration? Documents & Registration +"
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "Are vehicles covered by a warranty? Warranty & Claims +",
+      "level": 3
+    },
+    {
+      "tag": "button",
+      "role": "button",
+      "name": "Are vehicles covered by a warranty? Warranty & Claims +"
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "Does CarChief provide access to Japanese vehicle auctions? Auction Services +",
+      "level": 3
+    },
+    {
+      "tag": "button",
+      "role": "button",
+      "name": "Does CarChief provide access to Japanese vehicle auctions? Auction Services +"
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "How does CarChief protect my account and personal data? Account & Security +",
+      "level": 3
+    },
+    {
+      "tag": "button",
+      "role": "button",
+      "name": "How does CarChief protect my account and personal data? Account & Security +"
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "Is marine transit insurance included with shipping? Insurance Coverage +",
+      "level": 3
+    },
+    {
+      "tag": "button",
+      "role": "button",
+      "name": "Is marine transit insurance included with shipping? Insurance Coverage +"
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "What import age restrictions or regulations apply in my destination country? Country Import Rules +",
+      "level": 3
+    },
+    {
+      "tag": "button",
+      "role": "button",
+      "name": "What import age restrictions or regulations apply in my destination country? Country Import Rules +"
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "How can I contact CarChief customer support? Customer Support & Service +",
+      "level": 3
+    },
+    {
+      "tag": "button",
+      "role": "button",
+      "name": "How can I contact CarChief customer support? Customer Support & Service +"
+    },
+    {
+      "tag": "footer",
+      "role": "contentinfo",
+      "name": ""
+    },
+    {
+      "tag": "h4",
+      "role": "heading",
+      "name": "LOGISTICS CORE PORTALS",
+      "level": 4
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "Showroom Catalog",
+      "href": "#showroom"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "How to Buy",
+      "href": "/how-to-buy"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "About Us",
+      "href": "/about"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "Testimonials",
+      "href": "/testimonials"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "FAQ",
+      "href": "/faq"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "Contact Us",
+      "href": "/contact"
+    },
+    {
+      "tag": "h4",
+      "role": "heading",
+      "name": "SECURE VERIFICATION",
+      "level": 4
+    }
+  ],
+  "text": "Skip to main content CC CARCHIEF ONLINE HOME INVENTORY PREMIUM STOCK HOW TO BUY ABOUT US CONTACT US SIGN IN GROUNDED HELP CENTER Frequently Asked Questions Browse verified guidance organized into 12 categories across Japanese vehicle sourcing, shipping, customs, and auction bidding. Search verified FAQ database Search FAQ CATEGORY COUNT: 12 CATEGORIES All Categories (12) Buying Process Payment & Pricing Shipping & Logistics Vehicle Condition & Inspection Customs & Import Duties Documents & Registration Warranty & Claims Auction Services Account & Security Insurance Coverage Country Import Rules Customer Support & Service Showing 12 questions for all categories Suggested Questions BUYING PROCESS How do I purchase a vehicle on CarChief? PAYMENT & PRICING What payment methods does CarChief accept? SHIPPING & LOGISTICS Which ports does CarChief ship to in Africa and the Caribbean? How do I purchase a vehicle on CarChief? Buying Process − Browse our available inventory, select your vehicle, and request a quotation or click Reserve. Our team will issue a Proforma Invoice and guide you through payment and shipping. Owner: ContentTeam Updated: Aug 10, 2026 What payment methods does CarChief accept? Payment & Pricing + Which ports does CarChief ship to in Africa and the Caribbean? Shipping & Logistics + What do Japanese auction grades mean? Vehicle Condition & Inspection + Who pays customs duties and port clearance fees? Customs & Import Duties + Which documents will I receive for vehicle registration? Documents & Registration + Are vehicles covered by a warranty? Warranty & Claims + Does CarChief provide access to Japanese vehicle auctions? Auction Services + How does CarChief protect my account and personal data? Account & Security + Is marine transit insurance included with shipping? Insurance Coverage + What import age restrictions or regulations apply in my destination country? Country Import Rules + How can I contact CarChief customer support? Customer Support & Service + CC CARCHIEF PREMIUM GLOBAL VEHICLE EXPORTERS CarChief is a high-end showcase portal providing direct ocean-cargo logistics, certified pre-owned inspections, and custom spec tracking. LOGISTICS CORE PORTALS Showroom Catalog How to Buy About Us Testimonials FAQ Contact Us SECURE VERIFICATION CarChief utilizes highly secure cloud-replicated server architectures for real-time transaction records and client logs. 🔒 SECURED CLOUD ENVELOPE © 2026 CARCHIEF AUTO GROUP. ALL RIGHTS RESERVED. CLOUDRUN ENVIRONMENT · REGISTRY SECURITY PROTOCOL SHIELD-V2"
+}

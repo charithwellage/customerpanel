@@ -1,0 +1,287 @@
+{
+  "title": "2021 Toyota Corolla Axio | CarChief",
+  "entries": [
+    {
+      "tag": "header",
+      "role": "banner",
+      "name": ""
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "Skip to main content",
+      "href": "#main-content"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "CarChief Home",
+      "href": "/"
+    },
+    {
+      "tag": "nav",
+      "role": "navigation",
+      "name": "Main Navigation"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "Home",
+      "href": "/"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "Inventory",
+      "href": "/inventory"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "Premium Stock",
+      "href": "/inventory?category=premium"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "How to Buy",
+      "href": "/how-to-buy"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "About Us",
+      "href": "/about"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "Contact Us",
+      "href": "/contact"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "Sign in or create an account",
+      "href": "/account?returnTo=%2Fvehicles%2F2021-toyota-corolla-axio-veh-1"
+    },
+    {
+      "tag": "button",
+      "role": "button",
+      "name": "Toggle navigation menu"
+    },
+    {
+      "tag": "header",
+      "role": "banner",
+      "name": ""
+    },
+    {
+      "tag": "h1",
+      "role": "heading",
+      "name": "2021 TOYOTA COROLLA AXIO",
+      "level": 1
+    },
+    {
+      "tag": "button",
+      "role": "button",
+      "name": "Share vehicle page"
+    },
+    {
+      "tag": "button",
+      "role": "button",
+      "name": "Print spec sheet"
+    },
+    {
+      "tag": "h2",
+      "role": "heading",
+      "name": "Media Gallery",
+      "level": 2
+    },
+    {
+      "tag": "div",
+      "role": "region",
+      "name": "Image 1 of 2"
+    },
+    {
+      "tag": "img",
+      "role": "img",
+      "name": "2021 Toyota Corolla Axio — image 1 of 2"
+    },
+    {
+      "tag": "button",
+      "role": "button",
+      "name": "Previous image"
+    },
+    {
+      "tag": "button",
+      "role": "button",
+      "name": "Next image"
+    },
+    {
+      "tag": "div",
+      "role": "tablist",
+      "name": "Gallery thumbnails"
+    },
+    {
+      "tag": "button",
+      "role": "tab",
+      "name": "Image 1"
+    },
+    {
+      "tag": "img",
+      "role": "img",
+      "name": "2021 Toyota Corolla Axio thumbnail 1"
+    },
+    {
+      "tag": "button",
+      "role": "tab",
+      "name": "Image 2"
+    },
+    {
+      "tag": "img",
+      "role": "img",
+      "name": "2021 Toyota Corolla Axio thumbnail 2"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "General Enquiry",
+      "href": "/contact?vehicle=2021-toyota-corolla-axio-veh-1&enquiryType=vehicle"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "WhatsApp Intent",
+      "href": "https://wa.me/?text=Enquiry%20about%202021%20Toyota%20Corolla%20Axio%20(2021-toyota-corolla-axio-veh-1)"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "Email Intent",
+      "href": "mailto:info@carchief.example?subject=Enquiry%3A%202021%20Toyota%20Corolla%20Axio"
+    },
+    {
+      "tag": "div",
+      "role": "status",
+      "name": "Sign in to reserve this vehicle"
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "Sign in to reserve this vehicle",
+      "level": 3
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "SIGN IN TO RESERVE",
+      "href": "/account?returnTo=%2Fvehicles%2F2021-toyota-corolla-axio-veh-1"
+    },
+    {
+      "tag": "h2",
+      "role": "heading",
+      "name": "SPECIFICATIONS",
+      "level": 2
+    },
+    {
+      "tag": "h2",
+      "role": "heading",
+      "name": "Estimate Shipping Cost",
+      "level": 2
+    },
+    {
+      "tag": "form",
+      "role": "form",
+      "name": "Shipping estimate request"
+    },
+    {
+      "tag": "select",
+      "role": "combobox",
+      "name": "Destination country *"
+    },
+    {
+      "tag": "select",
+      "role": "combobox",
+      "name": "Arrival port *"
+    },
+    {
+      "tag": "input",
+      "role": "textbox",
+      "name": "Length"
+    },
+    {
+      "tag": "input",
+      "role": "textbox",
+      "name": "Width"
+    },
+    {
+      "tag": "input",
+      "role": "textbox",
+      "name": "Height"
+    },
+    {
+      "tag": "button",
+      "role": "button",
+      "name": "GET SHIPPING ESTIMATE"
+    },
+    {
+      "tag": "div",
+      "role": "region",
+      "name": "Shipping estimate"
+    },
+    {
+      "tag": "footer",
+      "role": "contentinfo",
+      "name": ""
+    },
+    {
+      "tag": "h4",
+      "role": "heading",
+      "name": "LOGISTICS CORE PORTALS",
+      "level": 4
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "Showroom Catalog",
+      "href": "#showroom"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "How to Buy",
+      "href": "/how-to-buy"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "About Us",
+      "href": "/about"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "Testimonials",
+      "href": "/testimonials"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "FAQ",
+      "href": "/faq"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "Contact Us",
+      "href": "/contact"
+    },
+    {
+      "tag": "h4",
+      "role": "heading",
+      "name": "SECURE VERIFICATION",
+      "level": 4
+    }
+  ],
+  "text": "Skip to main content CC CARCHIEF ONLINE ☰ 2021 TOYOTA COROLLA AXIO $8,500 AVAILABLE SHARE PRINT SPEC SHEET Media Gallery ‹ › GENERAL ENQUIRY WHATSAPP INTENT EMAIL INTENT Sign in to reserve this vehicle You need to sign in or create an account before reserving 2021 Toyota Corolla Axio. Nothing has been reserved yet. SIGN IN TO RESERVE SPECIFICATIONS Body Style SEDAN Fuel Type PETROL Transmission AUTOMATIC Drive Train 2WD Mileage 32,000 KM Stock Type J Location IN JAPAN Destination MOMBASA ETD 2026-08-20T00:00:00.000Z ETA 2026-09-10T00:00:00.000Z Estimate Shipping Cost Select where you would like this vehicle shipped to see what shipping information is currently available for that route. Destination country * Select a destination… Uganda (Uganda) Kenya (Kenya) Tanzania (Tanzania) Rwanda (Rwanda) South Sudan (South Sudan) Arrival port * Select an arrival port… Mombasa (Kenya) Dar es Salaam (Tanzania) Vehicle dimensions (optional, millimetres) Length Width Height City delivery and insurance options will appear here once a confirmed shipping rate is available. GET SHIPPING ESTIMATE Select a destination and arrival port, then request an estimate to see shipping information for this route. CC CARCHIEF PREMIUM GLOBAL VEHICLE EXPORTERS CarChief is a high-end showcase portal providing direct ocean-cargo logistics, certified pre-owned inspections, and custom spec tracking. LOGISTICS CORE PORTALS Showroom Catalog How to Buy About Us Testimonials FAQ Contact Us SECURE VERIFICATION CarChief utilizes highly secure cloud-replicated server architectures for real-time transaction records and client logs. 🔒 SECURED CLOUD ENVELOPE © 2026 CARCHIEF AUTO GROUP. ALL RIGHTS RESERVED. CLOUDRUN ENVIRONMENT · REGISTRY SECURITY PROTOCOL SHIELD-V2"
+}
