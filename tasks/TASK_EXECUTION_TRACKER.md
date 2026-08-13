@@ -85,8 +85,8 @@
 | [D01-P09-T003](delivery_01/phase_09/D01-P09-T003.md) | Resume and complete Playwright MCP runtime verification for the textOnAccent contrast fix | COMPLETE | self_ai | playwright_mcp | Codex | `feat_delivery01_phase_09` | D01-P09-CODE_REVIEW (COMPLETE) | None | P09-B | 2026-08-13T10:13:10.057Z |
 | [D01-P09-CODE_REVIEW](delivery_01/phase_09/D01-P09-CODE_REVIEW.md) | Phase 1.9 PR code review and tech-lead approval | COMPLETE | phase_manual | not_applicable | Claude Code | `feat_delivery01_phase_09` | D01-P09-CODE_REVIEW (COMPLETE) | D01-P09-T002 | P09-REVIEW | 2026-08-13T11:30:33.771Z |
 | [D01-P10-T001](delivery_01/phase_10/D01-P10-T001.md) | Reconcile Delivery 01 requirement gaps and assumption evidence | COMPLETE | self_ai | not_applicable | Claude Code | `feat_delivery01_phase_10` | D01-P10-CODE_REVIEW (NOT_STARTED) | D01-P09-CODE_REVIEW | D01-P10-SEQUENTIAL | 2026-08-13T12:37:49.472Z |
-| [D01-P10-T002](delivery_01/phase_10/D01-P10-T002.md) | Apply approved Delivery 01 assumption adjustments | READY | self_ai | playwright_mcp | — | `feat_delivery01_phase_10` | D01-P10-CODE_REVIEW (NOT_STARTED) | D01-P10-T001 | D01-P10-SEQUENTIAL | — |
-| [D01-P10-T003](delivery_01/phase_10/D01-P10-T003.md) | Re-verify theme parity and close Delivery 01 MVP acceptance | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery01_phase_10` | D01-P10-CODE_REVIEW (NOT_STARTED) | D01-P10-T002 | D01-P10-SEQUENTIAL | — |
+| [D01-P10-T002](delivery_01/phase_10/D01-P10-T002.md) | Apply approved Delivery 01 assumption adjustments | COMPLETE | self_ai | playwright_mcp | Claude Sonnet 5 | `feat_delivery01_phase_10` | D01-P10-CODE_REVIEW (NOT_STARTED) | D01-P10-T001 | D01-P10-SEQUENTIAL | 2026-08-13T13:12:38.460Z |
+| [D01-P10-T003](delivery_01/phase_10/D01-P10-T003.md) | Re-verify theme parity and close Delivery 01 MVP acceptance | READY | self_ai | playwright_mcp | — | `feat_delivery01_phase_10` | D01-P10-CODE_REVIEW (NOT_STARTED) | D01-P10-T002 | D01-P10-SEQUENTIAL | — |
 | [D01-P10-CODE_REVIEW](delivery_01/phase_10/D01-P10-CODE_REVIEW.md) | Phase 1.10 PR code review and tech-lead approval | NOT_STARTED | phase_manual | not_applicable | — | `feat_delivery01_phase_10` | D01-P10-CODE_REVIEW (NOT_STARTED) | D01-P10-T003 | D01-P10-REVIEW | — |
 | [D02-P01-G001](delivery_02/phase_01/D02-P01-G001.md) | Record Customer scope, BA workflow ownership and Keycloak identity baseline | READY | self_ai | not_applicable | — | `feat_delivery02_phase_01` | D02-P01-CODE_REVIEW (NOT_STARTED) | D01-P09-CODE_REVIEW | D02-P01-GATE | — |
 | [D02-P01-T001](delivery_02/phase_01/D02-P01-T001.md) | Complete the customer application shell and responsive navigation | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery02_phase_01` | D02-P01-CODE_REVIEW (NOT_STARTED) | D02-P01-G001 | D02-P01-SEQUENTIAL | — |
@@ -145,7 +145,7 @@
 
 ## Current execution frontiers
 
-- D01-RECONCILIATION: D01-P10-T002 — Apply approved Delivery 01 assumption adjustments (NOT_STARTED)
+- D01-RECONCILIATION: D01-P10-T003 — Re-verify theme parity and close Delivery 01 MVP acceptance (NOT_STARTED)
 - D02-FOUNDATION: D02-P01-G001 — Record Customer scope, BA workflow ownership and Keycloak identity baseline (NOT_STARTED)
 - D02-DASHBOARD-LOGISTICS: D02-P02-G001 — Establish non-blocking customer dashboard KPI baseline (NOT_STARTED)
 - D02-COMMERCE: D02-P03-T001 — Add customer inventory projection, tier pricing and reservation eligibility (NOT_STARTED)
