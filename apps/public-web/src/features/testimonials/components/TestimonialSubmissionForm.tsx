@@ -85,42 +85,45 @@ export const TestimonialSubmissionForm: React.FC<TestimonialSubmissionFormProps>
   };
 
   return (
-    <section className="cc-testimonial-form-wrap" aria-labelledby="form-heading">
-      <div className="cc-testimonial-form-card">
-        <header className="cc-testimonial-form-header">
-          <h2 id="form-heading" className="cc-testimonial-form-title">
+    <section className="tstm-form-container" aria-labelledby="form-heading">
+      <div className="tstm-form-card">
+        <header className="tstm-form-header">
+          <div className="tstm-form-eyebrow">
+            <span>💬 PUBLISH YOUR EXPERIENCE</span>
+          </div>
+          <h2 id="form-heading" className="tstm-form-title">
             Share Your Import Experience
           </h2>
-          <p className="cc-testimonial-form-desc">
-            Purchased a vehicle with CarChief? Submit your review below. All submissions are moderated before publication.
+          <p className="tstm-form-desc">
+            Have you recently imported a high-end vehicle through CarChief? Share your logistics speed, pricing clarity, and quality metrics with global dealer networks.
           </p>
         </header>
 
         {submitSuccess && (
-          <div role="status" aria-live="polite" className="cc-testimonial-alert cc-testimonial-alert--success">
+          <div role="status" aria-live="polite" className="tstm-alert tstm-alert--success">
             <strong>Submission Received!</strong>
             <p>{submitSuccess}</p>
           </div>
         )}
 
         {errorMessage && (
-          <div role="alert" className="cc-testimonial-alert cc-testimonial-alert--error">
+          <div role="alert" className="tstm-alert tstm-alert--error">
             <strong>Submission Error:</strong>
             <p>{errorMessage}</p>
           </div>
         )}
 
         {validationError && (
-          <div role="alert" className="cc-testimonial-alert cc-testimonial-alert--warning">
+          <div role="alert" className="tstm-alert tstm-alert--warning">
             <p>{validationError}</p>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="cc-testimonial-form" noValidate>
-          <div className="cc-form-grid">
-            <div className="cc-form-group">
-              <label htmlFor="authorName" className="cc-form-label">
-                Your Name <span className="cc-required">*</span>
+        <form onSubmit={handleSubmit} className="tstm-form" noValidate>
+          <div className="tstm-form-grid">
+            <div className="tstm-form-group">
+              <label htmlFor="authorName" className="tstm-form-label">
+                YOUR FULL NAME <span className="tstm-required">*</span>
               </label>
               <input
                 id="authorName"
@@ -128,14 +131,14 @@ export const TestimonialSubmissionForm: React.FC<TestimonialSubmissionFormProps>
                 required
                 value={authorName}
                 onChange={(e) => setAuthorName(e.target.value)}
-                placeholder="e.g. Tendai Mutasa"
-                className="cc-form-input"
+                placeholder="e.g., Jonathan Mercer"
+                className="tstm-form-input"
               />
             </div>
 
-            <div className="cc-form-group">
-              <label htmlFor="authorLocation" className="cc-form-label">
-                Location (City & Country) <span className="cc-required">*</span>
+            <div className="tstm-form-group">
+              <label htmlFor="authorLocation" className="tstm-form-label">
+                LOCATION (CITY, COUNTRY) <span className="tstm-required">*</span>
               </label>
               <input
                 id="authorLocation"
@@ -143,49 +146,49 @@ export const TestimonialSubmissionForm: React.FC<TestimonialSubmissionFormProps>
                 required
                 value={authorLocation}
                 onChange={(e) => setAuthorLocation(e.target.value)}
-                placeholder="e.g. Harare, Zimbabwe"
-                className="cc-form-input"
+                placeholder="e.g., Zurich, Switzerland"
+                className="tstm-form-input"
               />
             </div>
           </div>
 
-          <div className="cc-form-grid">
-            <div className="cc-form-group">
-              <label htmlFor="vehiclePurchased" className="cc-form-label">
-                Purchased Vehicle (Optional)
+          <div className="tstm-form-grid">
+            <div className="tstm-form-group">
+              <label htmlFor="vehiclePurchased" className="tstm-form-label">
+                VEHICLE MODEL SOURCED
               </label>
               <input
                 id="vehiclePurchased"
                 type="text"
                 value={vehiclePurchased}
                 onChange={(e) => setVehiclePurchased(e.target.value)}
-                placeholder="e.g. 2021 Toyota Corolla Axio"
-                className="cc-form-input"
+                placeholder="e.g., 2021 Ferrari Roma"
+                className="tstm-form-input"
               />
             </div>
 
-            <div className="cc-form-group">
-              <label htmlFor="rating" className="cc-form-label">
-                Overall Rating <span className="cc-required">*</span>
+            <div className="tstm-form-group">
+              <label htmlFor="rating" className="tstm-form-label">
+                OPERATIONAL RATING <span className="tstm-required">*</span>
               </label>
               <select
                 id="rating"
                 value={rating}
                 onChange={(e) => setRating(Number(e.target.value))}
-                className="cc-form-select"
+                className="tstm-form-select"
               >
-                <option value={5}>★★★★★ (5 - Excellent)</option>
-                <option value={4}>★★★★☆ (4 - Good)</option>
-                <option value={3}>★★★☆☆ (3 - Satisfactory)</option>
-                <option value={2}>★★☆☆☆ (2 - Fair)</option>
-                <option value={1}>★☆☆☆☆ (1 - Poor)</option>
+                <option value={5}>⭐⭐⭐⭐⭐ (5/5 Perfect Sourcing)</option>
+                <option value={4}>⭐⭐⭐⭐☆ (4/5 Great Experience)</option>
+                <option value={3}>⭐⭐⭐☆☆ (3/5 Satisfactory)</option>
+                <option value={2}>⭐⭐☆☆☆ (2/5 Fair)</option>
+                <option value={1}>⭐☆☆☆☆ (1/5 Poor)</option>
               </select>
             </div>
           </div>
 
-          <div className="cc-form-group">
-            <label htmlFor="content" className="cc-form-label">
-              Your Review & Feedback <span className="cc-required">*</span>
+          <div className="tstm-form-group">
+            <label htmlFor="content" className="tstm-form-label">
+              REVIEW COMMENTS <span className="tstm-required">*</span>
             </label>
             <textarea
               id="content"
@@ -193,31 +196,32 @@ export const TestimonialSubmissionForm: React.FC<TestimonialSubmissionFormProps>
               required
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              placeholder="Describe your vehicle condition, shipping experience, and customer service received..."
-              className="cc-form-textarea"
+              placeholder="Detail your ocean logistics speed, documentation clarity, vehicle inspection alignment, and transport team responsiveness..."
+              className="tstm-form-textarea"
             />
           </div>
 
-          <div className="cc-form-group cc-form-group--checkbox">
-            <label htmlFor="consent" className="cc-form-checkbox-label">
+          <div className="tstm-form-group tstm-form-group--checkbox">
+            <label htmlFor="consent" className="tstm-checkbox-label">
               <input
                 id="consent"
                 type="checkbox"
                 checked={consent}
                 onChange={(e) => setConsent(e.target.checked)}
-                className="cc-form-checkbox"
+                className="tstm-checkbox"
               />
               <span>
-                I agree to allow CarChief to publish my name, location, vehicle model, and feedback publicly upon moderation approval. <span className="cc-required">*</span>
+                I agree to allow CarChief to publish my name, location, vehicle model, and feedback publicly upon moderation approval. <span className="tstm-required">*</span>
               </span>
             </label>
           </div>
 
-          <div className="cc-form-actions">
+          <div className="tstm-form-footer">
+            <span className="tstm-verified-badge">🛡️ VERIFIED SOURCING NETWORK</span>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="cc-btn cc-btn--primary"
+              className="tstm-submit-btn"
             >
               {isSubmitting ? 'Submitting Testimonial...' : 'Submit Testimonial for Moderation'}
             </button>

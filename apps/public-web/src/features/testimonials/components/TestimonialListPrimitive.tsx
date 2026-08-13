@@ -25,82 +25,84 @@ export const TestimonialListPrimitive: React.FC<TestimonialListPrimitiveProps> =
   isLoading = false,
 }) => {
   return (
-    <section className="cc-testimonials-list" aria-labelledby="testimonials-heading">
-      <header className="cc-testimonials-list__header">
-        <div>
-          <span className="cc-testimonials-list__badge">Verified Buyer Reviews</span>
-          <h2 id="testimonials-heading" className="cc-testimonials-list__title">
-            Customer Testimonials & Success Stories
-          </h2>
-          <p className="cc-testimonials-list__subtitle">
-            Read real experiences from vehicle importers across East Africa, Southern Africa, the Caribbean, and global ports.
+    <section className="tstm-section" aria-labelledby="testimonials-heading">
+      {/* Dark Hero Banner */}
+      <div className="tstm-hero-banner">
+        <div className="tstm-hero-inner">
+          <div className="tstm-hero-eyebrow">
+            <span>🔖 VETTED SOURCING LOGS</span>
+          </div>
+          <h1 id="testimonials-heading" className="tstm-hero-title">
+            TRUSTED BY WORLD CLASS <span className="tstm-hero-title-accent">COLLECTORS &amp; FRANCHISES</span>
+          </h1>
+          <p className="tstm-hero-subtitle">
+            Verified logs and experiences from leading dealers, prestige vehicle buyers, and fleet networks globally.
           </p>
-        </div>
-
-        <div className="cc-testimonials-list__summary-card">
-          <div className="cc-testimonials-list__score">{averageRating.toFixed(1)}</div>
-          <div className="cc-testimonials-list__score-meta">
-            {renderStars(averageRating)}
-            <span className="cc-testimonials-list__count">Based on {total} verified reviews</span>
+          <div className="tstm-hero-pills">
+            <span className="tstm-hero-pill">🌐 14+ Export Countries</span>
+            <span className="tstm-hero-pill">⭐ {averageRating.toFixed(1)} Average Sourcing Score (Based on {total} verified reviews)</span>
           </div>
         </div>
-      </header>
+      </div>
 
-      {isLoading && (
-        <div role="status" aria-live="polite" className="cc-testimonials-list__loading">
-          <div className="cc-spinner" aria-hidden="true" />
-          <span>Loading customer testimonials...</span>
-        </div>
-      )}
+      <div className="tstm-body-wrap">
+        <h2 className="sr-only">Customer Testimonials &amp; Success Stories</h2>
+        {isLoading && (
+          <div role="status" aria-live="polite" className="tstm-loading">
+            <div className="cc-spinner" aria-hidden="true" />
+            <span>Loading customer testimonials...</span>
+          </div>
+        )}
 
-      {!isLoading && testimonials.length === 0 && (
-        <div className="cc-testimonials-list__empty" role="region" aria-label="Empty testimonials">
-          <h3>No Testimonials Published Yet</h3>
-          <p>Be the first customer to share your vehicle purchase and delivery experience with CarChief!</p>
-        </div>
-      )}
+        {!isLoading && testimonials.length === 0 && (
+          <div className="tstm-empty" role="region" aria-label="Empty testimonials">
+            <h3>No Testimonials Published Yet</h3>
+            <p>Be the first customer to share your vehicle purchase and delivery experience with CarChief!</p>
+          </div>
+        )}
 
-      {!isLoading && testimonials.length > 0 && (
-        <div className="cc-testimonials-list__grid">
-          {testimonials.map((item) => {
-            const formattedDate = item.submittedAt
-              ? new Date(item.submittedAt).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'short',
-                  day: 'numeric',
-                  timeZone: 'UTC',
-                })
-              : undefined;
+        {!isLoading && testimonials.length > 0 && (
+          <div className="tstm-grid">
+            {testimonials.map((item) => {
+              const initials = item.authorName
+                .split(' ')
+                .map((part) => part[0])
+                .join('')
+                .substring(0, 2)
+                .toUpperCase();
 
-            return (
-              <article key={item.id} className="cc-testimonial-card">
-                <header className="cc-testimonial-card__header">
-                  <div className="cc-testimonial-card__stars">{renderStars(item.rating)}</div>
-                  {item.vehiclePurchased && (
-                    <span className="cc-testimonial-card__vehicle">{item.vehiclePurchased}</span>
-                  )}
-                </header>
+              return (
+                <article key={item.id} className="tstm-card">
+                  <header className="tstm-card-header">
+                    <div className="tstm-stars" aria-label={`Rating: ${item.rating} out of 5 stars`}>
+                      {'★'.repeat(Math.min(5, Math.max(1, Math.round(item.rating))))}
+                    </div>
+                    <span className="tstm-quote-watermark" aria-hidden="true">❝</span>
+                  </header>
 
-                <blockquote className="cc-testimonial-card__quote">
-                  &ldquo;{item.content}&rdquo;
-                </blockquote>
+                  <blockquote className="tstm-card-quote">
+                    &ldquo;{item.content}&rdquo;
+                  </blockquote>
 
-                <footer className="cc-testimonial-card__footer">
-                  <div className="cc-testimonial-card__author-info">
-                    <strong className="cc-testimonial-card__name">{item.authorName}</strong>
-                    <span className="cc-testimonial-card__location">{item.authorLocation}</span>
-                  </div>
-                  {formattedDate && (
-                    <time dateTime={item.submittedAt} className="cc-testimonial-card__date">
-                      {formattedDate}
-                    </time>
-                  )}
-                </footer>
-              </article>
-            );
-          })}
-        </div>
-      )}
+                  <footer className="tstm-card-footer">
+                    <div className="tstm-author-meta">
+                      <div className="tstm-avatar">{initials}</div>
+                      <div className="tstm-author-details">
+                        <strong className="tstm-author-name">{item.authorName}</strong>
+                        <span className="tstm-author-location">{item.authorLocation}</span>
+                      </div>
+                    </div>
+
+                    {item.vehiclePurchased && (
+                      <span className="tstm-vehicle-tag">{item.vehiclePurchased}</span>
+                    )}
+                  </footer>
+                </article>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </section>
   );
 };
