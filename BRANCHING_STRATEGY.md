@@ -95,3 +95,26 @@ This gives Phase 04 the approved Phase 03 baseline plus only Phase 04 changes.
 - Exact branch names are defined by the phase task files and task controller.
 
 Delivery 02 uses the same pattern with `delivery_02_customer_application` as the integration branch and `feat_delivery02_phase_NN` as phase branches.
+
+## Delivery 02: protected two-engineer lanes
+
+Phase 2.1 is the one shared foundation PR. Once it has merged, two engineers may work from the same current `delivery_02_customer_application` baseline. Each phase gets its own branch and its own PR back to that base; no phase branch is based on another unmerged phase branch.
+
+```mermaid
+flowchart TB
+    B[delivery_02_customer_application<br/>Phase 2.1 merged] --> C[Engineer A<br/>feat_delivery02_phase_03]
+    B --> D[Engineer B<br/>feat_delivery02_phase_02]
+    C --> E[Commerce PR → base]
+    D --> F[Dashboard PR → base]
+    E --> G[Phase 2.4 → 2.5 → 2.6<br/>Commerce lane]
+    F --> H[Phase 2.7 → 2.8<br/>Dashboard / logistics lane]
+    G --> I[Phase 2.9 convergence]
+    H --> I
+```
+
+The lanes have exclusive path ownership, registered by `D02-P01-T004`:
+
+- Commerce: customer inventory, My Vehicles, invoices and payments.
+- Dashboard / logistics: dashboard, shipments/documents, notifications and profile.
+
+Neither lane changes shared route registries, generated-client aggregation, Mock API bootstrap, package manifests, lockfiles, Docker files, shared theme packages, shared vehicle packages, or the other lane’s paths. A shared-platform need is handled as a small serialized PR first. Each engineer rebases their branch onto the latest delivery base immediately before updating their PR.

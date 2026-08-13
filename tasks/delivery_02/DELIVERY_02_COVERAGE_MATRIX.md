@@ -14,7 +14,7 @@ Known demonstration defects are negative evidence and must not be reproduced: co
 | CUST-04 | Overview vehicles, balance, alerts | Requirement; compiled evidence provisional | D02-P02-G001, T001–T002; P10 | Derived dashboard aggregate | Linked-record MVP baseline reconciles; final finance mapping reviewed in P10 |
 | CUST-05 | Tier and discount | Requirement | D02-P02-T001–T002; P03-T001–T002 | Tier projection and approved price presentation | RULE-06 examples and audience projection pass |
 | CUST-06 | Credit limit/utilisation | Requirement; known POC defect | D02-P02-G001, T001–T002 | Server-derived credit aggregate | Worked 24% example and reconciliation pass |
-| CUST-07 | Light/dark appearance | Requirement; implemented as named themes | D02-P01-T001/T003; P09-T003 | No API; carchief/ocean registry | Both themes pass responsive/accessibility tests |
+| CUST-07 | Light/dark appearance | Requirement; default-theme MVP plus optional alternate theme | D02-P01-T003; P09-T003; optional P11 | No API; carchief default, ocean deferred to P11 | Default theme passes MVP acceptance; both-theme parity is P11-only |
 | CUST-08 | Manual refresh | Requirement; compiled evidence provisional | D02-P02-T001–T002 | Aggregate freshness/reset | Refresh invalidates and refetches authoritative data |
 | CUST-09 | Browse/search stock in account | Requirement | D02-P03-T001–T003 | Customer inventory projection | Shared search/detail packages are reused |
 | CUST-10 | Reserved/with PI/invoiced groups | Requirement; compiled evidence provisional | D02-P04-T001–T003 | Transaction vehicle projection | Counts are unique and match records |
@@ -24,13 +24,13 @@ Known demonstration defects are negative evidence and must not be reproduced: co
 | CUST-14 | Invoice totals/paid/outstanding | Requirement | D02-P05-T001–T003; P06-T004 | Customer invoice projection | Values reconcile across all pages |
 | CUST-15 | Print/download invoices | Requirement; delivery mechanism uncertain | D02-P05-T001–T003 | Authorized print/download metadata | Allowed, unavailable and denied states pass |
 | CUST-16 | One outstanding balance | Requirement; known POC defect | D02-P02, P05 and P06; P09-T002 | One server-authoritative balance projection | Cross-page RULE-01 test passes |
-| CUST-17 | Payment journal | Requirement | D02-P06-T001–T002/T004 | Payment list/detail/status | Correct references, amounts, dates and states shown |
-| CUST-18 | Submit payment and proof | Requirement; safe Mock-MVP policy confirmed | D02-P06-G001, T001/T003/T004 | Idempotent TT create/PDF-JPG-PNG metadata/simulated scan/resubmit | Validation, privacy, retry and duplicate tests pass |
-| CUST-19 | Allocated payment unavailable | Requirement; known POC defect | D02-P06-T001/T002/T004; P09-T002 | Allocation/remaining-balance projection | Double allocation and availability tests pass |
-| CUST-20 | Ten-category Secure Vault | Requirement; repository policy is non-blocking | D02-P07-G001, T001/T003/T004; P10 | Authorized document metadata/access and `visibleToCustomer` projection | MVP labels/visibility pass; final repository policy is reconciled in P10 |
+| CUST-17 | Payment journal | Requirement | D02-P06-T001/T002/T004/T005 | Payment list/detail/status and deterministic notification outbox | Correct references, amounts, dates and states shown |
+| CUST-18 | Submit payment and proof | Requirement; safe Mock-MVP policy confirmed | D02-P06-G001, T001/T003/T004/T005 | Idempotent TT create/PDF-JPG-PNG metadata/simulated scan/resubmit | Validation, privacy, retry and duplicate tests pass |
+| CUST-19 | Allocated payment unavailable | Requirement; known POC defect | D02-P06-T001/T002/T004/T005; P09-T002 | Allocation/remaining-balance projection | Double allocation and availability tests pass |
+| CUST-20 | Ten-category Secure Vault | Requirement; repository policy is non-blocking | D02-P07-G001, T001/T003/T004/T005; P10 | Authorized document metadata/access and `visibleToCustomer` projection | MVP labels/visibility pass; final repository policy is reconciled in P10 |
 | CUST-21 | Generated document appears when approved | Requirement plus BA release gate | D02-P05-T001/T003; P07-T001/T003/T004 | Release-gated document visibility | No visibility before approval; appears after approved upload |
 | CUST-22 | Notifications/read state | Requirement | D02-P08-T001–T002 | Notification list/read/mark-all | Linked state and counts remain consistent |
-| CUST-23 | Edit approved contact details | Requirement | D02-P08-T001/T003 | Profile read/update | Company/phone/address persist and reset |
+| CUST-23 | Edit approved contact details | Requirement | D02-P08-T003/T004 | Profile read/update | Company/phone/address persist and reset |
 | CUST-24 | Name/email fixed | Requirement | D02-P01, P08-T001/T003 | Fixed-field policy | Direct and API edits are rejected |
 | CUST-25 | Change password | Requirement; identity decision | D02-P01-G001/T002; P08-T003 | Identity-provider handoff only | No frontend password storage; approved flow shown |
 

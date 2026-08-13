@@ -31,6 +31,7 @@ ui_validation: "not_applicable"
 - Only requirement, architecture and evidence paths explicitly named by those tasks.
 
 ## Requirements and rules
+**Delivery 02 execution policy:** Read [D02_TEST_MATRIX.md](../D02_TEST_MATRIX.md) before implementing. Use only the default `carchief` theme in Phases 2.1–2.10. Run only task-owned tests and the dependency-closure build listed in the matrix; full regression belongs to Phases 2.9–2.10. Do not edit another protected lane's owned paths or shared registries.
 
 Verify that every unresolved requirement is a transparent `ASSUMED` or `SKIPPED` MVP item, not an undisclosed feature gap or false external-integration claim. Review only `delivery_02_customer_application...feat_delivery02_phase_10`.
 

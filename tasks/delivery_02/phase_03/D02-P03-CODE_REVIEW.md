@@ -33,6 +33,7 @@ ui_validation: "not_applicable"
 - Only requirements, architecture sections and evidence explicitly named by those completed tasks.
 
 ## Requirements and rules
+**Delivery 02 execution policy:** Read [D02_TEST_MATRIX.md](../D02_TEST_MATRIX.md) before implementing. Use only the default `carchief` theme in Phases 2.1–2.10. Run only task-owned tests and the dependency-closure build listed in the matrix; full regression belongs to Phases 2.9–2.10. Do not edit another protected lane's owned paths or shared registries.
 
 Apply every shared code-review rule and specifically verify shared-package reuse, customer inventory projection, tier pricing, reservation enforcement and public/private data separation.
 
@@ -102,7 +103,7 @@ No contract, mock, database or product change is owned; review conformance only.
 
 For every completed task marked `ui_validation: "playwright_mcp"`, verify its execution log proves a fresh current-worktree runtime: `Fresh-runtime verification: PASS`, `Runtime provenance:`, `Service readiness: PASS`, a recorded target URL, and Playwright MCP/automated results against that same URL. Treat a stale-image, stale-server, missing health/API/reset check, or a browser failure deferred from the implementation task as a **blocking** finding. Reopen the responsible task; do not approve the phase on earlier or source-only evidence.
 
-Review the phase diff for shared package boundaries, both themes, phone/tablet/desktop behavior, keyboard/focus/contrast/zoom/reduced motion, customer isolation, sensitive-cache/PWA safety and honest external labels.
+Review the phase diff for shared package boundaries, the default theme, phone/tablet/desktop behavior, keyboard/focus/contrast/zoom/reduced motion, customer isolation, sensitive-cache/PWA safety and honest external labels.
 
 ## Automated tests to add
 
@@ -110,24 +111,14 @@ Review the phase diff for shared package boundaries, both themes, phone/tablet/d
 
 ## Validation commands
 
-- `git diff --check delivery_02_customer_application...feat_delivery02_phase_03`
-- `git diff --stat delivery_02_customer_application...feat_delivery02_phase_03`
-- `corepack pnpm lint`
-- `corepack pnpm typecheck`
-- `corepack pnpm -r build`
-- Phase-specific unit/integration/Playwright/container commands named by completed tasks.
-- `node tasks/scripts/taskctl.mjs validate`
-- `git diff -- POC` (must be empty)
-
-Root lint, TypeScript typecheck and recursive workspace builds pass with no compiler or build errors. Infrastructure unavailable for a required check is a blocker.
-
+Read [D02_TEST_MATRIX.md](../D02_TEST_MATRIX.md) and run only the focused validation assigned to `D02-P03-CODE_REVIEW`'s task group. Add the named feature test/spec when this task creates the feature. Do not run root lint, root typecheck, recursive build, the full browser suite or a Docker recreation unless the matrix assigns it to this task. Record the exact commands/results in the execution log.
 ## Acceptance criteria
 
 - Review covers only `delivery_02_customer_application...feat_delivery02_phase_03` and applies CODE_REVIEW_RULES plus the phase-specific focus.
 - Findings record severity, path/evidence, violated rule, responsible task and correction.
 - Every normal phase task is COMPLETE and required tests/Docker evidence are present and passing.
 - No blocking finding remains; AI report records **Result: PASS**.
-- Root lint, TypeScript typecheck and recursive workspace builds pass with no compiler or build errors.
+- The task-owned validation in D02_TEST_MATRIX.md passes with no compiler or build errors.
 - Tech lead manually reviews the PR; PR cannot merge until this task is COMPLETE.
 
 ## Completion, handoff and tracker update
