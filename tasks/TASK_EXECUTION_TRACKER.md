@@ -38,7 +38,7 @@
 | [D01-P01-T009](delivery_01/phase_01/D01-P01-T009.md) | Build the Next.js public shell and navigation | COMPLETE | self_ai | legacy/not-applicable | Antigravity | `feat_delivery01_phase_01` | D01-P01-CODE_REVIEW (COMPLETE) | D01-P01-T006, D01-P01-T008 | P01-F | 2026-08-07T10:00:45.985Z |
 | [D01-P01-T010](delivery_01/phase_01/D01-P01-T010.md) | Complete containers, CI guardrails and Phase 1.1 acceptance | COMPLETE | self_ai | legacy/not-applicable | Antigravity | `feat_delivery01_phase_01` | D01-P01-CODE_REVIEW (COMPLETE) | D01-P01-T009 | P01-G | 2026-08-07T10:20:38.563Z |
 | [D01-P01-T011](delivery_01/phase_01/D01-P01-T011.md) | Align shared theme with the Unified POC Brand | COMPLETE | self_ai | legacy/not-applicable | Codex | `feat_delivery01_phase_01` | D01-P01-CODE_REVIEW (COMPLETE) | D01-P01-T010 | P01-H | 2026-08-09T16:29:39.602Z |
-| [D01-P01-T012](delivery_01/phase_01/D01-P01-T012.md) | Add alternate theme injection and developer guide | IN_PROGRESS | self_ai | legacy/not-applicable | Codex | `feat_delivery01_phase_01` | D01-P01-CODE_REVIEW (COMPLETE) | D01-P01-T011 | P01-I | 2026-08-13T01:48:04.807Z |
+| [D01-P01-T012](delivery_01/phase_01/D01-P01-T012.md) | Add alternate theme injection and developer guide | COMPLETE | self_ai | legacy/not-applicable | Codex | `feat_delivery01_phase_01` | D01-P01-CODE_REVIEW (COMPLETE) | D01-P01-T011 | P01-I | 2026-08-13T05:26:06.294Z |
 | [D01-P01-CODE_REVIEW](delivery_01/phase_01/D01-P01-CODE_REVIEW.md) | Phase 1.1 PR code review and tech-lead approval | COMPLETE | phase_manual | legacy/not-applicable | Codex | `feat_delivery01_phase_01` | D01-P01-CODE_REVIEW (COMPLETE) | D01-P01-T012 | P01-REVIEW | 2026-08-10T05:18:28.820Z |
 | [D01-P02-T001](delivery_01/phase_02/D01-P02-T001.md) | Add featured vehicle services and reusable vehicle collections | COMPLETE | self_ai | legacy/not-applicable | Antigravity | `feat_delivery01_phase_02` | D01-P02-CODE_REVIEW (COMPLETE) | D01-P01-CODE_REVIEW | P02-A | 2026-08-11T07:39:20.874Z |
 | [D01-P02-T002](delivery_01/phase_02/D01-P02-T002.md) | Build and accept the home/showroom experience | COMPLETE | self_ai | legacy/not-applicable | Antigravity | `feat_delivery01_phase_02` | D01-P02-CODE_REVIEW (COMPLETE) | D01-P02-T001 | P02-B | 2026-08-10T05:48:14.754Z |
@@ -137,7 +137,7 @@
 
 ## Current execution frontier
 
-- Sequential next: D01-P01-T012 — Add alternate theme injection and developer guide (IN_PROGRESS)
+- Sequential next: D01-P09-CODE_REVIEW — Phase 1.9 PR code review and tech-lead approval (NOT_STARTED)
 - Optional same-group parallel tasks: None
 - Downstream work waits for COMPLETE or SUPERSEDED; IN_REVIEW is not complete.
 - Later tasks cannot be bypassed; use taskctl sequence TASK-ID for the exact blocker.
