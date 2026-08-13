@@ -1,0 +1,180 @@
+{
+  "title": "Company Services & Why Choose Us | CarChief",
+  "entries": [
+    {
+      "tag": "header",
+      "role": "banner",
+      "name": ""
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "Skip to main content",
+      "href": "#main-content"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "CarChief Home",
+      "href": "/"
+    },
+    {
+      "tag": "nav",
+      "role": "navigation",
+      "name": "Main Navigation"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "HOME",
+      "href": "/"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "INVENTORY",
+      "href": "/inventory"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "PREMIUM STOCK",
+      "href": "/inventory?category=premium"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "HOW TO BUY",
+      "href": "/how-to-buy"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "ABOUT US",
+      "href": "/about"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "CONTACT US",
+      "href": "/contact"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "Sign in or create an account",
+      "href": "/account?returnTo=%2Fservices"
+    },
+    {
+      "tag": "button",
+      "role": "button",
+      "name": "Toggle navigation menu"
+    },
+    {
+      "tag": "main",
+      "role": "main",
+      "name": ""
+    },
+    {
+      "tag": "header",
+      "role": "banner",
+      "name": ""
+    },
+    {
+      "tag": "h1",
+      "role": "heading",
+      "name": "CarChief Company Services",
+      "level": 1
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "AUCTION SERVICES",
+      "href": "/auction"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "SHIPPING SCHEDULES",
+      "href": "/shipping-schedule"
+    },
+    {
+      "tag": "h2",
+      "role": "heading",
+      "name": "Japanese Auto Auction Sourcing",
+      "level": 2
+    },
+    {
+      "tag": "h2",
+      "role": "heading",
+      "name": "Pre-Shipment Inspections (JAVIC / QISJ)",
+      "level": 2
+    },
+    {
+      "tag": "h2",
+      "role": "heading",
+      "name": "RORO & Container Logistics Management",
+      "level": 2
+    },
+    {
+      "tag": "h2",
+      "role": "heading",
+      "name": "Marine Transit Insurance Coverage",
+      "level": 2
+    },
+    {
+      "tag": "footer",
+      "role": "contentinfo",
+      "name": ""
+    },
+    {
+      "tag": "h4",
+      "role": "heading",
+      "name": "LOGISTICS CORE PORTALS",
+      "level": 4
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "Showroom Catalog",
+      "href": "#showroom"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "How to Buy",
+      "href": "/how-to-buy"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "About Us",
+      "href": "/about"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "Testimonials",
+      "href": "/testimonials"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "FAQ",
+      "href": "/faq"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "Contact Us",
+      "href": "/contact"
+    },
+    {
+      "tag": "h4",
+      "role": "heading",
+      "name": "SECURE VERIFICATION",
+      "level": 4
+    }
+  ],
+  "text": "Skip to main content CC CARCHIEF ONLINE HOME INVENTORY PREMIUM STOCK HOW TO BUY ABOUT US CONTACT US SIGN IN Why Choose CarChief CarChief Company Services Comprehensive auto export, inspection, marine insurance, and logistics management. Owner: OperationsTeam Updated: Aug 10, 2026 Status: Approved AUCTION SERVICES SHIPPING SCHEDULES CarChief offers end-to-end vehicle sourcing, pre-export mechanical inspections, custom container packing, marine insurance, and port handling services. Japanese Auto Auction Sourcing Our team sources vehicles found at major Japanese auto auctions on your behalf, reviewing authentic condition grading and inspection sheets before purchase. Pre-Shipment Inspections (JAVIC / QISJ) Every vehicle is thoroughly inspected for roadworthiness, mileage verification, and structural integrity before export. RORO & Container Logistics Management Efficient vessel booking and container consolidation from Yokohama and Kobe ports to East/Southern Africa & Caribbean. Marine Transit Insurance Coverage Optional comprehensive transit insurance covering vehicle loss or damage during ocean transit. CC CARCHIEF PREMIUM GLOBAL VEHICLE EXPORTERS CarChief is a high-end showcase portal providing direct ocean-cargo logistics, certified pre-owned inspections, and custom spec tracking. LOGISTICS CORE PORTALS Showroom Catalog How to Buy About Us Testimonials FAQ Contact Us SECURE VERIFICATION CarChief utilizes highly secure cloud-replicated server architectures for real-time transaction records and client logs. 🔒 SECURED CLOUD ENVELOPE © 2026 CARCHIEF AUTO GROUP. ALL RIGHTS RESERVED. CLOUDRUN ENVIRONMENT · REGISTRY SECURITY PROTOCOL SHIELD-V2"
+}
