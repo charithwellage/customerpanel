@@ -50,8 +50,8 @@ import {
 // tests/e2e/public-content.spec.ts) so results reflect real content.
 const ROUTES: ReadonlyArray<{ name: string; path: string }> = [
   { name: 'home', path: '/' },
-  { name: 'vehicles-search', path: '/vehicles' },
-  { name: 'vehicle-detail', path: '/vehicles/2021-toyota-corolla-axio-veh-1' },
+  { name: 'vehicles-search', path: '/allstock' },
+  { name: 'vehicle-detail', path: '/allstock/2021-toyota-corolla-axio-veh-1' },
   { name: 'freight-calculator', path: '/freight-calculator' },
   { name: 'contact', path: '/contact' },
   { name: 'about', path: '/about' },

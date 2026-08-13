@@ -288,7 +288,11 @@
   border: none;
 }
 
-.cc-enquiry__heading,
+/* Only the always-redundant intro paragraph duplicates the form-card header
+   above it; the heading itself must stay visible because EnquirySection
+   swaps it to a context-specific label (Vehicle Enquiry, Premium Vehicle
+   Enquiry, Request a Formal Quotation) that is the only on-page confirmation
+   of which enquiry the visitor is submitting. */
 .cc-enquiry__intro {
   display: none;
 }

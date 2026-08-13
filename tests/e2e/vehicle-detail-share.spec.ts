@@ -4,7 +4,7 @@ const detailSlug = '2021-toyota-corolla-axio-veh-1';
 
 test.describe('Vehicle detail share, print, and metadata', () => {
   test('direct load in fresh browser renders vehicle title and metadata', async ({ page }) => {
-    await page.goto(`/vehicles/${detailSlug}`);
+    await page.goto(`/allstock/${detailSlug}`);
 
     // Verify main heading
     await expect(page.locator('h1')).toContainText('2021 Toyota Corolla Axio');
@@ -17,7 +17,7 @@ test.describe('Vehicle detail share, print, and metadata', () => {
 
     // Verify canonical URL
     const canonicalLink = page.locator('link[rel="canonical"]');
-    await expect(canonicalLink).toHaveAttribute('href', new RegExp(`/vehicles/${detailSlug}$`));
+    await expect(canonicalLink).toHaveAttribute('href', new RegExp(`/allstock/${detailSlug}$`));
 
     // Verify OpenGraph tags
     const ogTitle = page.locator('meta[property="og:title"]');
@@ -35,7 +35,7 @@ test.describe('Vehicle detail share, print, and metadata', () => {
     // Grant clipboard permissions for automated test environment
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
 
-    await page.goto(`/vehicles/${detailSlug}`);
+    await page.goto(`/allstock/${detailSlug}`);
 
     const shareBtn = page.getByRole('button', { name: /Share vehicle page/i });
     await expect(shareBtn).toBeVisible();
@@ -54,7 +54,7 @@ test.describe('Vehicle detail share, print, and metadata', () => {
   });
 
   test('supports print spec sheet button and print media styles', async ({ page }) => {
-    await page.goto(`/vehicles/${detailSlug}`);
+    await page.goto(`/allstock/${detailSlug}`);
 
     const printBtn = page.getByRole('button', { name: /Print spec sheet/i });
     await expect(printBtn).toBeVisible();
@@ -68,7 +68,7 @@ test.describe('Vehicle detail share, print, and metadata', () => {
   });
 
   test('accessibility scan verifies ARIA attributes and focusable elements', async ({ page }) => {
-    await page.goto(`/vehicles/${detailSlug}`);
+    await page.goto(`/allstock/${detailSlug}`);
 
     // The article is labelled by its own <h1>. The id is generated with useId(),
     // so assert the relationship rather than a hardcoded value — a literal id

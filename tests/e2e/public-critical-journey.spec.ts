@@ -32,17 +32,17 @@ test.describe('Public Visitor Critical Journey & Reset Repeatability', () => {
     await expect(page.getByText('DEDICATED SECURE PORTAL')).toBeVisible();
 
     // 2. Navigation to Vehicle Search Showroom
-    await page.goto('/vehicles');
+    await page.goto('/allstock');
     await expect(page).toHaveTitle(/Inventory Search/i);
 
     // Filter/Search Vehicles
-    const searchInput = page.getByPlaceholder(/search make, model, stock id/i);
+    const searchInput = page.getByPlaceholder(/search by keyword/i);
     if (await searchInput.isVisible()) {
       await searchInput.fill('Toyota');
     }
 
     // 3. Navigation to Vehicle Detail Page
-    await page.goto('/vehicles/2021-toyota-corolla-axio-veh-1');
+    await page.goto('/allstock/2021-toyota-corolla-axio-veh-1');
     await expect(page.getByRole('heading', { level: 1 })).toContainText(/Toyota Corolla/i);
     await expect(page.getByText(/Body Style/i)).toBeVisible();
 
@@ -56,7 +56,7 @@ test.describe('Public Visitor Critical Journey & Reset Repeatability', () => {
 
     // 5. Contact & Enquiry Form Submission
     await page.goto('/contact?vehicle=2021-toyota-corolla-axio-veh-1');
-    await expect(page.getByRole('heading', { level: 1, name: /Contact Us/i })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: /Connect With Our Operations Agents/i })).toBeVisible();
 
     // Fill Enquiry Form
     await page.getByLabel(/name/i).first().fill('John Smith');
@@ -73,7 +73,7 @@ test.describe('Public Visitor Critical Journey & Reset Repeatability', () => {
       await consentCheckbox.check();
     }
 
-    const submitBtn = page.getByRole('button', { name: /send enquiry/i });
+    const submitBtn = page.getByRole('button', { name: /send inquiry/i });
     if (await submitBtn.isVisible()) {
       await submitBtn.click();
       await expect(page.getByRole('heading', { level: 3, name: /received|on file/i })).toBeVisible({ timeout: 10000 });
@@ -81,16 +81,16 @@ test.describe('Public Visitor Critical Journey & Reset Repeatability', () => {
 
     // 6. Public Content Pages Verification
     await page.goto('/about');
-    await expect(page.getByRole('heading', { level: 1 })).toContainText(/About CarChief/i);
+    await expect(page.getByRole('heading', { level: 1 })).toContainText(/Welcome to CarChief/i);
 
     await page.goto('/services');
     await expect(page.getByRole('heading', { level: 1 })).toContainText(/Services/i);
 
     await page.goto('/how-to-buy');
-    await expect(page.getByRole('heading', { level: 1 })).toContainText(/How to Buy/i);
+    await expect(page.getByRole('heading', { level: 1 })).toContainText(/Buy Vehicles/i);
 
     await page.goto('/faq');
-    await expect(page.getByRole('heading', { level: 1 })).toContainText(/Frequently Asked Questions/i);
+    await expect(page.getByRole('heading', { level: 1 })).toContainText(/Logistics Knowledge Base/i);
 
     await page.goto('/shipping-schedule');
     await expect(page.getByRole('heading', { level: 1 })).toContainText(/Shipping Schedule/i);
@@ -103,16 +103,19 @@ test.describe('Public Visitor Critical Journey & Reset Repeatability', () => {
   });
 
   test('verifies legacy PHP URL redirection policy (PUB-24)', async ({ page }) => {
-    // Legacy stock.php -> /vehicles
+    // Legacy stock.php -> /allstock
     const response = await page.goto('/stock.php');
-    expect(response?.url()).toContain('/vehicles');
+    expect(response?.url()).toContain('/allstock');
+    expect(response?.ok(), 'the redirect target must actually resolve, not just match by string').toBeTruthy();
 
     // Legacy contact.php -> /contact
     const contactResponse = await page.goto('/contact.php');
     expect(contactResponse?.url()).toContain('/contact');
+    expect(contactResponse?.ok()).toBeTruthy();
 
     // Legacy shipping.php -> /shipping-schedule
     const shippingResponse = await page.goto('/shipping.php');
     expect(shippingResponse?.url()).toContain('/shipping-schedule');
+    expect(shippingResponse?.ok()).toBeTruthy();
   });
 });
