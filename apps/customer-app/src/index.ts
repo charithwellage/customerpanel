@@ -3,6 +3,7 @@ import { defaultTheme, getThemeCssVariables, getThemeDefinition, resolveThemeId,
 export * from './features/shell/index.js';
 export * from './features/account/index.js';
 export * from './features/pwa/index.js';
+export * from './features/registry/index.js';
 
 export function getCustomerAppTheme(themeId?: string): { id: ThemeId; variables: Record<string, string> } {
   const definition = getThemeDefinition(resolveThemeId(themeId));

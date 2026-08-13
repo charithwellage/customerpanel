@@ -92,8 +92,8 @@
 | [D02-P01-T001](delivery_02/phase_01/D02-P01-T001.md) | Complete the customer application shell and responsive navigation | COMPLETE | self_ai | playwright_mcp | Antigravity | `feat_delivery02_phase_01` | D02-P01-CODE_REVIEW (NOT_STARTED) | D02-P01-G001 | D02-P01-SEQUENTIAL | 2026-08-13T13:50:45.335Z |
 | [D02-P01-T002](delivery_02/phase_01/D02-P01-T002.md) | Add customer session, account states and protected access | COMPLETE | self_ai | playwright_mcp | Antigravity | `feat_delivery02_phase_01` | D02-P01-CODE_REVIEW (NOT_STARTED) | D02-P01-T001 | D02-P01-SEQUENTIAL | 2026-08-13T14:02:30.021Z |
 | [D02-P01-T003](delivery_02/phase_01/D02-P01-T003.md) | Accept customer default theme, PWA shell, accessibility and Docker deployment | COMPLETE | self_ai | playwright_mcp | Antigravity | `feat_delivery02_phase_01` | D02-P01-CODE_REVIEW (NOT_STARTED) | D02-P01-T002 | D02-P01-SEQUENTIAL | 2026-08-13T14:23:43.147Z |
-| [D02-P01-T004](delivery_02/phase_01/D02-P01-T004.md) | Establish Customer feature extension points and ownership registry | READY | self_ai | not_applicable | — | `feat_delivery02_phase_01` | D02-P01-CODE_REVIEW (NOT_STARTED) | D02-P01-T003 | D02-P01-SEQUENTIAL | — |
-| [D02-P01-CODE_REVIEW](delivery_02/phase_01/D02-P01-CODE_REVIEW.md) | Phase 2.1 PR code review and tech-lead approval | NOT_STARTED | phase_manual | not_applicable | — | `feat_delivery02_phase_01` | D02-P01-CODE_REVIEW (NOT_STARTED) | D02-P01-T004 | D02-P01-REVIEW | — |
+| [D02-P01-T004](delivery_02/phase_01/D02-P01-T004.md) | Establish Customer feature extension points and ownership registry | COMPLETE | self_ai | not_applicable | Antigravity | `feat_delivery02_phase_01` | D02-P01-CODE_REVIEW (NOT_STARTED) | D02-P01-T003 | D02-P01-SEQUENTIAL | 2026-08-13T16:17:29.878Z |
+| [D02-P01-CODE_REVIEW](delivery_02/phase_01/D02-P01-CODE_REVIEW.md) | Phase 2.1 PR code review and tech-lead approval | READY | phase_manual | not_applicable | — | `feat_delivery02_phase_01` | D02-P01-CODE_REVIEW (NOT_STARTED) | D02-P01-T004 | D02-P01-REVIEW | — |
 | [D02-P02-G001](delivery_02/phase_02/D02-P02-G001.md) | Establish non-blocking customer dashboard KPI baseline | NOT_STARTED | self_ai | not_applicable | — | `feat_delivery02_phase_02` | D02-P02-CODE_REVIEW (NOT_STARTED) | D02-P01-CODE_REVIEW | D02-P02-GATE | — |
 | [D02-P02-T001](delivery_02/phase_02/D02-P02-T001.md) | Add customer dashboard aggregate contracts and linked mock scenarios | NOT_STARTED | self_ai | not_applicable | — | `feat_delivery02_phase_02` | D02-P02-CODE_REVIEW (NOT_STARTED) | D02-P02-G001 | D02-P02-SEQUENTIAL | — |
 | [D02-P02-T002](delivery_02/phase_02/D02-P02-T002.md) | Build and accept the customer Overview page | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery02_phase_02` | D02-P02-CODE_REVIEW (NOT_STARTED) | D02-P02-T001 | D02-P02-SEQUENTIAL | — |
@@ -146,7 +146,7 @@
 ## Current execution frontiers
 
 - D01-RECONCILIATION: D01-P10-T001 — Reconcile Delivery 01 requirement gaps and assumption evidence (NOT_STARTED)
-- D02-FOUNDATION: D02-P01-T004 — Establish Customer feature extension points and ownership registry (NOT_STARTED)
+- D02-FOUNDATION: D02-P01-CODE_REVIEW — Phase 2.1 PR code review and tech-lead approval (NOT_STARTED)
 - D02-DASHBOARD-LOGISTICS: D02-P02-G001 — Establish non-blocking customer dashboard KPI baseline (NOT_STARTED)
 - D02-COMMERCE: D02-P03-T001 — Add customer inventory projection, tier pricing and reservation eligibility (NOT_STARTED)
 - D02-FINAL: D02-P09-T001 — Complete Customer requirement and compiled-behavior traceability (NOT_STARTED)
