@@ -1,5 +1,5 @@
 {
-  "title": "How to Buy a Vehicle | CarChief Step-by-Step Guide",
+  "title": "How to Buy | 5 Easy Steps to Buy Vehicles & Machinery",
   "entries": [
     {
       "tag": "header",
@@ -26,43 +26,55 @@
     {
       "tag": "a",
       "role": "link",
-      "name": "Home",
+      "name": "SHOWROOM",
       "href": "/"
     },
     {
       "tag": "a",
       "role": "link",
-      "name": "Inventory",
-      "href": "/inventory"
+      "name": "ALL STOCK",
+      "href": "/allstock"
     },
     {
       "tag": "a",
       "role": "link",
-      "name": "Premium Stock",
-      "href": "/inventory?category=premium"
+      "name": "PREMIUM STOCK",
+      "href": "/#premium-stock"
     },
     {
       "tag": "a",
       "role": "link",
-      "name": "How to Buy",
+      "name": "HOW TO BUY",
       "href": "/how-to-buy"
     },
     {
       "tag": "a",
       "role": "link",
-      "name": "About Us",
+      "name": "ABOUT US",
       "href": "/about"
     },
     {
       "tag": "a",
       "role": "link",
-      "name": "Contact Us",
+      "name": "TESTIMONIALS",
+      "href": "/testimonials"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "FAQ",
+      "href": "/faq"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "CONTACT",
       "href": "/contact"
     },
     {
       "tag": "a",
       "role": "link",
-      "name": "Sign in or create an account",
+      "name": "Access Customer Portal",
       "href": "/account?returnTo=%2Fhow-to-buy"
     },
     {
@@ -76,51 +88,130 @@
       "name": ""
     },
     {
-      "tag": "header",
-      "role": "banner",
-      "name": ""
-    },
-    {
       "tag": "h1",
       "role": "heading",
-      "name": "How to Buy a Vehicle Step-by-Step",
+      "name": "5 EASY STEPS TO BUY VEHICLES & MACHINERY FROM OUR STOCK",
       "level": 1
     },
     {
       "tag": "a",
       "role": "link",
-      "name": "BROWSE VEHICLES",
-      "href": "/vehicles"
+      "name": "BUY NOW JAPAN USED CARS STOCK",
+      "href": "/allstock"
+    },
+    {
+      "tag": "button",
+      "role": "button",
+      "name": "Play slideshow"
+    },
+    {
+      "tag": "button",
+      "role": "button",
+      "name": "Jump to Step 1"
+    },
+    {
+      "tag": "button",
+      "role": "button",
+      "name": "Jump to Step 2"
+    },
+    {
+      "tag": "button",
+      "role": "button",
+      "name": "Jump to Step 3"
+    },
+    {
+      "tag": "button",
+      "role": "button",
+      "name": "Jump to Step 4"
+    },
+    {
+      "tag": "button",
+      "role": "button",
+      "name": "Jump to Step 5"
+    },
+    {
+      "tag": "button",
+      "role": "button",
+      "name": "STEP 01 SELECT A CAR"
+    },
+    {
+      "tag": "button",
+      "role": "button",
+      "name": "STEP 02 CONFIRM ORDER"
+    },
+    {
+      "tag": "button",
+      "role": "button",
+      "name": "STEP 03 MAKE PAYMENT"
+    },
+    {
+      "tag": "button",
+      "role": "button",
+      "name": "STEP 04 SHIPMENT"
+    },
+    {
+      "tag": "button",
+      "role": "button",
+      "name": "STEP 05 RECEIVE YOUR VEHICLE"
+    },
+    {
+      "tag": "button",
+      "role": "button",
+      "name": "Previous Step"
+    },
+    {
+      "tag": "h2",
+      "role": "heading",
+      "name": "SELECT A CAR & GET FREE QUOTE",
+      "level": 2
     },
     {
       "tag": "a",
       "role": "link",
-      "name": "TALK TO AN ADVISOR",
+      "name": "Search stock for quote",
+      "href": "/allstock"
+    },
+    {
+      "tag": "button",
+      "role": "button",
+      "name": "Step 1"
+    },
+    {
+      "tag": "button",
+      "role": "button",
+      "name": "Step 2"
+    },
+    {
+      "tag": "button",
+      "role": "button",
+      "name": "Step 3"
+    },
+    {
+      "tag": "button",
+      "role": "button",
+      "name": "Step 4"
+    },
+    {
+      "tag": "button",
+      "role": "button",
+      "name": "Step 5"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "BROWSE STOCK",
+      "href": "/allstock"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "INQUIRE FORM",
       "href": "/contact"
     },
     {
-      "tag": "h2",
-      "role": "heading",
-      "name": "Step 1: Select Your Vehicle",
-      "level": 2
-    },
-    {
-      "tag": "h2",
-      "role": "heading",
-      "name": "Step 2: Reserve & Quotation",
-      "level": 2
-    },
-    {
-      "tag": "h2",
-      "role": "heading",
-      "name": "Step 3: Payment",
-      "level": 2
-    },
-    {
-      "tag": "h2",
-      "role": "heading",
-      "name": "Step 4: Shipping & Customs",
-      "level": 2
+      "tag": "button",
+      "role": "button",
+      "name": "Next Step"
     },
     {
       "tag": "footer",
@@ -176,5 +267,5 @@
       "level": 4
     }
   ],
-  "text": "Skip to main content CC CARCHIEF ONLINE ☰ Step-by-Step Buying Guide How to Buy a Vehicle Step-by-Step A clear four-step guide explaining search, reservation, payment, and port delivery. Owner: SalesTeam Updated: Aug 10, 2026 Status: Approved BROWSE VEHICLES TALK TO AN ADVISOR Buying your dream car from Japan is straightforward with CarChief. Follow our four simple steps to select, reserve, pay for, and receive your vehicle. Step 1: Select Your Vehicle Browse our stock online or request a specific model through our search and quotation form. Step 2: Reserve & Quotation Click Reserve or Request Quote to lock in vehicle availability and receive a formal Proforma Invoice. Step 3: Payment Complete wire transfer payment according to the Proforma Invoice instructions within the hold window. Step 4: Shipping & Customs Track ocean voyage progress, receive original documents via DHL, and clear the vehicle at destination port. CC CARCHIEF PREMIUM GLOBAL VEHICLE EXPORTERS CarChief is a high-end showcase portal providing direct ocean-cargo logistics, certified pre-owned inspections, and custom spec tracking. LOGISTICS CORE PORTALS Showroom Catalog How to Buy About Us Testimonials FAQ Contact Us SECURE VERIFICATION CarChief utilizes highly secure cloud-replicated server architectures for real-time transaction records and client logs. 🔒 SECURED CLOUD ENVELOPE © 2026 CARCHIEF AUTO GROUP. ALL RIGHTS RESERVED. CLOUDRUN ENVIRONMENT · REGISTRY SECURITY PROTOCOL SHIELD-V2"
+  "text": "Skip to main content C CAR CHIEF ONLINE ☰ AUTOMOTIVE TRADE SOURCING GUIDE 5 EASY STEPS TO BUY VEHICLES & MACHINERY FROM OUR STOCK Excellent Quality & Well Inspected Cars, Vans, Trucks, Buses & Construction Machinery available in stock ready to Export. BUY NOW JAPAN USED CARS STOCK SLIDE SHOW MODE SLIDESHOW PAUSED STEP 01 SELECT A CAR STEP 02 CONFIRM ORDER STEP 03 MAKE PAYMENT STEP 04 SHIPMENT STEP 05 RECEIVE YOUR VEHICLE ‹ MILESTONE REGISTRY SELECT A CAR & GET FREE QUOTE 01 Search for your required car from high-quality Japanese used vehicles stock ready to export at fair prices in our stock list. Send us your inquiry by clicking on the Get Free Quote button and submitting the inquiry form. JUMP TO: Step 1 Step 2 Step 3 Step 4 Step 5 BROWSE STOCK INQUIRE FORM › EXCELLENT QUALITY ENSURED Every car, van, truck, bus, and construction machinery goes through deep operational checks, including complete engine compression checks, mileage checks, and dynamic road tests prior to export. GLOBAL EXPORT DELIVERY We arrange quick shipment from Japan & Rotterdam harbors utilizing reliable carrier vessels. All original compliance documents, custom clearances, and titles are couriered express so they reach you well in time. CC CARCHIEF PREMIUM GLOBAL VEHICLE EXPORTERS CarChief is a high-end showcase portal providing direct ocean-cargo logistics, certified pre-owned inspections, and custom spec tracking. LOGISTICS CORE PORTALS Showroom Catalog How to Buy About Us Testimonials FAQ Contact Us SECURE VERIFICATION CarChief utilizes highly secure cloud-replicated server architectures for real-time transaction records and client logs. 🔒 SECURED CLOUD ENVELOPE © 2026 CARCHIEF AUTO GROUP. ALL RIGHTS RESERVED. CLOUDRUN ENVIRONMENT · REGISTRY SECURITY PROTOCOL SHIELD-V2"
 }

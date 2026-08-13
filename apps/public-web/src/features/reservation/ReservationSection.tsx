@@ -59,7 +59,7 @@ export function ReservationSection({ vehicleSlug, vehicleStatus, vehicleLabel }:
     return (
       <ReservationSignInGuidance
         status={session.status}
-        signInHref={`/account?returnTo=${encodeURIComponent(`/vehicles/${vehicleSlug}`)}`}
+        signInHref={`/account?returnTo=${encodeURIComponent(`/allstock/${vehicleSlug}`)}`}
         vehicleLabel={vehicleLabel}
       />
     );

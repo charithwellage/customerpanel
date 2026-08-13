@@ -617,6 +617,9 @@ select:focus-visible,
   .desktop-nav {
     display: none;
   }
+  .header-actions {
+    display: none;
+  }
   .mobile-menu-toggle {
     display: block;
   }

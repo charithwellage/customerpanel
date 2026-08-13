@@ -8,10 +8,10 @@ const nextConfig = {
   async redirects() {
     return [
       { source: '/index.php', destination: '/', permanent: true },
-      { source: '/stock.php', destination: '/vehicles', permanent: true },
-      { source: '/stock_list.php', destination: '/vehicles', permanent: true },
-      { source: '/search.php', destination: '/vehicles', permanent: true },
-      { source: '/stock_detail.php', destination: '/vehicles', permanent: true },
+      { source: '/stock.php', destination: '/allstock', permanent: true },
+      { source: '/stock_list.php', destination: '/allstock', permanent: true },
+      { source: '/search.php', destination: '/allstock', permanent: true },
+      { source: '/stock_detail.php', destination: '/allstock', permanent: true },
       { source: '/shipping.php', destination: '/shipping-schedule', permanent: true },
       { source: '/schedule.php', destination: '/shipping-schedule', permanent: true },
       { source: '/auction.php', destination: '/auction', permanent: true },

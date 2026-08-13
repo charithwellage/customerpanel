@@ -15,7 +15,7 @@ test.describe('Public Web Performance & Resource Budgets', () => {
   });
 
   test('verifies responsive image optimizations and layout stability', async ({ page }) => {
-    await page.goto('/vehicles', { waitUntil: 'domcontentloaded' });
+    await page.goto('/allstock', { waitUntil: 'domcontentloaded' });
 
     // Verify images have alt attributes
     const missingAltCount = await page.evaluate(() => {

@@ -26,20 +26,20 @@
     {
       "tag": "a",
       "role": "link",
-      "name": "HOME",
+      "name": "SHOWROOM",
       "href": "/"
     },
     {
       "tag": "a",
       "role": "link",
-      "name": "INVENTORY",
-      "href": "/inventory"
+      "name": "ALL STOCK",
+      "href": "/allstock"
     },
     {
       "tag": "a",
       "role": "link",
       "name": "PREMIUM STOCK",
-      "href": "/inventory?category=premium"
+      "href": "/#premium-stock"
     },
     {
       "tag": "a",
@@ -56,14 +56,26 @@
     {
       "tag": "a",
       "role": "link",
-      "name": "CONTACT US",
+      "name": "TESTIMONIALS",
+      "href": "/testimonials"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "FAQ",
+      "href": "/faq"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "CONTACT",
       "href": "/contact"
     },
     {
       "tag": "a",
       "role": "link",
-      "name": "Sign in or create an account",
-      "href": "/account?returnTo=%2Fvehicles"
+      "name": "Access Customer Portal",
+      "href": "/account?returnTo=%2Fallstock"
     },
     {
       "tag": "button",
@@ -76,35 +88,25 @@
       "name": ""
     },
     {
-      "tag": "header",
-      "role": "banner",
-      "name": ""
-    },
-    {
       "tag": "h1",
       "role": "heading",
-      "name": "CarChief Inventory Search",
+      "name": "CARCHIEF INVENTORY SEARCH",
       "level": 1
     },
     {
       "tag": "input",
       "role": "textbox",
-      "name": "Search vehicles by keyword or natural phrase"
+      "name": "Search by keyword"
     },
     {
       "tag": "button",
       "role": "button",
-      "name": "Search"
+      "name": "Maximize Filters ∨"
     },
     {
       "tag": "button",
       "role": "button",
-      "name": "Filters ▼"
-    },
-    {
-      "tag": "button",
-      "role": "button",
-      "name": "Reset All"
+      "name": "RESET ALL"
     },
     {
       "tag": "select",
@@ -112,9 +114,26 @@
       "name": "Sort vehicles by"
     },
     {
-      "tag": "article",
+      "tag": "button",
       "role": "button",
+      "name": "Force sync inventory"
+    },
+    {
+      "tag": "article",
+      "role": "article",
       "name": "2023 Lexus LX570 - USD 0"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "View details for 2023 Lexus LX570",
+      "href": "/allstock/veh-price-req"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "2023 LEXUS LX570",
+      "href": "/allstock/veh-price-req"
     },
     {
       "tag": "h3",
@@ -123,31 +142,79 @@
       "level": 3
     },
     {
+      "tag": "a",
+      "role": "link",
+      "name": "VIEW DETAILS",
+      "href": "/allstock/veh-price-req"
+    },
+    {
       "tag": "article",
-      "role": "button",
+      "role": "article",
       "name": "2022 Land Rover Defender 110 - USD 49,000"
     },
     {
+      "tag": "a",
+      "role": "link",
+      "name": "View details for 2022 Land Rover Defender 110",
+      "href": "/allstock/veh-12"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "2022 LAND ROVER DEFENDER 110",
+      "href": "/allstock/veh-12"
+    },
+    {
       "tag": "h3",
       "role": "heading",
-      "name": "Defender 110",
+      "name": "DEFENDER 110",
       "level": 3
     },
     {
+      "tag": "a",
+      "role": "link",
+      "name": "VIEW DETAILS",
+      "href": "/allstock/veh-12"
+    },
+    {
       "tag": "article",
-      "role": "button",
+      "role": "article",
       "name": "2023 Lexus RX450h - USD 38,000"
     },
     {
+      "tag": "a",
+      "role": "link",
+      "name": "View details for 2023 Lexus RX450h",
+      "href": "/allstock/veh-7"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "2023 LEXUS RX450H",
+      "href": "/allstock/veh-7"
+    },
+    {
       "tag": "h3",
       "role": "heading",
-      "name": "RX450h",
+      "name": "RX450H",
       "level": 3
     },
     {
+      "tag": "a",
+      "role": "link",
+      "name": "VIEW DETAILS",
+      "href": "/allstock/veh-7"
+    },
+    {
       "tag": "article",
-      "role": "button",
+      "role": "article",
       "name": "2021 Toyota Corolla Axio - USD 8,500"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "View details for 2021 Toyota Corolla Axio",
+      "href": "/allstock/veh-1"
     },
     {
       "tag": "img",
@@ -155,15 +222,33 @@
       "name": "Toyota Corolla Axio"
     },
     {
+      "tag": "a",
+      "role": "link",
+      "name": "2021 TOYOTA COROLLA AXIO",
+      "href": "/allstock/veh-1"
+    },
+    {
       "tag": "h3",
       "role": "heading",
-      "name": "Corolla Axio",
+      "name": "COROLLA AXIO",
       "level": 3
     },
     {
+      "tag": "a",
+      "role": "link",
+      "name": "VIEW DETAILS",
+      "href": "/allstock/veh-1"
+    },
+    {
       "tag": "article",
-      "role": "button",
+      "role": "article",
       "name": "2020 Toyota HiAce Van - USD 14,200"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "View details for 2020 Toyota HiAce Van",
+      "href": "/allstock/veh-2"
     },
     {
       "tag": "img",
@@ -171,70 +256,184 @@
       "name": "Toyota HiAce Van"
     },
     {
+      "tag": "a",
+      "role": "link",
+      "name": "2020 TOYOTA HIACE VAN",
+      "href": "/allstock/veh-2"
+    },
+    {
       "tag": "h3",
       "role": "heading",
-      "name": "HiAce Van",
+      "name": "HIACE VAN",
       "level": 3
     },
     {
+      "tag": "a",
+      "role": "link",
+      "name": "VIEW DETAILS",
+      "href": "/allstock/veh-2"
+    },
+    {
       "tag": "article",
-      "role": "button",
+      "role": "article",
       "name": "2019 Mercedes-Benz C200 AMG Line - USD 17,800"
     },
     {
+      "tag": "a",
+      "role": "link",
+      "name": "View details for 2019 Mercedes-Benz C200 AMG Line",
+      "href": "/allstock/veh-9"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "2019 MERCEDES-BENZ C200 AMG LINE",
+      "href": "/allstock/veh-9"
+    },
+    {
       "tag": "h3",
       "role": "heading",
-      "name": "C200 AMG Line",
+      "name": "C200 AMG LINE",
       "level": 3
     },
     {
+      "tag": "a",
+      "role": "link",
+      "name": "VIEW DETAILS",
+      "href": "/allstock/veh-9"
+    },
+    {
       "tag": "article",
-      "role": "button",
+      "role": "article",
       "name": "2021 BMW X3 xDrive20d - USD 26,500"
     },
     {
+      "tag": "a",
+      "role": "link",
+      "name": "View details for 2021 BMW X3 xDrive20d",
+      "href": "/allstock/veh-10"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "2021 BMW X3 XDRIVE20D",
+      "href": "/allstock/veh-10"
+    },
+    {
       "tag": "h3",
       "role": "heading",
-      "name": "X3 xDrive20d",
+      "name": "X3 XDRIVE20D",
       "level": 3
     },
     {
+      "tag": "a",
+      "role": "link",
+      "name": "VIEW DETAILS",
+      "href": "/allstock/veh-10"
+    },
+    {
       "tag": "article",
-      "role": "button",
+      "role": "article",
       "name": "2021 Honda Fit Hybrid - USD 7,900"
     },
     {
+      "tag": "a",
+      "role": "link",
+      "name": "View details for 2021 Honda Fit Hybrid",
+      "href": "/allstock/veh-5"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "2021 HONDA FIT HYBRID",
+      "href": "/allstock/veh-5"
+    },
+    {
       "tag": "h3",
       "role": "heading",
-      "name": "Fit Hybrid",
+      "name": "FIT HYBRID",
       "level": 3
     },
     {
+      "tag": "a",
+      "role": "link",
+      "name": "VIEW DETAILS",
+      "href": "/allstock/veh-5"
+    },
+    {
       "tag": "article",
-      "role": "button",
+      "role": "article",
       "name": "2020 Mazda CX-5 - USD 13,500"
     },
     {
+      "tag": "a",
+      "role": "link",
+      "name": "View details for 2020 Mazda CX-5",
+      "href": "/allstock/veh-8"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "2020 MAZDA CX-5",
+      "href": "/allstock/veh-8"
+    },
+    {
       "tag": "h3",
       "role": "heading",
       "name": "CX-5",
       "level": 3
     },
     {
+      "tag": "a",
+      "role": "link",
+      "name": "VIEW DETAILS",
+      "href": "/allstock/veh-8"
+    },
+    {
       "tag": "article",
-      "role": "button",
+      "role": "article",
       "name": "2020 Audi A4 Avant - USD 15,900"
     },
     {
+      "tag": "a",
+      "role": "link",
+      "name": "View details for 2020 Audi A4 Avant",
+      "href": "/allstock/veh-11"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "2020 AUDI A4 AVANT",
+      "href": "/allstock/veh-11"
+    },
+    {
       "tag": "h3",
       "role": "heading",
-      "name": "A4 Avant",
+      "name": "A4 AVANT",
       "level": 3
     },
     {
+      "tag": "a",
+      "role": "link",
+      "name": "VIEW DETAILS",
+      "href": "/allstock/veh-11"
+    },
+    {
       "tag": "article",
-      "role": "button",
+      "role": "article",
       "name": "2019 Mazda CX-5 - USD 12,000"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "View details for 2019 Mazda CX-5",
+      "href": "/allstock/veh-sold"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "2019 MAZDA CX-5",
+      "href": "/allstock/veh-sold"
     },
     {
       "tag": "h3",
@@ -243,9 +442,21 @@
       "level": 3
     },
     {
+      "tag": "a",
+      "role": "link",
+      "name": "VIEW DETAILS",
+      "href": "/allstock/veh-sold"
+    },
+    {
       "tag": "article",
-      "role": "button",
+      "role": "article",
       "name": "2022 Nissan X-Trail - USD 19,500"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "View details for 2022 Nissan X-Trail",
+      "href": "/allstock/veh-3"
     },
     {
       "tag": "img",
@@ -253,10 +464,22 @@
       "name": "Nissan X-Trail"
     },
     {
+      "tag": "a",
+      "role": "link",
+      "name": "2022 NISSAN X-TRAIL",
+      "href": "/allstock/veh-3"
+    },
+    {
       "tag": "h3",
       "role": "heading",
-      "name": "X-Trail",
+      "name": "X-TRAIL",
       "level": 3
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "VIEW DETAILS",
+      "href": "/allstock/veh-3"
     },
     {
       "tag": "nav",
@@ -337,5 +560,5 @@
       "level": 4
     }
   ],
-  "text": "Skip to main content CC CARCHIEF ONLINE HOME INVENTORY PREMIUM STOCK HOW TO BUY ABOUT US CONTACT US SIGN IN CarChief Inventory Search Explore our verified Japan & Overseas inventory with real-time filters and search 🔍 Search Filters ▼ Reset All Showing 12 of 15 Vehicles Sort vehicles by Sort: Newest Arrival Sort: Price (Low to High) Sort: Price (High to Low) Sort: Year (Newest First) Sort: Year (Oldest First) Sort: Mileage (Lowest First) Lexus LX570 AVAILABLE In Japan 2023 LEXUS LX570 PRICE $0 Land Rover Defender 110 AVAILABLE In Japan 2022 LAND ROVER Defender 110 PRICE $49,000 Lexus RX450h AVAILABLE In Japan 2023 LEXUS RX450h PRICE $38,000 AVAILABLE In Japan 2021 TOYOTA Corolla Axio PRICE $8,500 RESERVEDWITHPI In Transit 2020 TOYOTA HiAce Van PRICE $14,200 Mercedes-Benz C200 AMG Line AVAILABLE In Japan 2019 MERCEDES-BENZ C200 AMG Line PRICE $17,800 BMW X3 xDrive20d AVAILABLE In Japan 2021 BMW X3 xDrive20d PRICE $26,500 Honda Fit Hybrid AVAILABLE In Transit 2021 HONDA Fit Hybrid -5% DISCOUNT PRICE $7,900 $7,505 Mazda CX-5 AVAILABLE In Japan 2020 MAZDA CX-5 PRICE $13,500 Audi A4 Avant AVAILABLE In Japan 2020 AUDI A4 Avant PRICE $15,900 Mazda CX-5 SOLD In Japan 2019 MAZDA CX-5 PRICE $12,000 AVAILABLE In Port 2022 NISSAN X-Trail PRICE $19,500 Showing items 1–12 of 15 ← Prev 1 2 Next → CC CARCHIEF PREMIUM GLOBAL VEHICLE EXPORTERS CarChief is a high-end showcase portal providing direct ocean-cargo logistics, certified pre-owned inspections, and custom spec tracking. LOGISTICS CORE PORTALS Showroom Catalog How to Buy About Us Testimonials FAQ Contact Us SECURE VERIFICATION CarChief utilizes highly secure cloud-replicated server architectures for real-time transaction records and client logs. 🔒 SECURED CLOUD ENVELOPE © 2026 CARCHIEF AUTO GROUP. ALL RIGHTS RESERVED. CLOUDRUN ENVIRONMENT · REGISTRY SECURITY PROTOCOL SHIELD-V2"
+  "text": "Skip to main content C CAR CHIEF ONLINE SHOWROOM ALL STOCK PREMIUM STOCK HOW TO BUY ABOUT US TESTIMONIALS FAQ CONTACT CUSTOMER PORTAL FULL INVENTORY CATALOG CARCHIEF INVENTORY SEARCH Search and dynamically filter our entire live container-logistics fleet. Instantly reserve models or calculate customized shipping quotes. Maximize Filters ∨ RESET ALL Showing 12 of 15 Vehicles (15 premium models available) Sort vehicles by Sort: Newest Arrival Sort: Price (Low to High) Sort: Price (High to Low) Sort: Year (Newest First) Sort: Year (Oldest First) Sort: Mileage (Lowest First) FORCE SYNC Lexus LX570 ● AVAILABLE In Japan 2023 LEXUS LX570 PRICE $0 VIEW DETAILS Land Rover Defender 110 ● AVAILABLE In Japan 2022 LAND ROVER DEFENDER 110 PRICE $49,000 VIEW DETAILS Lexus RX450h ● AVAILABLE In Japan 2023 LEXUS RX450H PRICE $38,000 VIEW DETAILS ● AVAILABLE In Japan 2021 TOYOTA COROLLA AXIO PRICE $8,500 VIEW DETAILS ● RESERVEDWITHPI In Transit 2020 TOYOTA HIACE VAN PRICE $14,200 VIEW DETAILS Mercedes-Benz C200 AMG Line ● AVAILABLE In Japan 2019 MERCEDES-BENZ C200 AMG LINE PRICE $17,800 VIEW DETAILS BMW X3 xDrive20d ● AVAILABLE In Japan 2021 BMW X3 XDRIVE20D PRICE $26,500 VIEW DETAILS Honda Fit Hybrid ● AVAILABLE In Transit 2021 HONDA FIT HYBRID -5% discount PRICE $7,900$7,505 VIEW DETAILS Mazda CX-5 ● AVAILABLE In Japan 2020 MAZDA CX-5 PRICE $13,500 VIEW DETAILS Audi A4 Avant ● AVAILABLE In Japan 2020 AUDI A4 AVANT PRICE $15,900 VIEW DETAILS Mazda CX-5 ● SOLD In Japan 2019 MAZDA CX-5 PRICE $12,000 VIEW DETAILS ● AVAILABLE In Port 2022 NISSAN X-TRAIL PRICE $19,500 VIEW DETAILS Showing items 1–12 of 15 ← Prev12Next → CC CARCHIEF PREMIUM GLOBAL VEHICLE EXPORTERS CarChief is a high-end showcase portal providing direct ocean-cargo logistics, certified pre-owned inspections, and custom spec tracking. LOGISTICS CORE PORTALS Showroom Catalog How to Buy About Us Testimonials FAQ Contact Us SECURE VERIFICATION CarChief utilizes highly secure cloud-replicated server architectures for real-time transaction records and client logs. 🔒 SECURED CLOUD ENVELOPE © 2026 CARCHIEF AUTO GROUP. ALL RIGHTS RESERVED. CLOUDRUN ENVIRONMENT · REGISTRY SECURITY PROTOCOL SHIELD-V2"
 }

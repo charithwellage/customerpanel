@@ -68,8 +68,8 @@ export function resolveReturnTarget(returnTo: string | null | undefined, fallbac
   return returnTo;
 }
 
-/** Extracts a vehicle slug from a `/vehicles/{slug}` return target, for contextual guidance copy only — never used for authorization. */
+/** Extracts a vehicle slug from an `/allstock/{slug}` return target, for contextual guidance copy only — never used for authorization. */
 export function extractVehicleSlug(returnTarget: string): string | undefined {
-  const match = /^\/vehicles\/([^/?#]+)/.exec(returnTarget);
+  const match = /^\/allstock\/([^/?#]+)/.exec(returnTarget);
   return match ? decodeURIComponent(match[1]) : undefined;
 }
