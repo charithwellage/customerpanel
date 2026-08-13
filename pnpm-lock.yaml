@@ -44,10 +44,25 @@ importers:
       '@carchief/vehicle-search':
         specifier: workspace:*
         version: link:../../packages/vehicle-search
+      react:
+        specifier: 19.1.1
+        version: 19.1.1
+      react-dom:
+        specifier: 19.1.1
+        version: 19.1.1(react@19.1.1)
     devDependencies:
       '@carchief/config':
         specifier: workspace:*
         version: link:../../packages/config
+      '@types/node':
+        specifier: ^22.10.0
+        version: 22.20.1
+      '@types/react':
+        specifier: 19.1.10
+        version: 19.1.10
+      '@types/react-dom':
+        specifier: 19.1.7
+        version: 19.1.7(@types/react@19.1.10)
       typescript:
         specifier: ^5.7.2
         version: 5.9.3

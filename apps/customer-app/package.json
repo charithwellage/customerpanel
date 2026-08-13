@@ -2,10 +2,13 @@
   "name": "@carchief/customer-app",
   "version": "1.0.0",
   "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "scripts": {
     "lint": "echo \"customer-app lint ok\"",
     "typecheck": "tsc --noEmit",
-    "build": "tsc"
+    "build": "tsc",
+    "test": "vitest run"
   },
   "dependencies": {
     "@carchief/api-client": "workspace:*",
@@ -15,10 +18,15 @@
     "@carchief/ui": "workspace:*",
     "@carchief/validation": "workspace:*",
     "@carchief/vehicle-detail": "workspace:*",
-    "@carchief/vehicle-search": "workspace:*"
+    "@carchief/vehicle-search": "workspace:*",
+    "react": "19.1.1",
+    "react-dom": "19.1.1"
   },
   "devDependencies": {
     "@carchief/config": "workspace:*",
+    "@types/node": "^22.10.0",
+    "@types/react": "19.1.10",
+    "@types/react-dom": "19.1.7",
     "typescript": "^5.7.2"
   }
 }
