@@ -40,7 +40,7 @@
 | [D01-P01-T011](delivery_01/phase_01/D01-P01-T011.md) | Align shared theme with the Unified POC Brand | COMPLETE | self_ai | legacy/not-applicable | Codex | `feat_delivery01_phase_01` | D01-P01-CODE_REVIEW (COMPLETE) | D01-P01-T010 | P01-H | 2026-08-09T16:29:39.602Z |
 | [D01-P01-T012](delivery_01/phase_01/D01-P01-T012.md) | Add alternate theme injection and developer guide | COMPLETE | self_ai | legacy/not-applicable | Codex | `feat_delivery01_phase_01` | D01-P01-CODE_REVIEW (COMPLETE) | D01-P01-T011 | P01-I | 2026-08-13T07:39:18.087Z |
 | [D01-P01-CODE_REVIEW](delivery_01/phase_01/D01-P01-CODE_REVIEW.md) | Phase 1.1 PR code review and tech-lead approval | COMPLETE | phase_manual | legacy/not-applicable | Codex | `feat_delivery01_phase_01` | D01-P01-CODE_REVIEW (COMPLETE) | D01-P01-T012 | P01-REVIEW | 2026-08-10T05:18:28.820Z |
-| [D01-P02-T001](delivery_01/phase_02/D01-P02-T001.md) | Add featured vehicle services and reusable vehicle collections | COMPLETE | self_ai | legacy/not-applicable | Antigravity | `feat_delivery01_phase_02` | D01-P02-CODE_REVIEW (COMPLETE) | D01-P01-CODE_REVIEW | P02-A | 2026-08-10T09:36:50.059Z |
+| [D01-P02-T001](delivery_01/phase_02/D01-P02-T001.md) | Add featured vehicle services and reusable vehicle collections | COMPLETE | self_ai | legacy/not-applicable | Antigravity | `feat_delivery01_phase_02` | D01-P02-CODE_REVIEW (COMPLETE) | D01-P01-CODE_REVIEW | P02-A | 2026-08-11T07:39:20.874Z |
 | [D01-P02-T002](delivery_01/phase_02/D01-P02-T002.md) | Build and accept the home/showroom experience | COMPLETE | self_ai | legacy/not-applicable | Antigravity | `feat_delivery01_phase_02` | D01-P02-CODE_REVIEW (COMPLETE) | D01-P02-T001 | P02-B | 2026-08-13T16:02:04.977Z |
 | [INF-P00-T006](infra_check/INF-P00-T006.md) | Verify and provision Playwright MCP UI-testing tools | COMPLETE | self_ai | not_applicable | Antigravity | Branch-neutral | — | D01-P02-T002 | INF-D | 2026-08-10T08:20:46.398Z |
 | [D01-P02-T003](delivery_01/phase_02/D01-P02-T003.md) | Implement exact POC visual parity for the Public Home and Showroom | COMPLETE | self_ai | playwright_mcp | Antigravity | `feat_delivery01_phase_02` | D01-P02-CODE_REVIEW (COMPLETE) | D01-P02-T002, INF-P00-T006 | P02-C | 2026-08-10T09:58:59.568Z |
@@ -88,7 +88,7 @@
 | [D01-P10-T002](delivery_01/phase_10/D01-P10-T002.md) | Apply approved Delivery 01 assumption adjustments | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery01_phase_10` | D01-P10-CODE_REVIEW (NOT_STARTED) | D01-P10-T001 | D01-P10-SEQUENTIAL | — |
 | [D01-P10-T003](delivery_01/phase_10/D01-P10-T003.md) | Re-verify theme parity and close Delivery 01 MVP acceptance | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery01_phase_10` | D01-P10-CODE_REVIEW (NOT_STARTED) | D01-P10-T002 | D01-P10-SEQUENTIAL | — |
 | [D01-P10-CODE_REVIEW](delivery_01/phase_10/D01-P10-CODE_REVIEW.md) | Phase 1.10 PR code review and tech-lead approval | NOT_STARTED | phase_manual | not_applicable | — | `feat_delivery01_phase_10` | D01-P10-CODE_REVIEW (NOT_STARTED) | D01-P10-T003 | D01-P10-REVIEW | — |
-| [D02-P01-G001](delivery_02/phase_01/D02-P01-G001.md) | Record Customer scope, BA workflow ownership and Keycloak identity baseline | NOT_STARTED | self_ai | not_applicable | — | `feat_delivery02_phase_01` | D02-P01-CODE_REVIEW (NOT_STARTED) | D01-P09-CODE_REVIEW | D02-P01-GATE | — |
+| [D02-P01-G001](delivery_02/phase_01/D02-P01-G001.md) | Record Customer scope, BA workflow ownership and Keycloak identity baseline | READY | self_ai | not_applicable | — | `feat_delivery02_phase_01` | D02-P01-CODE_REVIEW (NOT_STARTED) | D01-P09-CODE_REVIEW | D02-P01-GATE | — |
 | [D02-P01-T001](delivery_02/phase_01/D02-P01-T001.md) | Complete the customer application shell and responsive navigation | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery02_phase_01` | D02-P01-CODE_REVIEW (NOT_STARTED) | D02-P01-G001 | D02-P01-SEQUENTIAL | — |
 | [D02-P01-T002](delivery_02/phase_01/D02-P01-T002.md) | Add customer session, account states and protected access | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery02_phase_01` | D02-P01-CODE_REVIEW (NOT_STARTED) | D02-P01-T001 | D02-P01-SEQUENTIAL | — |
 | [D02-P01-T003](delivery_02/phase_01/D02-P01-T003.md) | Accept customer default theme, PWA shell, accessibility and Docker deployment | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery02_phase_01` | D02-P01-CODE_REVIEW (NOT_STARTED) | D02-P01-T002 | D02-P01-SEQUENTIAL | — |
@@ -138,12 +138,20 @@
 | [D02-P10-T002](delivery_02/phase_10/D02-P10-T002.md) | Apply approved Delivery 02 assumption adjustments | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery02_phase_10` | D02-P10-CODE_REVIEW (NOT_STARTED) | D02-P10-T001 | D02-P10-SEQUENTIAL | — |
 | [D02-P10-T003](delivery_02/phase_10/D02-P10-T003.md) | Run final Customer assumption, Docker and golden-journey acceptance | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery02_phase_10` | D02-P10-CODE_REVIEW (NOT_STARTED) | D02-P10-T002 | D02-P10-SEQUENTIAL | — |
 | [D02-P10-CODE_REVIEW](delivery_02/phase_10/D02-P10-CODE_REVIEW.md) | Phase 2.10 PR code review and tech-lead approval | NOT_STARTED | phase_manual | not_applicable | — | `feat_delivery02_phase_10` | D02-P10-CODE_REVIEW (NOT_STARTED) | D02-P10-T003 | D02-P10-REVIEW | — |
+| [D02-P11-T001](delivery_02/phase_11/D02-P11-T001.md) | Add optional Customer theme configuration and provider integration | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery02_phase_11` | D02-P11-CODE_REVIEW (NOT_STARTED) | D02-P10-CODE_REVIEW | D02-P11-OPTIONAL | — |
+| [D02-P11-T002](delivery_02/phase_11/D02-P11-T002.md) | Enable and verify the optional ocean Customer theme | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery02_phase_11` | D02-P11-CODE_REVIEW (NOT_STARTED) | D02-P11-T001 | D02-P11-OPTIONAL | — |
+| [D02-P11-CODE_REVIEW](delivery_02/phase_11/D02-P11-CODE_REVIEW.md) | Optional Customer multi-theme PR code review and tech-lead approval | NOT_STARTED | phase_manual | not_applicable | — | `feat_delivery02_phase_11` | D02-P11-CODE_REVIEW (NOT_STARTED) | D02-P11-T002 | D02-P11-OPTIONAL | — |
 
 
-## Current execution frontier
+## Current execution frontiers
 
-- Sequential next: D01-P10-T001 — Reconcile Delivery 01 requirement gaps and assumption evidence (NOT_STARTED)
-- Optional same-group parallel tasks: None
+- D01-RECONCILIATION: D01-P10-T001 — Reconcile Delivery 01 requirement gaps and assumption evidence (NOT_STARTED)
+- D02-FOUNDATION: D02-P01-G001 — Record Customer scope, BA workflow ownership and Keycloak identity baseline (NOT_STARTED)
+- D02-DASHBOARD-LOGISTICS: D02-P02-G001 — Establish non-blocking customer dashboard KPI baseline (NOT_STARTED)
+- D02-COMMERCE: D02-P03-T001 — Add customer inventory projection, tier pricing and reservation eligibility (NOT_STARTED)
+- D02-FINAL: D02-P09-T001 — Complete Customer requirement and compiled-behavior traceability (NOT_STARTED)
+- Sequential within each lane; dependencies coordinate work across lanes.
+- Optional Phase 2.11 is excluded until explicitly started with `--opt-in theme`.
 - Downstream work waits for COMPLETE or SUPERSEDED; IN_REVIEW is not complete.
 - Use `taskctl sequence TASK-ID` for the exact blocker.
 
