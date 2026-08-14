@@ -21,7 +21,7 @@ COPY packages/ui/package.json packages/ui/package.json
 COPY packages/validation/package.json packages/validation/package.json
 COPY packages/vehicle-detail/package.json packages/vehicle-detail/package.json
 COPY packages/vehicle-search/package.json packages/vehicle-search/package.json
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --no-frozen-lockfile
 COPY apps ./apps
 COPY packages ./packages
 COPY openapi ./openapi
