@@ -52,7 +52,7 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
   };
 
   return (
-    <div className="cc-cust-fleet">
+    <div className="cc-cust-fleet" data-testid="customer-fleet-page">
       <header className="cc-cust-fleet__header">
         <h1 className="cc-cust-fleet__title">My Vehicles</h1>
         <p className="cc-cust-fleet__subtitle">
@@ -61,10 +61,11 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
       </header>
 
       {/* Tabs / Status Groupings */}
-      <div className="cc-cust-fleet-tabs" role="tablist" aria-label="Vehicle Status Filter">
+      <div className="cc-cust-fleet-tabs" role="tablist" aria-label="Vehicle Status Filter" data-testid="fleet-tabs">
         <button
           type="button"
           role="tab"
+          data-testid="tab-all"
           aria-selected={activeTab === 'all'}
           className={`cc-cust-fleet-tab ${activeTab === 'all' ? 'cc-cust-fleet-tab--active' : ''}`}
           onClick={() => setActiveTab('all')}
@@ -75,6 +76,7 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
         <button
           type="button"
           role="tab"
+          data-testid="tab-under-negotiation"
           aria-selected={activeTab === 'underNegotiation'}
           className={`cc-cust-fleet-tab ${activeTab === 'underNegotiation' ? 'cc-cust-fleet-tab--active' : ''}`}
           onClick={() => setActiveTab('underNegotiation')}
@@ -85,6 +87,7 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
         <button
           type="button"
           role="tab"
+          data-testid="tab-pi-issued"
           aria-selected={activeTab === 'underNegotiationWithPI'}
           className={`cc-cust-fleet-tab ${activeTab === 'underNegotiationWithPI' ? 'cc-cust-fleet-tab--active' : ''}`}
           onClick={() => setActiveTab('underNegotiationWithPI')}
@@ -95,6 +98,7 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
         <button
           type="button"
           role="tab"
+          data-testid="tab-confirmed"
           aria-selected={activeTab === 'confirmed'}
           className={`cc-cust-fleet-tab ${activeTab === 'confirmed' ? 'cc-cust-fleet-tab--active' : ''}`}
           onClick={() => setActiveTab('confirmed')}
@@ -105,6 +109,7 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
         <button
           type="button"
           role="tab"
+          data-testid="tab-in-transit"
           aria-selected={activeTab === 'inTransit'}
           className={`cc-cust-fleet-tab ${activeTab === 'inTransit' ? 'cc-cust-fleet-tab--active' : ''}`}
           onClick={() => setActiveTab('inTransit')}
@@ -115,6 +120,7 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
         <button
           type="button"
           role="tab"
+          data-testid="tab-delivered"
           aria-selected={activeTab === 'delivered'}
           className={`cc-cust-fleet-tab ${activeTab === 'delivered' ? 'cc-cust-fleet-tab--active' : ''}`}
           onClick={() => setActiveTab('delivered')}
@@ -134,6 +140,7 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
             <input
               id="fleet-search-input"
               type="search"
+              data-testid="fleet-search-input"
               className="cc-cust-fleet-search__input"
               placeholder="Search by make, model, chassis or year..."
               value={searchQuery}
@@ -142,6 +149,7 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
             {searchQuery && (
               <button
                 type="button"
+                data-testid="fleet-search-clear"
                 className="cc-cust-fleet-search__clear"
                 onClick={() => setSearchQuery('')}
                 aria-label="Clear search query"
@@ -158,6 +166,7 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
           </label>
           <select
             id="fleet-location-select"
+            data-testid="fleet-location-select"
             className="cc-cust-fleet-filter__select"
             value={locationFilter}
             onChange={(e) => setLocationFilter(e.target.value)}

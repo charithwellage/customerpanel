@@ -56,10 +56,11 @@ export const CustomerFleetDetailPage: React.FC<CustomerFleetDetailPageProps> = (
   const images = vehicle.images && vehicle.images.length > 0 ? vehicle.images : [vehicle.primaryImage || fallbackImage];
 
   return (
-    <div className="cc-cust-fleet-detail">
+    <div className="cc-cust-fleet-detail" data-testid="customer-fleet-detail-page">
       <nav className="cc-cust-fleet-detail__nav" aria-label="Breadcrumb">
         <button
           type="button"
+          data-testid="back-to-fleet-btn"
           className="cc-cust-fleet-btn cc-cust-fleet-btn--link"
           onClick={onBack}
           aria-label="Return to vehicle fleet list"
