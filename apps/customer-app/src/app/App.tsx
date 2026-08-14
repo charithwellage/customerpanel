@@ -6,6 +6,7 @@ import { CustomerShell, useCustomerShell, type CustomerUser } from '../features/
 import { OverviewPage } from '../features/dashboard/index.js';
 import { CustomerInventoryPage, CustomerVehicleDetailPage } from '../features/inventory/index.js';
 import { CustomerFleetPage, CustomerFleetDetailPage } from '../features/vehicles/index.js';
+import { CustomerInvoicesPage, CustomerInvoiceDetailPage } from '../features/invoices/index.js';
 import { PortalPlaceholder } from './PortalPlaceholder.js';
 
 const queryClient = new QueryClient();
@@ -91,6 +92,28 @@ const AppContent: React.FC<{ session: CustomerSession; apiBaseUrl: string }> = (
         vehicleId={idOrSlug}
         onBack={() => {
           setActiveRoute('/vehicles');
+        }}
+      />
+    );
+  }
+
+  if (activeRoute === '/invoices') {
+    return (
+      <CustomerInvoicesPage
+        onSelectInvoice={(invoice) => {
+          setActiveRoute(`/invoices/${invoice.id}`);
+        }}
+      />
+    );
+  }
+
+  if (activeRoute.startsWith('/invoices/')) {
+    const invoiceId = activeRoute.substring('/invoices/'.length);
+    return (
+      <CustomerInvoiceDetailPage
+        invoiceId={invoiceId}
+        onBack={() => {
+          setActiveRoute('/invoices');
         }}
       />
     );
