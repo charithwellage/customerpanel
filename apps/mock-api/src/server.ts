@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { parseDemoJwtToken, createDemoJwtToken, JwtClaims, hasPermission } from '@carchief/domain';
 import type { FreightEstimateRequest, EnquiryRequest, ReservationRequest } from '@carchief/domain';
 import { createStore, type DemoStore, FreightRequestError, EnquiryRequestError, ReservationRequestError, TestimonialRequestError } from './store.js';
+import { resolveDemoCustomerScope } from './auth/customer-scope.js';
 
 export interface AuthenticatedRequest extends Request {
   user?: JwtClaims;
@@ -197,7 +198,8 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
       return;
     }
     try {
-      const reservation = await store.createReservation(req.user.sub, req.user.email, (req.body ?? {}) as ReservationRequest);
+      const customerId = resolveDemoCustomerScope(req.user.sub);
+      const reservation = await store.createReservation(customerId, req.user.email, (req.body ?? {}) as ReservationRequest);
       res.status(201).json(reservation);
     } catch (error) {
       if (error instanceof ReservationRequestError) {
@@ -229,7 +231,7 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
       res.status(404).json({ statusCode: 404, message: `Reservation '${id}' not found`, correlationId: `corr-404-${Date.now()}` });
       return;
     }
-    const isOwner = reservation.customerId === req.user.sub;
+    const isOwner = reservation.customerId === resolveDemoCustomerScope(req.user.sub);
     if (!isOwner && !hasPermission(req.user.role, 'read:leads')) {
       res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
       return;
