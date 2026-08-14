@@ -35,6 +35,7 @@ const DEFAULT_NAV_ITEMS: NavigationItem[] = [
   { id: 'inventory', label: 'Inventory', href: '/inventory', icon: '🚗' },
   { id: 'vehicles', label: 'My Vehicles', href: '/vehicles', icon: '🔑' },
   { id: 'invoices', label: 'Invoices & Ledger', href: '/invoices', icon: '📄' },
+  { id: 'payments', label: 'Payments', href: '/payments', icon: '💳' },
   { id: 'shipments', label: 'Shipments', href: '/shipments', icon: '🚢' },
   { id: 'documents', label: 'Documents', href: '/documents', icon: '📁' },
   { id: 'profile', label: 'Profile & Account', href: '/profile', icon: '👤' },

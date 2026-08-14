@@ -8,6 +8,7 @@ import { CustomerInventoryPage, CustomerVehicleDetailPage } from '../features/in
 import { CustomerFleetPage, CustomerFleetDetailPage } from '../features/vehicles/index.js';
 import { DocumentsPage } from '../features/documents/index.js';
 import { CustomerInvoicesPage, CustomerInvoiceDetailPage } from '../features/invoices/index.js';
+import { PaymentsPage } from '../features/payments/index.js';
 import { PortalPlaceholder } from './PortalPlaceholder.js';
 
 const queryClient = new QueryClient();
@@ -110,6 +111,10 @@ const AppContent: React.FC<{ session: CustomerSession; apiBaseUrl: string }> = (
         }}
       />
     );
+  }
+
+  if (activeRoute === '/payments') {
+    return <PaymentsPage />;
   }
 
   if (activeRoute.startsWith('/invoices/')) {

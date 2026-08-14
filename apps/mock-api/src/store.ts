@@ -3214,7 +3214,11 @@ function toCustomerDocument(record: DocumentRecord): CustomerDocument {
   };
 }
 
-function toCustomerPayment(record: PaymentRecord): CustomerPayment {
+function toCustomerPayment(record: PaymentRecord, invoices: InvoiceRecord[] = [], allocations: AllocationRecord[] = []): CustomerPayment {
+  const invoice = invoices.find((candidate) => candidate.id === record.invoiceId && candidate.customerId === record.customerId);
+  const allocatedAmountUsd = allocations
+    .filter((allocation) => allocation.customerId === record.customerId && allocation.invoiceId === record.invoiceId && allocation.status === 'Approved')
+    .reduce((sum, allocation) => sum + allocation.amountUsd, 0);
   return {
     id: record.id,
     customerId: record.customerId,
@@ -3223,6 +3227,7 @@ function toCustomerPayment(record: PaymentRecord): CustomerPayment {
     bankName: record.bankName || 'Unspecified bank',
     currency: record.currency || 'USD',
     amountUsd: record.amountUsd,
+    ...(invoice ? { allocatedAmountUsd, remainingBalanceUsd: Math.max(invoice.totalAmountUsd - allocatedAmountUsd, 0) } : {}),
     paymentDate: record.paymentDate || record.paidAt,
     remarks: record.remarks,
     status: record.status,
@@ -3703,17 +3708,17 @@ class MemoryStore implements DemoStore {
   }
 
   listCustomerPayments(customerId: string): Promise<CustomerPaymentListResponse> {
-    const items = this.payments.filter((payment) => payment.customerId === customerId).map(toCustomerPayment);
+    const items = this.payments.filter((payment) => payment.customerId === customerId).map((payment) => toCustomerPayment(payment, this.invoices, this.allocations));
     return Promise.resolve({ items, total: items.length });
   }
 
   getCustomerPayment(customerId: string, id: string): Promise<CustomerPayment | null> {
     const payment = this.payments.find((candidate) => candidate.customerId === customerId && candidate.id === id);
-    return Promise.resolve(payment ? toCustomerPayment(payment) : null);
+    return Promise.resolve(payment ? toCustomerPayment(payment, this.invoices, this.allocations) : null);
   }
 
   createCustomerPayment(customerId: string, request: CreateCustomerPaymentRequest, nowISO = new Date().toISOString()): Promise<CustomerPayment> {
-    return Promise.resolve(toCustomerPayment(createPaymentRecord(customerId, request, nowISO, this.payments, this.invoices)));
+    return Promise.resolve(toCustomerPayment(createPaymentRecord(customerId, request, nowISO, this.payments, this.invoices), this.invoices, this.allocations));
   }
 
   listCustomerPaymentNotifications(customerId: string, paymentId?: string): Promise<CustomerPaymentNotificationListResponse> {
@@ -4684,17 +4689,17 @@ class PostgresStore implements DemoStore {
   }
 
   async listCustomerPayments(customerId: string): Promise<CustomerPaymentListResponse> {
-    const items = this.paymentRecords.filter((payment) => payment.customerId === customerId).map(toCustomerPayment);
+    const items = this.paymentRecords.filter((payment) => payment.customerId === customerId).map((payment) => toCustomerPayment(payment, seedInvoices, seedAllocations));
     return { items, total: items.length };
   }
 
   async getCustomerPayment(customerId: string, id: string): Promise<CustomerPayment | null> {
     const payment = this.paymentRecords.find((candidate) => candidate.customerId === customerId && candidate.id === id);
-    return payment ? toCustomerPayment(payment) : null;
+    return payment ? toCustomerPayment(payment, seedInvoices, seedAllocations) : null;
   }
 
   async createCustomerPayment(customerId: string, request: CreateCustomerPaymentRequest, nowISO = new Date().toISOString()): Promise<CustomerPayment> {
-    return toCustomerPayment(createPaymentRecord(customerId, request, nowISO, this.paymentRecords, seedInvoices));
+    return toCustomerPayment(createPaymentRecord(customerId, request, nowISO, this.paymentRecords, seedInvoices), seedInvoices, seedAllocations);
   }
 
   async listCustomerPaymentNotifications(customerId: string, paymentId?: string): Promise<CustomerPaymentNotificationListResponse> {

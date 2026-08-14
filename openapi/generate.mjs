@@ -492,6 +492,8 @@ export interface CustomerPayment {
   bankName: string;
   currency: string;
   amountUsd: number;
+  allocatedAmountUsd?: number;
+  remainingBalanceUsd?: number;
   paymentDate: string;
   remarks?: string;
   status: 'Pending' | 'Approved' | 'Rejected';

@@ -2290,7 +2290,7 @@
         "properties": {
           "id": { "type": "string" }, "customerId": { "type": "string" }, "invoiceId": { "type": "string" },
           "reference": { "type": "string" }, "bankName": { "type": "string" }, "currency": { "type": "string" },
-          "amountUsd": { "type": "number" }, "paymentDate": { "type": "string" }, "remarks": { "type": "string" },
+          "amountUsd": { "type": "number" }, "allocatedAmountUsd": { "type": "number" }, "remainingBalanceUsd": { "type": "number" }, "paymentDate": { "type": "string" }, "remarks": { "type": "string" },
           "status": { "type": "string", "enum": ["Pending", "Approved", "Rejected"] },
           "holdReason": { "type": "string" }, "proof": { "$ref": "#/components/schemas/CustomerPaymentProofMetadata" },
           "idempotencyKey": { "type": "string" }, "createdAt": { "type": "string" }
