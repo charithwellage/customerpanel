@@ -1078,6 +1078,62 @@
         }
       }
     },
+    "/api/v1/customer/notifications": {
+      "get": {
+        "summary": "List customer notifications",
+        "operationId": "listCustomerNotifications",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          { "name": "status", "in": "query", "required": false, "schema": { "type": "string", "enum": ["all", "read", "unread"], "default": "all" } },
+          { "name": "q", "in": "query", "required": false, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Customer-scoped notification list", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CustomerNotificationListResponse" } } } },
+          "401": { "description": "Unauthenticated", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "403": { "description": "Forbidden", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
+        }
+      }
+    },
+    "/api/v1/customer/notifications/{id}": {
+      "get": {
+        "summary": "Get one customer notification",
+        "operationId": "getCustomerNotification",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "200": { "description": "Customer notification", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Notification" } } } },
+          "401": { "description": "Unauthenticated", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "403": { "description": "Forbidden", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "404": { "description": "Notification not found", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
+        }
+      }
+    },
+    "/api/v1/customer/notifications/{id}/read": {
+      "post": {
+        "summary": "Mark one customer notification as read",
+        "operationId": "markCustomerNotificationRead",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "200": { "description": "Updated customer notification", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Notification" } } } },
+          "401": { "description": "Unauthenticated", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "403": { "description": "Forbidden", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "404": { "description": "Notification not found", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
+        }
+      }
+    },
+    "/api/v1/customer/notifications/read-all": {
+      "post": {
+        "summary": "Mark all customer notifications as read",
+        "operationId": "markAllCustomerNotificationsRead",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Read-all result", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/MarkNotificationsReadResponse" } } } },
+          "401": { "description": "Unauthenticated", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "403": { "description": "Forbidden", "content": { "application/json": { "$ref": "#/components/schemas/ErrorResponse" } } }
+        }
+      }
+    },
     "/api/v1/customer/shipments": {
       "get": {
         "summary": "List shipments visible to the authenticated customer",
@@ -2298,6 +2354,21 @@
           "scanStatus": { "type": "string", "enum": ["Pending", "Passed", "Rejected"] }
         },
         "required": ["fileName", "fileType", "sizeBytes", "scanStatus"]
+      },
+      "Notification": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" }, "customerId": { "type": "string" }, "title": { "type": "string" }, "message": { "type": "string" },
+          "type": { "type": "string", "enum": ["Payment", "Shipment", "Document", "Vehicle", "Promotion"] }, "isRead": { "type": "boolean" }, "createdAt": { "type": "string" },
+          "related": { "type": "object", "properties": { "kind": { "type": "string", "enum": ["Vehicle", "ProformaInvoice", "Invoice", "Payment", "Shipment", "Document", "ShipOk", "DocumentRelease"] }, "id": { "type": "string" }, "href": { "type": "string" } }, "required": ["kind", "id", "href"] }
+        },
+        "required": ["id", "customerId", "message", "type", "isRead", "createdAt"]
+      },
+      "CustomerNotificationListResponse": {
+        "type": "object", "properties": { "items": { "type": "array", "items": { "$ref": "#/components/schemas/Notification" } }, "total": { "type": "integer" }, "unreadCount": { "type": "integer" } }, "required": ["items", "total", "unreadCount"]
+      },
+      "MarkNotificationsReadResponse": {
+        "type": "object", "properties": { "updatedCount": { "type": "integer" }, "unreadCount": { "type": "integer" } }, "required": ["updatedCount", "unreadCount"]
       },
       "CustomerPayment": {
         "type": "object",

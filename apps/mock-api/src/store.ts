@@ -68,6 +68,9 @@ import type {
   CustomerPaymentNotificationEvent,
   CustomerPaymentNotificationListResponse,
   RecordPaymentNotificationRequest,
+  Notification,
+  CustomerNotificationListResponse,
+  MarkNotificationsReadResponse,
 } from '@carchief/domain';
 import {
   generateVehicleSlug,
@@ -525,6 +528,10 @@ export interface DemoStore {
   getCustomerShipment(customerId: string, shipmentId: string): Promise<CustomerShipment | null>;
   listCustomerDocuments(customerId: string): Promise<CustomerDocument[]>;
   getCustomerDocument(customerId: string, documentId: string): Promise<CustomerDocument | null>;
+  listCustomerNotifications(customerId: string, query?: { status?: 'all' | 'read' | 'unread'; q?: string }): Promise<CustomerNotificationListResponse>;
+  getCustomerNotification(customerId: string, notificationId: string): Promise<Notification | null>;
+  markCustomerNotificationRead(customerId: string, notificationId: string): Promise<Notification | null>;
+  markAllCustomerNotificationsRead(customerId: string): Promise<MarkNotificationsReadResponse>;
   // Phase 2.5: customer invoice projections (CUST-02, CUST-14, CUST-15, CUST-16, CUST-21, RULE-04, RULE-08, RULE-10)
   getCustomerInvoices(customerId: string, query?: ListCustomerInvoicesQuery, nowISO?: string): Promise<CustomerInvoiceListResponse>;
   getCustomerInvoiceById(customerId: string, id: string, nowISO?: string): Promise<CustomerInvoiceDetail | null>;
@@ -2178,6 +2185,8 @@ export interface NotificationRecord {
   type: 'Payment' | 'Shipment' | 'Document' | 'Vehicle' | 'Promotion';
   isRead: boolean;
   createdAt: string;
+  title?: string;
+  related?: Notification['related'];
 }
 
 export interface PaymentNotificationRecord {
@@ -2457,6 +2466,7 @@ const seedNotifications: NotificationRecord[] = [
     type: 'Payment',
     isRead: true,
     createdAt: '2026-08-11T10:00:00.000Z',
+    related: { kind: 'Invoice', id: 'inv-001', href: '/customer/invoices/inv-001' },
   },
   {
     id: 'notif-002',
@@ -2465,6 +2475,7 @@ const seedNotifications: NotificationRecord[] = [
     type: 'Shipment',
     isRead: false,
     createdAt: '2026-08-13T10:00:00.000Z',
+    related: { kind: 'Shipment', id: 'ship-001', href: '/customer/shipments/ship-001' },
   },
   {
     id: 'notif-003',
@@ -2473,6 +2484,7 @@ const seedNotifications: NotificationRecord[] = [
     type: 'Document',
     isRead: false,
     createdAt: '2026-08-14T08:30:00.000Z',
+    related: { kind: 'DocumentRelease', id: 'doc-003', href: '/customer/documents/doc-003' },
   },
   {
     id: 'notif-004',
@@ -3220,6 +3232,30 @@ function toCustomerDocument(record: DocumentRecord): CustomerDocument {
   };
 }
 
+function toCustomerNotification(record: NotificationRecord): Notification {
+  return {
+    id: record.id,
+    customerId: record.customerId,
+    ...(record.title ? { title: record.title } : {}),
+    message: record.message,
+    type: record.type,
+    isRead: record.isRead,
+    createdAt: record.createdAt,
+    ...(record.related ? { related: { ...record.related } } : {}),
+  };
+}
+
+function queryCustomerNotifications(records: NotificationRecord[], query?: { status?: 'all' | 'read' | 'unread'; q?: string }): CustomerNotificationListResponse {
+  const status = query?.status || 'all';
+  const search = query?.q?.trim().toLowerCase();
+  const items = records
+    .filter((notification) => status === 'all' || (status === 'read' ? notification.isRead : !notification.isRead))
+    .filter((notification) => !search || `${notification.title || ''} ${notification.message} ${notification.type}`.toLowerCase().includes(search))
+    .sort((left, right) => right.createdAt.localeCompare(left.createdAt))
+    .map(toCustomerNotification);
+  return { items, total: items.length, unreadCount: records.filter((notification) => !notification.isRead).length };
+}
+
 function toCustomerPayment(record: PaymentRecord, invoices: InvoiceRecord[] = [], allocations: AllocationRecord[] = []): CustomerPayment {
   const invoice = invoices.find((candidate) => candidate.id === record.invoiceId && candidate.customerId === record.customerId);
   const allocatedAmountUsd = allocations
@@ -3729,6 +3765,28 @@ class MemoryStore implements DemoStore {
     return toCustomerDocument(document);
   }
 
+  listCustomerNotifications(customerId: string, query?: { status?: 'all' | 'read' | 'unread'; q?: string }): Promise<CustomerNotificationListResponse> {
+    return Promise.resolve(queryCustomerNotifications(this.notifications.filter((notification) => notification.customerId === customerId), query));
+  }
+
+  getCustomerNotification(customerId: string, notificationId: string): Promise<Notification | null> {
+    const notification = this.notifications.find((candidate) => candidate.customerId === customerId && candidate.id === notificationId);
+    return Promise.resolve(notification ? toCustomerNotification(notification) : null);
+  }
+
+  markCustomerNotificationRead(customerId: string, notificationId: string): Promise<Notification | null> {
+    const notification = this.notifications.find((candidate) => candidate.customerId === customerId && candidate.id === notificationId);
+    if (notification) notification.isRead = true;
+    return Promise.resolve(notification ? toCustomerNotification(notification) : null);
+  }
+
+  markAllCustomerNotificationsRead(customerId: string): Promise<MarkNotificationsReadResponse> {
+    const owned = this.notifications.filter((notification) => notification.customerId === customerId);
+    const updatedCount = owned.filter((notification) => !notification.isRead).length;
+    owned.forEach((notification) => { notification.isRead = true; });
+    return Promise.resolve({ updatedCount, unreadCount: 0 });
+  }
+
   getCustomerInvoices(customerId: string, query?: ListCustomerInvoicesQuery, nowISO?: string): Promise<CustomerInvoiceListResponse> {
     const all = buildCustomerInvoiceProjections(
       customerId,
@@ -3836,6 +3894,7 @@ class PostgresStore implements DemoStore {
   private readonly pool: Pool;
   private paymentRecords = seedPayments.map((payment) => ({ ...payment }));
   private paymentNotifications = seedPaymentNotifications.map((notification) => ({ ...notification }));
+  private notifications = seedNotifications.map((notification) => ({ ...notification }));
   private allocations = seedAllocations.map((allocation) => ({ ...allocation }));
 
   constructor(connectionString: string) {
@@ -4705,6 +4764,28 @@ class PostgresStore implements DemoStore {
     return toCustomerDocument(document);
   }
 
+  async listCustomerNotifications(customerId: string, query?: { status?: 'all' | 'read' | 'unread'; q?: string }): Promise<CustomerNotificationListResponse> {
+    return queryCustomerNotifications(this.notifications.filter((notification) => notification.customerId === customerId), query);
+  }
+
+  async getCustomerNotification(customerId: string, notificationId: string): Promise<Notification | null> {
+    const notification = this.notifications.find((candidate) => candidate.customerId === customerId && candidate.id === notificationId);
+    return notification ? toCustomerNotification(notification) : null;
+  }
+
+  async markCustomerNotificationRead(customerId: string, notificationId: string): Promise<Notification | null> {
+    const notification = this.notifications.find((candidate) => candidate.customerId === customerId && candidate.id === notificationId);
+    if (notification) notification.isRead = true;
+    return notification ? toCustomerNotification(notification) : null;
+  }
+
+  async markAllCustomerNotificationsRead(customerId: string): Promise<MarkNotificationsReadResponse> {
+    const owned = this.notifications.filter((notification) => notification.customerId === customerId);
+    const updatedCount = owned.filter((notification) => !notification.isRead).length;
+    owned.forEach((notification) => { notification.isRead = true; });
+    return { updatedCount, unreadCount: 0 };
+  }
+
   async getCustomerInvoices(customerId: string, query?: ListCustomerInvoicesQuery, nowISO?: string): Promise<CustomerInvoiceListResponse> {
     const vehicles = await this.getRawVehicles();
     const all = buildCustomerInvoiceProjections(
@@ -4862,6 +4943,7 @@ class PostgresStore implements DemoStore {
       }
 
       await client.query('COMMIT');
+      this.notifications = seedNotifications.map((notification) => ({ ...notification }));
     } catch (error) {
       await client.query('ROLLBACK');
       throw error;
