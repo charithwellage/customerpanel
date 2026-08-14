@@ -103,3 +103,4 @@ coverage/
 *.tsbuildinfo
 *.tsbuildinfo*
 **/tsconfig*.tsbuildinfo
+.codex/config.toml
