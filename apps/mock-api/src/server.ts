@@ -375,8 +375,56 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
       res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
       return;
     }
-    const dashboard = await store.getCustomerDashboard(req.user.sub, req.user.email);
+    const customerId = resolveDemoCustomerScope(req.user.sub);
+    const dashboard = await store.getCustomerDashboard(customerId, req.user.email);
     res.json(dashboard);
+  });
+
+  // 4b. Customer vehicle transaction fleet listing (CUST-02, CUST-10, RULE-04, RULE-08)
+  app.get('/api/v1/customer/vehicles', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) {
+      res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+      return;
+    }
+    if (!hasPermission(req.user.role, 'read:customer')) {
+      res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
+      return;
+    }
+    const customerId = resolveDemoCustomerScope(req.user.sub);
+    const nowISO = req.header('x-mock-now') || undefined;
+    const query = {
+      status: req.query.status as string | undefined,
+      query: req.query.query as string | undefined,
+      page: req.query.page ? Number(req.query.page) : undefined,
+      limit: req.query.limit ? Number(req.query.limit) : undefined,
+    };
+    const response = await store.getCustomerVehicles(customerId, query, nowISO);
+    res.json(response);
+  });
+
+  // 4c. Customer vehicle transaction detail & status history (CUST-11, CUST-12, CUST-13, RULE-04, RULE-07)
+  app.get('/api/v1/customer/vehicles/:id', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) {
+      res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+      return;
+    }
+    if (!hasPermission(req.user.role, 'read:customer')) {
+      res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
+      return;
+    }
+    const customerId = resolveDemoCustomerScope(req.user.sub);
+    const idOrSlug = req.params.id as string;
+    const nowISO = req.header('x-mock-now') || undefined;
+    const vehicle = await store.getCustomerVehicleById(customerId, idOrSlug, nowISO);
+    if (!vehicle) {
+      res.status(404).json({
+        statusCode: 404,
+        message: `Customer vehicle '${idOrSlug}' not found or not owned by customer`,
+        correlationId: `corr-404-${Date.now()}`,
+      });
+      return;
+    }
+    res.json(vehicle);
   });
 
   // 5. Deterministic reset (Disabled in production mode for release safety)

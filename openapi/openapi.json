@@ -947,6 +947,137 @@
         }
       }
     },
+    "/api/v1/customer/vehicles": {
+      "get": {
+        "summary": "List customer transaction fleet vehicles (CUST-02, CUST-10, RULE-04, RULE-08)",
+        "description": "Returns list of vehicles associated with the authenticated customer across all transaction lifecycle stages (Under Negotiation, Under Negotiation With PI, Confirmed, In Transit, Delivered). Strict customer scoping; vehicles appear once with server-authoritative status and linked document references. Requires authentication.",
+        "operationId": "listCustomerVehicles",
+        "security": [
+          { "BearerAuth": [] }
+        ],
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "description": "Filter by canonical vehicle transaction status",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "query",
+            "in": "query",
+            "required": false,
+            "description": "Search keyword matching make, model, chassis number, or year",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "description": "Page number (1-based)",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Page size limit",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of customer fleet vehicles with aggregate counts",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CustomerVehicleListResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden: insufficient permissions",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/customer/vehicles/{id}": {
+      "get": {
+        "summary": "Get customer vehicle detail and full transaction timeline (CUST-11, CUST-12, CUST-13, RULE-04)",
+        "description": "Returns full customer detail for a specific transaction vehicle, including technical specifications, status timeline history, deposit requirement (50% under RULE-07), invoice, shipment progress, and linked export documents. Scoped strictly to authenticated customer. Requires authentication.",
+        "operationId": "getCustomerVehicleDetail",
+        "security": [
+          { "BearerAuth": [] }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Vehicle ID, slug, or transaction reference",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Customer vehicle detail with status timeline and linked documents",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CustomerVehicleDetail" }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "Vehicle not found or not owned by customer",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/__reset": {
       "post": {
         "summary": "Deterministic non-production data reset",
@@ -1668,6 +1799,126 @@
           }
         },
         "required": ["customerId", "customerEmail", "creditLimitUsd", "outstandingBalanceUsd", "creditUtilisationPercent", "vehicleCountReserved", "vehicleCountInvoiced", "vehicleCountDelivered", "lastUpdated", "paymentStatusSummary", "shipmentStatusSummary", "documentAvailabilityCount", "notificationUnreadCount", "partialFailureIndicators"]
+      },
+      "CustomerVehicleStatus": {
+        "type": "string",
+        "enum": ["Under Negotiation", "Under Negotiation With PI", "Confirmed", "In Transit", "Delivered", "Expired", "Cancelled"],
+        "example": "Under Negotiation"
+      },
+      "CustomerVehicleStatusHistoryItem": {
+        "type": "object",
+        "properties": {
+          "status": { "$ref": "#/components/schemas/CustomerVehicleStatus" },
+          "timestamp": { "type": "string", "example": "2026-08-10T10:00:00.000Z" },
+          "notes": { "type": "string", "example": "48-hour reservation hold placed" }
+        },
+        "required": ["status", "timestamp"]
+      },
+      "CustomerVehicleDocumentReference": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "example": "doc-001" },
+          "type": { "type": "string", "example": "ProformaInvoice" },
+          "title": { "type": "string", "example": "Proforma Invoice PI-2026-001" },
+          "status": { "type": "string", "enum": ["Available", "Pending", "Draft"], "example": "Available" },
+          "fileUrl": { "type": "string", "example": "/documents/pi-001.pdf" },
+          "issuedAt": { "type": "string", "example": "2026-08-10T10:00:00.000Z" }
+        },
+        "required": ["id", "type", "title", "status"]
+      },
+      "CustomerVehicleDepositInfo": {
+        "type": "object",
+        "description": "Server-computed 50% deposit requirement under RULE-07",
+        "properties": {
+          "requiredPercent": { "type": "number", "example": 50 },
+          "requiredAmountUsd": { "type": "number", "example": 4250.00 },
+          "paidAmountUsd": { "type": "number", "example": 2000.00 },
+          "remainingAmountUsd": { "type": "number", "example": 2250.00 },
+          "isFullyPaid": { "type": "boolean", "example": false }
+        },
+        "required": ["requiredPercent", "requiredAmountUsd", "paidAmountUsd", "remainingAmountUsd", "isFullyPaid"]
+      },
+      "CustomerVehicleSummary": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "example": "veh-1" },
+          "vehicleId": { "type": "string", "example": "veh-1" },
+          "chassisNumber": { "type": "string", "example": "NZE141-1234567" },
+          "make": { "type": "string", "example": "Toyota" },
+          "model": { "type": "string", "example": "Corolla Axio" },
+          "year": { "type": "integer", "example": 2021 },
+          "slug": { "type": "string", "example": "2021-toyota-corolla-axio-veh-1" },
+          "primaryImage": { "type": "string", "example": "https://example.com/veh-1.jpg" },
+          "priceUsd": { "type": "number", "example": 8500.00 },
+          "totalAmountUsd": { "type": "number", "example": 8500.00 },
+          "status": { "$ref": "#/components/schemas/CustomerVehicleStatus" },
+          "locationStatus": { "type": "string", "enum": ["In Japan", "In Transit", "In Port"], "example": "In Japan" },
+          "destinationPort": { "type": "string", "example": "Mombasa" },
+          "reservationExpiresAt": { "type": "string", "example": "2026-08-12T10:00:00.000Z" },
+          "proformaInvoiceId": { "type": "string", "example": "pi-001" },
+          "paymentDeadline": { "type": "string", "example": "2026-08-15T10:00:00.000Z" },
+          "deposit": { "$ref": "#/components/schemas/CustomerVehicleDepositInfo" },
+          "createdAt": { "type": "string", "example": "2026-08-10T10:00:00.000Z" },
+          "updatedAt": { "type": "string", "example": "2026-08-10T10:00:00.000Z" }
+        },
+        "required": ["id", "vehicleId", "chassisNumber", "make", "model", "year", "slug", "priceUsd", "totalAmountUsd", "status", "createdAt", "updatedAt"]
+      },
+      "CustomerVehicleDetail": {
+        "allOf": [
+          { "$ref": "#/components/schemas/CustomerVehicleSummary" },
+          {
+            "type": "object",
+            "properties": {
+              "images": {
+                "type": "array",
+                "items": { "type": "string" }
+              },
+              "bodyStyle": { "type": "string", "example": "Sedan" },
+              "fuelType": { "type": "string", "example": "Petrol" },
+              "transmission": { "type": "string", "example": "Automatic" },
+              "driveTrain": { "type": "string", "example": "2WD" },
+              "mileage": { "type": "integer", "example": 32000 },
+              "invoiceId": { "type": "string", "example": "inv-001" },
+              "shipmentId": { "type": "string", "example": "ship-001" },
+              "vesselName": { "type": "string", "example": "Global Highway" },
+              "etd": { "type": "string", "example": "2026-08-20T10:00:00.000Z" },
+              "eta": { "type": "string", "example": "2026-09-05T10:00:00.000Z" },
+              "billOfLadingNo": { "type": "string", "example": "BL-789012" },
+              "statusHistory": {
+                "type": "array",
+                "items": { "$ref": "#/components/schemas/CustomerVehicleStatusHistoryItem" }
+              },
+              "documents": {
+                "type": "array",
+                "items": { "$ref": "#/components/schemas/CustomerVehicleDocumentReference" }
+              }
+            },
+            "required": ["images", "statusHistory", "documents"]
+          }
+        ]
+      },
+      "CustomerVehicleListResponse": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/CustomerVehicleSummary" }
+          },
+          "total": { "type": "integer", "example": 3 },
+          "countsByStatus": {
+            "type": "object",
+            "properties": {
+              "underNegotiation": { "type": "integer", "example": 1 },
+              "underNegotiationWithPI": { "type": "integer", "example": 1 },
+              "confirmed": { "type": "integer", "example": 1 },
+              "inTransit": { "type": "integer", "example": 0 },
+              "delivered": { "type": "integer", "example": 0 },
+              "all": { "type": "integer", "example": 3 }
+            },
+            "required": ["underNegotiation", "underNegotiationWithPI", "confirmed", "inTransit", "delivered", "all"]
+          }
+        },
+        "required": ["items", "total", "countsByStatus"]
       }
     }
   }
