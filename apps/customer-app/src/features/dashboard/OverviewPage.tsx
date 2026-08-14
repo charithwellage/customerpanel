@@ -1,6 +1,5 @@
 import React from 'react';
 import type { CustomerDashboard } from '@carchief/api-client';
-import { useCustomerShell } from '../shell/index.js';
 import { useDashboard } from './useDashboard.js';
 import { CreditUtilisationCard } from './components/CreditUtilisationCard.js';
 import { VehicleCountCard } from './components/VehicleCountCard.js';
@@ -17,11 +16,6 @@ import { NotificationCard } from './components/NotificationCard.js';
  */
 export const OverviewPage: React.FC = () => {
   const { data, isLoading, error } = useDashboard();
-  const { setActiveRoute } = useCustomerShell();
-
-  React.useEffect(() => {
-    setActiveRoute('/dashboard');
-  }, [setActiveRoute]);
 
   return (
     <div className="cc-cust-overview">

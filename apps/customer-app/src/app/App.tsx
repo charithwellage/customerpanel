@@ -4,6 +4,7 @@ import { AccountGuard, type CustomerSession, HttpClientProvider } from '../featu
 import { OfflineGuard } from '../features/pwa/index.js';
 import { CustomerShell, useCustomerShell, type CustomerUser } from '../features/shell/index.js';
 import { CustomerInventoryPage, CustomerVehicleDetailPage } from '../features/inventory/index.js';
+import { DocumentsPage } from '../features/documents/index.js';
 import { PortalPlaceholder } from './PortalPlaceholder.js';
 
 const queryClient = new QueryClient();
@@ -68,6 +69,10 @@ const AppContent: React.FC<{ session: CustomerSession; apiBaseUrl: string }> = (
     );
   }
 
+  if (activeRoute === '/documents') {
+    return <DocumentsPage />;
+  }
+
   return <PortalPlaceholder signedInAs={session.user.email} />;
 };
 
@@ -79,7 +84,6 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = '' }) => (
           <HttpClientProvider apiBaseUrl={apiBaseUrl}>
             <CustomerShell
               initialUser={toShellUser(session)}
-              initialRoute="/dashboard"
               pageTitle="Customer Portal"
               pageSubtitle="Account access and application shell"
             >

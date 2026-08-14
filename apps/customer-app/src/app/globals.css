@@ -13,6 +13,7 @@
 @import "../features/pwa/pwa.css";
 @import "../features/dashboard/dashboard.css";
 @import "../features/shipments/shipments.css";
+@import "../features/documents/documents.css";
 @import "./placeholder.css";
 
 *,
