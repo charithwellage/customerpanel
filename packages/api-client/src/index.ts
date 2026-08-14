@@ -7,5 +7,5 @@ export * from './services/session.js';
 export * from './services/config.js';
 export * from './services/content.js';
 export * from './services/dashboard.js';
+export * from './services/logistics.js';
 export * from './http.js';
-

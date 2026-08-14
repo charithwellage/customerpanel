@@ -356,6 +356,71 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
     res.json(dashboard);
   });
 
+  // 4b. Customer shipment timeline projection (D02-P07-T001, CUST-11).
+  // The server scopes records to the authenticated customer and exposes only
+  // the approved operational stages; carrier/ERP internals are not exposed.
+  app.get('/api/v1/customer/shipments', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) {
+      res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+      return;
+    }
+    if (!hasPermission(req.user.role, 'read:customer')) {
+      res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
+      return;
+    }
+    res.json({ items: await store.listCustomerShipments(req.user.sub) });
+  });
+
+  app.get('/api/v1/customer/shipments/:id', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) {
+      res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+      return;
+    }
+    if (!hasPermission(req.user.role, 'read:customer')) {
+      res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
+      return;
+    }
+    const shipmentId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const shipment = await store.getCustomerShipment(req.user.sub, shipmentId);
+    if (!shipment) {
+      res.status(404).json({ statusCode: 404, message: 'Shipment not found', correlationId: `corr-404-${Date.now()}` });
+      return;
+    }
+    res.json(shipment);
+  });
+
+  // Documents are returned only after both Finance release and the
+  // salesperson-owned visibleToCustomer flag are true (CUST-20/CUST-21).
+  app.get('/api/v1/customer/documents', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) {
+      res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+      return;
+    }
+    if (!hasPermission(req.user.role, 'read:customer')) {
+      res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
+      return;
+    }
+    res.json({ items: await store.listCustomerDocuments(req.user.sub) });
+  });
+
+  app.get('/api/v1/customer/documents/:id', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) {
+      res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+      return;
+    }
+    if (!hasPermission(req.user.role, 'read:customer')) {
+      res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
+      return;
+    }
+    const documentId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const document = await store.getCustomerDocument(req.user.sub, documentId);
+    if (!document) {
+      res.status(404).json({ statusCode: 404, message: 'Document not found', correlationId: `corr-404-${Date.now()}` });
+      return;
+    }
+    res.json(document);
+  });
+
   // 5. Deterministic reset (Disabled in production mode for release safety)
   app.post('/api/v1/__reset', async (req: AuthenticatedRequest, res: Response) => {
     if (process.env.NODE_ENV === 'production' && process.env.ENABLE_MOCK_RESET !== 'true') {
