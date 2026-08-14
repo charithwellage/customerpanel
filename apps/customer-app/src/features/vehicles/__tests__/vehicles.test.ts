@@ -242,4 +242,3 @@ describe('My Vehicles UI Components (D02-P04-T002)', () => {
     });
   });
 });
-
