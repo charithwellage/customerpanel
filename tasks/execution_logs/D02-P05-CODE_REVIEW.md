@@ -106,3 +106,22 @@ Rerun required after correcting fabricated invoice data and prohibited inline pa
 ## Blockers
 
 None.
+
+## Post-remediation review — 2026-08-14
+
+Comparison range: `delivery_02_customer_application...feat_delivery02_phase_05`
+
+The two blocking findings were corrected before integration:
+
+1. `InvoiceCard.tsx` now uses the documented runtime CSS custom property `--cc-invoice-progress-width` consumed by `invoices.css`; a regression assertion prevents static inline width styling from returning.
+2. Mock invoice projections no longer fabricate bank/account/address details or percentage-derived financial line items. Authoritative totals and allocations remain available, while bank instructions and itemized charges are honestly unavailable pending approved Finance records. Printable output and UI use the same unavailable state.
+
+Rules checked: `tasks/CODE_REVIEW_RULES.md` 1–11 and `tasks/COMMON_FRONTEND_RULES.md`, including financial-data honesty, semantic CSS, API boundaries, authorization/IDOR protection, accessibility and POC isolation.
+
+Validation: Mock API and Customer App dependency-closure builds PASS; invoice UI unit suite 12/12 PASS; contract suite 50/50 PASS; boundaries PASS; task validation PASS; `git diff --check` PASS; no POC changes. Existing fresh-runtime MCP evidence remains target-matched and the invoice Playwright suite is recorded as 12/12 across Chromium, mobile Chromium and tablet Chromium.
+
+Current findings: None. Remaining concerns: bank instructions and itemized charges remain intentionally unavailable until approved backend records exist; this is documented behavior, not a blocker.
+
+Focused suite result: 12/12 passed; `tests/e2e/customer/invoices.spec.ts` across chromium, mobile-chromium, tablet-chromium
+
+Result: PASS
