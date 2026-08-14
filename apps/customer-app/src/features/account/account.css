@@ -1,0 +1,239 @@
+/*
+ * account.css
+ * Feature-level styles for customer account access: the guard surface, sign-in
+ * card, account-state banner and the password-recovery identity-boundary card
+ * (D02-P01-T002).
+ * Owned path: apps/customer-app/src/features/account/
+ *
+ * Every value uses a semantic token emitted by packages/theme/src/provider.ts.
+ * No literal colours, no fallback palettes.
+ */
+
+.cc-acc-guard-surface {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: var(--spacing-lg) var(--spacing-md);
+  background: var(--color-background);
+}
+
+/* ---------- Sign-in card ---------- */
+
+.cc-acc-login-card,
+.cc-acc-recovery-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  width: 100%;
+  max-width: 460px;
+  padding: var(--spacing-xl);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.cc-acc-login-card__header,
+.cc-acc-recovery-card__header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.cc-acc-login-card__badge,
+.cc-acc-recovery-card__badge {
+  align-self: flex-start;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: var(--color-neutral-surface);
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-pill);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.cc-acc-login-card__title,
+.cc-acc-recovery-card__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--font-size-2xl);
+  color: var(--color-text-primary);
+}
+
+.cc-acc-login-card__subtitle,
+.cc-acc-recovery-card__desc {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+.cc-acc-login-card__error {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-md);
+  background: var(--color-error-surface);
+  border: 1px solid var(--color-error);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+}
+
+.cc-acc-login-card__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.cc-acc-login-card__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.cc-acc-login-card__label-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+}
+
+.cc-acc-login-card__label {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.cc-acc-login-card__input {
+  min-height: var(--min-touch-target);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-size: var(--font-size-base);
+  color: var(--color-text-primary);
+}
+
+.cc-acc-login-card__input:focus-visible {
+  border-color: var(--color-focus);
+}
+
+.cc-acc-login-card__forgot-btn {
+  padding: 0;
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  font-size: var(--font-size-sm);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.cc-acc-login-card__actions {
+  display: flex;
+  flex-direction: column;
+}
+
+.cc-acc-login-card__submit {
+  width: 100%;
+}
+
+.cc-acc-login-card__footer-note {
+  display: block;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+/* ---------- Account-state banner ---------- */
+
+.cc-acc-banner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  width: 100%;
+  max-width: 560px;
+  padding: var(--spacing-lg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+}
+
+.cc-acc-banner__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.cc-acc-banner__title {
+  font-family: var(--font-display);
+  font-size: var(--font-size-lg);
+  color: var(--color-text-primary);
+}
+
+.cc-acc-banner__message {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+.cc-acc-banner--active {
+  background: var(--color-success-surface);
+  border-color: var(--color-success);
+}
+
+.cc-acc-banner--inactive,
+.cc-acc-banner--expired {
+  background: var(--color-warning-surface);
+  border-color: var(--color-warning);
+}
+
+.cc-acc-banner--locked,
+.cc-acc-banner--unauthorized {
+  background: var(--color-error-surface);
+  border-color: var(--color-error);
+}
+
+.cc-acc-banner__btn {
+  align-self: flex-start;
+  min-height: var(--min-touch-target);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  background: var(--color-primary);
+  color: var(--color-text-on-primary);
+  border: none;
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* ---------- Password recovery / identity boundary ---------- */
+
+.cc-acc-recovery-card__notice {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-md);
+  background: var(--color-info-surface);
+  border: 1px solid var(--color-info);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+}
+
+.cc-acc-recovery-card__notice p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+.cc-acc-recovery-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+}
