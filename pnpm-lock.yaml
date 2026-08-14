@@ -164,6 +164,13 @@ importers:
       typescript:
         specifier: ^5.7.2
         version: 5.9.3
+    optionalDependencies:
+      '@next/swc-linux-arm64-gnu':
+        specifier: 15.5.7
+        version: 15.5.7
+      '@next/swc-linux-arm64-musl':
+        specifier: 15.5.7
+        version: 15.5.7
 
   apps/salesperson-app:
     dependencies:
