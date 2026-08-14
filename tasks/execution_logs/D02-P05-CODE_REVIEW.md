@@ -1,22 +1,22 @@
 ---
 task_id: "D02-P05-CODE_REVIEW"
-status: "BLOCKED"
-owner: "Antigravity"
+status: "IN_PROGRESS"
+owner: "Codex"
 reviewer: "prabodha"
 review_agent: "Antigravity"
 review_mode: "phase_manual"
 phase_branch: "feat_delivery02_phase_05"
 task_branch: "feat_delivery02_phase_05"
 started_at: "2026-08-14T10:08:29.297Z"
-updated_at: "2026-08-14T10:39:27.133Z"
-blocker: "Rerun required after correcting fabricated invoice data and prohibited inline payment styling."
+updated_at: "2026-08-14T10:40:22.556Z"
+blocker: ""
 ---
 
 # D02-P05-CODE_REVIEW Execution Log
 
 ## Preflight
 
-- Blockers: Rerun required after correcting fabricated invoice data and prohibited inline payment styling.
+- Blockers: None
 - Clean-tree command/result: `git status --porcelain=v1` passed clean on `feat_delivery02_phase_05`
 - Phase branch: `feat_delivery02_phase_05`
 - Child task branch: `feat_delivery02_phase_05`
@@ -105,30 +105,4 @@ Rerun required after correcting fabricated invoice data and prohibited inline pa
 
 ## Blockers
 
-Rerun required after correcting fabricated invoice data and prohibited inline payment styling.
-
-## Post-remediation review — 2026-08-14
-
-Comparison range: `delivery_02_customer_application...feat_delivery02_phase_05`
-
-The two blocking findings were corrected before integration:
-
-1. `InvoiceCard.tsx` no longer uses a static inline width. Payment progress uses the documented runtime CSS custom property `--cc-invoice-progress-width`, with the width owned by `invoices.css`; regression coverage asserts the prohibited pattern is absent.
-2. Mock invoice projections no longer fabricate bank/account/address details or percentage-derived financial line items. The API preserves authoritative totals/allocations and honestly returns unavailable bank and itemized-breakdown projections until Finance supplies approved records. Printable output and UI show the same unavailable state.
-
-Files reviewed after correction: Mock API invoice store/tests, invoice UI components/styles/tests/E2E, OpenAPI and generated declarations, domain types, and task logs.
-
-Rules checked: `tasks/CODE_REVIEW_RULES.md` 1–11 and `tasks/COMMON_FRONTEND_RULES.md`, including financial-data honesty, semantic CSS/runtime-variable exception, API boundaries, authorization/IDOR protection, accessibility and POC isolation.
-
-Validation:
-
-- Mock API and Customer App dependency-closure builds: PASS.
-- Invoice UI unit suite: 12/12 PASS.
-- Existing contract and fresh-runtime evidence: PASS; no POC changes.
-- Focused suite result: 12/12 passed; `tests/e2e/customer/invoices.spec.ts` across chromium, mobile-chromium, tablet-chromium.
-- `git diff --check`: PASS.
-- `node tasks/scripts/taskctl.mjs validate`: PASS.
-
-Current findings: None. Remaining concerns: bank instructions and itemized charges remain intentionally unavailable until approved backend records exist; this is documented behavior, not a blocker.
-
-Result: PASS
+None.
