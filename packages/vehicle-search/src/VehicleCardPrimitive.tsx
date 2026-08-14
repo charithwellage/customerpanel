@@ -24,14 +24,14 @@ export const VehicleCardPrimitive: React.FC<VehicleCardPrimitiveProps> = ({
   const hasTierDiscount = Boolean(showDiscount && tierPricing && tierPricing.tierDiscountPercent > 0);
   const hasRegularDiscount = Boolean(showDiscount && vehicle.discountPercent && vehicle.discountPercent > 0);
   const hasDiscount = hasTierDiscount || hasRegularDiscount;
-  
+
   const originalPrice = tierPricing ? tierPricing.originalPriceUsd : vehicle.priceUsd;
   const discountedPrice = tierPricing
     ? tierPricing.tierPriceUsd
     : hasRegularDiscount
       ? Math.round(vehicle.priceUsd * (1 - vehicle.discountPercent! / 100))
       : vehicle.priceUsd;
-  
+
   const targetHref = actionHref || `/allstock/${vehicle.slug || vehicle.id}`;
 
   const handleCardClick = (e: React.MouseEvent<HTMLElement>) => {
