@@ -65,7 +65,7 @@ export const PaymentsPage: React.FC = () => {
           <div className="cc-cust-payments-list" aria-label="Customer payment journal">
             {filteredPayments.map((payment) => {
               const status = getCustomerPaymentStatus(payment, notifications);
-              return <button type="button" key={payment.id} className={`cc-cust-payment-card ${selected?.id === payment.id ? 'cc-cust-payment-card--selected' : ''}`} aria-pressed={selected?.id === payment.id} onClick={() => setSelectedId(payment.id)}>
+              return <button type="button" key={payment.id} data-testid={`payment-card-${payment.id}`} className={`cc-cust-payment-card ${selected?.id === payment.id ? 'cc-cust-payment-card--selected' : ''}`} aria-pressed={selected?.id === payment.id} onClick={() => setSelectedId(payment.id)}>
                 <span className="cc-cust-payment-card__reference">{payment.reference}</span>
                 <span className="cc-cust-payment-card__meta">{payment.invoiceId} · {payment.paymentDate}</span>
                 <span className={`cc-cust-payment-card__status cc-cust-payment-card__status--${status.toLowerCase()}`}>{status}</span>

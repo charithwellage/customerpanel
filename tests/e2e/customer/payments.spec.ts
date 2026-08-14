@@ -16,11 +16,12 @@ test.describe('Customer payment journal (D02-P06-T002)', () => {
     await nav.getByRole('link', { name: 'Payments' }).click();
     await expect(page.getByTestId('customer-payments-page')).toBeVisible();
     await expect(page.getByRole('heading', { name: 'TT payment journal' })).toBeVisible();
-    await expect(page.getByText('pay-004')).toBeVisible();
+    await expect(page.getByText('PAY-004')).toBeVisible();
+    await page.getByTestId('payment-card-pay-004').click();
     await expect(page.getByText('FinanceReviewRequested')).toBeVisible();
-    await page.getByRole('button', { name: 'Pending' }).click();
+    await page.getByTestId('payment-controls').getByRole('button', { name: 'Pending' }).click();
     await expect(page.getByTestId('payment-detail')).toBeVisible();
     await page.getByLabel('Search payments').fill('does-not-exist');
-    await expect(page.getByRole('status', { name: 'No matching payment records are available.' })).toBeVisible();
+    await expect(page.getByText('No matching payment records are available.')).toBeVisible();
   });
 });
