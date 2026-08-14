@@ -53,9 +53,7 @@ import type {
   ListCustomerVehiclesQuery,
   CustomerInvoiceType,
   CustomerInvoiceStatus,
-  CustomerInvoiceLineItem,
   CustomerInvoiceAllocationItem,
-  CustomerInvoiceBankDetails,
   CustomerInvoiceSummary,
   CustomerInvoiceDetail,
   CustomerInvoiceCountsByType,
@@ -2726,44 +2724,6 @@ export function buildCustomerInvoiceProjections(
     const isExpired = new Date(nowISO).getTime() > deadlineTime;
     const status: CustomerInvoiceStatus = isExpired ? 'Expired' : (pi.status === 'Cancelled' ? 'Cancelled' : 'Issued');
 
-    const fobPrice = Math.round(totalAmountUsd * 0.85);
-    const oceanFreight = Math.round(totalAmountUsd * 0.10);
-    const handlingFee = totalAmountUsd - fobPrice - oceanFreight;
-
-    const lineItems: CustomerInvoiceLineItem[] = [
-      {
-        id: `li-${pi.id}-1`,
-        description: `FOB Vehicle Price - ${vehicle.year} ${vehicle.make} ${vehicle.model} (${vehicle.chassisNumber})`,
-        quantity: 1,
-        unitPriceUsd: fobPrice,
-        amountUsd: fobPrice,
-      },
-      {
-        id: `li-${pi.id}-2`,
-        description: `Ocean Freight & Logistics Handling (${vehicle.destinationPort || 'Mombasa'})`,
-        quantity: 1,
-        unitPriceUsd: oceanFreight,
-        amountUsd: oceanFreight,
-      },
-      {
-        id: `li-${pi.id}-3`,
-        description: 'Export Documentation, Inspection & Processing Fee',
-        quantity: 1,
-        unitPriceUsd: handlingFee,
-        amountUsd: handlingFee,
-      },
-    ];
-
-    const bankDetails: CustomerInvoiceBankDetails = {
-      bankName: 'MUFG Bank, Ltd.',
-      swiftCode: 'BOTKJPJT',
-      accountName: 'CarChief International Co., Ltd.',
-      accountNumber: '123-4567890',
-      branchName: 'Tokyo Head Office',
-      bankAddress: '7-1, Marunouchi 2-chome, Chiyoda-ku, Tokyo 100-8388, Japan',
-      reference: invoiceNumber,
-    };
-
     result.push({
       id: pi.id,
       invoiceNumber,
@@ -2794,15 +2754,14 @@ export function buildCustomerInvoiceProjections(
         slug,
         primaryImage,
       },
-      lineItems,
+      lineItems: [],
       allocations: [],
-      bankDetails,
-      documentUrl: `/documents/${pi.id}.pdf`,
+      bankDetails: undefined,
+      documentUrl: undefined,
       termsAndConditions: [
-        'Payment must be made via Telegraphic Transfer (T/T) to the official CarChief bank account listed above.',
         'This Proforma Invoice and reservation hold are valid for 72 hours from the issue date.',
         'A minimum deposit of 50% is required to secure the vehicle and proceed with export preparation.',
-        'Please quote the reference number in your wire transfer instructions.',
+        'Payment instructions are unavailable pending Finance confirmation.',
       ],
       isExpired,
       notes: 'Proforma Invoice issued for initial vehicle reservation and wire transfer payment.',
@@ -2836,42 +2795,6 @@ export function buildCustomerInvoiceProjections(
     const docRecord = documents.find((d) => d.customerId === customerId && (d.vehicleId === inv.vehicleId || d.id === `doc-${inv.id}`) && d.type === 'Invoice');
     const documentStatus: 'Available' | 'Pending' | 'Unavailable' = docRecord ? docRecord.status : 'Available';
 
-    const fobPrice = Math.round(totalAmountUsd * 0.82);
-    const oceanFreight = Math.round(totalAmountUsd * 0.12);
-    const insurance = Math.round(totalAmountUsd * 0.03);
-    const handlingFee = totalAmountUsd - fobPrice - oceanFreight - insurance;
-
-    const lineItems: CustomerInvoiceLineItem[] = [
-      {
-        id: `li-${inv.id}-1`,
-        description: `FOB Commercial Vehicle Price - ${vehicle.year} ${vehicle.make} ${vehicle.model} (${vehicle.chassisNumber})`,
-        quantity: 1,
-        unitPriceUsd: fobPrice,
-        amountUsd: fobPrice,
-      },
-      {
-        id: `li-${inv.id}-2`,
-        description: `Ocean Freight Carrier Charges (${vehicle.destinationPort || 'Mombasa'})`,
-        quantity: 1,
-        unitPriceUsd: oceanFreight,
-        amountUsd: oceanFreight,
-      },
-      {
-        id: `li-${inv.id}-3`,
-        description: 'Marine Transit Cargo Insurance',
-        quantity: 1,
-        unitPriceUsd: insurance,
-        amountUsd: insurance,
-      },
-      {
-        id: `li-${inv.id}-4`,
-        description: 'Pre-Shipment Inspection (JAAI/QISJ) & Export Clearance',
-        quantity: 1,
-        unitPriceUsd: handlingFee,
-        amountUsd: handlingFee,
-      },
-    ];
-
     const allocationItems: CustomerInvoiceAllocationItem[] = customerAllocs.map((a) => ({
       id: a.id,
       paymentId: a.paymentId,
@@ -2879,16 +2802,6 @@ export function buildCustomerInvoiceProjections(
       allocatedAt: a.allocatedAt,
       status: a.status,
     }));
-
-    const bankDetails: CustomerInvoiceBankDetails = {
-      bankName: 'MUFG Bank, Ltd.',
-      swiftCode: 'BOTKJPJT',
-      accountName: 'CarChief International Co., Ltd.',
-      accountNumber: '123-4567890',
-      branchName: 'Tokyo Head Office',
-      bankAddress: '7-1, Marunouchi 2-chome, Chiyoda-ku, Tokyo 100-8388, Japan',
-      reference: invoiceNumber,
-    };
 
     const dueDate = new Date(new Date(inv.invoicedAt).getTime() + (7 * 24 * 60 * 60 * 1000)).toISOString();
 
@@ -2921,14 +2834,13 @@ export function buildCustomerInvoiceProjections(
         slug,
         primaryImage,
       },
-      lineItems,
+      lineItems: [],
       allocations: allocationItems,
-      bankDetails,
-      documentUrl: `/documents/${inv.id}.pdf`,
+      bankDetails: undefined,
+      documentUrl: undefined,
       termsAndConditions: [
-        'Final Commercial Invoice issued for export clearance and vessel booking.',
-        'Payment settled according to the approved wire transfer allocations.',
-        'Original shipping documentation will be couriered to the consignee upon final vessel departure.',
+        'Final Commercial Invoice projection; approved payment allocations are shown separately.',
+        'Payment instructions are unavailable pending Finance confirmation.',
       ],
       isExpired: false,
       notes: 'Final Commercial Invoice for vehicle export.',
@@ -3044,7 +2956,9 @@ export function buildCustomerInvoiceDocument(invoice: CustomerInvoiceDetail): Cu
           </tr>
         </thead>
         <tbody>
-          ${invoice.lineItems.map(item => `
+          ${invoice.lineItems.length === 0 ? `
+            <tr><td colspan="4">Itemized charges are unavailable pending an approved invoice breakdown.</td></tr>
+          ` : invoice.lineItems.map(item => `
             <tr>
               <td>${item.description}</td>
               <td>${item.quantity}</td>
@@ -3070,12 +2984,14 @@ export function buildCustomerInvoiceDocument(invoice: CustomerInvoiceDetail): Cu
       </table>
       <div class="carchief-invoice-document__banking">
         <h3>Official Wire Transfer Instructions (T/T Only)</h3>
-        <p><strong>Bank:</strong> ${invoice.bankDetails.bankName}</p>
-        <p><strong>SWIFT:</strong> ${invoice.bankDetails.swiftCode}</p>
-        <p><strong>Account Name:</strong> ${invoice.bankDetails.accountName}</p>
-        <p><strong>Account Number:</strong> ${invoice.bankDetails.accountNumber}</p>
-        <p><strong>Branch:</strong> ${invoice.bankDetails.branchName}</p>
-        <p><strong>Payment Reference:</strong> ${invoice.bankDetails.reference}</p>
+        ${invoice.bankDetails ? `
+          <p><strong>Bank:</strong> ${invoice.bankDetails.bankName}</p>
+          <p><strong>SWIFT:</strong> ${invoice.bankDetails.swiftCode}</p>
+          <p><strong>Account Name:</strong> ${invoice.bankDetails.accountName}</p>
+          <p><strong>Account Number:</strong> ${invoice.bankDetails.accountNumber}</p>
+          <p><strong>Branch:</strong> ${invoice.bankDetails.branchName}</p>
+          <p><strong>Payment Reference:</strong> ${invoice.bankDetails.reference}</p>
+        ` : '<p>Bank instructions are unavailable pending Finance confirmation.</p>'}
       </div>
     </div>
   `;

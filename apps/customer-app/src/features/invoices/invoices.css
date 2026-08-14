@@ -433,6 +433,7 @@
 
 .cc-invoice-card__progress-fill {
   height: 100%;
+  width: var(--cc-invoice-progress-width, 0%);
   background-color: var(--cc-color-success, #22c55e);
   border-radius: var(--cc-radius-full, 9999px);
   transition: width 300ms ease;

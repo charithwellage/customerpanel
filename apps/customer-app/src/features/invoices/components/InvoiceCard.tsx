@@ -127,7 +127,7 @@ export const InvoiceCard: React.FC<InvoiceCardProps> = ({ invoice, onSelect }) =
           >
             <div
               className="cc-invoice-card__progress-fill"
-              style={{ width: `${percentPaid}%` }}
+              style={{ '--cc-invoice-progress-width': `${percentPaid}%` } as React.CSSProperties}
             />
           </div>
           <span className="cc-invoice-card__progress-text">{percentPaid}% Paid</span>

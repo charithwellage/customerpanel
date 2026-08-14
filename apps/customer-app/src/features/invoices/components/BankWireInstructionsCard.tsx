@@ -19,7 +19,20 @@ export const BankWireInstructionsCard: React.FC<BankWireInstructionsCardProps> =
   const [copied, setCopied] = useState(false);
 
   if (!bankDetails) {
-    return null;
+    return (
+      <div className="cc-bank-wire-card cc-bank-wire-card--unavailable" data-testid="bank-wire-instructions-card">
+        <div className="cc-bank-wire-card__header">
+          <div className="cc-bank-wire-card__title-wrap">
+            <span className="cc-bank-wire-card__icon" aria-hidden="true">🏦</span>
+            <h3 className="cc-bank-wire-card__title">Bank Wire Transfer (T/T) Instructions</h3>
+          </div>
+          <span className="cc-bank-wire-card__badge">Pending Finance confirmation</span>
+        </div>
+        <p className="cc-bank-wire-card__unavailable" role="status">
+          Bank instructions are unavailable pending Finance confirmation. No payment account details are published for this demo record.
+        </p>
+      </div>
+    );
   }
 
   const reference = bankDetails.reference || referenceFallback || 'INVOICE-REF';

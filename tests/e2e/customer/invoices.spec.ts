@@ -106,10 +106,9 @@ test.describe('Customer Invoices & PI Contract E2E (D02-P05-T003)', () => {
     await expect(page.getByTestId('detail-kpi-paid')).toContainText('$5,500.00');
     await expect(page.getByTestId('detail-kpi-outstanding')).toContainText('$3,000.00');
 
-    // Verify Itemized Invoice Charges Table
+    // Verify authoritative totals and honest unavailable line-item projection
     await expect(page.getByTestId('invoice-line-items-table')).toBeVisible();
-    await expect(page.getByText('FOB Commercial Vehicle Price')).toBeVisible();
-    await expect(page.getByText('Ocean Freight Carrier Charges')).toBeVisible();
+    await expect(page.getByText('Itemized charges are unavailable pending an approved invoice breakdown.')).toBeVisible();
     await expect(page.getByTestId('line-items-total')).toContainText('$8,500.00');
     await expect(page.getByTestId('line-items-paid')).toContainText('-$5,500.00');
     await expect(page.getByTestId('line-items-outstanding')).toContainText('$3,000.00');
@@ -118,11 +117,10 @@ test.describe('Customer Invoices & PI Contract E2E (D02-P05-T003)', () => {
     await expect(page.getByTestId('invoice-allocations-table')).toBeVisible();
     await expect(page.getByTestId('allocations-total-amount')).toContainText('$5,500.00');
 
-    // Verify Bank Wire Instructions Card
+    // Verify bank instructions are not fabricated before Finance confirmation
     await expect(page.getByTestId('bank-wire-instructions-card')).toBeVisible();
-    await expect(page.getByTestId('wire-ref-code')).toHaveText('INV-0001');
-    await expect(page.getByText('MUFG Bank, Ltd.')).toBeVisible();
-    await expect(page.getByText('BOTKJPJT')).toBeVisible();
+    await expect(page.getByText('Bank instructions are unavailable pending Finance confirmation.')).toBeVisible();
+    await expect(page.getByText('MUFG Bank, Ltd.')).not.toBeVisible();
 
     // Open Printable Document Modal
     await page.getByTestId('open-printable-doc-btn').click();

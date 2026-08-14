@@ -2222,7 +2222,7 @@
               "isExpired": { "type": "boolean", "example": false },
               "notes": { "type": "string", "example": "Proforma invoice issued with 50% deposit requirement" }
             },
-            "required": ["vehicle", "lineItems", "allocations", "bankDetails"]
+            "required": ["vehicle", "lineItems", "allocations"]
           }
         ]
       },
@@ -2276,4 +2276,3 @@
     }
   }
 }
-

@@ -146,7 +146,7 @@ describe('Customer Invoices & PI Contract (D02-P05-T001)', () => {
   });
 
   describe('3. Customer Invoice Detail & Calculations (CUST-14, CUST-15, CUST-16, CUST-21, RULE-04, RULE-07)', () => {
-    it('returns full commercial invoice detail with line items, allocations, and bank details', async () => {
+    it('returns full commercial invoice detail with authoritative totals and allocations', async () => {
       const token = createDemoJwtToken('CustomerBuyer');
       const res = await fetch(`${baseUrl}/api/v1/customer/invoices/inv-001`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -171,9 +171,7 @@ describe('Customer Invoices & PI Contract (D02-P05-T001)', () => {
 
       // Line items
       expect(body.lineItems).toBeInstanceOf(Array);
-      expect(body.lineItems.length).toBeGreaterThan(0);
-      const totalLineItems = body.lineItems.reduce((sum, item) => sum + item.amountUsd, 0);
-      expect(totalLineItems).toBe(body.totalAmountUsd);
+      expect(body.lineItems).toEqual([]);
 
       // Allocations
       expect(body.allocations).toBeInstanceOf(Array);
@@ -181,12 +179,8 @@ describe('Customer Invoices & PI Contract (D02-P05-T001)', () => {
       expect(body.allocations[0].amountUsd).toBe(2000.00);
       expect(body.allocations[1].amountUsd).toBe(3500.00);
 
-      // Bank Details
-      expect(body.bankDetails).toBeDefined();
-      expect(body.bankDetails.bankName).toBe('MUFG Bank, Ltd.');
-      expect(body.bankDetails.swiftCode).toBe('BOTKJPJT');
-      expect(body.bankDetails.accountNumber).toBe('123-4567890');
-      expect(body.bankDetails.reference).toBe('INV-0001');
+      // Bank instructions are intentionally unavailable until Finance supplies approved details.
+      expect(body.bankDetails).toBeUndefined();
     });
 
     it('returns full proforma invoice detail with 72h payment deadline and 50% deposit requirement (RULE-07)', async () => {
@@ -268,7 +262,8 @@ describe('Customer Invoices & PI Contract (D02-P05-T001)', () => {
       expect(body.title).toContain('Commercial Invoice INV-0001');
       expect(body.contentHtml).toContain('CarChief International Co., Ltd.');
       expect(body.contentHtml).toContain('INV-0001');
-      expect(body.contentHtml).toContain('MUFG Bank, Ltd.');
+      expect(body.contentHtml).toContain('Bank instructions are unavailable pending Finance confirmation');
+      expect(body.contentHtml).not.toContain('MUFG Bank');
       expect(body.status).toBe('Available');
       expect(body.generatedAt).toBeDefined();
     });

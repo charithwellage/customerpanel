@@ -74,12 +74,16 @@ describe('Customer Invoices UI Components (D02-P05-T002)', () => {
   it('keeps invoice styling in CSS rather than static inline styles', async () => {
     const { readFile } = await import('node:fs/promises');
     const source = await readFile(new URL('../invoices.css', import.meta.url), 'utf8');
+    const cardSource = await readFile(new URL('../components/InvoiceCard.tsx', import.meta.url), 'utf8');
 
     expect(source).toContain('.cc-cust-invoices-page');
     expect(source).toContain('.cc-invoice-card');
     expect(source).toContain('.cc-invoice-kpi-grid');
     expect(source).toContain('.cc-bank-wire-card');
     expect(source).toContain('.cc-invoice-modal-dialog');
+    expect(source).toContain('--cc-invoice-progress-width');
+    expect(cardSource).not.toContain('style={{ width:');
+    expect(cardSource).toContain('--cc-invoice-progress-width');
   });
 
   describe('InvoiceSummaryKpiCards', () => {
@@ -140,34 +144,28 @@ describe('Customer Invoices UI Components (D02-P05-T002)', () => {
   });
 
   describe('BankWireInstructionsCard', () => {
-    it('renders wire transfer bank details and mandatory payment reference', () => {
+    it('renders an honest unavailable state when Finance has not supplied bank instructions', () => {
       const html = renderToStaticMarkup(
         React.createElement(BankWireInstructionsCard, {
-          bankDetails: {
-            bankName: 'MUFG Bank, Ltd.',
-            swiftCode: 'BOTKJPJT',
-            accountName: 'CarChief International Co., Ltd.',
-            accountNumber: '123-4567890',
-            branchName: 'Tokyo Head Office',
-            bankAddress: 'Tokyo, Japan',
-            reference: 'INV-0001',
-          },
           referenceFallback: 'INV-0001',
           depositRequiredUsd: 3950,
           isProforma: true,
         })
       );
 
-      expect(html).toContain('MUFG Bank, Ltd.');
-      expect(html).toContain('BOTKJPJT');
-      expect(html).toContain('123-4567890');
-      expect(html).toContain('INV-0001');
-      expect(html).toContain('50% Minimum Deposit Required');
-      expect(html).toContain('$3,950.00');
+      expect(html).toContain('Bank instructions are unavailable pending Finance confirmation');
+      expect(html).not.toContain('MUFG');
+      expect(html).not.toContain('SWIFT');
     });
   });
 
   describe('InvoiceLineItemsTable', () => {
+    it('renders an honest unavailable state when no approved breakdown exists', () => {
+      const html = renderToStaticMarkup(React.createElement(InvoiceLineItemsTable, {
+        lineItems: [], totalAmountUsd: 8500, paidAmountUsd: 5500, outstandingAmountUsd: 3000,
+      }));
+      expect(html).toContain('Itemized charges are unavailable pending an approved invoice breakdown');
+    });
     it('renders itemized charges, subtotals, paid deductions, and balance due', () => {
       const html = renderToStaticMarkup(
         React.createElement(InvoiceLineItemsTable, {

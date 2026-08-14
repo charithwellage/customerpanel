@@ -28,7 +28,13 @@ export const InvoiceLineItemsTable: React.FC<InvoiceLineItemsTableProps> = ({
             </tr>
           </thead>
           <tbody>
-            {lineItems.map((item, idx) => (
+            {lineItems.length === 0 ? (
+              <tr>
+                <td colSpan={4} className="cc-invoice-items-td cc-invoice-items-td--unavailable" role="status">
+                  Itemized charges are unavailable pending an approved invoice breakdown.
+                </td>
+              </tr>
+            ) : lineItems.map((item, idx) => (
               <tr key={item.id || `item-${idx}`} className="cc-invoice-items-tr">
                 <td className="cc-invoice-items-td cc-invoice-items-td--desc">{item.description}</td>
                 <td className="cc-invoice-items-td cc-invoice-items-td--qty">{item.quantity}</td>

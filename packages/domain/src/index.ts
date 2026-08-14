@@ -789,7 +789,7 @@ export interface CustomerInvoiceDetail extends CustomerInvoiceSummary {
   vehicle: CustomerInvoiceDetailVehicle;
   lineItems: CustomerInvoiceLineItem[];
   allocations: CustomerInvoiceAllocationItem[];
-  bankDetails: CustomerInvoiceBankDetails;
+  bankDetails?: CustomerInvoiceBankDetails;
   documentUrl?: string;
   termsAndConditions?: string[];
   isExpired?: boolean;
@@ -853,4 +853,3 @@ export function calculateInvoiceBalance(totalAmountUsd: number, paidAmountUsd: n
 export * from './auth.js';
 export * from './freight.js';
 export * from './content.js';
-
