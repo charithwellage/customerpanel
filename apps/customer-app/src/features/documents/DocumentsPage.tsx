@@ -1,7 +1,7 @@
 import React from 'react';
 import type { CustomerDocument } from '@carchief/api-client';
 import { useCustomerShell } from '../shell/index.js';
-import { useDocuments } from './useDocuments.js';
+import { useDocument, useDocuments } from './useDocuments.js';
 
 export const DOCUMENT_CATEGORIES = [
   'Proforma Invoice',
@@ -33,6 +33,8 @@ function statusLabel(status: CustomerDocument['status']): string {
 export const DocumentsPage: React.FC = () => {
   const { setActiveRoute } = useCustomerShell();
   const { data: documents, isLoading, error, refetch } = useDocuments();
+  const [selectedDocumentId, setSelectedDocumentId] = React.useState<string | null>(null);
+  const selectedDocument = useDocument(selectedDocumentId);
   const [query, setQuery] = React.useState('');
   const [category, setCategory] = React.useState<DocumentCategory | 'All'>('All');
 
@@ -107,9 +109,35 @@ export const DocumentsPage: React.FC = () => {
                 <dt>Created</dt><dd><time dateTime={document.createdAt}>{new Date(document.createdAt).toLocaleDateString()}</time></dd>
               </dl>
               <p className="cc-cust-document-card__notice">Preview and download are available only after the authorised document-access workflow.</p>
+              <button
+                type="button"
+                className="cc-cust-document-card__action"
+                onClick={() => setSelectedDocumentId(document.id)}
+              >
+                View authorised metadata
+              </button>
             </article>
           ))}
         </div>
+      )}
+
+      {selectedDocumentId && (
+        <aside className="cc-cust-documents__detail" aria-live="polite" aria-label="Authorised document detail">
+          {selectedDocument.isLoading && <p role="status">Loading authorised document metadata…</p>}
+          {selectedDocument.error && (
+            <p role="alert">This document is unavailable or has not been released to your account.</p>
+          )}
+          {selectedDocument.data && (
+            <>
+              <h2>Authorised document metadata</h2>
+              <p>{selectedDocument.data.id} is {statusLabel(selectedDocument.data.status).toLowerCase()}.</p>
+              <p>Binary preview and download are not enabled in this MVP.</p>
+            </>
+          )}
+          <button type="button" className="cc-cust-document-card__action" onClick={() => setSelectedDocumentId(null)}>
+            Close details
+          </button>
+        </aside>
       )}
 
       <section className="cc-cust-documents__categories" aria-labelledby="document-categories-title">

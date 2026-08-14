@@ -15,4 +15,12 @@ describe('Customer Secure Vault (D02-P07-T003)', () => {
     expect(source).not.toContain('style={{');
     expect(source).toContain('cc-cust-document-card');
   });
+
+  it('exposes an authorized metadata intent without binary or raw-url claims', async () => {
+    const { readFile } = await import('node:fs/promises');
+    const source = await readFile(new URL('../DocumentsPage.tsx', import.meta.url), 'utf8');
+    expect(source).toContain('View authorised metadata');
+    expect(source).toContain('Binary preview and download are not enabled in this MVP.');
+    expect(source).not.toMatch(/https?:\/\//);
+  });
 });

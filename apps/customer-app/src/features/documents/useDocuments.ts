@@ -15,3 +15,15 @@ export function useDocuments() {
     },
   });
 }
+
+export function useDocument(documentId: string | null) {
+  const httpClient = useHttpClient();
+  return useQuery<CustomerDocument, Error>({
+    queryKey: ['customer', 'document', documentId],
+    enabled: Boolean(httpClient && documentId),
+    queryFn: async () => {
+      if (!httpClient || !documentId) throw new Error('Customer API is unavailable');
+      return new LogisticsService(httpClient).getDocument(documentId);
+    },
+  });
+}

@@ -25,6 +25,9 @@ test.describe('Customer Secure Vault E2E (D02-P07-T003)', () => {
     const categoryList = page.getByRole('region', { name: 'Document categories' });
     await expect(categoryList.getByText('Proforma Invoice')).toBeVisible();
     await expect(categoryList.getByText('Auction Sheet')).toBeVisible();
+    await page.getByRole('button', { name: 'View authorised metadata' }).first().click();
+    await expect(page.getByRole('heading', { name: 'Authorised document metadata' })).toBeVisible();
+    await expect(page.getByText('Binary preview and download are not enabled in this MVP.')).toBeVisible();
   });
 
   test('supports category and keyword filtering without exposing raw documents', async ({ page }) => {
