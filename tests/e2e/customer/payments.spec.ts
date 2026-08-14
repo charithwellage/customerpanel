@@ -25,3 +25,33 @@ test.describe('Customer payment journal (D02-P06-T002)', () => {
     await expect(page.getByText('No matching payment records are available.')).toBeVisible();
   });
 });
+
+test.describe('Customer TT submission (D02-P06-T003)', () => {
+  test('validates and submits proof metadata without uploading proof bytes', async ({ page }) => {
+    await signIn(page);
+    const desktop = (page.viewportSize()?.width ?? 0) >= 1024;
+    if (!desktop) await page.getByTestId('cust-mobile-toggle').click();
+    const nav = page.locator(desktop ? '.cc-cust-shell-nav--desktop' : '.cc-cust-shell-nav--mobile');
+    await nav.getByRole('link', { name: 'Payments' }).click();
+    await expect(page.getByRole('heading', { name: 'Submit a TT payment' })).toBeVisible();
+
+    await page.getByRole('button', { name: 'Submit TT payment' }).click();
+    await expect(page.getByText('Invoice ID is required.')).toBeVisible();
+
+    const paymentRequests: Array<{ body?: string }> = [];
+    page.on('request', (request) => {
+      if (request.method() === 'POST' && request.url().includes('/customer/payments')) paymentRequests.push({ body: request.postData() || undefined });
+    });
+    await page.getByLabel('Invoice ID').fill('inv-003');
+    await page.getByLabel('Transfer reference').fill(`TT-E2E-${Date.now()}`);
+    await page.getByLabel('Bank name').fill('Customer Bank');
+    await page.getByLabel('Amount (USD)').fill('125.50');
+    await page.getByLabel('Transfer date').fill('2026-08-14');
+    await page.getByLabel('Proof metadata (PDF, JPG or PNG; max 10 MB)').setInputFiles({ name: 'receipt.pdf', mimeType: 'application/pdf', buffer: Buffer.from('proof bytes must not be sent') });
+    await page.getByRole('button', { name: 'Submit TT payment' }).click();
+    await expect(page.getByText(/was submitted for review/)).toBeVisible();
+    expect(paymentRequests).toHaveLength(1);
+    expect(paymentRequests[0]?.body).toContain('receipt.pdf');
+    expect(paymentRequests[0]?.body).not.toContain('proof bytes must not be sent');
+  });
+});
