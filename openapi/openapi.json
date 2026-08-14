@@ -1078,6 +1078,58 @@
         }
       }
     },
+    "/api/v1/customer/shipments": {
+      "get": {
+        "summary": "List shipments visible to the authenticated customer",
+        "operationId": "listCustomerShipments",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Customer shipment timeline projections", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CustomerShipmentList" } } } },
+          "401": { "description": "Unauthenticated", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "403": { "description": "Forbidden", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
+        }
+      }
+    },
+    "/api/v1/customer/shipments/{id}": {
+      "get": {
+        "summary": "Get one customer-owned shipment timeline",
+        "operationId": "getCustomerShipment",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "200": { "description": "Shipment timeline", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CustomerShipment" } } } },
+          "401": { "description": "Unauthenticated", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "403": { "description": "Forbidden", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "404": { "description": "Shipment not found", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
+        }
+      }
+    },
+    "/api/v1/customer/documents": {
+      "get": {
+        "summary": "List released documents visible to the authenticated customer",
+        "operationId": "listCustomerDocuments",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Customer document metadata", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CustomerDocumentList" } } } },
+          "401": { "description": "Unauthenticated", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "403": { "description": "Forbidden", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
+        }
+      }
+    },
+    "/api/v1/customer/documents/{id}": {
+      "get": {
+        "summary": "Get one released customer-visible document metadata record",
+        "operationId": "getCustomerDocument",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "200": { "description": "Customer document metadata", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CustomerDocument" } } } },
+          "401": { "description": "Unauthenticated", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "403": { "description": "Forbidden", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "404": { "description": "Document not found or not customer-visible", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
+        }
+      }
+    },
     "/api/v1/__reset": {
       "post": {
         "summary": "Deterministic non-production data reset",
@@ -1737,6 +1789,48 @@
         },
         "required": ["id", "customerId", "paymentId", "invoiceId", "amountUsd", "allocatedAt", "status"]
       },
+      "CustomerShipment": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "vehicleId": { "type": "string" },
+          "stage": { "type": "string", "enum": ["Purchased", "Inspection", "Ready", "In Transit", "Delivered"] },
+          "shippedAt": { "type": "string" },
+          "deliveredAt": { "type": "string" },
+          "eta": { "type": "string" },
+          "location": { "type": "string" },
+          "freshness": { "type": "string", "enum": ["fresh", "stale", "unknown"] },
+          "timeline": { "type": "array", "items": { "$ref": "#/components/schemas/ShipmentTimelineEvent" } }
+        },
+        "required": ["id", "vehicleId", "stage", "shippedAt", "freshness", "timeline"]
+      },
+      "ShipmentTimelineEvent": {
+        "type": "object",
+        "properties": { "stage": { "type": "string" }, "occurredAt": { "type": "string" }, "current": { "type": "boolean" } },
+        "required": ["stage", "current"]
+      },
+      "CustomerShipmentList": {
+        "type": "object",
+        "properties": { "items": { "type": "array", "items": { "$ref": "#/components/schemas/CustomerShipment" } } },
+        "required": ["items"]
+      },
+      "CustomerDocument": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "shipmentId": { "type": "string" },
+          "vehicleId": { "type": "string" },
+          "type": { "type": "string" },
+          "status": { "type": "string", "enum": ["Available", "Pending", "Unavailable"] },
+          "createdAt": { "type": "string" }
+        },
+        "required": ["id", "type", "status", "createdAt"]
+      },
+      "CustomerDocumentList": {
+        "type": "object",
+        "properties": { "items": { "type": "array", "items": { "$ref": "#/components/schemas/CustomerDocument" } } },
+        "required": ["items"]
+      },
       "CustomerDashboard": {
         "type": "object",
         "description": "Customer dashboard aggregate with linked record KPIs (D02-ASM-001, D02-P02-T001). Outstanding balance = issued invoice total - approved allocations. Credit utilisation = outstanding balance ÷ credit limit. Vehicle counts use canonical IDs and server status. Payment/shipment/document/notification summaries computed from linked records. Freshness metadata and partial failure indicators included. Server-derived; no browser calculation.",
@@ -1923,4 +2017,3 @@
     }
   }
 }
-

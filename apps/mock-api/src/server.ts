@@ -375,12 +375,76 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
       res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
       return;
     }
-    const customerId = resolveDemoCustomerScope(req.user.sub);
-    const dashboard = await store.getCustomerDashboard(customerId, req.user.email);
+    const dashboard = await store.getCustomerDashboard(resolveDemoCustomerScope(req.user.sub), req.user.email);
     res.json(dashboard);
   });
 
-  // 4b. Customer vehicle transaction fleet listing (CUST-02, CUST-10, RULE-04, RULE-08)
+  // 4b. Customer shipment timeline projection (D02-P07-T001, CUST-11).
+  // The server scopes records to the authenticated customer and exposes only
+  // the approved operational stages; carrier/ERP internals are not exposed.
+  app.get('/api/v1/customer/shipments', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) {
+      res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+      return;
+    }
+    if (!hasPermission(req.user.role, 'read:customer')) {
+      res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
+      return;
+    }
+    res.json({ items: await store.listCustomerShipments(resolveDemoCustomerScope(req.user.sub)) });
+  });
+
+  app.get('/api/v1/customer/shipments/:id', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) {
+      res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+      return;
+    }
+    if (!hasPermission(req.user.role, 'read:customer')) {
+      res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
+      return;
+    }
+    const shipmentId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const shipment = await store.getCustomerShipment(resolveDemoCustomerScope(req.user.sub), shipmentId);
+    if (!shipment) {
+      res.status(404).json({ statusCode: 404, message: 'Shipment not found', correlationId: `corr-404-${Date.now()}` });
+      return;
+    }
+    res.json(shipment);
+  });
+
+  // Documents are returned only after both Finance release and the
+  // salesperson-owned visibleToCustomer flag are true (CUST-20/CUST-21).
+  app.get('/api/v1/customer/documents', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) {
+      res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+      return;
+    }
+    if (!hasPermission(req.user.role, 'read:customer')) {
+      res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
+      return;
+    }
+    res.json({ items: await store.listCustomerDocuments(resolveDemoCustomerScope(req.user.sub)) });
+  });
+
+  app.get('/api/v1/customer/documents/:id', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) {
+      res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+      return;
+    }
+    if (!hasPermission(req.user.role, 'read:customer')) {
+      res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
+      return;
+    }
+    const documentId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const document = await store.getCustomerDocument(resolveDemoCustomerScope(req.user.sub), documentId);
+    if (!document) {
+      res.status(404).json({ statusCode: 404, message: 'Document not found', correlationId: `corr-404-${Date.now()}` });
+      return;
+    }
+    res.json(document);
+  });
+
+  // 4e. Customer vehicle transaction fleet listing and detail.
   app.get('/api/v1/customer/vehicles', async (req: AuthenticatedRequest, res: Response) => {
     if (!req.user) {
       res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
@@ -392,17 +456,10 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
     }
     const customerId = resolveDemoCustomerScope(req.user.sub);
     const nowISO = req.header('x-mock-now') || undefined;
-    const query = {
-      status: req.query.status as string | undefined,
-      query: req.query.query as string | undefined,
-      page: req.query.page ? Number(req.query.page) : undefined,
-      limit: req.query.limit ? Number(req.query.limit) : undefined,
-    };
-    const response = await store.getCustomerVehicles(customerId, query, nowISO);
-    res.json(response);
+    const query = { status: req.query.status as string | undefined, query: req.query.query as string | undefined, page: req.query.page ? Number(req.query.page) : undefined, limit: req.query.limit ? Number(req.query.limit) : undefined };
+    res.json(await store.getCustomerVehicles(customerId, query, nowISO));
   });
 
-  // 4c. Customer vehicle transaction detail & status history (CUST-11, CUST-12, CUST-13, RULE-04, RULE-07)
   app.get('/api/v1/customer/vehicles/:id', async (req: AuthenticatedRequest, res: Response) => {
     if (!req.user) {
       res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
@@ -412,16 +469,10 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
       res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
       return;
     }
-    const customerId = resolveDemoCustomerScope(req.user.sub);
     const idOrSlug = req.params.id as string;
-    const nowISO = req.header('x-mock-now') || undefined;
-    const vehicle = await store.getCustomerVehicleById(customerId, idOrSlug, nowISO);
+    const vehicle = await store.getCustomerVehicleById(resolveDemoCustomerScope(req.user.sub), idOrSlug, req.header('x-mock-now') || undefined);
     if (!vehicle) {
-      res.status(404).json({
-        statusCode: 404,
-        message: `Customer vehicle '${idOrSlug}' not found or not owned by customer`,
-        correlationId: `corr-404-${Date.now()}`,
-      });
+      res.status(404).json({ statusCode: 404, message: `Customer vehicle '${idOrSlug}' not found or not owned by customer`, correlationId: `corr-404-${Date.now()}` });
       return;
     }
     res.json(vehicle);

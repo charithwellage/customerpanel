@@ -504,6 +504,10 @@ export interface DemoStore {
   // Phase 2.4: customer vehicle projections (CUST-10, CUST-11, CUST-12, CUST-13, RULE-04, RULE-07, RULE-08)
   getCustomerVehicles(customerId: string, query?: ListCustomerVehiclesQuery, nowISO?: string): Promise<CustomerVehicleListResponse>;
   getCustomerVehicleById(customerId: string, idOrSlug: string, nowISO?: string): Promise<CustomerVehicleDetail | null>;
+  listCustomerShipments(customerId: string): Promise<CustomerShipment[]>;
+  getCustomerShipment(customerId: string, shipmentId: string): Promise<CustomerShipment | null>;
+  listCustomerDocuments(customerId: string): Promise<CustomerDocument[]>;
+  getCustomerDocument(customerId: string, documentId: string): Promise<CustomerDocument | null>;
   reset(): Promise<void>;
   close(): Promise<void>;
 }
@@ -2085,6 +2089,13 @@ export interface ShipmentRecord {
   status: 'Purchased' | 'Inspection' | 'Ready' | 'InTransit' | 'Delivered';
   shippedAt: string;
   deliveredAt?: string;
+  eta?: string;
+  location?: string;
+  freshness?: 'fresh' | 'stale' | 'unknown';
+  shipOkStatus?: 'Pending' | 'Approved' | 'Rejected';
+  shipOkRejectionReason?: string;
+  documentReleaseStatus?: 'Pending' | 'Approved' | 'Rejected';
+  documentReleaseRejectionReason?: string;
 }
 
 export interface DocumentRecord {
@@ -2093,6 +2104,33 @@ export interface DocumentRecord {
   shipmentId?: string;
   vehicleId?: string;
   type: 'Invoice' | 'PaymentProof' | 'ShippingLabel' | 'DeliveryProof' | 'Other';
+  status: 'Available' | 'Pending' | 'Unavailable';
+  createdAt: string;
+  releaseApproved?: boolean;
+  visibleToCustomer?: boolean;
+}
+
+export interface CustomerShipment {
+  id: string;
+  vehicleId: string;
+  stage: 'Purchased' | 'Inspection' | 'Ready' | 'In Transit' | 'Delivered';
+  shippedAt: string;
+  deliveredAt?: string;
+  eta?: string;
+  location?: string;
+  freshness: 'fresh' | 'stale' | 'unknown';
+  timeline: Array<{ stage: CustomerShipment['stage']; occurredAt?: string; current: boolean }>;
+  shipOkStatus: 'Pending' | 'Approved' | 'Rejected';
+  shipOkRejectionReason?: string;
+  documentReleaseStatus: 'Pending' | 'Approved' | 'Rejected';
+  documentReleaseRejectionReason?: string;
+}
+
+export interface CustomerDocument {
+  id: string;
+  shipmentId?: string;
+  vehicleId?: string;
+  type: DocumentRecord['type'];
   status: 'Available' | 'Pending' | 'Unavailable';
   createdAt: string;
 }
@@ -2245,6 +2283,11 @@ const seedShipments: ShipmentRecord[] = [
     vehicleId: 'veh-1',
     status: 'Ready',
     shippedAt: '2026-08-10T10:00:00.000Z',
+    eta: '2026-08-20T10:00:00.000Z',
+    location: 'Mombasa Port',
+    freshness: 'fresh',
+    shipOkStatus: 'Approved',
+    documentReleaseStatus: 'Approved',
   },
   {
     id: 'ship-002',
@@ -2252,6 +2295,11 @@ const seedShipments: ShipmentRecord[] = [
     vehicleId: 'veh-2',
     status: 'InTransit',
     shippedAt: '2026-08-09T14:30:00.000Z',
+    eta: '2026-08-25T10:00:00.000Z',
+    location: 'Indian Ocean',
+    freshness: 'fresh',
+    shipOkStatus: 'Pending',
+    documentReleaseStatus: 'Pending',
   },
   {
     id: 'ship-003',
@@ -2260,6 +2308,10 @@ const seedShipments: ShipmentRecord[] = [
     status: 'Delivered',
     shippedAt: '2026-08-11T09:00:00.000Z',
     deliveredAt: '2026-08-14T08:00:00.000Z',
+    location: 'Customer destination',
+    freshness: 'fresh',
+    shipOkStatus: 'Approved',
+    documentReleaseStatus: 'Pending',
   },
   // Exception customer: 1 shipment
   {
@@ -2268,6 +2320,12 @@ const seedShipments: ShipmentRecord[] = [
     vehicleId: 'veh-4',
     status: 'Inspection',
     shippedAt: '2026-08-12T10:00:00.000Z',
+    location: 'Inspection facility',
+    freshness: 'stale',
+    shipOkStatus: 'Rejected',
+    shipOkRejectionReason: 'Finance requested updated shipment evidence.',
+    documentReleaseStatus: 'Rejected',
+    documentReleaseRejectionReason: 'Finance requested corrected release documents.',
   },
 ];
 
@@ -2282,6 +2340,8 @@ const seedDocuments: DocumentRecord[] = [
     type: 'ShippingLabel',
     status: 'Available',
     createdAt: '2026-08-10T10:00:00.000Z',
+    releaseApproved: true,
+    visibleToCustomer: true,
   },
   {
     id: 'doc-002',
@@ -2291,6 +2351,8 @@ const seedDocuments: DocumentRecord[] = [
     type: 'DeliveryProof',
     status: 'Pending',
     createdAt: '2026-08-11T10:00:00.000Z',
+    releaseApproved: false,
+    visibleToCustomer: true,
   },
   {
     id: 'doc-003',
@@ -2300,6 +2362,8 @@ const seedDocuments: DocumentRecord[] = [
     type: 'DeliveryProof',
     status: 'Available',
     createdAt: '2026-08-14T08:00:00.000Z',
+    releaseApproved: true,
+    visibleToCustomer: false,
   },
   {
     id: 'doc-004',
@@ -2308,6 +2372,8 @@ const seedDocuments: DocumentRecord[] = [
     type: 'Invoice',
     status: 'Available',
     createdAt: '2026-08-10T10:00:00.000Z',
+    releaseApproved: true,
+    visibleToCustomer: true,
   },
   // Exception customer: document with status Unavailable
   {
@@ -2318,6 +2384,8 @@ const seedDocuments: DocumentRecord[] = [
     type: 'ShippingLabel',
     status: 'Unavailable',
     createdAt: '2026-08-12T10:00:00.000Z',
+    releaseApproved: false,
+    visibleToCustomer: false,
   },
 ];
 
@@ -2735,6 +2803,43 @@ function checkReservationEligibility(
   }
 }
 
+const shipmentStages: CustomerShipment['stage'][] = ['Purchased', 'Inspection', 'Ready', 'In Transit', 'Delivered'];
+
+function toCustomerShipment(record: ShipmentRecord): CustomerShipment {
+  const stage = record.status === 'InTransit' ? 'In Transit' : record.status;
+  const currentIndex = shipmentStages.indexOf(stage);
+  return {
+    id: record.id,
+    vehicleId: record.vehicleId,
+    stage,
+    shippedAt: record.shippedAt,
+    deliveredAt: record.deliveredAt,
+    eta: record.eta,
+    location: record.location,
+    freshness: record.freshness ?? 'unknown',
+    shipOkStatus: record.shipOkStatus ?? 'Pending',
+    shipOkRejectionReason: record.shipOkRejectionReason,
+    documentReleaseStatus: record.documentReleaseStatus ?? 'Pending',
+    documentReleaseRejectionReason: record.documentReleaseRejectionReason,
+    timeline: shipmentStages.map((timelineStage, index) => ({
+      stage: timelineStage,
+      current: index === currentIndex,
+      ...(index === currentIndex ? { occurredAt: record.shippedAt } : {}),
+    })),
+  };
+}
+
+function toCustomerDocument(record: DocumentRecord): CustomerDocument {
+  return {
+    id: record.id,
+    shipmentId: record.shipmentId,
+    vehicleId: record.vehicleId,
+    type: record.type,
+    status: record.status,
+    createdAt: record.createdAt,
+  };
+}
+
 class MemoryStore implements DemoStore {
   private config = { ...seedConfig };
   private vehicles = seedVehicles.map((vehicle) => ({ ...vehicle }));
@@ -3072,6 +3177,34 @@ class MemoryStore implements DemoStore {
     );
     const target = all.find((v) => v.id === idOrSlug || v.vehicleId === idOrSlug || v.slug === idOrSlug);
     return Promise.resolve(target || null);
+  }
+
+  listCustomerShipments(customerId: string): Promise<CustomerShipment[]> {
+    return Promise.resolve(this.shipments
+      .filter((shipment) => shipment.customerId === customerId)
+      .map(toCustomerShipment));
+  }
+
+  async getCustomerShipment(customerId: string, shipmentId: string): Promise<CustomerShipment | null> {
+    const shipment = this.shipments.find((candidate) => candidate.id === shipmentId && candidate.customerId === customerId);
+    return shipment ? toCustomerShipment(shipment) : null;
+  }
+
+  listCustomerDocuments(customerId: string): Promise<CustomerDocument[]> {
+    const customerShipmentIds = new Set(this.shipments
+      .filter((shipment) => shipment.customerId === customerId)
+      .map((shipment) => shipment.id));
+    return Promise.resolve(this.documents
+      .filter((document) => document.customerId === customerId
+        && (document.releaseApproved === true && document.visibleToCustomer === true)
+        && (!document.shipmentId || customerShipmentIds.has(document.shipmentId)))
+      .map(toCustomerDocument));
+  }
+
+  async getCustomerDocument(customerId: string, documentId: string): Promise<CustomerDocument | null> {
+    const document = this.documents.find((candidate) => candidate.id === documentId && candidate.customerId === customerId);
+    if (!document || document.releaseApproved !== true || document.visibleToCustomer !== true) return null;
+    return toCustomerDocument(document);
   }
 
   reset(): Promise<void> {
@@ -3936,6 +4069,35 @@ class PostgresStore implements DemoStore {
     );
     const target = all.find((v) => v.id === idOrSlug || v.vehicleId === idOrSlug || v.slug === idOrSlug);
     return target || null;
+  }
+
+  async listCustomerShipments(customerId: string): Promise<CustomerShipment[]> {
+    return seedShipments
+      .filter((shipment) => shipment.customerId === customerId)
+      .map(toCustomerShipment);
+  }
+
+  async getCustomerShipment(customerId: string, shipmentId: string): Promise<CustomerShipment | null> {
+    const shipment = seedShipments.find((candidate) => candidate.id === shipmentId && candidate.customerId === customerId);
+    return shipment ? toCustomerShipment(shipment) : null;
+  }
+
+  async listCustomerDocuments(customerId: string): Promise<CustomerDocument[]> {
+    const customerShipmentIds = new Set(seedShipments
+      .filter((shipment) => shipment.customerId === customerId)
+      .map((shipment) => shipment.id));
+    return seedDocuments
+      .filter((document) => document.customerId === customerId
+        && document.releaseApproved === true
+        && document.visibleToCustomer === true
+        && (!document.shipmentId || customerShipmentIds.has(document.shipmentId)))
+      .map(toCustomerDocument);
+  }
+
+  async getCustomerDocument(customerId: string, documentId: string): Promise<CustomerDocument | null> {
+    const document = seedDocuments.find((candidate) => candidate.id === documentId && candidate.customerId === customerId);
+    if (!document || document.releaseApproved !== true || document.visibleToCustomer !== true) return null;
+    return toCustomerDocument(document);
   }
 
   async reset(): Promise<void> {

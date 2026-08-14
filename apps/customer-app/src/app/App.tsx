@@ -6,6 +6,7 @@ import { CustomerShell, useCustomerShell, type CustomerUser } from '../features/
 import { OverviewPage } from '../features/dashboard/index.js';
 import { CustomerInventoryPage, CustomerVehicleDetailPage } from '../features/inventory/index.js';
 import { CustomerFleetPage, CustomerFleetDetailPage } from '../features/vehicles/index.js';
+import { DocumentsPage } from '../features/documents/index.js';
 import { PortalPlaceholder } from './PortalPlaceholder.js';
 
 const queryClient = new QueryClient();
@@ -96,6 +97,10 @@ const AppContent: React.FC<{ session: CustomerSession; apiBaseUrl: string }> = (
     );
   }
 
+  if (activeRoute === '/documents') {
+    return <DocumentsPage />;
+  }
+
   return <PortalPlaceholder signedInAs={session.user.email} />;
 };
 
@@ -107,7 +112,6 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = '' }) => (
           <HttpClientProvider apiBaseUrl={apiBaseUrl}>
             <CustomerShell
               initialUser={toShellUser(session)}
-              initialRoute="/dashboard"
               pageTitle="Customer Portal"
               pageSubtitle="Account access and application shell"
             >

@@ -441,6 +441,39 @@ export interface PartialFailureIndicators {
   notificationsFailed: boolean;
 }
 
+export interface CustomerShipment {
+  id: string;
+  vehicleId: string;
+  stage: 'Purchased' | 'Inspection' | 'Ready' | 'In Transit' | 'Delivered';
+  shippedAt: string;
+  deliveredAt?: string;
+  eta?: string;
+  location?: string;
+  freshness: 'fresh' | 'stale' | 'unknown';
+  timeline: Array<{ stage: CustomerShipment['stage']; occurredAt?: string; current: boolean }>;
+  shipOkStatus: 'Pending' | 'Approved' | 'Rejected';
+  shipOkRejectionReason?: string;
+  documentReleaseStatus: 'Pending' | 'Approved' | 'Rejected';
+  documentReleaseRejectionReason?: string;
+}
+
+export interface CustomerShipmentList {
+  items: CustomerShipment[];
+}
+
+export interface CustomerDocument {
+  id: string;
+  shipmentId?: string;
+  vehicleId?: string;
+  type: 'Invoice' | 'PaymentProof' | 'ShippingLabel' | 'DeliveryProof' | 'Other';
+  status: 'Available' | 'Pending' | 'Unavailable';
+  createdAt: string;
+}
+
+export interface CustomerDocumentList {
+  items: CustomerDocument[];
+}
+
 export interface CustomerDashboard {
   customerId: string;
   customerEmail: string;
