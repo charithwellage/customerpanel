@@ -357,6 +357,18 @@
   font-size: 1rem;
 }
 
+.cc-cust-inquiry-box {
+  margin-top: var(--cc-space-4, 1rem);
+}
+
+.cc-cust-inquiry-box .cc-cust-reservation-error {
+  margin-bottom: var(--cc-space-2, 0.5rem);
+}
+
+.cc-cust-status-banner--margin-top {
+  margin-top: var(--cc-space-3, 0.75rem);
+}
+
 .cc-cust-btn--secondary {
   background: var(--cc-color-surface-hover, #f1f5f9);
   color: var(--cc-color-text, #334155);

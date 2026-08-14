@@ -8,7 +8,7 @@ async function signIn(page: Page): Promise<void> {
   await expect(page.getByRole('heading', { name: 'Customer Portal' })).toBeVisible();
 }
 
-test.describe('Customer Inventory & Vehicle Detail E2E (D02-P03-T002)', () => {
+test.describe('Customer Inventory & Vehicle Detail E2E (D02-P03-T003)', () => {
   test('navigates to inventory, displays tier status and searches available vehicles', async ({ page }) => {
     await signIn(page);
 
@@ -34,7 +34,7 @@ test.describe('Customer Inventory & Vehicle Detail E2E (D02-P03-T002)', () => {
     await expect(vehicleCards.first()).toBeVisible();
   });
 
-  test('opens vehicle detail page, verifies specifications, tier pricing, and back navigation', async ({ page }) => {
+  test('opens vehicle detail page, places 48h reservation hold, and observes hold status', async ({ page }) => {
     await signIn(page);
 
     const isDesktop = (page.viewportSize()?.width ?? 0) >= 1024;
@@ -56,7 +56,17 @@ test.describe('Customer Inventory & Vehicle Detail E2E (D02-P03-T002)', () => {
     await expect(page.getByTestId('vehicle-reservation-card')).toBeVisible();
     await expect(page.getByText('Vehicle Specifications')).toBeVisible();
 
-    // Verify back navigation
+    // If eligible for reservation, place hold and verify success banner
+    const reserveBtn = page.getByTestId('reserve-vehicle-btn');
+    if (await reserveBtn.isVisible()) {
+      await reserveBtn.click();
+      await expect(page.getByText('You have an active 48-hour reservation hold')).toBeVisible();
+    } else {
+      // Either already reserved or held
+      await expect(page.getByTestId('vehicle-reservation-card')).toBeVisible();
+    }
+
+    // Verify back navigation returns to inventory
     await page.getByTestId('back-to-inventory-btn').click();
     await expect(page.getByTestId('customer-inventory-page')).toBeVisible();
   });

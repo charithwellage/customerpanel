@@ -17,7 +17,7 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
   onBack,
 }) => {
   const { user } = useCustomerShell();
-  const { state, refetch, reserveVehicle } = useCustomerVehicleDetail({
+  const { state, refetch, reserveVehicle, requestPriceInquiry } = useCustomerVehicleDetail({
     idOrSlug: slug,
     apiBaseUrl,
     token,
@@ -176,9 +176,36 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
                   <span className="cc-cust-status-banner__icon">ℹ️</span>
                   <div>
                     <strong>Price Upon Request</strong>
-                    <p>Please request quotation to confirm export costs before reserving.</p>
+                    <p>Pricing is prepared upon enquiry tailored to your destination port and shipping requirements.</p>
                   </div>
                 </div>
+
+                {state.inquirySuccess ? (
+                  <div className="cc-cust-status-banner cc-cust-status-banner--success cc-cust-status-banner--margin-top">
+                    <span className="cc-cust-status-banner__icon">✓</span>
+                    <div>
+                      <strong>Quotation Request Submitted</strong>
+                      <p>Reference ID: {state.inquiryId}. Our export desk will contact you shortly with confirmed pricing.</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="cc-cust-inquiry-box">
+                    {state.inquiryError && (
+                      <div className="cc-cust-reservation-error" role="alert">
+                        <p>{state.inquiryError}</p>
+                      </div>
+                    )}
+                    <button
+                      type="button"
+                      className="cc-cust-btn cc-cust-btn--primary cc-cust-btn--large"
+                      onClick={() => requestPriceInquiry()}
+                      disabled={state.inquirySubmitting}
+                      data-testid="request-price-btn"
+                    >
+                      {state.inquirySubmitting ? 'Submitting Request...' : 'Request Price Quotation'}
+                    </button>
+                  </div>
+                )}
               </div>
             ) : eligibility?.eligible ? (
               <div className="cc-cust-reservation-action">

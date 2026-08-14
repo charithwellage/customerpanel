@@ -4,7 +4,6 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { CustomerShellProvider } from '../../shell/index.js';
 import { CustomerInventoryPage } from '../CustomerInventoryPage.js';
 import { CustomerVehicleDetailPage } from '../CustomerVehicleDetailPage.js';
-import type { VehicleDomainSummary, VehicleDetail } from '@carchief/domain';
 
 const MOCK_PLATINUM_USER = {
   id: 'cust-plat-123',
@@ -22,7 +21,7 @@ const MOCK_STANDARD_USER = {
   tier: 'Standard' as const,
 };
 
-describe('Customer Inventory & Vehicle Detail Components (D02-P03-T002)', () => {
+describe('Customer Inventory & Vehicle Detail Components (D02-P03-T003)', () => {
   describe('CustomerInventoryPage', () => {
     it('renders customer tier status banner for Platinum tier with 15% VIP discount notice', () => {
       const html = renderToStaticMarkup(

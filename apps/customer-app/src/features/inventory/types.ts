@@ -20,6 +20,10 @@ export interface CustomerVehicleDetailState {
   reserveError: string | null;
   reservationId?: string;
   holdExpiresAt?: string;
+  inquirySubmitting: boolean;
+  inquirySuccess: boolean;
+  inquiryError: string | null;
+  inquiryId?: string;
 }
 
 export interface CustomerInventoryFilterState extends SearchVehiclesQuery {
