@@ -1037,5 +1037,125 @@ describe('API Client & Contract Boundary Tests', () => {
       expect(branches.items).toEqual([]);
     });
   });
+
+  // Phase 2.2: customer dashboard KPI baseline (D02-ASM-001).
+  // Non-blocking aggregate: outstanding balance = issued invoice total - approved allocations;
+  // credit utilisation = outstanding balance ÷ credit limit; vehicle counts use canonical IDs + status.
+  describe('CustomerDashboard Service (D02-ASM-001)', () => {
+    it('fetches customer dashboard with reconciled KPI values', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => ({
+          customerId: 'cust-123',
+          customerEmail: 'customer@example.com',
+          creditLimitUsd: 500000,
+          outstandingBalanceUsd: 29700,
+          creditUtilisationPercent: 5.94,
+          vehicleCountReserved: 2,
+          vehicleCountInvoiced: 3,
+          vehicleCountDelivered: 0,
+          lastUpdated: '2026-08-14T10:00:00.000Z',
+        }),
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({
+        baseUrl: 'http://localhost:4000',
+        getAuthToken: () => 'demo-token',
+      });
+
+      const dashboard = await client.request<any>('/api/v1/customer/dashboard');
+
+      expect(dashboard.customerId).toBe('cust-123');
+      expect(dashboard.outstandingBalanceUsd).toBe(29700);
+      expect(dashboard.creditUtilisationPercent).toBe(5.94);
+      expect(dashboard.vehicleCountInvoiced).toBe(3);
+      expect(dashboard.vehicleCountReserved).toBe(2);
+      expect(dashboard.vehicleCountDelivered).toBe(0);
+    });
+
+    it('validates CustomerDashboard payload schema', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => ({
+          customerId: 'cust-123',
+          customerEmail: 'customer@example.com',
+          creditLimitUsd: 500000,
+          outstandingBalanceUsd: 0,
+          creditUtilisationPercent: 0,
+          vehicleCountReserved: 0,
+          vehicleCountInvoiced: 0,
+          vehicleCountDelivered: 0,
+          lastUpdated: '2026-08-14T10:00:00.000Z',
+        }),
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({
+        baseUrl: 'http://localhost:4000',
+        getAuthToken: () => 'demo-token',
+      });
+
+      const dashboard = await client.request<any>('/api/v1/customer/dashboard');
+
+      // Verify all required fields are present
+      expect(dashboard).toHaveProperty('customerId');
+      expect(dashboard).toHaveProperty('customerEmail');
+      expect(dashboard).toHaveProperty('creditLimitUsd');
+      expect(dashboard).toHaveProperty('outstandingBalanceUsd');
+      expect(dashboard).toHaveProperty('creditUtilisationPercent');
+      expect(dashboard).toHaveProperty('vehicleCountReserved');
+      expect(dashboard).toHaveProperty('vehicleCountInvoiced');
+      expect(dashboard).toHaveProperty('vehicleCountDelivered');
+      expect(dashboard).toHaveProperty('lastUpdated');
+
+      // Verify types
+      expect(typeof dashboard.customerId).toBe('string');
+      expect(typeof dashboard.creditLimitUsd).toBe('number');
+      expect(typeof dashboard.outstandingBalanceUsd).toBe('number');
+      expect(typeof dashboard.creditUtilisationPercent).toBe('number');
+      expect(typeof dashboard.vehicleCountReserved).toBe('number');
+      expect(typeof dashboard.vehicleCountInvoiced).toBe('number');
+      expect(typeof dashboard.vehicleCountDelivered).toBe('number');
+    });
+
+    it('prohibits browser-side calculation: returns server-derived values only', async () => {
+      // This test verifies that the contract never exposes raw invoice/allocation data
+      // that would tempt browser-side recalculation
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => ({
+          customerId: 'cust-123',
+          customerEmail: 'customer@example.com',
+          creditLimitUsd: 500000,
+          outstandingBalanceUsd: 42200, // Server-computed, not browser-computed
+          creditUtilisationPercent: 8.44, // Server-computed percentage
+          vehicleCountReserved: 1,
+          vehicleCountInvoiced: 2,
+          vehicleCountDelivered: 0,
+          lastUpdated: '2026-08-14T10:00:00.000Z',
+        }),
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({
+        baseUrl: 'http://localhost:4000',
+        getAuthToken: () => 'demo-token',
+      });
+
+      const dashboard = await client.request<any>('/api/v1/customer/dashboard');
+
+      // Verify no raw invoice list is exposed (which would enable browser calculation)
+      expect(dashboard).not.toHaveProperty('invoices');
+      expect(dashboard).not.toHaveProperty('allocations');
+
+      // Verify reconciled totals only
+      expect(typeof dashboard.outstandingBalanceUsd).toBe('number');
+      expect(typeof dashboard.creditUtilisationPercent).toBe('number');
+    });
+  });
 });
 

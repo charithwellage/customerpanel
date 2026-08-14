@@ -35,6 +35,9 @@ import type {
   BranchContent,
   BranchListResponse,
   ContentApprovalStatus,
+  Invoice,
+  Allocation,
+  CustomerDashboard,
 } from '@carchief/domain';
 import {
   generateVehicleSlug,
@@ -451,6 +454,8 @@ export interface DemoStore {
   getOffices(): Promise<OfficeListResponse>;
   getBranches(): Promise<BranchListResponse>;
   getBranchById(id: string): Promise<BranchContent | null>;
+  // Phase 2.2: customer dashboard KPI baseline (D02-ASM-001)
+  getCustomerDashboard(customerId: string, customerEmail: string): Promise<CustomerDashboard>;
   reset(): Promise<void>;
   close(): Promise<void>;
 }
@@ -1828,6 +1833,106 @@ function toReservationResponse(record: ReservationRecord, nowISO: string): Reser
   };
 }
 
+// --- Phase 2.2: customer dashboard KPI baseline (D02-ASM-001) ---
+//
+// Mock seed data for invoices and allocations used to compute dashboard KPIs:
+// outstanding balance = issued invoice total - approved allocations.
+// Vehicle counts use canonical IDs and server status (not phantom/duplicated records).
+// Credit utilisation = outstanding balance ÷ mock credit limit.
+// All values are server-derived; no browser calculation or fabrication.
+
+export interface InvoiceRecord {
+  id: string;
+  customerId: string;
+  vehicleId: string;
+  vehicleSlug: string;
+  make: string;
+  model: string;
+  year: number;
+  totalAmountUsd: number;
+  invoicedAt: string;
+  status: 'Draft' | 'Issued' | 'Paid' | 'Overdue';
+}
+
+export interface AllocationRecord {
+  id: string;
+  customerId: string;
+  paymentId: string;
+  invoiceId: string;
+  amountUsd: number;
+  allocatedAt: string;
+  status: 'Approved' | 'Pending' | 'Rejected';
+}
+
+const seedInvoices: InvoiceRecord[] = [
+  {
+    id: 'inv-001',
+    customerId: 'cust-123',
+    vehicleId: 'veh-1',
+    vehicleSlug: '2021-toyota-corolla-axio-veh-1',
+    make: 'Toyota',
+    model: 'Corolla Axio',
+    year: 2021,
+    totalAmountUsd: 8500.00,
+    invoicedAt: '2026-08-10T10:00:00.000Z',
+    status: 'Issued',
+  },
+  {
+    id: 'inv-002',
+    customerId: 'cust-123',
+    vehicleId: 'veh-2',
+    vehicleSlug: '2020-toyota-hiace-van-veh-2',
+    make: 'Toyota',
+    model: 'HiAce Van',
+    year: 2020,
+    totalAmountUsd: 14200.00,
+    invoicedAt: '2026-08-09T14:30:00.000Z',
+    status: 'Issued',
+  },
+  {
+    id: 'inv-003',
+    customerId: 'cust-123',
+    vehicleId: 'veh-3',
+    vehicleSlug: '2022-nissan-x-trail-veh-3',
+    make: 'Nissan',
+    model: 'X-Trail',
+    year: 2022,
+    totalAmountUsd: 19500.00,
+    invoicedAt: '2026-08-11T09:00:00.000Z',
+    status: 'Issued',
+  },
+];
+
+const seedAllocations: AllocationRecord[] = [
+  {
+    id: 'alloc-001',
+    customerId: 'cust-123',
+    paymentId: 'pay-001',
+    invoiceId: 'inv-001',
+    amountUsd: 2000.00,
+    allocatedAt: '2026-08-11T10:00:00.000Z',
+    status: 'Approved',
+  },
+  {
+    id: 'alloc-002',
+    customerId: 'cust-123',
+    paymentId: 'pay-002',
+    invoiceId: 'inv-001',
+    amountUsd: 3500.00,
+    allocatedAt: '2026-08-12T11:00:00.000Z',
+    status: 'Approved',
+  },
+  {
+    id: 'alloc-003',
+    customerId: 'cust-123',
+    paymentId: 'pay-003',
+    invoiceId: 'inv-002',
+    amountUsd: 7000.00,
+    allocatedAt: '2026-08-12T14:00:00.000Z',
+    status: 'Approved',
+  },
+];
+
 /**
  * Validates the reservation request and resolves the target vehicle. Throws
  * a field-associated `ReservationRequestError` (400) for a malformed
@@ -1895,6 +2000,8 @@ class MemoryStore implements DemoStore {
   private enquirySeq = 0;
   private reservations: ReservationRecord[] = [];
   private reservationSeq = 0;
+  private invoices = seedInvoices.map((i) => ({ ...i }));
+  private allocations = seedAllocations.map((a) => ({ ...a }));
   private faqCategories = seedFaqCategories.map((c) => ({ ...c }));
   private faqItems = seedFaqItems.map((f) => ({ ...f }));
   private testimonials = seedTestimonials.map((t) => ({ ...t }));
@@ -2081,11 +2188,61 @@ class MemoryStore implements DemoStore {
     return Promise.resolve(branch || null);
   }
 
+  getCustomerDashboard(customerId: string, customerEmail: string): Promise<CustomerDashboard> {
+    // Outstanding balance = sum of issued invoices - sum of approved allocations (D02-ASM-001)
+    const customerInvoices = this.invoices.filter((i) => i.customerId === customerId && i.status === 'Issued');
+    const totalIssuedAmount = customerInvoices.reduce((sum, inv) => sum + inv.totalAmountUsd, 0);
+
+    const customerAllocations = this.allocations.filter((a) => a.customerId === customerId && a.status === 'Approved');
+    const totalApprovedAmount = customerAllocations.reduce((sum, alloc) => sum + alloc.amountUsd, 0);
+
+    const outstandingBalanceUsd = Math.max(0, totalIssuedAmount - totalApprovedAmount);
+
+    // Credit utilisation = outstanding balance / credit limit
+    const creditLimitUsd = 500000.00; // Mock credit limit
+    const creditUtilisationPercent = (outstandingBalanceUsd / creditLimitUsd) * 100;
+
+    // Vehicle counts use canonical vehicle IDs and current server status
+    const reservedVehicleIds = new Set(
+      this.reservations
+        .filter((r) => r.customerId === customerId && isReservationActive(r, new Date().toISOString()))
+        .map((r) => r.vehicleId)
+    );
+
+    const invoicedVehicleIds = new Set(
+      customerInvoices.map((i) => i.vehicleId)
+    );
+
+    // Count delivered vehicles (those invoiced and with Delivered status)
+    const deliveredVehicleIds = new Set(
+      customerInvoices
+        .filter((i) => {
+          const vehicle = this.vehicles.find((v) => v.id === i.vehicleId);
+          return vehicle && vehicle.status === 'Sold'; // Sold status indicates delivered
+        })
+        .map((i) => i.vehicleId)
+    );
+
+    return Promise.resolve({
+      customerId,
+      customerEmail,
+      creditLimitUsd,
+      outstandingBalanceUsd,
+      creditUtilisationPercent: Math.round(creditUtilisationPercent * 10) / 10, // Round to 1 decimal place
+      vehicleCountReserved: reservedVehicleIds.size,
+      vehicleCountInvoiced: invoicedVehicleIds.size,
+      vehicleCountDelivered: deliveredVehicleIds.size,
+      lastUpdated: new Date().toISOString(),
+    });
+  }
+
   reset(): Promise<void> {
     this.config = { ...seedConfig };
     this.vehicles = seedVehicles.map((vehicle) => ({ ...vehicle }));
     this.enquiries = [];
     this.reservations = [];
+    this.invoices = seedInvoices.map((i) => ({ ...i }));
+    this.allocations = seedAllocations.map((a) => ({ ...a }));
     this.faqCategories = seedFaqCategories.map((c) => ({ ...c }));
     this.faqItems = seedFaqItems.map((f) => ({ ...f }));
     this.testimonials = seedTestimonials.map((t) => ({ ...t }));
@@ -2676,6 +2833,62 @@ class PostgresStore implements DemoStore {
       status: row.status as ContentApprovalStatus,
       latestArrivalsQuery: row.latest_arrivals_query ? JSON.parse(row.latest_arrivals_query) : undefined,
       recentlyDiscountedQuery: row.recently_discounted_query ? JSON.parse(row.recently_discounted_query) : undefined,
+    };
+  }
+
+  async getCustomerDashboard(customerId: string, customerEmail: string): Promise<CustomerDashboard> {
+    // For PostgresStore, use the seed data like MemoryStore until database tables are added
+    // Outstanding balance = sum of issued invoices - sum of approved allocations (D02-ASM-001)
+    const customerInvoices = seedInvoices.filter((i) => i.customerId === customerId && i.status === 'Issued');
+    const totalIssuedAmount = customerInvoices.reduce((sum, inv) => sum + inv.totalAmountUsd, 0);
+
+    const customerAllocations = seedAllocations.filter((a) => a.customerId === customerId && a.status === 'Approved');
+    const totalApprovedAmount = customerAllocations.reduce((sum, alloc) => sum + alloc.amountUsd, 0);
+
+    const outstandingBalanceUsd = Math.max(0, totalIssuedAmount - totalApprovedAmount);
+
+    // Credit utilisation = outstanding balance / credit limit
+    const creditLimitUsd = 500000.00; // Mock credit limit
+    const creditUtilisationPercent = (outstandingBalanceUsd / creditLimitUsd) * 100;
+
+    // Vehicle counts use canonical vehicle IDs and current server status
+    const vehicles = await this.getRawVehicles();
+
+    // Get reservations for this customer
+    const reservationResult = await this.pool.query(
+      'SELECT vehicle_id, customer_id, expires_at FROM reservations WHERE customer_id = $1 ORDER BY id',
+      [customerId]
+    );
+    const reservedVehicleIds = new Set<string>();
+    for (const row of reservationResult.rows) {
+      const isActive = new Date(row.expires_at).getTime() > new Date().getTime();
+      if (isActive) {
+        reservedVehicleIds.add(row.vehicle_id);
+      }
+    }
+
+    const invoicedVehicleIds = new Set(customerInvoices.map((i) => i.vehicleId));
+
+    // Count delivered vehicles (those invoiced and with Sold status)
+    const deliveredVehicleIds = new Set(
+      customerInvoices
+        .filter((i) => {
+          const vehicle = vehicles.find((v) => v.id === i.vehicleId);
+          return vehicle && vehicle.status === 'Sold';
+        })
+        .map((i) => i.vehicleId)
+    );
+
+    return {
+      customerId,
+      customerEmail,
+      creditLimitUsd,
+      outstandingBalanceUsd,
+      creditUtilisationPercent: Math.round(creditUtilisationPercent * 10) / 10,
+      vehicleCountReserved: reservedVehicleIds.size,
+      vehicleCountInvoiced: invoicedVehicleIds.size,
+      vehicleCountDelivered: deliveredVehicleIds.size,
+      lastUpdated: new Date().toISOString(),
     };
   }
 

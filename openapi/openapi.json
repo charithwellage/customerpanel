@@ -875,6 +875,42 @@
         }
       }
     },
+    "/api/v1/customer/dashboard": {
+      "get": {
+        "summary": "Customer dashboard KPI baseline aggregate (D02-ASM-001, CUST-04, CUST-05, CUST-06)",
+        "description": "Non-blocking customer dashboard KPI baseline derived from linked mock records: outstanding balance = issued invoice total minus approved allocations; credit utilisation = outstanding balance ÷ mock credit limit; vehicle counts use canonical vehicle IDs and current server status. Server-authoritative; no browser calculation or fabrication. Requires authentication.",
+        "operationId": "getCustomerDashboard",
+        "security": [
+          { "BearerAuth": [] }
+        ],
+        "responses": {
+          "200": {
+            "description": "Customer dashboard aggregate with KPI values",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CustomerDashboard" }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden: insufficient role permissions",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/__reset": {
       "post": {
         "summary": "Deterministic non-production data reset",
@@ -1463,6 +1499,53 @@
           "total": { "type": "integer", "example": 3 }
         },
         "required": ["items", "total"]
+      },
+      "Invoice": {
+        "type": "object",
+        "description": "Customer invoice record linked to vehicle and status.",
+        "properties": {
+          "id": { "type": "string", "example": "inv-001" },
+          "customerId": { "type": "string", "example": "cust-123" },
+          "vehicleId": { "type": "string", "example": "veh-1" },
+          "vehicleSlug": { "type": "string", "example": "2021-toyota-corolla-axio-veh-1" },
+          "make": { "type": "string", "example": "Toyota" },
+          "model": { "type": "string", "example": "Corolla Axio" },
+          "year": { "type": "integer", "example": 2021 },
+          "totalAmountUsd": { "type": "number", "example": 8500.00 },
+          "invoicedAt": { "type": "string", "example": "2026-08-10T10:00:00.000Z" },
+          "status": { "type": "string", "enum": ["Draft", "Issued", "Paid", "Overdue"], "example": "Issued" }
+        },
+        "required": ["id", "customerId", "vehicleId", "vehicleSlug", "make", "model", "year", "totalAmountUsd", "invoicedAt", "status"]
+      },
+      "Allocation": {
+        "type": "object",
+        "description": "Payment allocation to an invoice, with approval status.",
+        "properties": {
+          "id": { "type": "string", "example": "alloc-001" },
+          "customerId": { "type": "string", "example": "cust-123" },
+          "paymentId": { "type": "string", "example": "pay-001" },
+          "invoiceId": { "type": "string", "example": "inv-001" },
+          "amountUsd": { "type": "number", "example": 2000.00 },
+          "allocatedAt": { "type": "string", "example": "2026-08-11T10:00:00.000Z" },
+          "status": { "type": "string", "enum": ["Approved", "Pending", "Rejected"], "example": "Approved" }
+        },
+        "required": ["id", "customerId", "paymentId", "invoiceId", "amountUsd", "allocatedAt", "status"]
+      },
+      "CustomerDashboard": {
+        "type": "object",
+        "description": "Non-blocking customer dashboard KPI baseline (D02-ASM-001). Outstanding balance = issued invoice total - approved allocations. Credit utilisation = outstanding balance ÷ credit limit. Vehicle counts use canonical IDs and server status. Server-derived; no browser calculation.",
+        "properties": {
+          "customerId": { "type": "string", "example": "cust-123" },
+          "customerEmail": { "type": "string", "example": "customer@example.com" },
+          "creditLimitUsd": { "type": "number", "example": 500000.00 },
+          "outstandingBalanceUsd": { "type": "number", "example": 120000.00 },
+          "creditUtilisationPercent": { "type": "number", "example": 24.0 },
+          "vehicleCountReserved": { "type": "integer", "example": 2 },
+          "vehicleCountInvoiced": { "type": "integer", "example": 1 },
+          "vehicleCountDelivered": { "type": "integer", "example": 0 },
+          "lastUpdated": { "type": "string", "example": "2026-08-14T10:00:00.000Z" }
+        },
+        "required": ["customerId", "customerEmail", "creditLimitUsd", "outstandingBalanceUsd", "creditUtilisationPercent", "vehicleCountReserved", "vehicleCountInvoiced", "vehicleCountDelivered", "lastUpdated"]
       }
     }
   }

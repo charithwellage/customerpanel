@@ -443,6 +443,49 @@ export function generateVehicleSlug(year: number, make: string, model: string, i
     .replace(/^-+|-+$/g, '');
 }
 
+// --- Phase 2.2: customer dashboard KPI baseline (D02-ASM-001) ---
+//
+// Non-blocking customer dashboard aggregate derived from linked mock records:
+// outstanding balance = issued invoice total minus approved allocations;
+// credit utilisation = outstanding balance ÷ mock credit limit;
+// vehicle counts use canonical vehicle IDs and current server status.
+// All values are server-derived; no browser calculation or fabrication.
+
+export interface Invoice {
+  id: string;
+  customerId: string;
+  vehicleId: string;
+  vehicleSlug: string;
+  make: string;
+  model: string;
+  year: number;
+  totalAmountUsd: number;
+  invoicedAt: string;
+  status: 'Draft' | 'Issued' | 'Paid' | 'Overdue';
+}
+
+export interface Allocation {
+  id: string;
+  customerId: string;
+  paymentId: string;
+  invoiceId: string;
+  amountUsd: number;
+  allocatedAt: string;
+  status: 'Approved' | 'Pending' | 'Rejected';
+}
+
+export interface CustomerDashboard {
+  customerId: string;
+  customerEmail: string;
+  creditLimitUsd: number;
+  outstandingBalanceUsd: number;
+  creditUtilisationPercent: number;
+  vehicleCountReserved: number;
+  vehicleCountInvoiced: number;
+  vehicleCountDelivered: number;
+  lastUpdated: string;
+}
+
 export * from './auth.js';
 export * from './freight.js';
 export * from './content.js';
