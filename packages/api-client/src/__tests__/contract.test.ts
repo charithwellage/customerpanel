@@ -1270,5 +1270,123 @@ describe('API Client & Contract Boundary Tests', () => {
       expect(typeof dashboard.partialFailureIndicators.notificationsFailed).toBe('boolean');
     });
   });
-});
 
+  describe('Customer Vehicle Service & Contracts (D02-P04-T001)', () => {
+    it('lists customer fleet vehicles via CustomerVehicleService', async () => {
+      let capturedUrl: string | undefined;
+      const mockFetch = vi.fn().mockImplementation(async (url) => {
+        capturedUrl = url;
+        return {
+          ok: true,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: async () => ({
+            items: [
+              {
+                id: 'veh-1',
+                vehicleId: 'veh-1',
+                chassisNumber: 'NZE141-1234567',
+                make: 'Toyota',
+                model: 'Corolla Axio',
+                year: 2021,
+                slug: '2021-toyota-corolla-axio-veh-1',
+                priceUsd: 8500,
+                totalAmountUsd: 8500,
+                status: 'Confirmed',
+                createdAt: '2026-08-10T10:00:00.000Z',
+                updatedAt: '2026-08-10T10:00:00.000Z',
+              },
+            ],
+            total: 1,
+            countsByStatus: {
+              underNegotiation: 0,
+              underNegotiationWithPI: 0,
+              confirmed: 1,
+              inTransit: 0,
+              delivered: 0,
+              all: 1,
+            },
+          }),
+        };
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { CustomerVehicleService } = await import('../services/customerVehicles.js');
+      const service = new CustomerVehicleService(client);
+
+      const res = await service.listCustomerVehicles({ status: 'Confirmed', query: 'Corolla', page: 1, limit: 10 });
+      expect(capturedUrl).toBe('http://localhost:4000/api/v1/customer/vehicles?status=Confirmed&query=Corolla&page=1&limit=10');
+      expect(res.total).toBe(1);
+      expect(res.items[0].make).toBe('Toyota');
+      expect(res.countsByStatus.confirmed).toBe(1);
+    });
+
+    it('fetches customer vehicle detail via CustomerVehicleService', async () => {
+      let capturedUrl: string | undefined;
+      const mockFetch = vi.fn().mockImplementation(async (url) => {
+        capturedUrl = url;
+        return {
+          ok: true,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: async () => ({
+            id: 'veh-1',
+            vehicleId: 'veh-1',
+            chassisNumber: 'NZE141-1234567',
+            make: 'Toyota',
+            model: 'Corolla Axio',
+            year: 2021,
+            slug: '2021-toyota-corolla-axio-veh-1',
+            priceUsd: 8500,
+            totalAmountUsd: 8500,
+            status: 'Confirmed',
+            images: ['https://example.com/veh-1.jpg'],
+            statusHistory: [
+              { status: 'Under Negotiation', timestamp: '2026-08-09T10:00:00.000Z' },
+              { status: 'Confirmed', timestamp: '2026-08-11T10:00:00.000Z' },
+            ],
+            documents: [
+              { id: 'doc-inv-1', type: 'CommercialInvoice', title: 'Commercial Invoice INV-001', status: 'Available' },
+            ],
+            createdAt: '2026-08-10T10:00:00.000Z',
+            updatedAt: '2026-08-10T10:00:00.000Z',
+          }),
+        };
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { CustomerVehicleService } = await import('../services/customerVehicles.js');
+      const service = new CustomerVehicleService(client);
+
+      const detail = await service.getCustomerVehicleDetail('veh-1');
+      expect(capturedUrl).toBe('http://localhost:4000/api/v1/customer/vehicles/veh-1');
+      expect(detail).not.toBeNull();
+      expect(detail?.id).toBe('veh-1');
+      expect(detail?.status).toBe('Confirmed');
+      expect(detail?.statusHistory.length).toBe(2);
+      expect(detail?.documents.length).toBe(1);
+    });
+
+    it('returns null on 404 from getCustomerVehicleDetail', async () => {
+      const mockFetch = vi.fn().mockImplementation(async () => {
+        return {
+          ok: false,
+          status: 404,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: async () => ({
+            statusCode: 404,
+            message: 'Vehicle not found',
+          }),
+        };
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { CustomerVehicleService } = await import('../services/customerVehicles.js');
+      const service = new CustomerVehicleService(client);
+
+      const detail = await service.getCustomerVehicleDetail('non-existent');
+      expect(detail).toBeNull();
+    });
+  });
+});

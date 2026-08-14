@@ -472,6 +472,92 @@ export interface CustomerDashboard {
   notificationUnreadCount: number;
   partialFailureIndicators: PartialFailureIndicators;
 }
+
+export type CustomerVehicleStatus =
+  | 'Under Negotiation'
+  | 'Under Negotiation With PI'
+  | 'Confirmed'
+  | 'In Transit'
+  | 'Delivered'
+  | 'Expired'
+  | 'Cancelled';
+
+export interface CustomerVehicleStatusHistoryItem {
+  status: CustomerVehicleStatus;
+  timestamp: string;
+  notes?: string;
+}
+
+export interface CustomerVehicleDocumentReference {
+  id: string;
+  type: string;
+  title: string;
+  status: 'Available' | 'Pending' | 'Draft';
+  fileUrl?: string;
+  issuedAt?: string;
+}
+
+export interface CustomerVehicleDepositInfo {
+  requiredPercent: number;
+  requiredAmountUsd: number;
+  paidAmountUsd: number;
+  remainingAmountUsd: number;
+  isFullyPaid: boolean;
+}
+
+export interface CustomerVehicleSummary {
+  id: string;
+  vehicleId: string;
+  chassisNumber: string;
+  make: string;
+  model: string;
+  year: number;
+  slug: string;
+  primaryImage?: string;
+  priceUsd: number;
+  totalAmountUsd: number;
+  status: CustomerVehicleStatus;
+  locationStatus?: 'In Japan' | 'In Transit' | 'In Port';
+  destinationPort?: string;
+  reservationExpiresAt?: string;
+  proformaInvoiceId?: string;
+  paymentDeadline?: string;
+  deposit?: CustomerVehicleDepositInfo;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CustomerVehicleDetail extends CustomerVehicleSummary {
+  images: string[];
+  bodyStyle?: string;
+  fuelType?: string;
+  transmission?: string;
+  driveTrain?: string;
+  mileage?: number;
+  invoiceId?: string;
+  shipmentId?: string;
+  vesselName?: string;
+  etd?: string;
+  eta?: string;
+  billOfLadingNo?: string;
+  statusHistory: CustomerVehicleStatusHistoryItem[];
+  documents: CustomerVehicleDocumentReference[];
+}
+
+export interface CustomerVehicleCountsByStatus {
+  underNegotiation: number;
+  underNegotiationWithPI: number;
+  confirmed: number;
+  inTransit: number;
+  delivered: number;
+  all: number;
+}
+
+export interface CustomerVehicleListResponse {
+  items: CustomerVehicleSummary[];
+  total: number;
+  countsByStatus: CustomerVehicleCountsByStatus;
+}
 `;
 
 mkdirSync(dirname(outputPath), { recursive: true });

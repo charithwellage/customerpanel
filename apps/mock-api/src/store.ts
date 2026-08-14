@@ -42,12 +42,22 @@ import type {
   Invoice,
   Allocation,
   CustomerDashboard,
+  CustomerVehicleStatus,
+  CustomerVehicleStatusHistoryItem,
+  CustomerVehicleDocumentReference,
+  CustomerVehicleDepositInfo,
+  CustomerVehicleSummary,
+  CustomerVehicleDetail,
+  CustomerVehicleCountsByStatus,
+  CustomerVehicleListResponse,
+  ListCustomerVehiclesQuery,
 } from '@carchief/domain';
 import {
   generateVehicleSlug,
   calculateFreightEstimate,
   resolveFreightRateStatus,
   calculateTierPricing,
+  calculateVehicleDeposit,
   TIER_DISCOUNTS,
   ENQUIRY_TYPES,
   ENQUIRY_SOURCES,
@@ -491,6 +501,9 @@ export interface DemoStore {
   getBranchById(id: string): Promise<BranchContent | null>;
   // Phase 2.2: customer dashboard KPI baseline (D02-ASM-001)
   getCustomerDashboard(customerId: string, customerEmail: string): Promise<CustomerDashboard>;
+  // Phase 2.4: customer vehicle projections (CUST-10, CUST-11, CUST-12, CUST-13, RULE-04, RULE-07, RULE-08)
+  getCustomerVehicles(customerId: string, query?: ListCustomerVehiclesQuery, nowISO?: string): Promise<CustomerVehicleListResponse>;
+  getCustomerVehicleById(customerId: string, idOrSlug: string, nowISO?: string): Promise<CustomerVehicleDetail | null>;
   reset(): Promise<void>;
   close(): Promise<void>;
 }
@@ -1982,6 +1995,16 @@ export const seedReservations: ReservationRecord[] = [
     holdHours: 48,
   },
   {
+    id: 'res-seed-active-cust-1',
+    vehicleId: 'veh-6',
+    vehicleSlug: '2018-mitsubishi-fuso-canter-veh-6',
+    customerId: 'cust-123',
+    customerEmail: 'customer@example.com',
+    createdAt: '2026-08-10T08:00:00.000Z',
+    expiresAt: '2026-08-12T08:00:00.000Z', // Active relative to 2026-08-10 reference date (48-hour hold)
+    holdHours: 48,
+  },
+  {
     id: 'res-seed-expired-1',
     vehicleId: 'veh-3',
     vehicleSlug: '2022-nissan-x-trail-veh-3',
@@ -2345,6 +2368,313 @@ const seedNotifications: NotificationRecord[] = [
   // Exception customer (cust-exception-001): no notifications
 ];
 
+// Seed data for Proforma Invoices (D02-P04-T001, CUST-10, RULE-07)
+export interface ProformaInvoiceRecord {
+  id: string;
+  customerId: string;
+  vehicleId: string;
+  vehicleSlug: string;
+  make: string;
+  model: string;
+  year: number;
+  totalAmountUsd: number;
+  issuedAt: string;
+  paymentDeadline: string;
+  status: 'Issued' | 'Expired' | 'Cancelled';
+}
+
+const seedProformaInvoices: ProformaInvoiceRecord[] = [
+  {
+    id: 'pi-001',
+    customerId: 'cust-123',
+    vehicleId: 'veh-5',
+    vehicleSlug: '2021-honda-fit-hybrid-veh-5',
+    make: 'Honda',
+    model: 'Fit Hybrid',
+    year: 2021,
+    totalAmountUsd: 7900.00,
+    issuedAt: '2026-08-10T10:00:00.000Z',
+    paymentDeadline: '2026-08-17T10:00:00.000Z',
+    status: 'Issued',
+  },
+];
+
+/**
+ * Builds customer fleet vehicle projections from linked mock records (CUST-10, CUST-11, CUST-12, CUST-13, RULE-04, RULE-07, RULE-08, RULE-09).
+ * Ensures:
+ * 1. Strict customer scoping (RULE-04)
+ * 2. Zero duplicate vehicle listings across categories (RULE-08)
+ * 3. Server-computed 50% deposit calculations (RULE-07)
+ * 4. 48-hour deterministic hold expiry (RULE-05)
+ * 5. Full chronological status history (CUST-12)
+ * 6. Linked export documents (CUST-13)
+ */
+export function buildCustomerVehicleProjections(
+  customerId: string,
+  vehicles: VehicleRecord[],
+  reservations: ReservationRecord[],
+  proformaInvoices: ProformaInvoiceRecord[],
+  invoices: InvoiceRecord[],
+  allocations: AllocationRecord[],
+  shipments: ShipmentRecord[],
+  documents: DocumentRecord[],
+  nowISO: string = new Date().toISOString()
+): CustomerVehicleDetail[] {
+  const relevantVehicleIds = new Set<string>();
+
+  for (const inv of invoices) {
+    if (inv.customerId === customerId) relevantVehicleIds.add(inv.vehicleId);
+  }
+  for (const pi of proformaInvoices) {
+    if (pi.customerId === customerId && pi.status === 'Issued') relevantVehicleIds.add(pi.vehicleId);
+  }
+  for (const r of reservations) {
+    if (r.customerId === customerId) relevantVehicleIds.add(r.vehicleId);
+  }
+
+  const result: CustomerVehicleDetail[] = [];
+
+  for (const vId of relevantVehicleIds) {
+    const vehicle = vehicles.find((v) => v.id === vId);
+    if (!vehicle) continue;
+
+    const r = reservations.find((res) => res.customerId === customerId && res.vehicleId === vId && isReservationActive(res, nowISO));
+    const pi = proformaInvoices.find((p) => p.customerId === customerId && p.vehicleId === vId && p.status === 'Issued');
+    const inv = invoices.find((i) => i.customerId === customerId && i.vehicleId === vId);
+    const shipment = shipments.find((s) => s.customerId === customerId && s.vehicleId === vId);
+    const customerAllocs = inv ? allocations.filter((a) => a.customerId === customerId && a.invoiceId === inv.id && a.status === 'Approved') : [];
+    const paidAmountUsd = customerAllocs.reduce((sum, a) => sum + a.amountUsd, 0);
+
+    const priceUsd = vehicle.priceUsd;
+    const totalAmountUsd = inv ? inv.totalAmountUsd : (pi ? pi.totalAmountUsd : priceUsd);
+
+    // Determine status
+    let status: CustomerVehicleStatus;
+    if (shipment?.status === 'Delivered' || vehicle.status === 'Sold') {
+      status = 'Delivered';
+    } else if (shipment?.status === 'InTransit' || vehicle.locationStatus === 'In Transit') {
+      status = 'In Transit';
+    } else if (inv || shipment?.status === 'Ready' || vehicle.status === 'InvoiceCreated' || vehicle.status === 'Invoiced' || (paidAmountUsd >= totalAmountUsd * 0.5 && totalAmountUsd > 0)) {
+      status = 'Confirmed';
+    } else if (pi || vehicle.status === 'ReservedWithPI') {
+      status = 'Under Negotiation With PI';
+    } else if (r || vehicle.status === 'Reserved') {
+      status = 'Under Negotiation';
+    } else {
+      status = 'Expired';
+    }
+
+    // Deposit computation under RULE-07
+    let deposit: CustomerVehicleDepositInfo | undefined;
+    if (status === 'Under Negotiation With PI' || status === 'Confirmed' || status === 'In Transit' || status === 'Delivered' || pi || inv) {
+      deposit = calculateVehicleDeposit(totalAmountUsd, paidAmountUsd);
+    }
+
+    // Location Status
+    let locationStatus: 'In Japan' | 'In Transit' | 'In Port' | undefined;
+    if (status === 'In Transit') {
+      locationStatus = 'In Transit';
+    } else if (status === 'Delivered') {
+      locationStatus = 'In Port';
+    } else {
+      locationStatus = vehicle.locationStatus || 'In Japan';
+    }
+
+    const slug = generateVehicleSlug(vehicle.year, vehicle.make, vehicle.model, vehicle.id);
+    const primaryImage = vehicle.images?.[0];
+
+    // Status timeline
+    const statusHistory: CustomerVehicleStatusHistoryItem[] = [];
+    statusHistory.push({
+      status: 'Under Negotiation',
+      timestamp: r?.createdAt || pi?.issuedAt || inv?.invoicedAt || vehicle.createdAt || '2026-08-09T10:00:00.000Z',
+      notes: '48-hour reservation hold placed',
+    });
+
+    if (pi || inv || status === 'Under Negotiation With PI' || status === 'Confirmed' || status === 'In Transit' || status === 'Delivered') {
+      statusHistory.push({
+        status: 'Under Negotiation With PI',
+        timestamp: pi?.issuedAt || inv?.invoicedAt || '2026-08-10T10:00:00.000Z',
+        notes: 'Proforma invoice issued with 50% deposit requirement',
+      });
+    }
+
+    if (inv || status === 'Confirmed' || status === 'In Transit' || status === 'Delivered') {
+      statusHistory.push({
+        status: 'Confirmed',
+        timestamp: customerAllocs[0]?.allocatedAt || inv?.invoicedAt || '2026-08-11T10:00:00.000Z',
+        notes: 'Deposit received and commercial invoice issued',
+      });
+    }
+
+    if (status === 'In Transit' || status === 'Delivered') {
+      statusHistory.push({
+        status: 'In Transit',
+        timestamp: shipment?.shippedAt || '2026-08-12T10:00:00.000Z',
+        notes: 'Vehicle dispatched on vessel and in transit',
+      });
+    }
+
+    if (status === 'Delivered') {
+      statusHistory.push({
+        status: 'Delivered',
+        timestamp: shipment?.deliveredAt || '2026-08-14T08:00:00.000Z',
+        notes: 'Vehicle arrived at destination port and cleared customs',
+      });
+    }
+
+    // Linked documents
+    const docs: CustomerVehicleDocumentReference[] = [];
+    if (pi) {
+      docs.push({
+        id: `doc-pi-${vId}`,
+        type: 'ProformaInvoice',
+        title: `Proforma Invoice ${pi.id.toUpperCase()}`,
+        status: 'Available',
+        fileUrl: `/documents/${pi.id}.pdf`,
+        issuedAt: pi.issuedAt,
+      });
+    }
+    if (inv) {
+      docs.push({
+        id: `doc-inv-${vId}`,
+        type: 'CommercialInvoice',
+        title: `Commercial Invoice ${inv.id.toUpperCase()}`,
+        status: 'Available',
+        fileUrl: `/documents/${inv.id}.pdf`,
+        issuedAt: inv.invoicedAt,
+      });
+    }
+    if (shipment) {
+      docs.push({
+        id: `doc-bl-${vId}`,
+        type: 'BillOfLading',
+        title: 'Bill of Lading BL-789012',
+        status: shipment.status === 'InTransit' || shipment.status === 'Delivered' ? 'Available' : 'Pending',
+        fileUrl: '/documents/bl-789012.pdf',
+      });
+      docs.push({
+        id: `doc-ec-${vId}`,
+        type: 'ExportCertificate',
+        title: 'Japan Export Certificate',
+        status: 'Available',
+        fileUrl: '/documents/export-cert.pdf',
+      });
+      docs.push({
+        id: `doc-ic-${vId}`,
+        type: 'InspectionCertificate',
+        title: 'JEVIC Pre-Shipment Inspection Certificate',
+        status: 'Available',
+        fileUrl: '/documents/jevic-cert.pdf',
+      });
+    }
+
+    const detail: CustomerVehicleDetail = {
+      id: vId,
+      vehicleId: vId,
+      chassisNumber: vehicle.chassisNumber,
+      make: vehicle.make,
+      model: vehicle.model,
+      year: vehicle.year,
+      slug,
+      primaryImage,
+      images: vehicle.images || (primaryImage ? [primaryImage] : []),
+      priceUsd,
+      totalAmountUsd,
+      status,
+      locationStatus,
+      destinationPort: vehicle.destinationPort || 'Mombasa',
+      reservationExpiresAt: r?.expiresAt,
+      proformaInvoiceId: pi?.id,
+      paymentDeadline: pi?.paymentDeadline,
+      deposit,
+      bodyStyle: vehicle.bodyStyle,
+      fuelType: vehicle.fuelType,
+      transmission: vehicle.transmission,
+      driveTrain: vehicle.driveTrain,
+      mileage: vehicle.mileage,
+      invoiceId: inv?.id,
+      shipmentId: shipment?.id,
+      vesselName: shipment ? 'Global Highway' : undefined,
+      etd: vehicle.etd,
+      eta: vehicle.eta,
+      billOfLadingNo: shipment ? 'BL-789012' : undefined,
+      statusHistory,
+      documents: docs,
+      createdAt: vehicle.createdAt || '2026-08-09T10:00:00.000Z',
+      updatedAt: vehicle.createdAt || '2026-08-09T10:00:00.000Z',
+    };
+
+    result.push(detail);
+  }
+
+  return result;
+}
+
+export function queryCustomerVehicles(
+  allVehicles: CustomerVehicleDetail[],
+  query?: ListCustomerVehiclesQuery
+): CustomerVehicleListResponse {
+  const countsByStatus: CustomerVehicleCountsByStatus = {
+    underNegotiation: allVehicles.filter((v) => v.status === 'Under Negotiation').length,
+    underNegotiationWithPI: allVehicles.filter((v) => v.status === 'Under Negotiation With PI').length,
+    confirmed: allVehicles.filter((v) => v.status === 'Confirmed').length,
+    inTransit: allVehicles.filter((v) => v.status === 'In Transit').length,
+    delivered: allVehicles.filter((v) => v.status === 'Delivered').length,
+    all: allVehicles.length,
+  };
+
+  let filtered = allVehicles;
+
+  if (query?.status) {
+    const s = query.status.trim().toLowerCase();
+    filtered = filtered.filter((v) => v.status.toLowerCase() === s);
+  }
+
+  if (query?.query) {
+    const q = query.query.trim().toLowerCase();
+    filtered = filtered.filter((v) =>
+      v.make.toLowerCase().includes(q) ||
+      v.model.toLowerCase().includes(q) ||
+      v.chassisNumber.toLowerCase().includes(q) ||
+      String(v.year).includes(q)
+    );
+  }
+
+  const page = Math.max(1, query?.page || 1);
+  const limit = Math.max(1, Math.min(100, query?.limit || 20));
+  const startIndex = (page - 1) * limit;
+  const paginated = filtered.slice(startIndex, startIndex + limit);
+
+  const items: CustomerVehicleSummary[] = paginated.map((d) => ({
+    id: d.id,
+    vehicleId: d.vehicleId,
+    chassisNumber: d.chassisNumber,
+    make: d.make,
+    model: d.model,
+    year: d.year,
+    slug: d.slug,
+    primaryImage: d.primaryImage,
+    priceUsd: d.priceUsd,
+    totalAmountUsd: d.totalAmountUsd,
+    status: d.status,
+    locationStatus: d.locationStatus,
+    destinationPort: d.destinationPort,
+    reservationExpiresAt: d.reservationExpiresAt,
+    proformaInvoiceId: d.proformaInvoiceId,
+    paymentDeadline: d.paymentDeadline,
+    deposit: d.deposit,
+    createdAt: d.createdAt,
+    updatedAt: d.updatedAt,
+  }));
+
+  return {
+    items,
+    total: filtered.length,
+    countsByStatus,
+  };
+}
+
 /**
  * Validates the reservation request and resolves the target vehicle. Throws
  * a field-associated `ReservationRequestError` (400) for a malformed
@@ -2413,6 +2743,7 @@ class MemoryStore implements DemoStore {
   private reservations: ReservationRecord[] = seedReservations.map((r) => ({ ...r }));
   private reservationSeq = 0;
   private invoices = seedInvoices.map((i) => ({ ...i }));
+  private proformaInvoices = seedProformaInvoices.map((p) => ({ ...p }));
   private allocations = seedAllocations.map((a) => ({ ...a }));
   private payments = seedPayments.map((p) => ({ ...p }));
   private shipments = seedShipments.map((s) => ({ ...s }));
@@ -2712,12 +3043,44 @@ class MemoryStore implements DemoStore {
     });
   }
 
+  getCustomerVehicles(customerId: string, query?: ListCustomerVehiclesQuery, nowISO?: string): Promise<CustomerVehicleListResponse> {
+    const all = buildCustomerVehicleProjections(
+      customerId,
+      this.vehicles,
+      this.reservations,
+      this.proformaInvoices,
+      this.invoices,
+      this.allocations,
+      this.shipments,
+      this.documents,
+      nowISO || new Date().toISOString()
+    );
+    return Promise.resolve(queryCustomerVehicles(all, query));
+  }
+
+  getCustomerVehicleById(customerId: string, idOrSlug: string, nowISO?: string): Promise<CustomerVehicleDetail | null> {
+    const all = buildCustomerVehicleProjections(
+      customerId,
+      this.vehicles,
+      this.reservations,
+      this.proformaInvoices,
+      this.invoices,
+      this.allocations,
+      this.shipments,
+      this.documents,
+      nowISO || new Date().toISOString()
+    );
+    const target = all.find((v) => v.id === idOrSlug || v.vehicleId === idOrSlug || v.slug === idOrSlug);
+    return Promise.resolve(target || null);
+  }
+
   reset(): Promise<void> {
     this.config = { ...seedConfig };
     this.vehicles = seedVehicles.map((vehicle) => ({ ...vehicle }));
     this.enquiries = [];
     this.reservations = seedReservations.map((r) => ({ ...r }));
     this.invoices = seedInvoices.map((i) => ({ ...i }));
+    this.proformaInvoices = seedProformaInvoices.map((p) => ({ ...p }));
     this.allocations = seedAllocations.map((a) => ({ ...a }));
     this.payments = seedPayments.map((p) => ({ ...p }));
     this.shipments = seedShipments.map((s) => ({ ...s }));
@@ -3538,6 +3901,41 @@ class PostgresStore implements DemoStore {
       notificationUnreadCount,
       partialFailureIndicators,
     };
+  }
+
+  async getCustomerVehicles(customerId: string, query?: ListCustomerVehiclesQuery, nowISO?: string): Promise<CustomerVehicleListResponse> {
+    const vehicles = await this.getRawVehicles();
+    const reservations = await this.getRawReservations();
+    const all = buildCustomerVehicleProjections(
+      customerId,
+      vehicles,
+      reservations,
+      seedProformaInvoices,
+      seedInvoices,
+      seedAllocations,
+      seedShipments,
+      seedDocuments,
+      nowISO || new Date().toISOString()
+    );
+    return queryCustomerVehicles(all, query);
+  }
+
+  async getCustomerVehicleById(customerId: string, idOrSlug: string, nowISO?: string): Promise<CustomerVehicleDetail | null> {
+    const vehicles = await this.getRawVehicles();
+    const reservations = await this.getRawReservations();
+    const all = buildCustomerVehicleProjections(
+      customerId,
+      vehicles,
+      reservations,
+      seedProformaInvoices,
+      seedInvoices,
+      seedAllocations,
+      seedShipments,
+      seedDocuments,
+      nowISO || new Date().toISOString()
+    );
+    const target = all.find((v) => v.id === idOrSlug || v.vehicleId === idOrSlug || v.slug === idOrSlug);
+    return target || null;
   }
 
   async reset(): Promise<void> {
