@@ -18,7 +18,7 @@ export interface JwtClaims {
 
 export const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
   PublicVisitor: ['read:public'],
-  CustomerBuyer: ['read:public', 'create:inquiry', 'create:reservation'],
+  CustomerBuyer: ['read:public', 'read:customer', 'create:inquiry', 'create:reservation'],
   Salesperson: ['read:public', 'read:leads', 'update:leads', 'create:inquiry'],
   StockController: ['read:public', 'update:vehicles', 'create:vehicles'],
   FinanceManager: ['read:public', 'read:finance', 'approve:pi'],

@@ -14,6 +14,6 @@ export class DashboardService {
     if (!this.httpClient) {
       throw new Error('DashboardService.getCustomerDashboard requires an HttpClient');
     }
-    return this.httpClient.request<CustomerDashboard>('/api/v1/customer/dashboard');
+    return this.httpClient.request<CustomerDashboard>('/customer/dashboard');
   }
 }
