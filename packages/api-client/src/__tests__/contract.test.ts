@@ -1137,6 +1137,11 @@ describe('API Client & Contract Boundary Tests', () => {
           vehicleCountInvoiced: 2,
           vehicleCountDelivered: 0,
           lastUpdated: '2026-08-14T10:00:00.000Z',
+          paymentStatusSummary: { approved: 2, pending: 0, rejected: 0 },
+          shipmentStatusSummary: { ready: 1, inTransit: 1, delivered: 0, other: 0 },
+          documentAvailabilityCount: { available: 3, pending: 0, unavailable: 0 },
+          notificationUnreadCount: 1,
+          partialFailureIndicators: { paymentsFailed: false, shipmentsFailed: false, documentsFailed: false, notificationsFailed: false },
         }),
       });
       global.fetch = mockFetch;
@@ -1151,10 +1156,118 @@ describe('API Client & Contract Boundary Tests', () => {
       // Verify no raw invoice list is exposed (which would enable browser calculation)
       expect(dashboard).not.toHaveProperty('invoices');
       expect(dashboard).not.toHaveProperty('allocations');
+      expect(dashboard).not.toHaveProperty('payments');
+      expect(dashboard).not.toHaveProperty('shipments');
+      expect(dashboard).not.toHaveProperty('documents');
 
       // Verify reconciled totals only
       expect(typeof dashboard.outstandingBalanceUsd).toBe('number');
       expect(typeof dashboard.creditUtilisationPercent).toBe('number');
+    });
+
+    it('includes linked record aggregates: payment/shipment/document/notification summaries (D02-P02-T001)', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => ({
+          customerId: 'cust-123',
+          customerEmail: 'customer@example.com',
+          creditLimitUsd: 500000,
+          outstandingBalanceUsd: 29700,
+          creditUtilisationPercent: 5.94,
+          vehicleCountReserved: 2,
+          vehicleCountInvoiced: 3,
+          vehicleCountDelivered: 0,
+          lastUpdated: '2026-08-14T10:00:00.000Z',
+          paymentStatusSummary: { approved: 3, pending: 1, rejected: 0 },
+          shipmentStatusSummary: { ready: 1, inTransit: 1, delivered: 1, other: 0 },
+          documentAvailabilityCount: { available: 3, pending: 1, unavailable: 0 },
+          notificationUnreadCount: 2,
+          partialFailureIndicators: { paymentsFailed: false, shipmentsFailed: false, documentsFailed: false, notificationsFailed: false },
+        }),
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({
+        baseUrl: 'http://localhost:4000',
+        getAuthToken: () => 'demo-token',
+      });
+
+      const dashboard = await client.request<any>('/api/v1/customer/dashboard');
+
+      // Verify linked record aggregates are present
+      expect(dashboard).toHaveProperty('paymentStatusSummary');
+      expect(dashboard).toHaveProperty('shipmentStatusSummary');
+      expect(dashboard).toHaveProperty('documentAvailabilityCount');
+      expect(dashboard).toHaveProperty('notificationUnreadCount');
+      expect(dashboard).toHaveProperty('partialFailureIndicators');
+
+      // Verify payment status summary structure and values
+      expect(dashboard.paymentStatusSummary).toEqual({ approved: 3, pending: 1, rejected: 0 });
+      expect(typeof dashboard.paymentStatusSummary.approved).toBe('number');
+      expect(typeof dashboard.paymentStatusSummary.pending).toBe('number');
+      expect(typeof dashboard.paymentStatusSummary.rejected).toBe('number');
+
+      // Verify shipment status summary structure
+      expect(dashboard.shipmentStatusSummary).toEqual({ ready: 1, inTransit: 1, delivered: 1, other: 0 });
+      expect(typeof dashboard.shipmentStatusSummary.ready).toBe('number');
+      expect(typeof dashboard.shipmentStatusSummary.inTransit).toBe('number');
+      expect(typeof dashboard.shipmentStatusSummary.delivered).toBe('number');
+      expect(typeof dashboard.shipmentStatusSummary.other).toBe('number');
+
+      // Verify document availability summary structure
+      expect(dashboard.documentAvailabilityCount).toEqual({ available: 3, pending: 1, unavailable: 0 });
+      expect(typeof dashboard.documentAvailabilityCount.available).toBe('number');
+      expect(typeof dashboard.documentAvailabilityCount.pending).toBe('number');
+      expect(typeof dashboard.documentAvailabilityCount.unavailable).toBe('number');
+
+      // Verify notification unread count
+      expect(dashboard.notificationUnreadCount).toBe(2);
+      expect(typeof dashboard.notificationUnreadCount).toBe('number');
+    });
+
+    it('validates partial failure indicators in response', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => ({
+          customerId: 'cust-exception-001',
+          customerEmail: 'exception@example.com',
+          creditLimitUsd: 500000,
+          outstandingBalanceUsd: 9500,
+          creditUtilisationPercent: 1.9,
+          vehicleCountReserved: 0,
+          vehicleCountInvoiced: 1,
+          vehicleCountDelivered: 0,
+          lastUpdated: '2026-08-14T10:00:00.000Z',
+          paymentStatusSummary: { approved: 0, pending: 0, rejected: 1 },
+          shipmentStatusSummary: { ready: 0, inTransit: 0, delivered: 0, other: 1 },
+          documentAvailabilityCount: { available: 0, pending: 0, unavailable: 1 },
+          notificationUnreadCount: 0,
+          partialFailureIndicators: { paymentsFailed: false, shipmentsFailed: false, documentsFailed: false, notificationsFailed: false },
+        }),
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({
+        baseUrl: 'http://localhost:4000',
+        getAuthToken: () => 'demo-token',
+      });
+
+      const dashboard = await client.request<any>('/api/v1/customer/dashboard');
+
+      // Verify partial failure indicators structure and types
+      expect(dashboard.partialFailureIndicators).toBeDefined();
+      expect(dashboard.partialFailureIndicators).toHaveProperty('paymentsFailed');
+      expect(dashboard.partialFailureIndicators).toHaveProperty('shipmentsFailed');
+      expect(dashboard.partialFailureIndicators).toHaveProperty('documentsFailed');
+      expect(dashboard.partialFailureIndicators).toHaveProperty('notificationsFailed');
+
+      // Verify all indicators are booleans
+      expect(typeof dashboard.partialFailureIndicators.paymentsFailed).toBe('boolean');
+      expect(typeof dashboard.partialFailureIndicators.shipmentsFailed).toBe('boolean');
+      expect(typeof dashboard.partialFailureIndicators.documentsFailed).toBe('boolean');
+      expect(typeof dashboard.partialFailureIndicators.notificationsFailed).toBe('boolean');
     });
   });
 });

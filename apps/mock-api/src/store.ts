@@ -1864,7 +1864,45 @@ export interface AllocationRecord {
   status: 'Approved' | 'Pending' | 'Rejected';
 }
 
+export interface PaymentRecord {
+  id: string;
+  customerId: string;
+  invoiceId: string;
+  amountUsd: number;
+  paidAt: string;
+  status: 'Pending' | 'Approved' | 'Rejected';
+}
+
+export interface ShipmentRecord {
+  id: string;
+  customerId: string;
+  vehicleId: string;
+  status: 'Purchased' | 'Inspection' | 'Ready' | 'InTransit' | 'Delivered';
+  shippedAt: string;
+  deliveredAt?: string;
+}
+
+export interface DocumentRecord {
+  id: string;
+  customerId: string;
+  shipmentId?: string;
+  vehicleId?: string;
+  type: 'Invoice' | 'PaymentProof' | 'ShippingLabel' | 'DeliveryProof' | 'Other';
+  status: 'Available' | 'Pending' | 'Unavailable';
+  createdAt: string;
+}
+
+export interface NotificationRecord {
+  id: string;
+  customerId: string;
+  message: string;
+  type: 'Payment' | 'Shipment' | 'Document' | 'Vehicle' | 'Promotion';
+  isRead: boolean;
+  createdAt: string;
+}
+
 const seedInvoices: InvoiceRecord[] = [
+  // Active customer (cust-123): 3 invoices
   {
     id: 'inv-001',
     customerId: 'cust-123',
@@ -1901,6 +1939,19 @@ const seedInvoices: InvoiceRecord[] = [
     invoicedAt: '2026-08-11T09:00:00.000Z',
     status: 'Issued',
   },
+  // Exception customer (cust-exception-001): 1 invoice
+  {
+    id: 'inv-004',
+    customerId: 'cust-exception-001',
+    vehicleId: 'veh-4',
+    vehicleSlug: '2021-honda-civic-veh-4',
+    make: 'Honda',
+    model: 'Civic',
+    year: 2021,
+    totalAmountUsd: 9500.00,
+    invoicedAt: '2026-08-12T10:00:00.000Z',
+    status: 'Issued',
+  },
 ];
 
 const seedAllocations: AllocationRecord[] = [
@@ -1931,6 +1982,185 @@ const seedAllocations: AllocationRecord[] = [
     allocatedAt: '2026-08-12T14:00:00.000Z',
     status: 'Approved',
   },
+];
+
+// Seed data for payments (D02-P02-T001)
+const seedPayments: PaymentRecord[] = [
+  // Active customer (cust-123): 3 approved payments
+  {
+    id: 'pay-001',
+    customerId: 'cust-123',
+    invoiceId: 'inv-001',
+    amountUsd: 2000.00,
+    paidAt: '2026-08-11T10:00:00.000Z',
+    status: 'Approved',
+  },
+  {
+    id: 'pay-002',
+    customerId: 'cust-123',
+    invoiceId: 'inv-001',
+    amountUsd: 3500.00,
+    paidAt: '2026-08-12T11:00:00.000Z',
+    status: 'Approved',
+  },
+  {
+    id: 'pay-003',
+    customerId: 'cust-123',
+    invoiceId: 'inv-002',
+    amountUsd: 7000.00,
+    paidAt: '2026-08-12T14:00:00.000Z',
+    status: 'Approved',
+  },
+  // Active customer: 1 pending payment
+  {
+    id: 'pay-004',
+    customerId: 'cust-123',
+    invoiceId: 'inv-003',
+    amountUsd: 5000.00,
+    paidAt: '2026-08-13T09:00:00.000Z',
+    status: 'Pending',
+  },
+  // Exception customer: 1 rejected payment
+  {
+    id: 'pay-005',
+    customerId: 'cust-exception-001',
+    invoiceId: 'inv-004',
+    amountUsd: 3000.00,
+    paidAt: '2026-08-13T10:00:00.000Z',
+    status: 'Rejected',
+  },
+];
+
+// Seed data for shipments (D02-P02-T001)
+const seedShipments: ShipmentRecord[] = [
+  // Active customer (cust-123): shipments linked to vehicles
+  {
+    id: 'ship-001',
+    customerId: 'cust-123',
+    vehicleId: 'veh-1',
+    status: 'Ready',
+    shippedAt: '2026-08-10T10:00:00.000Z',
+  },
+  {
+    id: 'ship-002',
+    customerId: 'cust-123',
+    vehicleId: 'veh-2',
+    status: 'InTransit',
+    shippedAt: '2026-08-09T14:30:00.000Z',
+  },
+  {
+    id: 'ship-003',
+    customerId: 'cust-123',
+    vehicleId: 'veh-3',
+    status: 'Delivered',
+    shippedAt: '2026-08-11T09:00:00.000Z',
+    deliveredAt: '2026-08-14T08:00:00.000Z',
+  },
+  // Exception customer: 1 shipment
+  {
+    id: 'ship-004',
+    customerId: 'cust-exception-001',
+    vehicleId: 'veh-4',
+    status: 'Inspection',
+    shippedAt: '2026-08-12T10:00:00.000Z',
+  },
+];
+
+// Seed data for documents (D02-P02-T001)
+const seedDocuments: DocumentRecord[] = [
+  // Active customer (cust-123): documents linked to shipments/vehicles
+  {
+    id: 'doc-001',
+    customerId: 'cust-123',
+    shipmentId: 'ship-001',
+    vehicleId: 'veh-1',
+    type: 'ShippingLabel',
+    status: 'Available',
+    createdAt: '2026-08-10T10:00:00.000Z',
+  },
+  {
+    id: 'doc-002',
+    customerId: 'cust-123',
+    shipmentId: 'ship-002',
+    vehicleId: 'veh-2',
+    type: 'DeliveryProof',
+    status: 'Pending',
+    createdAt: '2026-08-11T10:00:00.000Z',
+  },
+  {
+    id: 'doc-003',
+    customerId: 'cust-123',
+    shipmentId: 'ship-003',
+    vehicleId: 'veh-3',
+    type: 'DeliveryProof',
+    status: 'Available',
+    createdAt: '2026-08-14T08:00:00.000Z',
+  },
+  {
+    id: 'doc-004',
+    customerId: 'cust-123',
+    vehicleId: 'veh-1',
+    type: 'Invoice',
+    status: 'Available',
+    createdAt: '2026-08-10T10:00:00.000Z',
+  },
+  // Exception customer: document with status Unavailable
+  {
+    id: 'doc-005',
+    customerId: 'cust-exception-001',
+    shipmentId: 'ship-004',
+    vehicleId: 'veh-4',
+    type: 'ShippingLabel',
+    status: 'Unavailable',
+    createdAt: '2026-08-12T10:00:00.000Z',
+  },
+];
+
+// Seed data for notifications (D02-P02-T001)
+const seedNotifications: NotificationRecord[] = [
+  // Active customer (cust-123): mix of read and unread
+  {
+    id: 'notif-001',
+    customerId: 'cust-123',
+    message: 'Payment received for invoice INV-001',
+    type: 'Payment',
+    isRead: true,
+    createdAt: '2026-08-11T10:00:00.000Z',
+  },
+  {
+    id: 'notif-002',
+    customerId: 'cust-123',
+    message: 'Your vehicle veh-1 is ready for shipment',
+    type: 'Shipment',
+    isRead: false,
+    createdAt: '2026-08-13T10:00:00.000Z',
+  },
+  {
+    id: 'notif-003',
+    customerId: 'cust-123',
+    message: 'Delivery proof for vehicle veh-3 now available',
+    type: 'Document',
+    isRead: false,
+    createdAt: '2026-08-14T08:30:00.000Z',
+  },
+  {
+    id: 'notif-004',
+    customerId: 'cust-123',
+    message: 'Special promotion: 10% off on premium vehicles',
+    type: 'Promotion',
+    isRead: true,
+    createdAt: '2026-08-12T12:00:00.000Z',
+  },
+  // New customer (cust-new-001): single unread notification
+  {
+    id: 'notif-005',
+    customerId: 'cust-new-001',
+    message: 'Welcome to CarChief! Start browsing vehicles.',
+    type: 'Promotion',
+    isRead: false,
+    createdAt: '2026-08-14T08:00:00.000Z',
+  },
+  // Exception customer (cust-exception-001): no notifications
 ];
 
 /**
@@ -2002,6 +2232,10 @@ class MemoryStore implements DemoStore {
   private reservationSeq = 0;
   private invoices = seedInvoices.map((i) => ({ ...i }));
   private allocations = seedAllocations.map((a) => ({ ...a }));
+  private payments = seedPayments.map((p) => ({ ...p }));
+  private shipments = seedShipments.map((s) => ({ ...s }));
+  private documents = seedDocuments.map((d) => ({ ...d }));
+  private notifications = seedNotifications.map((n) => ({ ...n }));
   private faqCategories = seedFaqCategories.map((c) => ({ ...c }));
   private faqItems = seedFaqItems.map((f) => ({ ...f }));
   private testimonials = seedTestimonials.map((t) => ({ ...t }));
@@ -2223,6 +2457,46 @@ class MemoryStore implements DemoStore {
         .map((i) => i.vehicleId)
     );
 
+    // Compute linked record aggregates (D02-P02-T001)
+    // Payment status summary: count payments by status for this customer's invoices
+    const customerInvoiceIds = new Set(customerInvoices.map((i) => i.id));
+    const customerPayments = this.payments.filter((p) => p.customerId === customerId && customerInvoiceIds.has(p.invoiceId));
+    const paymentStatusSummary = {
+      approved: customerPayments.filter((p) => p.status === 'Approved').length,
+      pending: customerPayments.filter((p) => p.status === 'Pending').length,
+      rejected: customerPayments.filter((p) => p.status === 'Rejected').length,
+    };
+
+    // Shipment status summary: count shipments by status for this customer's vehicles
+    const customerVehicleIds = new Set(customerInvoices.map((i) => i.vehicleId));
+    const customerShipments = this.shipments.filter((s) => s.customerId === customerId && customerVehicleIds.has(s.vehicleId));
+    const shipmentStatusSummary = {
+      ready: customerShipments.filter((s) => s.status === 'Ready').length,
+      inTransit: customerShipments.filter((s) => s.status === 'InTransit').length,
+      delivered: customerShipments.filter((s) => s.status === 'Delivered').length,
+      other: customerShipments.filter((s) => !['Ready', 'InTransit', 'Delivered'].includes(s.status)).length,
+    };
+
+    // Document availability: count documents by status for this customer's shipments/vehicles
+    const customerShipmentIds = new Set(customerShipments.map((s) => s.id));
+    const customerDocuments = this.documents.filter((d) => d.customerId === customerId && (customerShipmentIds.has(d.shipmentId || '') || customerVehicleIds.has(d.vehicleId || '')));
+    const documentAvailabilityCount = {
+      available: customerDocuments.filter((d) => d.status === 'Available').length,
+      pending: customerDocuments.filter((d) => d.status === 'Pending').length,
+      unavailable: customerDocuments.filter((d) => d.status === 'Unavailable').length,
+    };
+
+    // Notification unread count for this customer
+    const notificationUnreadCount = this.notifications.filter((n) => n.customerId === customerId && !n.isRead).length;
+
+    // Partial failure indicators: all set to false since this is mock data (no actual failures)
+    const partialFailureIndicators = {
+      paymentsFailed: false,
+      shipmentsFailed: false,
+      documentsFailed: false,
+      notificationsFailed: false,
+    };
+
     return Promise.resolve({
       customerId,
       customerEmail,
@@ -2233,6 +2507,11 @@ class MemoryStore implements DemoStore {
       vehicleCountInvoiced: invoicedVehicleIds.size,
       vehicleCountDelivered: deliveredVehicleIds.size,
       lastUpdated: new Date().toISOString(),
+      paymentStatusSummary,
+      shipmentStatusSummary,
+      documentAvailabilityCount,
+      notificationUnreadCount,
+      partialFailureIndicators,
     });
   }
 
@@ -2243,6 +2522,10 @@ class MemoryStore implements DemoStore {
     this.reservations = [];
     this.invoices = seedInvoices.map((i) => ({ ...i }));
     this.allocations = seedAllocations.map((a) => ({ ...a }));
+    this.payments = seedPayments.map((p) => ({ ...p }));
+    this.shipments = seedShipments.map((s) => ({ ...s }));
+    this.documents = seedDocuments.map((d) => ({ ...d }));
+    this.notifications = seedNotifications.map((n) => ({ ...n }));
     this.faqCategories = seedFaqCategories.map((c) => ({ ...c }));
     this.faqItems = seedFaqItems.map((f) => ({ ...f }));
     this.testimonials = seedTestimonials.map((t) => ({ ...t }));
@@ -2879,6 +3162,46 @@ class PostgresStore implements DemoStore {
         .map((i) => i.vehicleId)
     );
 
+    // Compute linked record aggregates from seed data (D02-P02-T001)
+    // Payment status summary: count payments by status for this customer's invoices
+    const customerInvoiceIds = new Set(customerInvoices.map((i) => i.id));
+    const customerPayments = seedPayments.filter((p) => p.customerId === customerId && customerInvoiceIds.has(p.invoiceId));
+    const paymentStatusSummary = {
+      approved: customerPayments.filter((p) => p.status === 'Approved').length,
+      pending: customerPayments.filter((p) => p.status === 'Pending').length,
+      rejected: customerPayments.filter((p) => p.status === 'Rejected').length,
+    };
+
+    // Shipment status summary: count shipments by status for this customer's vehicles
+    const customerVehicleIds = new Set(customerInvoices.map((i) => i.vehicleId));
+    const customerShipments = seedShipments.filter((s) => s.customerId === customerId && customerVehicleIds.has(s.vehicleId));
+    const shipmentStatusSummary = {
+      ready: customerShipments.filter((s) => s.status === 'Ready').length,
+      inTransit: customerShipments.filter((s) => s.status === 'InTransit').length,
+      delivered: customerShipments.filter((s) => s.status === 'Delivered').length,
+      other: customerShipments.filter((s) => !['Ready', 'InTransit', 'Delivered'].includes(s.status)).length,
+    };
+
+    // Document availability: count documents by status for this customer's shipments/vehicles
+    const customerShipmentIds = new Set(customerShipments.map((s) => s.id));
+    const customerDocuments = seedDocuments.filter((d) => d.customerId === customerId && (customerShipmentIds.has(d.shipmentId || '') || customerVehicleIds.has(d.vehicleId || '')));
+    const documentAvailabilityCount = {
+      available: customerDocuments.filter((d) => d.status === 'Available').length,
+      pending: customerDocuments.filter((d) => d.status === 'Pending').length,
+      unavailable: customerDocuments.filter((d) => d.status === 'Unavailable').length,
+    };
+
+    // Notification unread count for this customer
+    const notificationUnreadCount = seedNotifications.filter((n) => n.customerId === customerId && !n.isRead).length;
+
+    // Partial failure indicators: all set to false since this is seed data (no actual failures)
+    const partialFailureIndicators = {
+      paymentsFailed: false,
+      shipmentsFailed: false,
+      documentsFailed: false,
+      notificationsFailed: false,
+    };
+
     return {
       customerId,
       customerEmail,
@@ -2889,6 +3212,11 @@ class PostgresStore implements DemoStore {
       vehicleCountInvoiced: invoicedVehicleIds.size,
       vehicleCountDelivered: deliveredVehicleIds.size,
       lastUpdated: new Date().toISOString(),
+      paymentStatusSummary,
+      shipmentStatusSummary,
+      documentAvailabilityCount,
+      notificationUnreadCount,
+      partialFailureIndicators,
     };
   }
 

@@ -474,6 +474,43 @@ export interface Allocation {
   status: 'Approved' | 'Pending' | 'Rejected';
 }
 
+export interface Payment {
+  id: string;
+  customerId: string;
+  invoiceId: string;
+  amountUsd: number;
+  paidAt: string;
+  status: 'Pending' | 'Approved' | 'Rejected';
+}
+
+export interface Shipment {
+  id: string;
+  customerId: string;
+  vehicleId: string;
+  status: ShipmentStatus;
+  shippedAt: string;
+  deliveredAt?: string;
+}
+
+export interface Document {
+  id: string;
+  customerId: string;
+  shipmentId?: string;
+  vehicleId?: string;
+  type: 'Invoice' | 'PaymentProof' | 'ShippingLabel' | 'DeliveryProof' | 'Other';
+  status: 'Available' | 'Pending' | 'Unavailable';
+  createdAt: string;
+}
+
+export interface Notification {
+  id: string;
+  customerId: string;
+  message: string;
+  type: 'Payment' | 'Shipment' | 'Document' | 'Vehicle' | 'Promotion';
+  isRead: boolean;
+  createdAt: string;
+}
+
 export interface CustomerDashboard {
   customerId: string;
   customerEmail: string;
@@ -484,6 +521,30 @@ export interface CustomerDashboard {
   vehicleCountInvoiced: number;
   vehicleCountDelivered: number;
   lastUpdated: string;
+  // Enhanced with linked record aggregates (D02-P02-T001)
+  paymentStatusSummary?: {
+    approved: number;
+    pending: number;
+    rejected: number;
+  };
+  shipmentStatusSummary?: {
+    ready: number;
+    inTransit: number;
+    delivered: number;
+    other: number;
+  };
+  documentAvailabilityCount?: {
+    available: number;
+    pending: number;
+    unavailable: number;
+  };
+  notificationUnreadCount?: number;
+  partialFailureIndicators?: {
+    paymentsFailed?: boolean;
+    shipmentsFailed?: boolean;
+    documentsFailed?: boolean;
+    notificationsFailed?: boolean;
+  };
 }
 
 export * from './auth.js';

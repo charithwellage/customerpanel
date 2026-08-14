@@ -1533,7 +1533,7 @@
       },
       "CustomerDashboard": {
         "type": "object",
-        "description": "Non-blocking customer dashboard KPI baseline (D02-ASM-001). Outstanding balance = issued invoice total - approved allocations. Credit utilisation = outstanding balance ÷ credit limit. Vehicle counts use canonical IDs and server status. Server-derived; no browser calculation.",
+        "description": "Customer dashboard aggregate with linked record KPIs (D02-ASM-001, D02-P02-T001). Outstanding balance = issued invoice total - approved allocations. Credit utilisation = outstanding balance ÷ credit limit. Vehicle counts use canonical IDs and server status. Payment/shipment/document/notification summaries computed from linked records. Freshness metadata and partial failure indicators included. Server-derived; no browser calculation.",
         "properties": {
           "customerId": { "type": "string", "example": "cust-123" },
           "customerEmail": { "type": "string", "example": "customer@example.com" },
@@ -1543,9 +1543,56 @@
           "vehicleCountReserved": { "type": "integer", "example": 2 },
           "vehicleCountInvoiced": { "type": "integer", "example": 1 },
           "vehicleCountDelivered": { "type": "integer", "example": 0 },
-          "lastUpdated": { "type": "string", "example": "2026-08-14T10:00:00.000Z" }
+          "lastUpdated": { "type": "string", "example": "2026-08-14T10:00:00.000Z" },
+          "paymentStatusSummary": {
+            "type": "object",
+            "description": "Count of payments linked to customer invoices by status",
+            "properties": {
+              "approved": { "type": "integer", "example": 2 },
+              "pending": { "type": "integer", "example": 1 },
+              "rejected": { "type": "integer", "example": 0 }
+            },
+            "required": ["approved", "pending", "rejected"]
+          },
+          "shipmentStatusSummary": {
+            "type": "object",
+            "description": "Count of shipments linked to customer vehicles by status",
+            "properties": {
+              "ready": { "type": "integer", "example": 1 },
+              "inTransit": { "type": "integer", "example": 1 },
+              "delivered": { "type": "integer", "example": 0 },
+              "other": { "type": "integer", "example": 0 }
+            },
+            "required": ["ready", "inTransit", "delivered", "other"]
+          },
+          "documentAvailabilityCount": {
+            "type": "object",
+            "description": "Count of documents linked to customer shipments/vehicles by availability status",
+            "properties": {
+              "available": { "type": "integer", "example": 3 },
+              "pending": { "type": "integer", "example": 1 },
+              "unavailable": { "type": "integer", "example": 0 }
+            },
+            "required": ["available", "pending", "unavailable"]
+          },
+          "notificationUnreadCount": {
+            "type": "integer",
+            "description": "Count of unread notifications for this customer",
+            "example": 2
+          },
+          "partialFailureIndicators": {
+            "type": "object",
+            "description": "Flags indicating if any linked-record query failed; missing/empty lists are not failures",
+            "properties": {
+              "paymentsFailed": { "type": "boolean", "example": false },
+              "shipmentsFailed": { "type": "boolean", "example": false },
+              "documentsFailed": { "type": "boolean", "example": false },
+              "notificationsFailed": { "type": "boolean", "example": false }
+            },
+            "required": ["paymentsFailed", "shipmentsFailed", "documentsFailed", "notificationsFailed"]
+          }
         },
-        "required": ["customerId", "customerEmail", "creditLimitUsd", "outstandingBalanceUsd", "creditUtilisationPercent", "vehicleCountReserved", "vehicleCountInvoiced", "vehicleCountDelivered", "lastUpdated"]
+        "required": ["customerId", "customerEmail", "creditLimitUsd", "outstandingBalanceUsd", "creditUtilisationPercent", "vehicleCountReserved", "vehicleCountInvoiced", "vehicleCountDelivered", "lastUpdated", "paymentStatusSummary", "shipmentStatusSummary", "documentAvailabilityCount", "notificationUnreadCount", "partialFailureIndicators"]
       }
     }
   }
