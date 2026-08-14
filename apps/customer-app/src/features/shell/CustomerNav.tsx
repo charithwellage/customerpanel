@@ -1,8 +1,11 @@
-import React from 'react';
+import React, { useId } from 'react';
 import { useCustomerShell } from './CustomerShellProvider.js';
 
 export const CustomerNav: React.FC = () => {
   const { user, activeRoute, setActiveRoute, isMobileMenuOpen, toggleMobileMenu, closeMobileMenu, navigationItems } = useCustomerShell();
+  // Generated rather than fixed so a second nav instance cannot duplicate the
+  // id that `aria-controls` points at (CODE_REVIEW_RULES.md #4).
+  const mobileMenuId = useId();
 
   return (
     <header className="cc-cust-shell-header">
@@ -66,7 +69,8 @@ export const CustomerNav: React.FC = () => {
             type="button"
             className="cc-cust-shell-mobile-toggle"
             aria-expanded={isMobileMenuOpen}
-            aria-controls="customer-mobile-menu"
+            aria-controls={mobileMenuId}
+            data-testid="cust-mobile-toggle"
             aria-label={isMobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
             onClick={toggleMobileMenu}
           >
@@ -76,7 +80,7 @@ export const CustomerNav: React.FC = () => {
       </div>
 
       {isMobileMenuOpen && (
-        <nav id="customer-mobile-menu" className="cc-cust-shell-nav--mobile" aria-label="Customer Mobile Navigation">
+        <nav id={mobileMenuId} className="cc-cust-shell-nav--mobile" aria-label="Customer Mobile Navigation">
           <ul className="cc-cust-shell-nav__list--mobile">
             {navigationItems.map((item) => {
               const isActive = activeRoute === item.href || activeRoute.startsWith(`${item.href}/`);

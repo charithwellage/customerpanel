@@ -2,12 +2,13 @@
   "name": "@carchief/customer-app",
   "version": "1.0.0",
   "private": true,
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "type": "module",
   "scripts": {
     "lint": "echo \"customer-app lint ok\"",
     "typecheck": "tsc --noEmit",
-    "build": "tsc",
+    "build": "tsc --noEmit && vite build",
+    "dev": "vite",
+    "preview": "vite preview",
     "test": "vitest run"
   },
   "dependencies": {
@@ -27,6 +28,8 @@
     "@types/node": "^22.10.0",
     "@types/react": "19.1.10",
     "@types/react-dom": "19.1.7",
-    "typescript": "^5.7.2"
+    "@vitejs/plugin-react": "6.0.5",
+    "typescript": "^5.7.2",
+    "vite": "8.2.1"
   }
 }

@@ -48,9 +48,23 @@ export interface CustomerShellProviderProps {
   navItems?: NavigationItem[];
 }
 
+/**
+ * Stand-in used only when the shell is rendered outside a verified session (for
+ * example an isolated component test). It is a deliberately generic label with
+ * a reserved-for-testing address (RFC 2606) and no company, so nothing here can
+ * be mistaken for a real person or organisation. The running application passes
+ * the identity from the actual session instead — see `src/app/App.tsx`.
+ */
+export const PLACEHOLDER_CUSTOMER_USER: CustomerUser = {
+  id: 'demo-customer',
+  name: 'Demo Customer',
+  email: 'demo.customer@example.invalid',
+  role: 'CUSTOMER',
+};
+
 export const CustomerShellProvider: React.FC<CustomerShellProviderProps> = ({
   children,
-  initialUser = { id: 'cust_demo', name: 'Charles Sterling', email: 'c.sterling@sterlingimports.com', company: 'Sterling Imports Ltd', role: 'CUSTOMER' },
+  initialUser = PLACEHOLDER_CUSTOMER_USER,
   initialRoute = '/dashboard',
   themeId,
   navItems = DEFAULT_NAV_ITEMS,

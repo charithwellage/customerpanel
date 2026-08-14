@@ -28,9 +28,18 @@ const CustomerShellInner: React.FC<CustomerShellInnerProps> = ({
 
   return (
     <div className="cc-cust-shell-layout" data-active-route={activeRoute}>
+      <a className="cc-cust-shell-skip-link" href="#main-content">
+        Skip to main content
+      </a>
       <CustomerNav />
 
-      <main className="cc-cust-shell-main" id="main-content">
+      {/*
+        `main-content` stays a fixed id on purpose: it is the destination of the
+        skip link above, so it must be a stable, knowable fragment target. The
+        shell renders once per document, unlike the nav and login form whose ids
+        are now generated.
+      */}
+      <main className="cc-cust-shell-main" id="main-content" tabIndex={-1}>
         {(pageTitle || pageSubtitle) && (
           <header className="cc-cust-shell-page-header">
             <div className="cc-cust-shell-page-header__container">
@@ -72,7 +81,13 @@ const CustomerShellInner: React.FC<CustomerShellInnerProps> = ({
         <div className="cc-cust-shell-footer__container">
           <p>&copy; {new Date().getFullYear()} CarChief Operations Portal. All rights reserved.</p>
           <div className="cc-cust-shell-footer__links">
-            <span className="cc-cust-shell-footer__badge">🔒 Keycloak Secured</span>
+            {/*
+              This build has no Keycloak integration — the Mock API mints a
+              stand-in token signed `demo-signature`. The badge therefore states
+              what is actually running instead of claiming a live identity
+              provider (REQUIREMENT_GAPS_AND_ASSUMPTIONS.md operating rule 5).
+            */}
+            <span className="cc-cust-shell-footer__badge">🔒 Demo session — not a production identity</span>
             <span className="cc-cust-shell-footer__badge">⚡ Mock API Enabled</span>
           </div>
         </div>

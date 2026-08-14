@@ -64,5 +64,30 @@ services:
       timeout: 3s
       retries: 5
 
+  customer-app:
+    build:
+      context: .
+      dockerfile: apps/customer-app/Dockerfile
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      # Deliberately NOT VITE_API_BASE_URL. A VITE_* value is inlined into the
+      # static bundle at build time and that bundle runs in the host browser,
+      # which cannot resolve the Compose-internal `mock-api` hostname. Instead
+      # the browser calls the customer app's own origin and the preview server
+      # — a Node process inside this network — proxies /api/v1 onward, so the
+      # target stays a runtime value.
+      CUSTOMER_API_PROXY_TARGET: http://mock-api:4000
+    depends_on:
+      mock-api:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${CARCHIEF_CUSTOMER_APP_PORT:-3001}:3001"
+    healthcheck:
+      test: [ "CMD", "node", "-e", "fetch('http://'+require('os').hostname()+':3001/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))" ]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
 volumes:
   carchief-postgres-data:

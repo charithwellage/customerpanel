@@ -19,7 +19,11 @@ export const AccountStateBanner: React.FC<AccountStateBannerProps> = ({
   const statusConfig: Record<AccountStatus, { title: string; defaultMsg: string; badgeClass: string }> = {
     ACTIVE: { title: 'Active Session', defaultMsg: 'Your session is active.', badgeClass: 'cc-acc-banner--active' },
     INACTIVE: { title: 'Account Inactive', defaultMsg: 'Your account is currently inactive. Contact your operations representative.', badgeClass: 'cc-acc-banner--inactive' },
-    LOCKED: { title: 'Account Locked', defaultMsg: 'Security lock applied. Please complete Keycloak recovery process.', badgeClass: 'cc-acc-banner--locked' },
+    // Recovery is not implemented in this build; production identity belongs to
+    // AutoPulse/Keycloak (DEC-CUST-IDENTITY-RECOVERY). The copy states that
+    // boundary rather than instructing the user through a process that does not
+    // exist here.
+    LOCKED: { title: 'Account Locked', defaultMsg: 'Security lock applied. Account unlocking is handled by AutoPulse identity operations and is not available in this demo build.', badgeClass: 'cc-acc-banner--locked' },
     UNAUTHORIZED: { title: 'Unauthorized Access', defaultMsg: 'You must sign in with a valid customer account to view this resource.', badgeClass: 'cc-acc-banner--unauthorized' },
     EXPIRED: { title: 'Session Expired', defaultMsg: 'Your demo session has expired. Please sign in again.', badgeClass: 'cc-acc-banner--expired' },
   };

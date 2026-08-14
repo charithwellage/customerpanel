@@ -60,14 +60,34 @@ export function isSessionExpired(session: CustomerSession): boolean {
   return session.expiresAt <= now;
 }
 
+/** Fallback label when the token carries no address to derive one from. */
+export const DEMO_CUSTOMER_DISPLAY_NAME = 'Demo Customer';
+
+/**
+ * Derives a display label from the address the token actually carries.
+ *
+ * `JwtClaims` has no `name` field, so there is nothing to read: the local part
+ * of the verified email is the only honest label available. Inventing a
+ * plausible personal name here would reproduce the "forced identities" defect
+ * that `tasks/TASK_EXECUTION_PROTOCOL.md` §7 prohibits.
+ */
+export function deriveCustomerDisplayName(email: string | undefined): string {
+  const localPart = email?.split('@')[0]?.trim();
+  return localPart ? localPart : DEMO_CUSTOMER_DISPLAY_NAME;
+}
+
+/**
+ * Builds the session from the claims the Mock API returned. Every field comes
+ * from the response; `company` is left undefined because the token carries no
+ * organisation and one must not be invented.
+ */
 export function createDemoCustomerSession(response: DemoSessionResponse): CustomerSession {
   return {
     token: response.token,
     user: {
       id: response.claims.sub,
-      name: 'Charles Sterling',
-      email: 'c.sterling@sterlingimports.com',
-      company: 'Sterling Imports Ltd',
+      name: deriveCustomerDisplayName(response.claims.email),
+      email: response.claims.email,
       role: response.claims.role,
       permissions: response.claims.permissions || [],
     },

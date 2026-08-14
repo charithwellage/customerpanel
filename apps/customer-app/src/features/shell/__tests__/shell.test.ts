@@ -19,7 +19,37 @@ describe('Customer App Shell & Navigation Unit Tests', () => {
     expect(html).toContain('Overview of operations');
     expect(html).toContain('Dashboard Content');
     expect(html).toContain('cc-cust-shell-footer');
-    expect(html).toContain('Keycloak Secured');
+    expect(html).toContain('Demo session — not a production identity');
+  });
+
+  // Regression guard for D02-P01-CODE_REVIEW finding 4: no surface may claim an
+  // active Keycloak integration, because this build has none — the Mock API
+  // mints a token signed `demo-signature`.
+  it('never claims a live Keycloak integration in the shell chrome', () => {
+    const html = renderToStaticMarkup(
+      React.createElement(
+        CustomerShell,
+        { initialRoute: '/dashboard' },
+        React.createElement('div', null, 'Content')
+      )
+    );
+
+    expect(html).not.toContain('Keycloak Secured');
+    expect(html).not.toMatch(/Keycloak/i);
+  });
+
+  // Regression guard for D02-P01-CODE_REVIEW finding 3.
+  it('uses a generic non-fabricated placeholder identity when rendered without a session', () => {
+    const html = renderToStaticMarkup(
+      React.createElement(
+        CustomerShellProvider,
+        { initialRoute: '/dashboard' },
+        React.createElement(CustomerNav)
+      )
+    );
+
+    expect(html).toContain('Demo Customer');
+    expect(html).not.toMatch(/sterling/i);
   });
 
   it('renders all required customer navigation items with active route highlighting', () => {
@@ -52,7 +82,29 @@ describe('Customer App Shell & Navigation Unit Tests', () => {
 
     expect(html).toContain('cc-cust-shell-mobile-toggle');
     expect(html).toContain('aria-expanded="false"');
-    expect(html).toContain('aria-controls="customer-mobile-menu"');
+    expect(html).toMatch(/aria-controls="[^"]+"/);
+  });
+
+  // Regression guard for D02-P01-CODE_REVIEW finding 5: the drawer id must come
+  // from useId so two navs in one document cannot collide on aria-controls.
+  it('gives each navigation instance a unique mobile-drawer id', () => {
+    const html = renderToStaticMarkup(
+      React.createElement(
+        CustomerShellProvider,
+        { initialRoute: '/dashboard' },
+        React.createElement(
+          React.Fragment,
+          null,
+          React.createElement(CustomerNav),
+          React.createElement(CustomerNav)
+        )
+      )
+    );
+
+    const ids = [...html.matchAll(/aria-controls="([^"]+)"/g)].map((match) => match[1]);
+    expect(ids).toHaveLength(2);
+    expect(new Set(ids).size).toBe(2);
+    expect(html).not.toContain('customer-mobile-menu');
   });
 
   it('renders loading surface when loading prop is true', () => {

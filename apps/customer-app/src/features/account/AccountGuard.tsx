@@ -4,8 +4,15 @@ import { LoginForm } from './LoginForm.js';
 import { PasswordRecoveryCard } from './PasswordRecoveryCard.js';
 import { AccountStateBanner } from './AccountStateBanner.js';
 
+/**
+ * Protected content, either as plain nodes or as a function of the verified
+ * session. The function form lets the shell display the identity the Mock API
+ * actually returned instead of a placeholder chosen before sign-in.
+ */
+export type AccountGuardChildren = ReactNode | ((session: CustomerSession) => ReactNode);
+
 export interface AccountGuardProps {
-  children: ReactNode;
+  children: AccountGuardChildren;
   initialSession?: CustomerSession | null;
   apiBaseUrl?: string;
 }
@@ -25,7 +32,13 @@ export const AccountGuard: React.FC<AccountGuardProps> = ({
   };
 
   if (showRecovery) {
-    return <PasswordRecoveryCard onBackToLogin={() => setShowRecovery(false)} />;
+    // Same centring surface as the other two states; without it the recovery
+    // card rendered flush to the viewport edge.
+    return (
+      <div className="cc-acc-guard-surface">
+        <PasswordRecoveryCard onBackToLogin={() => setShowRecovery(false)} />
+      </div>
+    );
   }
 
   if (!session) {
@@ -55,5 +68,5 @@ export const AccountGuard: React.FC<AccountGuardProps> = ({
     );
   }
 
-  return <>{children}</>;
+  return <>{typeof children === 'function' ? children(session) : children}</>;
 };

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useId, useState } from 'react';
 import { CustomerSession, requestDemoCustomerSession } from './accountState.js';
 
 export interface LoginFormProps {
@@ -12,10 +12,17 @@ export const LoginForm: React.FC<LoginFormProps> = ({
   onRequestRecovery,
   apiBaseUrl = '',
 }) => {
-  const [email, setEmail] = useState('c.sterling@sterlingimports.com');
-  const [password, setPassword] = useState('••••••••••••');
+  // Both fields start genuinely empty. Pre-filling them with a specimen address
+  // and dot-filled password made the form look like a real account was already
+  // signed in (prohibited "forced identity", TASK_EXECUTION_PROTOCOL.md §7);
+  // the example address now lives in a `placeholder`, which is not a value.
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const fieldId = useId();
+  const emailId = `${fieldId}-email`;
+  const passwordId = `${fieldId}-password`;
 
   const handleDemoLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,14 +58,19 @@ export const LoginForm: React.FC<LoginFormProps> = ({
 
       <form className="cc-acc-login-card__form" onSubmit={handleDemoLogin}>
         <div className="cc-acc-login-card__field">
-          <label htmlFor="cust-login-email" className="cc-acc-login-card__label">
+          <label htmlFor={emailId} className="cc-acc-login-card__label">
             Work Email Address
           </label>
           <input
-            id="cust-login-email"
+            id={emailId}
+            data-testid="cust-login-email"
             type="email"
-            required
+            // Deliberately not `required`. The demo-session endpoint ignores
+            // these fields entirely, so enforcing them in the browser would be
+            // validation with no server counterpart — the "browser-only
+            // validation" defect listed in TASK_EXECUTION_PROTOCOL.md §7.
             autoComplete="email"
+            placeholder="you@example.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="cc-acc-login-card__input"
@@ -67,7 +79,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
 
         <div className="cc-acc-login-card__field">
           <div className="cc-acc-login-card__label-row">
-            <label htmlFor="cust-login-password" className="cc-acc-login-card__label">
+            <label htmlFor={passwordId} className="cc-acc-login-card__label">
               Password
             </label>
             {onRequestRecovery && (
@@ -81,10 +93,11 @@ export const LoginForm: React.FC<LoginFormProps> = ({
             )}
           </div>
           <input
-            id="cust-login-password"
+            id={passwordId}
+            data-testid="cust-login-password"
             type="password"
-            required
             autoComplete="current-password"
+            placeholder="Your password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="cc-acc-login-card__input"
@@ -97,14 +110,16 @@ export const LoginForm: React.FC<LoginFormProps> = ({
             disabled={isSubmitting}
             className="cc-cust-shell-btn cc-cust-shell-btn--primary cc-acc-login-card__submit"
           >
-            {isSubmitting ? 'Authenticating…' : 'Sign In / Request Demo Session 🚀'}
+            {isSubmitting ? 'Requesting demo session…' : 'Request Demo Session 🚀'}
           </button>
         </div>
       </form>
 
       <div className="cc-acc-login-card__footer">
         <span className="cc-acc-login-card__footer-note">
-          🛡️ Non-production stand-in demo session powered by CarChief API Service.
+          🛡️ This build issues a non-production stand-in session from the CarChief Mock API. The address and password
+          above are not verified and are not transmitted; production credential sign-in belongs to AutoPulse identity
+          services.
         </span>
       </div>
     </div>
