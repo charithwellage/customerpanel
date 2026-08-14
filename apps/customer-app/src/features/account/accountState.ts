@@ -1,4 +1,4 @@
-import type { JwtClaims, DemoSessionResponse } from '@carchief/domain';
+import type { JwtClaims, DemoSessionResponse, CustomerTier } from '@carchief/domain';
 
 export type AccountStatus = 'ACTIVE' | 'INACTIVE' | 'LOCKED' | 'UNAUTHORIZED' | 'EXPIRED';
 
@@ -11,6 +11,7 @@ export interface CustomerSession {
     company?: string;
     role: string;
     permissions: string[];
+    tier?: CustomerTier;
   };
   expiresAt: number; // Unix timestamp in seconds
   status: AccountStatus;
@@ -90,6 +91,7 @@ export function createDemoCustomerSession(response: DemoSessionResponse): Custom
       email: response.claims.email,
       role: response.claims.role,
       permissions: response.claims.permissions || [],
+      tier: response.claims.tier,
     },
     expiresAt: response.claims.exp,
     status: 'ACTIVE',

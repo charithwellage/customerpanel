@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { ThemeId, resolveThemeId } from '@carchief/theme';
+import type { CustomerTier } from '@carchief/domain';
 
 export interface CustomerUser {
   id: string;
@@ -7,6 +8,7 @@ export interface CustomerUser {
   email: string;
   company?: string;
   role: 'CUSTOMER';
+  tier?: CustomerTier;
 }
 
 export interface NavigationItem {
@@ -65,13 +67,37 @@ export const PLACEHOLDER_CUSTOMER_USER: CustomerUser = {
 export const CustomerShellProvider: React.FC<CustomerShellProviderProps> = ({
   children,
   initialUser = PLACEHOLDER_CUSTOMER_USER,
-  initialRoute = '/dashboard',
+  initialRoute,
   themeId,
   navItems = DEFAULT_NAV_ITEMS,
 }) => {
+  const getInitialPath = () => {
+    if (initialRoute) return initialRoute;
+    if (typeof window !== 'undefined' && window.location.pathname && window.location.pathname !== '/') {
+      return window.location.pathname;
+    }
+    return '/dashboard';
+  };
+
   const [user] = useState<CustomerUser | null>(initialUser);
-  const [activeRoute, setActiveRoute] = useState<string>(initialRoute);
+  const [activeRoute, setActiveRouteState] = useState<string>(getInitialPath);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
+
+  const setActiveRoute = (route: string) => {
+    setActiveRouteState(route);
+    if (typeof window !== 'undefined' && window.location.pathname !== route) {
+      window.history.pushState(null, '', route);
+    }
+  };
+
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handlePopState = () => {
+      setActiveRouteState(window.location.pathname || '/dashboard');
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   const toggleMobileMenu = () => setIsMobileMenuOpen((prev) => !prev);
   const closeMobileMenu = () => setIsMobileMenuOpen(false);

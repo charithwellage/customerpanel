@@ -8,12 +8,15 @@ export type UserRole =
   | 'FinanceManager'
   | 'SystemAdmin';
 
+export type CustomerTier = 'Platinum' | 'Gold' | 'Silver' | 'Standard';
+
 export interface JwtClaims {
   sub: string;
   email: string;
   role: UserRole;
   permissions: string[];
   exp: number;
+  tier?: CustomerTier;
 }
 
 export const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
@@ -25,13 +28,19 @@ export const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
   SystemAdmin: ['read:public', 'read:all', 'write:all', 'reset:data'],
 };
 
-export function createDemoJwtToken(role: UserRole, sub = 'user-123', email = 'user@carchief.com'): string {
+export function createDemoJwtToken(
+  role: UserRole,
+  sub = 'user-123',
+  email = 'user@carchief.com',
+  tier: CustomerTier = 'Standard'
+): string {
   const claims: JwtClaims = {
     sub,
     email,
     role,
     permissions: ROLE_PERMISSIONS[role] || [],
     exp: Math.floor(Date.now() / 1000) + 3600,
+    tier: role === 'CustomerBuyer' ? tier : undefined,
   };
   const json = JSON.stringify(claims);
   const payload = Buffer.from(json, 'utf8').toString('base64');

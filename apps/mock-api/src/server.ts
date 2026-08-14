@@ -49,21 +49,42 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
     res.json(await store.getConfig());
   });
 
-  // 3a. Vehicles summary (Public)
-  app.get('/api/v1/vehicles', async (req: Request, res: Response) => {
-    res.json(await store.getVehicles(req.query as Record<string, string>));
+  // 3a. Vehicles summary (Public & Customer-projected)
+  app.get('/api/v1/vehicles', async (req: AuthenticatedRequest, res: Response) => {
+    const audience = (req.query.audience as string) || (req.user?.role === 'CustomerBuyer' ? 'customer' : 'public');
+    const customerTier = (req.query.tier as any) || req.user?.tier;
+    const context = {
+      audience: audience as 'public' | 'customer' | 'salesperson',
+      customerId: req.user?.sub,
+      customerTier,
+    };
+    res.json(await store.getVehicles(req.query as Record<string, string>, context));
   });
 
-  // 3b. Vehicle search with facets, pagination & sorting (Public)
-  app.get('/api/v1/vehicles/search', async (req: Request, res: Response) => {
-    res.json(await store.searchVehicles(req.query as Record<string, string>));
+  // 3b. Vehicle search with facets, pagination & sorting (Public & Customer-projected)
+  app.get('/api/v1/vehicles/search', async (req: AuthenticatedRequest, res: Response) => {
+    const audience = (req.query.audience as string) || (req.user?.role === 'CustomerBuyer' ? 'customer' : 'public');
+    const customerTier = (req.query.tier as any) || req.user?.tier;
+    const context = {
+      audience: audience as 'public' | 'customer' | 'salesperson',
+      customerId: req.user?.sub,
+      customerTier,
+    };
+    res.json(await store.searchVehicles(req.query as Record<string, string>, context));
   });
 
-  // 3c. Vehicle detail lookup by ID, chassis, or slug (Public)
-  app.get('/api/v1/vehicles/:idOrSlug', async (req: Request, res: Response) => {
+  // 3c. Vehicle detail lookup by ID, chassis, or slug (Public & Customer-projected)
+  app.get('/api/v1/vehicles/:idOrSlug', async (req: AuthenticatedRequest, res: Response) => {
     const rawParam = req.params.idOrSlug;
     const idOrSlug = Array.isArray(rawParam) ? rawParam[0] : rawParam;
-    const detail = await store.getVehicleDetail(idOrSlug);
+    const audience = (req.query.audience as string) || (req.user?.role === 'CustomerBuyer' ? 'customer' : 'public');
+    const customerTier = (req.query.tier as any) || req.user?.tier;
+    const context = {
+      audience: audience as 'public' | 'customer' | 'salesperson',
+      customerId: req.user?.sub,
+      customerTier,
+    };
+    const detail = await store.getVehicleDetail(idOrSlug, context);
     if (!detail) {
       res.status(404).json({
         statusCode: 404,
