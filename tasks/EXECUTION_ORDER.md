@@ -20,28 +20,50 @@ Phase 2.1 is the only shared foundation PR. Its `D02-P01-T004` task pre-register
 
 ```mermaid
 flowchart TB
-    BASE[delivery_02_customer_application<br/>Phase 2.1 PR merged] --> A1[Engineer A — Commerce<br/>Phase 2.3 branch and PR]
-    BASE --> B1[Engineer B — Dashboard / logistics<br/>Phase 2.2 branch and PR]
+    BASE[delivery_01_public_website] --> INT[delivery_02_customer_application<br/>integration branch]
 
-    A1 --> A2[Phase 2.4 branch and PR]
-    A2 --> A3[Phase 2.5 branch and PR]
-    A3 --> A4[Phase 2.6 branch and PR]
+    INT --> P21[Phase 2.1 — foundation<br/>Branch: feat_delivery02_phase_01<br/>Review: D02-P01-CODE_REVIEW]
+    P21 --> M21[MERGE PR → delivery_02_customer_application]
 
-    B1 --> B2[Phase 2.7 branch and PR]
-    B2 --> B3[Phase 2.8 branch and PR]
+    subgraph COMMERCE[Engineer A — Commerce lane: sequential]
+      M21 --> P23[Phase 2.3 — showroom/search<br/>Branch: feat_delivery02_phase_03<br/>Review: D02-P03-CODE_REVIEW]
+      P23 --> M23[MERGE PR → delivery_02_customer_application]
+      M23 --> P24[Phase 2.4 — My Vehicles<br/>Branch: feat_delivery02_phase_04<br/>Review: D02-P04-CODE_REVIEW]
+      P24 --> M24[MERGE PR → delivery_02_customer_application]
+      M24 --> P25[Phase 2.5 — quotes/invoices<br/>Branch: feat_delivery02_phase_05<br/>Review: D02-P05-CODE_REVIEW]
+      P25 --> M25[MERGE PR → delivery_02_customer_application]
+      M25 --> P26[Phase 2.6 — payments/TT/PI<br/>Branch: feat_delivery02_phase_06<br/>Review: D02-P06-CODE_REVIEW]
+      P26 --> M26[MERGE PR → delivery_02_customer_application]
+    end
 
-    A4 --> FINAL[Phase 2.9 final acceptance<br/>begins only after both lane reviews]
-    B3 --> FINAL
-    FINAL --> P10[Phase 2.10 reconciliation]
-    P10 -. optional opt-in .-> P11[Phase 2.11 multi-theme]
+    subgraph LOGISTICS[Engineer B — Dashboard/logistics lane: sequential]
+      M21 --> P22[Phase 2.2 — dashboard<br/>Branch: feat_delivery02_phase_02<br/>Review: D02-P02-CODE_REVIEW]
+      P22 --> M22[MERGE PR → delivery_02_customer_application]
+      M22 --> P27[Phase 2.7 — shipment/documents<br/>Branch: feat_delivery02_phase_07<br/>Review: D02-P07-CODE_REVIEW]
+      P27 --> M27[MERGE PR → delivery_02_customer_application]
+      M27 --> P28[Phase 2.8 — notifications/profile<br/>Branch: feat_delivery02_phase_08<br/>Review: D02-P08-CODE_REVIEW]
+      P28 --> M28[MERGE PR → delivery_02_customer_application]
+    end
+
+    M26 --> CONVERGE[CONVERGENCE GATE<br/>Both lane PRs/reviews merged]
+    M28 --> CONVERGE
+    CONVERGE --> P29[Phase 2.9 — Customer acceptance<br/>Branch: feat_delivery02_phase_09<br/>Review: D02-P09-CODE_REVIEW]
+    P29 --> M29[MERGE PR → delivery_02_customer_application]
+    M29 --> P210[Phase 2.10 — assumption reconciliation<br/>Branch: feat_delivery02_phase_10<br/>Review: D02-P10-CODE_REVIEW]
+    P210 --> M210[MERGE PR → delivery_02_customer_application]
+    M210 -. optional opt-in .-> P211[Phase 2.11 — multi-theme<br/>Branch: feat_delivery02_phase_11<br/>Review: D02-P11-CODE_REVIEW]
+    P211 -. optional PR merge .-> M211[OPTIONAL MERGE PR → delivery_02_customer_application]
 ```
 
-**How to read this diagram:** every box from Phase 2.2 through Phase 2.8 is a separate phase branch and a separate PR into `delivery_02_customer_application`. Engineer A and Engineer B work in parallel only across the two lanes; phases inside one lane remain sequential. Each engineer starts their next phase from the latest merged delivery base, never from an unmerged branch.
+**How to read this diagram:** each phase box is a separate branch and a separate PR into `delivery_02_customer_application`; each adjacent `MERGE PR` box is a required human merge before the next phase in that lane starts. Engineer A and Engineer B work in parallel only across the two lanes; phases inside one lane remain sequential. Every phase branch is created from the latest merged `delivery_02_customer_application`, never from another unmerged phase branch. Phase 2.9 cannot start until both lane merge/review paths reach the convergence gate. Phase 2.11 is optional and does not block Customer MVP completion.
+
+**Legend:** phase boxes = implementation branch; `Review:` = phase AI/tech-lead review task; `MERGE PR` boxes = human PR merge into the integration branch; subgraphs = protected parallel lanes; `CONVERGENCE GATE` = both lanes must be merged; dotted arrows/boxes = optional work. The human owner performs branch creation, commit, push, PR creation, rebase and merge. A shared-file or shared-registry need pauses lane work for a serialized platform PR.
 
 | Lane | Branch sequence | Exclusive ownership |
 |---|---|---|
-| Commerce | `feat_delivery02_phase_03` → `phase_04` → `phase_05` → `phase_06` | customer inventory, vehicles, invoices and payments feature/module/fixture/spec namespaces |
-| Dashboard / logistics | `feat_delivery02_phase_02` → `phase_07` → `phase_08` | dashboard, shipment/documents, notifications and profile feature/module/fixture/spec namespaces |
+| Commerce | `P03 (feat_delivery02_phase_03) → merge → P04 (feat_delivery02_phase_04) → merge → P05 (feat_delivery02_phase_05) → merge → P06 (feat_delivery02_phase_06) → merge` | customer inventory, vehicles, invoices and payments feature/module/fixture/spec namespaces |
+| Dashboard / logistics | `P02 (feat_delivery02_phase_02) → merge → P07 (feat_delivery02_phase_07) → merge → P08 (feat_delivery02_phase_08) → merge` | dashboard, shipment/documents, notifications and profile feature/module/fixture/spec namespaces |
+| Final convergence | `P09 (feat_delivery02_phase_09) → merge → P10 (feat_delivery02_phase_10) → merge → optional P11 (feat_delivery02_phase_11)` | final acceptance, assumptions and optional theme support |
 
 Each phase branch starts from the latest `delivery_02_customer_application`, targets that same branch in its own PR, and is rebased before PR update. A lane task must not change route registries, generated-client barrels, Mock API bootstrap, package manifests, lockfiles, Docker files, shared theme/vehicle packages or another lane's namespace. A shared need is a short serialized platform PR before lane work resumes. Phase 2.9 waits for both `D02-P06-CODE_REVIEW` and `D02-P08-CODE_REVIEW`.
 

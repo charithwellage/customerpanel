@@ -37,8 +37,40 @@ function AccountEntryTrigger({ className = '', onNavigate }: AccountEntryTrigger
 
 export const HeaderComponent: React.FC<HeaderComponentProps> = ({ activePath: propActivePath }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [currentHash, setCurrentHash] = useState<string>('');
   const pathname = usePathname();
   const currentPath = propActivePath !== undefined ? propActivePath : (pathname || '/');
+
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handleHashChange = () => {
+      setCurrentHash(window.location.hash);
+    };
+    handleHashChange();
+    window.addEventListener('hashchange', handleHashChange);
+    window.addEventListener('popstate', handleHashChange);
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+      window.removeEventListener('popstate', handleHashChange);
+    };
+  }, []);
+
+  const isItemActive = (href: string) => {
+    const [pathPart, hashPart] = href.split('#');
+    const cleanPath = pathPart || '/';
+
+    if (hashPart) {
+      const isCorrectPath = currentPath === cleanPath;
+      const isCorrectHash = currentHash === `#${hashPart}`;
+      return isCorrectPath && isCorrectHash;
+    }
+
+    if (href === '/') {
+      return currentPath === '/' && (!currentHash || currentHash === '#');
+    }
+
+    return currentPath === href || currentPath.startsWith(href + '/') || currentPath.startsWith(href + '?');
+  };
 
   return (
     <header className="header-shell" id="site-header">
@@ -66,17 +98,21 @@ export const HeaderComponent: React.FC<HeaderComponentProps> = ({ activePath: pr
         {/* Desktop Navigation */}
         <nav className="desktop-nav" aria-label="Main Navigation">
           {PUBLIC_NAV_ITEMS.map((item) => {
-            const isActive = item.href === '/'
-              ? currentPath === '/'
-              : item.href.startsWith('/#')
-                ? currentPath === '/'
-                : currentPath === item.href || currentPath.startsWith(item.href + '/') || currentPath.startsWith(item.href + '?');
+            const isActive = isItemActive(item.href);
             return (
               <a
                 key={item.href}
                 href={item.href}
                 className={`nav-link ${isActive ? 'nav-link-active' : ''}`}
                 aria-current={isActive ? 'page' : undefined}
+                onClick={() => {
+                  if (item.href.includes('#')) {
+                    const [, hash] = item.href.split('#');
+                    setCurrentHash(`#${hash}`);
+                  } else {
+                    setCurrentHash('');
+                  }
+                }}
               >
                 {item.label}
               </a>
@@ -105,15 +141,21 @@ export const HeaderComponent: React.FC<HeaderComponentProps> = ({ activePath: pr
       {mobileMenuOpen && (
         <nav className="mobile-nav-drawer" aria-label="Mobile Navigation">
           {PUBLIC_NAV_ITEMS.map((item) => {
-            const isActive = item.href === '/'
-              ? currentPath === '/'
-              : currentPath === item.href || currentPath.startsWith(item.href + '/');
+            const isActive = isItemActive(item.href);
             return (
               <a
                 key={item.href}
                 href={item.href}
                 className={`mobile-nav-link ${isActive ? 'mobile-nav-link-active' : ''}`}
-                onClick={() => setMobileMenuOpen(false)}
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  if (item.href.includes('#')) {
+                    const [, hash] = item.href.split('#');
+                    setCurrentHash(`#${hash}`);
+                  } else {
+                    setCurrentHash('');
+                  }
+                }}
               >
                 {item.label}
               </a>

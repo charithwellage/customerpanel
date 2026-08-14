@@ -6,5 +6,8 @@ export * from './services/reservations.js';
 export * from './services/session.js';
 export * from './services/config.js';
 export * from './services/content.js';
+export * from './services/dashboard.js';
+export * from './services/customerVehicles.js';
+export * from './services/logistics.js';
+export * from './services/customerInvoices.js';
 export * from './http.js';
-

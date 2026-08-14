@@ -94,3 +94,12 @@ tasks/delivery_01/phase_06/D01-P06-CODE_REVIEW.md
 tasks/delivery_01/phase_07/D01-P07-CODE_REVIEW.md
 tasks/delivery_01/phase_08/D01-P08-CODE_REVIEW.md
 .pnpm-store/
+
+# Production builds & output
+dist/
+build/
+.next/
+coverage/
+*.tsbuildinfo
+*.tsbuildinfo*
+**/tsconfig*.tsbuildinfo

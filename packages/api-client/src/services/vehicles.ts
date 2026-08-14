@@ -16,6 +16,8 @@ export class VehicleService {
     if (options?.market) params.set('market', options.market);
     if (options?.category) params.set('category', options.category);
     if (options?.limit) params.set('limit', String(options.limit));
+    if (options?.audience) params.set('audience', options.audience);
+    if (options?.tier) params.set('tier', options.tier);
 
     const queryString = params.toString();
     const path = `/api/v1/vehicles${queryString ? `?${queryString}` : ''}`;
@@ -62,18 +64,25 @@ export class VehicleService {
     if (query?.sortBy) params.set('sortBy', query.sortBy);
     if (query?.page !== undefined) params.set('page', String(query.page));
     if (query?.limit !== undefined) params.set('limit', String(query.limit));
+    if (query?.audience) params.set('audience', query.audience);
+    if (query?.tier) params.set('tier', query.tier);
 
     const queryString = params.toString();
     const path = `/api/v1/vehicles/search${queryString ? `?${queryString}` : ''}`;
     return this.httpClient.request<VehicleSearchResult>(path);
   }
 
-  public async getVehicleDetail(idOrSlug: string): Promise<VehicleDetail | null> {
+  public async getVehicleDetail(idOrSlug: string, options?: { audience?: 'public' | 'customer' | 'salesperson'; tier?: string }): Promise<VehicleDetail | null> {
     if (!this.httpClient) {
       return null;
     }
     try {
-      return await this.httpClient.request<VehicleDetail>(`/api/v1/vehicles/${encodeURIComponent(idOrSlug)}`);
+      const params = new URLSearchParams();
+      if (options?.audience) params.set('audience', options.audience);
+      if (options?.tier) params.set('tier', options.tier);
+      const queryString = params.toString();
+      const path = `/api/v1/vehicles/${encodeURIComponent(idOrSlug)}${queryString ? `?${queryString}` : ''}`;
+      return await this.httpClient.request<VehicleDetail>(path);
     } catch (err: unknown) {
       if (err && typeof err === 'object' && 'statusCode' in err && (err as { statusCode: number }).statusCode === 404) {
         return null;
