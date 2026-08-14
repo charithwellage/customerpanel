@@ -18,9 +18,49 @@ export type LeadStatus =
 export type PaymentStatus = 'Pending' | 'Approved' | 'Rejected';
 export type ShipmentStatus = 'Purchased' | 'Inspection' | 'Ready' | 'InTransit' | 'Delivered';
 export type CustomerTier = 'Platinum' | 'Gold' | 'Silver' | 'Standard';
-
 export type VehicleLocationStatus = 'In Japan' | 'In Transit' | 'In Port';
 export type PublicVehicleCategory = 'arrival' | 'premium' | 'clearance' | 'best_offer';
+
+export const TIER_DISCOUNTS: Record<CustomerTier, number> = {
+  Platinum: 15,
+  Gold: 10,
+  Silver: 5,
+  Standard: 0,
+};
+
+export interface VehicleTierPricing {
+  tier: CustomerTier;
+  tierDiscountPercent: number;
+  tierPriceUsd: number;
+  originalPriceUsd: number;
+}
+
+export function calculateTierPricing(priceUsd: number, tier: CustomerTier = 'Standard'): VehicleTierPricing {
+  const tierDiscountPercent = TIER_DISCOUNTS[tier] ?? 0;
+  const tierPriceUsd = tierDiscountPercent > 0
+    ? Math.round(priceUsd * (1 - tierDiscountPercent / 100))
+    : priceUsd;
+  return {
+    tier,
+    tierDiscountPercent,
+    tierPriceUsd,
+    originalPriceUsd: priceUsd,
+  };
+}
+
+export type ReservationIneligibilityReason =
+  | 'already_reserved_by_you'
+  | 'reserved_by_other'
+  | 'not_reservable'
+  | 'price_on_request'
+  | 'limit_exceeded';
+
+export interface VehicleReservationEligibility {
+  eligible: boolean;
+  reason?: ReservationIneligibilityReason;
+  holdExpiresAt?: string;
+  isOwnHold?: boolean;
+}
 
 export interface VehicleDomainSummary {
   id: string;
@@ -49,6 +89,14 @@ export interface VehicleDomainSummary {
   etd?: string;
   eta?: string;
   requestPrice?: boolean;
+
+  // Phase 2.3 Customer Projections (D02-P03-T001)
+  active?: boolean;
+  nowOnSale?: boolean;
+  priceState?: 'priced' | 'request_price';
+  countryEligibility?: string[];
+  tierPricing?: VehicleTierPricing;
+  reservationEligibility?: VehicleReservationEligibility;
 }
 
 export interface FacetCount {
@@ -101,6 +149,8 @@ export interface SearchVehiclesQuery {
   sortBy?: 'newest' | 'price_asc' | 'price_desc' | 'year_desc' | 'year_asc' | 'mileage_asc';
   page?: number;
   limit?: number;
+  audience?: 'public' | 'customer' | 'salesperson';
+  tier?: CustomerTier;
 }
 
 export interface CategorizedPublicMedia {
@@ -154,6 +204,12 @@ export interface VehicleDetail {
   featured?: boolean;
   countryEligibility?: string[];
   media: CategorizedPublicMedia;
+
+  // Phase 2.3 Customer Projections (D02-P03-T001)
+  active?: boolean;
+  nowOnSale?: boolean;
+  tierPricing?: VehicleTierPricing;
+  reservationEligibility?: VehicleReservationEligibility;
 }
 
 // --- Phase 1.5: freight destination, port and rate lookup (D01-ASM-001) ---
