@@ -7,7 +7,11 @@ test.describe('Customer shipment tracking E2E (D02-P07-T002)', () => {
     await expect(page.getByRole('heading', { name: 'Sign In to CarChief' })).toBeVisible();
     await page.getByRole('button', { name: /Request Demo Session/ }).click();
     await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible({ timeout: 10000 });
-    await page.getByRole('link', { name: 'Shipments' }).click();
+    const mobileMenuToggle = page.getByTestId('cust-mobile-toggle');
+    if (await mobileMenuToggle.isVisible()) {
+      await mobileMenuToggle.click();
+    }
+    await page.locator('nav[aria-label*="Navigation"]:visible').getByRole('link', { name: /Shipments/ }).click();
     await expect(page.getByRole('heading', { name: 'Shipment tracking' })).toBeVisible();
   });
 

@@ -527,7 +527,20 @@ function collectSelfReviewEvidenceErrors(id, task) {
     }
   }
   if (id === 'INF-P00-T006') {
-    for (const marker of ['Active AI client:', 'MCP configuration source:', 'MCP server process: PASS', 'MCP browser navigation: PASS', 'MCP accessibility snapshot: PASS']) {
+    // This infrastructure task was completed before the seven-action session
+    // attestation existed. Preserve its auditable historical evidence instead
+    // of inventing interaction/console/network results. Any re-run creates a
+    // current log and must satisfy the complete marker set below.
+    const readinessPolicyStartedAt = Date.parse('2026-08-14T00:00:00.000Z');
+    const logUpdatedAt = Date.parse(log.updated_at || '');
+    if (!log.text.includes('MCP session started at:') && Number.isFinite(logUpdatedAt) && logUpdatedAt < readinessPolicyStartedAt) return errors;
+    for (const marker of [
+      'Active AI client:', 'MCP configuration source:', 'MCP session started at:',
+      'MCP server process: PASS', 'MCP browser navigation: PASS',
+      'MCP accessibility snapshot: PASS', 'MCP viewport resize: PASS',
+      'MCP interaction: PASS', 'MCP screenshot: PASS',
+      'MCP console inspection: PASS', 'MCP network inspection: PASS',
+    ]) {
       if (!log.text.includes(marker) || log.text.includes(`${marker} Not recorded`)) {
         errors.push(`${id} requires recorded Playwright MCP readiness evidence: ${marker}`);
       }

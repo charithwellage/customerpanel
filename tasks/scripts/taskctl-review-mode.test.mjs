@@ -55,7 +55,7 @@ function seedComplete(root, ids) {
     const infraMcp = id === 'INF-P00-T006';
     const gaps = /^D(?:01|02)-P10-T/.test(id);
     const mcp = ui ? `\n## Playwright MCP UI validation\n\n- AI client: Seed\n- Target URL: http://127.0.0.1:3000\n- Fresh-runtime verification: PASS\n- Runtime provenance: docker compose seed-service-1\n- Service readiness: PASS\n- Viewports: 390x844; 768x1024; 1440x900\n- Themes: carchief\n- Console/network result: PASS\n- Findings and corrections: None\n- Playwright MCP Result: PASS\n- Automated Playwright Test Result: PASS\n` : '';
-    const mcpInfra = infraMcp ? `\n- Active AI client: Seed\n- MCP configuration source: workspace\n- MCP server process: PASS\n- MCP browser navigation: PASS\n- MCP accessibility snapshot: PASS\n` : '';
+    const mcpInfra = infraMcp ? `\n- Active AI client: Seed\n- MCP configuration source: workspace\n- MCP session started at: 2026-08-14T00:00:00.000Z\n- MCP server process: PASS\n- MCP browser navigation: PASS\n- MCP accessibility snapshot: PASS\n- MCP viewport resize: PASS\n- MCP interaction: PASS\n- MCP screenshot: PASS\n- MCP console inspection: PASS\n- MCP network inspection: PASS\n` : '';
     const gapEvidence = gaps ? `\n- Requirement-gap register: Seed.\n- Phase ${id.startsWith('D01') ? '1.10' : '2.10'} disposition: Seed.\n` : '';
     writeFileSync(join(logs, `${id}.md`), `---\ntask_id: "${id}"\nstatus: "COMPLETE"\nowner: "seed"\nreviewer: "seed"\nreview_agent: "seed"\nphase_branch: ""\ntask_branch: ""\nstarted_at: ""\nupdated_at: ""\nblocker: ""\n---\n\n# ${id}\n\n## AI code review\n\n- Result: PASS\n${mcpInfra}${mcp}\n## Tests executed\n\n- Seed validation passed.\n${gapEvidence}\n## Blockers\n\nNone.\n`);
   }
