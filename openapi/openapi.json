@@ -1325,6 +1325,82 @@
         }
       }
     },
+    "/api/v1/customer/payments": {
+      "get": {
+        "operationId": "listCustomerPayments",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Customer payment journal", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CustomerPaymentListResponse" } } } },
+          "401": { "description": "Unauthenticated", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "403": { "description": "Forbidden", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
+        }
+      },
+      "post": {
+        "operationId": "createCustomerPayment",
+        "security": [{ "BearerAuth": [] }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CreateCustomerPaymentRequest" } } } },
+        "responses": {
+          "201": { "description": "Payment journal entry created", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CustomerPayment" } } } },
+          "400": { "description": "Invalid payment metadata", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "401": { "description": "Unauthenticated", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "403": { "description": "Forbidden", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
+        }
+      }
+    },
+    "/api/v1/customer/payments/{id}": {
+      "get": {
+        "operationId": "getCustomerPayment",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "200": { "description": "Customer payment journal entry", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CustomerPayment" } } } },
+          "401": { "description": "Unauthenticated", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "403": { "description": "Forbidden", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "404": { "description": "Payment not found", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
+        }
+      }
+    },
+    "/api/v1/customer/payments/{id}/resubmit": {
+      "post": {
+        "operationId": "resubmitCustomerPayment",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "200": { "description": "Resubmitted customer payment", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CustomerPayment" } } } },
+          "401": { "description": "Unauthenticated", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "403": { "description": "Forbidden", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "404": { "description": "Payment not found", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "409": { "description": "Invalid payment transition", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
+        }
+      }
+    },
+    "/api/v1/customer/payment-notifications": {
+      "get": {
+        "operationId": "listCustomerPaymentNotifications",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [{ "name": "paymentId", "in": "query", "required": false, "schema": { "type": "string" } }],
+        "responses": {
+          "200": { "description": "Customer-scoped deterministic payment notification outbox projection", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CustomerPaymentNotificationListResponse" } } } },
+          "401": { "description": "Unauthenticated", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "403": { "description": "Forbidden", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
+        }
+      }
+    },
+    "/api/v1/finance/customer-payments/{id}/notifications": {
+      "post": {
+        "operationId": "recordPaymentNotification",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/RecordPaymentNotificationRequest" } } } },
+        "responses": {
+          "201": { "description": "Queued deterministic outbox record", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CustomerPaymentNotification" } } } },
+          "400": { "description": "Invalid notification event", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "401": { "description": "Unauthenticated", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "403": { "description": "Finance role required", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "404": { "description": "Payment not found", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
+        }
+      }
+    },
     "/api/v1/__reset": {
       "post": {
         "summary": "Deterministic non-production data reset",
@@ -2212,6 +2288,61 @@
           }
         },
         "required": ["items", "total", "countsByStatus"]
+      },
+      "CustomerPaymentProofMetadata": {
+        "type": "object",
+        "properties": {
+          "fileName": { "type": "string" },
+          "fileType": { "type": "string", "enum": ["PDF", "JPG", "PNG"] },
+          "sizeBytes": { "type": "integer", "maximum": 10485760 },
+          "scanStatus": { "type": "string", "enum": ["Pending", "Passed", "Rejected"] }
+        },
+        "required": ["fileName", "fileType", "sizeBytes", "scanStatus"]
+      },
+      "CustomerPayment": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" }, "customerId": { "type": "string" }, "invoiceId": { "type": "string" },
+          "reference": { "type": "string" }, "bankName": { "type": "string" }, "currency": { "type": "string" },
+          "amountUsd": { "type": "number" }, "allocatedAmountUsd": { "type": "number" }, "remainingBalanceUsd": { "type": "number" }, "paymentDate": { "type": "string" }, "remarks": { "type": "string" },
+          "status": { "type": "string", "enum": ["Pending", "Held", "Resubmitted", "Approved", "Rejected"] },
+          "holdReason": { "type": "string" }, "proof": { "$ref": "#/components/schemas/CustomerPaymentProofMetadata" },
+          "idempotencyKey": { "type": "string" }, "createdAt": { "type": "string" }
+        },
+        "required": ["id", "customerId", "invoiceId", "reference", "bankName", "currency", "amountUsd", "paymentDate", "status", "idempotencyKey", "createdAt"]
+      },
+      "CreateCustomerPaymentRequest": {
+        "type": "object",
+        "properties": {
+          "invoiceId": { "type": "string" }, "reference": { "type": "string" }, "bankName": { "type": "string" },
+          "currency": { "type": "string", "enum": ["USD"] }, "amountUsd": { "type": "number" }, "paymentDate": { "type": "string" },
+          "remarks": { "type": "string" }, "proof": { "$ref": "#/components/schemas/CustomerPaymentProofMetadata" }, "idempotencyKey": { "type": "string" }
+        },
+        "required": ["invoiceId", "reference", "bankName", "currency", "amountUsd", "paymentDate", "proof", "idempotencyKey"]
+      },
+      "CustomerPaymentListResponse": {
+        "type": "object",
+        "properties": { "items": { "type": "array", "items": { "$ref": "#/components/schemas/CustomerPayment" } }, "total": { "type": "integer" } },
+        "required": ["items", "total"]
+      },
+      "CustomerPaymentNotification": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" }, "customerId": { "type": "string" }, "paymentId": { "type": "string" }, "invoiceId": { "type": "string" },
+          "event": { "type": "string", "enum": ["FinanceReviewRequested", "PaymentHeld", "PaymentResubmitted", "PaymentApproved", "PaymentAllocated"] },
+          "deliveryStatus": { "type": "string", "enum": ["Queued"] }, "createdAt": { "type": "string" }
+        },
+        "required": ["id", "customerId", "paymentId", "invoiceId", "event", "deliveryStatus", "createdAt"]
+      },
+      "CustomerPaymentNotificationListResponse": {
+        "type": "object",
+        "properties": { "items": { "type": "array", "items": { "$ref": "#/components/schemas/CustomerPaymentNotification" } }, "total": { "type": "integer" } },
+        "required": ["items", "total"]
+      },
+      "RecordPaymentNotificationRequest": {
+        "type": "object",
+        "properties": { "event": { "type": "string", "enum": ["FinanceReviewRequested", "PaymentHeld", "PaymentResubmitted", "PaymentApproved", "PaymentAllocated"] }, "reason": { "type": "string" }, "allocationAmountUsd": { "type": "number" } },
+        "required": ["event"]
       },
       "CustomerInvoiceType": {
         "type": "string",
