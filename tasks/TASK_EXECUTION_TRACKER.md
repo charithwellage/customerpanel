@@ -90,7 +90,7 @@
 | [D01-P10-CODE_REVIEW](delivery_01/phase_10/D01-P10-CODE_REVIEW.md) | Phase 1.10 PR code review and tech-lead approval | COMPLETE | phase_manual | not_applicable | Codex | `feat_delivery01_phase_10` | D01-P10-CODE_REVIEW (COMPLETE) | D01-P10-T003 | D01-P10-REVIEW | 2026-08-13T16:45:20.144Z |
 | [D02-P01-G001](delivery_02/phase_01/D02-P01-G001.md) | Record Customer scope, BA workflow ownership and Keycloak identity baseline | COMPLETE | self_ai | not_applicable | Antigravity | `feat_delivery02_phase_01` | D02-P01-CODE_REVIEW (COMPLETE) | D01-P09-CODE_REVIEW | D02-P01-GATE | 2026-08-13T13:30:15.984Z |
 | [D02-P01-T001](delivery_02/phase_01/D02-P01-T001.md) | Complete the customer application shell and responsive navigation | COMPLETE | self_ai | playwright_mcp | Antigravity | `feat_delivery02_phase_01` | D02-P01-CODE_REVIEW (COMPLETE) | D02-P01-G001 | D02-P01-SEQUENTIAL | 2026-08-13T18:26:38.114Z |
-| [D02-P01-T002](delivery_02/phase_01/D02-P01-T002.md) | Add customer session, account states and protected access | COMPLETE | self_ai | playwright_mcp | Antigravity | `feat_delivery02_phase_01` | D02-P01-CODE_REVIEW (COMPLETE) | D02-P01-T001 | D02-P01-SEQUENTIAL | 2026-08-13T18:26:38.197Z |
+| [D02-P01-T002](delivery_02/phase_01/D02-P01-T002.md) | Add customer session, account states and protected access | IN_PROGRESS | self_ai | playwright_mcp | Antigravity | `feat_delivery02_phase_01` | D02-P01-CODE_REVIEW (COMPLETE) | D02-P01-T001 | D02-P01-SEQUENTIAL | 2026-08-14T06:46:58.990Z |
 | [D02-P01-T003](delivery_02/phase_01/D02-P01-T003.md) | Accept customer default theme, PWA shell, accessibility and Docker deployment | COMPLETE | self_ai | playwright_mcp | Antigravity | `feat_delivery02_phase_01` | D02-P01-CODE_REVIEW (COMPLETE) | D02-P01-T002 | D02-P01-SEQUENTIAL | 2026-08-14T01:25:58.356Z |
 | [D02-P01-T004](delivery_02/phase_01/D02-P01-T004.md) | Establish Customer feature extension points and ownership registry | COMPLETE | self_ai | not_applicable | Antigravity | `feat_delivery02_phase_01` | D02-P01-CODE_REVIEW (COMPLETE) | D02-P01-T003 | D02-P01-SEQUENTIAL | 2026-08-13T16:17:29.878Z |
 | [D02-P01-CODE_REVIEW](delivery_02/phase_01/D02-P01-CODE_REVIEW.md) | Phase 2.1 PR code review and tech-lead approval | COMPLETE | phase_manual | not_applicable | Claude Sonnet 5 | `feat_delivery02_phase_01` | D02-P01-CODE_REVIEW (COMPLETE) | D02-P01-T004 | D02-P01-REVIEW | 2026-08-14T01:46:59.568Z |
@@ -119,7 +119,7 @@
 | [D02-P06-CODE_REVIEW](delivery_02/phase_06/D02-P06-CODE_REVIEW.md) | Phase 2.6 PR code review and tech-lead approval | NOT_STARTED | phase_manual | not_applicable | — | `feat_delivery02_phase_06` | D02-P06-CODE_REVIEW (NOT_STARTED) | D02-P06-T004, D02-P06-T005 | D02-P06-REVIEW | — |
 | [D02-P07-G001](delivery_02/phase_07/D02-P07-G001.md) | Establish customer shipment and document baseline | COMPLETE | self_ai | not_applicable | Codex | `feat_delivery02_phase_07` | D02-P07-CODE_REVIEW (NOT_STARTED) | D02-P01-CODE_REVIEW | D02-P07-GATE | 2026-08-14T04:24:55.733Z |
 | [D02-P07-T001](delivery_02/phase_07/D02-P07-T001.md) | Add customer shipment timeline and secure-document mock operations | COMPLETE | self_ai | not_applicable | Codex | `feat_delivery02_phase_07` | D02-P07-CODE_REVIEW (NOT_STARTED) | D02-P07-G001 | D02-P07-SEQUENTIAL | 2026-08-14T04:35:10.493Z |
-| [D02-P07-T002](delivery_02/phase_07/D02-P07-T002.md) | Build customer shipment tracking and exception states | BLOCKED | self_ai | playwright_mcp | — | `feat_delivery02_phase_07` | D02-P07-CODE_REVIEW (NOT_STARTED) | D02-P07-T001 | D02-P07-SEQUENTIAL | 2026-08-14T06:25:28.540Z |
+| [D02-P07-T002](delivery_02/phase_07/D02-P07-T002.md) | Build customer shipment tracking and exception states | BLOCKED | self_ai | playwright_mcp | — | `feat_delivery02_phase_07` | D02-P07-CODE_REVIEW (NOT_STARTED) | D02-P07-T001 | D02-P07-SEQUENTIAL | 2026-08-14T06:47:05.400Z |
 | [D02-P07-T003](delivery_02/phase_07/D02-P07-T003.md) | Build the ten-category customer Secure Vault | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery02_phase_07` | D02-P07-CODE_REVIEW (NOT_STARTED) | D02-P07-T002 | D02-P07-SEQUENTIAL | — |
 | [D02-P07-T005](delivery_02/phase_07/D02-P07-T005.md) | Enforce secure document access and customer visibility | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery02_phase_07` | D02-P07-CODE_REVIEW (NOT_STARTED) | D02-P07-T003 | D02-P07-SEQUENTIAL | — |
 | [D02-P07-T004](delivery_02/phase_07/D02-P07-T004.md) | Add Ship OK, document release and shipment/document acceptance | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery02_phase_07` | D02-P07-CODE_REVIEW (NOT_STARTED) | D02-P07-T005 | D02-P07-SEQUENTIAL | — |
@@ -145,6 +145,7 @@
 
 ## Current execution frontiers
 
+- D02-FOUNDATION: D02-P01-T002 — Add customer session, account states and protected access (IN_PROGRESS)
 - D02-COMMERCE: D02-P03-T001 — Add customer inventory projection, tier pricing and reservation eligibility (NOT_STARTED)
 - D02-DASHBOARD-LOGISTICS: D02-P07-T002 — Build customer shipment tracking and exception states (BLOCKED)
 - D02-FINAL: D02-P09-T001 — Complete Customer requirement and compiled-behavior traceability (NOT_STARTED)
