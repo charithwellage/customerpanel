@@ -1,8 +1,11 @@
 import React from 'react';
-import { AccountGuard, type CustomerSession } from '../features/account/index.js';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { AccountGuard, type CustomerSession, HttpClientProvider } from '../features/account/index.js';
 import { OfflineGuard } from '../features/pwa/index.js';
 import { CustomerShell, type CustomerUser } from '../features/shell/index.js';
 import { PortalPlaceholder } from './PortalPlaceholder.js';
+
+const queryClient = new QueryClient();
 
 export interface AppProps {
   /**
@@ -35,14 +38,18 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = '' }) => (
   <OfflineGuard>
     <AccountGuard apiBaseUrl={apiBaseUrl}>
       {(session) => (
-        <CustomerShell
-          initialUser={toShellUser(session)}
-          initialRoute="/dashboard"
-          pageTitle="Customer Portal"
-          pageSubtitle="Account access and application shell"
-        >
-          <PortalPlaceholder signedInAs={session.user.email} />
-        </CustomerShell>
+        <QueryClientProvider client={queryClient}>
+          <HttpClientProvider apiBaseUrl={apiBaseUrl}>
+            <CustomerShell
+              initialUser={toShellUser(session)}
+              initialRoute="/dashboard"
+              pageTitle="Customer Portal"
+              pageSubtitle="Account access and application shell"
+            >
+              <PortalPlaceholder signedInAs={session.user.email} />
+            </CustomerShell>
+          </HttpClientProvider>
+        </QueryClientProvider>
       )}
     </AccountGuard>
   </OfflineGuard>

@@ -339,6 +339,23 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
     res.json(req.user);
   });
 
+  // 4a. Customer dashboard KPI baseline (D02-ASM-001, CUST-04, CUST-05, CUST-06)
+  // Non-blocking aggregate: outstanding balance = invoiced total - approved allocations;
+  // credit utilisation = outstanding balance ÷ credit limit; vehicle counts use canonical IDs + status.
+  // Requires authentication as CustomerBuyer.
+  app.get('/api/v1/customer/dashboard', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) {
+      res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+      return;
+    }
+    if (!hasPermission(req.user.role, 'read:customer')) {
+      res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
+      return;
+    }
+    const dashboard = await store.getCustomerDashboard(req.user.sub, req.user.email);
+    res.json(dashboard);
+  });
+
   // 5. Deterministic reset (Disabled in production mode for release safety)
   app.post('/api/v1/__reset', async (req: AuthenticatedRequest, res: Response) => {
     if (process.env.NODE_ENV === 'production' && process.env.ENABLE_MOCK_RESET !== 'true') {

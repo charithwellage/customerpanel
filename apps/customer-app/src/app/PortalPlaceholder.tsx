@@ -1,6 +1,7 @@
 import React from 'react';
 import { useCustomerShell } from '../features/shell/index.js';
 import { CUSTOMER_FEATURE_REGISTRY } from '../features/registry/index.js';
+import { OverviewPage } from '../features/dashboard/index.js';
 
 export interface PortalPlaceholderProps {
   /** Email from the active session, shown so the signed-in identity is unambiguous. */
@@ -20,6 +21,11 @@ export interface PortalPlaceholderProps {
 export const PortalPlaceholder: React.FC<PortalPlaceholderProps> = ({ signedInAs }) => {
   const { activeRoute } = useCustomerShell();
   const record = Object.values(CUSTOMER_FEATURE_REGISTRY).find((entry) => entry.routePath === activeRoute);
+
+  // D02-P02-T002: Dashboard Overview page
+  if (activeRoute === '/dashboard') {
+    return <OverviewPage />;
+  }
 
   return (
     <section className="cc-cust-placeholder" aria-label="Section availability">

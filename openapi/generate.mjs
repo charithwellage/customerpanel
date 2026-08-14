@@ -400,6 +400,78 @@ export interface BranchListResponse {
   items: BranchContent[];
   total: number;
 }
+
+// Phase 2.2: customer dashboard KPI baseline (D02-ASM-001). Non-blocking
+// aggregate derived from linked mock records: outstanding balance = issued
+// invoice total - approved allocations; credit utilisation = outstanding
+// balance ÷ credit limit; vehicle counts use canonical IDs and server status.
+// Server-authoritative; no browser calculation or fabrication.
+
+export interface Invoice {
+  id: string;
+  customerId: string;
+  vehicleId: string;
+  vehicleSlug: string;
+  make: string;
+  model: string;
+  year: number;
+  totalAmountUsd: number;
+  invoicedAt: string;
+  status: 'Draft' | 'Issued' | 'Paid' | 'Overdue';
+}
+
+export interface Allocation {
+  id: string;
+  customerId: string;
+  paymentId: string;
+  invoiceId: string;
+  amountUsd: number;
+  allocatedAt: string;
+  status: 'Approved' | 'Pending' | 'Rejected';
+}
+
+export interface PaymentStatusSummary {
+  approved: number;
+  pending: number;
+  rejected: number;
+}
+
+export interface ShipmentStatusSummary {
+  ready: number;
+  inTransit: number;
+  delivered: number;
+  other: number;
+}
+
+export interface DocumentAvailabilityCount {
+  available: number;
+  pending: number;
+  unavailable: number;
+}
+
+export interface PartialFailureIndicators {
+  paymentsFailed: boolean;
+  shipmentsFailed: boolean;
+  documentsFailed: boolean;
+  notificationsFailed: boolean;
+}
+
+export interface CustomerDashboard {
+  customerId: string;
+  customerEmail: string;
+  creditLimitUsd: number;
+  outstandingBalanceUsd: number;
+  creditUtilisationPercent: number;
+  vehicleCountReserved: number;
+  vehicleCountInvoiced: number;
+  vehicleCountDelivered: number;
+  lastUpdated: string;
+  paymentStatusSummary: PaymentStatusSummary;
+  shipmentStatusSummary: ShipmentStatusSummary;
+  documentAvailabilityCount: DocumentAvailabilityCount;
+  notificationUnreadCount: number;
+  partialFailureIndicators: PartialFailureIndicators;
+}
 `;
 
 mkdirSync(dirname(outputPath), { recursive: true });

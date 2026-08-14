@@ -443,6 +443,110 @@ export function generateVehicleSlug(year: number, make: string, model: string, i
     .replace(/^-+|-+$/g, '');
 }
 
+// --- Phase 2.2: customer dashboard KPI baseline (D02-ASM-001) ---
+//
+// Non-blocking customer dashboard aggregate derived from linked mock records:
+// outstanding balance = issued invoice total minus approved allocations;
+// credit utilisation = outstanding balance ÷ mock credit limit;
+// vehicle counts use canonical vehicle IDs and current server status.
+// All values are server-derived; no browser calculation or fabrication.
+
+export interface Invoice {
+  id: string;
+  customerId: string;
+  vehicleId: string;
+  vehicleSlug: string;
+  make: string;
+  model: string;
+  year: number;
+  totalAmountUsd: number;
+  invoicedAt: string;
+  status: 'Draft' | 'Issued' | 'Paid' | 'Overdue';
+}
+
+export interface Allocation {
+  id: string;
+  customerId: string;
+  paymentId: string;
+  invoiceId: string;
+  amountUsd: number;
+  allocatedAt: string;
+  status: 'Approved' | 'Pending' | 'Rejected';
+}
+
+export interface Payment {
+  id: string;
+  customerId: string;
+  invoiceId: string;
+  amountUsd: number;
+  paidAt: string;
+  status: 'Pending' | 'Approved' | 'Rejected';
+}
+
+export interface Shipment {
+  id: string;
+  customerId: string;
+  vehicleId: string;
+  status: ShipmentStatus;
+  shippedAt: string;
+  deliveredAt?: string;
+}
+
+export interface Document {
+  id: string;
+  customerId: string;
+  shipmentId?: string;
+  vehicleId?: string;
+  type: 'Invoice' | 'PaymentProof' | 'ShippingLabel' | 'DeliveryProof' | 'Other';
+  status: 'Available' | 'Pending' | 'Unavailable';
+  createdAt: string;
+}
+
+export interface Notification {
+  id: string;
+  customerId: string;
+  message: string;
+  type: 'Payment' | 'Shipment' | 'Document' | 'Vehicle' | 'Promotion';
+  isRead: boolean;
+  createdAt: string;
+}
+
+export interface CustomerDashboard {
+  customerId: string;
+  customerEmail: string;
+  creditLimitUsd: number;
+  outstandingBalanceUsd: number;
+  creditUtilisationPercent: number;
+  vehicleCountReserved: number;
+  vehicleCountInvoiced: number;
+  vehicleCountDelivered: number;
+  lastUpdated: string;
+  // Enhanced with linked record aggregates (D02-P02-T001)
+  paymentStatusSummary?: {
+    approved: number;
+    pending: number;
+    rejected: number;
+  };
+  shipmentStatusSummary?: {
+    ready: number;
+    inTransit: number;
+    delivered: number;
+    other: number;
+  };
+  documentAvailabilityCount?: {
+    available: number;
+    pending: number;
+    unavailable: number;
+  };
+  notificationUnreadCount?: number;
+  partialFailureIndicators?: {
+    paymentsFailed?: boolean;
+    shipmentsFailed?: boolean;
+    documentsFailed?: boolean;
+    notificationsFailed?: boolean;
+  };
+}
+
 export * from './auth.js';
 export * from './freight.js';
 export * from './content.js';
