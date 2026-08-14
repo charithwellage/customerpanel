@@ -451,10 +451,6 @@ export interface CustomerShipment {
   location?: string;
   freshness: 'fresh' | 'stale' | 'unknown';
   timeline: Array<{ stage: CustomerShipment['stage']; occurredAt?: string; current: boolean }>;
-  shipOkStatus: 'Pending' | 'Approved' | 'Rejected';
-  shipOkRejectionReason?: string;
-  documentReleaseStatus: 'Pending' | 'Approved' | 'Rejected';
-  documentReleaseRejectionReason?: string;
 }
 
 export interface CustomerShipmentList {
@@ -575,4 +571,117 @@ export interface CustomerVehicleListResponse {
   items: CustomerVehicleSummary[];
   total: number;
   countsByStatus: CustomerVehicleCountsByStatus;
+}
+
+export type CustomerInvoiceType = 'Proforma' | 'Commercial';
+
+export type CustomerInvoiceStatus =
+  | 'Draft'
+  | 'Issued'
+  | 'PartiallyPaid'
+  | 'Paid'
+  | 'Overdue'
+  | 'Expired'
+  | 'Cancelled';
+
+export interface CustomerInvoiceLineItem {
+  id: string;
+  description: string;
+  quantity: number;
+  unitPriceUsd: number;
+  amountUsd: number;
+}
+
+export interface CustomerInvoiceAllocationItem {
+  id: string;
+  paymentId: string;
+  amountUsd: number;
+  allocatedAt: string;
+  status: 'Approved' | 'Pending' | 'Rejected';
+}
+
+export interface CustomerInvoiceBankDetails {
+  bankName: string;
+  swiftCode: string;
+  accountName: string;
+  accountNumber: string;
+  branchName: string;
+  bankAddress: string;
+  reference: string;
+}
+
+export interface CustomerInvoiceSummary {
+  id: string;
+  invoiceNumber: string;
+  type: CustomerInvoiceType;
+  customerId: string;
+  vehicleId: string;
+  vehicleSlug: string;
+  make: string;
+  model: string;
+  year: number;
+  totalAmountUsd: number;
+  paidAmountUsd: number;
+  outstandingAmountUsd: number;
+  depositRequiredUsd?: number;
+  depositPaidUsd?: number;
+  status: CustomerInvoiceStatus;
+  issuedAt: string;
+  dueDate: string;
+  paymentDeadline?: string;
+  documentStatus: 'Available' | 'Pending' | 'Unavailable';
+  currency: string;
+}
+
+export interface CustomerInvoiceDetailVehicle {
+  id: string;
+  chassisNumber: string;
+  make: string;
+  model: string;
+  year: number;
+  slug: string;
+  primaryImage?: string;
+}
+
+export interface CustomerInvoiceDetail extends CustomerInvoiceSummary {
+  vehicle: CustomerInvoiceDetailVehicle;
+  lineItems: CustomerInvoiceLineItem[];
+  allocations: CustomerInvoiceAllocationItem[];
+  bankDetails: CustomerInvoiceBankDetails;
+  documentUrl?: string;
+  termsAndConditions?: string[];
+  isExpired?: boolean;
+  notes?: string;
+}
+
+export interface CustomerInvoiceCountsByType {
+  all: number;
+  proforma: number;
+  commercial: number;
+}
+
+export interface CustomerInvoiceTotals {
+  totalInvoicedUsd: number;
+  totalPaidUsd: number;
+  totalOutstandingUsd: number;
+}
+
+export interface CustomerInvoiceListResponse {
+  items: CustomerInvoiceSummary[];
+  total: number;
+  page: number;
+  limit: number;
+  countsByType: CustomerInvoiceCountsByType;
+  totals: CustomerInvoiceTotals;
+}
+
+export interface CustomerInvoiceDocument {
+  documentId: string;
+  invoiceId: string;
+  invoiceNumber: string;
+  type: CustomerInvoiceType;
+  title: string;
+  contentHtml: string;
+  status: 'Available' | 'Unavailable';
+  generatedAt: string;
 }

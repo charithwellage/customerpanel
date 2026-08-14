@@ -1389,4 +1389,180 @@ describe('API Client & Contract Boundary Tests', () => {
       expect(detail).toBeNull();
     });
   });
+
+  describe('CustomerInvoiceService (D02-P05-T001)', () => {
+    it('calls listCustomerInvoices with query parameters', async () => {
+      let capturedUrl = '';
+      const mockFetch = vi.fn().mockImplementation(async (url: string) => {
+        capturedUrl = url;
+        return {
+          ok: true,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: async () => ({
+            items: [
+              {
+                id: 'inv-001',
+                invoiceNumber: 'INV-0001',
+                type: 'Commercial',
+                customerId: 'cust-123',
+                vehicleId: 'veh-1',
+                vehicleSlug: '2021-toyota-corolla-axio-veh-1',
+                make: 'Toyota',
+                model: 'Corolla Axio',
+                year: 2021,
+                totalAmountUsd: 8500,
+                paidAmountUsd: 5500,
+                outstandingAmountUsd: 3000,
+                status: 'PartiallyPaid',
+                issuedAt: '2026-08-10T10:00:00.000Z',
+                dueDate: '2026-08-17T10:00:00.000Z',
+                documentStatus: 'Available',
+                currency: 'USD',
+              },
+            ],
+            total: 1,
+            page: 1,
+            limit: 20,
+            countsByType: { all: 1, proforma: 0, commercial: 1 },
+            totals: { totalInvoicedUsd: 8500, totalPaidUsd: 5500, totalOutstandingUsd: 3000 },
+          }),
+        };
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { CustomerInvoiceService } = await import('../services/customerInvoices.js');
+      const service = new CustomerInvoiceService(client);
+
+      const res = await service.listCustomerInvoices({ type: 'Commercial', query: 'Corolla' });
+      expect(capturedUrl).toContain('/customer/invoices?type=Commercial&query=Corolla');
+      expect(res.total).toBe(1);
+      expect(res.items[0].invoiceNumber).toBe('INV-0001');
+      expect(res.countsByType.commercial).toBe(1);
+      expect(res.totals.totalOutstandingUsd).toBe(3000);
+    });
+
+    it('fetches customer invoice detail', async () => {
+      let capturedUrl = '';
+      const mockFetch = vi.fn().mockImplementation(async (url: string) => {
+        capturedUrl = url;
+        return {
+          ok: true,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: async () => ({
+            id: 'inv-001',
+            invoiceNumber: 'INV-0001',
+            type: 'Commercial',
+            customerId: 'cust-123',
+            vehicleId: 'veh-1',
+            vehicleSlug: '2021-toyota-corolla-axio-veh-1',
+            make: 'Toyota',
+            model: 'Corolla Axio',
+            year: 2021,
+            totalAmountUsd: 8500,
+            paidAmountUsd: 5500,
+            outstandingAmountUsd: 3000,
+            status: 'PartiallyPaid',
+            issuedAt: '2026-08-10T10:00:00.000Z',
+            dueDate: '2026-08-17T10:00:00.000Z',
+            documentStatus: 'Available',
+            currency: 'USD',
+            vehicle: {
+              id: 'veh-1',
+              chassisNumber: 'NZE141-1234567',
+              make: 'Toyota',
+              model: 'Corolla Axio',
+              year: 2021,
+              slug: '2021-toyota-corolla-axio-veh-1',
+            },
+            lineItems: [
+              { id: 'li-1', description: 'FOB Vehicle Price', quantity: 1, unitPriceUsd: 7000, amountUsd: 7000 },
+              { id: 'li-2', description: 'Ocean Freight', quantity: 1, unitPriceUsd: 1500, amountUsd: 1500 },
+            ],
+            allocations: [
+              { id: 'alloc-1', paymentId: 'pay-1', amountUsd: 5500, allocatedAt: '2026-08-11T10:00:00.000Z', status: 'Approved' },
+            ],
+            bankDetails: {
+              bankName: 'MUFG Bank, Ltd.',
+              swiftCode: 'BOTKJPJT',
+              accountName: 'CarChief International Co., Ltd.',
+              accountNumber: '123-4567890',
+              branchName: 'Tokyo Head Office',
+              bankAddress: 'Tokyo, Japan',
+              reference: 'INV-0001',
+            },
+          }),
+        };
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { CustomerInvoiceService } = await import('../services/customerInvoices.js');
+      const service = new CustomerInvoiceService(client);
+
+      const detail = await service.getCustomerInvoiceDetail('inv-001');
+      expect(capturedUrl).toBe('http://localhost:4000/customer/invoices/inv-001');
+      expect(detail).not.toBeNull();
+      expect(detail?.invoiceNumber).toBe('INV-0001');
+      expect(detail?.lineItems.length).toBe(2);
+      expect(detail?.allocations.length).toBe(1);
+    });
+
+    it('fetches customer invoice document projection', async () => {
+      let capturedUrl = '';
+      const mockFetch = vi.fn().mockImplementation(async (url: string) => {
+        capturedUrl = url;
+        return {
+          ok: true,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: async () => ({
+            documentId: 'doc-inv-001',
+            invoiceId: 'inv-001',
+            invoiceNumber: 'INV-0001',
+            type: 'Commercial',
+            title: 'Commercial Invoice INV-0001',
+            contentHtml: '<div>Invoice Content</div>',
+            status: 'Available',
+            generatedAt: '2026-08-10T10:00:00.000Z',
+          }),
+        };
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { CustomerInvoiceService } = await import('../services/customerInvoices.js');
+      const service = new CustomerInvoiceService(client);
+
+      const doc = await service.getCustomerInvoiceDocument('inv-001');
+      expect(capturedUrl).toBe('http://localhost:4000/customer/invoices/inv-001/document');
+      expect(doc).not.toBeNull();
+      expect(doc?.documentId).toBe('doc-inv-001');
+      expect(doc?.title).toBe('Commercial Invoice INV-0001');
+    });
+
+    it('returns null on 404 from getCustomerInvoiceDetail and getCustomerInvoiceDocument', async () => {
+      const mockFetch = vi.fn().mockImplementation(async () => {
+        return {
+          ok: false,
+          status: 404,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: async () => ({
+            statusCode: 404,
+            message: 'Invoice not found',
+          }),
+        };
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { CustomerInvoiceService } = await import('../services/customerInvoices.js');
+      const service = new CustomerInvoiceService(client);
+
+      const detail = await service.getCustomerInvoiceDetail('non-existent');
+      expect(detail).toBeNull();
+
+      const doc = await service.getCustomerInvoiceDocument('non-existent');
+      expect(doc).toBeNull();
+    });
+  });
 });

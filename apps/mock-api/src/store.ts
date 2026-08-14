@@ -51,6 +51,16 @@ import type {
   CustomerVehicleCountsByStatus,
   CustomerVehicleListResponse,
   ListCustomerVehiclesQuery,
+  CustomerInvoiceType,
+  CustomerInvoiceStatus,
+  CustomerInvoiceAllocationItem,
+  CustomerInvoiceSummary,
+  CustomerInvoiceDetail,
+  CustomerInvoiceCountsByType,
+  CustomerInvoiceTotals,
+  CustomerInvoiceListResponse,
+  ListCustomerInvoicesQuery,
+  CustomerInvoiceDocument,
 } from '@carchief/domain';
 import {
   generateVehicleSlug,
@@ -508,6 +518,10 @@ export interface DemoStore {
   getCustomerShipment(customerId: string, shipmentId: string): Promise<CustomerShipment | null>;
   listCustomerDocuments(customerId: string): Promise<CustomerDocument[]>;
   getCustomerDocument(customerId: string, documentId: string): Promise<CustomerDocument | null>;
+  // Phase 2.5: customer invoice projections (CUST-02, CUST-14, CUST-15, CUST-16, CUST-21, RULE-04, RULE-08, RULE-10)
+  getCustomerInvoices(customerId: string, query?: ListCustomerInvoicesQuery, nowISO?: string): Promise<CustomerInvoiceListResponse>;
+  getCustomerInvoiceById(customerId: string, id: string, nowISO?: string): Promise<CustomerInvoiceDetail | null>;
+  getCustomerInvoiceDocument(customerId: string, id: string, nowISO?: string): Promise<CustomerInvoiceDocument | null>;
   reset(): Promise<void>;
   close(): Promise<void>;
 }
@@ -2744,6 +2758,325 @@ export function queryCustomerVehicles(
 }
 
 /**
+ * Phase 2.5: Customer Invoice & Proforma Invoice Projections
+ * (CUST-02, CUST-14, CUST-15, CUST-16, CUST-21, RULE-04, RULE-08, RULE-10)
+ */
+export function buildCustomerInvoiceProjections(
+  customerId: string,
+  invoices: InvoiceRecord[],
+  proformaInvoices: ProformaInvoiceRecord[],
+  allocations: AllocationRecord[],
+  vehicles: VehicleRecord[],
+  documents: DocumentRecord[],
+  nowISO: string = new Date().toISOString()
+): CustomerInvoiceDetail[] {
+  const result: CustomerInvoiceDetail[] = [];
+
+  // Proforma Invoices (PI)
+  for (const pi of proformaInvoices) {
+    if (pi.customerId !== customerId) continue;
+    const vehicle = vehicles.find((v) => v.id === pi.vehicleId);
+    if (!vehicle) continue;
+
+    const invoiceNumber = `PI-${pi.id.replace(/^pi-?/i, '').padStart(4, '0')}`;
+    const slug = generateVehicleSlug(vehicle.year, vehicle.make, vehicle.model, vehicle.id);
+    const primaryImage = vehicle.images?.[0];
+
+    const totalAmountUsd = pi.totalAmountUsd;
+    const depositInfo = calculateVehicleDeposit(totalAmountUsd, 0);
+
+    // 72-hour payment deadline
+    const issuedTime = new Date(pi.issuedAt).getTime();
+    const deadlineTime = pi.paymentDeadline ? new Date(pi.paymentDeadline).getTime() : issuedTime + (72 * 60 * 60 * 1000);
+    const paymentDeadline = new Date(deadlineTime).toISOString();
+    const isExpired = new Date(nowISO).getTime() > deadlineTime;
+    const status: CustomerInvoiceStatus = isExpired ? 'Expired' : (pi.status === 'Cancelled' ? 'Cancelled' : 'Issued');
+
+    result.push({
+      id: pi.id,
+      invoiceNumber,
+      type: 'Proforma',
+      customerId: pi.customerId,
+      vehicleId: pi.vehicleId,
+      vehicleSlug: slug,
+      make: vehicle.make,
+      model: vehicle.model,
+      year: vehicle.year,
+      totalAmountUsd,
+      paidAmountUsd: 0,
+      outstandingAmountUsd: totalAmountUsd,
+      depositRequiredUsd: depositInfo.requiredAmountUsd,
+      depositPaidUsd: 0,
+      status,
+      issuedAt: pi.issuedAt,
+      dueDate: paymentDeadline,
+      paymentDeadline,
+      documentStatus: 'Available',
+      currency: 'USD',
+      vehicle: {
+        id: vehicle.id,
+        chassisNumber: vehicle.chassisNumber,
+        make: vehicle.make,
+        model: vehicle.model,
+        year: vehicle.year,
+        slug,
+        primaryImage,
+      },
+      lineItems: [],
+      allocations: [],
+      bankDetails: undefined,
+      documentUrl: undefined,
+      termsAndConditions: [
+        'This Proforma Invoice and reservation hold are valid for 72 hours from the issue date.',
+        'A minimum deposit of 50% is required to secure the vehicle and proceed with export preparation.',
+        'Payment instructions are unavailable pending Finance confirmation.',
+      ],
+      isExpired,
+      notes: 'Proforma Invoice issued for initial vehicle reservation and wire transfer payment.',
+    });
+  }
+
+  // Commercial Invoices
+  for (const inv of invoices) {
+    if (inv.customerId !== customerId) continue;
+    const vehicle = vehicles.find((v) => v.id === inv.vehicleId);
+    if (!vehicle) continue;
+
+    const invoiceNumber = `INV-${inv.id.replace(/^inv-?/i, '').padStart(4, '0')}`;
+    const slug = generateVehicleSlug(vehicle.year, vehicle.make, vehicle.model, vehicle.id);
+    const primaryImage = vehicle.images?.[0];
+
+    const totalAmountUsd = inv.totalAmountUsd;
+    const customerAllocs = allocations.filter((a) => a.customerId === customerId && a.invoiceId === inv.id && a.status === 'Approved');
+    const paidAmountUsd = customerAllocs.reduce((sum, a) => sum + a.amountUsd, 0);
+    const outstandingAmountUsd = Math.max(0, totalAmountUsd - paidAmountUsd);
+
+    let status: CustomerInvoiceStatus = inv.status as CustomerInvoiceStatus;
+    if (outstandingAmountUsd === 0 && totalAmountUsd > 0) {
+      status = 'Paid';
+    } else if (paidAmountUsd > 0) {
+      status = 'PartiallyPaid';
+    } else {
+      status = 'Issued';
+    }
+
+    const docRecord = documents.find((d) => d.customerId === customerId && (d.vehicleId === inv.vehicleId || d.id === `doc-${inv.id}`) && d.type === 'Invoice');
+    const documentStatus: 'Available' | 'Pending' | 'Unavailable' = docRecord ? docRecord.status : 'Available';
+
+    const allocationItems: CustomerInvoiceAllocationItem[] = customerAllocs.map((a) => ({
+      id: a.id,
+      paymentId: a.paymentId,
+      amountUsd: a.amountUsd,
+      allocatedAt: a.allocatedAt,
+      status: a.status,
+    }));
+
+    const dueDate = new Date(new Date(inv.invoicedAt).getTime() + (7 * 24 * 60 * 60 * 1000)).toISOString();
+
+    result.push({
+      id: inv.id,
+      invoiceNumber,
+      type: 'Commercial',
+      customerId: inv.customerId,
+      vehicleId: inv.vehicleId,
+      vehicleSlug: slug,
+      make: vehicle.make,
+      model: vehicle.model,
+      year: vehicle.year,
+      totalAmountUsd,
+      paidAmountUsd,
+      outstandingAmountUsd,
+      depositRequiredUsd: Math.round(totalAmountUsd * 0.5),
+      depositPaidUsd: Math.min(Math.round(totalAmountUsd * 0.5), paidAmountUsd),
+      status,
+      issuedAt: inv.invoicedAt,
+      dueDate,
+      documentStatus,
+      currency: 'USD',
+      vehicle: {
+        id: vehicle.id,
+        chassisNumber: vehicle.chassisNumber,
+        make: vehicle.make,
+        model: vehicle.model,
+        year: vehicle.year,
+        slug,
+        primaryImage,
+      },
+      lineItems: [],
+      allocations: allocationItems,
+      bankDetails: undefined,
+      documentUrl: undefined,
+      termsAndConditions: [
+        'Final Commercial Invoice projection; approved payment allocations are shown separately.',
+        'Payment instructions are unavailable pending Finance confirmation.',
+      ],
+      isExpired: false,
+      notes: 'Final Commercial Invoice for vehicle export.',
+    });
+  }
+
+  return result;
+}
+
+export function queryCustomerInvoices(
+  allInvoices: CustomerInvoiceDetail[],
+  query?: ListCustomerInvoicesQuery
+): CustomerInvoiceListResponse {
+  const countsByType: CustomerInvoiceCountsByType = {
+    all: allInvoices.length,
+    proforma: allInvoices.filter((i) => i.type === 'Proforma').length,
+    commercial: allInvoices.filter((i) => i.type === 'Commercial').length,
+  };
+
+  const totals: CustomerInvoiceTotals = {
+    totalInvoicedUsd: allInvoices.reduce((sum, i) => sum + i.totalAmountUsd, 0),
+    totalPaidUsd: allInvoices.reduce((sum, i) => sum + i.paidAmountUsd, 0),
+    totalOutstandingUsd: allInvoices.reduce((sum, i) => sum + i.outstandingAmountUsd, 0),
+  };
+
+  let filtered = allInvoices;
+
+  if (query?.type && query.type.toLowerCase() !== 'all') {
+    const t = query.type.trim().toLowerCase();
+    filtered = filtered.filter((i) => i.type.toLowerCase() === t);
+  }
+
+  if (query?.status && query.status.toLowerCase() !== 'all') {
+    const s = query.status.trim().toLowerCase();
+    filtered = filtered.filter((i) => i.status.toLowerCase() === s);
+  }
+
+  if (query?.query) {
+    const q = query.query.trim().toLowerCase();
+    filtered = filtered.filter((i) =>
+      i.invoiceNumber.toLowerCase().includes(q) ||
+      i.make.toLowerCase().includes(q) ||
+      i.model.toLowerCase().includes(q) ||
+      i.vehicle.chassisNumber.toLowerCase().includes(q) ||
+      String(i.year).includes(q) ||
+      i.id.toLowerCase().includes(q)
+    );
+  }
+
+  const page = Math.max(1, query?.page || 1);
+  const limit = Math.max(1, Math.min(100, query?.limit || 20));
+  const startIndex = (page - 1) * limit;
+  const paginated = filtered.slice(startIndex, startIndex + limit);
+
+  const items: CustomerInvoiceSummary[] = paginated.map((d) => ({
+    id: d.id,
+    invoiceNumber: d.invoiceNumber,
+    type: d.type,
+    customerId: d.customerId,
+    vehicleId: d.vehicleId,
+    vehicleSlug: d.vehicleSlug,
+    make: d.make,
+    model: d.model,
+    year: d.year,
+    totalAmountUsd: d.totalAmountUsd,
+    paidAmountUsd: d.paidAmountUsd,
+    outstandingAmountUsd: d.outstandingAmountUsd,
+    depositRequiredUsd: d.depositRequiredUsd,
+    depositPaidUsd: d.depositPaidUsd,
+    status: d.status,
+    issuedAt: d.issuedAt,
+    dueDate: d.dueDate,
+    paymentDeadline: d.paymentDeadline,
+    documentStatus: d.documentStatus,
+    currency: d.currency,
+  }));
+
+  return {
+    items,
+    total: filtered.length,
+    page,
+    limit,
+    countsByType,
+    totals,
+  };
+}
+
+export function buildCustomerInvoiceDocument(invoice: CustomerInvoiceDetail): CustomerInvoiceDocument {
+  const contentHtml = `
+    <div class="carchief-invoice-document">
+      <header class="carchief-invoice-document__header">
+        <h1>CarChief International Co., Ltd.</h1>
+        <p>7-1, Marunouchi 2-chome, Chiyoda-ku, Tokyo 100-8388, Japan</p>
+        <p>Official ${invoice.type === 'Proforma' ? 'Proforma Invoice' : 'Commercial Invoice'}</p>
+      </header>
+      <div class="carchief-invoice-document__meta">
+        <div><strong>Invoice Number:</strong> ${invoice.invoiceNumber}</div>
+        <div><strong>Issue Date:</strong> ${new Date(invoice.issuedAt).toLocaleDateString()}</div>
+        <div><strong>Due Date:</strong> ${new Date(invoice.dueDate).toLocaleDateString()}</div>
+        <div><strong>Customer ID:</strong> ${invoice.customerId}</div>
+      </div>
+      <div class="carchief-invoice-document__vehicle">
+        <h3>Vehicle Information</h3>
+        <p>${invoice.year} ${invoice.make} ${invoice.model} (Chassis: ${invoice.vehicle.chassisNumber})</p>
+      </div>
+      <table class="carchief-invoice-document__table">
+        <thead>
+          <tr>
+            <th>Description</th>
+            <th>Qty</th>
+            <th>Unit Price (USD)</th>
+            <th>Amount (USD)</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${invoice.lineItems.length === 0 ? `
+            <tr><td colspan="4">Itemized charges are unavailable pending an approved invoice breakdown.</td></tr>
+          ` : invoice.lineItems.map(item => `
+            <tr>
+              <td>${item.description}</td>
+              <td>${item.quantity}</td>
+              <td>$${item.unitPriceUsd.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+              <td>$${item.amountUsd.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="3"><strong>Total Amount:</strong></td>
+            <td><strong>$${invoice.totalAmountUsd.toLocaleString(undefined, { minimumFractionDigits: 2 })}</strong></td>
+          </tr>
+          <tr>
+            <td colspan="3">Paid Amount:</td>
+            <td>$${invoice.paidAmountUsd.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+          </tr>
+          <tr>
+            <td colspan="3"><strong>Outstanding Balance:</strong></td>
+            <td><strong>$${invoice.outstandingAmountUsd.toLocaleString(undefined, { minimumFractionDigits: 2 })}</strong></td>
+          </tr>
+        </tfoot>
+      </table>
+      <div class="carchief-invoice-document__banking">
+        <h3>Official Wire Transfer Instructions (T/T Only)</h3>
+        ${invoice.bankDetails ? `
+          <p><strong>Bank:</strong> ${invoice.bankDetails.bankName}</p>
+          <p><strong>SWIFT:</strong> ${invoice.bankDetails.swiftCode}</p>
+          <p><strong>Account Name:</strong> ${invoice.bankDetails.accountName}</p>
+          <p><strong>Account Number:</strong> ${invoice.bankDetails.accountNumber}</p>
+          <p><strong>Branch:</strong> ${invoice.bankDetails.branchName}</p>
+          <p><strong>Payment Reference:</strong> ${invoice.bankDetails.reference}</p>
+        ` : '<p>Bank instructions are unavailable pending Finance confirmation.</p>'}
+      </div>
+    </div>
+  `;
+
+  return {
+    documentId: `doc-${invoice.id}`,
+    invoiceId: invoice.id,
+    invoiceNumber: invoice.invoiceNumber,
+    type: invoice.type,
+    title: `${invoice.type === 'Proforma' ? 'Proforma Invoice' : 'Commercial Invoice'} ${invoice.invoiceNumber}`,
+    contentHtml,
+    status: invoice.documentStatus === 'Unavailable' ? 'Unavailable' : 'Available',
+    generatedAt: new Date().toISOString(),
+  };
+}
+
+/**
  * Validates the reservation request and resolves the target vehicle. Throws
  * a field-associated `ReservationRequestError` (400) for a malformed
  * request, or a `reason`-tagged 404 for an unknown vehicle — never silently
@@ -3205,6 +3538,48 @@ class MemoryStore implements DemoStore {
     const document = this.documents.find((candidate) => candidate.id === documentId && candidate.customerId === customerId);
     if (!document || document.releaseApproved !== true || document.visibleToCustomer !== true) return null;
     return toCustomerDocument(document);
+  }
+
+  getCustomerInvoices(customerId: string, query?: ListCustomerInvoicesQuery, nowISO?: string): Promise<CustomerInvoiceListResponse> {
+    const all = buildCustomerInvoiceProjections(
+      customerId,
+      this.invoices,
+      this.proformaInvoices,
+      this.allocations,
+      this.vehicles,
+      this.documents,
+      nowISO || new Date().toISOString()
+    );
+    return Promise.resolve(queryCustomerInvoices(all, query));
+  }
+
+  getCustomerInvoiceById(customerId: string, id: string, nowISO?: string): Promise<CustomerInvoiceDetail | null> {
+    const all = buildCustomerInvoiceProjections(
+      customerId,
+      this.invoices,
+      this.proformaInvoices,
+      this.allocations,
+      this.vehicles,
+      this.documents,
+      nowISO || new Date().toISOString()
+    );
+    const target = all.find((i) => i.id === id || i.invoiceNumber.toLowerCase() === id.toLowerCase());
+    return Promise.resolve(target || null);
+  }
+
+  getCustomerInvoiceDocument(customerId: string, id: string, nowISO?: string): Promise<CustomerInvoiceDocument | null> {
+    const all = buildCustomerInvoiceProjections(
+      customerId,
+      this.invoices,
+      this.proformaInvoices,
+      this.allocations,
+      this.vehicles,
+      this.documents,
+      nowISO || new Date().toISOString()
+    );
+    const target = all.find((i) => i.id === id || i.invoiceNumber.toLowerCase() === id.toLowerCase());
+    if (!target) return Promise.resolve(null);
+    return Promise.resolve(buildCustomerInvoiceDocument(target));
   }
 
   reset(): Promise<void> {
@@ -4098,6 +4473,51 @@ class PostgresStore implements DemoStore {
     const document = seedDocuments.find((candidate) => candidate.id === documentId && candidate.customerId === customerId);
     if (!document || document.releaseApproved !== true || document.visibleToCustomer !== true) return null;
     return toCustomerDocument(document);
+  }
+
+  async getCustomerInvoices(customerId: string, query?: ListCustomerInvoicesQuery, nowISO?: string): Promise<CustomerInvoiceListResponse> {
+    const vehicles = await this.getRawVehicles();
+    const all = buildCustomerInvoiceProjections(
+      customerId,
+      seedInvoices,
+      seedProformaInvoices,
+      seedAllocations,
+      vehicles,
+      seedDocuments,
+      nowISO || new Date().toISOString()
+    );
+    return queryCustomerInvoices(all, query);
+  }
+
+  async getCustomerInvoiceById(customerId: string, id: string, nowISO?: string): Promise<CustomerInvoiceDetail | null> {
+    const vehicles = await this.getRawVehicles();
+    const all = buildCustomerInvoiceProjections(
+      customerId,
+      seedInvoices,
+      seedProformaInvoices,
+      seedAllocations,
+      vehicles,
+      seedDocuments,
+      nowISO || new Date().toISOString()
+    );
+    const target = all.find((i) => i.id === id || i.invoiceNumber.toLowerCase() === id.toLowerCase());
+    return target || null;
+  }
+
+  async getCustomerInvoiceDocument(customerId: string, id: string, nowISO?: string): Promise<CustomerInvoiceDocument | null> {
+    const vehicles = await this.getRawVehicles();
+    const all = buildCustomerInvoiceProjections(
+      customerId,
+      seedInvoices,
+      seedProformaInvoices,
+      seedAllocations,
+      vehicles,
+      seedDocuments,
+      nowISO || new Date().toISOString()
+    );
+    const target = all.find((i) => i.id === id || i.invoiceNumber.toLowerCase() === id.toLowerCase());
+    if (!target) return null;
+    return buildCustomerInvoiceDocument(target);
   }
 
   async reset(): Promise<void> {
