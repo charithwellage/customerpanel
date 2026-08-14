@@ -152,12 +152,6 @@ importers:
       '@carchief/config':
         specifier: workspace:*
         version: link:../../packages/config
-      '@next/swc-linux-arm64-gnu':
-        specifier: 15.5.7
-        version: 15.5.7
-      '@next/swc-linux-arm64-musl':
-        specifier: 15.5.7
-        version: 15.5.7
       '@types/node':
         specifier: ^22.10.0
         version: 22.20.1
@@ -170,6 +164,13 @@ importers:
       typescript:
         specifier: ^5.7.2
         version: 5.9.3
+    optionalDependencies:
+      '@next/swc-linux-arm64-gnu':
+        specifier: 15.5.7
+        version: 15.5.7
+      '@next/swc-linux-arm64-musl':
+        specifier: 15.5.7
+        version: 15.5.7
 
   apps/salesperson-app:
     dependencies:
@@ -2060,9 +2061,11 @@ snapshots:
   '@next/swc-darwin-x64@15.5.7':
     optional: true
 
-  '@next/swc-linux-arm64-gnu@15.5.7': {}
+  '@next/swc-linux-arm64-gnu@15.5.7':
+    optional: true
 
-  '@next/swc-linux-arm64-musl@15.5.7': {}
+  '@next/swc-linux-arm64-musl@15.5.7':
+    optional: true
 
   '@next/swc-linux-x64-gnu@15.5.7':
     optional: true
