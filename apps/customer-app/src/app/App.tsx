@@ -1,7 +1,8 @@
 import React from 'react';
 import { AccountGuard, type CustomerSession } from '../features/account/index.js';
 import { OfflineGuard } from '../features/pwa/index.js';
-import { CustomerShell, type CustomerUser } from '../features/shell/index.js';
+import { CustomerShell, useCustomerShell, type CustomerUser } from '../features/shell/index.js';
+import { CustomerInventoryPage, CustomerVehicleDetailPage } from '../features/inventory/index.js';
 import { PortalPlaceholder } from './PortalPlaceholder.js';
 
 export interface AppProps {
@@ -28,8 +29,44 @@ function toShellUser(session: CustomerSession): CustomerUser {
     email: session.user.email,
     company: session.user.company,
     role: 'CUSTOMER',
+    tier: session.user.tier,
   };
 }
+
+const AppContent: React.FC<{ session: CustomerSession; apiBaseUrl: string }> = ({
+  session,
+  apiBaseUrl,
+}) => {
+  const { activeRoute, setActiveRoute } = useCustomerShell();
+
+  if (activeRoute === '/inventory') {
+    return (
+      <CustomerInventoryPage
+        apiBaseUrl={apiBaseUrl}
+        token={session.token}
+        onSelectVehicle={(vehicle) => {
+          setActiveRoute(`/inventory/${vehicle.slug || vehicle.id}`);
+        }}
+      />
+    );
+  }
+
+  if (activeRoute.startsWith('/inventory/')) {
+    const slug = activeRoute.substring('/inventory/'.length);
+    return (
+      <CustomerVehicleDetailPage
+        slug={slug}
+        apiBaseUrl={apiBaseUrl}
+        token={session.token}
+        onBack={() => {
+          setActiveRoute('/inventory');
+        }}
+      />
+    );
+  }
+
+  return <PortalPlaceholder signedInAs={session.user.email} />;
+};
 
 export const App: React.FC<AppProps> = ({ apiBaseUrl = '' }) => (
   <OfflineGuard>
@@ -41,7 +78,7 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = '' }) => (
           pageTitle="Customer Portal"
           pageSubtitle="Account access and application shell"
         >
-          <PortalPlaceholder signedInAs={session.user.email} />
+          <AppContent session={session} apiBaseUrl={apiBaseUrl} />
         </CustomerShell>
       )}
     </AccountGuard>

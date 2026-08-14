@@ -99,8 +99,8 @@
 | [D02-P02-T002](delivery_02/phase_02/D02-P02-T002.md) | Build and accept the customer Overview page | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery02_phase_02` | D02-P02-CODE_REVIEW (NOT_STARTED) | D02-P02-T001 | D02-P02-SEQUENTIAL | — |
 | [D02-P02-CODE_REVIEW](delivery_02/phase_02/D02-P02-CODE_REVIEW.md) | Phase 2.2 PR code review and tech-lead approval | NOT_STARTED | phase_manual | not_applicable | — | `feat_delivery02_phase_02` | D02-P02-CODE_REVIEW (NOT_STARTED) | D02-P02-T002 | D02-P02-REVIEW | — |
 | [D02-P03-T001](delivery_02/phase_03/D02-P03-T001.md) | Add customer inventory projection, tier pricing and reservation eligibility | COMPLETE | self_ai | not_applicable | Antigravity | `feat_delivery02_phase_03` | D02-P03-CODE_REVIEW (NOT_STARTED) | D02-P01-CODE_REVIEW | D02-P03-SEQUENTIAL | 2026-08-14T04:15:32.353Z |
-| [D02-P03-T002](delivery_02/phase_03/D02-P03-T002.md) | Integrate shared vehicle search and detail for the customer audience | READY | self_ai | playwright_mcp | — | `feat_delivery02_phase_03` | D02-P03-CODE_REVIEW (NOT_STARTED) | D02-P03-T001 | D02-P03-SEQUENTIAL | — |
-| [D02-P03-T003](delivery_02/phase_03/D02-P03-T003.md) | Add customer reservation actions and showroom acceptance | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery02_phase_03` | D02-P03-CODE_REVIEW (NOT_STARTED) | D02-P03-T002 | D02-P03-SEQUENTIAL | — |
+| [D02-P03-T002](delivery_02/phase_03/D02-P03-T002.md) | Integrate shared vehicle search and detail for the customer audience | COMPLETE | self_ai | playwright_mcp | Antigravity | `feat_delivery02_phase_03` | D02-P03-CODE_REVIEW (NOT_STARTED) | D02-P03-T001 | D02-P03-SEQUENTIAL | 2026-08-14T06:09:55.330Z |
+| [D02-P03-T003](delivery_02/phase_03/D02-P03-T003.md) | Add customer reservation actions and showroom acceptance | READY | self_ai | playwright_mcp | — | `feat_delivery02_phase_03` | D02-P03-CODE_REVIEW (NOT_STARTED) | D02-P03-T002 | D02-P03-SEQUENTIAL | — |
 | [D02-P03-CODE_REVIEW](delivery_02/phase_03/D02-P03-CODE_REVIEW.md) | Phase 2.3 PR code review and tech-lead approval | NOT_STARTED | phase_manual | not_applicable | — | `feat_delivery02_phase_03` | D02-P03-CODE_REVIEW (NOT_STARTED) | D02-P03-T003 | D02-P03-REVIEW | — |
 | [D02-P04-T001](delivery_02/phase_04/D02-P04-T001.md) | Add customer vehicle transaction and status projection capabilities | NOT_STARTED | self_ai | not_applicable | — | `feat_delivery02_phase_04` | D02-P04-CODE_REVIEW (NOT_STARTED) | D02-P03-CODE_REVIEW | D02-P04-SEQUENTIAL | — |
 | [D02-P04-T002](delivery_02/phase_04/D02-P04-T002.md) | Build My Vehicles groupings, counts, search and shipping filters | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery02_phase_04` | D02-P04-CODE_REVIEW (NOT_STARTED) | D02-P04-T001 | D02-P04-SEQUENTIAL | — |
@@ -146,7 +146,7 @@
 ## Current execution frontiers
 
 - D02-DASHBOARD-LOGISTICS: D02-P02-G001 — Establish non-blocking customer dashboard KPI baseline (NOT_STARTED)
-- D02-COMMERCE: D02-P03-T002 — Integrate shared vehicle search and detail for the customer audience (NOT_STARTED)
+- D02-COMMERCE: D02-P03-T003 — Add customer reservation actions and showroom acceptance (NOT_STARTED)
 - D02-FINAL: D02-P09-T001 — Complete Customer requirement and compiled-behavior traceability (NOT_STARTED)
 - Sequential within each lane; dependencies coordinate work across lanes.
 - Optional Phase 2.11 is excluded until explicitly started with `--opt-in theme`.
