@@ -551,6 +551,32 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
     res.json(doc);
   });
 
+  // 4g. Customer TT journal and proof metadata (D02-P06-T001).
+  app.get('/api/v1/customer/payments', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) return void res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+    if (!hasPermission(req.user.role, 'read:customer')) return void res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
+    res.json(await store.listCustomerPayments(resolveDemoCustomerScope(req.user.sub)));
+  });
+
+  app.get('/api/v1/customer/payments/:id', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) return void res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+    if (!hasPermission(req.user.role, 'read:customer')) return void res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
+    const payment = await store.getCustomerPayment(resolveDemoCustomerScope(req.user.sub), req.params.id as string);
+    if (!payment) return void res.status(404).json({ statusCode: 404, message: 'Payment not found or not owned by customer', correlationId: `corr-404-${Date.now()}` });
+    res.json(payment);
+  });
+
+  app.post('/api/v1/customer/payments', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) return void res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+    if (!hasPermission(req.user.role, 'create:payment')) return void res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
+    try {
+      const payment = await store.createCustomerPayment(resolveDemoCustomerScope(req.user.sub), req.body, req.header('x-mock-now') || undefined);
+      res.status(201).json(payment);
+    } catch (error) {
+      res.status(400).json({ statusCode: 400, message: error instanceof Error ? error.message : 'Invalid payment submission', correlationId: `corr-400-${Date.now()}` });
+    }
+  });
+
   // 5. Deterministic reset (Disabled in production mode for release safety)
   app.post('/api/v1/__reset', async (req: AuthenticatedRequest, res: Response) => {
     if (process.env.NODE_ENV === 'production' && process.env.ENABLE_MOCK_RESET !== 'true') {

@@ -16,6 +16,49 @@ export type LeadStatus =
   | 'Archived';
 
 export type PaymentStatus = 'Pending' | 'Approved' | 'Rejected';
+export type PaymentProofFileType = 'PDF' | 'JPG' | 'PNG';
+export type PaymentProofScanStatus = 'Pending' | 'Passed' | 'Rejected';
+
+export interface CustomerPaymentProofMetadata {
+  fileName: string;
+  fileType: PaymentProofFileType;
+  sizeBytes: number;
+  scanStatus: PaymentProofScanStatus;
+}
+
+export interface CustomerPayment {
+  id: string;
+  customerId: string;
+  invoiceId: string;
+  reference: string;
+  bankName: string;
+  currency: string;
+  amountUsd: number;
+  paymentDate: string;
+  remarks?: string;
+  status: PaymentStatus;
+  holdReason?: string;
+  proof?: CustomerPaymentProofMetadata;
+  idempotencyKey: string;
+  createdAt: string;
+}
+
+export interface CreateCustomerPaymentRequest {
+  invoiceId: string;
+  reference: string;
+  bankName: string;
+  currency: string;
+  amountUsd: number;
+  paymentDate: string;
+  remarks?: string;
+  proof: CustomerPaymentProofMetadata;
+  idempotencyKey: string;
+}
+
+export interface CustomerPaymentListResponse {
+  items: CustomerPayment[];
+  total: number;
+}
 export type ShipmentStatus = 'Purchased' | 'Inspection' | 'Ready' | 'InTransit' | 'Delivered';
 export type CustomerTier = 'Platinum' | 'Gold' | 'Silver' | 'Standard';
 export type VehicleLocationStatus = 'In Japan' | 'In Transit' | 'In Port';

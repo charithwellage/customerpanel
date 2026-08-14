@@ -461,6 +461,43 @@ export interface CustomerShipmentList {
   items: CustomerShipment[];
 }
 
+export type PaymentProofFileType = 'PDF' | 'JPG' | 'PNG';
+export type PaymentProofScanStatus = 'Pending' | 'Passed' | 'Rejected';
+export interface CustomerPaymentProofMetadata {
+  fileName: string;
+  fileType: PaymentProofFileType;
+  sizeBytes: number;
+  scanStatus: PaymentProofScanStatus;
+}
+export interface CustomerPayment {
+  id: string;
+  customerId: string;
+  invoiceId: string;
+  reference: string;
+  bankName: string;
+  currency: string;
+  amountUsd: number;
+  paymentDate: string;
+  remarks?: string;
+  status: 'Pending' | 'Approved' | 'Rejected';
+  holdReason?: string;
+  proof?: CustomerPaymentProofMetadata;
+  idempotencyKey: string;
+  createdAt: string;
+}
+export interface CreateCustomerPaymentRequest {
+  invoiceId: string;
+  reference: string;
+  bankName: string;
+  currency: string;
+  amountUsd: number;
+  paymentDate: string;
+  remarks?: string;
+  proof: CustomerPaymentProofMetadata;
+  idempotencyKey: string;
+}
+export interface CustomerPaymentListResponse { items: CustomerPayment[]; total: number; }
+
 export interface CustomerDocument {
   id: string;
   shipmentId?: string;

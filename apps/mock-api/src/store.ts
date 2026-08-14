@@ -61,6 +61,9 @@ import type {
   CustomerInvoiceListResponse,
   ListCustomerInvoicesQuery,
   CustomerInvoiceDocument,
+  CustomerPayment,
+  CustomerPaymentListResponse,
+  CreateCustomerPaymentRequest,
 } from '@carchief/domain';
 import {
   generateVehicleSlug,
@@ -522,6 +525,9 @@ export interface DemoStore {
   getCustomerInvoices(customerId: string, query?: ListCustomerInvoicesQuery, nowISO?: string): Promise<CustomerInvoiceListResponse>;
   getCustomerInvoiceById(customerId: string, id: string, nowISO?: string): Promise<CustomerInvoiceDetail | null>;
   getCustomerInvoiceDocument(customerId: string, id: string, nowISO?: string): Promise<CustomerInvoiceDocument | null>;
+  listCustomerPayments(customerId: string): Promise<CustomerPaymentListResponse>;
+  getCustomerPayment(customerId: string, id: string): Promise<CustomerPayment | null>;
+  createCustomerPayment(customerId: string, request: CreateCustomerPaymentRequest, nowISO?: string): Promise<CustomerPayment>;
   reset(): Promise<void>;
   close(): Promise<void>;
 }
@@ -2094,6 +2100,14 @@ export interface PaymentRecord {
   amountUsd: number;
   paidAt: string;
   status: 'Pending' | 'Approved' | 'Rejected';
+  reference?: string;
+  bankName?: string;
+  currency?: string;
+  paymentDate?: string;
+  remarks?: string;
+  proof?: CreateCustomerPaymentRequest['proof'];
+  idempotencyKey?: string;
+  createdAt?: string;
 }
 
 export interface ShipmentRecord {
@@ -3173,6 +3187,56 @@ function toCustomerDocument(record: DocumentRecord): CustomerDocument {
   };
 }
 
+function toCustomerPayment(record: PaymentRecord): CustomerPayment {
+  return {
+    id: record.id,
+    customerId: record.customerId,
+    invoiceId: record.invoiceId,
+    reference: record.reference || record.id.toUpperCase(),
+    bankName: record.bankName || 'Unspecified bank',
+    currency: record.currency || 'USD',
+    amountUsd: record.amountUsd,
+    paymentDate: record.paymentDate || record.paidAt,
+    remarks: record.remarks,
+    status: record.status,
+    proof: record.proof,
+    idempotencyKey: record.idempotencyKey || record.id,
+    createdAt: record.createdAt || record.paidAt,
+  };
+}
+
+function validatePaymentRequest(request: CreateCustomerPaymentRequest): void {
+  if (!request || !request.invoiceId || !request.reference || !request.bankName || request.currency !== 'USD') throw new Error('Invalid payment or invoice reference');
+  if (!Number.isFinite(request.amountUsd) || request.amountUsd <= 0) throw new Error('amountUsd must be greater than zero');
+  if (!request.idempotencyKey) throw new Error('idempotencyKey is required');
+  if (!request.proof || !['PDF', 'JPG', 'PNG'].includes(request.proof.fileType)) throw new Error('Proof must be PDF, JPG or PNG metadata');
+  if (!Number.isInteger(request.proof.sizeBytes) || request.proof.sizeBytes <= 0 || request.proof.sizeBytes > 10 * 1024 * 1024) throw new Error('Proof size exceeds the 10MB demo limit');
+}
+
+function createPaymentRecord(customerId: string, request: CreateCustomerPaymentRequest, nowISO: string, existing: PaymentRecord[]): PaymentRecord {
+  validatePaymentRequest(request);
+  const duplicate = existing.find((payment) => payment.customerId === customerId && payment.idempotencyKey === request.idempotencyKey);
+  if (duplicate) return duplicate;
+  const record: PaymentRecord = {
+    id: `pay-${Date.now()}-${existing.length + 1}`,
+    customerId,
+    invoiceId: request.invoiceId,
+    amountUsd: request.amountUsd,
+    paidAt: request.paymentDate,
+    paymentDate: request.paymentDate,
+    status: 'Pending',
+    reference: request.reference,
+    bankName: request.bankName,
+    currency: request.currency,
+    remarks: request.remarks,
+    proof: { ...request.proof, scanStatus: 'Pending' },
+    idempotencyKey: request.idempotencyKey,
+    createdAt: nowISO,
+  };
+  existing.push(record);
+  return record;
+}
+
 class MemoryStore implements DemoStore {
   private config = { ...seedConfig };
   private vehicles = seedVehicles.map((vehicle) => ({ ...vehicle }));
@@ -3582,6 +3646,20 @@ class MemoryStore implements DemoStore {
     return Promise.resolve(buildCustomerInvoiceDocument(target));
   }
 
+  listCustomerPayments(customerId: string): Promise<CustomerPaymentListResponse> {
+    const items = this.payments.filter((payment) => payment.customerId === customerId).map(toCustomerPayment);
+    return Promise.resolve({ items, total: items.length });
+  }
+
+  getCustomerPayment(customerId: string, id: string): Promise<CustomerPayment | null> {
+    const payment = this.payments.find((candidate) => candidate.customerId === customerId && candidate.id === id);
+    return Promise.resolve(payment ? toCustomerPayment(payment) : null);
+  }
+
+  createCustomerPayment(customerId: string, request: CreateCustomerPaymentRequest, nowISO = new Date().toISOString()): Promise<CustomerPayment> {
+    return Promise.resolve(toCustomerPayment(createPaymentRecord(customerId, request, nowISO, this.payments)));
+  }
+
   reset(): Promise<void> {
     this.config = { ...seedConfig };
     this.vehicles = seedVehicles.map((vehicle) => ({ ...vehicle }));
@@ -3610,6 +3688,7 @@ class MemoryStore implements DemoStore {
 
 class PostgresStore implements DemoStore {
   private readonly pool: Pool;
+  private readonly paymentRecords = seedPayments.map((payment) => ({ ...payment }));
 
   constructor(connectionString: string) {
     this.pool = new Pool({ connectionString });
@@ -4518,6 +4597,20 @@ class PostgresStore implements DemoStore {
     const target = all.find((i) => i.id === id || i.invoiceNumber.toLowerCase() === id.toLowerCase());
     if (!target) return null;
     return buildCustomerInvoiceDocument(target);
+  }
+
+  async listCustomerPayments(customerId: string): Promise<CustomerPaymentListResponse> {
+    const items = this.paymentRecords.filter((payment) => payment.customerId === customerId).map(toCustomerPayment);
+    return { items, total: items.length };
+  }
+
+  async getCustomerPayment(customerId: string, id: string): Promise<CustomerPayment | null> {
+    const payment = this.paymentRecords.find((candidate) => candidate.customerId === customerId && candidate.id === id);
+    return payment ? toCustomerPayment(payment) : null;
+  }
+
+  async createCustomerPayment(customerId: string, request: CreateCustomerPaymentRequest, nowISO = new Date().toISOString()): Promise<CustomerPayment> {
+    return toCustomerPayment(createPaymentRecord(customerId, request, nowISO, this.paymentRecords));
   }
 
   async reset(): Promise<void> {
