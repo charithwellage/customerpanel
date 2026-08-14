@@ -3,7 +3,9 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AccountGuard, type CustomerSession, HttpClientProvider } from '../features/account/index.js';
 import { OfflineGuard } from '../features/pwa/index.js';
 import { CustomerShell, useCustomerShell, type CustomerUser } from '../features/shell/index.js';
+import { OverviewPage } from '../features/dashboard/index.js';
 import { CustomerInventoryPage, CustomerVehicleDetailPage } from '../features/inventory/index.js';
+import { CustomerFleetPage, CustomerFleetDetailPage } from '../features/vehicles/index.js';
 import { PortalPlaceholder } from './PortalPlaceholder.js';
 
 const queryClient = new QueryClient();
@@ -42,6 +44,10 @@ const AppContent: React.FC<{ session: CustomerSession; apiBaseUrl: string }> = (
 }) => {
   const { activeRoute, setActiveRoute } = useCustomerShell();
 
+  if (activeRoute === '/dashboard') {
+    return <OverviewPage />;
+  }
+
   if (activeRoute === '/inventory') {
     return (
       <CustomerInventoryPage
@@ -63,6 +69,28 @@ const AppContent: React.FC<{ session: CustomerSession; apiBaseUrl: string }> = (
         token={session.token}
         onBack={() => {
           setActiveRoute('/inventory');
+        }}
+      />
+    );
+  }
+
+  if (activeRoute === '/vehicles') {
+    return (
+      <CustomerFleetPage
+        onSelectVehicle={(vehicle) => {
+          setActiveRoute(`/vehicles/${vehicle.id || vehicle.slug}`);
+        }}
+      />
+    );
+  }
+
+  if (activeRoute.startsWith('/vehicles/')) {
+    const idOrSlug = activeRoute.substring('/vehicles/'.length);
+    return (
+      <CustomerFleetDetailPage
+        vehicleId={idOrSlug}
+        onBack={() => {
+          setActiveRoute('/vehicles');
         }}
       />
     );

@@ -1315,7 +1315,7 @@ describe('API Client & Contract Boundary Tests', () => {
       const service = new CustomerVehicleService(client);
 
       const res = await service.listCustomerVehicles({ status: 'Confirmed', query: 'Corolla', page: 1, limit: 10 });
-      expect(capturedUrl).toBe('http://localhost:4000/api/v1/customer/vehicles?status=Confirmed&query=Corolla&page=1&limit=10');
+      expect(capturedUrl).toBe('http://localhost:4000/customer/vehicles?status=Confirmed&query=Corolla&page=1&limit=10');
       expect(res.total).toBe(1);
       expect(res.items[0].make).toBe('Toyota');
       expect(res.countsByStatus.confirmed).toBe(1);
@@ -1359,7 +1359,7 @@ describe('API Client & Contract Boundary Tests', () => {
       const service = new CustomerVehicleService(client);
 
       const detail = await service.getCustomerVehicleDetail('veh-1');
-      expect(capturedUrl).toBe('http://localhost:4000/api/v1/customer/vehicles/veh-1');
+      expect(capturedUrl).toBe('http://localhost:4000/customer/vehicles/veh-1');
       expect(detail).not.toBeNull();
       expect(detail?.id).toBe('veh-1');
       expect(detail?.status).toBe('Confirmed');

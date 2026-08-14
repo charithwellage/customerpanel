@@ -20,7 +20,7 @@ export class CustomerVehicleService {
     if (query?.limit) params.set('limit', String(query.limit));
 
     const qs = params.toString();
-    const endpoint = `/api/v1/customer/vehicles${qs ? `?${qs}` : ''}`;
+    const endpoint = `/customer/vehicles${qs ? `?${qs}` : ''}`;
     return this.httpClient.request<CustomerVehicleListResponse>(endpoint);
   }
 
@@ -31,7 +31,7 @@ export class CustomerVehicleService {
 
     try {
       return await this.httpClient.request<CustomerVehicleDetail>(
-        `/api/v1/customer/vehicles/${encodeURIComponent(idOrSlug)}`
+        `/customer/vehicles/${encodeURIComponent(idOrSlug)}`
       );
     } catch (err: unknown) {
       if (err && typeof err === 'object' && 'statusCode' in err && (err as { statusCode: number }).statusCode === 404) {
