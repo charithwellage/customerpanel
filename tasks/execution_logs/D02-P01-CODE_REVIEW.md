@@ -1,6 +1,6 @@
 ---
 task_id: "D02-P01-CODE_REVIEW"
-status: "IN_PROGRESS"
+status: "IN_REVIEW"
 owner: "Claude Sonnet 5"
 reviewer: ""
 review_agent: "Claude Sonnet 5"
@@ -8,7 +8,7 @@ review_mode: "phase_manual"
 phase_branch: "feat_delivery02_phase_01"
 task_branch: "feat_delivery02_phase_01"
 started_at: ""
-updated_at: ""
+updated_at: "2026-08-14T01:37:53.362Z"
 blocker: ""
 ---
 
@@ -446,3 +446,187 @@ review process now produces routinely).
 ## Blockers (verification pass 2)
 
 One new blocking finding (V-2): the `customer-app` Docker healthcheck is permanently unreachable due to a Vite `preview` server Host-header restriction, contradicting `D02-P01-T003`'s own "all three healthy" claim. `D02-P01-T003` is reopened. V-1 is confirmed genuinely closed; this is a newly surfaced, previously-unexercised defect, not a regression from commit `2554402`'s own edited files.
+
+---
+
+## Verification pass 3 — 2026-08-14T01:36:29.000Z
+
+This is the fifth pass of this review, and the third pass of the three-pass phase-review lifecycle's "verification" stage since Finding V-2 was reopened. Executed by Claude Sonnet 5 on `feat_delivery02_phase_01`; no branch, commit, push, PR, merge or self-approval was performed. Scope: independently reproduce (not read-and-trust) the human owner's V-2 fix (`docker-compose.frontend.yml` healthcheck now probes `127.0.0.1` instead of `os.hostname()`, commit `3972050`), confirm the `taskctl.mjs` reopen-truncation fix (`901a3e3`) is sound and narrowly scoped, confirm nothing else regressed across all five passes, and decide PASS/FAIL.
+
+### Preflight
+
+- `git status --porcelain=v1 --untracked-files=all` — clean at start and confirmed clean again at the end (no product-code edits were made at any point in this pass).
+- `node tasks/scripts/taskctl.mjs next` — D02-P01-CODE_REVIEW is the D02-FOUNDATION frontier, IN_PROGRESS, `Sequential result: WAITING_FOR_COMPLETE` (expected — this review task is itself the frontier).
+- `node tasks/scripts/taskctl.mjs sequence D02-P01-CODE_REVIEW` — ELIGIBLE.
+- `node tasks/scripts/taskctl.mjs precheck D02-P01-CODE_REVIEW` — Blockers: None.
+- `D02-P01-G001`, `D02-P01-T001`, `D02-P01-T002`, `D02-P01-T003`, `D02-P01-T004` all `COMPLETE` in the tracker.
+- Comparison range: `delivery_02_customer_application...feat_delivery02_phase_01`, now `HEAD = 901a3e3` (15 commits — two more than verification pass 2's 13: `3972050` the V-2 fix, and `901a3e3` the unrelated `taskctl.mjs` tooling fix).
+
+### Diff hygiene on both new commits — independently confirmed, not read-and-trusted
+
+`git show 3972050 --stat`:
+
+```
+docker-compose.frontend.yml                 |   6 +-
+tasks/TASK_EXECUTION_TRACKER.md             |   2 +-
+tasks/execution_logs/D02-P01-CODE_REVIEW.md | 189 ++++++++
+tasks/execution_logs/D02-P01-T003.md        |  32 +++-
+```
+
+`git show 901a3e3 --stat`:
+
+```
+tasks/scripts/taskctl.mjs | 11 ++++++++++-
+```
+
+Both match the required shape exactly: `3972050` touches only `docker-compose.frontend.yml` plus task-system files (tracker + two execution logs); `901a3e3` touches only `tasks/scripts/taskctl.mjs`. Neither touches `apps/customer-app/src` or any other product code — confirmed by the stat output itself, not inferred from the commit message.
+
+The full diff of `3972050`'s `docker-compose.frontend.yml` hunk was read: the `customer-app` healthcheck's `test` now fetches `http://127.0.0.1:3001/healthz` instead of `http://<os.hostname()>:3001/healthz`, with an added comment explaining why (`vite preview`'s default Host allowlist rejects the container's own DNS hostname but always permits `127.0.0.1`). This is a single-line functional change plus a four-line comment — nothing else in the file changed.
+
+### Container gate — fresh, the decisive check
+
+No stray listener on 3000/3001/4000/5432 before starting; Docker daemon reachable (`docker info` → server 29.6.2).
+
+- `docker compose -f docker-compose.frontend.yml build customer-app mock-api` — **PASS**, both images built cleanly from the current worktree.
+- `docker compose -f docker-compose.frontend.yml up -d customer-app mock-api postgres` — containers created and started.
+- `docker compose -f docker-compose.frontend.yml ps` (after a 15-second wait, more than one full healthcheck interval): **all three report `healthy`**:
+  ```
+  carchief-frontend-customer-app-1   Up 19 seconds (healthy)
+  carchief-frontend-mock-api-1       Up 30 seconds (healthy)
+  carchief-frontend-postgres-1       Up 35 seconds (healthy)
+  ```
+  This is the specific claim that failed to reproduce twice before (pass 3 never got past the image-build failure to observe it at all; pass 4 reproduced `customer-app` as `unhealthy` with `FailingStreak` climbing on every attempt). It now reproduces cleanly.
+- `docker inspect carchief-frontend-customer-app-1 --format='{{json .State.Health}}'` — `"Status":"healthy"`, `"FailingStreak":0`, two consecutive logged healthcheck runs both `"ExitCode":0`. Not a single lucky pass — the mechanism is genuinely fixed, not flaky.
+- `curl --fail http://127.0.0.1:4000/healthz` → `{"status":"ok",...}` — PASS.
+- `curl --fail http://127.0.0.1:3001/healthz` → `{"status":"ok","service":"customer-app"}` — PASS.
+- `curl --fail http://127.0.0.1:4000/openapi.json` → HTTP 200 — PASS.
+- `curl --fail -X POST http://127.0.0.1:4000/api/v1/__reset` → `{"success":true,...}` — PASS.
+- `curl --fail -X POST http://127.0.0.1:3001/api/v1/auth/demo-session` → HTTP 201, genuine Mock API claims (`sub: user-123`, `email: user@carchief.com`, `role: CustomerBuyer`, `nonProduction: true`) returned through the containerized `customer-app`'s own proxy to the containerized `mock-api` — the end-to-end integration this pass was specifically sent to prove, run independently rather than copied from `D02-P01-T003`'s own log.
+- `docker compose -f docker-compose.frontend.yml down` — clean shutdown, all three containers and the network removed; `docker ps -a --filter name=carchief-frontend` empty afterward; ports 3001/4000/5432 confirmed free via `lsof`.
+- Dependency layer: REBUILT (fresh build this session against the corrected `docker-compose.frontend.yml`).
+
+**Finding V-2 — CLOSED.** Independently reproduced, not read from the fix-pass log: the specific failure mode (`os.hostname()` rejected with 403 by Vite's Host allowlist) is gone, `docker compose ps` genuinely reports all three containers `healthy` after a full healthcheck interval, and `FailingStreak: 0` rules out a transient false-positive.
+
+### Deterministic gate — fresh, reproduced independently
+
+- `node tasks/scripts/taskctl.mjs validate` — PASS (119 task/gate files, acyclic).
+- `git diff --check delivery_02_customer_application...feat_delivery02_phase_01` — PASS, no output.
+- `git diff delivery_02_customer_application...feat_delivery02_phase_01 -- POC` — empty — PASS.
+- `corepack pnpm install --frozen-lockfile --offline` — PASS (`Lockfile is up to date, resolution step is skipped`).
+- `corepack pnpm --filter @carchief/mock-api... build` — PASS.
+- `corepack pnpm --filter @carchief/customer-app... build` — PASS (`vite build`, bundle emitted).
+- `corepack pnpm --filter @carchief/public-web... build` — PASS (`next build`, 0 errors).
+- `corepack pnpm exec vitest run apps/mock-api/src/__tests__/customer-session.test.ts apps/customer-app/src/features` — PASS, 31/31 (registry 3, pwa 5, account 11, shell 9, mock-api customer-session 3).
+- `corepack pnpm test:boundaries` — PASS, 0 architecture violations.
+
+### taskctl.mjs sanity — sound where it goes, but a documented finding: the fix is incomplete
+
+- `node --test tasks/scripts/taskctl-sequence.test.mjs` — **18/18 passed**, 0 failed.
+- `git show 901a3e3` (full diff, not just stat) read directly: `appendReopenEvent()` now finds the **last** `\n## Blockers\n` occurrence via `lastIndexOf` and inserts the new `## Reopened` event before that, instead of the old `.replace(/\n## Blockers\n/, ...)` which matched only the first occurrence. In isolation, this is a correct, narrowly-scoped fix for the function it targets, and it changes no other command's behavior — the diff touches nothing outside `appendReopenEvent()`.
+
+**New finding this pass (non-blocking for this review; reproduced, not suspected): the fix is incomplete.** `tasks/execution_logs/D02-P01-T003.md`'s own `## Fix pass` note (added by verification pass 2) named **two** root-cause locations sharing the identical bug pattern:
+
+1. `appendReopenEvent()` (line ~624) — fixed by `901a3e3`.
+2. `writeLog()`'s `IN_PROGRESS` branch (line 480) and `BLOCKED` branch (line 477) — **not touched by `901a3e3`**. Both still read, verbatim:
+   ```js
+   text = text.replace(/\n## Blockers\n\n[\s\S]*$/, '\n## Blockers\n\nNone.\n');   // IN_PROGRESS, line 480
+   text = text.replace(/\n## Blockers\n\n[\s\S]*$/, `${event}\n## Blockers\n\n${fields.blocker}\n`); // BLOCKED, line 477
+   ```
+   Both are the same non-global, first-match, greedy-to-end-of-string pattern that caused the original data loss.
+
+Reproduced directly (not inferred): extracted the exact line-480 regex and ran it in isolation against a synthetic log built to match the real incident's shape (two `## Blockers` headings, with load-bearing content between the first and the second):
+
+```
+Input:  ...## Reopened — t1... ## Blockers\n\nNone.\n\n## Fix pass — t2\n\nIMPORTANT CONTENT THAT MUST SURVIVE\n\n## Blockers\n\nNone.
+Output: ...## Reopened — t1... ## Blockers\n\nNone.
+Result: "IMPORTANT CONTENT THAT MUST SURVIVE" — LOST.
+```
+
+Critically, this sibling bug sits **upstream** of the fixed function in the `reopen` command's own call order:
+
+```js
+writeLog(id, 'IN_PROGRESS', { reviewer: '', review_agent: '', blocker: '' });  // line 808 — vulnerable, runs FIRST
+appendReopenEvent(id, reason);                                                  // line 809 — fixed, runs SECOND, too late
+```
+
+On any log that has re-accumulated two or more `## Blockers` headings, calling `reopen` would still destroy the mid-document content in `writeLog()`'s step, before `appendReopenEvent()`'s (correct) `lastIndexOf` logic ever gets a chance to matter — because by then there is only one heading left to find. `block` carries the identical exposure via its own `BLOCKED` branch. `grep -n "Blockers\|appendReopenEvent\|writeLog" tasks/scripts/taskctl-sequence.test.mjs` returns zero matches — the "synthetic multi-heading log" check the `901a3e3` commit message describes was not captured as a permanent regression test, so nothing in CI would catch a recurrence.
+
+**Current-state risk assessment:** `grep -c "^## Blockers$"` across every file in `tasks/execution_logs/*.md` returns exactly `1` for every file, including `D02-P01-T003.md` and `D02-P01-CODE_REVIEW.md` (this file). No execution log is currently in the vulnerable multi-heading state, so this is a **latent** gap, not an active data-loss risk to any log that exists today — nothing was corrupted by this pass or any prior pass's use of `reopen`.
+
+**Disposition:** not recorded as a blocking finding against `D02-P01-CODE_REVIEW`. It doesn't touch `apps/customer-app` or any Phase 2.1-owned path, no Phase 2.1 task owns `tasks/scripts/taskctl.mjs`, and it doesn't endanger any log that exists right now. It is, however, a real and reproduced gap relative to `901a3e3`'s own stated goal ("regardless of how many prior reopen cycles it has accumulated") and relative to the two-location root cause `D02-P01-T003.md` itself already documented. Recommended follow-up for the human owner, independent of this phase's acceptance: apply the same `lastIndexOf`-before-last-heading pattern to `writeLog()`'s `IN_PROGRESS` and `BLOCKED` branches, and add a fixture-based regression test (a log with two prior `## Blockers` sections) to `taskctl-sequence.test.mjs` so a recurrence fails CI instead of depending on a reviewer noticing.
+
+### Focused suite — fresh Profile A runtime, independently built and started this pass
+
+Not reused from any prior session or from the container gate above: `mock-api` started via `node apps/mock-api/dist/server.js` (fresh PID 62271), `customer-app` via `corepack pnpm --filter @carchief/customer-app preview` (fresh PID 62273/62288) — ports 3000/3001/4000 confirmed free immediately before starting, both processes confirmed stopped and ports confirmed free immediately after.
+
+```
+CUSTOMER_APP_BASE_URL=http://127.0.0.1:3001 corepack pnpm exec playwright test tests/e2e/customer/account-shell.spec.ts tests/e2e/customer/account-access.spec.ts --project=chromium --project=mobile-chromium --project=tablet-chromium --workers=50%
+```
+
+**18/18 passed** — 6 tests × 3 viewport projects (chromium, mobile-chromium, tablet-chromium), matching passes 3 and 4's independently-obtained results. Matches `D02_TEST_MATRIX.md`'s Phase 2.1 focused-suite assignment; the full 3-viewport regression suite remains reserved for Phases 2.9–2.10.
+
+### MCP note — skipped, per `TASK_EXECUTION_PROTOCOL.md` §4
+
+No MCP browser walkthrough was performed in this pass. Reasoning: commits `2554402`, `3972050` and `901a3e3` (everything reviewed across verification passes 2 and 3) touch only `docker/frontend.Dockerfile`, `pnpm-lock.yaml`, `docker-compose.frontend.yml` and `tasks/scripts/taskctl.mjs` — no layout, semantic token, CSS or markup structure changed, and no `apps/customer-app/src` page/component source changed at all since pass 3's full desktop+mobile MCP walkthrough (login, sign-in, shell, both viewports, console/network, theme tokens). This pass's own container-gate evidence (genuine claims returned through the live proxy, `data-theme`/token values not touched by any reviewed commit) is sufficient re-confirmation for a build/install-layer/healthcheck/tooling-only change; a browser walkthrough would not surface anything the automated 18/18 result and the direct `curl`/`docker inspect` checks didn't already cover.
+
+### Original findings 1-4, V-1 and V-2 — spot-checked, still closed
+
+- Findings 1-4 (no servable runtime, invalid MCP evidence, fabricated "Charles Sterling" identity, false "Keycloak Secured" claim): `git diff --stat` for commits `3972050`/`901a3e3` confirms zero changes under `apps/customer-app/src/**`, so no page/component content could have regressed since pass 3's full re-verification. The 18/18 Playwright run in this pass re-exercises the same negative assertions (absence of "Sterling", absence of "Keycloak Secured"). The container-gate sign-in in this pass returned `user@carchief.com`, not a fabricated identity.
+- V-1 (lockfile/Dockerfile mismatch): confirmed still closed — `pnpm install --frozen-lockfile --offline` and `docker compose build customer-app mock-api` both pass cleanly in this pass, independently reproduced.
+- V-2 (customer-app healthcheck): **CLOSED**, this pass's own primary finding — see "Container gate" above.
+
+### Remaining concerns (non-blocking, carried forward unchanged)
+
+- `apps/public-web/src/features/home/components/TestimonialsPreview.tsx:18` (`'Marcus Sterling'`) and `apps/public-web/src/features/enquiry/components/EnquiryForm.tsx:99` (`placeholder="e.g., Charles Sterling"`) still exist — re-confirmed present by direct `grep` in this pass. Outside `apps/customer-app` and outside any Phase 2.1 task's owned paths; untouched by any commit reviewed in this pass. Carried forward as a Delivery 01 hygiene note, not a Phase 2.1 blocker.
+- The pre-existing full-suite failures identified by the fix pass, pass 3 and pass 4 (`home-showroom.spec.ts` "Premium Stock" exact-name-case mismatch; `theme-parity.spec.ts` stale `/inventory?category=premium` baseline) remain pre-existing `public-web` defects outside Phase 2.1's owned diff. Not re-run in this pass (full suite is reserved for Phases 2.9–2.10); their source locations are untouched by any commit reviewed here.
+- New this pass: the `taskctl.mjs` reopen/block truncation bug is only *partially* fixed — see "taskctl.mjs sanity" above. Non-blocking for Phase 2.1 acceptance; recommended as an independent follow-up.
+
+## AI code review (verification pass 3)
+
+- Reviewed range/files: `delivery_02_customer_application...feat_delivery02_phase_01` at `HEAD=901a3e3` (15 commits); `git show 3972050 --stat`/full diff and `git show 901a3e3 --stat`/full diff, each reproduced independently rather than trusted; `docker-compose.frontend.yml`'s full `customer-app` service definition; `tasks/scripts/taskctl.mjs` lines 459-485 and 620-634 read directly.
+- Rules checked: `CODE_REVIEW_RULES.md` items 1 (scope), 7 (API/mock discipline), 8 (PWA/performance), 9 (tests), 11 (Playwright MCP / fresh-runtime evidence); `TASK_EXECUTION_PROTOCOL.md` §3, §4, §7; `DEPENDENCY_INSTALLATION_POLICY.md`.
+- Findings: 0 blocking. V-2 independently confirmed closed. 1 new non-blocking finding (the `taskctl.mjs` fix is incomplete relative to its own stated goal — see above). V-1 and original findings 1-4 independently confirmed still closed.
+- Fixes applied: None — review-only task; no product code was modified.
+- Remaining concerns: see "Remaining concerns" above.
+- Result: **PASS**
+
+Comparison range: `delivery_02_customer_application...feat_delivery02_phase_01`.
+
+Focused suite result: **18/18 passed** across chromium, mobile-chromium, tablet-chromium (`tests/e2e/customer/account-shell.spec.ts` + `tests/e2e/customer/account-access.spec.ts`), run against a genuine fresh Profile A runtime built and started in this pass.
+
+Container gate result: **PASS** — `docker compose -f docker-compose.frontend.yml build customer-app mock-api` then `up -d customer-app mock-api postgres` reports all three (`carchief-frontend-customer-app-1`, `carchief-frontend-mock-api-1`, `carchief-frontend-postgres-1`) **healthy** after a full healthcheck interval, `FailingStreak: 0`. This is the specific claim that failed twice before (pass 3: image build failed before health could be observed; pass 4: `customer-app` reported `unhealthy` deterministically). It now reproduces cleanly.
+
+## Tests executed (verification pass 3)
+
+- `node tasks/scripts/taskctl.mjs validate` — PASS.
+- `git diff --check delivery_02_customer_application...feat_delivery02_phase_01` — PASS.
+- `git diff delivery_02_customer_application...feat_delivery02_phase_01 -- POC` — empty/PASS.
+- `corepack pnpm install --frozen-lockfile --offline` — PASS.
+- `corepack pnpm --filter @carchief/mock-api... build` — PASS.
+- `corepack pnpm --filter @carchief/customer-app... build` — PASS.
+- `corepack pnpm --filter @carchief/public-web... build` — PASS.
+- `corepack pnpm exec vitest run apps/mock-api/src/__tests__/customer-session.test.ts apps/customer-app/src/features` — PASS, 31/31.
+- `corepack pnpm test:boundaries` — PASS, 0 violations.
+- `node --test tasks/scripts/taskctl-sequence.test.mjs` — PASS, 18/18.
+- `docker compose -f docker-compose.frontend.yml build customer-app mock-api` — PASS.
+- `docker compose -f docker-compose.frontend.yml up -d customer-app mock-api postgres` — PASS, all three healthy after one healthcheck interval (confirmed via `docker compose ps` and `docker inspect ... .State.Health`, `FailingStreak: 0`).
+- `curl --fail http://127.0.0.1:4000/healthz` / `http://127.0.0.1:3001/healthz` / `/openapi.json` / `-X POST /api/v1/__reset` — all PASS.
+- `curl --fail -X POST http://127.0.0.1:3001/api/v1/auth/demo-session` — PASS (201), genuine mock-api claims through the containerized customer-app's own proxy.
+- `docker compose -f docker-compose.frontend.yml down` — clean shutdown, all containers/network removed, ports confirmed free.
+- `CUSTOMER_APP_BASE_URL=http://127.0.0.1:3001 corepack pnpm exec playwright test tests/e2e/customer/account-shell.spec.ts tests/e2e/customer/account-access.spec.ts --project=chromium --project=mobile-chromium --project=tablet-chromium --workers=50%` — PASS, 18/18, fresh Profile A runtime built/started/stopped in this pass.
+
+## Tracker and handoff (verification pass 3)
+
+- `tasks/execution_logs/D02-P01-CODE_REVIEW.md` updated with this section; all four prior passes are left intact as history.
+- No `taskctl reopen` was run in this pass — no blocking finding was found. All prior findings (1-4, V-1, V-2) are independently confirmed closed.
+- `node tasks/scripts/taskctl.mjs submit D02-P01-CODE_REVIEW` was run — see final response for exact output.
+- Next action: a tech lead other than this pass's owner runs `node tasks/scripts/taskctl.mjs approve D02-P01-CODE_REVIEW --reviewer "<tech-lead-name>"` after manually reviewing the phase PR. Recommend the human owner separately complete the `taskctl.mjs` `writeLog()` fix (see "taskctl.mjs sanity" above) before the next multi-pass review cycle reproduces the original data-loss incident a third time.
+
+## Decisions or deviations (verification pass 3)
+
+- No business decision was invented, changed or marked `CONFIRMED`.
+- No product or POC files were modified by this review. `tasks/execution_logs/D02-P01-CODE_REVIEW.md` (this file) is the only file this pass wrote to, consistent with this task's "Architectural boundaries and owned paths."
+
+## Blockers (verification pass 3)
+
+None. All five findings from this review's history (1, 2, 3, 4, V-1, V-2) are independently confirmed closed. One new non-blocking finding was recorded (the `taskctl.mjs` reopen/block fix is incomplete relative to its own stated goal) — not owned by any Phase 2.1 task, does not endanger any log that exists today, and is recommended as an independent follow-up rather than a reason to withhold Phase 2.1 acceptance.
