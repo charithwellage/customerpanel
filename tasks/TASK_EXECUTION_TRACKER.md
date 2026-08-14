@@ -95,8 +95,8 @@
 | [D02-P01-T004](delivery_02/phase_01/D02-P01-T004.md) | Establish Customer feature extension points and ownership registry | COMPLETE | self_ai | not_applicable | Antigravity | `feat_delivery02_phase_01` | D02-P01-CODE_REVIEW (COMPLETE) | D02-P01-T003 | D02-P01-SEQUENTIAL | 2026-08-13T16:17:29.878Z |
 | [D02-P01-CODE_REVIEW](delivery_02/phase_01/D02-P01-CODE_REVIEW.md) | Phase 2.1 PR code review and tech-lead approval | COMPLETE | phase_manual | not_applicable | Claude Sonnet 5 | `feat_delivery02_phase_01` | D02-P01-CODE_REVIEW (COMPLETE) | D02-P01-T004 | D02-P01-REVIEW | 2026-08-14T01:46:59.568Z |
 | [D02-P02-G001](delivery_02/phase_02/D02-P02-G001.md) | Establish non-blocking customer dashboard KPI baseline | COMPLETE | self_ai | not_applicable | Claude Code | `feat_delivery02_phase_02` | D02-P02-CODE_REVIEW (NOT_STARTED) | D02-P01-CODE_REVIEW | D02-P02-GATE | 2026-08-14T02:24:15.206Z |
-| [D02-P02-T001](delivery_02/phase_02/D02-P02-T001.md) | Add customer dashboard aggregate contracts and linked mock scenarios | IN_PROGRESS | self_ai | not_applicable | Claude Code | `feat_delivery02_phase_02` | D02-P02-CODE_REVIEW (NOT_STARTED) | D02-P02-G001 | D02-P02-SEQUENTIAL | 2026-08-14T02:32:28.628Z |
-| [D02-P02-T002](delivery_02/phase_02/D02-P02-T002.md) | Build and accept the customer Overview page | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery02_phase_02` | D02-P02-CODE_REVIEW (NOT_STARTED) | D02-P02-T001 | D02-P02-SEQUENTIAL | — |
+| [D02-P02-T001](delivery_02/phase_02/D02-P02-T001.md) | Add customer dashboard aggregate contracts and linked mock scenarios | COMPLETE | self_ai | not_applicable | Claude Code | `feat_delivery02_phase_02` | D02-P02-CODE_REVIEW (NOT_STARTED) | D02-P02-G001 | D02-P02-SEQUENTIAL | 2026-08-14T08:08:00.000Z |
+| [D02-P02-T002](delivery_02/phase_02/D02-P02-T002.md) | Build and accept the customer Overview page | IN_PROGRESS | self_ai | playwright_mcp | Claude Code | `feat_delivery02_phase_02` | D02-P02-CODE_REVIEW (NOT_STARTED) | D02-P02-T001 | D02-P02-SEQUENTIAL | 2026-08-14T02:43:13.038Z |
 | [D02-P02-CODE_REVIEW](delivery_02/phase_02/D02-P02-CODE_REVIEW.md) | Phase 2.2 PR code review and tech-lead approval | NOT_STARTED | phase_manual | not_applicable | — | `feat_delivery02_phase_02` | D02-P02-CODE_REVIEW (NOT_STARTED) | D02-P02-T002 | D02-P02-REVIEW | — |
 | [D02-P03-T001](delivery_02/phase_03/D02-P03-T001.md) | Add customer inventory projection, tier pricing and reservation eligibility | READY | self_ai | not_applicable | — | `feat_delivery02_phase_03` | D02-P03-CODE_REVIEW (NOT_STARTED) | D02-P01-CODE_REVIEW | D02-P03-SEQUENTIAL | — |
 | [D02-P03-T002](delivery_02/phase_03/D02-P03-T002.md) | Integrate shared vehicle search and detail for the customer audience | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery02_phase_03` | D02-P03-CODE_REVIEW (NOT_STARTED) | D02-P03-T001 | D02-P03-SEQUENTIAL | — |
@@ -145,7 +145,7 @@
 
 ## Current execution frontiers
 
-- D02-DASHBOARD-LOGISTICS: D02-P02-T001 — Add customer dashboard aggregate contracts and linked mock scenarios (IN_PROGRESS)
+- D02-DASHBOARD-LOGISTICS: D02-P02-T002 — Build and accept the customer Overview page (IN_PROGRESS)
 - D02-COMMERCE: D02-P03-T001 — Add customer inventory projection, tier pricing and reservation eligibility (NOT_STARTED)
 - D02-FINAL: D02-P09-T001 — Complete Customer requirement and compiled-behavior traceability (NOT_STARTED)
 - Sequential within each lane; dependencies coordinate work across lanes.

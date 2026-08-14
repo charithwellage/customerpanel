@@ -415,6 +415,32 @@ export interface Allocation {
   status: 'Approved' | 'Pending' | 'Rejected';
 }
 
+export interface PaymentStatusSummary {
+  approved: number;
+  pending: number;
+  rejected: number;
+}
+
+export interface ShipmentStatusSummary {
+  ready: number;
+  inTransit: number;
+  delivered: number;
+  other: number;
+}
+
+export interface DocumentAvailabilityCount {
+  available: number;
+  pending: number;
+  unavailable: number;
+}
+
+export interface PartialFailureIndicators {
+  paymentsFailed: boolean;
+  shipmentsFailed: boolean;
+  documentsFailed: boolean;
+  notificationsFailed: boolean;
+}
+
 export interface CustomerDashboard {
   customerId: string;
   customerEmail: string;
@@ -425,4 +451,9 @@ export interface CustomerDashboard {
   vehicleCountInvoiced: number;
   vehicleCountDelivered: number;
   lastUpdated: string;
+  paymentStatusSummary: PaymentStatusSummary;
+  shipmentStatusSummary: ShipmentStatusSummary;
+  documentAvailabilityCount: DocumentAvailabilityCount;
+  notificationUnreadCount: number;
+  partialFailureIndicators: PartialFailureIndicators;
 }
