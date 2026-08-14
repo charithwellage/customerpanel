@@ -375,7 +375,7 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
       res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
       return;
     }
-    const dashboard = await store.getCustomerDashboard(req.user.sub, req.user.email);
+    const dashboard = await store.getCustomerDashboard(resolveDemoCustomerScope(req.user.sub), req.user.email);
     res.json(dashboard);
   });
 
@@ -391,7 +391,7 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
       res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
       return;
     }
-    res.json({ items: await store.listCustomerShipments(req.user.sub) });
+    res.json({ items: await store.listCustomerShipments(resolveDemoCustomerScope(req.user.sub)) });
   });
 
   app.get('/api/v1/customer/shipments/:id', async (req: AuthenticatedRequest, res: Response) => {
@@ -404,7 +404,7 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
       return;
     }
     const shipmentId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-    const shipment = await store.getCustomerShipment(req.user.sub, shipmentId);
+    const shipment = await store.getCustomerShipment(resolveDemoCustomerScope(req.user.sub), shipmentId);
     if (!shipment) {
       res.status(404).json({ statusCode: 404, message: 'Shipment not found', correlationId: `corr-404-${Date.now()}` });
       return;
@@ -423,7 +423,7 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
       res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
       return;
     }
-    res.json({ items: await store.listCustomerDocuments(req.user.sub) });
+    res.json({ items: await store.listCustomerDocuments(resolveDemoCustomerScope(req.user.sub)) });
   });
 
   app.get('/api/v1/customer/documents/:id', async (req: AuthenticatedRequest, res: Response) => {
@@ -436,7 +436,7 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
       return;
     }
     const documentId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-    const document = await store.getCustomerDocument(req.user.sub, documentId);
+    const document = await store.getCustomerDocument(resolveDemoCustomerScope(req.user.sub), documentId);
     if (!document) {
       res.status(404).json({ statusCode: 404, message: 'Document not found', correlationId: `corr-404-${Date.now()}` });
       return;
