@@ -19,6 +19,11 @@ test.describe('Customer shipment tracking E2E (D02-P07-T002)', () => {
     const state = page.locator('.cc-cust-shipments__state');
     const cards = page.locator('.cc-cust-shipment-card');
     await expect(state.or(cards.first())).toBeVisible({ timeout: 10000 });
+    await expect.poll(async () => {
+      if (await cards.count()) return true;
+      const text = (await state.textContent()) ?? '';
+      return /No shipment records|temporarily unavailable/.test(text);
+    }, { timeout: 10000 }).toBe(true);
     if (await cards.count()) {
       await expect(cards.first().getByText(/Current stage:/)).toBeVisible();
       await expect(cards.first().locator('.cc-cust-shipment-card__timeline')).toBeVisible();
