@@ -474,10 +474,10 @@ function writeLog(id, status, fields = {}) {
   }
   if (status === 'BLOCKED' && fields.blocker) {
     const event = `\n## Blocker event — ${new Date().toISOString()}\n\n${fields.blocker}\n`;
-    text = text.replace(/\n## Blockers\n\n[\s\S]*$/, `${event}\n## Blockers\n\n${fields.blocker}\n`);
+    text = replaceTrailingBlockersSection(text, `${event}\n## Blockers\n\n${fields.blocker}\n`);
     text = text.replace('- Blockers: None', `- Blockers: ${fields.blocker}`);
   } else if (status === 'IN_PROGRESS') {
-    text = text.replace(/\n## Blockers\n\n[\s\S]*$/, '\n## Blockers\n\nNone.\n');
+    text = replaceTrailingBlockersSection(text, '\n## Blockers\n\nNone.\n');
     text = text.replace(/- Blockers: .*$/m, '- Blockers: None');
   }
   text = replaceFrontmatterField(text, 'updated_at', new Date().toISOString());
@@ -615,6 +615,18 @@ function requirePhaseReviewRecord(id) {
     errors.push(`${id} still contains ${notRecorded} 'Not recorded' placeholders — complete the review record before submitting`);
   }
   if (errors.length) die(errors.join('\n'));
+}
+
+// Replaces the log's TRUE FINAL "## Blockers" section (heading through end of
+// file) with `replacement`, leaving any earlier, historical "## Blockers"
+// heading untouched. A log reopened more than once can accumulate one such
+// heading per prior cycle; matching the first one instead of the last would
+// silently discard every fix-pass section recorded after it (the same class
+// of bug fixed in appendReopenEvent below).
+function replaceTrailingBlockersSection(text, replacement) {
+  const marker = '\n## Blockers\n\n';
+  const index = text.lastIndexOf(marker);
+  return index === -1 ? `${text}${replacement}` : `${text.slice(0, index)}${replacement}`;
 }
 
 function appendReopenEvent(id, reason) {
