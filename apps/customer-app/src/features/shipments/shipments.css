@@ -108,6 +108,11 @@
 
 .cc-cust-shipment-card__details dt { font-weight: 600; }
 .cc-cust-shipment-card__details dd { margin: 0; color: var(--color-text-primary); }
+.cc-cust-shipment-card__approvals { display: grid; grid-template-columns: auto 1fr; gap: var(--spacing-xs) var(--spacing-md); margin: var(--spacing-md) 0 0; padding: var(--spacing-md); border: 1px solid var(--color-border); border-radius: var(--radius-md); }
+.cc-cust-shipment-card__approvals dt { font-weight: 600; color: var(--color-text-muted); }
+.cc-cust-shipment-card__approvals dd { margin: 0; color: var(--color-text-primary); }
+.cc-cust-shipment-card__notice { margin: var(--spacing-md) 0 0; padding: var(--spacing-md); border-left: 3px solid var(--color-warning); color: var(--color-text-muted); }
+.cc-cust-shipment-card__notice p { margin: var(--spacing-xs) 0 0; }
 
 .cc-cust-shipments__state {
   padding: var(--spacing-lg);

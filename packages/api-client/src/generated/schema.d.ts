@@ -451,6 +451,10 @@ export interface CustomerShipment {
   location?: string;
   freshness: 'fresh' | 'stale' | 'unknown';
   timeline: Array<{ stage: CustomerShipment['stage']; occurredAt?: string; current: boolean }>;
+  shipOkStatus: 'Pending' | 'Approved' | 'Rejected';
+  shipOkRejectionReason?: string;
+  documentReleaseStatus: 'Pending' | 'Approved' | 'Rejected';
+  documentReleaseRejectionReason?: string;
 }
 
 export interface CustomerShipmentList {

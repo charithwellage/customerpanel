@@ -22,6 +22,8 @@ test.describe('Customer shipment tracking E2E (D02-P07-T002)', () => {
     if (await cards.count()) {
       await expect(cards.first().getByText(/Current stage:/)).toBeVisible();
       await expect(cards.first().locator('.cc-cust-shipment-card__timeline')).toBeVisible();
+      await expect(cards.first().getByText('Ship OK')).toBeVisible();
+      await expect(cards.first().getByText('Document release')).toBeVisible();
     } else {
       await expect(state).toContainText(/No shipment records|temporarily unavailable/);
     }

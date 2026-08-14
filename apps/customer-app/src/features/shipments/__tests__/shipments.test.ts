@@ -16,9 +16,13 @@ describe('Customer shipment tracking (D02-P07-T002)', () => {
         { stage: 'In Transit', current: false },
         { stage: 'Delivered', current: false },
       ],
+      shipOkStatus: 'Approved',
+      documentReleaseStatus: 'Pending',
     };
     expect(shipment.timeline.find((step) => step.current)?.stage).toBe(shipment.stage);
     expect(['fresh', 'stale', 'unknown']).toContain(shipment.freshness);
+    expect(['Pending', 'Approved', 'Rejected']).toContain(shipment.shipOkStatus);
+    expect(['Pending', 'Approved', 'Rejected']).toContain(shipment.documentReleaseStatus);
   });
 
   it('keeps the tracking page class-styled and free of static inline styles', async () => {

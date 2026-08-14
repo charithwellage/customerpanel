@@ -53,6 +53,18 @@ export const ShipmentPage: React.FC = () => {
                 </div>
 
                 <p className="cc-cust-shipment-card__stage">Current stage: <strong>{shipment.stage}</strong></p>
+                <dl className="cc-cust-shipment-card__approvals">
+                  <dt>Ship OK</dt><dd>{shipment.shipOkStatus}</dd>
+                  <dt>Document release</dt><dd>{shipment.documentReleaseStatus}</dd>
+                </dl>
+                {(shipment.shipOkRejectionReason || shipment.documentReleaseRejectionReason) && (
+                  <aside className="cc-cust-shipment-card__notice" aria-label="Operations update">
+                    <strong>Operations update</strong>
+                    {shipment.shipOkRejectionReason && <p>Ship OK: {shipment.shipOkRejectionReason}</p>}
+                    {shipment.documentReleaseRejectionReason && <p>Document release: {shipment.documentReleaseRejectionReason}</p>}
+                    <p>Resubmission is handled by the operations team; customers cannot approve or resubmit these checkpoints.</p>
+                  </aside>
+                )}
                 <ol className="cc-cust-shipment-card__timeline" aria-label={`Shipment stages for ${shipment.vehicleId}`}>
                   {stageLabels.map((stage, index) => (
                     <li className={`cc-cust-shipment-card__step ${index < currentIndex ? 'cc-cust-shipment-card__step--complete' : ''} ${index === currentIndex ? 'cc-cust-shipment-card__step--current' : ''}`} key={stage}>

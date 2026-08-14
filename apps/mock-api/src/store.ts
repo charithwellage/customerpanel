@@ -2069,6 +2069,10 @@ export interface ShipmentRecord {
   eta?: string;
   location?: string;
   freshness?: 'fresh' | 'stale' | 'unknown';
+  shipOkStatus?: 'Pending' | 'Approved' | 'Rejected';
+  shipOkRejectionReason?: string;
+  documentReleaseStatus?: 'Pending' | 'Approved' | 'Rejected';
+  documentReleaseRejectionReason?: string;
 }
 
 export interface DocumentRecord {
@@ -2093,6 +2097,10 @@ export interface CustomerShipment {
   location?: string;
   freshness: 'fresh' | 'stale' | 'unknown';
   timeline: Array<{ stage: CustomerShipment['stage']; occurredAt?: string; current: boolean }>;
+  shipOkStatus: 'Pending' | 'Approved' | 'Rejected';
+  shipOkRejectionReason?: string;
+  documentReleaseStatus: 'Pending' | 'Approved' | 'Rejected';
+  documentReleaseRejectionReason?: string;
 }
 
 export interface CustomerDocument {
@@ -2255,6 +2263,8 @@ const seedShipments: ShipmentRecord[] = [
     eta: '2026-08-20T10:00:00.000Z',
     location: 'Mombasa Port',
     freshness: 'fresh',
+    shipOkStatus: 'Approved',
+    documentReleaseStatus: 'Approved',
   },
   {
     id: 'ship-002',
@@ -2265,6 +2275,8 @@ const seedShipments: ShipmentRecord[] = [
     eta: '2026-08-25T10:00:00.000Z',
     location: 'Indian Ocean',
     freshness: 'fresh',
+    shipOkStatus: 'Pending',
+    documentReleaseStatus: 'Pending',
   },
   {
     id: 'ship-003',
@@ -2275,6 +2287,8 @@ const seedShipments: ShipmentRecord[] = [
     deliveredAt: '2026-08-14T08:00:00.000Z',
     location: 'Customer destination',
     freshness: 'fresh',
+    shipOkStatus: 'Approved',
+    documentReleaseStatus: 'Pending',
   },
   // Exception customer: 1 shipment
   {
@@ -2285,6 +2299,10 @@ const seedShipments: ShipmentRecord[] = [
     shippedAt: '2026-08-12T10:00:00.000Z',
     location: 'Inspection facility',
     freshness: 'stale',
+    shipOkStatus: 'Rejected',
+    shipOkRejectionReason: 'Finance requested updated shipment evidence.',
+    documentReleaseStatus: 'Rejected',
+    documentReleaseRejectionReason: 'Finance requested corrected release documents.',
   },
 ];
 
@@ -2469,6 +2487,10 @@ function toCustomerShipment(record: ShipmentRecord): CustomerShipment {
     eta: record.eta,
     location: record.location,
     freshness: record.freshness ?? 'unknown',
+    shipOkStatus: record.shipOkStatus ?? 'Pending',
+    shipOkRejectionReason: record.shipOkRejectionReason,
+    documentReleaseStatus: record.documentReleaseStatus ?? 'Pending',
+    documentReleaseRejectionReason: record.documentReleaseRejectionReason,
     timeline: shipmentStages.map((timelineStage, index) => ({
       stage: timelineStage,
       current: index === currentIndex,
