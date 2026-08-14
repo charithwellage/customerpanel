@@ -577,6 +577,27 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
     }
   });
 
+  // 4h. Payment notification outbox. Finance records events; customers only read their own projection.
+  app.get('/api/v1/customer/payment-notifications', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) return void res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+    if (!hasPermission(req.user.role, 'read:customer')) return void res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
+    const paymentId = typeof req.query.paymentId === 'string' ? req.query.paymentId : undefined;
+    res.json(await store.listCustomerPaymentNotifications(resolveDemoCustomerScope(req.user.sub), paymentId));
+  });
+
+  app.post('/api/v1/finance/customer-payments/:id/notifications', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) return void res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+    if (!hasPermission(req.user.role, 'read:finance')) return void res.status(403).json({ statusCode: 403, message: 'Forbidden: finance role required', correlationId: 'corr-403' });
+    try {
+      const event = req.body?.event;
+      const notification = await store.recordPaymentNotification(req.params.id as string, event, req.header('x-mock-now') || undefined);
+      if (!notification) return void res.status(404).json({ statusCode: 404, message: 'Payment not found', correlationId: `corr-404-${Date.now()}` });
+      res.status(201).json(notification);
+    } catch (error) {
+      res.status(400).json({ statusCode: 400, message: error instanceof Error ? error.message : 'Invalid notification event', correlationId: `corr-400-${Date.now()}` });
+    }
+  });
+
   // 5. Deterministic reset (Disabled in production mode for release safety)
   app.post('/api/v1/__reset', async (req: AuthenticatedRequest, res: Response) => {
     if (process.env.NODE_ENV === 'production' && process.env.ENABLE_MOCK_RESET !== 'true') {

@@ -59,6 +59,28 @@ export interface CustomerPaymentListResponse {
   items: CustomerPayment[];
   total: number;
 }
+
+export type CustomerPaymentNotificationEvent =
+  | 'FinanceReviewRequested'
+  | 'PaymentHeld'
+  | 'PaymentResubmitted'
+  | 'PaymentApproved'
+  | 'PaymentAllocated';
+
+export interface CustomerPaymentNotification {
+  id: string;
+  customerId: string;
+  paymentId: string;
+  invoiceId: string;
+  event: CustomerPaymentNotificationEvent;
+  deliveryStatus: 'Queued';
+  createdAt: string;
+}
+
+export interface CustomerPaymentNotificationListResponse {
+  items: CustomerPaymentNotification[];
+  total: number;
+}
 export type ShipmentStatus = 'Purchased' | 'Inspection' | 'Ready' | 'InTransit' | 'Delivered';
 export type CustomerTier = 'Platinum' | 'Gold' | 'Silver' | 'Standard';
 export type VehicleLocationStatus = 'In Japan' | 'In Transit' | 'In Port';

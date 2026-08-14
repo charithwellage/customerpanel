@@ -1,4 +1,4 @@
-import type { CreateCustomerPaymentRequest, CustomerPayment, CustomerPaymentListResponse } from '@carchief/domain';
+import type { CreateCustomerPaymentRequest, CustomerPayment, CustomerPaymentListResponse, CustomerPaymentNotificationListResponse } from '@carchief/domain';
 import type { HttpClient } from '../http.js';
 
 export class CustomerPaymentService {
@@ -25,5 +25,11 @@ export class CustomerPaymentService {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(request),
     });
+  }
+
+  async listCustomerPaymentNotifications(paymentId?: string): Promise<CustomerPaymentNotificationListResponse> {
+    if (!this.httpClient) throw new Error('CustomerPaymentService requires an HttpClient');
+    const query = paymentId ? `?paymentId=${encodeURIComponent(paymentId)}` : '';
+    return this.httpClient.request<CustomerPaymentNotificationListResponse>(`/customer/payment-notifications${query}`);
   }
 }

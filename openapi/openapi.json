@@ -1360,6 +1360,33 @@
         }
       }
     },
+    "/api/v1/customer/payment-notifications": {
+      "get": {
+        "operationId": "listCustomerPaymentNotifications",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [{ "name": "paymentId", "in": "query", "required": false, "schema": { "type": "string" } }],
+        "responses": {
+          "200": { "description": "Customer-scoped deterministic payment notification outbox projection", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CustomerPaymentNotificationListResponse" } } } },
+          "401": { "description": "Unauthenticated", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "403": { "description": "Forbidden", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
+        }
+      }
+    },
+    "/api/v1/finance/customer-payments/{id}/notifications": {
+      "post": {
+        "operationId": "recordPaymentNotification",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/RecordPaymentNotificationRequest" } } } },
+        "responses": {
+          "201": { "description": "Queued deterministic outbox record", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CustomerPaymentNotification" } } } },
+          "400": { "description": "Invalid notification event", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "401": { "description": "Unauthenticated", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "403": { "description": "Finance role required", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "404": { "description": "Payment not found", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
+        }
+      }
+    },
     "/api/v1/__reset": {
       "post": {
         "summary": "Deterministic non-production data reset",
@@ -2283,6 +2310,25 @@
         "type": "object",
         "properties": { "items": { "type": "array", "items": { "$ref": "#/components/schemas/CustomerPayment" } }, "total": { "type": "integer" } },
         "required": ["items", "total"]
+      },
+      "CustomerPaymentNotification": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" }, "customerId": { "type": "string" }, "paymentId": { "type": "string" }, "invoiceId": { "type": "string" },
+          "event": { "type": "string", "enum": ["FinanceReviewRequested", "PaymentHeld", "PaymentResubmitted", "PaymentApproved", "PaymentAllocated"] },
+          "deliveryStatus": { "type": "string", "enum": ["Queued"] }, "createdAt": { "type": "string" }
+        },
+        "required": ["id", "customerId", "paymentId", "invoiceId", "event", "deliveryStatus", "createdAt"]
+      },
+      "CustomerPaymentNotificationListResponse": {
+        "type": "object",
+        "properties": { "items": { "type": "array", "items": { "$ref": "#/components/schemas/CustomerPaymentNotification" } }, "total": { "type": "integer" } },
+        "required": ["items", "total"]
+      },
+      "RecordPaymentNotificationRequest": {
+        "type": "object",
+        "properties": { "event": { "type": "string", "enum": ["FinanceReviewRequested", "PaymentHeld", "PaymentResubmitted", "PaymentApproved", "PaymentAllocated"] } },
+        "required": ["event"]
       },
       "CustomerInvoiceType": {
         "type": "string",

@@ -64,6 +64,9 @@ import type {
   CustomerPayment,
   CustomerPaymentListResponse,
   CreateCustomerPaymentRequest,
+  CustomerPaymentNotification,
+  CustomerPaymentNotificationEvent,
+  CustomerPaymentNotificationListResponse,
 } from '@carchief/domain';
 import {
   generateVehicleSlug,
@@ -528,6 +531,8 @@ export interface DemoStore {
   listCustomerPayments(customerId: string): Promise<CustomerPaymentListResponse>;
   getCustomerPayment(customerId: string, id: string): Promise<CustomerPayment | null>;
   createCustomerPayment(customerId: string, request: CreateCustomerPaymentRequest, nowISO?: string): Promise<CustomerPayment>;
+  listCustomerPaymentNotifications(customerId: string, paymentId?: string): Promise<CustomerPaymentNotificationListResponse>;
+  recordPaymentNotification(paymentId: string, event: CustomerPaymentNotificationEvent, nowISO?: string): Promise<CustomerPaymentNotification | null>;
   reset(): Promise<void>;
   close(): Promise<void>;
 }
@@ -2172,6 +2177,16 @@ export interface NotificationRecord {
   createdAt: string;
 }
 
+export interface PaymentNotificationRecord {
+  id: string;
+  customerId: string;
+  paymentId: string;
+  invoiceId: string;
+  event: CustomerPaymentNotificationEvent;
+  deliveryStatus: 'Queued';
+  createdAt: string;
+}
+
 const seedInvoices: InvoiceRecord[] = [
   // Active customer (cust-123): 3 invoices
   {
@@ -2299,6 +2314,18 @@ const seedPayments: PaymentRecord[] = [
     amountUsd: 3000.00,
     paidAt: '2026-08-13T10:00:00.000Z',
     status: 'Rejected',
+  },
+];
+
+const seedPaymentNotifications: PaymentNotificationRecord[] = [
+  {
+    id: 'pay-event-001',
+    customerId: 'cust-123',
+    paymentId: 'pay-004',
+    invoiceId: 'inv-003',
+    event: 'FinanceReviewRequested',
+    deliveryStatus: 'Queued',
+    createdAt: '2026-08-13T09:00:00.000Z',
   },
 ];
 
@@ -3205,6 +3232,26 @@ function toCustomerPayment(record: PaymentRecord): CustomerPayment {
   };
 }
 
+function toCustomerPaymentNotification(record: PaymentNotificationRecord): CustomerPaymentNotification {
+  return {
+    id: record.id,
+    customerId: record.customerId,
+    paymentId: record.paymentId,
+    invoiceId: record.invoiceId,
+    event: record.event,
+    deliveryStatus: 'Queued',
+    createdAt: record.createdAt,
+  };
+}
+
+const PAYMENT_NOTIFICATION_EVENTS: CustomerPaymentNotificationEvent[] = [
+  'FinanceReviewRequested',
+  'PaymentHeld',
+  'PaymentResubmitted',
+  'PaymentApproved',
+  'PaymentAllocated',
+];
+
 function validatePaymentRequest(request: CreateCustomerPaymentRequest): void {
   if (!request || !request.invoiceId || !request.reference || !request.bankName || request.currency !== 'USD') throw new Error('Invalid payment or invoice reference');
   if (!Number.isFinite(request.amountUsd) || request.amountUsd <= 0) throw new Error('amountUsd must be greater than zero');
@@ -3256,6 +3303,7 @@ class MemoryStore implements DemoStore {
   private proformaInvoices = seedProformaInvoices.map((p) => ({ ...p }));
   private allocations = seedAllocations.map((a) => ({ ...a }));
   private payments = seedPayments.map((p) => ({ ...p }));
+  private paymentNotifications = seedPaymentNotifications.map((n) => ({ ...n }));
   private shipments = seedShipments.map((s) => ({ ...s }));
   private documents = seedDocuments.map((d) => ({ ...d }));
   private notifications = seedNotifications.map((n) => ({ ...n }));
@@ -3668,6 +3716,32 @@ class MemoryStore implements DemoStore {
     return Promise.resolve(toCustomerPayment(createPaymentRecord(customerId, request, nowISO, this.payments, this.invoices)));
   }
 
+  listCustomerPaymentNotifications(customerId: string, paymentId?: string): Promise<CustomerPaymentNotificationListResponse> {
+    const items = this.paymentNotifications
+      .filter((notification) => notification.customerId === customerId && (!paymentId || notification.paymentId === paymentId))
+      .map(toCustomerPaymentNotification);
+    return Promise.resolve({ items, total: items.length });
+  }
+
+  recordPaymentNotification(paymentId: string, event: CustomerPaymentNotificationEvent, nowISO = new Date().toISOString()): Promise<CustomerPaymentNotification | null> {
+    if (!PAYMENT_NOTIFICATION_EVENTS.includes(event)) throw new Error('Unsupported payment notification event');
+    const payment = this.payments.find((candidate) => candidate.id === paymentId);
+    if (!payment) return Promise.resolve(null);
+    const existing = this.paymentNotifications.find((notification) => notification.paymentId === paymentId && notification.event === event);
+    if (existing) return Promise.resolve(toCustomerPaymentNotification(existing));
+    const record: PaymentNotificationRecord = {
+      id: `pay-event-${this.paymentNotifications.length + 1}`,
+      customerId: payment.customerId,
+      paymentId: payment.id,
+      invoiceId: payment.invoiceId,
+      event,
+      deliveryStatus: 'Queued',
+      createdAt: nowISO,
+    };
+    this.paymentNotifications.push(record);
+    return Promise.resolve(toCustomerPaymentNotification(record));
+  }
+
   reset(): Promise<void> {
     this.config = { ...seedConfig };
     this.vehicles = seedVehicles.map((vehicle) => ({ ...vehicle }));
@@ -3677,6 +3751,7 @@ class MemoryStore implements DemoStore {
     this.proformaInvoices = seedProformaInvoices.map((p) => ({ ...p }));
     this.allocations = seedAllocations.map((a) => ({ ...a }));
     this.payments = seedPayments.map((p) => ({ ...p }));
+    this.paymentNotifications = seedPaymentNotifications.map((n) => ({ ...n }));
     this.shipments = seedShipments.map((s) => ({ ...s }));
     this.documents = seedDocuments.map((d) => ({ ...d }));
     this.notifications = seedNotifications.map((n) => ({ ...n }));
@@ -3697,6 +3772,7 @@ class MemoryStore implements DemoStore {
 class PostgresStore implements DemoStore {
   private readonly pool: Pool;
   private readonly paymentRecords = seedPayments.map((payment) => ({ ...payment }));
+  private readonly paymentNotifications = seedPaymentNotifications.map((notification) => ({ ...notification }));
 
   constructor(connectionString: string) {
     this.pool = new Pool({ connectionString });
@@ -4619,6 +4695,32 @@ class PostgresStore implements DemoStore {
 
   async createCustomerPayment(customerId: string, request: CreateCustomerPaymentRequest, nowISO = new Date().toISOString()): Promise<CustomerPayment> {
     return toCustomerPayment(createPaymentRecord(customerId, request, nowISO, this.paymentRecords, seedInvoices));
+  }
+
+  async listCustomerPaymentNotifications(customerId: string, paymentId?: string): Promise<CustomerPaymentNotificationListResponse> {
+    const items = this.paymentNotifications
+      .filter((notification) => notification.customerId === customerId && (!paymentId || notification.paymentId === paymentId))
+      .map(toCustomerPaymentNotification);
+    return { items, total: items.length };
+  }
+
+  async recordPaymentNotification(paymentId: string, event: CustomerPaymentNotificationEvent, nowISO = new Date().toISOString()): Promise<CustomerPaymentNotification | null> {
+    if (!PAYMENT_NOTIFICATION_EVENTS.includes(event)) throw new Error('Unsupported payment notification event');
+    const payment = this.paymentRecords.find((candidate) => candidate.id === paymentId);
+    if (!payment) return null;
+    const existing = this.paymentNotifications.find((notification) => notification.paymentId === paymentId && notification.event === event);
+    if (existing) return toCustomerPaymentNotification(existing);
+    const record: PaymentNotificationRecord = {
+      id: `pay-event-${this.paymentNotifications.length + 1}`,
+      customerId: payment.customerId,
+      paymentId: payment.id,
+      invoiceId: payment.invoiceId,
+      event,
+      deliveryStatus: 'Queued',
+      createdAt: nowISO,
+    };
+    this.paymentNotifications.push(record);
+    return toCustomerPaymentNotification(record);
   }
 
   async reset(): Promise<void> {

@@ -73,4 +73,29 @@ describe('Customer TT payment journal contract (D02-P06-T001)', () => {
     const response = await fetch(`${baseUrl}/api/v1/customer/payments`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
     expect(response.status).toBe(401);
   });
+
+  it('projects queued outbox events to the owner and restricts event recording to Finance', async () => {
+    const customerHeaders = { Authorization: `Bearer ${token()}` };
+    const listed = await fetch(`${baseUrl}/api/v1/customer/payment-notifications?paymentId=pay-004`, { headers: customerHeaders });
+    expect(listed.status).toBe(200);
+    expect((await listed.json()).items).toEqual(expect.arrayContaining([
+      expect.objectContaining({ paymentId: 'pay-004', event: 'FinanceReviewRequested', deliveryStatus: 'Queued' }),
+    ]));
+
+    const customerAttempt = await fetch(`${baseUrl}/api/v1/finance/customer-payments/pay-004/notifications`, {
+      method: 'POST', headers: { ...customerHeaders, 'Content-Type': 'application/json' }, body: JSON.stringify({ event: 'PaymentHeld' }),
+    });
+    expect(customerAttempt.status).toBe(403);
+
+    const financeHeaders = { Authorization: `Bearer ${createDemoJwtToken('FinanceManager')}`, 'Content-Type': 'application/json' };
+    const first = await fetch(`${baseUrl}/api/v1/finance/customer-payments/pay-004/notifications`, {
+      method: 'POST', headers: financeHeaders, body: JSON.stringify({ event: 'PaymentHeld' }),
+    });
+    const second = await fetch(`${baseUrl}/api/v1/finance/customer-payments/pay-004/notifications`, {
+      method: 'POST', headers: financeHeaders, body: JSON.stringify({ event: 'PaymentHeld' }),
+    });
+    expect(first.status).toBe(201);
+    expect(second.status).toBe(201);
+    expect((await first.json()).id).toBe((await second.json()).id);
+  });
 });
