@@ -15,7 +15,7 @@ export type LeadStatus =
   | 'Sold'
   | 'Archived';
 
-export type PaymentStatus = 'Pending' | 'Approved' | 'Rejected';
+export type PaymentStatus = 'Pending' | 'Held' | 'Resubmitted' | 'Approved' | 'Rejected';
 export type PaymentProofFileType = 'PDF' | 'JPG' | 'PNG';
 export type PaymentProofScanStatus = 'Pending' | 'Passed' | 'Rejected';
 
@@ -55,6 +55,12 @@ export interface CreateCustomerPaymentRequest {
   remarks?: string;
   proof: CustomerPaymentProofMetadata;
   idempotencyKey: string;
+}
+
+export interface RecordPaymentNotificationRequest {
+  event: CustomerPaymentNotificationEvent;
+  reason?: string;
+  allocationAmountUsd?: number;
 }
 
 export interface CustomerPaymentListResponse {

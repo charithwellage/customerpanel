@@ -43,6 +43,7 @@
 .cc-cust-payment-detail__facts dt { color: var(--cc-color-text-secondary); font-size: var(--cc-font-size-sm); }
 .cc-cust-payment-detail__facts dd { margin: 0; color: var(--cc-color-text-primary); font-weight: var(--cc-font-weight-medium); }
 .cc-cust-payment-detail__notice { padding: var(--cc-spacing-3); border-left: var(--cc-border-width-thick) solid var(--cc-color-warning); color: var(--cc-color-warning-text); background: var(--cc-color-warning-surface); }
+.cc-cust-payment-resubmit { display: grid; gap: var(--cc-spacing-2); margin-bottom: var(--cc-spacing-5); padding: var(--cc-spacing-3); border: 1px solid var(--cc-color-border-subtle); border-radius: var(--cc-radius-md); }
 .cc-cust-payment-events { display: grid; gap: var(--cc-spacing-3); padding-left: var(--cc-spacing-5); }
 .cc-cust-payment-events li { display: flex; flex-direction: column; gap: var(--cc-spacing-1); }
 .cc-cust-payment-events span { color: var(--cc-color-text-secondary); font-size: var(--cc-font-size-sm); }

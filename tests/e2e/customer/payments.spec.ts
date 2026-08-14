@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { createDemoJwtToken } from '@carchief/domain';
 import { CUSTOMER_APP_BASE_URL } from './customerAppBase.js';
 
 async function signIn(page: Page): Promise<void> {
@@ -19,7 +20,7 @@ test.describe('Customer payment journal (D02-P06-T002)', () => {
     await expect(page.getByText('PAY-004')).toBeVisible();
     await page.getByTestId('payment-card-pay-004').click();
     await expect(page.getByText('FinanceReviewRequested')).toBeVisible();
-    await page.getByTestId('payment-controls').getByRole('button', { name: 'Pending' }).click();
+    await page.getByTestId('payment-controls').getByRole('button', { name: 'All', exact: true }).click();
     await expect(page.getByTestId('payment-detail')).toBeVisible();
     await page.getByLabel('Search payments').fill('does-not-exist');
     await expect(page.getByText('No matching payment records are available.')).toBeVisible();
@@ -53,5 +54,27 @@ test.describe('Customer TT submission (D02-P06-T003)', () => {
     expect(paymentRequests).toHaveLength(1);
     expect(paymentRequests[0]?.body).toContain('receipt.pdf');
     expect(paymentRequests[0]?.body).not.toContain('proof bytes must not be sent');
+  });
+});
+
+test.describe('Customer payment workflow (D02-P06-T004)', () => {
+  test('shows the server hold reason and allows an online owner resubmission', async ({ page }) => {
+    await page.request.post('/api/v1/__reset');
+    const financeToken = createDemoJwtToken('FinanceManager');
+    const hold = await page.request.post('/api/v1/finance/customer-payments/pay-004/notifications', {
+      headers: { Authorization: `Bearer ${financeToken}` },
+      data: { event: 'PaymentHeld', reason: 'Playwright workflow hold' },
+    });
+    expect([201, 409]).toContain(hold.status());
+
+    await signIn(page);
+    const desktop = (page.viewportSize()?.width ?? 0) >= 1024;
+    if (!desktop) await page.getByTestId('cust-mobile-toggle').click();
+    const nav = page.locator(desktop ? '.cc-cust-shell-nav--desktop' : '.cc-cust-shell-nav--mobile');
+    await nav.getByRole('link', { name: 'Payments' }).click();
+    await page.getByTestId('payment-card-pay-004').click();
+    await expect(page.getByText('Hold reason: Playwright workflow hold')).toBeVisible();
+    await page.getByRole('button', { name: 'Resubmit payment' }).click();
+    await expect(page.getByText('Resubmitted')).toBeVisible();
   });
 });

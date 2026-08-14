@@ -88,14 +88,47 @@ describe('Customer TT payment journal contract (D02-P06-T001)', () => {
     expect(customerAttempt.status).toBe(403);
 
     const financeHeaders = { Authorization: `Bearer ${createDemoJwtToken('FinanceManager')}`, 'Content-Type': 'application/json' };
-    const first = await fetch(`${baseUrl}/api/v1/finance/customer-payments/pay-004/notifications`, {
+    const missingReason = await fetch(`${baseUrl}/api/v1/finance/customer-payments/pay-004/notifications`, {
       method: 'POST', headers: financeHeaders, body: JSON.stringify({ event: 'PaymentHeld' }),
     });
+    expect(missingReason.status).toBe(400);
+    const first = await fetch(`${baseUrl}/api/v1/finance/customer-payments/pay-004/notifications`, {
+      method: 'POST', headers: financeHeaders, body: JSON.stringify({ event: 'PaymentHeld', reason: 'Proof image is unreadable' }),
+    });
     const second = await fetch(`${baseUrl}/api/v1/finance/customer-payments/pay-004/notifications`, {
-      method: 'POST', headers: financeHeaders, body: JSON.stringify({ event: 'PaymentHeld' }),
+      method: 'POST', headers: financeHeaders, body: JSON.stringify({ event: 'PaymentHeld', reason: 'Proof image is unreadable' }),
     });
     expect(first.status).toBe(201);
     expect(second.status).toBe(201);
     expect((await first.json()).id).toBe((await second.json()).id);
+  });
+
+  it('supports owner-only resubmission and idempotent approval/allocation with reconciled balances', async () => {
+    const customerHeaders = { Authorization: `Bearer ${token()}` };
+    const financeHeaders = { Authorization: `Bearer ${createDemoJwtToken('FinanceManager')}`, 'Content-Type': 'application/json' };
+    const hold = await fetch(`${baseUrl}/api/v1/finance/customer-payments/pay-004/notifications`, { method: 'POST', headers: financeHeaders, body: JSON.stringify({ event: 'PaymentHeld', reason: 'Awaiting bank confirmation' }) });
+    expect(hold.status).toBe(201);
+    const otherCustomer = await fetch(`${baseUrl}/api/v1/customer/payments/pay-004/resubmit`, { method: 'POST', headers: { Authorization: `Bearer ${createDemoJwtToken('CustomerBuyer', 'cust-999')}` } });
+    expect(otherCustomer.status).toBe(404);
+    const resubmit = await fetch(`${baseUrl}/api/v1/customer/payments/pay-004/resubmit`, { method: 'POST', headers: customerHeaders });
+    const repeated = await fetch(`${baseUrl}/api/v1/customer/payments/pay-004/resubmit`, { method: 'POST', headers: customerHeaders });
+    expect(resubmit.status).toBe(200);
+    expect(repeated.status).toBe(200);
+    expect((await resubmit.json()).status).toBe('Resubmitted');
+    expect((await repeated.json()).status).toBe('Resubmitted');
+
+    const approved = await fetch(`${baseUrl}/api/v1/finance/customer-payments/pay-004/notifications`, { method: 'POST', headers: financeHeaders, body: JSON.stringify({ event: 'PaymentApproved' }) });
+    const allocated = await fetch(`${baseUrl}/api/v1/finance/customer-payments/pay-004/notifications`, { method: 'POST', headers: financeHeaders, body: JSON.stringify({ event: 'PaymentAllocated', allocationAmountUsd: 1000 }) });
+    const allocatedAgain = await fetch(`${baseUrl}/api/v1/finance/customer-payments/pay-004/notifications`, { method: 'POST', headers: financeHeaders, body: JSON.stringify({ event: 'PaymentAllocated', allocationAmountUsd: 1000 }) });
+    expect(approved.status).toBe(201);
+    expect(allocated.status).toBe(201);
+    expect(allocatedAgain.status).toBe(201);
+    expect((await allocated.json()).id).toBe((await allocatedAgain.json()).id);
+    const payment = await (await fetch(`${baseUrl}/api/v1/customer/payments/pay-004`, { headers: customerHeaders })).json();
+    expect(payment.status).toBe('Approved');
+    expect(payment.allocatedAmountUsd).toBe(1000);
+    expect(payment.remainingBalanceUsd).toBe(18500);
+    const events = await (await fetch(`${baseUrl}/api/v1/customer/payment-notifications?paymentId=pay-004`, { headers: customerHeaders })).json();
+    expect(events.items.filter((item: { event: string }) => item.event === 'PaymentAllocated')).toHaveLength(1);
   });
 });

@@ -6,6 +6,7 @@ import { customerPaymentFormSchema, MAX_PAYMENT_PROOF_BYTES, type CustomerPaymen
 import { useCustomerShell } from '../shell/index.js';
 import { useCustomerPaymentNotifications, useCustomerPayments } from './useCustomerPayments.js';
 import { useCreateCustomerPayment } from './useCreateCustomerPayment.js';
+import { useResubmitCustomerPayment } from './useResubmitCustomerPayment.js';
 import { useCustomerOnlineStatus } from '../pwa/useCustomerOnlineStatus.js';
 
 const statusLabels = ['All', 'Pending', 'Held', 'Resubmitted', 'Approved', 'Rejected', 'Allocated'] as const;
@@ -30,6 +31,7 @@ export const PaymentsPage: React.FC = () => {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const online = useCustomerOnlineStatus();
   const createPayment = useCreateCustomerPayment();
+  const resubmitPayment = useResubmitCustomerPayment();
   const paymentsQuery = useCustomerPayments();
   const notificationsQuery = useCustomerPaymentNotifications();
   const payments = paymentsQuery.data?.items ?? [];
@@ -47,6 +49,7 @@ export const PaymentsPage: React.FC = () => {
 
   const selected = filteredPayments.find((payment) => payment.id === selectedId) ?? filteredPayments[0];
   const selectedEvents = selected ? notifications.filter((event) => event.paymentId === selected.id) : [];
+  const selectedStatus = selected ? getCustomerPaymentStatus(selected, notifications) : '';
 
   const { register, handleSubmit, setValue, reset, formState: { errors } } = useForm<CustomerPaymentFormInput, unknown, CustomerPaymentFormValues>({
     resolver: zodResolver(customerPaymentFormSchema),
@@ -146,6 +149,7 @@ export const PaymentsPage: React.FC = () => {
             <header><p className="cc-cust-payments-eyebrow">Payment detail</p><h2>{selected.reference}</h2><span className={`cc-cust-payment-card__status cc-cust-payment-card__status--${getCustomerPaymentStatus(selected, notifications).toLowerCase()}`}>{getCustomerPaymentStatus(selected, notifications)}</span></header>
             <dl className="cc-cust-payment-detail__facts"><dt>Invoice</dt><dd>{selected.invoiceId}</dd><dt>Transfer date</dt><dd>{selected.paymentDate}</dd><dt>Amount submitted</dt><dd>${selected.amountUsd.toLocaleString(undefined, { minimumFractionDigits: 2 })} {selected.currency}</dd><dt>Approved allocated</dt><dd>${(selected.allocatedAmountUsd ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</dd><dt>Remaining invoice balance</dt><dd>${(selected.remainingBalanceUsd ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</dd></dl>
             {selected.holdReason && <p className="cc-cust-payment-detail__notice" role="status">Hold reason: {selected.holdReason}</p>}
+            {selectedStatus === 'Held' && <div className="cc-cust-payment-resubmit"><p className="cc-cust-payments-muted">Correct the transfer evidence or details, then resubmit this held payment for Finance review.</p><button type="button" className="cc-cust-payments-retry" disabled={!online || resubmitPayment.isPending} onClick={() => void resubmitPayment.mutateAsync(selected.id)}>{resubmitPayment.isPending ? 'Resubmitting…' : 'Resubmit payment'}</button>{resubmitPayment.error && <p className="cc-cust-payment-submit__error" role="alert">{resubmitPayment.error.message}</p>}</div>}
             <h3>Notification history</h3>
             {selectedEvents.length > 0 ? <ol className="cc-cust-payment-events">{selectedEvents.map((event) => <li key={event.id}><strong>{event.event}</strong><span>{event.deliveryStatus} · {new Date(event.createdAt).toLocaleString()}</span></li>)}</ol> : <p className="cc-cust-payments-muted">No notification events recorded.</p>}
           </article>}

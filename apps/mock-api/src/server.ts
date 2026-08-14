@@ -3,7 +3,7 @@ import { readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { parseDemoJwtToken, createDemoJwtToken, JwtClaims, hasPermission } from '@carchief/domain';
 import type { FreightEstimateRequest, EnquiryRequest, ReservationRequest } from '@carchief/domain';
-import { createStore, type DemoStore, FreightRequestError, EnquiryRequestError, ReservationRequestError, TestimonialRequestError } from './store.js';
+import { createStore, type DemoStore, FreightRequestError, EnquiryRequestError, ReservationRequestError, TestimonialRequestError, PaymentWorkflowError } from './store.js';
 import { resolveDemoCustomerScope } from './auth/customer-scope.js';
 
 export interface AuthenticatedRequest extends Request {
@@ -566,6 +566,18 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
     res.json(payment);
   });
 
+  app.post('/api/v1/customer/payments/:id/resubmit', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) return void res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+    if (!hasPermission(req.user.role, 'create:payment')) return void res.status(403).json({ statusCode: 403, message: 'Forbidden: payment resubmission requires customer payment permission', correlationId: 'corr-403' });
+    try {
+      const payment = await store.resubmitCustomerPayment(resolveDemoCustomerScope(req.user.sub), req.params.id as string, req.header('x-mock-now') || undefined);
+      res.json(payment);
+    } catch (error) {
+      const statusCode = error instanceof PaymentWorkflowError ? error.statusCode : 400;
+      res.status(statusCode).json({ statusCode, message: error instanceof Error ? error.message : 'Unable to resubmit payment', correlationId: `corr-${statusCode}-${Date.now()}` });
+    }
+  });
+
   app.post('/api/v1/customer/payments', async (req: AuthenticatedRequest, res: Response) => {
     if (!req.user) return void res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
     if (!hasPermission(req.user.role, 'create:payment')) return void res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
@@ -589,12 +601,12 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
     if (!req.user) return void res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
     if (!hasPermission(req.user.role, 'read:finance')) return void res.status(403).json({ statusCode: 403, message: 'Forbidden: finance role required', correlationId: 'corr-403' });
     try {
-      const event = req.body?.event;
-      const notification = await store.recordPaymentNotification(req.params.id as string, event, req.header('x-mock-now') || undefined);
+      const notification = await store.recordPaymentNotification(req.params.id as string, req.body, req.header('x-mock-now') || undefined);
       if (!notification) return void res.status(404).json({ statusCode: 404, message: 'Payment not found', correlationId: `corr-404-${Date.now()}` });
       res.status(201).json(notification);
     } catch (error) {
-      res.status(400).json({ statusCode: 400, message: error instanceof Error ? error.message : 'Invalid notification event', correlationId: `corr-400-${Date.now()}` });
+      const statusCode = error instanceof PaymentWorkflowError ? error.statusCode : 400;
+      res.status(statusCode).json({ statusCode, message: error instanceof Error ? error.message : 'Invalid notification event', correlationId: `corr-${statusCode}-${Date.now()}` });
     }
   });
 
