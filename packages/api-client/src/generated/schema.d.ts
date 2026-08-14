@@ -450,6 +450,10 @@ export interface CustomerShipment {
   eta?: string;
   location?: string;
   freshness: 'fresh' | 'stale' | 'unknown';
+  shipOkStatus: 'Pending' | 'Approved' | 'Rejected';
+  shipOkRejectionReason?: string;
+  documentReleaseStatus: 'Pending' | 'Approved' | 'Rejected';
+  documentReleaseRejectionReason?: string;
   timeline: Array<{ stage: CustomerShipment['stage']; occurredAt?: string; current: boolean }>;
 }
 
@@ -647,7 +651,7 @@ export interface CustomerInvoiceDetail extends CustomerInvoiceSummary {
   vehicle: CustomerInvoiceDetailVehicle;
   lineItems: CustomerInvoiceLineItem[];
   allocations: CustomerInvoiceAllocationItem[];
-  bankDetails: CustomerInvoiceBankDetails;
+  bankDetails?: CustomerInvoiceBankDetails;
   documentUrl?: string;
   termsAndConditions?: string[];
   isExpired?: boolean;

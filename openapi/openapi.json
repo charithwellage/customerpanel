@@ -1995,9 +1995,13 @@
           "eta": { "type": "string" },
           "location": { "type": "string" },
           "freshness": { "type": "string", "enum": ["fresh", "stale", "unknown"] },
+          "shipOkStatus": { "type": "string", "enum": ["Pending", "Approved", "Rejected"] },
+          "shipOkRejectionReason": { "type": "string" },
+          "documentReleaseStatus": { "type": "string", "enum": ["Pending", "Approved", "Rejected"] },
+          "documentReleaseRejectionReason": { "type": "string" },
           "timeline": { "type": "array", "items": { "$ref": "#/components/schemas/ShipmentTimelineEvent" } }
         },
-        "required": ["id", "vehicleId", "stage", "shippedAt", "freshness", "timeline"]
+        "required": ["id", "vehicleId", "stage", "shippedAt", "freshness", "shipOkStatus", "documentReleaseStatus", "timeline"]
       },
       "ShipmentTimelineEvent": {
         "type": "object",
