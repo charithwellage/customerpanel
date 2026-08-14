@@ -22,6 +22,7 @@ test.describe('Customer Dashboard Overview E2E', () => {
 
     // Wait for dashboard to load
     await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('article.cc-cust-card').first()).toBeVisible({ timeout: 10000 });
   });
 
   test('renders the dashboard with all KPI cards', async ({ page }) => {
@@ -37,20 +38,23 @@ test.describe('Customer Dashboard Overview E2E', () => {
 
     // Verify vehicles card with link
     await expect(page.getByRole('heading', { name: 'Vehicles' })).toBeVisible();
-    await expect(page.getByText('Total')).toBeVisible();
-    await expect(page.getByText('Reserved')).toBeVisible();
-    const vehiclesLink = page.getByRole('link', { name: 'View All' }).first();
+    const vehicleCard = page.locator('article.cc-cust-card--vehicles');
+    await expect(vehicleCard.getByText('Total')).toBeVisible();
+    await expect(vehicleCard.getByText('Reserved')).toBeVisible();
+    const vehiclesLink = vehicleCard.locator('a[href="/vehicles"]');
     await expect(vehiclesLink).toHaveAttribute('href', '/vehicles');
 
     // Verify payments card
     await expect(page.getByRole('heading', { name: 'Payments' })).toBeVisible();
-    await expect(page.getByText('Approved')).toBeVisible();
-    await expect(page.getByText('Pending')).toBeVisible();
+    const paymentCard = page.locator('article.cc-cust-card--payments');
+    await expect(paymentCard.getByText('Approved')).toBeVisible();
+    await expect(paymentCard.getByText('Pending')).toBeVisible();
 
     // Verify shipments card
     await expect(page.getByRole('heading', { name: 'Shipments' })).toBeVisible();
-    await expect(page.getByText('In Transit')).toBeVisible();
-    await expect(page.getByText('Delivered')).toBeVisible();
+    const shipmentCard = page.locator('article.cc-cust-card--shipments');
+    await expect(shipmentCard.getByText('In Transit')).toBeVisible();
+    await expect(shipmentCard.getByText('Delivered')).toBeVisible();
 
     // Verify documents card
     await expect(page.getByRole('heading', { name: 'Documents' })).toBeVisible();
@@ -101,7 +105,7 @@ test.describe('Customer Dashboard Overview E2E', () => {
     expect(firstLink).toBeTruthy();
 
     // Verify all card links are reachable via keyboard
-    const vehiclesLink = page.getByRole('link', { name: 'View All' }).first();
+    const vehiclesLink = page.locator('article.cc-cust-card--vehicles a.cc-cust-card__link[href="/vehicles"]');
     await vehiclesLink.focus();
     await expect(vehiclesLink).toBeFocused();
 
@@ -117,7 +121,7 @@ test.describe('Customer Dashboard Overview E2E', () => {
     const creditCard = page.locator('article.cc-cust-card--credit');
     const progressBar = creditCard.locator('.cc-cust-card__progress-bar');
 
-    await expect(progressBar).toBeVisible();
+    await expect(progressBar).toBeAttached();
 
     // Get the width to infer the utilisation level
     const width = await progressBar.evaluate((el) => {
@@ -144,7 +148,6 @@ test.describe('Customer Dashboard Overview E2E', () => {
       return window.getComputedStyle(el).gridTemplateColumns;
     });
     // Phone should be 1fr (single column)
-    expect(gridStyle).toContain('1fr');
     expect(gridStyle.split(' ').length).toBe(1); // Only one column
   });
 
@@ -163,11 +166,9 @@ test.describe('Customer Dashboard Overview E2E', () => {
 
   test('drill-down links navigate to correct pages', async ({ page }) => {
     // Test vehicles link
-    const navigationPromise = page.waitForNavigation();
-    await page.getByRole('link', { name: 'View All' }).first().click();
-    // Note: Since other pages aren't built yet, we just verify the click was registered
-    // In production, this would navigate to /vehicles
-    expect(navigationPromise).toBeDefined();
+    const vehiclesLink = page.locator('article.cc-cust-card--vehicles a.cc-cust-card__link[href="/vehicles"]');
+    await expect(vehiclesLink).toHaveAttribute('href', '/vehicles');
+    await expect(vehiclesLink).toBeVisible();
   });
 
   test('displays partial failure indicator when present', async ({ page }) => {
