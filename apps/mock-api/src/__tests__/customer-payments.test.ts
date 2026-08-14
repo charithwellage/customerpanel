@@ -5,7 +5,7 @@ import { createMockApiApp } from '../server.js';
 import { createStore } from '../store.js';
 
 describe('Customer TT payment journal contract (D02-P06-T001)', () => {
-  let server: Server;
+  let server: Server | undefined;
   let baseUrl: string;
   const token = () => createDemoJwtToken('CustomerBuyer');
   beforeEach(async () => {
@@ -16,6 +16,7 @@ describe('Customer TT payment journal contract (D02-P06-T001)', () => {
     baseUrl = `http://127.0.0.1:${(server.address() as { port: number }).port}`;
   });
   afterEach(async () => {
+    if (!server) return;
     server.closeAllConnections?.();
     await new Promise<void>((resolve) => server.close(() => resolve()));
   });
