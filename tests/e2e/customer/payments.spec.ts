@@ -58,10 +58,21 @@ test.describe('Customer TT submission (D02-P06-T003)', () => {
 });
 
 test.describe('Customer payment workflow (D02-P06-T004)', () => {
-  test('shows the server hold reason and allows an online owner resubmission', async ({ page }) => {
-    await page.request.post('/api/v1/__reset');
+  test('shows the server hold reason and allows an online owner resubmission', async ({ page }, testInfo) => {
+    const suffix = `${testInfo.project.name}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const customerToken = createDemoJwtToken('CustomerBuyer');
+    const customerPayment = await page.request.post('/api/v1/customer/payments', {
+      headers: { Authorization: `Bearer ${customerToken}` },
+      data: {
+        invoiceId: 'inv-003', reference: `TT-E2E-HOLD-${suffix}`, bankName: 'Customer Bank', currency: 'USD', amountUsd: 125,
+        paymentDate: '2026-08-14', idempotencyKey: `idem-${suffix}`,
+        proof: { fileName: 'hold-proof.pdf', fileType: 'PDF', sizeBytes: 1200, scanStatus: 'Pending' },
+      },
+    });
+    expect(customerPayment.status()).toBe(201);
+    const payment = await customerPayment.json() as { id: string };
     const financeToken = createDemoJwtToken('FinanceManager');
-    const hold = await page.request.post('/api/v1/finance/customer-payments/pay-004/notifications', {
+    const hold = await page.request.post(`/api/v1/finance/customer-payments/${payment.id}/notifications`, {
       headers: { Authorization: `Bearer ${financeToken}` },
       data: { event: 'PaymentHeld', reason: 'Playwright workflow hold' },
     });
@@ -72,9 +83,9 @@ test.describe('Customer payment workflow (D02-P06-T004)', () => {
     if (!desktop) await page.getByTestId('cust-mobile-toggle').click();
     const nav = page.locator(desktop ? '.cc-cust-shell-nav--desktop' : '.cc-cust-shell-nav--mobile');
     await nav.getByRole('link', { name: 'Payments' }).click();
-    await page.getByTestId('payment-card-pay-004').click();
+    await page.getByTestId(`payment-card-${payment.id}`).click();
     await expect(page.getByText('Hold reason: Playwright workflow hold')).toBeVisible();
     await page.getByRole('button', { name: 'Resubmit payment' }).click();
-    await expect(page.getByText('Resubmitted')).toBeVisible();
+    await expect(page.getByTestId(`payment-card-${payment.id}`).getByText('Resubmitted')).toBeVisible();
   });
 });
