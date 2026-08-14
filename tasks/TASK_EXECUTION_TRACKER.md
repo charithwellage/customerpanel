@@ -117,8 +117,8 @@
 | [D02-P06-T003](delivery_02/phase_06/D02-P06-T003.md) | Build secure TT submission and retry behavior | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery02_phase_06` | D02-P06-CODE_REVIEW (NOT_STARTED) | D02-P06-T002 | D02-P06-SEQUENTIAL | — |
 | [D02-P06-T004](delivery_02/phase_06/D02-P06-T004.md) | Add PI deadline, hold, resubmission and allocation acceptance | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery02_phase_06` | D02-P06-CODE_REVIEW (NOT_STARTED) | D02-P06-T003 | D02-P06-SEQUENTIAL | — |
 | [D02-P06-CODE_REVIEW](delivery_02/phase_06/D02-P06-CODE_REVIEW.md) | Phase 2.6 PR code review and tech-lead approval | NOT_STARTED | phase_manual | not_applicable | — | `feat_delivery02_phase_06` | D02-P06-CODE_REVIEW (NOT_STARTED) | D02-P06-T004, D02-P06-T005 | D02-P06-REVIEW | — |
-| [D02-P07-G001](delivery_02/phase_07/D02-P07-G001.md) | Establish customer shipment and document baseline | READY | self_ai | not_applicable | — | `feat_delivery02_phase_07` | D02-P07-CODE_REVIEW (NOT_STARTED) | D02-P01-CODE_REVIEW | D02-P07-GATE | — |
-| [D02-P07-T001](delivery_02/phase_07/D02-P07-T001.md) | Add customer shipment timeline and secure-document mock operations | NOT_STARTED | self_ai | not_applicable | — | `feat_delivery02_phase_07` | D02-P07-CODE_REVIEW (NOT_STARTED) | D02-P07-G001 | D02-P07-SEQUENTIAL | — |
+| [D02-P07-G001](delivery_02/phase_07/D02-P07-G001.md) | Establish customer shipment and document baseline | COMPLETE | self_ai | not_applicable | Codex | `feat_delivery02_phase_07` | D02-P07-CODE_REVIEW (NOT_STARTED) | D02-P01-CODE_REVIEW | D02-P07-GATE | 2026-08-14T04:24:55.733Z |
+| [D02-P07-T001](delivery_02/phase_07/D02-P07-T001.md) | Add customer shipment timeline and secure-document mock operations | READY | self_ai | not_applicable | — | `feat_delivery02_phase_07` | D02-P07-CODE_REVIEW (NOT_STARTED) | D02-P07-G001 | D02-P07-SEQUENTIAL | — |
 | [D02-P07-T002](delivery_02/phase_07/D02-P07-T002.md) | Build customer shipment tracking and exception states | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery02_phase_07` | D02-P07-CODE_REVIEW (NOT_STARTED) | D02-P07-T001 | D02-P07-SEQUENTIAL | — |
 | [D02-P07-T003](delivery_02/phase_07/D02-P07-T003.md) | Build the ten-category customer Secure Vault | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery02_phase_07` | D02-P07-CODE_REVIEW (NOT_STARTED) | D02-P07-T002 | D02-P07-SEQUENTIAL | — |
 | [D02-P07-T005](delivery_02/phase_07/D02-P07-T005.md) | Enforce secure document access and customer visibility | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery02_phase_07` | D02-P07-CODE_REVIEW (NOT_STARTED) | D02-P07-T003 | D02-P07-SEQUENTIAL | — |
@@ -146,7 +146,7 @@
 ## Current execution frontiers
 
 - D02-COMMERCE: D02-P03-T001 — Add customer inventory projection, tier pricing and reservation eligibility (NOT_STARTED)
-- D02-DASHBOARD-LOGISTICS: D02-P07-G001 — Establish customer shipment and document baseline (NOT_STARTED)
+- D02-DASHBOARD-LOGISTICS: D02-P07-T001 — Add customer shipment timeline and secure-document mock operations (NOT_STARTED)
 - D02-FINAL: D02-P09-T001 — Complete Customer requirement and compiled-behavior traceability (NOT_STARTED)
 - Sequential within each lane; dependencies coordinate work across lanes.
 - Optional Phase 2.11 is excluded until explicitly started with `--opt-in theme`.
