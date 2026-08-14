@@ -42,7 +42,9 @@ blocker: ""
 
 ## Findings
 
-None.
+| # | Severity | File:line | Rule / criterion | Responsible task | Required correction |
+|---|---|---|---|---|---|
+| — | None | — | All applicable CODE_REVIEW_RULES.md and COMMON_FRONTEND_RULES.md checks | — | None. |
 
 ## Playwright MCP Evidence Review
 
@@ -70,6 +72,19 @@ None.
   - Playwright MCP Result: PASS
   - Automated Playwright Test Result: PASS (12/12 passed)
 
+## Fresh-runtime review evidence
+
+- Runtime profile: B (container)
+- Fresh-runtime verification: PASS — `docker compose -f docker-compose.frontend.yml build customer-app mock-api && docker compose -f docker-compose.frontend.yml up -d customer-app mock-api postgres`
+- Runtime provenance: customer-app `c4c0c44419361468f0d2a9bfd6518965cdd4344eabe1069e2da636b503e4b209`; mock-api `99cd1135c0ad53c599a5a69dd8ac6d140739f68562f994805dcaf949c38528ff`; postgres `3b4c5132576f0fafadb2c17e320650a2c04ab775c6797506330cd13d414ccee2` (started 2026-08-14T10:22Z)
+- Service readiness: PASS — Mock API `/healthz`, `/openapi.json`, reset and Customer App `/healthz`
+- Target URL: `http://127.0.0.1:3001/invoices`
+- Viewports: `1440x900`; `390x844`; `768x1024`
+- Theme: `carchief` (default)
+- Console/network result: PASS — 0 console errors; dashboard and invoice API requests returned 200; no failed requests observed
+- Playwright MCP Result: PASS — navigation, accessibility snapshot, resize, menu/invoice click, screenshot and console/network inspection completed against the fresh runtime
+- Automated Playwright Test Result: PASS — 12/12 across Chromium, mobile Chromium and tablet Chromium
+
 ## Tests executed
 
 1. `node tasks/scripts/taskctl.mjs validate`: PASS (119 task/gate files validated, dependency graph is complete and acyclic)
@@ -78,7 +93,7 @@ None.
 4. `pnpm exec vitest run apps/customer-app/src/features/invoices/__tests__/invoices.test.ts apps/mock-api/src/__tests__/customer-invoices.test.ts packages/api-client/src/__tests__/contract.test.ts`: PASS (74 unit and contract tests passed)
 5. `PLAYWRIGHT_BASE_URL=http://localhost:3001 pnpm exec playwright test tests/e2e/customer/invoices.spec.ts`: PASS (12/12 passed across all 3 viewports)
 
-Focused suite result: PASS (74 unit/contract tests, 12/12 Playwright tests across chromium, mobile-chromium, tablet-chromium)
+Focused suite result: 12/12 passed; `tests/e2e/customer/invoices.spec.ts` across chromium, mobile-chromium, tablet-chromium (74 unit/contract tests also passed)
 
 ## Decisions and deviations
 
