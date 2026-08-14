@@ -6,6 +6,10 @@ import type {
   VehicleFacets,
   SearchVehiclesQuery,
   VehicleDetail,
+  VehicleTierPricing,
+  VehicleReservationEligibility,
+  ReservationIneligibilityReason,
+  CustomerTier,
   FreightDestination,
   FreightPort,
   FreightRateRecord,
@@ -43,6 +47,8 @@ import {
   generateVehicleSlug,
   calculateFreightEstimate,
   resolveFreightRateStatus,
+  calculateTierPricing,
+  TIER_DISCOUNTS,
   ENQUIRY_TYPES,
   ENQUIRY_SOURCES,
   ENQUIRY_PREFERRED_DRIVE_SIDES,
@@ -429,14 +435,43 @@ const seedVehicles: VehicleRecord[] = [
     mileage: 72000,
     requestPrice: false,
   },
+  {
+    id: 'veh-draft',
+    chassisNumber: 'DFT-001122',
+    make: 'Honda',
+    model: 'Civic Prototype',
+    year: 2024,
+    priceUsd: 22000,
+    status: 'Draft',
+    category: 'arrival',
+    createdAt: '2026-08-10T08:00:00.000Z',
+    featured: false,
+    stockType: 'J',
+    bodyStyle: 'Sedan',
+    fuelType: 'Petrol',
+    transmission: 'Manual',
+    driveTrain: '2WD',
+    mileage: 1000,
+    requestPrice: false,
+    internalNotes: 'Internal draft - compliance check pending',
+    staffOwnerId: 'staff-99',
+  },
 ];
+
+export interface VehicleQueryContext {
+  audience?: 'public' | 'customer' | 'salesperson';
+  customerId?: string;
+  customerTier?: CustomerTier;
+  nowISO?: string;
+  reservations?: ReservationRecord[];
+}
 
 export interface DemoStore {
   ready(): Promise<void>;
   getConfig(): Promise<PublicConfig>;
-  getVehicles(query?: GetVehiclesQuery): Promise<VehicleDomainSummary[]>;
-  searchVehicles(query?: SearchVehiclesQuery): Promise<VehicleSearchResult>;
-  getVehicleDetail(idOrSlug: string): Promise<VehicleDetail | null>;
+  getVehicles(query?: GetVehiclesQuery, context?: VehicleQueryContext): Promise<VehicleDomainSummary[]>;
+  searchVehicles(query?: SearchVehiclesQuery, context?: VehicleQueryContext): Promise<VehicleSearchResult>;
+  getVehicleDetail(idOrSlug: string, context?: VehicleQueryContext): Promise<VehicleDetail | null>;
   getFreightDestinations(): Promise<FreightDestination[]>;
   getFreightPorts(): Promise<FreightPort[]>;
   getFreightEstimate(request: FreightEstimateRequest): Promise<FreightEstimateResponse>;
@@ -1433,11 +1468,61 @@ export function resolveLocationStatus(v: VehicleRecord, nowISO = '2026-08-10T10:
   return 'In Japan';
 }
 
-function projectPublicVehicle(v: VehicleRecord): VehicleDomainSummary {
-  const resolvedLoc = resolveLocationStatus(v);
+export function projectVehicle(
+  v: VehicleRecord,
+  context: VehicleQueryContext = {}
+): VehicleDomainSummary {
+  const nowISO = context.nowISO || '2026-08-10T10:00:00.000Z';
+  const now = new Date(nowISO).getTime();
+  const resolvedLoc = resolveLocationStatus(v, nowISO);
+
+  const isDraft = v.status === 'Draft';
+  const isSold = v.status === 'Sold';
+  const isArchived = v.status === 'Archived';
+  const active = !isDraft && !isArchived;
+
+  const slug = generateVehicleSlug(v.year, v.make, v.model, v.id);
+
+  // Active reservation hold check
+  const activeHold = context.reservations?.find((r) => {
+    const matches = r.vehicleId === v.id || r.vehicleSlug === slug;
+    if (!matches) return false;
+    const exp = new Date(r.expiresAt).getTime();
+    return exp > now;
+  });
+
+  const nowOnSale = active && !isSold && (!activeHold || Boolean(context.customerId && activeHold.customerId === context.customerId));
+  const isRequestPrice = Boolean(v.requestPrice || !v.priceUsd || v.priceUsd <= 0);
+  const priceState: 'priced' | 'request_price' = isRequestPrice ? 'request_price' : 'priced';
+
+  // Tier Pricing (RULE-06)
+  const tier = context.customerTier || (context.audience === 'customer' ? 'Standard' : undefined);
+  const tierPricing = tier && v.priceUsd > 0 ? calculateTierPricing(v.priceUsd, tier) : undefined;
+
+  // Reservation Eligibility (RULE-05, RULE-08, RULE-10)
+  let reservationEligibility: VehicleReservationEligibility | undefined = undefined;
+  if (context.audience === 'customer' || context.customerId || context.customerTier) {
+    if (isSold || !active) {
+      reservationEligibility = { eligible: false, reason: 'not_reservable' };
+    } else if (isRequestPrice) {
+      reservationEligibility = { eligible: false, reason: 'price_on_request' };
+    } else if (activeHold) {
+      const isOwnHold = Boolean(context.customerId && activeHold.customerId === context.customerId);
+      reservationEligibility = {
+        eligible: false,
+        reason: isOwnHold ? 'already_reserved_by_you' : 'reserved_by_other',
+        holdExpiresAt: activeHold.expiresAt,
+        isOwnHold,
+      };
+    } else {
+      reservationEligibility = { eligible: true };
+    }
+  }
+
   return {
     id: v.id,
     chassisNumber: v.chassisNumber,
+    slug,
     make: v.make,
     model: v.model,
     year: v.year,
@@ -1458,8 +1543,18 @@ function projectPublicVehicle(v: VehicleRecord): VehicleDomainSummary {
     mileage: v.mileage,
     etd: v.etd,
     eta: v.eta,
-    requestPrice: v.requestPrice ?? (v.priceUsd === 0),
+    requestPrice: isRequestPrice,
+    active,
+    nowOnSale,
+    priceState,
+    countryEligibility: [...DEMO_COUNTRY_ELIGIBILITY_PLACEHOLDER],
+    tierPricing,
+    reservationEligibility,
   };
+}
+
+export function projectPublicVehicle(v: VehicleRecord): VehicleDomainSummary {
+  return projectVehicle(v, { audience: 'public' });
 }
 
 /**
@@ -1473,10 +1568,15 @@ function projectPublicVehicle(v: VehicleRecord): VehicleDomainSummary {
  */
 export const DEMO_COUNTRY_ELIGIBILITY_PLACEHOLDER = ['UG', 'KE', 'TZ', 'RW', 'SS'] as const;
 
-export function buildVehicleDetail(v: VehicleRecord): VehicleDetail {
+export function buildVehicleDetail(
+  v: VehicleRecord,
+  context: VehicleQueryContext = {}
+): VehicleDetail {
+  const nowISO = context.nowISO || '2026-08-10T10:00:00.000Z';
+  const now = new Date(nowISO).getTime();
   const slug = generateVehicleSlug(v.year, v.make, v.model, v.id);
   const isRequestPrice = Boolean(v.requestPrice || !v.priceUsd || v.priceUsd <= 0);
-  const priceState = isRequestPrice ? 'request_price' : 'priced';
+  const priceState: 'priced' | 'request_price' = isRequestPrice ? 'request_price' : 'priced';
   const priceUsd = isRequestPrice ? undefined : v.priceUsd;
   const discountPercent = isRequestPrice ? undefined : v.discountPercent;
   const discountedPriceUsd = (priceState === 'priced' && priceUsd && discountPercent)
@@ -1484,7 +1584,46 @@ export function buildVehicleDetail(v: VehicleRecord): VehicleDetail {
     : undefined;
 
   const gallery = v.images ? [...v.images] : [];
-  const locStatus = resolveLocationStatus(v);
+  const locStatus = resolveLocationStatus(v, nowISO);
+
+  const isDraft = v.status === 'Draft';
+  const isSold = v.status === 'Sold';
+  const isArchived = v.status === 'Archived';
+  const active = !isDraft && !isArchived;
+
+  // Active reservation hold check
+  const activeHold = context.reservations?.find((r) => {
+    const matches = r.vehicleId === v.id || r.vehicleSlug === slug;
+    if (!matches) return false;
+    const exp = new Date(r.expiresAt).getTime();
+    return exp > now;
+  });
+
+  const nowOnSale = active && !isSold && (!activeHold || Boolean(context.customerId && activeHold.customerId === context.customerId));
+
+  // Tier Pricing (RULE-06)
+  const tier = context.customerTier || (context.audience === 'customer' ? 'Standard' : undefined);
+  const tierPricing = tier && v.priceUsd > 0 ? calculateTierPricing(v.priceUsd, tier) : undefined;
+
+  // Reservation Eligibility (RULE-05, RULE-08, RULE-10)
+  let reservationEligibility: VehicleReservationEligibility | undefined = undefined;
+  if (context.audience === 'customer' || context.customerId || context.customerTier) {
+    if (isSold || !active) {
+      reservationEligibility = { eligible: false, reason: 'not_reservable' };
+    } else if (isRequestPrice) {
+      reservationEligibility = { eligible: false, reason: 'price_on_request' };
+    } else if (activeHold) {
+      const isOwnHold = Boolean(context.customerId && activeHold.customerId === context.customerId);
+      reservationEligibility = {
+        eligible: false,
+        reason: isOwnHold ? 'already_reserved_by_you' : 'reserved_by_other',
+        holdExpiresAt: activeHold.expiresAt,
+        isOwnHold,
+      };
+    } else {
+      reservationEligibility = { eligible: true };
+    }
+  }
 
   return {
     id: v.id,
@@ -1527,6 +1666,10 @@ export function buildVehicleDetail(v: VehicleRecord): VehicleDetail {
       showDurbanPictures: false,
       totalPicturesCount: gallery.length,
     },
+    active,
+    nowOnSale,
+    tierPricing,
+    reservationEligibility,
   };
 }
 
@@ -1545,7 +1688,6 @@ export function findVehicleRecord(vehicles: VehicleRecord[], idOrSlug: string): 
   // otherwise resolve to that vehicle, producing unlimited duplicate public URLs.
   return undefined;
 }
-
 
 function calculateFacets(vehicles: VehicleDomainSummary[]): VehicleFacets {
   const makeMap = new Map<string, number>();
@@ -1593,9 +1735,26 @@ function calculateFacets(vehicles: VehicleDomainSummary[]): VehicleFacets {
   };
 }
 
-function filterAndSortVehicles(vehicles: VehicleRecord[], query?: GetVehiclesQuery): VehicleDomainSummary[] {
-  let list: VehicleDomainSummary[] = vehicles.map(projectPublicVehicle);
-  const now = new Date('2026-08-10T10:00:00.000Z').getTime();
+function filterAndSortVehicles(
+  vehicles: VehicleRecord[],
+  query?: GetVehiclesQuery,
+  context: VehicleQueryContext = {}
+): VehicleDomainSummary[] {
+  let rawList = [...vehicles];
+  const effectiveAudience = context.audience || query?.audience || 'public';
+  const effectiveTier = context.customerTier || query?.tier;
+  const mergedContext: VehicleQueryContext = {
+    ...context,
+    audience: effectiveAudience,
+    customerTier: effectiveTier,
+  };
+
+  if (effectiveAudience !== 'salesperson') {
+    rawList = rawList.filter((v) => v.status !== 'Draft');
+  }
+
+  let list: VehicleDomainSummary[] = rawList.map((v) => projectVehicle(v, mergedContext));
+  const now = new Date(mergedContext.nowISO || '2026-08-10T10:00:00.000Z').getTime();
   const FIVE_DAYS_MS = 5 * 24 * 60 * 60 * 1000;
 
   if (query?.category) {
@@ -1814,6 +1973,29 @@ export interface ReservationRecord {
   expiresAt: string;
   holdHours: number;
 }
+
+export const seedReservations: ReservationRecord[] = [
+  {
+    id: 'res-seed-active-1',
+    vehicleId: 'veh-2',
+    vehicleSlug: '2020-toyota-hiace-van-veh-2',
+    customerId: 'user-other-456',
+    customerEmail: 'other@example.com',
+    createdAt: '2026-08-09T10:00:00.000Z',
+    expiresAt: '2026-08-11T10:00:00.000Z', // Active relative to 2026-08-10 reference date (48-hour hold)
+    holdHours: 48,
+  },
+  {
+    id: 'res-seed-expired-1',
+    vehicleId: 'veh-3',
+    vehicleSlug: '2022-nissan-x-trail-veh-3',
+    customerId: 'user-other-456',
+    customerEmail: 'other@example.com',
+    createdAt: '2026-08-06T10:00:00.000Z',
+    expiresAt: '2026-08-08T10:00:00.000Z', // Expired relative to 2026-08-10 reference date
+    holdHours: 48,
+  },
+];
 
 function computeReservationStatus(record: Pick<ReservationRecord, 'expiresAt'>, nowISO: string): ReservationStatus {
   return new Date(record.expiresAt).getTime() > new Date(nowISO).getTime() ? 'active' : 'expired';
@@ -2311,7 +2493,7 @@ class MemoryStore implements DemoStore {
   private vehicles = seedVehicles.map((vehicle) => ({ ...vehicle }));
   private enquiries: EnquiryRecord[] = [];
   private enquirySeq = 0;
-  private reservations: ReservationRecord[] = [];
+  private reservations: ReservationRecord[] = seedReservations.map((r) => ({ ...r }));
   private reservationSeq = 0;
   private invoices = seedInvoices.map((i) => ({ ...i }));
   private allocations = seedAllocations.map((a) => ({ ...a }));
@@ -2335,12 +2517,20 @@ class MemoryStore implements DemoStore {
     return Promise.resolve({ ...this.config });
   }
 
-  getVehicles(query?: GetVehiclesQuery): Promise<VehicleDomainSummary[]> {
-    return Promise.resolve(filterAndSortVehicles(this.vehicles, query));
+  getVehicles(query?: GetVehiclesQuery, context?: VehicleQueryContext): Promise<VehicleDomainSummary[]> {
+    const mergedContext: VehicleQueryContext = {
+      ...context,
+      reservations: this.reservations,
+    };
+    return Promise.resolve(filterAndSortVehicles(this.vehicles, query, mergedContext));
   }
 
-  searchVehicles(query?: SearchVehiclesQuery): Promise<VehicleSearchResult> {
-    const filteredList = filterAndSortVehicles(this.vehicles, query);
+  searchVehicles(query?: SearchVehiclesQuery, context?: VehicleQueryContext): Promise<VehicleSearchResult> {
+    const mergedContext: VehicleQueryContext = {
+      ...context,
+      reservations: this.reservations,
+    };
+    const filteredList = filterAndSortVehicles(this.vehicles, query, mergedContext);
     const facets = calculateFacets(filteredList);
 
     const page = Math.max(1, query?.page ? Number(query.page) : 1);
@@ -2363,10 +2553,17 @@ class MemoryStore implements DemoStore {
     });
   }
 
-  getVehicleDetail(idOrSlug: string): Promise<VehicleDetail | null> {
+  getVehicleDetail(idOrSlug: string, context?: VehicleQueryContext): Promise<VehicleDetail | null> {
     const record = findVehicleRecord(this.vehicles, idOrSlug);
     if (!record) return Promise.resolve(null);
-    return Promise.resolve(buildVehicleDetail(record));
+    if ((context?.audience || 'public') !== 'salesperson' && record.status === 'Draft') {
+      return Promise.resolve(null);
+    }
+    const mergedContext: VehicleQueryContext = {
+      ...context,
+      reservations: this.reservations,
+    };
+    return Promise.resolve(buildVehicleDetail(record, mergedContext));
   }
 
   getFreightDestinations(): Promise<FreightDestination[]> {
@@ -2630,7 +2827,7 @@ class MemoryStore implements DemoStore {
     this.config = { ...seedConfig };
     this.vehicles = seedVehicles.map((vehicle) => ({ ...vehicle }));
     this.enquiries = [];
-    this.reservations = [];
+    this.reservations = seedReservations.map((r) => ({ ...r }));
     this.invoices = seedInvoices.map((i) => ({ ...i }));
     this.allocations = seedAllocations.map((a) => ({ ...a }));
     this.payments = seedPayments.map((p) => ({ ...p }));
@@ -2848,20 +3045,84 @@ class PostgresStore implements DemoStore {
         recently_discounted_query text
       );`
     );
-    await this.reset();
+
+    const configResult = await this.pool.query('SELECT id FROM public_config WHERE id = 1');
+    if (configResult.rows.length === 0) {
+      await this.pool.query(
+        'INSERT INTO public_config (id, site_name, currency, contact_phone) VALUES (1, $1, $2, $3)',
+        [seedConfig.siteName, seedConfig.currency, seedConfig.contactPhone]
+      );
+      for (const vehicle of seedVehicles) {
+        await this.pool.query(
+          'INSERT INTO vehicles (id, chassis_number, make, model, year, price_usd, status, category, location_status, created_at, images, featured, stock_type, destination_port, discount_percent, internal_notes, staff_owner_id, body_style, fuel_type, transmission, drive_train, mileage, etd, eta, request_price) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25)',
+          [
+            vehicle.id,
+            vehicle.chassisNumber,
+            vehicle.make,
+            vehicle.model,
+            vehicle.year,
+            vehicle.priceUsd,
+            vehicle.status,
+            vehicle.category || null,
+            vehicle.locationStatus || null,
+            vehicle.createdAt || null,
+            vehicle.images ? JSON.stringify(vehicle.images) : null,
+            vehicle.featured ?? false,
+            vehicle.stockType || null,
+            vehicle.destinationPort || null,
+            vehicle.discountPercent || null,
+            vehicle.internalNotes || null,
+            vehicle.staffOwnerId || null,
+            vehicle.bodyStyle || null,
+            vehicle.fuelType || null,
+            vehicle.transmission || null,
+            vehicle.driveTrain || null,
+            vehicle.mileage || null,
+            vehicle.etd || null,
+            vehicle.eta || null,
+            vehicle.requestPrice ?? false,
+          ]
+        );
+      }
+      for (const res of seedReservations) {
+        await this.pool.query(
+          'INSERT INTO reservations (id, vehicle_id, vehicle_slug, customer_id, customer_email, created_at, expires_at, hold_hours) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
+          [res.id, res.vehicleId, res.vehicleSlug, res.customerId, res.customerEmail, res.createdAt, res.expiresAt, res.holdHours]
+        );
+      }
+      for (const cat of seedFaqCategories) {
+        await this.pool.query('INSERT INTO faq_categories (id, name, description, sort_order) VALUES ($1, $2, $3, $4)', [cat.id, cat.name, cat.description || null, cat.order]);
+      }
+      for (const item of seedFaqItems) {
+        await this.pool.query('INSERT INTO faq_items (id, category_id, category_name, question, answer, slug, featured, sort_order, owner, status, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)', [item.id, item.categoryId, item.categoryName, item.question, item.answer, item.slug, item.featured ?? false, item.order || 1, item.owner, item.status, item.updatedAt]);
+      }
+      for (const testim of seedTestimonials) {
+        await this.pool.query('INSERT INTO testimonials (id, author_name, author_location, avatar_url, vehicle_purchased, rating, content, submitted_at, status, consent) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)', [testim.id, testim.authorName, testim.authorLocation, testim.avatarUrl || null, testim.vehiclePurchased || null, testim.rating, testim.content, testim.submittedAt, testim.status, testim.consent]);
+      }
+      for (const page of seedPublicContentPages) {
+        await this.pool.query('INSERT INTO content_pages (slug, title, summary, body, owner, status, updated_at, sections, metadata) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)', [page.slug, page.title, page.summary, page.body, page.owner, page.status, page.updatedAt, page.sections ? JSON.stringify(page.sections) : null, page.metadata ? JSON.stringify(page.metadata) : null]);
+      }
+      for (const office of seedOfficeLocations) {
+        await this.pool.query('INSERT INTO office_locations (id, name, city, country, address, phone, email, operating_hours, is_primary, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)', [office.id, office.name, office.city, office.country, office.address, office.phone, office.email, office.operatingHours, office.isPrimary, office.status]);
+      }
+      for (const branch of seedBranches) {
+        await this.pool.query('INSERT INTO branch_content (id, name, code, destination_port, introduction, welcome_banner, contact_banner, team_members, meet_and_greet_info, contact_details, content_owner, status, latest_arrivals_query, recently_discounted_query) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)', [branch.id, branch.name, branch.code, branch.destinationPort, branch.introduction, branch.welcomeBanner, branch.contactBanner, JSON.stringify(branch.teamMembers), branch.meetAndGreetInfo, JSON.stringify(branch.contactDetails), branch.contentOwner, branch.status, branch.latestArrivalsQuery ? JSON.stringify(branch.latestArrivalsQuery) : null, branch.recentlyDiscountedQuery ? JSON.stringify(branch.recentlyDiscountedQuery) : null]);
+      }
+    }
   }
 
-  async getConfig(): Promise<PublicConfig> {
-    const result = await this.pool.query('SELECT site_name, currency, contact_phone FROM public_config WHERE id = 1');
-    const row = result.rows[0];
-    return row ? { siteName: row.site_name, currency: row.currency, contactPhone: row.contact_phone } : { ...seedConfig };
+  private async getRawReservations(): Promise<ReservationRecord[]> {
+    const result = await this.pool.query(
+      'SELECT id, vehicle_id, vehicle_slug, customer_id, customer_email, created_at, expires_at, hold_hours FROM reservations'
+    );
+    return result.rows.map(PostgresStore.rowToReservationRecord);
   }
 
-  async getVehicles(query?: GetVehiclesQuery): Promise<VehicleDomainSummary[]> {
+  private async getRawVehicles(): Promise<VehicleRecord[]> {
     const result = await this.pool.query(
       'SELECT id, chassis_number, make, model, year, price_usd, status, category, location_status, created_at, images, featured, stock_type, destination_port, discount_percent, body_style, fuel_type, transmission, drive_train, mileage, etd, eta, request_price FROM vehicles ORDER BY id'
     );
-    const rawRecords: VehicleRecord[] = result.rows.map((row) => ({
+    return result.rows.map((row) => ({
       id: row.id,
       chassisNumber: row.chassis_number,
       make: row.make,
@@ -2886,12 +3147,63 @@ class PostgresStore implements DemoStore {
       eta: row.eta,
       requestPrice: Boolean(row.request_price),
     }));
-    return filterAndSortVehicles(rawRecords, query);
   }
 
-  async searchVehicles(query?: SearchVehiclesQuery): Promise<VehicleSearchResult> {
+  private async getRawVehiclesWith(client: PoolClient): Promise<VehicleRecord[]> {
+    const result = await client.query(
+      'SELECT id, chassis_number, make, model, year, price_usd, status, category, location_status, created_at, images, featured, stock_type, destination_port, discount_percent, body_style, fuel_type, transmission, drive_train, mileage, etd, eta, request_price FROM vehicles ORDER BY id'
+    );
+    return result.rows.map((row) => ({
+      id: row.id,
+      chassisNumber: row.chassis_number,
+      make: row.make,
+      model: row.model,
+      year: Number(row.year),
+      priceUsd: Number(row.price_usd),
+      status: row.status,
+      category: row.category,
+      locationStatus: row.location_status,
+      createdAt: row.created_at,
+      images: row.images ? JSON.parse(row.images) : [],
+      featured: Boolean(row.featured),
+      stockType: row.stock_type,
+      destinationPort: row.destination_port,
+      discountPercent: row.discount_percent ? Number(row.discount_percent) : undefined,
+      bodyStyle: row.body_style,
+      fuelType: row.fuel_type,
+      transmission: row.transmission,
+      driveTrain: row.drive_train,
+      mileage: row.mileage ? Number(row.mileage) : undefined,
+      etd: row.etd,
+      eta: row.eta,
+      requestPrice: Boolean(row.request_price),
+    }));
+  }
+
+  async getConfig(): Promise<PublicConfig> {
+    const result = await this.pool.query('SELECT site_name, currency, contact_phone FROM public_config WHERE id = 1');
+    const row = result.rows[0];
+    return row ? { siteName: row.site_name, currency: row.currency, contactPhone: row.contact_phone } : { ...seedConfig };
+  }
+
+  async getVehicles(query?: GetVehiclesQuery, context?: VehicleQueryContext): Promise<VehicleDomainSummary[]> {
     const rawRecords = await this.getRawVehicles();
-    const filteredList = filterAndSortVehicles(rawRecords, query);
+    const reservations = await this.getRawReservations();
+    const mergedContext: VehicleQueryContext = {
+      ...context,
+      reservations,
+    };
+    return filterAndSortVehicles(rawRecords, query, mergedContext);
+  }
+
+  async searchVehicles(query?: SearchVehiclesQuery, context?: VehicleQueryContext): Promise<VehicleSearchResult> {
+    const rawRecords = await this.getRawVehicles();
+    const reservations = await this.getRawReservations();
+    const mergedContext: VehicleQueryContext = {
+      ...context,
+      reservations,
+    };
+    const filteredList = filterAndSortVehicles(rawRecords, query, mergedContext);
     const facets = calculateFacets(filteredList);
 
     const page = Math.max(1, query?.page ? Number(query.page) : 1);
@@ -2914,11 +3226,19 @@ class PostgresStore implements DemoStore {
     };
   }
 
-  async getVehicleDetail(idOrSlug: string): Promise<VehicleDetail | null> {
+  async getVehicleDetail(idOrSlug: string, context?: VehicleQueryContext): Promise<VehicleDetail | null> {
     const rawRecords = await this.getRawVehicles();
     const record = findVehicleRecord(rawRecords, idOrSlug);
     if (!record) return null;
-    return buildVehicleDetail(record);
+    if ((context?.audience || 'public') !== 'salesperson' && record.status === 'Draft') {
+      return null;
+    }
+    const reservations = await this.getRawReservations();
+    const mergedContext: VehicleQueryContext = {
+      ...context,
+      reservations,
+    };
+    return buildVehicleDetail(record, mergedContext);
   }
 
   async getFreightDestinations(): Promise<FreightDestination[]> {
@@ -3360,68 +3680,6 @@ class PostgresStore implements DemoStore {
     return toCustomerDocument(document);
   }
 
-  private async getRawVehiclesWith(client: PoolClient): Promise<VehicleRecord[]> {
-    const result = await client.query(
-      'SELECT id, chassis_number, make, model, year, price_usd, status, category, location_status, created_at, images, featured, stock_type, destination_port, discount_percent, body_style, fuel_type, transmission, drive_train, mileage, etd, eta, request_price FROM vehicles ORDER BY id'
-    );
-    return result.rows.map((row: Record<string, unknown>) => ({
-      id: row.id as string,
-      chassisNumber: row.chassis_number as string,
-      make: row.make as string,
-      model: row.model as string,
-      year: Number(row.year),
-      priceUsd: Number(row.price_usd),
-      status: row.status as string,
-      category: row.category as string | undefined,
-      locationStatus: row.location_status as VehicleRecord['locationStatus'],
-      createdAt: row.created_at as string | undefined,
-      images: row.images ? JSON.parse(row.images as string) : [],
-      featured: Boolean(row.featured),
-      stockType: row.stock_type as VehicleRecord['stockType'],
-      destinationPort: row.destination_port as string | undefined,
-      discountPercent: row.discount_percent ? Number(row.discount_percent) : undefined,
-      bodyStyle: row.body_style as string | undefined,
-      fuelType: row.fuel_type as string | undefined,
-      transmission: row.transmission as string | undefined,
-      driveTrain: row.drive_train as string | undefined,
-      mileage: row.mileage ? Number(row.mileage) : undefined,
-      etd: row.etd as string | undefined,
-      eta: row.eta as string | undefined,
-      requestPrice: Boolean(row.request_price),
-    }));
-  }
-
-  private async getRawVehicles(): Promise<VehicleRecord[]> {
-    const result = await this.pool.query(
-      'SELECT id, chassis_number, make, model, year, price_usd, status, category, location_status, created_at, images, featured, stock_type, destination_port, discount_percent, body_style, fuel_type, transmission, drive_train, mileage, etd, eta, request_price FROM vehicles ORDER BY id'
-    );
-    return result.rows.map((row) => ({
-      id: row.id,
-      chassisNumber: row.chassis_number,
-      make: row.make,
-      model: row.model,
-      year: Number(row.year),
-      priceUsd: Number(row.price_usd),
-      status: row.status,
-      category: row.category,
-      locationStatus: row.location_status,
-      createdAt: row.created_at,
-      images: row.images ? JSON.parse(row.images) : [],
-      featured: Boolean(row.featured),
-      stockType: row.stock_type,
-      destinationPort: row.destination_port,
-      discountPercent: row.discount_percent ? Number(row.discount_percent) : undefined,
-      bodyStyle: row.body_style,
-      fuelType: row.fuel_type,
-      transmission: row.transmission,
-      driveTrain: row.drive_train,
-      mileage: row.mileage ? Number(row.mileage) : undefined,
-      etd: row.etd,
-      eta: row.eta,
-      requestPrice: Boolean(row.request_price),
-    }));
-  }
-
   async reset(): Promise<void> {
     const client = await this.pool.connect();
     try {
@@ -3472,6 +3730,12 @@ class PostgresStore implements DemoStore {
             vehicle.eta || null,
             vehicle.requestPrice ?? false,
           ]
+        );
+      }
+      for (const res of seedReservations) {
+        await client.query(
+          'INSERT INTO reservations (id, vehicle_id, vehicle_slug, customer_id, customer_email, created_at, expires_at, hold_hours) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
+          [res.id, res.vehicleId, res.vehicleSlug, res.customerId, res.customerEmail, res.createdAt, res.expiresAt, res.holdHours]
         );
       }
       for (const cat of seedFaqCategories) {

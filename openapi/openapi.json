@@ -190,6 +190,18 @@
             "in": "query",
             "required": false,
             "schema": { "type": "integer", "example": 12 }
+          },
+          {
+            "name": "audience",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "enum": ["public", "customer", "salesperson"], "example": "customer" }
+          },
+          {
+            "name": "tier",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "enum": ["Platinum", "Gold", "Silver", "Standard"], "example": "Platinum" }
           }
         ],
         "responses": {
@@ -328,6 +340,18 @@
             "in": "query",
             "required": false,
             "schema": { "type": "integer", "example": 12 }
+          },
+          {
+            "name": "audience",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "enum": ["public", "customer", "salesperson"], "example": "customer" }
+          },
+          {
+            "name": "tier",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "enum": ["Platinum", "Gold", "Silver", "Standard"], "example": "Platinum" }
           }
         ],
         "responses": {
@@ -346,7 +370,7 @@
     },
     "/api/v1/vehicles/{idOrSlug}": {
       "get": {
-        "summary": "Get public vehicle detail by ID, chassis number, or stable slug",
+        "summary": "Get vehicle detail by ID, chassis number, or stable slug",
         "operationId": "getVehicleDetail",
         "parameters": [
           {
@@ -354,6 +378,18 @@
             "in": "path",
             "required": true,
             "schema": { "type": "string", "example": "veh-1" }
+          },
+          {
+            "name": "audience",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "enum": ["public", "customer", "salesperson"], "example": "customer" }
+          },
+          {
+            "name": "tier",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "enum": ["Platinum", "Gold", "Silver", "Standard"], "example": "Platinum" }
           }
         ],
         "responses": {
@@ -1056,9 +1092,44 @@
           "mileage": { "type": "integer", "example": 45000 },
           "etd": { "type": "string", "example": "2026-08-15T00:00:00.000Z" },
           "eta": { "type": "string", "example": "2026-09-01T00:00:00.000Z" },
-          "requestPrice": { "type": "boolean", "example": false }
+          "requestPrice": { "type": "boolean", "example": false },
+          "active": { "type": "boolean", "example": true },
+          "nowOnSale": { "type": "boolean", "example": true },
+          "priceState": { "type": "string", "enum": ["priced", "request_price"], "example": "priced" },
+          "countryEligibility": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "tierPricing": { "$ref": "#/components/schemas/VehicleTierPricing" },
+          "reservationEligibility": { "$ref": "#/components/schemas/VehicleReservationEligibility" }
         },
         "required": ["id", "chassisNumber", "make", "model", "year", "priceUsd", "status"]
+      },
+      "VehicleTierPricing": {
+        "type": "object",
+        "description": "Customer tier-specific pricing calculation (CUST-05, RULE-06)",
+        "properties": {
+          "tier": { "type": "string", "enum": ["Platinum", "Gold", "Silver", "Standard"], "example": "Platinum" },
+          "tierDiscountPercent": { "type": "number", "example": 15 },
+          "tierPriceUsd": { "type": "number", "example": 7225 },
+          "originalPriceUsd": { "type": "number", "example": 8500 }
+        },
+        "required": ["tier", "tierDiscountPercent", "tierPriceUsd", "originalPriceUsd"]
+      },
+      "VehicleReservationEligibility": {
+        "type": "object",
+        "description": "Server-authoritative reservation eligibility and conflict status (RULE-05, RULE-08, RULE-10)",
+        "properties": {
+          "eligible": { "type": "boolean", "example": true },
+          "reason": {
+            "type": "string",
+            "enum": ["already_reserved_by_you", "reserved_by_other", "not_reservable", "price_on_request", "limit_exceeded"],
+            "example": "reserved_by_other"
+          },
+          "holdExpiresAt": { "type": "string", "example": "2026-08-12T10:00:00.000Z" },
+          "isOwnHold": { "type": "boolean", "example": false }
+        },
+        "required": ["eligible"]
       },
       "CategorizedPublicMedia": {
         "type": "object",
@@ -1136,7 +1207,11 @@
             "type": "array",
             "items": { "type": "string" }
           },
-          "media": { "$ref": "#/components/schemas/CategorizedPublicMedia" }
+          "media": { "$ref": "#/components/schemas/CategorizedPublicMedia" },
+          "active": { "type": "boolean", "example": true },
+          "nowOnSale": { "type": "boolean", "example": true },
+          "tierPricing": { "$ref": "#/components/schemas/VehicleTierPricing" },
+          "reservationEligibility": { "$ref": "#/components/schemas/VehicleReservationEligibility" }
         },
         "required": ["id", "chassisNumber", "slug", "make", "model", "year", "status", "priceState", "requestPrice", "media"]
       },
