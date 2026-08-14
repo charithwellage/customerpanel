@@ -621,7 +621,16 @@ function appendReopenEvent(id, reason) {
   const log = loadLog(id);
   if (!log) return;
   const event = `\n## Reopened — ${new Date().toISOString()}\n\n${reason}\n`;
-  writeFileSync(log.path, log.text.replace(/\n## Blockers\n/, `${event}\n## Blockers\n`));
+  // A log reopened more than once accumulates multiple "## Blockers" headings
+  // (one per prior reopen/fix-pass cycle) — insert before the LAST one so the
+  // new event lands at the end of the log instead of truncating everything
+  // between the first heading and the real, final one.
+  const marker = '\n## Blockers\n';
+  const index = log.text.lastIndexOf(marker);
+  const updated = index === -1
+    ? `${log.text}${event}`
+    : `${log.text.slice(0, index)}${event}${marker}${log.text.slice(index + marker.length)}`;
+  writeFileSync(log.path, updated);
 }
 
 function option(name) {
