@@ -106,8 +106,8 @@
 | [D02-P04-T002](delivery_02/phase_04/D02-P04-T002.md) | Build My Vehicles groupings, counts, search and shipping filters | COMPLETE | self_ai | playwright_mcp | Antigravity | `feat_delivery02_phase_04` | D02-P04-CODE_REVIEW (COMPLETE) | D02-P04-T001 | D02-P04-SEQUENTIAL | 2026-08-14T09:33:45.405Z |
 | [D02-P04-T003](delivery_02/phase_04/D02-P04-T003.md) | Build customer vehicle transaction detail and accept My Vehicles | COMPLETE | self_ai | playwright_mcp | Antigravity | `feat_delivery02_phase_04` | D02-P04-CODE_REVIEW (COMPLETE) | D02-P04-T002 | D02-P04-SEQUENTIAL | 2026-08-14T08:39:58.910Z |
 | [D02-P04-CODE_REVIEW](delivery_02/phase_04/D02-P04-CODE_REVIEW.md) | Phase 2.4 PR code review and tech-lead approval | COMPLETE | phase_manual | not_applicable | Claude Code | `feat_delivery02_phase_04` | D02-P04-CODE_REVIEW (COMPLETE) | D02-P04-T003 | D02-P04-REVIEW | 2026-08-14T09:36:28.601Z |
-| [D02-P05-T001](delivery_02/phase_05/D02-P05-T001.md) | Add customer PI and invoice contracts with linked printable fixtures | READY | self_ai | not_applicable | — | `feat_delivery02_phase_05` | D02-P05-CODE_REVIEW (NOT_STARTED) | D02-P04-CODE_REVIEW | D02-P05-SEQUENTIAL | — |
-| [D02-P05-T002](delivery_02/phase_05/D02-P05-T002.md) | Build customer quote and invoice lists, details and print presentation | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery02_phase_05` | D02-P05-CODE_REVIEW (NOT_STARTED) | D02-P05-T001 | D02-P05-SEQUENTIAL | — |
+| [D02-P05-T001](delivery_02/phase_05/D02-P05-T001.md) | Add customer PI and invoice contracts with linked printable fixtures | COMPLETE | self_ai | not_applicable | Antigravity | `feat_delivery02_phase_05` | D02-P05-CODE_REVIEW (NOT_STARTED) | D02-P04-CODE_REVIEW | D02-P05-SEQUENTIAL | 2026-08-14T09:47:28.899Z |
+| [D02-P05-T002](delivery_02/phase_05/D02-P05-T002.md) | Build customer quote and invoice lists, details and print presentation | READY | self_ai | playwright_mcp | — | `feat_delivery02_phase_05` | D02-P05-CODE_REVIEW (NOT_STARTED) | D02-P05-T001 | D02-P05-SEQUENTIAL | — |
 | [D02-P05-T003](delivery_02/phase_05/D02-P05-T003.md) | Accept invoice reconciliation, authorization and historical stability | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery02_phase_05` | D02-P05-CODE_REVIEW (NOT_STARTED) | D02-P05-T002 | D02-P05-SEQUENTIAL | — |
 | [D02-P05-CODE_REVIEW](delivery_02/phase_05/D02-P05-CODE_REVIEW.md) | Phase 2.5 PR code review and tech-lead approval | NOT_STARTED | phase_manual | not_applicable | — | `feat_delivery02_phase_05` | D02-P05-CODE_REVIEW (NOT_STARTED) | D02-P05-T003 | D02-P05-REVIEW | — |
 | [D02-P06-G001](delivery_02/phase_06/D02-P06-G001.md) | Approve PI deadline, payment proof and customer payment vocabulary | NOT_STARTED | self_ai | not_applicable | — | `feat_delivery02_phase_06` | D02-P06-CODE_REVIEW (NOT_STARTED) | D02-P05-CODE_REVIEW | D02-P06-GATE | — |
@@ -145,7 +145,7 @@
 
 ## Current execution frontiers
 
-- D02-COMMERCE: D02-P05-T001 — Add customer PI and invoice contracts with linked printable fixtures (NOT_STARTED)
+- D02-COMMERCE: D02-P05-T002 — Build customer quote and invoice lists, details and print presentation (NOT_STARTED)
 - D02-DASHBOARD-LOGISTICS: D02-P07-G001 — Establish customer shipment and document baseline (NOT_STARTED)
 - D02-FINAL: D02-P09-T001 — Complete Customer requirement and compiled-behavior traceability (NOT_STARTED)
 - Sequential within each lane; dependencies coordinate work across lanes.

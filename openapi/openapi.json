@@ -1078,6 +1078,201 @@
         }
       }
     },
+    "/api/v1/customer/invoices": {
+      "get": {
+        "summary": "List customer invoices and proforma invoices (CUST-02, CUST-14, CUST-15, RULE-04, RULE-08, RULE-10)",
+        "description": "Returns list of issued Proforma Invoices (PI) and approved Commercial Invoices belonging to the authenticated customer. Strictly scoped by customer identity with server-calculated paid/outstanding totals, 72h payment deadlines for PIs, and linked document availability. Requires authentication.",
+        "operationId": "listCustomerInvoices",
+        "security": [
+          { "BearerAuth": [] }
+        ],
+        "parameters": [
+          {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "description": "Filter by invoice type: 'All', 'Proforma', or 'Commercial'",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "description": "Filter by invoice status: 'All', 'Issued', 'PartiallyPaid', 'Paid', 'Overdue', 'Expired', 'Cancelled'",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "query",
+            "in": "query",
+            "required": false,
+            "description": "Search text matching invoice number, vehicle make, model, chassis, or year",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "description": "Page number (1-based)",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Page size limit",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of customer invoices and proforma invoices with aggregate counts and totals",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CustomerInvoiceListResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/customer/invoices/{id}": {
+      "get": {
+        "summary": "Get customer invoice or proforma invoice detail (CUST-14, CUST-15, CUST-16, CUST-21, RULE-04, RULE-07)",
+        "description": "Returns full details for a specific customer invoice or proforma invoice, including line items, vehicle specifications, approved payment allocations, official bank account details for wire transfer, and document availability. Scoped strictly to authenticated customer. Requires authentication.",
+        "operationId": "getCustomerInvoiceDetail",
+        "security": [
+          { "BearerAuth": [] }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Invoice ID or Invoice Number (e.g. inv-001, pi-001, INV-2026-001)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Customer invoice detail with line items, allocations, and bank details",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CustomerInvoiceDetail" }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "Invoice not found or not owned by customer",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/customer/invoices/{id}/document": {
+      "get": {
+        "summary": "Get authorized printable/downloadable document projection for customer invoice (CUST-16, RULE-04)",
+        "description": "Returns structured printable/downloadable document projection with official CarChief header, invoice items, and banking details. Scoped strictly to authenticated customer. Requires authentication.",
+        "operationId": "getCustomerInvoiceDocument",
+        "security": [
+          { "BearerAuth": [] }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Invoice ID or Invoice Number",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized printable/downloadable invoice document projection",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CustomerInvoiceDocument" }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "Invoice not found or not owned by customer",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/__reset": {
       "post": {
         "summary": "Deterministic non-production data reset",
@@ -1919,6 +2114,164 @@
           }
         },
         "required": ["items", "total", "countsByStatus"]
+      },
+      "CustomerInvoiceType": {
+        "type": "string",
+        "enum": ["Proforma", "Commercial"],
+        "example": "Commercial"
+      },
+      "CustomerInvoiceStatus": {
+        "type": "string",
+        "enum": ["Draft", "Issued", "PartiallyPaid", "Paid", "Overdue", "Expired", "Cancelled"],
+        "example": "Issued"
+      },
+      "CustomerInvoiceLineItem": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "example": "li-001" },
+          "description": { "type": "string", "example": "FOB Vehicle Price - 2021 Toyota Corolla Axio" },
+          "quantity": { "type": "integer", "example": 1 },
+          "unitPriceUsd": { "type": "number", "example": 7200.00 },
+          "amountUsd": { "type": "number", "example": 7200.00 }
+        },
+        "required": ["id", "description", "quantity", "unitPriceUsd", "amountUsd"]
+      },
+      "CustomerInvoiceAllocationItem": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "example": "alloc-001" },
+          "paymentId": { "type": "string", "example": "pay-001" },
+          "amountUsd": { "type": "number", "example": 2000.00 },
+          "allocatedAt": { "type": "string", "example": "2026-08-11T10:00:00.000Z" },
+          "status": { "type": "string", "enum": ["Approved", "Pending", "Rejected"], "example": "Approved" }
+        },
+        "required": ["id", "paymentId", "amountUsd", "allocatedAt", "status"]
+      },
+      "CustomerInvoiceBankDetails": {
+        "type": "object",
+        "properties": {
+          "bankName": { "type": "string", "example": "MUFG Bank, Ltd." },
+          "swiftCode": { "type": "string", "example": "BOTKJPJT" },
+          "accountName": { "type": "string", "example": "CarChief International Co., Ltd." },
+          "accountNumber": { "type": "string", "example": "123-4567890" },
+          "branchName": { "type": "string", "example": "Tokyo Head Office" },
+          "bankAddress": { "type": "string", "example": "7-1, Marunouchi 2-chome, Chiyoda-ku, Tokyo 100-8388, Japan" },
+          "reference": { "type": "string", "example": "INV-2026-001" }
+        },
+        "required": ["bankName", "swiftCode", "accountName", "accountNumber", "branchName", "bankAddress", "reference"]
+      },
+      "CustomerInvoiceSummary": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "example": "inv-001" },
+          "invoiceNumber": { "type": "string", "example": "INV-2026-001" },
+          "type": { "$ref": "#/components/schemas/CustomerInvoiceType" },
+          "customerId": { "type": "string", "example": "cust-123" },
+          "vehicleId": { "type": "string", "example": "veh-1" },
+          "vehicleSlug": { "type": "string", "example": "2021-toyota-corolla-axio-veh-1" },
+          "make": { "type": "string", "example": "Toyota" },
+          "model": { "type": "string", "example": "Corolla Axio" },
+          "year": { "type": "integer", "example": 2021 },
+          "totalAmountUsd": { "type": "number", "example": 8500.00 },
+          "paidAmountUsd": { "type": "number", "example": 5500.00 },
+          "outstandingAmountUsd": { "type": "number", "example": 3000.00 },
+          "depositRequiredUsd": { "type": "number", "example": 4250.00 },
+          "depositPaidUsd": { "type": "number", "example": 2000.00 },
+          "status": { "$ref": "#/components/schemas/CustomerInvoiceStatus" },
+          "issuedAt": { "type": "string", "example": "2026-08-10T10:00:00.000Z" },
+          "dueDate": { "type": "string", "example": "2026-08-17T10:00:00.000Z" },
+          "paymentDeadline": { "type": "string", "example": "2026-08-13T10:00:00.000Z" },
+          "documentStatus": { "type": "string", "enum": ["Available", "Pending", "Unavailable"], "example": "Available" },
+          "currency": { "type": "string", "example": "USD" }
+        },
+        "required": ["id", "invoiceNumber", "type", "customerId", "vehicleId", "vehicleSlug", "make", "model", "year", "totalAmountUsd", "paidAmountUsd", "outstandingAmountUsd", "status", "issuedAt", "dueDate", "documentStatus", "currency"]
+      },
+      "CustomerInvoiceDetail": {
+        "allOf": [
+          { "$ref": "#/components/schemas/CustomerInvoiceSummary" },
+          {
+            "type": "object",
+            "properties": {
+              "vehicle": {
+                "type": "object",
+                "properties": {
+                  "id": { "type": "string", "example": "veh-1" },
+                  "chassisNumber": { "type": "string", "example": "NZE141-1234567" },
+                  "make": { "type": "string", "example": "Toyota" },
+                  "model": { "type": "string", "example": "Corolla Axio" },
+                  "year": { "type": "integer", "example": 2021 },
+                  "slug": { "type": "string", "example": "2021-toyota-corolla-axio-veh-1" },
+                  "primaryImage": { "type": "string", "example": "https://example.com/veh-1.jpg" }
+                },
+                "required": ["id", "chassisNumber", "make", "model", "year", "slug"]
+              },
+              "lineItems": {
+                "type": "array",
+                "items": { "$ref": "#/components/schemas/CustomerInvoiceLineItem" }
+              },
+              "allocations": {
+                "type": "array",
+                "items": { "$ref": "#/components/schemas/CustomerInvoiceAllocationItem" }
+              },
+              "bankDetails": { "$ref": "#/components/schemas/CustomerInvoiceBankDetails" },
+              "documentUrl": { "type": "string", "example": "/documents/inv-001.pdf" },
+              "termsAndConditions": {
+                "type": "array",
+                "items": { "type": "string" }
+              },
+              "isExpired": { "type": "boolean", "example": false },
+              "notes": { "type": "string", "example": "Proforma invoice issued with 50% deposit requirement" }
+            },
+            "required": ["vehicle", "lineItems", "allocations", "bankDetails"]
+          }
+        ]
+      },
+      "CustomerInvoiceCountsByType": {
+        "type": "object",
+        "properties": {
+          "all": { "type": "integer", "example": 4 },
+          "proforma": { "type": "integer", "example": 1 },
+          "commercial": { "type": "integer", "example": 3 }
+        },
+        "required": ["all", "proforma", "commercial"]
+      },
+      "CustomerInvoiceTotals": {
+        "type": "object",
+        "properties": {
+          "totalInvoicedUsd": { "type": "number", "example": 50100.00 },
+          "totalPaidUsd": { "type": "number", "example": 12500.00 },
+          "totalOutstandingUsd": { "type": "number", "example": 37600.00 }
+        },
+        "required": ["totalInvoicedUsd", "totalPaidUsd", "totalOutstandingUsd"]
+      },
+      "CustomerInvoiceListResponse": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/CustomerInvoiceSummary" }
+          },
+          "total": { "type": "integer", "example": 4 },
+          "page": { "type": "integer", "example": 1 },
+          "limit": { "type": "integer", "example": 20 },
+          "countsByType": { "$ref": "#/components/schemas/CustomerInvoiceCountsByType" },
+          "totals": { "$ref": "#/components/schemas/CustomerInvoiceTotals" }
+        },
+        "required": ["items", "total", "page", "limit", "countsByType", "totals"]
+      },
+      "CustomerInvoiceDocument": {
+        "type": "object",
+        "properties": {
+          "documentId": { "type": "string", "example": "doc-inv-001" },
+          "invoiceId": { "type": "string", "example": "inv-001" },
+          "invoiceNumber": { "type": "string", "example": "INV-2026-001" },
+          "type": { "$ref": "#/components/schemas/CustomerInvoiceType" },
+          "title": { "type": "string", "example": "Commercial Invoice INV-2026-001" },
+          "contentHtml": { "type": "string", "example": "<div class=\"invoice-doc\">...</div>" },
+          "status": { "type": "string", "enum": ["Available", "Unavailable"], "example": "Available" },
+          "generatedAt": { "type": "string", "example": "2026-08-10T10:00:00.000Z" }
+        },
+        "required": ["documentId", "invoiceId", "invoiceNumber", "type", "title", "contentHtml", "status", "generatedAt"]
       }
     }
   }
