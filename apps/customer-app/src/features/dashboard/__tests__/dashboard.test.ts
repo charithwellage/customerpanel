@@ -7,6 +7,14 @@ import type { CustomerDashboard, PaymentStatusSummary, ShipmentStatusSummary, Do
  */
 
 describe('Dashboard Types & Data Validation', () => {
+  it('keeps dashboard progress styling in CSS rather than a static inline width', async () => {
+    const { readFile } = await import('node:fs/promises');
+    const source = await readFile(new URL('../components/CreditUtilisationCard.tsx', import.meta.url), 'utf8');
+
+    expect(source).not.toContain('style={{ width:');
+    expect(source).toContain('--cc-utilisation-width');
+  });
+
   it('defines CustomerDashboard interface correctly', () => {
     const mockDashboard: CustomerDashboard = {
       customerId: 'cust-123',

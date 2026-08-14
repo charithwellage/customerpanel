@@ -48,7 +48,8 @@ export const CreditUtilisationCard: React.FC<CreditUtilisationCardProps> = ({ da
         <div className="cc-cust-card__progress" aria-label={`Credit utilisation: ${utilisation}%`}>
           <div
             className={`cc-cust-card__progress-bar cc-cust-card__progress-bar--${utilisationClass}`}
-            style={{ width: `${Math.min(utilisation, 100)}%` }}
+            // Runtime-only width is passed through the documented CSS custom-property exception.
+            style={{ '--cc-utilisation-width': `${Math.min(utilisation, 100)}%` } as React.CSSProperties}
           />
         </div>
       </div>
