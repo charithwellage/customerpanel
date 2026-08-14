@@ -3213,8 +3213,16 @@ function validatePaymentRequest(request: CreateCustomerPaymentRequest): void {
   if (!Number.isInteger(request.proof.sizeBytes) || request.proof.sizeBytes <= 0 || request.proof.sizeBytes > 10 * 1024 * 1024) throw new Error('Proof size exceeds the 10MB demo limit');
 }
 
-function createPaymentRecord(customerId: string, request: CreateCustomerPaymentRequest, nowISO: string, existing: PaymentRecord[]): PaymentRecord {
+function createPaymentRecord(
+  customerId: string,
+  request: CreateCustomerPaymentRequest,
+  nowISO: string,
+  existing: PaymentRecord[],
+  invoices: InvoiceRecord[],
+): PaymentRecord {
   validatePaymentRequest(request);
+  const invoice = invoices.find((candidate) => candidate.id === request.invoiceId);
+  if (!invoice || invoice.customerId !== customerId) throw new Error('Invoice not found or not owned by customer');
   const duplicate = existing.find((payment) => payment.customerId === customerId && payment.idempotencyKey === request.idempotencyKey);
   if (duplicate) return duplicate;
   const record: PaymentRecord = {
@@ -3657,7 +3665,7 @@ class MemoryStore implements DemoStore {
   }
 
   createCustomerPayment(customerId: string, request: CreateCustomerPaymentRequest, nowISO = new Date().toISOString()): Promise<CustomerPayment> {
-    return Promise.resolve(toCustomerPayment(createPaymentRecord(customerId, request, nowISO, this.payments)));
+    return Promise.resolve(toCustomerPayment(createPaymentRecord(customerId, request, nowISO, this.payments, this.invoices)));
   }
 
   reset(): Promise<void> {
@@ -4610,7 +4618,7 @@ class PostgresStore implements DemoStore {
   }
 
   async createCustomerPayment(customerId: string, request: CreateCustomerPaymentRequest, nowISO = new Date().toISOString()): Promise<CustomerPayment> {
-    return toCustomerPayment(createPaymentRecord(customerId, request, nowISO, this.paymentRecords));
+    return toCustomerPayment(createPaymentRecord(customerId, request, nowISO, this.paymentRecords, seedInvoices));
   }
 
   async reset(): Promise<void> {

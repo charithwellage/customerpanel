@@ -51,6 +51,24 @@ describe('Customer TT payment journal contract (D02-P06-T001)', () => {
     expect(response.status).toBe(400);
   });
 
+  it('rejects payment creation for an unknown or another customer invoice', async () => {
+    const headers = { Authorization: `Bearer ${token()}`, 'Content-Type': 'application/json' };
+    const baseRequest = {
+      reference: 'TT-OWNERSHIP-001', bankName: 'Customer bank', currency: 'USD', amountUsd: 1,
+      paymentDate: '2026-08-14', idempotencyKey: 'idem-ownership-001',
+      proof: { fileName: 'receipt.pdf', fileType: 'PDF', sizeBytes: 1200, scanStatus: 'Pending' },
+    };
+    const unknown = await fetch(`${baseUrl}/api/v1/customer/payments`, {
+      method: 'POST', headers, body: JSON.stringify({ ...baseRequest, invoiceId: 'inv-missing' }),
+    });
+    expect(unknown.status).toBe(400);
+
+    const otherCustomer = await fetch(`${baseUrl}/api/v1/customer/payments`, {
+      method: 'POST', headers, body: JSON.stringify({ ...baseRequest, invoiceId: 'inv-004', idempotencyKey: 'idem-ownership-002' }),
+    });
+    expect(otherCustomer.status).toBe(400);
+  });
+
   it('rejects unauthenticated creation and keeps proof content out of the response contract', async () => {
     const response = await fetch(`${baseUrl}/api/v1/customer/payments`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
     expect(response.status).toBe(401);
