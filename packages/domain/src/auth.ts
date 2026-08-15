@@ -8,30 +8,39 @@ export type UserRole =
   | 'FinanceManager'
   | 'SystemAdmin';
 
+export type CustomerTier = 'Platinum' | 'Gold' | 'Silver' | 'Standard';
+
 export interface JwtClaims {
   sub: string;
   email: string;
   role: UserRole;
   permissions: string[];
   exp: number;
+  tier?: CustomerTier;
 }
 
 export const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
   PublicVisitor: ['read:public'],
-  CustomerBuyer: ['read:public', 'create:inquiry', 'create:reservation'],
+  CustomerBuyer: ['read:public', 'read:customer', 'create:inquiry', 'create:reservation', 'create:payment'],
   Salesperson: ['read:public', 'read:leads', 'update:leads', 'create:inquiry'],
   StockController: ['read:public', 'update:vehicles', 'create:vehicles'],
   FinanceManager: ['read:public', 'read:finance', 'approve:pi'],
   SystemAdmin: ['read:public', 'read:all', 'write:all', 'reset:data'],
 };
 
-export function createDemoJwtToken(role: UserRole, sub = 'user-123', email = 'user@carchief.com'): string {
+export function createDemoJwtToken(
+  role: UserRole,
+  sub = 'user-123',
+  email = 'user@carchief.com',
+  tier: CustomerTier = 'Standard'
+): string {
   const claims: JwtClaims = {
     sub,
     email,
     role,
     permissions: ROLE_PERMISSIONS[role] || [],
     exp: Math.floor(Date.now() / 1000) + 3600,
+    tier: role === 'CustomerBuyer' ? tier : undefined,
   };
   const json = JSON.stringify(claims);
   const payload = Buffer.from(json, 'utf8').toString('base64');
@@ -68,9 +77,9 @@ export interface DemoSessionResponse {
 
 /**
  * True once `claims.exp` (Unix seconds) has passed `nowSeconds`. The mock's
- * `parseDemoJwtToken`/auth middleware does not itself enforce expiry (it
- * only decodes), so a stand-in session's lifetime is enforced by the caller
- * — see `apps/public-web/src/features/account-entry` (D01-P06-T003).
+ * `parseDemoJwtToken` only decodes. API auth middleware must apply this
+ * predicate before authorizing a request; browser session state also uses it
+ * to present an honest expired-session state.
  */
 export function isJwtExpired(claims: Pick<JwtClaims, 'exp'>, nowSeconds: number = Math.floor(Date.now() / 1000)): boolean {
   return claims.exp <= nowSeconds;

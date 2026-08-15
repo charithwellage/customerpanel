@@ -1,0 +1,29 @@
+.cc-cust-notifications { display: grid; gap: var(--spacing-xl); }
+.cc-cust-notifications__header { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--spacing-md); }
+.cc-cust-notifications__eyebrow, .cc-cust-notification-card__type { margin: 0 0 var(--spacing-xs); color: var(--color-text-muted); font-size: var(--font-size-sm); text-transform: uppercase; letter-spacing: 0.08em; }
+.cc-cust-notifications__title, .cc-cust-notification-card__title { margin: 0; color: var(--color-text-primary); font-family: var(--font-display); }
+.cc-cust-notifications__subtitle { margin: var(--spacing-xs) 0 0; color: var(--color-text-muted); }
+.cc-cust-notifications__summary { border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: var(--spacing-xs) var(--spacing-sm); color: var(--color-text-muted); }
+.cc-cust-notifications__summary strong { color: var(--color-primary); }
+.cc-cust-notifications__controls { display: grid; grid-template-columns: minmax(12rem, 1fr) auto auto; align-items: end; gap: var(--spacing-md); padding: var(--spacing-lg); border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface-elevated); }
+.cc-cust-notifications__field { display: grid; gap: var(--spacing-xs); color: var(--color-text-muted); font-weight: 600; }
+.cc-cust-notifications__field input { min-height: 2.75rem; border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--spacing-sm); background: var(--color-surface); color: var(--color-text-primary); font: inherit; }
+.cc-cust-notifications__filters { display: flex; flex-wrap: wrap; gap: var(--spacing-xs); }
+.cc-cust-notifications__filter, .cc-cust-notifications__mark-all, .cc-cust-notification-card__action, .cc-cust-notification-card__link, .cc-cust-notifications__retry { min-height: var(--min-touch-target); border: 1px solid var(--color-primary); border-radius: var(--radius-md); padding: var(--spacing-xs) var(--spacing-sm); background: var(--color-surface); color: var(--color-primary); cursor: pointer; font: inherit; }
+.cc-cust-notifications__filter--active, .cc-cust-notifications__mark-all { background: var(--color-primary); color: var(--color-text-on-primary); }
+.cc-cust-notifications__mark-all:disabled, .cc-cust-notification-card__action:disabled { cursor: not-allowed; opacity: 0.6; }
+.cc-cust-notifications__list { display: grid; gap: var(--spacing-md); }
+.cc-cust-notification-card { display: grid; gap: var(--spacing-sm); padding: var(--spacing-lg); border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface-elevated); box-shadow: var(--shadow-sm); }
+.cc-cust-notification-card--unread { border-inline-start: var(--spacing-xs) solid var(--color-primary); }
+.cc-cust-notification-card__header { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--spacing-md); }
+.cc-cust-notification-card__type { margin-bottom: 0; }
+.cc-cust-notification-card__title { font-size: var(--font-size-lg); }
+.cc-cust-notification-card__message, .cc-cust-notification-card__date { margin: 0; color: var(--color-text-muted); }
+.cc-cust-notification-card__new { border-radius: var(--radius-pill); padding: var(--spacing-xs) var(--spacing-sm); background: var(--color-accent); color: var(--color-text-on-accent); font-size: var(--font-size-sm); font-weight: 700; }
+.cc-cust-notification-card__actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--spacing-sm); }
+.cc-cust-notification-card__link { border-color: var(--color-secondary); color: var(--color-secondary); }
+.cc-cust-notification-card__unavailable { color: var(--color-text-muted); font-size: var(--font-size-sm); }
+.cc-cust-notifications__state { padding: var(--spacing-lg); border: 1px dashed var(--color-border); border-radius: var(--radius-lg); color: var(--color-text-muted); }
+.cc-cust-notifications__state--error { color: var(--color-error); }
+.cc-cust-notifications__retry { margin-top: var(--spacing-sm); }
+@media (max-width: 700px) { .cc-cust-notifications__header, .cc-cust-notifications__controls { display: grid; grid-template-columns: 1fr; } }

@@ -27,7 +27,9 @@ services:
     # proven independently by `build:production`/`test:production-guard` and by the real-route
     # tests in apps/mock-api/src/__tests__/security-projection.test.ts, none of which use Docker.
     environment:
-      NODE_ENV: production
+      # This is an explicitly non-production validation stack so deterministic reset remains
+      # available for the container Playwright/UAT gate; production safety is tested separately.
+      NODE_ENV: development
       ENABLE_MOCK_RESET: "true"
       MOCK_API_PORT: 4000
       DATABASE_URL: postgresql://carchief:carchief_dev_pass@postgres:5432/carchief_mock
@@ -60,6 +62,35 @@ services:
       - "127.0.0.1:${CARCHIEF_FRONTEND_PORT:-3000}:3000"
     healthcheck:
       test: [ "CMD", "node", "-e", "fetch('http://'+require('os').hostname()+':3000/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))" ]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  customer-app:
+    build:
+      context: .
+      dockerfile: apps/customer-app/Dockerfile
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      # Deliberately NOT VITE_API_BASE_URL. A VITE_* value is inlined into the
+      # static bundle at build time and that bundle runs in the host browser,
+      # which cannot resolve the Compose-internal `mock-api` hostname. Instead
+      # the browser calls the customer app's own origin and the preview server
+      # — a Node process inside this network — proxies /api/v1 onward, so the
+      # target stays a runtime value.
+      CUSTOMER_API_PROXY_TARGET: http://mock-api:4000
+    depends_on:
+      mock-api:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${CARCHIEF_CUSTOMER_APP_PORT:-3001}:3001"
+    healthcheck:
+      # Unlike public-web/mock-api, this container runs `vite preview`, which
+      # rejects requests whose Host header isn't localhost/an IP address (its
+      # default DNS-rebinding protection) — the container's own DNS hostname
+      # fails that check, so this probes 127.0.0.1 instead of os.hostname().
+      test: [ "CMD", "node", "-e", "fetch('http://127.0.0.1:3001/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))" ]
       interval: 10s
       timeout: 3s
       retries: 5

@@ -400,6 +400,385 @@ export interface BranchListResponse {
   items: BranchContent[];
   total: number;
 }
+
+// Phase 2.2: customer dashboard KPI baseline (D02-ASM-001). Non-blocking
+// aggregate derived from linked mock records: outstanding balance = issued
+// invoice total - approved allocations; credit utilisation = outstanding
+// balance ÷ credit limit; vehicle counts use canonical IDs and server status.
+// Server-authoritative; no browser calculation or fabrication.
+
+export interface Invoice {
+  id: string;
+  customerId: string;
+  vehicleId: string;
+  vehicleSlug: string;
+  make: string;
+  model: string;
+  year: number;
+  totalAmountUsd: number;
+  invoicedAt: string;
+  status: 'Draft' | 'Issued' | 'Paid' | 'Overdue';
+}
+
+export interface Allocation {
+  id: string;
+  customerId: string;
+  paymentId: string;
+  invoiceId: string;
+  amountUsd: number;
+  allocatedAt: string;
+  status: 'Approved' | 'Pending' | 'Rejected';
+}
+
+export interface PaymentStatusSummary {
+  approved: number;
+  pending: number;
+  rejected: number;
+}
+
+export interface ShipmentStatusSummary {
+  ready: number;
+  inTransit: number;
+  delivered: number;
+  other: number;
+}
+
+export interface DocumentAvailabilityCount {
+  available: number;
+  pending: number;
+  unavailable: number;
+}
+
+export interface PartialFailureIndicators {
+  paymentsFailed: boolean;
+  shipmentsFailed: boolean;
+  documentsFailed: boolean;
+  notificationsFailed: boolean;
+}
+
+export interface CustomerShipment {
+  id: string;
+  vehicleId: string;
+  stage: 'Purchased' | 'Inspection' | 'Ready' | 'In Transit' | 'Delivered';
+  shippedAt: string;
+  deliveredAt?: string;
+  eta?: string;
+  location?: string;
+  freshness: 'fresh' | 'stale' | 'unknown';
+  shipOkStatus: 'Pending' | 'Approved' | 'Rejected';
+  shipOkRejectionReason?: string;
+  documentReleaseStatus: 'Pending' | 'Approved' | 'Rejected';
+  documentReleaseRejectionReason?: string;
+  timeline: Array<{ stage: CustomerShipment['stage']; occurredAt?: string; current: boolean }>;
+}
+
+export interface CustomerShipmentList {
+  items: CustomerShipment[];
+}
+
+export type PaymentProofFileType = 'PDF' | 'JPG' | 'PNG';
+export type PaymentProofScanStatus = 'Pending' | 'Passed' | 'Rejected';
+export interface CustomerPaymentProofMetadata {
+  fileName: string;
+  fileType: PaymentProofFileType;
+  sizeBytes: number;
+  scanStatus: PaymentProofScanStatus;
+}
+export interface CustomerPayment {
+  id: string;
+  customerId: string;
+  invoiceId: string;
+  reference: string;
+  bankName: string;
+  currency: string;
+  amountUsd: number;
+  allocatedAmountUsd?: number;
+  remainingBalanceUsd?: number;
+  paymentDate: string;
+  remarks?: string;
+  status: 'Pending' | 'Approved' | 'Rejected';
+  holdReason?: string;
+  proof?: CustomerPaymentProofMetadata;
+  idempotencyKey: string;
+  createdAt: string;
+}
+export interface CreateCustomerPaymentRequest {
+  invoiceId: string;
+  reference: string;
+  bankName: string;
+  currency: string;
+  amountUsd: number;
+  paymentDate: string;
+  remarks?: string;
+  proof: CustomerPaymentProofMetadata;
+  idempotencyKey: string;
+}
+export interface CustomerPaymentListResponse { items: CustomerPayment[]; total: number; }
+export type CustomerPaymentNotificationEvent = 'FinanceReviewRequested' | 'PaymentHeld' | 'PaymentResubmitted' | 'PaymentApproved' | 'PaymentAllocated';
+export interface CustomerPaymentNotification {
+  id: string;
+  customerId: string;
+  paymentId: string;
+  invoiceId: string;
+  event: CustomerPaymentNotificationEvent;
+  deliveryStatus: 'Queued';
+  createdAt: string;
+}
+export interface CustomerPaymentNotificationListResponse { items: CustomerPaymentNotification[]; total: number; }
+export interface RecordPaymentNotificationRequest { event: CustomerPaymentNotificationEvent; }
+
+export interface Notification {
+  id: string;
+  customerId: string;
+  title?: string;
+  message: string;
+  type: 'Payment' | 'Shipment' | 'Document' | 'Vehicle' | 'Promotion';
+  isRead: boolean;
+  createdAt: string;
+  related?: { kind: 'Vehicle' | 'ProformaInvoice' | 'Invoice' | 'Payment' | 'Shipment' | 'Document' | 'ShipOk' | 'DocumentRelease'; id: string; href: string; };
+}
+export interface CustomerNotificationListResponse { items: Notification[]; total: number; unreadCount: number; }
+export interface MarkNotificationsReadResponse { updatedCount: number; unreadCount: number; }
+export interface CustomerProfile {
+  customerId: string;
+  name: string;
+  email: string;
+  companyName: string;
+  phone: string;
+  deliveryAddress: string;
+  version: number;
+  updatedAt: string;
+}
+export interface UpdateCustomerProfileRequest { companyName: string; phone: string; deliveryAddress: string; expectedVersion?: number; }
+
+export interface CustomerDocument {
+  id: string;
+  shipmentId?: string;
+  vehicleId?: string;
+  type: 'Invoice' | 'PaymentProof' | 'ShippingLabel' | 'DeliveryProof' | 'Other';
+  status: 'Available' | 'Pending' | 'Unavailable';
+  createdAt: string;
+}
+
+export interface CustomerDocumentList {
+  items: CustomerDocument[];
+}
+
+export interface CustomerDashboard {
+  customerId: string;
+  customerEmail: string;
+  creditLimitUsd: number;
+  outstandingBalanceUsd: number;
+  creditUtilisationPercent: number;
+  vehicleCountReserved: number;
+  vehicleCountInvoiced: number;
+  vehicleCountDelivered: number;
+  lastUpdated: string;
+  paymentStatusSummary: PaymentStatusSummary;
+  shipmentStatusSummary: ShipmentStatusSummary;
+  documentAvailabilityCount: DocumentAvailabilityCount;
+  notificationUnreadCount: number;
+  partialFailureIndicators: PartialFailureIndicators;
+}
+
+export type CustomerVehicleStatus =
+  | 'Under Negotiation'
+  | 'Under Negotiation With PI'
+  | 'Confirmed'
+  | 'In Transit'
+  | 'Delivered'
+  | 'Expired'
+  | 'Cancelled';
+
+export interface CustomerVehicleStatusHistoryItem {
+  status: CustomerVehicleStatus;
+  timestamp: string;
+  notes?: string;
+}
+
+export interface CustomerVehicleDocumentReference {
+  id: string;
+  type: string;
+  title: string;
+  status: 'Available' | 'Pending' | 'Draft';
+  fileUrl?: string;
+  issuedAt?: string;
+}
+
+export interface CustomerVehicleDepositInfo {
+  requiredPercent: number;
+  requiredAmountUsd: number;
+  paidAmountUsd: number;
+  remainingAmountUsd: number;
+  isFullyPaid: boolean;
+}
+
+export interface CustomerVehicleSummary {
+  id: string;
+  vehicleId: string;
+  chassisNumber: string;
+  make: string;
+  model: string;
+  year: number;
+  slug: string;
+  primaryImage?: string;
+  priceUsd: number;
+  totalAmountUsd: number;
+  status: CustomerVehicleStatus;
+  locationStatus?: 'In Japan' | 'In Transit' | 'In Port';
+  destinationPort?: string;
+  reservationExpiresAt?: string;
+  proformaInvoiceId?: string;
+  paymentDeadline?: string;
+  deposit?: CustomerVehicleDepositInfo;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CustomerVehicleDetail extends CustomerVehicleSummary {
+  images: string[];
+  bodyStyle?: string;
+  fuelType?: string;
+  transmission?: string;
+  driveTrain?: string;
+  mileage?: number;
+  invoiceId?: string;
+  shipmentId?: string;
+  vesselName?: string;
+  etd?: string;
+  eta?: string;
+  billOfLadingNo?: string;
+  statusHistory: CustomerVehicleStatusHistoryItem[];
+  documents: CustomerVehicleDocumentReference[];
+}
+
+export interface CustomerVehicleCountsByStatus {
+  underNegotiation: number;
+  underNegotiationWithPI: number;
+  confirmed: number;
+  inTransit: number;
+  delivered: number;
+  all: number;
+}
+
+export interface CustomerVehicleListResponse {
+  items: CustomerVehicleSummary[];
+  total: number;
+  countsByStatus: CustomerVehicleCountsByStatus;
+}
+
+export type CustomerInvoiceType = 'Proforma' | 'Commercial';
+
+export type CustomerInvoiceStatus =
+  | 'Draft'
+  | 'Issued'
+  | 'PartiallyPaid'
+  | 'Paid'
+  | 'Overdue'
+  | 'Expired'
+  | 'Cancelled';
+
+export interface CustomerInvoiceLineItem {
+  id: string;
+  description: string;
+  quantity: number;
+  unitPriceUsd: number;
+  amountUsd: number;
+}
+
+export interface CustomerInvoiceAllocationItem {
+  id: string;
+  paymentId: string;
+  amountUsd: number;
+  allocatedAt: string;
+  status: 'Approved' | 'Pending' | 'Rejected';
+}
+
+export interface CustomerInvoiceBankDetails {
+  bankName: string;
+  swiftCode: string;
+  accountName: string;
+  accountNumber: string;
+  branchName: string;
+  bankAddress: string;
+  reference: string;
+}
+
+export interface CustomerInvoiceSummary {
+  id: string;
+  invoiceNumber: string;
+  type: CustomerInvoiceType;
+  customerId: string;
+  vehicleId: string;
+  vehicleSlug: string;
+  make: string;
+  model: string;
+  year: number;
+  totalAmountUsd: number;
+  paidAmountUsd: number;
+  outstandingAmountUsd: number;
+  depositRequiredUsd?: number;
+  depositPaidUsd?: number;
+  status: CustomerInvoiceStatus;
+  issuedAt: string;
+  dueDate: string;
+  paymentDeadline?: string;
+  documentStatus: 'Available' | 'Pending' | 'Unavailable';
+  currency: string;
+}
+
+export interface CustomerInvoiceDetailVehicle {
+  id: string;
+  chassisNumber: string;
+  make: string;
+  model: string;
+  year: number;
+  slug: string;
+  primaryImage?: string;
+}
+
+export interface CustomerInvoiceDetail extends CustomerInvoiceSummary {
+  vehicle: CustomerInvoiceDetailVehicle;
+  lineItems: CustomerInvoiceLineItem[];
+  allocations: CustomerInvoiceAllocationItem[];
+  bankDetails?: CustomerInvoiceBankDetails;
+  documentUrl?: string;
+  termsAndConditions?: string[];
+  isExpired?: boolean;
+  notes?: string;
+}
+
+export interface CustomerInvoiceCountsByType {
+  all: number;
+  proforma: number;
+  commercial: number;
+}
+
+export interface CustomerInvoiceTotals {
+  totalInvoicedUsd: number;
+  totalPaidUsd: number;
+  totalOutstandingUsd: number;
+}
+
+export interface CustomerInvoiceListResponse {
+  items: CustomerInvoiceSummary[];
+  total: number;
+  page: number;
+  limit: number;
+  countsByType: CustomerInvoiceCountsByType;
+  totals: CustomerInvoiceTotals;
+}
+
+export interface CustomerInvoiceDocument {
+  documentId: string;
+  invoiceId: string;
+  invoiceNumber: string;
+  type: CustomerInvoiceType;
+  title: string;
+  contentHtml: string;
+  status: 'Available' | 'Unavailable';
+  generatedAt: string;
+}
 `;
 
 mkdirSync(dirname(outputPath), { recursive: true });

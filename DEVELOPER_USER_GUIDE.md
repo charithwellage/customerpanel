@@ -118,6 +118,31 @@ Changing a developer's user-level AI configuration requires their approval. Neve
 
 Restart or reload the AI-agent session after adding an MCP server when the tools do not appear immediately. A successful `--help` command proves only that the server package starts; the infrastructure task must also perform an actual browser navigation and accessibility snapshot through MCP.
 
+### Codex permanent readiness runbook
+
+Opening VS Code does not retroactively add MCP tools to a task session that was created before the server was loaded. Run this once before beginning any MCP-required UI task, from the repository root:
+
+```bash
+codex mcp list
+node tasks/scripts/mcp-doctor.mjs
+corepack pnpm exec playwright install chromium
+codex
+```
+
+`mcp-doctor` is read-only: it verifies the pinned workspace definitions, trusted workspace, Codex registration, Node/pnpm, Playwright Test and the local Chromium executable. It cannot prove an AI session received browser tools.
+
+In the **new local Codex session**, first ask the agent to use Playwright MCP against a controlled local URL and prove: navigation, an accessibility snapshot, viewport resize, click/input, screenshot, console inspection and network inspection. Only after all seven actions work may the agent claim a `ui_validation: "playwright_mcp"` task.
+
+If `codex mcp list` does not show an enabled `playwright` server, approve this one-time user-level repair and then start a new local Codex session:
+
+```bash
+codex mcp remove playwright
+codex mcp add playwright -- npx -y @playwright/mcp@0.0.79 --browser chromium
+codex mcp list
+```
+
+If a new local CLI session has browser tools but the VS Code Codex integration does not, use the local CLI session for MCP validation and record the integration failure separately. Capture `codex --version`, `codex mcp list`, the workspace `.mcp.json`, and the exact missing capability. Automated Playwright never substitutes for this MCP smoke check.
+
 ### UI task validation loop
 
 For a task marked `playwright_mcp`:

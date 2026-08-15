@@ -1,9 +1,10 @@
 import express, { Request, Response, NextFunction, Express } from 'express';
 import { readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { parseDemoJwtToken, createDemoJwtToken, JwtClaims, hasPermission } from '@carchief/domain';
+import { parseDemoJwtToken, createDemoJwtToken, JwtClaims, hasPermission, isJwtExpired } from '@carchief/domain';
 import type { FreightEstimateRequest, EnquiryRequest, ReservationRequest } from '@carchief/domain';
-import { createStore, type DemoStore, FreightRequestError, EnquiryRequestError, ReservationRequestError, TestimonialRequestError } from './store.js';
+import { createStore, type DemoStore, FreightRequestError, EnquiryRequestError, ReservationRequestError, TestimonialRequestError, PaymentWorkflowError, ProfileConflictError } from './store.js';
+import { resolveDemoCustomerScope } from './auth/customer-scope.js';
 
 export interface AuthenticatedRequest extends Request {
   user?: JwtClaims;
@@ -31,7 +32,7 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
     if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.substring(7);
       const claims = parseDemoJwtToken(token);
-      if (claims) {
+      if (claims && !isJwtExpired(claims)) {
         req.user = claims;
       }
     }
@@ -48,21 +49,42 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
     res.json(await store.getConfig());
   });
 
-  // 3a. Vehicles summary (Public)
-  app.get('/api/v1/vehicles', async (req: Request, res: Response) => {
-    res.json(await store.getVehicles(req.query as Record<string, string>));
+  // 3a. Vehicles summary (Public & Customer-projected)
+  app.get('/api/v1/vehicles', async (req: AuthenticatedRequest, res: Response) => {
+    const audience = (req.query.audience as string) || (req.user?.role === 'CustomerBuyer' ? 'customer' : 'public');
+    const customerTier = (req.query.tier as any) || req.user?.tier;
+    const context = {
+      audience: audience as 'public' | 'customer' | 'salesperson',
+      customerId: req.user?.sub,
+      customerTier,
+    };
+    res.json(await store.getVehicles(req.query as Record<string, string>, context));
   });
 
-  // 3b. Vehicle search with facets, pagination & sorting (Public)
-  app.get('/api/v1/vehicles/search', async (req: Request, res: Response) => {
-    res.json(await store.searchVehicles(req.query as Record<string, string>));
+  // 3b. Vehicle search with facets, pagination & sorting (Public & Customer-projected)
+  app.get('/api/v1/vehicles/search', async (req: AuthenticatedRequest, res: Response) => {
+    const audience = (req.query.audience as string) || (req.user?.role === 'CustomerBuyer' ? 'customer' : 'public');
+    const customerTier = (req.query.tier as any) || req.user?.tier;
+    const context = {
+      audience: audience as 'public' | 'customer' | 'salesperson',
+      customerId: req.user?.sub,
+      customerTier,
+    };
+    res.json(await store.searchVehicles(req.query as Record<string, string>, context));
   });
 
-  // 3c. Vehicle detail lookup by ID, chassis, or slug (Public)
-  app.get('/api/v1/vehicles/:idOrSlug', async (req: Request, res: Response) => {
+  // 3c. Vehicle detail lookup by ID, chassis, or slug (Public & Customer-projected)
+  app.get('/api/v1/vehicles/:idOrSlug', async (req: AuthenticatedRequest, res: Response) => {
     const rawParam = req.params.idOrSlug;
     const idOrSlug = Array.isArray(rawParam) ? rawParam[0] : rawParam;
-    const detail = await store.getVehicleDetail(idOrSlug);
+    const audience = (req.query.audience as string) || (req.user?.role === 'CustomerBuyer' ? 'customer' : 'public');
+    const customerTier = (req.query.tier as any) || req.user?.tier;
+    const context = {
+      audience: audience as 'public' | 'customer' | 'salesperson',
+      customerId: req.user?.sub,
+      customerTier,
+    };
+    const detail = await store.getVehicleDetail(idOrSlug, context);
     if (!detail) {
       res.status(404).json({
         statusCode: 404,
@@ -197,7 +219,8 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
       return;
     }
     try {
-      const reservation = await store.createReservation(req.user.sub, req.user.email, (req.body ?? {}) as ReservationRequest);
+      const customerId = resolveDemoCustomerScope(req.user.sub);
+      const reservation = await store.createReservation(customerId, req.user.email, (req.body ?? {}) as ReservationRequest);
       res.status(201).json(reservation);
     } catch (error) {
       if (error instanceof ReservationRequestError) {
@@ -229,7 +252,7 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
       res.status(404).json({ statusCode: 404, message: `Reservation '${id}' not found`, correlationId: `corr-404-${Date.now()}` });
       return;
     }
-    const isOwner = reservation.customerId === req.user.sub;
+    const isOwner = reservation.customerId === resolveDemoCustomerScope(req.user.sub);
     if (!isOwner && !hasPermission(req.user.role, 'read:leads')) {
       res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
       return;
@@ -339,9 +362,311 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
     res.json(req.user);
   });
 
+  // 4a. Customer dashboard KPI baseline (D02-ASM-001, CUST-04, CUST-05, CUST-06)
+  // Non-blocking aggregate: outstanding balance = invoiced total - approved allocations;
+  // credit utilisation = outstanding balance ÷ credit limit; vehicle counts use canonical IDs + status.
+  // Requires authentication as CustomerBuyer.
+  app.get('/api/v1/customer/dashboard', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) {
+      res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+      return;
+    }
+    if (!hasPermission(req.user.role, 'read:customer')) {
+      res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
+      return;
+    }
+    const dashboard = await store.getCustomerDashboard(resolveDemoCustomerScope(req.user.sub), req.user.email);
+    res.json(dashboard);
+  });
+
+  // 4aa. Customer profile contract (D02-P08-T004, CUST-23/24/25).
+  app.get('/api/v1/customer/profile', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) return void res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+    if (!hasPermission(req.user.role, 'read:customer')) return void res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
+    try {
+      res.json(await store.getCustomerProfile(resolveDemoCustomerScope(req.user.sub), req.user.email));
+    } catch (error) {
+      res.status(404).json({ statusCode: 404, message: error instanceof Error ? error.message : 'Customer profile not found', correlationId: `corr-404-${Date.now()}` });
+    }
+  });
+
+  app.put('/api/v1/customer/profile', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) return void res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+    if (!hasPermission(req.user.role, 'read:customer')) return void res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
+    try {
+      res.json(await store.updateCustomerProfile(resolveDemoCustomerScope(req.user.sub), req.user.email, req.body, req.header('x-mock-now') || undefined));
+    } catch (error) {
+      const statusCode = error instanceof ProfileConflictError ? error.statusCode : 400;
+      res.status(statusCode).json({ statusCode, message: error instanceof Error ? error.message : 'Invalid customer profile', correlationId: `corr-${statusCode}-${Date.now()}` });
+    }
+  });
+
+  // 4b. Customer shipment timeline projection (D02-P07-T001, CUST-11).
+  // The server scopes records to the authenticated customer and exposes only
+  // the approved operational stages; carrier/ERP internals are not exposed.
+  app.get('/api/v1/customer/shipments', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) {
+      res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+      return;
+    }
+    if (!hasPermission(req.user.role, 'read:customer')) {
+      res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
+      return;
+    }
+    res.json({ items: await store.listCustomerShipments(resolveDemoCustomerScope(req.user.sub)) });
+  });
+
+  app.get('/api/v1/customer/shipments/:id', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) {
+      res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+      return;
+    }
+    if (!hasPermission(req.user.role, 'read:customer')) {
+      res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
+      return;
+    }
+    const shipmentId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const shipment = await store.getCustomerShipment(resolveDemoCustomerScope(req.user.sub), shipmentId);
+    if (!shipment) {
+      res.status(404).json({ statusCode: 404, message: 'Shipment not found', correlationId: `corr-404-${Date.now()}` });
+      return;
+    }
+    res.json(shipment);
+  });
+
+  // Documents are returned only after both Finance release and the
+  // salesperson-owned visibleToCustomer flag are true (CUST-20/CUST-21).
+  app.get('/api/v1/customer/documents', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) {
+      res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+      return;
+    }
+    if (!hasPermission(req.user.role, 'read:customer')) {
+      res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
+      return;
+    }
+    res.json({ items: await store.listCustomerDocuments(resolveDemoCustomerScope(req.user.sub)) });
+  });
+
+  app.get('/api/v1/customer/documents/:id', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) {
+      res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+      return;
+    }
+    if (!hasPermission(req.user.role, 'read:customer')) {
+      res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
+      return;
+    }
+    const documentId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const document = await store.getCustomerDocument(resolveDemoCustomerScope(req.user.sub), documentId);
+    if (!document) {
+      res.status(404).json({ statusCode: 404, message: 'Document not found', correlationId: `corr-404-${Date.now()}` });
+      return;
+    }
+    res.json(document);
+  });
+
+  // 4d. Customer-scoped notifications (D02-P08-T001, CUST-22).
+  app.get('/api/v1/customer/notifications', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) return void res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+    if (!hasPermission(req.user.role, 'read:customer')) return void res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
+    const rawStatus = typeof req.query.status === 'string' ? req.query.status : 'all';
+    const status = ['all', 'read', 'unread'].includes(rawStatus) ? rawStatus as 'all' | 'read' | 'unread' : 'all';
+    const q = typeof req.query.q === 'string' ? req.query.q : undefined;
+    res.json(await store.listCustomerNotifications(resolveDemoCustomerScope(req.user.sub), { status, q }));
+  });
+
+  app.get('/api/v1/customer/notifications/:id', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) return void res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+    if (!hasPermission(req.user.role, 'read:customer')) return void res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
+    const notification = await store.getCustomerNotification(resolveDemoCustomerScope(req.user.sub), req.params.id as string);
+    if (!notification) return void res.status(404).json({ statusCode: 404, message: 'Notification not found', correlationId: `corr-404-${Date.now()}` });
+    res.json(notification);
+  });
+
+  app.post('/api/v1/customer/notifications/:id/read', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) return void res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+    if (!hasPermission(req.user.role, 'read:customer')) return void res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
+    const notification = await store.markCustomerNotificationRead(resolveDemoCustomerScope(req.user.sub), req.params.id as string);
+    if (!notification) return void res.status(404).json({ statusCode: 404, message: 'Notification not found', correlationId: `corr-404-${Date.now()}` });
+    res.json(notification);
+  });
+
+  app.post('/api/v1/customer/notifications/read-all', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) return void res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+    if (!hasPermission(req.user.role, 'read:customer')) return void res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
+    res.json(await store.markAllCustomerNotificationsRead(resolveDemoCustomerScope(req.user.sub)));
+  });
+
+  // 4e. Customer vehicle transaction fleet listing and detail.
+  app.get('/api/v1/customer/vehicles', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) {
+      res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+      return;
+    }
+    if (!hasPermission(req.user.role, 'read:customer')) {
+      res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
+      return;
+    }
+    const customerId = resolveDemoCustomerScope(req.user.sub);
+    const nowISO = req.header('x-mock-now') || undefined;
+    const query = { status: req.query.status as string | undefined, query: req.query.query as string | undefined, page: req.query.page ? Number(req.query.page) : undefined, limit: req.query.limit ? Number(req.query.limit) : undefined };
+    res.json(await store.getCustomerVehicles(customerId, query, nowISO));
+  });
+
+  app.get('/api/v1/customer/vehicles/:id', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) {
+      res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+      return;
+    }
+    if (!hasPermission(req.user.role, 'read:customer')) {
+      res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
+      return;
+    }
+    const idOrSlug = req.params.id as string;
+    const vehicle = await store.getCustomerVehicleById(resolveDemoCustomerScope(req.user.sub), idOrSlug, req.header('x-mock-now') || undefined);
+    if (!vehicle) {
+      res.status(404).json({ statusCode: 404, message: `Customer vehicle '${idOrSlug}' not found or not owned by customer`, correlationId: `corr-404-${Date.now()}` });
+      return;
+    }
+    res.json(vehicle);
+  });
+
+  // 4d. Customer invoices & proforma invoices listing (CUST-02, CUST-14, CUST-15, RULE-04, RULE-08, RULE-10)
+  app.get('/api/v1/customer/invoices', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) {
+      res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+      return;
+    }
+    if (!hasPermission(req.user.role, 'read:customer')) {
+      res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
+      return;
+    }
+    const customerId = resolveDemoCustomerScope(req.user.sub);
+    const nowISO = req.header('x-mock-now') || undefined;
+    const query = {
+      type: req.query.type as string | undefined,
+      status: req.query.status as string | undefined,
+      query: req.query.query as string | undefined,
+      page: req.query.page ? Number(req.query.page) : undefined,
+      limit: req.query.limit ? Number(req.query.limit) : undefined,
+    };
+    const response = await store.getCustomerInvoices(customerId, query, nowISO);
+    res.json(response);
+  });
+
+  // 4e. Customer invoice & proforma invoice detail (CUST-14, CUST-15, CUST-16, CUST-21, RULE-04, RULE-07)
+  app.get('/api/v1/customer/invoices/:id', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) {
+      res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+      return;
+    }
+    if (!hasPermission(req.user.role, 'read:customer')) {
+      res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
+      return;
+    }
+    const customerId = resolveDemoCustomerScope(req.user.sub);
+    const id = req.params.id as string;
+    const nowISO = req.header('x-mock-now') || undefined;
+    const invoice = await store.getCustomerInvoiceById(customerId, id, nowISO);
+    if (!invoice) {
+      res.status(404).json({
+        statusCode: 404,
+        message: `Customer invoice '${id}' not found or not owned by customer`,
+        correlationId: `corr-404-${Date.now()}`,
+      });
+      return;
+    }
+    res.json(invoice);
+  });
+
+  // 4f. Customer invoice printable / downloadable document projection (CUST-16, RULE-04)
+  app.get('/api/v1/customer/invoices/:id/document', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) {
+      res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+      return;
+    }
+    if (!hasPermission(req.user.role, 'read:customer')) {
+      res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
+      return;
+    }
+    const customerId = resolveDemoCustomerScope(req.user.sub);
+    const id = req.params.id as string;
+    const nowISO = req.header('x-mock-now') || undefined;
+    const doc = await store.getCustomerInvoiceDocument(customerId, id, nowISO);
+    if (!doc) {
+      res.status(404).json({
+        statusCode: 404,
+        message: `Customer invoice document '${id}' not found or not owned by customer`,
+        correlationId: `corr-404-${Date.now()}`,
+      });
+      return;
+    }
+    res.json(doc);
+  });
+
+  // 4g. Customer TT journal and proof metadata (D02-P06-T001).
+  app.get('/api/v1/customer/payments', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) return void res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+    if (!hasPermission(req.user.role, 'read:customer')) return void res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
+    res.json(await store.listCustomerPayments(resolveDemoCustomerScope(req.user.sub)));
+  });
+
+  app.get('/api/v1/customer/payments/:id', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) return void res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+    if (!hasPermission(req.user.role, 'read:customer')) return void res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
+    const payment = await store.getCustomerPayment(resolveDemoCustomerScope(req.user.sub), req.params.id as string);
+    if (!payment) return void res.status(404).json({ statusCode: 404, message: 'Payment not found or not owned by customer', correlationId: `corr-404-${Date.now()}` });
+    res.json(payment);
+  });
+
+  app.post('/api/v1/customer/payments/:id/resubmit', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) return void res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+    if (!hasPermission(req.user.role, 'create:payment')) return void res.status(403).json({ statusCode: 403, message: 'Forbidden: payment resubmission requires customer payment permission', correlationId: 'corr-403' });
+    try {
+      const payment = await store.resubmitCustomerPayment(resolveDemoCustomerScope(req.user.sub), req.params.id as string, req.header('x-mock-now') || undefined);
+      res.json(payment);
+    } catch (error) {
+      const statusCode = error instanceof PaymentWorkflowError ? error.statusCode : 400;
+      res.status(statusCode).json({ statusCode, message: error instanceof Error ? error.message : 'Unable to resubmit payment', correlationId: `corr-${statusCode}-${Date.now()}` });
+    }
+  });
+
+  app.post('/api/v1/customer/payments', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) return void res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+    if (!hasPermission(req.user.role, 'create:payment')) return void res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
+    try {
+      const payment = await store.createCustomerPayment(resolveDemoCustomerScope(req.user.sub), req.body, req.header('x-mock-now') || undefined);
+      res.status(201).json(payment);
+    } catch (error) {
+      res.status(400).json({ statusCode: 400, message: error instanceof Error ? error.message : 'Invalid payment submission', correlationId: `corr-400-${Date.now()}` });
+    }
+  });
+
+  // 4h. Payment notification outbox. Finance records events; customers only read their own projection.
+  app.get('/api/v1/customer/payment-notifications', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) return void res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+    if (!hasPermission(req.user.role, 'read:customer')) return void res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
+    const paymentId = typeof req.query.paymentId === 'string' ? req.query.paymentId : undefined;
+    res.json(await store.listCustomerPaymentNotifications(resolveDemoCustomerScope(req.user.sub), paymentId));
+  });
+
+  app.post('/api/v1/finance/customer-payments/:id/notifications', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) return void res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+    if (!hasPermission(req.user.role, 'read:finance')) return void res.status(403).json({ statusCode: 403, message: 'Forbidden: finance role required', correlationId: 'corr-403' });
+    try {
+      const notification = await store.recordPaymentNotification(req.params.id as string, req.body, req.header('x-mock-now') || undefined);
+      if (!notification) return void res.status(404).json({ statusCode: 404, message: 'Payment not found', correlationId: `corr-404-${Date.now()}` });
+      res.status(201).json(notification);
+    } catch (error) {
+      const statusCode = error instanceof PaymentWorkflowError ? error.statusCode : 400;
+      res.status(statusCode).json({ statusCode, message: error instanceof Error ? error.message : 'Invalid notification event', correlationId: `corr-${statusCode}-${Date.now()}` });
+    }
+  });
+
   // 5. Deterministic reset (Disabled in production mode for release safety)
   app.post('/api/v1/__reset', async (req: AuthenticatedRequest, res: Response) => {
-    if (process.env.NODE_ENV === 'production' && process.env.ENABLE_MOCK_RESET !== 'true') {
+    if (process.env.NODE_ENV === 'production') {
       res.status(403).json({
         statusCode: 403,
         message: 'Forbidden: Reset endpoint is disabled in production environment',

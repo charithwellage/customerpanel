@@ -1,0 +1,65 @@
+/*
+ * globals.css
+ * Application-wide foundations for the Customer Application entry point
+ * (D02-P01-T001/T003). Feature composition lives in the feature stylesheets
+ * imported below, per the ownership order in tasks/COMMON_FRONTEND_RULES.md.
+ *
+ * Every value uses a semantic token emitted by packages/theme/src/provider.ts,
+ * applied to :root by src/main.tsx. No literal colours, no fallback palettes.
+ */
+
+@import "../features/shell/shell.css";
+@import "../features/account/account.css";
+@import "../features/pwa/pwa.css";
+@import "../features/dashboard/dashboard.css";
+@import "../features/notifications/notifications.css";
+@import "../features/profile/profile.css";
+@import "../features/shipments/shipments.css";
+@import "../features/documents/documents.css";
+@import "../features/payments/payments.css";
+@import "../../../../packages/vehicle-search/src/vehicle-search.css";
+@import "./placeholder.css";
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-width: 320px;
+  background: var(--color-background);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  font-size: var(--font-size-base);
+  line-height: 1.5;
+  color-scheme: light;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* Visible keyboard focus everywhere; never removed without a replacement. */
+:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+a {
+  color: var(--color-primary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
