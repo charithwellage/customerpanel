@@ -1,7 +1,7 @@
 import express, { Request, Response, NextFunction, Express } from 'express';
 import { readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { parseDemoJwtToken, createDemoJwtToken, JwtClaims, hasPermission } from '@carchief/domain';
+import { parseDemoJwtToken, createDemoJwtToken, JwtClaims, hasPermission, isJwtExpired } from '@carchief/domain';
 import type { FreightEstimateRequest, EnquiryRequest, ReservationRequest } from '@carchief/domain';
 import { createStore, type DemoStore, FreightRequestError, EnquiryRequestError, ReservationRequestError, TestimonialRequestError, PaymentWorkflowError, ProfileConflictError } from './store.js';
 import { resolveDemoCustomerScope } from './auth/customer-scope.js';
@@ -32,7 +32,7 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
     if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.substring(7);
       const claims = parseDemoJwtToken(token);
-      if (claims) {
+      if (claims && !isJwtExpired(claims)) {
         req.user = claims;
       }
     }
@@ -666,7 +666,7 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
 
   // 5. Deterministic reset (Disabled in production mode for release safety)
   app.post('/api/v1/__reset', async (req: AuthenticatedRequest, res: Response) => {
-    if (process.env.NODE_ENV === 'production' && process.env.ENABLE_MOCK_RESET !== 'true') {
+    if (process.env.NODE_ENV === 'production') {
       res.status(403).json({
         statusCode: 403,
         message: 'Forbidden: Reset endpoint is disabled in production environment',

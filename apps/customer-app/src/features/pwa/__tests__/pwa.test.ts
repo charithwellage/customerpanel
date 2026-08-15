@@ -26,8 +26,37 @@ describe('Customer App PWA & Offline Feature Unit Tests', () => {
     expect(typeof isMutationBlockedOffline()).toBe('boolean');
   });
 
-  it('clears sensitive session storage on logout without error', async () => {
-    await expect(clearCustomerSensitiveCachesOnLogout()).resolves.toBeUndefined();
+  it('clears session, local, and CacheStorage data on logout', async () => {
+    const deleted: string[] = [];
+    const session = { clear: () => deleted.push('session') };
+    const local = { removeItem: (key: string) => deleted.push(`local:${key}`) };
+    const cacheStorage = {
+      keys: async () => ['customer-runtime', 'public-assets'],
+      delete: async (key: string) => { deleted.push(`cache:${key}`); return true; },
+    };
+    const previousWindow = (globalThis as { window?: unknown }).window;
+    const previousSession = (globalThis as { sessionStorage?: unknown }).sessionStorage;
+    const previousLocal = (globalThis as { localStorage?: unknown }).localStorage;
+    const previousCaches = (globalThis as { caches?: unknown }).caches;
+    (globalThis as { window?: unknown }).window = { caches: cacheStorage };
+    (globalThis as { sessionStorage?: unknown }).sessionStorage = session;
+    (globalThis as { localStorage?: unknown }).localStorage = local;
+    (globalThis as { caches?: unknown }).caches = cacheStorage;
+    try {
+      await clearCustomerSensitiveCachesOnLogout();
+      expect(deleted).toEqual([
+        'session',
+        'local:carchief_customer_token',
+        'local:carchief_customer_session',
+        'cache:customer-runtime',
+        'cache:public-assets',
+      ]);
+    } finally {
+      (globalThis as { window?: unknown }).window = previousWindow;
+      (globalThis as { sessionStorage?: unknown }).sessionStorage = previousSession;
+      (globalThis as { localStorage?: unknown }).localStorage = previousLocal;
+      (globalThis as { caches?: unknown }).caches = previousCaches;
+    }
   });
 
   it('renders CustomerPwaBanner with app title and CTA buttons', () => {
