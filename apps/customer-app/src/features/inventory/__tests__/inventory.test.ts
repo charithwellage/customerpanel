@@ -34,7 +34,9 @@ describe('Customer Inventory & Vehicle Detail Components (D02-P03-T003)', () => 
 
       expect(html).toContain('Platinum Tier Account');
       expect(html).toContain('15% VIP discount');
-      expect(html).toContain('Search make, model, or try');
+      expect(html).toContain('Search by keyword');
+      expect(html).toContain('FULL INVENTORY CATALOG');
+      expect(html).toContain('CarChief Inventory Search');
     });
 
     it('renders customer tier status banner for Standard tier with standard stock terms', () => {

@@ -1,14 +1,8 @@
 'use client';
 
 import React from 'react';
-import { VehicleCollectionPrimitive } from '@carchief/vehicle-search';
+import { VehicleCollectionPrimitive, VehicleSearchHero, SearchFilterBar, SearchResultsHeader, SearchEmptyState, SearchErrorState, SearchPagination } from '@carchief/vehicle-search';
 import { useVehicleSearchOrchestration, type UseVehicleSearchOrchestrationOptions } from '../hooks/useVehicleSearchOrchestration';
-import { SearchFilterBar } from './SearchFilterBar';
-import { SearchResultsHeader } from './SearchResultsHeader';
-import { SearchEmptyState } from './SearchEmptyState';
-import { SearchErrorState } from './SearchErrorState';
-import { SearchPagination } from './SearchPagination';
-import '../vehicle-search.css';
 
 export interface SearchShowroomProps extends UseVehicleSearchOrchestrationOptions {
   onSelectVehicle?: (vehicleId: string) => void;
@@ -40,13 +34,7 @@ export function SearchShowroom({
   return (
     <div className="cc-search-wrapper" id="search-showroom-container">
       {/* Dark Hero Header Banner */}
-      <section className="cc-allstock-hero">
-        <div className="cc-allstock-hero__badge">
-          FULL INVENTORY CATALOG
-        </div>
-        <h1 className="cc-allstock-hero__title">{title}</h1>
-        <p className="cc-allstock-hero__description">{description}</p>
-      </section>
+      <VehicleSearchHero title={title} description={description} />
 
       <div className="cc-search-container">
         {/* Floating Filter Controls Bar */}
@@ -105,4 +93,3 @@ export function SearchShowroom({
     </div>
   );
 }
-
