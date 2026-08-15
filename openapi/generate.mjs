@@ -527,6 +527,30 @@ export interface CustomerPaymentNotification {
 export interface CustomerPaymentNotificationListResponse { items: CustomerPaymentNotification[]; total: number; }
 export interface RecordPaymentNotificationRequest { event: CustomerPaymentNotificationEvent; }
 
+export interface Notification {
+  id: string;
+  customerId: string;
+  title?: string;
+  message: string;
+  type: 'Payment' | 'Shipment' | 'Document' | 'Vehicle' | 'Promotion';
+  isRead: boolean;
+  createdAt: string;
+  related?: { kind: 'Vehicle' | 'ProformaInvoice' | 'Invoice' | 'Payment' | 'Shipment' | 'Document' | 'ShipOk' | 'DocumentRelease'; id: string; href: string; };
+}
+export interface CustomerNotificationListResponse { items: Notification[]; total: number; unreadCount: number; }
+export interface MarkNotificationsReadResponse { updatedCount: number; unreadCount: number; }
+export interface CustomerProfile {
+  customerId: string;
+  name: string;
+  email: string;
+  companyName: string;
+  phone: string;
+  deliveryAddress: string;
+  version: number;
+  updatedAt: string;
+}
+export interface UpdateCustomerProfileRequest { companyName: string; phone: string; deliveryAddress: string; expectedVersion?: number; }
+
 export interface CustomerDocument {
   id: string;
   shipmentId?: string;
