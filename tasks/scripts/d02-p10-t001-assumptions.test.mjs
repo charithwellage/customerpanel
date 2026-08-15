@@ -14,7 +14,7 @@ test('every Delivery 02 assumption row has complete evidence fields and reconcil
   const register = await readFile(registerPath, 'utf8');
   const sourceTable = register.split('## Phase 2.10 reconciliation checklist', 1)[0];
   const rows = sourceTable.split('\n').filter((line) => /^\| D02-ASM-\d{3} \|/.test(line));
-  assert.equal(rows.length, 4, 'expected the four registered Delivery 02 assumptions');
+  assert.equal(rows.length, 7, 'expected the seven registered Delivery 02 assumptions');
 
   const statuses = new Set(['ASSUMED', 'SKIPPED', 'CONFIRMED', 'SUPERSEDED']);
   for (const row of rows) {

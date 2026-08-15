@@ -10,7 +10,7 @@ Task agents never run `git commit`, `git push`, create pull requests, merge, rew
 
 Phase 0 is branch-neutral. Every Delivery 01 phase uses `feat_delivery01_phase_NN`, created from the current `delivery_01_public_website` branch. After every normal phase task is COMPLETE, the human owner commits the phase work and creates or updates a PR targeting `delivery_01_public_website`. The matching phase code-review task records AI review, awaits tech-lead approval, and becomes COMPLETE before the human merges the PR.
 
-Delivery 02 uses integration branch `delivery_02_customer_application`, created once by a human from the fully accepted and updated `delivery_01_public_website`. Its phase branches are `feat_delivery02_phase_01` through `feat_delivery02_phase_11`, each created from the latest `delivery_02_customer_application`. Customer tasks work directly on their phase branch and use the same self-AI and phase PR-review lifecycle.
+Delivery 02 uses integration branch `delivery_02_customer_application`, created once by a human from the fully accepted and updated `delivery_01_public_website`. Its phase branches are `feat_delivery02_phase_01` through `feat_delivery02_phase_12`, each created from the latest `delivery_02_customer_application`. Customer tasks work directly on their phase branch and use the same self-AI and phase PR-review lifecycle.
 
 The one-time Delivery 02 branch bootstrap is a human action after Delivery 01 is merged: switch to and fast-forward `delivery_01_public_website`, confirm `git status --porcelain=v1 --untracked-files=all` is empty, then run `git switch -c delivery_02_customer_application`. Do not start `D02-P01-G001` before that branch exists. Requirement gaps are recorded in `delivery_02/REQUIREMENT_GAPS_AND_ASSUMPTIONS.md` and do not block Customer Phases 2.1–2.9.
 
@@ -53,9 +53,11 @@ flowchart TB
     P210 --> M210[MERGE PR → delivery_02_customer_application]
     M210 -. optional opt-in .-> P211[Phase 2.11 — multi-theme<br/>Branch: feat_delivery02_phase_11<br/>Review: D02-P11-CODE_REVIEW]
     P211 -. optional PR merge .-> M211[OPTIONAL MERGE PR → delivery_02_customer_application]
+    M210 --> P212[Phase 2.12 — self-registration and real authentication<br/>Branch: feat_delivery02_phase_12<br/>Review: D02-P12-CODE_REVIEW]
+    P212 --> M212[MERGE PR → delivery_02_customer_application]
 ```
 
-**How to read this diagram:** each phase box is a separate branch and a separate PR into `delivery_02_customer_application`; each adjacent `MERGE PR` box is a required human merge before the next phase in that lane starts. Engineer A and Engineer B work in parallel only across the two lanes; phases inside one lane remain sequential. Every phase branch is created from the latest merged `delivery_02_customer_application`, never from another unmerged phase branch. Phase 2.9 cannot start until both lane merge/review paths reach the convergence gate. Phase 2.11 is optional and does not block Customer MVP completion.
+**How to read this diagram:** each phase box is a separate branch and a separate PR into `delivery_02_customer_application`; each adjacent `MERGE PR` box is a required human merge before the next phase in that lane starts. Engineer A and Engineer B work in parallel only across the two lanes; phases inside one lane remain sequential. Every phase branch is created from the latest merged `delivery_02_customer_application`, never from another unmerged phase branch. Phase 2.9 cannot start until both lane merge/review paths reach the convergence gate. Phase 2.11 is optional and does not block Customer MVP completion. Phase 2.12 is mandatory, branches from the merged Phase 2.10 result and runs independently of the optional theme phase.
 
 **Legend:** phase boxes = implementation branch; `Review:` = phase AI/tech-lead review task; `MERGE PR` boxes = human PR merge into the integration branch; subgraphs = protected parallel lanes; `CONVERGENCE GATE` = both lanes must be merged; dotted arrows/boxes = optional work. The human owner performs branch creation, commit, push, PR creation, rebase and merge. A shared-file or shared-registry need pauses lane work for a serialized platform PR.
 
@@ -64,10 +66,13 @@ flowchart TB
 | Commerce | `P03 (feat_delivery02_phase_03) → merge → P04 (feat_delivery02_phase_04) → merge → P05 (feat_delivery02_phase_05) → merge → P06 (feat_delivery02_phase_06) → merge` | customer inventory, vehicles, invoices and payments feature/module/fixture/spec namespaces |
 | Dashboard / logistics | `P02 (feat_delivery02_phase_02) → merge → P07 (feat_delivery02_phase_07) → merge → P08 (feat_delivery02_phase_08) → merge` | dashboard, shipment/documents, notifications and profile feature/module/fixture/spec namespaces |
 | Final convergence | `P09 (feat_delivery02_phase_09) → merge → P10 (feat_delivery02_phase_10) → merge → optional P11 (feat_delivery02_phase_11)` | final acceptance, assumptions and optional theme support |
+| Account lifecycle | `P12 (feat_delivery02_phase_12)` from the merged `delivery_02_customer_application` | customer accounts, credentials, registration/sign-in surfaces and demo-mode removal |
 
 Each phase branch starts from the latest `delivery_02_customer_application`, targets that same branch in its own PR, and is rebased before PR update. A lane task must not change route registries, generated-client barrels, Mock API bootstrap, package manifests, lockfiles, Docker files, shared theme/vehicle packages or another lane's namespace. A shared need is a short serialized platform PR before lane work resumes. Phase 2.9 waits for both `D02-P06-CODE_REVIEW` and `D02-P08-CODE_REVIEW`.
 
 Phase 2.11 is optional: it is excluded from the normal frontier and starts only with `taskctl start ... --opt-in theme`; it never blocks Delivery 03.
+
+Phase 2.12 is **not** optional. It follows Phase 2.10 in its own `D02-ACCOUNT` lane, depends on `D02-P10-CODE_REVIEW` rather than the optional theme phase, and replaces the demo identity with real customer accounts before Delivery 03.
 
 ## Phase review gates
 
@@ -95,6 +100,7 @@ Phase 2.11 is optional: it is excluded from the normal frontier and starts only 
 | Phase 2.9 — Customer Application acceptance | `feat_delivery02_phase_09` | T001–T004, CODE_REVIEW | Sequential acceptance → review | D02-P09-CODE_REVIEW |
 | Phase 2.10 — Assumption reconciliation and MVP closure | `feat_delivery02_phase_10` | T001–T003, CODE_REVIEW | Reconcile → adjust → final acceptance → review | D02-P10-CODE_REVIEW |
 | Phase 2.11 — Optional Customer multi-theme support | `feat_delivery02_phase_11` | T001–T002, CODE_REVIEW | Opt-in theme configuration → alternate-theme verification → review | D02-P11-CODE_REVIEW; optional and non-blocking |
+| Phase 2.12 — Customer self-registration and real authentication | `feat_delivery02_phase_12` | T001–T007, CODE_REVIEW | Mock accounts/credentials → shared packages → public-web register/login → demo removal → customer sign-in/recovery → profile password management → acceptance → review | D02-P12-CODE_REVIEW; mandatory, depends on D02-P10-CODE_REVIEW |
 
 ## Verification and review policy
 
@@ -106,13 +112,13 @@ Each `phase_manual` task reviews its delivery integration branch against its pha
 
 The Docker gates remain the existing phase acceptance tasks plus the Phase 1.2 visual remediation validation: `D01-P01-T010`, `D01-P01-T012`, `D01-P02-T002`, `D01-P02-T004`, `D01-P02-T006`, `D01-P03-T004`, `D01-P04-T003`, `D01-P05-T004`, `D01-P06-T005`, `D01-P07-T004` and `D01-P08-T004`. They rebuild/start the target Compose stack, run container Playwright checks, record manual smoke evidence, verify local Swagger where applicable, and shut down cleanly.
 
-Delivery 02 Docker gates are `D02-P01-T003`, `D02-P02-T002`, `D02-P03-T003`, `D02-P04-T003`, `D02-P05-T003`, `D02-P06-T004`, `D02-P07-T004`, `D02-P08-T003`, `D02-P09-T004` and `D02-P10-T003`. They rebuild the customer app, mock API and PostgreSQL stack, verify local Swagger/OpenAPI, run container Playwright and record the phase supervisor smoke scenario.
+Delivery 02 Docker gates are `D02-P01-T003`, `D02-P02-T002`, `D02-P03-T003`, `D02-P04-T003`, `D02-P05-T003`, `D02-P06-T004`, `D02-P07-T004`, `D02-P08-T003`, `D02-P09-T004`, `D02-P10-T003` and `D02-P12-T007`. They rebuild the customer app, mock API and PostgreSQL stack, verify local Swagger/OpenAPI, run container Playwright and record the phase supervisor smoke scenario.
 
 ## Capacity baseline
 
 The corrective Phase 1.2 POC visual-parity task is **1.25 delivery days**, the final UI-validation task is **0.5 delivery day**, the reusable-style remediation is **0.75 delivery day**, the mixed-PR hygiene correction is **0.5 delivery day**, and the late Playwright MCP infrastructure gate is **0.25 delivery day**. Remaining task estimates already include testing and review, so their estimates are unchanged. The recalculated Delivery 01 task inventory totals **34.25 working days**, while infrastructure readiness remains **1.5 days**.
 
-Delivery 02 contains **27.75 delivery days** of gate, implementation, acceptance and phase-review capacity. A 15% review/correction allowance produces approximately **32 working days**, presented as a **6–7 calendar-week baseline** with two experienced engineers coordinating bounded AI work. Requirement ambiguity no longer pauses Phases 2.1–2.9; Phase 2.10 reconciles the recorded MVP assumptions.
+Delivery 02 contains **36.5 delivery days** of gate, implementation, acceptance and phase-review capacity, including the **8.75 days** added by Phase 2.12. A 15% review/correction allowance produces approximately **42 working days**, presented as an **8–9 calendar-week baseline** with two experienced engineers coordinating bounded AI work. Requirement ambiguity no longer pauses Phases 2.1–2.9; Phase 2.10 reconciles the recorded MVP assumptions.
 
 ## Complete ordered inventory
 
@@ -236,6 +242,14 @@ Delivery 02 contains **27.75 delivery days** of gate, implementation, acceptance
 | 106.1 | [D02-P11-T001](delivery_02/phase_11/D02-P11-T001.md) | Add optional Customer theme configuration and provider integration | D02-P10-CODE_REVIEW | D02-P11-OPTIONAL | self_ai | playwright_mcp | 0.5 day |
 | 106.2 | [D02-P11-T002](delivery_02/phase_11/D02-P11-T002.md) | Enable and verify the optional ocean Customer theme | D02-P11-T001 | D02-P11-OPTIONAL | self_ai | playwright_mcp | 0.5 day |
 | 106.3 | [D02-P11-CODE_REVIEW](delivery_02/phase_11/D02-P11-CODE_REVIEW.md) | Optional Customer multi-theme PR code review and tech-lead approval | D02-P11-T002 | D02-P11-OPTIONAL | phase_manual | not_applicable | 0.25 day |
+| 107 | [D02-P12-T001](delivery_02/phase_12/D02-P12-T001.md) | Build the Mock API customer account store, credential handling and authentication contract | D02-P10-CODE_REVIEW | D02-P12-SEQUENTIAL | self_ai | not_applicable | 1.5 days |
+| 108 | [D02-P12-T002](delivery_02/phase_12/D02-P12-T002.md) | Add shared country, credential validation and authentication client capabilities | D02-P12-T001 | D02-P12-SEQUENTIAL | self_ai | not_applicable | 0.75 days |
+| 109 | [D02-P12-T003](delivery_02/phase_12/D02-P12-T003.md) | Replace the public-web Customer Portal action with Register and Login and build the registration page | D02-P12-T002 | D02-P12-SEQUENTIAL | self_ai | playwright_mcp | 1.5 days |
+| 110 | [D02-P12-T004](delivery_02/phase_12/D02-P12-T004.md) | Remove demo-mode identity from the public website | D02-P12-T003 | D02-P12-SEQUENTIAL | self_ai | playwright_mcp | 1 day |
+| 111 | [D02-P12-T005](delivery_02/phase_12/D02-P12-T005.md) | Deliver real credential sign-in and password recovery in the Customer application | D02-P12-T004 | D02-P12-SEQUENTIAL | self_ai | playwright_mcp | 1.5 days |
+| 112 | [D02-P12-T006](delivery_02/phase_12/D02-P12-T006.md) | Rebuild the Customer profile page with working password management and remove residual demo copy | D02-P12-T005 | D02-P12-SEQUENTIAL | self_ai | playwright_mcp | 1 day |
+| 113 | [D02-P12-T007](delivery_02/phase_12/D02-P12-T007.md) | Verify the end-to-end account journey, container gate and Phase 2.12 acceptance | D02-P12-T006 | D02-P12-SEQUENTIAL | self_ai | playwright_mcp | 1 day |
+| 114 | [D02-P12-CODE_REVIEW](delivery_02/phase_12/D02-P12-CODE_REVIEW.md) | Phase 2.12 PR code review and tech-lead approval | D02-P12-T007 | D02-P12-REVIEW | phase_manual | not_applicable | 0.5 days |
 
 ## Merge and continuation protocol
 

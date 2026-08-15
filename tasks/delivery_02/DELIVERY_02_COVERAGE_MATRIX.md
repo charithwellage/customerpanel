@@ -8,9 +8,9 @@ Known demonstration defects are negative evidence and must not be reproduced: co
 
 | Requirement | Approved intent | Evidence classification | Primary task(s) | Incremental mock capability | Acceptance evidence |
 |---|---|---|---|---|---|
-| CUST-01 | Protected customer access | Requirement; AutoPulse/Keycloak production boundary confirmed | D02-P01-G001, T001–T003; P09-T002 | Mock session, recovery/MFA presentation and compatible token claims | Invalid/expired sessions cannot reach customer routes |
+| CUST-01 | Protected customer access | Requirement; AutoPulse/Keycloak production boundary confirmed | D02-P01-G001, T001–T003; P09-T002; P12-T001/T005 | Mock session, recovery/MFA presentation and compatible token claims | Invalid/expired sessions cannot reach customer routes |
 | CUST-02 | Customer sees only own records | Requirement | Every data phase; P09-T002 | Token-derived ownership on every customer domain | Cross-customer/IDOR matrix passes |
-| CUST-03 | Password recovery | Requirement; AutoPulse/Keycloak ownership confirmed | D02-P01-G001, T002 | Mock recovery presentation/command | Recovery boundary matches Keycloak replacement adapter |
+| CUST-03 | Password recovery | Requirement; AutoPulse/Keycloak ownership confirmed | D02-P01-G001, T002; P12-T001/T005 (see CUST-29) | Mock recovery presentation/command | Recovery boundary matches Keycloak replacement adapter |
 | CUST-04 | Overview vehicles, balance, alerts | Requirement; compiled evidence provisional | D02-P02-G001, T001–T002; P10 | Derived dashboard aggregate | Linked-record MVP baseline reconciles; final finance mapping reviewed in P10 |
 | CUST-05 | Tier and discount | Requirement | D02-P02-T001–T002; P03-T001–T002 | Tier projection and approved price presentation | RULE-06 examples and audience projection pass |
 | CUST-06 | Credit limit/utilisation | Requirement; known POC defect | D02-P02-G001, T001–T002 | Server-derived credit aggregate | Worked 24% example and reconciliation pass |
@@ -32,7 +32,12 @@ Known demonstration defects are negative evidence and must not be reproduced: co
 | CUST-22 | Notifications/read state | Requirement | D02-P08-T001–T002 | Notification list/read/mark-all | Linked state and counts remain consistent |
 | CUST-23 | Edit approved contact details | Requirement | D02-P08-T003/T004 | Profile read/update | Company/phone/address persist and reset |
 | CUST-24 | Name/email fixed | Requirement | D02-P01, P08-T001/T003 | Fixed-field policy | Direct and API edits are rejected |
-| CUST-25 | Change password | Requirement; identity decision | D02-P01-G001/T002; P08-T003 | Identity-provider handoff only | No frontend password storage; approved flow shown |
+| CUST-25 | Change password | Requirement; identity decision | D02-P01-G001/T002; P08-T003; superseded by CUST-28 in P12-T001/T006 | Mock-owned change-password command replaces the handoff-only presentation | No frontend password storage; the old password stops working after a change |
+| CUST-26 | Customer self-registration | Requirement added 15 August 2026 | D02-P12-T001–T003 | `POST /api/v1/auth/register`, `customer_accounts` store, `GET /api/v1/config/countries` | Name with initials, country, dial-code-aware mobile, email, password and confirmation create a usable account; duplicate email is rejected |
+| CUST-27 | Credential sign-in to the Customer application | Requirement added 15 August 2026 | D02-P12-T001/T002/T005 | `POST /api/v1/auth/login` returning a scoped `CustomerBuyer` session | Only Mock-API-verified credentials sign in; unknown email and wrong password return one identical response |
+| CUST-28 | In-session password change | Requirement added 15 August 2026 | D02-P12-T001/T002/T006 | `POST /api/v1/auth/change-password` requiring the current password | The password changes from `/profile` and the old password stops working |
+| CUST-29 | Password recovery without a live mail provider | Requirement added 15 August 2026; D02-ASM-007 | D02-P12-T001/T002/T005 | `POST /api/v1/auth/password-reset` + `/confirm` and a non-production reset outbox | Neutral response for any email, single-use expiring token, and a 403 from the outbox under `NODE_ENV=production` |
+| CUST-30 | No demo identity path remains | Requirement added 15 August 2026 | D02-P12-T001/T004/T005/T006/T007 | `POST /api/v1/auth/demo-session` removed | No demo endpoint, panel, badge, label or storage key remains under `apps` or `packages` |
 
 ## Cross-cutting rules and workflow projections
 

@@ -27,7 +27,7 @@ function taskIds(root, throughOrder) {
     env: { ...process.env, TASKCTL_ROOT: root },
     encoding: 'utf8',
   });
-  assert.match(output, /Validated 119 task\/gate files/);
+  assert.match(output, /Validated 127 task\/gate files/);
   const ordered = readFileSync(join(root, 'tasks/EXECUTION_ORDER.md'), 'utf8')
     .split('\n')
     .map((line) => line.match(/^\|\s*(\d+(?:\.\d+)?)\s*\|\s*\[([^\]]+)\]/))

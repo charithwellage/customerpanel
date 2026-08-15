@@ -74,7 +74,7 @@ Delivery 02 repeats that container gate at the last implementation task in every
 - Delivery integration branch: `delivery_01_public_website`.
 - Public phase branches: `feat_delivery01_phase_01` through `feat_delivery01_phase_09`. Phase 1.9 verifies alternate-theme (`ocean`) parity across the whole Public Website; per-task UI validation in earlier phases covers the default `carchief` theme only.
 - Customer integration branch: `delivery_02_customer_application`, created by a human from the fully accepted updated Public delivery branch.
-- Customer phase branches: `feat_delivery02_phase_01` through `feat_delivery02_phase_11`; Phase 2.11 is explicitly optional and requires `--opt-in theme`.
+- Customer phase branches: `feat_delivery02_phase_01` through `feat_delivery02_phase_12`; Phase 2.11 is explicitly optional and requires `--opt-in theme`, while Phase 2.12 is mandatory and depends on `D02-P10-CODE_REVIEW`.
 - Tasks do not create child branches. Every task works directly on its phase branch, for example `feat_delivery01_phase_01`; parallel groups are coordination lanes on that same branch, not separate Git branches.
 - A phase branch is created only from its latest local delivery integration branch after the task's `git pull --ff-only` succeeds.
 - After phase acceptance, the human owner reviews the phase diff, commits its tracker/summary and creates a PR from the phase branch into its delivery integration branch manually. Agents do not perform these actions.
@@ -91,7 +91,7 @@ Publishing the delivery branch is an explicitly authorized human action. If `del
 
 ## Commands
 
-`node tasks/scripts/taskctl.mjs validate` validates 119 task/gate files, UI-validation metadata, shared-frontend-rule references, Delivery 02 assumption-register references, decisions, delivery-specific branches, requirement coverage and the dependency DAG.
+`node tasks/scripts/taskctl.mjs validate` validates 127 task/gate files, UI-validation metadata, shared-frontend-rule references, Delivery 02 assumption-register references, decisions, delivery-specific branches, requirement coverage and the dependency DAG.
 
 `node tasks/scripts/taskctl.mjs next` reports the current execution frontier for each eligible lane and permitted same-group parallel tasks.
 
