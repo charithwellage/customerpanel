@@ -9,9 +9,6 @@ import { CustomerFleetPage, CustomerFleetDetailPage } from '../features/vehicles
 import { DocumentsPage } from '../features/documents/index.js';
 import { CustomerInvoicesPage, CustomerInvoiceDetailPage } from '../features/invoices/index.js';
 import { PaymentsPage } from '../features/payments/index.js';
-import { NotificationsPage } from '../features/notifications/index.js';
-import { ShipmentPage } from '../features/shipments/index.js';
-import { ProfilePage } from '../features/profile/index.js';
 import { PortalPlaceholder } from './PortalPlaceholder.js';
 
 const queryClient = new QueryClient();
@@ -118,18 +115,6 @@ const AppContent: React.FC<{ session: CustomerSession; apiBaseUrl: string }> = (
 
   if (activeRoute === '/payments') {
     return <PaymentsPage />;
-  }
-
-  if (activeRoute === '/shipments') {
-    return <ShipmentPage />;
-  }
-
-  if (activeRoute === '/notifications') {
-    return <NotificationsPage />;
-  }
-
-  if (activeRoute === '/profile') {
-    return <ProfilePage />;
   }
 
   if (activeRoute.startsWith('/invoices/')) {

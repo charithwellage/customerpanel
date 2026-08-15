@@ -68,11 +68,6 @@ import type {
   CustomerPaymentNotificationEvent,
   CustomerPaymentNotificationListResponse,
   RecordPaymentNotificationRequest,
-  Notification,
-  CustomerNotificationListResponse,
-  MarkNotificationsReadResponse,
-  CustomerProfile,
-  UpdateCustomerProfileRequest,
 } from '@carchief/domain';
 import {
   generateVehicleSlug,
@@ -530,12 +525,6 @@ export interface DemoStore {
   getCustomerShipment(customerId: string, shipmentId: string): Promise<CustomerShipment | null>;
   listCustomerDocuments(customerId: string): Promise<CustomerDocument[]>;
   getCustomerDocument(customerId: string, documentId: string): Promise<CustomerDocument | null>;
-  listCustomerNotifications(customerId: string, query?: { status?: 'all' | 'read' | 'unread'; q?: string }): Promise<CustomerNotificationListResponse>;
-  getCustomerNotification(customerId: string, notificationId: string): Promise<Notification | null>;
-  markCustomerNotificationRead(customerId: string, notificationId: string): Promise<Notification | null>;
-  markAllCustomerNotificationsRead(customerId: string): Promise<MarkNotificationsReadResponse>;
-  getCustomerProfile(customerId: string, email: string): Promise<CustomerProfile>;
-  updateCustomerProfile(customerId: string, email: string, request: UpdateCustomerProfileRequest, nowISO?: string): Promise<CustomerProfile>;
   // Phase 2.5: customer invoice projections (CUST-02, CUST-14, CUST-15, CUST-16, CUST-21, RULE-04, RULE-08, RULE-10)
   getCustomerInvoices(customerId: string, query?: ListCustomerInvoicesQuery, nowISO?: string): Promise<CustomerInvoiceListResponse>;
   getCustomerInvoiceById(customerId: string, id: string, nowISO?: string): Promise<CustomerInvoiceDetail | null>;
@@ -2189,17 +2178,6 @@ export interface NotificationRecord {
   type: 'Payment' | 'Shipment' | 'Document' | 'Vehicle' | 'Promotion';
   isRead: boolean;
   createdAt: string;
-  title?: string;
-  related?: Notification['related'];
-}
-
-export interface CustomerProfileRecord {
-  customerId: string;
-  companyName: string;
-  phone: string;
-  deliveryAddress: string;
-  version: number;
-  updatedAt: string;
 }
 
 export interface PaymentNotificationRecord {
@@ -2479,7 +2457,6 @@ const seedNotifications: NotificationRecord[] = [
     type: 'Payment',
     isRead: true,
     createdAt: '2026-08-11T10:00:00.000Z',
-    related: { kind: 'Invoice', id: 'inv-001', href: '/customer/invoices/inv-001' },
   },
   {
     id: 'notif-002',
@@ -2488,7 +2465,6 @@ const seedNotifications: NotificationRecord[] = [
     type: 'Shipment',
     isRead: false,
     createdAt: '2026-08-13T10:00:00.000Z',
-    related: { kind: 'Shipment', id: 'ship-001', href: '/customer/shipments/ship-001' },
   },
   {
     id: 'notif-003',
@@ -2497,7 +2473,6 @@ const seedNotifications: NotificationRecord[] = [
     type: 'Document',
     isRead: false,
     createdAt: '2026-08-14T08:30:00.000Z',
-    related: { kind: 'DocumentRelease', id: 'doc-003', href: '/customer/documents/doc-003' },
   },
   {
     id: 'notif-004',
@@ -2517,25 +2492,6 @@ const seedNotifications: NotificationRecord[] = [
     createdAt: '2026-08-14T08:00:00.000Z',
   },
   // Exception customer (cust-exception-001): no notifications
-];
-
-const seedCustomerProfiles: CustomerProfileRecord[] = [
-  {
-    customerId: 'cust-123',
-    companyName: 'CarChief Demo Customer',
-    phone: '+1 555 0100',
-    deliveryAddress: 'Customer delivery address, demo only',
-    version: 1,
-    updatedAt: '2026-08-14T08:00:00.000Z',
-  },
-  {
-    customerId: 'cust-exception-001',
-    companyName: 'Exception Customer',
-    phone: '+1 555 0101',
-    deliveryAddress: 'Exception customer address, demo only',
-    version: 1,
-    updatedAt: '2026-08-14T08:00:00.000Z',
-  },
 ];
 
 // Seed data for Proforma Invoices (D02-P04-T001, CUST-10, RULE-07)
@@ -3264,50 +3220,6 @@ function toCustomerDocument(record: DocumentRecord): CustomerDocument {
   };
 }
 
-function toCustomerNotification(record: NotificationRecord): Notification {
-  return {
-    id: record.id,
-    customerId: record.customerId,
-    ...(record.title ? { title: record.title } : {}),
-    message: record.message,
-    type: record.type,
-    isRead: record.isRead,
-    createdAt: record.createdAt,
-    ...(record.related ? { related: { ...record.related } } : {}),
-  };
-}
-
-function queryCustomerNotifications(records: NotificationRecord[], query?: { status?: 'all' | 'read' | 'unread'; q?: string }): CustomerNotificationListResponse {
-  const status = query?.status || 'all';
-  const search = query?.q?.trim().toLowerCase();
-  const items = records
-    .filter((notification) => status === 'all' || (status === 'read' ? notification.isRead : !notification.isRead))
-    .filter((notification) => !search || `${notification.title || ''} ${notification.message} ${notification.type}`.toLowerCase().includes(search))
-    .sort((left, right) => right.createdAt.localeCompare(left.createdAt))
-    .map(toCustomerNotification);
-  return { items, total: items.length, unreadCount: records.filter((notification) => !notification.isRead).length };
-}
-
-function toCustomerProfile(record: CustomerProfileRecord, email: string): CustomerProfile {
-  return {
-    customerId: record.customerId,
-    name: email.split('@')[0] || 'Customer',
-    email,
-    companyName: record.companyName,
-    phone: record.phone,
-    deliveryAddress: record.deliveryAddress,
-    version: record.version,
-    updatedAt: record.updatedAt,
-  };
-}
-
-function validateCustomerProfileRequest(request: UpdateCustomerProfileRequest): void {
-  if (!request || typeof request.companyName !== 'string' || request.companyName.trim().length < 2 || request.companyName.length > 120) throw new Error('Company name must be between 2 and 120 characters');
-  if (typeof request.phone !== 'string' || !/^\+?[0-9 ()-]{7,30}$/.test(request.phone.trim())) throw new Error('Phone number is invalid');
-  if (typeof request.deliveryAddress !== 'string' || request.deliveryAddress.trim().length < 5 || request.deliveryAddress.length > 240) throw new Error('Delivery address must be between 5 and 240 characters');
-  if (request.expectedVersion !== undefined && (!Number.isInteger(request.expectedVersion) || request.expectedVersion < 1)) throw new Error('expectedVersion is invalid');
-}
-
 function toCustomerPayment(record: PaymentRecord, invoices: InvoiceRecord[] = [], allocations: AllocationRecord[] = []): CustomerPayment {
   const invoice = invoices.find((candidate) => candidate.id === record.invoiceId && candidate.customerId === record.customerId);
   const allocatedAmountUsd = allocations
@@ -3356,15 +3268,6 @@ export class PaymentWorkflowError extends Error {
   constructor(public readonly statusCode: number, message: string) {
     super(message);
     this.name = 'PaymentWorkflowError';
-  }
-}
-
-export class ProfileConflictError extends Error {
-  readonly statusCode = 409;
-
-  constructor() {
-    super('Customer profile changed since it was loaded');
-    this.name = 'ProfileConflictError';
   }
 }
 
@@ -3473,7 +3376,6 @@ class MemoryStore implements DemoStore {
   private shipments = seedShipments.map((s) => ({ ...s }));
   private documents = seedDocuments.map((d) => ({ ...d }));
   private notifications = seedNotifications.map((n) => ({ ...n }));
-  private customerProfiles = seedCustomerProfiles.map((profile) => ({ ...profile }));
   private faqCategories = seedFaqCategories.map((c) => ({ ...c }));
   private faqItems = seedFaqItems.map((f) => ({ ...f }));
   private testimonials = seedTestimonials.map((t) => ({ ...t }));
@@ -3827,47 +3729,6 @@ class MemoryStore implements DemoStore {
     return toCustomerDocument(document);
   }
 
-  listCustomerNotifications(customerId: string, query?: { status?: 'all' | 'read' | 'unread'; q?: string }): Promise<CustomerNotificationListResponse> {
-    return Promise.resolve(queryCustomerNotifications(this.notifications.filter((notification) => notification.customerId === customerId), query));
-  }
-
-  getCustomerNotification(customerId: string, notificationId: string): Promise<Notification | null> {
-    const notification = this.notifications.find((candidate) => candidate.customerId === customerId && candidate.id === notificationId);
-    return Promise.resolve(notification ? toCustomerNotification(notification) : null);
-  }
-
-  markCustomerNotificationRead(customerId: string, notificationId: string): Promise<Notification | null> {
-    const notification = this.notifications.find((candidate) => candidate.customerId === customerId && candidate.id === notificationId);
-    if (notification) notification.isRead = true;
-    return Promise.resolve(notification ? toCustomerNotification(notification) : null);
-  }
-
-  markAllCustomerNotificationsRead(customerId: string): Promise<MarkNotificationsReadResponse> {
-    const owned = this.notifications.filter((notification) => notification.customerId === customerId);
-    const updatedCount = owned.filter((notification) => !notification.isRead).length;
-    owned.forEach((notification) => { notification.isRead = true; });
-    return Promise.resolve({ updatedCount, unreadCount: 0 });
-  }
-
-  getCustomerProfile(customerId: string, email: string): Promise<CustomerProfile> {
-    const profile = this.customerProfiles.find((candidate) => candidate.customerId === customerId);
-    if (!profile) throw new Error('Customer profile not found');
-    return Promise.resolve(toCustomerProfile(profile, email));
-  }
-
-  updateCustomerProfile(customerId: string, email: string, request: UpdateCustomerProfileRequest, nowISO = new Date().toISOString()): Promise<CustomerProfile> {
-    validateCustomerProfileRequest(request);
-    const profile = this.customerProfiles.find((candidate) => candidate.customerId === customerId);
-    if (!profile) throw new Error('Customer profile not found');
-    if (request.expectedVersion !== undefined && request.expectedVersion !== profile.version) throw new ProfileConflictError();
-    profile.companyName = request.companyName.trim();
-    profile.phone = request.phone.trim();
-    profile.deliveryAddress = request.deliveryAddress.trim();
-    profile.version += 1;
-    profile.updatedAt = nowISO;
-    return Promise.resolve(toCustomerProfile(profile, email));
-  }
-
   getCustomerInvoices(customerId: string, query?: ListCustomerInvoicesQuery, nowISO?: string): Promise<CustomerInvoiceListResponse> {
     const all = buildCustomerInvoiceProjections(
       customerId,
@@ -3957,7 +3818,6 @@ class MemoryStore implements DemoStore {
     this.shipments = seedShipments.map((s) => ({ ...s }));
     this.documents = seedDocuments.map((d) => ({ ...d }));
     this.notifications = seedNotifications.map((n) => ({ ...n }));
-    this.customerProfiles = seedCustomerProfiles.map((profile) => ({ ...profile }));
     this.faqCategories = seedFaqCategories.map((c) => ({ ...c }));
     this.faqItems = seedFaqItems.map((f) => ({ ...f }));
     this.testimonials = seedTestimonials.map((t) => ({ ...t }));
@@ -3976,8 +3836,6 @@ class PostgresStore implements DemoStore {
   private readonly pool: Pool;
   private paymentRecords = seedPayments.map((payment) => ({ ...payment }));
   private paymentNotifications = seedPaymentNotifications.map((notification) => ({ ...notification }));
-  private notifications = seedNotifications.map((notification) => ({ ...notification }));
-  private customerProfiles = seedCustomerProfiles.map((profile) => ({ ...profile }));
   private allocations = seedAllocations.map((allocation) => ({ ...allocation }));
 
   constructor(connectionString: string) {
@@ -4847,47 +4705,6 @@ class PostgresStore implements DemoStore {
     return toCustomerDocument(document);
   }
 
-  async listCustomerNotifications(customerId: string, query?: { status?: 'all' | 'read' | 'unread'; q?: string }): Promise<CustomerNotificationListResponse> {
-    return queryCustomerNotifications(this.notifications.filter((notification) => notification.customerId === customerId), query);
-  }
-
-  async getCustomerNotification(customerId: string, notificationId: string): Promise<Notification | null> {
-    const notification = this.notifications.find((candidate) => candidate.customerId === customerId && candidate.id === notificationId);
-    return notification ? toCustomerNotification(notification) : null;
-  }
-
-  async markCustomerNotificationRead(customerId: string, notificationId: string): Promise<Notification | null> {
-    const notification = this.notifications.find((candidate) => candidate.customerId === customerId && candidate.id === notificationId);
-    if (notification) notification.isRead = true;
-    return notification ? toCustomerNotification(notification) : null;
-  }
-
-  async markAllCustomerNotificationsRead(customerId: string): Promise<MarkNotificationsReadResponse> {
-    const owned = this.notifications.filter((notification) => notification.customerId === customerId);
-    const updatedCount = owned.filter((notification) => !notification.isRead).length;
-    owned.forEach((notification) => { notification.isRead = true; });
-    return { updatedCount, unreadCount: 0 };
-  }
-
-  async getCustomerProfile(customerId: string, email: string): Promise<CustomerProfile> {
-    const profile = this.customerProfiles.find((candidate) => candidate.customerId === customerId);
-    if (!profile) throw new Error('Customer profile not found');
-    return toCustomerProfile(profile, email);
-  }
-
-  async updateCustomerProfile(customerId: string, email: string, request: UpdateCustomerProfileRequest, nowISO = new Date().toISOString()): Promise<CustomerProfile> {
-    validateCustomerProfileRequest(request);
-    const profile = this.customerProfiles.find((candidate) => candidate.customerId === customerId);
-    if (!profile) throw new Error('Customer profile not found');
-    if (request.expectedVersion !== undefined && request.expectedVersion !== profile.version) throw new ProfileConflictError();
-    profile.companyName = request.companyName.trim();
-    profile.phone = request.phone.trim();
-    profile.deliveryAddress = request.deliveryAddress.trim();
-    profile.version += 1;
-    profile.updatedAt = nowISO;
-    return toCustomerProfile(profile, email);
-  }
-
   async getCustomerInvoices(customerId: string, query?: ListCustomerInvoicesQuery, nowISO?: string): Promise<CustomerInvoiceListResponse> {
     const vehicles = await this.getRawVehicles();
     const all = buildCustomerInvoiceProjections(
@@ -5045,8 +4862,6 @@ class PostgresStore implements DemoStore {
       }
 
       await client.query('COMMIT');
-      this.notifications = seedNotifications.map((notification) => ({ ...notification }));
-      this.customerProfiles = seedCustomerProfiles.map((profile) => ({ ...profile }));
     } catch (error) {
       await client.query('ROLLBACK');
       throw error;
