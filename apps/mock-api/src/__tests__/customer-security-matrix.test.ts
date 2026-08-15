@@ -62,6 +62,72 @@ describe('Customer security acceptance matrix (D02-P09-T002)', () => {
     }
   });
 
+  it('never lets one registered customer sign in with, change, or reset the other\'s credential', async () => {
+    const passwordA = 'AccountAPassw0rd!';
+    const passwordB = 'AccountBPassw0rd!';
+    const register = (email: string, password: string) =>
+      fetch(`${baseUrl}/api/v1/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nameWithInitials: 'A. Account',
+          countryCode: 'UG',
+          mobileNumber: '700999888',
+          email,
+          password,
+          confirmPassword: password,
+        }),
+      });
+    const login = (email: string, password: string) =>
+      fetch(`${baseUrl}/api/v1/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+
+    const regA = await register('account-a@example.com', passwordA);
+    const regB = await register('account-b@example.com', passwordB);
+    expect(regA.status).toBe(201);
+    expect(regB.status).toBe(201);
+    const accountA = await regA.json();
+    const accountB = await regB.json();
+    expect(accountA.customerId).not.toBe(accountB.customerId);
+
+    // Account A cannot sign in with account B's password, and vice versa.
+    expect((await login('account-a@example.com', passwordB)).status).toBe(401);
+    expect((await login('account-b@example.com', passwordA)).status).toBe(401);
+
+    // Account A's session cannot change account B's password by supplying
+    // B's current password value — change-password is always scoped to the
+    // authenticated session's own customer id, never a body-supplied target.
+    const loginA = await (await login('account-a@example.com', passwordA)).json();
+    const changeAsA = await fetch(`${baseUrl}/api/v1/auth/change-password`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${loginA.token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ currentPassword: passwordB, newPassword: 'TakeoverPassw0rd!', confirmNewPassword: 'TakeoverPassw0rd!' }),
+    });
+    expect(changeAsA.status).toBe(401);
+    expect((await login('account-b@example.com', passwordB)).status).toBe(200);
+
+    // A reset token issued for account A cannot be used to reset account B.
+    await fetch(`${baseUrl}/api/v1/auth/password-reset`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'account-a@example.com' }),
+    });
+    const outbox = await (await fetch(`${baseUrl}/api/v1/auth/__outbox`)).json();
+    const tokenA = outbox.items.find((i: { email: string }) => i.email === 'account-a@example.com').token;
+    const confirmRes = await fetch(`${baseUrl}/api/v1/auth/password-reset/confirm`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: tokenA, newPassword: 'NewPassw0rdForA!', confirmNewPassword: 'NewPassw0rdForA!' }),
+    });
+    expect(confirmRes.status).toBe(200);
+    // Only A's credential moved; B's is unaffected.
+    expect((await login('account-b@example.com', passwordB)).status).toBe(200);
+    expect((await login('account-a@example.com', 'NewPassw0rdForA!')).status).toBe(200);
+  });
+
   it('rejects expired sessions before any customer route can authorize them', async () => {
     const expired = createDemoJwtToken('CustomerBuyer');
     const payload = JSON.parse(Buffer.from(expired.split('.')[1], 'base64').toString('utf8')) as { exp: number };
