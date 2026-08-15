@@ -17,7 +17,7 @@ Use the task file as the source of truth. The phase CONTEXT.md carries the requi
 
 tasks/TASK_EXECUTION_PROTOCOL.md carries the shared execution mechanics: agent portability rules, preflight semantics, runtime profiles, browser-validation split, evidence block templates and the final-response contract.
 
-For a Delivery 02 task, also read `tasks/delivery_02/REQUIREMENT_GAPS_AND_ASSUMPTIONS.md` and `tasks/delivery_02/D02_TEST_MATRIX.md`. A requirement gap does not block Phases 2.1–2.9: use an approved rule, then the documented safe MVP default, or skip only the unsafe capability with an honest unavailable state. Record the assumption or skipped feature in that register and the execution log; never invent a business rule or claim a live integration. In Phases 2.1–2.10 use only the default `carchief` theme and run only the matrix-assigned focused tests/build. Phase 2.11 is optional and requires `--opt-in theme`.
+For a Delivery 02 task, also read `tasks/delivery_02/REQUIREMENT_GAPS_AND_ASSUMPTIONS.md` and `tasks/delivery_02/D02_TEST_MATRIX.md`. A requirement gap does not block Phases 2.1–2.9: use an approved rule, then the documented safe MVP default, or skip only the unsafe capability with an honest unavailable state. Record the assumption or skipped feature in that register and the execution log; never invent a business rule or claim a live integration. In Phases 2.1–2.10 use only the default `carchief` theme and run only the matrix-assigned focused tests/build. Phase 2.11 is optional and requires `--opt-in theme`. Phase 2.12 is mandatory and uses only the default `carchief` theme.
 
 Follow the task’s preflight exactly. Before any branch, source or task-state change, run:
 
