@@ -131,8 +131,8 @@
 | [D02-P08-CODE_REVIEW](delivery_02/phase_08/D02-P08-CODE_REVIEW.md) | Phase 2.8 PR code review and tech-lead approval | COMPLETE | phase_manual | not_applicable | Codex | `feat_delivery02_phase_08` | D02-P08-CODE_REVIEW (COMPLETE) | D02-P08-T003, D02-P08-T004 | D02-P08-REVIEW | 2026-08-15T04:46:31.423Z |
 | [D02-P09-T001](delivery_02/phase_09/D02-P09-T001.md) | Complete Customer requirement and compiled-behavior traceability | COMPLETE | self_ai | not_applicable | Codex | `feat_delivery02_phase_09` | D02-P09-CODE_REVIEW (NOT_STARTED) | D02-P06-CODE_REVIEW, D02-P08-CODE_REVIEW | D02-P09-SEQUENTIAL | 2026-08-15T04:52:52.285Z |
 | [D02-P09-T002](delivery_02/phase_09/D02-P09-T002.md) | Complete customer security, isolation and offline-safety acceptance | COMPLETE | self_ai | not_applicable | Codex | `feat_delivery02_phase_09` | D02-P09-CODE_REVIEW (NOT_STARTED) | D02-P09-T001 | D02-P09-SEQUENTIAL | 2026-08-15T05:01:26.685Z |
-| [D02-P09-T003](delivery_02/phase_09/D02-P09-T003.md) | Complete responsive, accessibility, theme, PWA and performance acceptance | READY | self_ai | playwright_mcp | — | `feat_delivery02_phase_09` | D02-P09-CODE_REVIEW (NOT_STARTED) | D02-P09-T002 | D02-P09-SEQUENTIAL | — |
-| [D02-P09-T004](delivery_02/phase_09/D02-P09-T004.md) | Run Customer Docker UAT and produce Delivery 03 handoff | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery02_phase_09` | D02-P09-CODE_REVIEW (NOT_STARTED) | D02-P09-T003 | D02-P09-SEQUENTIAL | — |
+| [D02-P09-T003](delivery_02/phase_09/D02-P09-T003.md) | Complete responsive, accessibility, theme, PWA and performance acceptance | COMPLETE | self_ai | playwright_mcp | Codex | `feat_delivery02_phase_09` | D02-P09-CODE_REVIEW (NOT_STARTED) | D02-P09-T002 | D02-P09-SEQUENTIAL | 2026-08-15T05:41:29.351Z |
+| [D02-P09-T004](delivery_02/phase_09/D02-P09-T004.md) | Run Customer Docker UAT and produce Delivery 03 handoff | READY | self_ai | playwright_mcp | — | `feat_delivery02_phase_09` | D02-P09-CODE_REVIEW (NOT_STARTED) | D02-P09-T003 | D02-P09-SEQUENTIAL | — |
 | [D02-P09-CODE_REVIEW](delivery_02/phase_09/D02-P09-CODE_REVIEW.md) | Phase 2.9 PR code review and tech-lead approval | NOT_STARTED | phase_manual | not_applicable | — | `feat_delivery02_phase_09` | D02-P09-CODE_REVIEW (NOT_STARTED) | D02-P09-T004 | D02-P09-REVIEW | — |
 | [D02-P10-T001](delivery_02/phase_10/D02-P10-T001.md) | Reconcile Delivery 02 requirement gaps and assumption evidence | NOT_STARTED | self_ai | not_applicable | — | `feat_delivery02_phase_10` | D02-P10-CODE_REVIEW (NOT_STARTED) | D02-P09-CODE_REVIEW | D02-P10-SEQUENTIAL | — |
 | [D02-P10-T002](delivery_02/phase_10/D02-P10-T002.md) | Apply approved Delivery 02 assumption adjustments | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery02_phase_10` | D02-P10-CODE_REVIEW (NOT_STARTED) | D02-P10-T001 | D02-P10-SEQUENTIAL | — |
@@ -145,7 +145,7 @@
 
 ## Current execution frontiers
 
-- D02-FINAL: D02-P09-T003 — Complete responsive, accessibility, theme, PWA and performance acceptance (NOT_STARTED)
+- D02-FINAL: D02-P09-T004 — Run Customer Docker UAT and produce Delivery 03 handoff (NOT_STARTED)
 - Sequential within each lane; dependencies coordinate work across lanes.
 - Optional Phase 2.11 is excluded until explicitly started with `--opt-in theme`.
 - Downstream work waits for COMPLETE or SUPERSEDED; IN_REVIEW is not complete.

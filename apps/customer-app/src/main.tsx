@@ -21,6 +21,10 @@ function applyTheme(): void {
 
 applyTheme();
 
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  void navigator.serviceWorker.register('/sw.js', { scope: '/' });
+}
+
 const container = document.getElementById('root');
 if (!container) {
   throw new Error('Customer app mount point #root is missing from index.html');
