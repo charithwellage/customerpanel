@@ -63,3 +63,61 @@ Known demonstration defects are negative evidence and must not be reproduced: co
 - `POC/build/carchief_customer_backend.html`, runtime reports and screenshots are compiled/runtime evidence, not production code or approved rules.
 - BA customer projections are authoritative workflow evidence only after the named ownership/timer/payment/document decisions are resolved.
 - Any behavior not covered by an approved requirement or decision is recorded as `ASSUMED` or `SKIPPED` in the Delivery 02 register. It uses a safe MVP default or honest unavailable state and is reconciled in Phase 2.10 rather than blocking Phases 2.1–2.9.
+
+## Phase 2.9 disposition
+
+The existing requirement-to-task rows above establish traceability. This section records the current acceptance disposition without treating compiled HTML as production evidence or claiming business approval that has not been recorded.
+
+| Disposition | Meaning in this phase |
+|---|---|
+| `DELIVERED` | Implemented and evidenced in the Customer Application MVP, with server-authoritative boundaries where applicable. |
+| `DEFERRED` | Deliberately outside the MVP boundary or dependent on a later production/assumption decision; the current UI remains honest about the limitation. |
+| `REJECTED` | Compiled/POC behavior explicitly rejected because it conflicts with approved requirements, security or data-integrity rules. |
+| `OPEN` | Requires named business or production-owner confirmation; it remains provisional and is not presented as confirmed behavior. |
+
+| Requirement | Current disposition | Evidence / boundary |
+|---|---|---|
+| CUST-01 | DELIVERED | Mock protected session, expiry and recovery presentation; production identity remains AutoPulse/Keycloak under D02-ASM-003. |
+| CUST-02 | DELIVERED | Customer scope is derived server-side and covered by customer isolation/IDOR tests; final security acceptance continues in P09-T002. |
+| CUST-03 | DELIVERED / DEFERRED | Demo recovery presentation is delivered; production recovery/MFA remains the identity-provider handoff. |
+| CUST-04 | DELIVERED / OPEN | Server-derived dashboard MVP is delivered; final finance definitions remain D02-ASM-001 and require Phase 2.10 confirmation. |
+| CUST-05 | DELIVERED | Server-projected tier and customer price behavior is covered by Phase 2.2/2.3 evidence. |
+| CUST-06 | DELIVERED / OPEN | Server-derived credit utilization MVP is delivered; final finance formula/status mapping remains D02-ASM-001. |
+| CUST-07 | DELIVERED / DEFERRED | Default `carchief` theme is delivered; alternate-theme work is optional Phase 2.11. |
+| CUST-08 | DELIVERED | Refresh invalidates/refetches authoritative query data in the implemented Customer flows. |
+| CUST-09 | DELIVERED | Customer inventory/search/detail flow uses the shared typed service and feature boundary. |
+| CUST-10 | DELIVERED | Transaction vehicle groupings use canonical server projections and deterministic fixtures. |
+| CUST-11 | DELIVERED | Approved customer-safe shipment stages and exceptions are projected server-side. |
+| CUST-12 | DELIVERED | Deposit is server-calculated under RULE-07 and evidenced by Phase 2.4 tests. |
+| CUST-13 | DELIVERED | Duplicate/phantom vehicle behavior is prohibited and covered by canonical identity tests. |
+| CUST-14 | DELIVERED | Invoice totals, paid and outstanding projections are linked and reconciled. |
+| CUST-15 | DELIVERED / DEFERRED | MVP print/download projection is delivered where authorized; final storage/delivery policy remains outside this delivery. |
+| CUST-16 | DELIVERED / OPEN | One server-authoritative balance projection is delivered; final finance confirmation remains D02-ASM-001. |
+| CUST-17 | DELIVERED | Payment journal/status projections and deterministic notification outbox evidence are delivered. |
+| CUST-18 | DELIVERED | Mock-MVP payment submission accepts only the approved metadata/proof boundary and validates retries/idempotency. |
+| CUST-19 | DELIVERED | Allocated funds are excluded from available balance by server projection and tests. |
+| CUST-20 | DELIVERED / DEFERRED | Authorized ten-category metadata/access MVP is delivered; final repository, retention and scanning policy remains D02-ASM-002. |
+| CUST-21 | DELIVERED | Finance-approved release plus `visibleToCustomer` gates customer document visibility. |
+| CUST-22 | DELIVERED | Customer-scoped notification filtering, linked navigation, read state and reset behavior are delivered. |
+| CUST-23 | DELIVERED | Company, phone and delivery address update through the typed profile service with validation/conflict handling. |
+| CUST-24 | DELIVERED | Name/email are fixed server-derived identity fields and are not editable. |
+| CUST-25 | DELIVERED / DEFERRED | Honest identity-provider password handoff is delivered; no password storage or production identity implementation is claimed. |
+
+## Compiled-only and negative-evidence disposition
+
+The Customer compiled artifact was used for discovery only. The following behaviors are explicitly rejected or deferred and are not acceptance claims for the target application:
+
+| Compiled/POC observation | Disposition | Target treatment |
+|---|---|---|
+| Browser-selected identity, forced role and auto-authenticated privileged views | REJECTED | Target uses protected mock sessions, server permissions and customer-derived scope. |
+| Firebase/Firestore/localStorage-only persistence and shared-origin records | REJECTED | Target uses HTTP Mock API operations, deterministic reset and server-side customer scope. |
+| Contradictory balances, duplicate vehicles and allocated funds shown as available | REJECTED | Target uses server-authoritative linked projections and reconciliation tests. |
+| Empty/disconnected customer documents | REJECTED | Target uses approval/release/visibility gates and honest unavailable states. |
+| Production password storage, live email/bank/carrier/ERP actions | DEFERRED | AutoPulse/Keycloak and future adapters own those capabilities; the MVP labels the boundary honestly. |
+| Push, background sync, camera capture and install analytics | DEFERRED | Excluded by DEC-PWA-ENHANCEMENTS unless separately approved. |
+
+## Business sign-off and Delivery 03 prerequisites
+
+- Business sign-off status: `OPEN`. No named approver or dated sign-off artifact was supplied for the compiled-only Customer behavior or the BA customer projections, so this matrix records them as provisional rather than confirmed.
+- Phase 2.10 must review D02-ASM-001 through D02-ASM-004, confirm or adjust finance/document/identity boundaries, and rerun the complete Customer journey after any approved change.
+- Delivery 03 prerequisites: preserve the typed OpenAPI/generated-client boundary; replace Mock API session/profile/payment/document adapters with approved production contracts; retain server-side customer isolation; obtain approved identity-provider, finance, repository/document and external-integration contracts before enabling production behavior.
