@@ -136,8 +136,8 @@
 | [D02-P09-CODE_REVIEW](delivery_02/phase_09/D02-P09-CODE_REVIEW.md) | Phase 2.9 PR code review and tech-lead approval | COMPLETE | phase_manual | not_applicable | Codex | `feat_delivery02_phase_09` | D02-P09-CODE_REVIEW (COMPLETE) | D02-P09-T004 | D02-P09-REVIEW | 2026-08-15T07:18:48.772Z |
 | [D02-P10-T001](delivery_02/phase_10/D02-P10-T001.md) | Reconcile Delivery 02 requirement gaps and assumption evidence | COMPLETE | self_ai | not_applicable | Codex | `feat_delivery02_phase_10` | D02-P10-CODE_REVIEW (NOT_STARTED) | D02-P09-CODE_REVIEW | D02-P10-SEQUENTIAL | 2026-08-15T07:25:25.940Z |
 | [D02-P10-T002](delivery_02/phase_10/D02-P10-T002.md) | Apply approved Delivery 02 assumption adjustments | COMPLETE | self_ai | playwright_mcp | Codex | `feat_delivery02_phase_10` | D02-P10-CODE_REVIEW (NOT_STARTED) | D02-P10-T001 | D02-P10-SEQUENTIAL | 2026-08-15T07:32:58.685Z |
-| [D02-P10-T003](delivery_02/phase_10/D02-P10-T003.md) | Run final Customer assumption, Docker and golden-journey acceptance | BLOCKED | self_ai | playwright_mcp | Codex | `feat_delivery02_phase_10` | D02-P10-CODE_REVIEW (NOT_STARTED) | D02-P10-T002 | D02-P10-SEQUENTIAL | 2026-08-15T07:54:48.593Z |
-| [D02-P10-CODE_REVIEW](delivery_02/phase_10/D02-P10-CODE_REVIEW.md) | Phase 2.10 PR code review and tech-lead approval | NOT_STARTED | phase_manual | not_applicable | — | `feat_delivery02_phase_10` | D02-P10-CODE_REVIEW (NOT_STARTED) | D02-P10-T003 | D02-P10-REVIEW | — |
+| [D02-P10-T003](delivery_02/phase_10/D02-P10-T003.md) | Run final Customer assumption, Docker and golden-journey acceptance | COMPLETE | self_ai | playwright_mcp | Codex | `feat_delivery02_phase_10` | D02-P10-CODE_REVIEW (NOT_STARTED) | D02-P10-T002 | D02-P10-SEQUENTIAL | 2026-08-15T08:22:24.917Z |
+| [D02-P10-CODE_REVIEW](delivery_02/phase_10/D02-P10-CODE_REVIEW.md) | Phase 2.10 PR code review and tech-lead approval | READY | phase_manual | not_applicable | — | `feat_delivery02_phase_10` | D02-P10-CODE_REVIEW (NOT_STARTED) | D02-P10-T003 | D02-P10-REVIEW | — |
 | [D02-P11-T001](delivery_02/phase_11/D02-P11-T001.md) | Add optional Customer theme configuration and provider integration | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery02_phase_11` | D02-P11-CODE_REVIEW (NOT_STARTED) | D02-P10-CODE_REVIEW | D02-P11-OPTIONAL | — |
 | [D02-P11-T002](delivery_02/phase_11/D02-P11-T002.md) | Enable and verify the optional ocean Customer theme | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery02_phase_11` | D02-P11-CODE_REVIEW (NOT_STARTED) | D02-P11-T001 | D02-P11-OPTIONAL | — |
 | [D02-P11-CODE_REVIEW](delivery_02/phase_11/D02-P11-CODE_REVIEW.md) | Optional Customer multi-theme PR code review and tech-lead approval | NOT_STARTED | phase_manual | not_applicable | — | `feat_delivery02_phase_11` | D02-P11-CODE_REVIEW (NOT_STARTED) | D02-P11-T002 | D02-P11-OPTIONAL | — |
@@ -145,7 +145,7 @@
 
 ## Current execution frontiers
 
-- D02-FINAL: D02-P10-T003 — Run final Customer assumption, Docker and golden-journey acceptance (BLOCKED)
+- D02-FINAL: D02-P10-CODE_REVIEW — Phase 2.10 PR code review and tech-lead approval (NOT_STARTED)
 - Sequential within each lane; dependencies coordinate work across lanes.
 - Optional Phase 2.11 is excluded until explicitly started with `--opt-in theme`.
 - Downstream work waits for COMPLETE or SUPERSEDED; IN_REVIEW is not complete.
