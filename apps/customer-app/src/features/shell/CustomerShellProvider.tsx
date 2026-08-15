@@ -38,7 +38,6 @@ const DEFAULT_NAV_ITEMS: NavigationItem[] = [
   { id: 'payments', label: 'Payments', href: '/payments', icon: '💳' },
   { id: 'shipments', label: 'Shipments', href: '/shipments', icon: '🚢' },
   { id: 'documents', label: 'Documents', href: '/documents', icon: '📁' },
-  { id: 'notifications', label: 'Notifications', href: '/notifications', icon: '🔔' },
   { id: 'profile', label: 'Profile & Account', href: '/profile', icon: '👤' },
 ];
 
