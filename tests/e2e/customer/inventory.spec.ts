@@ -24,10 +24,11 @@ test.describe('Customer Inventory & Vehicle Detail E2E (D02-P03-T003)', () => {
     // Verify inventory page is rendered
     await expect(page.getByTestId('customer-inventory-page')).toBeVisible();
     await expect(page.getByRole('region', { name: 'Customer tier pricing status' })).toBeVisible();
-    await expect(page.getByLabel('Search vehicles')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'CarChief Inventory Search' })).toBeVisible();
+    await expect(page.getByRole('region', { name: 'Vehicle search and filters' })).toBeVisible();
 
     // Verify total count
-    await expect(page.getByTestId('inventory-total-count')).toContainText(/Showing \d+ of \d+ available vehicles/);
+    await expect(page.getByTestId('inventory-total-count')).toContainText(/Showing \d+ of \d+ Vehicles/);
 
     // Verify at least one vehicle card is visible
     const vehicleCards = page.locator('.cc-vehicle-card');

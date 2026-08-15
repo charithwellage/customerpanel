@@ -17,6 +17,7 @@
 @import "../features/shipments/shipments.css";
 @import "../features/documents/documents.css";
 @import "../features/payments/payments.css";
+@import "../../../../packages/vehicle-search/src/vehicle-search.css";
 @import "./placeholder.css";
 
 *,
