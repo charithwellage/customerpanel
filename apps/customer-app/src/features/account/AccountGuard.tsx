@@ -1,8 +1,9 @@
 import React, { useState, ReactNode } from 'react';
-import { CustomerSession, loadCustomerSession, saveCustomerSession } from './accountState.js';
+import { CustomerSession, clearCustomerSession, loadCustomerSession, saveCustomerSession } from './accountState.js';
 import { LoginForm } from './LoginForm.js';
 import { PasswordRecoveryCard } from './PasswordRecoveryCard.js';
 import { AccountStateBanner } from './AccountStateBanner.js';
+import { clearCustomerSensitiveCachesOnLogout } from '../pwa/pwaConfig.js';
 
 /**
  * Protected content, either as plain nodes or as a function of the verified
@@ -59,6 +60,8 @@ export const AccountGuard: React.FC<AccountGuardProps> = ({
         <AccountStateBanner
           status={session.status}
           onAction={() => {
+            clearCustomerSession();
+            void clearCustomerSensitiveCachesOnLogout();
             setSession(null);
             setShowRecovery(false);
           }}

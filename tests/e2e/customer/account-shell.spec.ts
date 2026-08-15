@@ -23,9 +23,9 @@ test.describe('Customer Application Shell & Navigation E2E', () => {
     await expect(page.locator('main#main-content')).toBeVisible();
     await expect(page.getByRole('link', { name: 'Skip to main content' })).toBeAttached();
 
-    // Honest placeholder rather than invented dashboard figures.
-    await expect(page.getByText('NOT BUILT YET')).toBeVisible();
-    await expect(page.getByRole('heading', { name: /is not available yet/ })).toBeVisible();
+    // The dashboard is now an implemented, server-projected customer surface.
+    await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
+    await expect(page.getByText('Your account overview and shipment status')).toBeVisible();
 
     // No page may claim a live Keycloak integration; this build has none.
     await expect(page.locator('.cc-cust-shell-footer')).toContainText('Demo session — not a production identity');
@@ -47,7 +47,7 @@ test.describe('Customer Application Shell & Navigation E2E', () => {
     await expect(nav.getByRole('link', { name: /Invoices & Ledger/ })).toBeVisible();
 
     await nav.getByRole('link', { name: /Shipments/ }).click();
-    await expect(page.getByRole('heading', { name: /Shipments & Tracking Operations is not available yet/ })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Shipment tracking' })).toBeVisible();
   });
 
   test('switches between the desktop navigation bar and the mobile drawer by viewport', async ({ page }) => {

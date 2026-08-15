@@ -26,8 +26,8 @@ export function getCustomerWebManifest(): WebManifest {
     background_color: defaultTheme.colors.background,
     theme_color: defaultTheme.colors.primary,
     icons: [
-      { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
-      { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+      { src: '/favicon.svg', sizes: '192x192', type: 'image/svg+xml' },
+      { src: '/favicon.svg', sizes: '512x512', type: 'image/svg+xml' },
     ],
   };
 }
