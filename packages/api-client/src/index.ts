@@ -12,4 +12,5 @@ export * from './services/logistics.js';
 export * from './services/customerInvoices.js';
 export * from './services/customerPayments.js';
 export * from './services/customerNotifications.js';
+export * from './services/customerProfile.js';
 export * from './http.js';
