@@ -10,9 +10,25 @@
 ## Current acceptance status
 
 - Phase 2.8 notification/profile implementation: COMPLETE and tech-lead approved.
+- Phase 2.9 responsive/accessibility/theme/PWA/performance acceptance: COMPLETE with 126/126 Customer browser tests across Chromium, mobile-Chromium and tablet-Chromium.
+- Phase 2.9 Docker UAT and Delivery 03 handoff: COMPLETE after a fresh Compose rebuild and containerized 126/126 Customer browser regression.
 - CUST-01 through CUST-25: all have an auditable current disposition; delivered MVP behavior is separated from deferred/open production decisions.
 - POC/compiled negative evidence: explicitly rejected where it conflicts with approved requirements; unsupported capabilities remain honest unavailable/deferred boundaries.
 - Phase 2.10 follow-up: reconcile D02-ASM-001 through D02-ASM-004 and rerun the complete Customer journey after any approved adjustment.
+
+## T004 Docker UAT evidence
+
+- Runtime: `docker-compose.frontend.yml`, rebuilt from the current worktree with cached dependency layers reused; validation stack uses explicit non-production Mock API mode so deterministic reset remains available while production reset safety is tested separately.
+- Target: Customer App `http://127.0.0.1:3001`; Mock API `http://127.0.0.1:4000`.
+- Services: Customer App, Mock API and PostgreSQL all healthy; Mock API logs show normal startup with no database initialization, missing-column or unhandled-rejection errors.
+- Readiness: Customer `/healthz`, Mock API `/healthz`, `/openapi.json`, `POST /api/v1/__reset`, `pg_isready`, and live `public.vehicles` schema inspection all passed.
+- Browser gate: 126/126 passed with one worker across Chromium, mobile-Chromium (390x844), and tablet-Chromium (768x1024); desktop coverage used Chromium at 1440x900.
+- Supervisor smoke: interactive browser verification covered dashboard overview, My Vehicles/search projection, invoice ledger, profile identity/edit policy and the honest AutoPulse/Keycloak password handoff. Console errors were zero, customer API requests returned 200, and no horizontal overflow was observed at phone, tablet or desktop sizes.
+
+## Delivery 03 handoff
+
+- Delivery 03 remains blocked until this phase's `D02-P09-CODE_REVIEW` is approved and merged.
+- Handoff prerequisites remain the typed OpenAPI/generated-client boundary, approved AutoPulse/Keycloak and external integration contracts, server-side customer isolation, deterministic reset coverage, and honest external-capability labels.
 
 ## Delivery 03 prerequisites
 

@@ -27,7 +27,9 @@ services:
     # proven independently by `build:production`/`test:production-guard` and by the real-route
     # tests in apps/mock-api/src/__tests__/security-projection.test.ts, none of which use Docker.
     environment:
-      NODE_ENV: production
+      # This is an explicitly non-production validation stack so deterministic reset remains
+      # available for the container Playwright/UAT gate; production safety is tested separately.
+      NODE_ENV: development
       ENABLE_MOCK_RESET: "true"
       MOCK_API_PORT: 4000
       DATABASE_URL: postgresql://carchief:carchief_dev_pass@postgres:5432/carchief_mock
