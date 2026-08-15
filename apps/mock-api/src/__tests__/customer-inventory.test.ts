@@ -20,7 +20,10 @@ describe('Customer Inventory Projection & Tier Pricing Contract (D02-P03-T001)',
   let baseUrl: string;
 
   beforeEach(async () => {
-    store = createStore();
+    // Keep this HTTP contract suite deterministic and self-contained. The
+    // Compose-backed PostgreSQL boundary is covered by the runtime acceptance
+    // checks; this suite should not depend on a host-exposed database port.
+    store = createStore('');
     await store.reset();
 
     const app = createMockApiApp(store);
@@ -40,6 +43,16 @@ describe('Customer Inventory Projection & Tier Pricing Contract (D02-P03-T001)',
   });
 
   describe('1. Customer Tier Pricing (CUST-05, RULE-06)', () => {
+    it('keeps the customer-visible inventory set aligned with public All Stock while projecting customer fields', async () => {
+      const publicResult = await store.searchVehicles({ audience: 'public', page: 1, limit: 100 });
+      const customerResult = await store.searchVehicles({ audience: 'customer', page: 1, limit: 100 });
+
+      expect(customerResult.items.map((vehicle) => vehicle.id)).toEqual(publicResult.items.map((vehicle) => vehicle.id));
+      expect(customerResult.items.some((vehicle) => vehicle.status === 'Draft')).toBe(false);
+      expect(customerResult.items.every((vehicle) => vehicle.reservationEligibility)).toBe(true);
+      expect(customerResult.items.find((vehicle) => vehicle.id === 'veh-1')?.tierPricing?.tier).toBe('Standard');
+    });
+
     it('calculates tier discounts correctly for all four tiers via domain helper', () => {
       const priceUsd = 10000;
       expect(calculateTierPricing(priceUsd, 'Platinum')).toEqual({

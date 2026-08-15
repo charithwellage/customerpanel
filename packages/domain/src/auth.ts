@@ -21,7 +21,7 @@ export interface JwtClaims {
 
 export const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
   PublicVisitor: ['read:public'],
-  CustomerBuyer: ['read:public', 'read:customer', 'create:inquiry', 'create:reservation'],
+  CustomerBuyer: ['read:public', 'read:customer', 'create:inquiry', 'create:reservation', 'create:payment'],
   Salesperson: ['read:public', 'read:leads', 'update:leads', 'create:inquiry'],
   StockController: ['read:public', 'update:vehicles', 'create:vehicles'],
   FinanceManager: ['read:public', 'read:finance', 'approve:pi'],
@@ -77,9 +77,9 @@ export interface DemoSessionResponse {
 
 /**
  * True once `claims.exp` (Unix seconds) has passed `nowSeconds`. The mock's
- * `parseDemoJwtToken`/auth middleware does not itself enforce expiry (it
- * only decodes), so a stand-in session's lifetime is enforced by the caller
- * — see `apps/public-web/src/features/account-entry` (D01-P06-T003).
+ * `parseDemoJwtToken` only decodes. API auth middleware must apply this
+ * predicate before authorizing a request; browser session state also uses it
+ * to present an honest expired-session state.
  */
 export function isJwtExpired(claims: Pick<JwtClaims, 'exp'>, nowSeconds: number = Math.floor(Date.now() / 1000)): boolean {
   return claims.exp <= nowSeconds;

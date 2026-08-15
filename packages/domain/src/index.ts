@@ -15,7 +15,80 @@ export type LeadStatus =
   | 'Sold'
   | 'Archived';
 
-export type PaymentStatus = 'Pending' | 'Approved' | 'Rejected';
+export type PaymentStatus = 'Pending' | 'Held' | 'Resubmitted' | 'Approved' | 'Rejected';
+export type PaymentProofFileType = 'PDF' | 'JPG' | 'PNG';
+export type PaymentProofScanStatus = 'Pending' | 'Passed' | 'Rejected';
+
+export interface CustomerPaymentProofMetadata {
+  fileName: string;
+  fileType: PaymentProofFileType;
+  sizeBytes: number;
+  scanStatus: PaymentProofScanStatus;
+}
+
+export interface CustomerPayment {
+  id: string;
+  customerId: string;
+  invoiceId: string;
+  reference: string;
+  bankName: string;
+  currency: string;
+  amountUsd: number;
+  allocatedAmountUsd?: number;
+  remainingBalanceUsd?: number;
+  paymentDate: string;
+  remarks?: string;
+  status: PaymentStatus;
+  holdReason?: string;
+  proof?: CustomerPaymentProofMetadata;
+  idempotencyKey: string;
+  createdAt: string;
+}
+
+export interface CreateCustomerPaymentRequest {
+  invoiceId: string;
+  reference: string;
+  bankName: string;
+  currency: string;
+  amountUsd: number;
+  paymentDate: string;
+  remarks?: string;
+  proof: CustomerPaymentProofMetadata;
+  idempotencyKey: string;
+}
+
+export interface RecordPaymentNotificationRequest {
+  event: CustomerPaymentNotificationEvent;
+  reason?: string;
+  allocationAmountUsd?: number;
+}
+
+export interface CustomerPaymentListResponse {
+  items: CustomerPayment[];
+  total: number;
+}
+
+export type CustomerPaymentNotificationEvent =
+  | 'FinanceReviewRequested'
+  | 'PaymentHeld'
+  | 'PaymentResubmitted'
+  | 'PaymentApproved'
+  | 'PaymentAllocated';
+
+export interface CustomerPaymentNotification {
+  id: string;
+  customerId: string;
+  paymentId: string;
+  invoiceId: string;
+  event: CustomerPaymentNotificationEvent;
+  deliveryStatus: 'Queued';
+  createdAt: string;
+}
+
+export interface CustomerPaymentNotificationListResponse {
+  items: CustomerPaymentNotification[];
+  total: number;
+}
 export type ShipmentStatus = 'Purchased' | 'Inspection' | 'Ready' | 'InTransit' | 'Delivered';
 export type CustomerTier = 'Platinum' | 'Gold' | 'Silver' | 'Standard';
 export type VehicleLocationStatus = 'In Japan' | 'In Transit' | 'In Port';
@@ -561,10 +634,45 @@ export interface Document {
 export interface Notification {
   id: string;
   customerId: string;
+  title?: string;
   message: string;
   type: 'Payment' | 'Shipment' | 'Document' | 'Vehicle' | 'Promotion';
   isRead: boolean;
   createdAt: string;
+  related?: {
+    kind: 'Vehicle' | 'ProformaInvoice' | 'Invoice' | 'Payment' | 'Shipment' | 'Document' | 'ShipOk' | 'DocumentRelease';
+    id: string;
+    href: string;
+  };
+}
+
+export interface CustomerNotificationListResponse {
+  items: Notification[];
+  total: number;
+  unreadCount: number;
+}
+
+export interface CustomerProfile {
+  customerId: string;
+  name: string;
+  email: string;
+  companyName: string;
+  phone: string;
+  deliveryAddress: string;
+  version: number;
+  updatedAt: string;
+}
+
+export interface UpdateCustomerProfileRequest {
+  companyName: string;
+  phone: string;
+  deliveryAddress: string;
+  expectedVersion?: number;
+}
+
+export interface MarkNotificationsReadResponse {
+  updatedCount: number;
+  unreadCount: number;
 }
 
 export interface CustomerDashboard {

@@ -158,6 +158,16 @@ describe('Customer Vehicles & Status Projection Contract (D02-P04-T001)', () => 
   });
 
   describe('4. Status History Timeline & Export Documents (CUST-11, CUST-12, CUST-13)', () => {
+    it('expires the PI exactly after the server-authoritative 72-hour deadline', async () => {
+      const headers = { Authorization: `Bearer ${createDemoJwtToken('CustomerBuyer')}` };
+      const active = await fetch(`${baseUrl}/api/v1/customer/vehicles/veh-5`, { headers: { ...headers, 'x-mock-now': '2026-08-13T09:59:59.000Z' } });
+      const expired = await fetch(`${baseUrl}/api/v1/customer/vehicles/veh-5`, { headers: { ...headers, 'x-mock-now': '2026-08-13T10:00:00.000Z' } });
+      expect((await active.json()).status).toBe('Under Negotiation With PI');
+      const expiredBody: CustomerVehicleDetail = await expired.json();
+      expect(expiredBody.status).toBe('Expired');
+      expect(expiredBody.paymentDeadline).toBe('2026-08-13T10:00:00.000Z');
+      expect(expiredBody.statusHistory.at(-1)?.notes).toMatch(/72-hour PI hold expired/);
+    });
     it('returns full vehicle detail with chronological status timeline and linked documents', async () => {
       const token = createDemoJwtToken('CustomerBuyer');
       const res = await fetch(`${baseUrl}/api/v1/customer/vehicles/veh-1`, {

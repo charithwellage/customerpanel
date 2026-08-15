@@ -52,3 +52,11 @@
 2.11,D02-P11-T001,Add optional Customer theme configuration and provider integration,D02-P10-CODE_REVIEW,6
 2.11,D02-P11-T002,Enable and verify the optional ocean Customer theme,D02-P11-T001,6
 2.11,D02-P11-CODE_REVIEW,Optional Customer multi-theme PR code review and tech-lead approval,D02-P11-T002,3
+2.12,D02-P12-T001,"Build the Mock API customer account store, credential handling and authentication contract",D02-P10-CODE_REVIEW,18
+2.12,D02-P12-T002,"Add shared country, credential validation and authentication client capabilities",D02-P12-T001,9
+2.12,D02-P12-T003,Replace the public-web Customer Portal action with Register and Login and build the registration page,D02-P12-T002,18
+2.12,D02-P12-T004,Remove demo-mode identity from the public website,D02-P12-T003,12
+2.12,D02-P12-T005,Deliver real credential sign-in and password recovery in the Customer application,D02-P12-T004,18
+2.12,D02-P12-T006,Rebuild the Customer profile page with working password management and remove residual demo copy,D02-P12-T005,12
+2.12,D02-P12-T007,"Verify the end-to-end account journey, container gate and Phase 2.12 acceptance",D02-P12-T006,12
+2.12,D02-P12-CODE_REVIEW,Phase 2.12 PR code review and tech-lead approval,D02-P12-T007,6

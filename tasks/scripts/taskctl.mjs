@@ -183,8 +183,9 @@ function validate({ quiet = false } = {}) {
     'D01-P05-T004', 'D01-P06-T005', 'D01-P07-T004', 'D01-P08-T004',
     'D02-P01-T003', 'D02-P02-T002', 'D02-P03-T003', 'D02-P04-T003',
     'D02-P05-T003', 'D02-P06-T004', 'D02-P07-T004', 'D02-P08-T003', 'D02-P09-T004', 'D02-P10-T003', 'D02-P11-T002',
+    'D02-P12-T007',
   ]);
-  if (tasks.size !== 119) errors.push(`expected 119 task/gate files, found ${tasks.size}`);
+  if (tasks.size !== 127) errors.push(`expected 127 task/gate files, found ${tasks.size}`);
   for (const task of tasks.values()) {
     for (const field of ['task_id', 'title', 'delivery', 'phase', 'estimate', 'model_tier', 'parallel_group', 'phase_branch', 'task_branch']) {
       if (!task[field]) errors.push(`${task.task_id || task.file}: missing ${field}`);
@@ -343,7 +344,7 @@ function validate({ quiet = false } = {}) {
     .filter((task) => task.task_id.startsWith('D02-'))
     .map((task) => readFileSync(task.file, 'utf8'))
     .join('\n');
-  for (let number = 1; number <= 25; number += 1) {
+  for (let number = 1; number <= 30; number += 1) {
     const id = `CUST-${String(number).padStart(2, '0')}`;
     if (!customerCorpus.includes(id)) errors.push(`Delivery 02 task set does not assign ${id}`);
   }
@@ -376,6 +377,7 @@ function executionLane(task) {
   if (/^D02-P(?:03|04|05|06)-/.test(task.task_id)) return 'D02-COMMERCE';
   if (/^D02-P(?:09|10)-/.test(task.task_id)) return 'D02-FINAL';
   if (/^D02-P11-/.test(task.task_id)) return 'D02-OPTIONAL-THEME';
+  if (/^D02-P12-/.test(task.task_id)) return 'D02-ACCOUNT';
   return 'GLOBAL';
 }
 

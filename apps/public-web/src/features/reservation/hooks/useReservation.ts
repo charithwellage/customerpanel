@@ -84,7 +84,12 @@ export function useReservation(
       try {
         const fetched = await service.getById(link.reservationId);
         if (cancelled) return;
-        if (!fetched || fetched.customerId !== customerId) {
+        // The Mock API may normalize a demo JWT subject to its customer scope
+        // (for example, `user-123` -> `cust-123`). The authenticated GET has
+        // already enforced ownership server-side, so comparing the response
+        // scope to the raw JWT subject would incorrectly discard the owner's
+        // reservation after a reload.
+        if (!fetched) {
           clearStoredReservationLink(
             (key) => window.localStorage.getItem(key),
             (key, value) => window.localStorage.setItem(key, value),

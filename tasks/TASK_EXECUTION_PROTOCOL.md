@@ -109,7 +109,7 @@ Full suite result: <passed>/<total> passed across chromium, mobile-chromium, tab
 
 Required MCP browser capabilities: navigate, accessibility snapshot, resize viewport, read console messages, read network requests, capture a screenshot. Any MCP-capable client is acceptable; per-client setup is documented in [`DEVELOPER_USER_GUIDE.md`](../DEVELOPER_USER_GUIDE.md) §"Playwright MCP setup and UI-validation workflow". If those capabilities are unavailable, stop and resolve `INF-P00-T006`; a server process check, an unrelated screenshot or the automated suite alone does not satisfy the MCP gate.
 
-**Themes.** Per-task UI validation covers the default `carchief` theme only. Public Website alternate-theme (`ocean`) parity is verified in Phase 1.9; Customer alternate-theme work is optional Phase 2.11. The design rules are unchanged: both themes share semantic tokens, component markup and behaviour, and no page or component is forked by theme.
+**Themes.** Per-task UI validation covers the default `carchief` theme only. Public Website alternate-theme (`ocean`) parity is verified in Phase 1.9; Customer alternate-theme work is optional Phase 2.11; mandatory Phase 2.12 validates the default `carchief` theme only. The design rules are unchanged: both themes share semantic tokens, component markup and behaviour, and no page or component is forked by theme.
 
 **Re-validation after a correction.** Always re-run the task's matrix-assigned automated suite. Re-run the MCP walkthrough only when the correction changed layout, semantic tokens, CSS or markup structure; for a logic-, copy- or test-only correction, record that the MCP walkthrough was not affected and why. Always repeat the AI code review after any source correction.
 

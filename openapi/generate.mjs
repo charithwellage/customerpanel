@@ -465,12 +465,91 @@ export interface CustomerShipment {
   eta?: string;
   location?: string;
   freshness: 'fresh' | 'stale' | 'unknown';
+  shipOkStatus: 'Pending' | 'Approved' | 'Rejected';
+  shipOkRejectionReason?: string;
+  documentReleaseStatus: 'Pending' | 'Approved' | 'Rejected';
+  documentReleaseRejectionReason?: string;
   timeline: Array<{ stage: CustomerShipment['stage']; occurredAt?: string; current: boolean }>;
 }
 
 export interface CustomerShipmentList {
   items: CustomerShipment[];
 }
+
+export type PaymentProofFileType = 'PDF' | 'JPG' | 'PNG';
+export type PaymentProofScanStatus = 'Pending' | 'Passed' | 'Rejected';
+export interface CustomerPaymentProofMetadata {
+  fileName: string;
+  fileType: PaymentProofFileType;
+  sizeBytes: number;
+  scanStatus: PaymentProofScanStatus;
+}
+export interface CustomerPayment {
+  id: string;
+  customerId: string;
+  invoiceId: string;
+  reference: string;
+  bankName: string;
+  currency: string;
+  amountUsd: number;
+  allocatedAmountUsd?: number;
+  remainingBalanceUsd?: number;
+  paymentDate: string;
+  remarks?: string;
+  status: 'Pending' | 'Approved' | 'Rejected';
+  holdReason?: string;
+  proof?: CustomerPaymentProofMetadata;
+  idempotencyKey: string;
+  createdAt: string;
+}
+export interface CreateCustomerPaymentRequest {
+  invoiceId: string;
+  reference: string;
+  bankName: string;
+  currency: string;
+  amountUsd: number;
+  paymentDate: string;
+  remarks?: string;
+  proof: CustomerPaymentProofMetadata;
+  idempotencyKey: string;
+}
+export interface CustomerPaymentListResponse { items: CustomerPayment[]; total: number; }
+export type CustomerPaymentNotificationEvent = 'FinanceReviewRequested' | 'PaymentHeld' | 'PaymentResubmitted' | 'PaymentApproved' | 'PaymentAllocated';
+export interface CustomerPaymentNotification {
+  id: string;
+  customerId: string;
+  paymentId: string;
+  invoiceId: string;
+  event: CustomerPaymentNotificationEvent;
+  deliveryStatus: 'Queued';
+  createdAt: string;
+}
+export interface CustomerPaymentNotificationListResponse { items: CustomerPaymentNotification[]; total: number; }
+export interface RecordPaymentNotificationRequest { event: CustomerPaymentNotificationEvent; }
+
+export interface Notification {
+  id: string;
+  customerId: string;
+  title?: string;
+  message: string;
+  type: 'Payment' | 'Shipment' | 'Document' | 'Vehicle' | 'Promotion';
+  isRead: boolean;
+  createdAt: string;
+  related?: { kind: 'Vehicle' | 'ProformaInvoice' | 'Invoice' | 'Payment' | 'Shipment' | 'Document' | 'ShipOk' | 'DocumentRelease'; id: string; href: string; };
+}
+export interface CustomerNotificationListResponse { items: Notification[]; total: number; unreadCount: number; }
+export interface MarkNotificationsReadResponse { updatedCount: number; unreadCount: number; }
+export interface CustomerProfile {
+  customerId: string;
+  name: string;
+  email: string;
+  companyName: string;
+  phone: string;
+  deliveryAddress: string;
+  version: number;
+  updatedAt: string;
+}
+export interface UpdateCustomerProfileRequest { companyName: string; phone: string; deliveryAddress: string; expectedVersion?: number; }
 
 export interface CustomerDocument {
   id: string;
@@ -662,7 +741,7 @@ export interface CustomerInvoiceDetail extends CustomerInvoiceSummary {
   vehicle: CustomerInvoiceDetailVehicle;
   lineItems: CustomerInvoiceLineItem[];
   allocations: CustomerInvoiceAllocationItem[];
-  bankDetails: CustomerInvoiceBankDetails;
+  bankDetails?: CustomerInvoiceBankDetails;
   documentUrl?: string;
   termsAndConditions?: string[];
   isExpired?: boolean;

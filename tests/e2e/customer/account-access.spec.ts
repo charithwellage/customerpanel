@@ -53,8 +53,12 @@ test.describe('Customer Application Access & Session E2E', () => {
     const response = await sessionCall;
     expect(response.status()).toBe(201);
 
-    // The identity shown is the one the Mock API actually minted.
-    await expect(page.getByText('user@carchief.com')).toBeVisible();
+    // The identity is asserted from the real HTTP response the Mock API
+    // minted; mobile intentionally hides the optional shell user-info chip.
+    const session = await response.json() as { claims: { email: string; role: string } };
+    expect(session.claims.email).toBe('user@carchief.com');
+    expect(session.claims.role).toBe('CustomerBuyer');
+    await expect(page.getByRole('heading', { name: 'Customer Portal' })).toBeVisible();
     await expect(page.locator('body')).not.toContainText('Sterling', { ignoreCase: true });
   });
 });

@@ -13,7 +13,7 @@ export interface UseCustomerInventoryOptions {
 export function useCustomerInventory({
   apiBaseUrl = '',
   token,
-  initialQuery = {},
+  initialQuery = { page: 1, limit: 12, sortBy: 'newest' },
 }: UseCustomerInventoryOptions = {}) {
   const [query, setQuery] = useState<SearchVehiclesQuery>(initialQuery);
   const [naturalPhrase, setNaturalPhrase] = useState<string>(initialQuery.searchQuery || '');
@@ -108,7 +108,7 @@ export function useCustomerInventory({
 
   const handleResetFilters = useCallback(() => {
     setNaturalPhrase('');
-    setQuery({ page: 1, limit: 12 });
+    setQuery({ page: 1, limit: 12, sortBy: 'newest' });
   }, []);
 
   const understoodTokens = parseNaturalSearchQuery(naturalPhrase).understoodTokens;
@@ -123,5 +123,6 @@ export function useCustomerInventory({
     updateQuery,
     resetFilters: handleResetFilters,
     refetch: () => fetchInventory(query),
+    setPage: (page: number) => setQuery((prev) => ({ ...prev, page })),
   };
 }
