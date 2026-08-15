@@ -652,6 +652,24 @@ export interface CustomerNotificationListResponse {
   unreadCount: number;
 }
 
+export interface CustomerProfile {
+  customerId: string;
+  name: string;
+  email: string;
+  companyName: string;
+  phone: string;
+  deliveryAddress: string;
+  version: number;
+  updatedAt: string;
+}
+
+export interface UpdateCustomerProfileRequest {
+  companyName: string;
+  phone: string;
+  deliveryAddress: string;
+  expectedVersion?: number;
+}
+
 export interface MarkNotificationsReadResponse {
   updatedCount: number;
   unreadCount: number;

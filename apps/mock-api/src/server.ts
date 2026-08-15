@@ -3,7 +3,7 @@ import { readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { parseDemoJwtToken, createDemoJwtToken, JwtClaims, hasPermission } from '@carchief/domain';
 import type { FreightEstimateRequest, EnquiryRequest, ReservationRequest } from '@carchief/domain';
-import { createStore, type DemoStore, FreightRequestError, EnquiryRequestError, ReservationRequestError, TestimonialRequestError, PaymentWorkflowError } from './store.js';
+import { createStore, type DemoStore, FreightRequestError, EnquiryRequestError, ReservationRequestError, TestimonialRequestError, PaymentWorkflowError, ProfileConflictError } from './store.js';
 import { resolveDemoCustomerScope } from './auth/customer-scope.js';
 
 export interface AuthenticatedRequest extends Request {
@@ -377,6 +377,28 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
     }
     const dashboard = await store.getCustomerDashboard(resolveDemoCustomerScope(req.user.sub), req.user.email);
     res.json(dashboard);
+  });
+
+  // 4aa. Customer profile contract (D02-P08-T004, CUST-23/24/25).
+  app.get('/api/v1/customer/profile', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) return void res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+    if (!hasPermission(req.user.role, 'read:customer')) return void res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
+    try {
+      res.json(await store.getCustomerProfile(resolveDemoCustomerScope(req.user.sub), req.user.email));
+    } catch (error) {
+      res.status(404).json({ statusCode: 404, message: error instanceof Error ? error.message : 'Customer profile not found', correlationId: `corr-404-${Date.now()}` });
+    }
+  });
+
+  app.put('/api/v1/customer/profile', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) return void res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+    if (!hasPermission(req.user.role, 'read:customer')) return void res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
+    try {
+      res.json(await store.updateCustomerProfile(resolveDemoCustomerScope(req.user.sub), req.user.email, req.body, req.header('x-mock-now') || undefined));
+    } catch (error) {
+      const statusCode = error instanceof ProfileConflictError ? error.statusCode : 400;
+      res.status(statusCode).json({ statusCode, message: error instanceof Error ? error.message : 'Invalid customer profile', correlationId: `corr-${statusCode}-${Date.now()}` });
+    }
   });
 
   // 4b. Customer shipment timeline projection (D02-P07-T001, CUST-11).

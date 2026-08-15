@@ -524,6 +524,17 @@ export interface Notification {
 }
 export interface CustomerNotificationListResponse { items: Notification[]; total: number; unreadCount: number; }
 export interface MarkNotificationsReadResponse { updatedCount: number; unreadCount: number; }
+export interface CustomerProfile {
+  customerId: string;
+  name: string;
+  email: string;
+  companyName: string;
+  phone: string;
+  deliveryAddress: string;
+  version: number;
+  updatedAt: string;
+}
+export interface UpdateCustomerProfileRequest { companyName: string; phone: string; deliveryAddress: string; expectedVersion?: number; }
 
 export interface CustomerDocument {
   id: string;
