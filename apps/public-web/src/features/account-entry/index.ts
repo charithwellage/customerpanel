@@ -1,6 +1,6 @@
 export { AccountEntrySection } from './AccountEntrySection';
-export { DemoSignInPanel } from './components/DemoSignInPanel';
-export type { DemoSignInPanelProps } from './components/DemoSignInPanel';
+export { AccountAccessPanel } from './components/AccountAccessPanel';
+export type { AccountAccessPanelProps } from './components/AccountAccessPanel';
 export { SessionStatusPanel } from './components/SessionStatusPanel';
 export type { SessionStatusPanelProps } from './components/SessionStatusPanel';
 export { ReservationSignInGuidance } from './components/ReservationSignInGuidance';

@@ -51,9 +51,9 @@ export function renderPublicPage(vehicles: Vehicle[]): string {
 </style></head><body>
 <header><div><strong>CarChief</strong><nav aria-label="Main navigation">${nav}</nav></div></header>
 <main id="main-content"><section class="hero"><div class="hero-inner"><p>Japanese vehicles, made simple.</p><h1>Find your next vehicle with confidence.</h1><p>Browse our current stock and connect with the CarChief team for a quotation.</p><a class="button primary" href="#showroom">Browse stock</a></div></section>
-<section id="showroom" class="showroom"><div class="toolbar"><div><h2>Featured vehicles</h2><p>Live demo inventory from the CarChief mock service.</p></div><label>Search vehicles <input id="vehicle-search" type="search" placeholder="Make or model" aria-controls="vehicle-grid"></label></div>
+<section id="showroom" class="showroom"><div class="toolbar"><div><h2>Featured vehicles</h2><p>Live inventory from the CarChief mock service.</p></div><label>Search vehicles <input id="vehicle-search" type="search" placeholder="Make or model" aria-controls="vehicle-grid"></label></div>
 <div id="vehicle-grid" class="vehicle-grid">${cards || '<p class="empty">No vehicles are available right now.</p>'}</div></section></main>
-<footer><small>© CarChief. Demo public website.</small></footer>
+<footer><small>© CarChief. Public website.</small></footer>
 <script>const input=document.querySelector('#vehicle-search');input?.addEventListener('input',()=>{const q=input.value.toLowerCase();document.querySelectorAll('.vehicle-card').forEach(c=>{c.hidden=!c.dataset.vehicle.includes(q)})});</script>
 </body></html>`;
 }

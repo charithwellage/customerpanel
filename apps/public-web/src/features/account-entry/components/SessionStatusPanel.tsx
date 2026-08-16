@@ -11,11 +11,11 @@ export interface SessionStatusPanelProps {
 }
 
 /**
- * Authenticated demo-session summary (DEC-PUB-AUTH-BOUNDARY). Never claims
- * this is a production account; the Live Auction entry is the one
- * account-gated capability this task exposes, and only when the mock's
- * public config carries an approved `liveAuctionUrl` (RULE-10) — auction
- * bidding/authentication/data integration are explicitly not implemented.
+ * Authenticated session summary (DEC-PUB-AUTH-BOUNDARY). The Live Auction
+ * entry is the one account-gated capability this task exposes, and only
+ * when the mock's public config carries an approved `liveAuctionUrl`
+ * (RULE-10) — auction bidding/authentication/data integration are
+ * explicitly not implemented.
  */
 export function SessionStatusPanel({ claims, onSignOut, liveAuctionUrl }: SessionStatusPanelProps) {
   const headingId = useId();
@@ -25,9 +25,6 @@ export function SessionStatusPanel({ claims, onSignOut, liveAuctionUrl }: Sessio
       <h2 id={headingId} className="cc-account-entry__heading">
         You&rsquo;re signed in
       </h2>
-      <p className="cc-account-entry__demo-badge" role="note">
-        Demo Mode — this is a non-production stand-in identity, not a real account.
-      </p>
       <dl className="cc-account-entry__identity">
         <div className="cc-account-entry__identity-row">
           <dt>Email</dt>

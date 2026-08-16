@@ -31,8 +31,8 @@ export function ReservationSignInGuidance({ status, signInHref, vehicleLabel }: 
           You&rsquo;re signed in
         </h3>
         <p className="cc-reservation-guidance__message">
-          You&rsquo;re signed in with a demo account, so reserving {subject} can continue from here once reservation requests
-          open on this page.
+          You&rsquo;re signed in, so reserving {subject} can continue from here once reservation requests open on this
+          page.
         </p>
       </div>
     );
@@ -41,7 +41,7 @@ export function ReservationSignInGuidance({ status, signInHref, vehicleLabel }: 
   const heading = status === 'expired' ? 'Sign in again to reserve this vehicle' : 'Sign in to reserve this vehicle';
   const message =
     status === 'expired'
-      ? `Your demo session has expired. Sign in again to continue reserving ${subject} — nothing has been reserved yet.`
+      ? `Your session has expired. Sign in again to continue reserving ${subject} — nothing has been reserved yet.`
       : `You need to sign in or create an account before reserving ${subject}. Nothing has been reserved yet.`;
 
   return (

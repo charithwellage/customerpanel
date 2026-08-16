@@ -102,10 +102,10 @@ describe('Public Content Pages Component Suite (D01-P07-T002)', () => {
       expect(html).toContain('Global Customer Support');
       expect(html).toContain('Tokyo Head Office');
       expect(html).toContain('Headquarters');
-      expect(html).toContain('Chiyoda-ku, Tokyo 100-0001, Japan (demo location — pending approval)');
-      expect(html).toContain('+81 3 1234 5678 (demo number — pending approval)');
-      expect(html).toContain('japan@carchief.com (demo contact — pending approval)');
-      expect(html).toContain('support@carchief.com (demo contact — pending approval)');
+      expect(html).toContain('Chiyoda-ku, Tokyo 100-0001, Japan (placeholder — pending approval)');
+      expect(html).toContain('+81 3 1234 5678 (placeholder — pending approval)');
+      expect(html).toContain('japan@carchief.com (placeholder — pending approval)');
+      expect(html).toContain('support@carchief.com (placeholder — pending approval)');
       expect(html).toContain('Contact via WhatsApp');
     });
 

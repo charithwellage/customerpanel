@@ -1,14 +1,17 @@
 import type { JwtClaims } from '@carchief/domain';
 
 /**
- * Browser storage helpers for the stand-in demo session (DEC-PUB-AUTH-BOUNDARY,
- * PUB-22, D01-P06-T003). Kept as pure functions taking `Storage`-shaped
- * callbacks (rather than reading `window.localStorage` directly) so they are
- * unit-testable under this repo's `environment: 'node'` Vitest config, with
- * no DOM/jsdom dependency.
+ * Browser storage helpers for a public-web session (DEC-PUB-AUTH-BOUNDARY,
+ * PUB-22, D01-P06-T003, CUST-30). A public-web session is always a real
+ * registered credential's token/claims, obtained through the Customer
+ * application's sign-in — no code path in this app mints a token locally.
+ * Kept as pure functions taking `Storage`-shaped callbacks (rather than
+ * reading `window.localStorage` directly) so they are unit-testable under
+ * this repo's `environment: 'node'` Vitest config, with no DOM/jsdom
+ * dependency.
  */
 
-export const SESSION_STORAGE_KEY = 'carchief.demoSession.v1';
+export const SESSION_STORAGE_KEY = 'carchief.session.v1';
 
 export interface StoredSession {
   token: string;

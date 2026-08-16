@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { HttpClient, ConfigService } from '@carchief/api-client';
-import { DemoSignInPanel } from './components/DemoSignInPanel';
+import { resolveCustomerAppUrl } from '../../shell/Header';
+import { AccountAccessPanel } from './components/AccountAccessPanel';
 import { SessionStatusPanel } from './components/SessionStatusPanel';
 import { ReservationSignInGuidance } from './components/ReservationSignInGuidance';
 import { useSession } from './hooks/useSession';
@@ -15,29 +16,31 @@ function resolveBaseUrl(): string {
 
 /**
  * Account entry route composition (PUB-22, PUB-23, PUB-27,
- * DEC-PUB-AUTH-BOUNDARY, D01-P06-T003). Reached directly, from the header's
+ * DEC-PUB-AUTH-BOUNDARY, CUST-30). Reached directly, from the header's
  * sign-in entry point, or from a `ReservationSignInGuidance` link elsewhere
  * carrying `?returnTo=`. Behaviour by session status:
- * - `anonymous` — sign-in/create-account entry point.
+ * - `anonymous` — honest account-access entry point: Sign In (Customer app)
+ *   or Create an Account (`/register`). No demo identity path remains.
  * - `expired` — honest re-authentication guidance (the mock does not itself
- *   enforce JWT expiry; this hook is the session's actual lifetime boundary).
- * - `active` — demo identity summary, sign-out, and the account-gated Live
- *   Auction entry when an approved destination is configured.
- * A successful demo sign-in returns the visitor to `returnTo` (validated
- * against an open-redirect) — most commonly the vehicle they were viewing.
+ *   enforce JWT expiry; `useSession` is the session's actual lifetime
+ *   boundary).
+ * - `active` — session identity summary, sign-out, and the account-gated
+ *   Live Auction entry when an approved destination is configured.
+ * The public website never mints a token itself, so there is no local
+ * sign-in action here to complete — signing in always happens in the
+ * Customer application.
  */
 export function AccountEntrySection() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const session = useSession();
   const [liveAuctionUrl, setLiveAuctionUrl] = useState<string | undefined>(undefined);
-  const [justSignedIn, setJustSignedIn] = useState(false);
 
   const configService = useMemo(() => new ConfigService(new HttpClient({ baseUrl: resolveBaseUrl() })), []);
   const returnTarget = resolveReturnTarget(searchParams.get('returnTo'));
   const vehicleSlug = extractVehicleSlug(returnTarget);
   const vehicleLabel = vehicleSlug ? `the vehicle you were viewing (${vehicleSlug})` : undefined;
   const signInHref = `/account?returnTo=${encodeURIComponent(returnTarget)}`;
+  const customerAppUrl = resolveCustomerAppUrl();
 
   useEffect(() => {
     let cancelled = false;
@@ -56,27 +59,14 @@ export function AccountEntrySection() {
     };
   }, [configService]);
 
-  useEffect(() => {
-    if (justSignedIn && session.status === 'active' && returnTarget !== '/account') {
-      router.push(returnTarget);
-    }
-  }, [justSignedIn, session.status, returnTarget, router]);
-
-  async function handleSignIn() {
-    await session.signInDemo();
-    setJustSignedIn(true);
-  }
-
   return (
     <section className="cc-account-entry" aria-label="Account access">
       {session.status === 'active' && session.claims ? (
         <SessionStatusPanel claims={session.claims} onSignOut={session.signOut} liveAuctionUrl={liveAuctionUrl} />
       ) : (
-        <DemoSignInPanel
+        <AccountAccessPanel
           variant={session.status === 'expired' ? 'expired' : 'anonymous'}
-          onSignIn={handleSignIn}
-          isSigningIn={session.isSigningIn}
-          error={session.signInError}
+          customerAppUrl={customerAppUrl}
           vehicleLabel={vehicleLabel}
         />
       )}

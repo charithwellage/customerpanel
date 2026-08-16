@@ -1,11 +1,14 @@
 /**
- * Account entry, stand-in demo session and reservation sign-in guidance
- * tests (D01-P06-T003, PUB-22, PUB-23, PUB-27, DEC-PUB-AUTH-BOUNDARY).
+ * Account entry, session and reservation sign-in guidance tests
+ * (D01-P06-T003, D02-P12-T004, PUB-22, PUB-23, PUB-27,
+ * DEC-PUB-AUTH-BOUNDARY, CUST-30).
  *
  * Covers, per the task's required states:
- * - anonymous — `DemoSignInPanel`/`ReservationSignInGuidance` sign-in entry
- * - demo signed-in — `SessionStatusPanel` identity summary, account-gated
- *   Live Auction entry (present only when configured)
+ * - anonymous — `AccountAccessPanel`/`ReservationSignInGuidance` sign-in
+ *   entry, directing to Register (`/register`) or the Customer application
+ *   sign-in, never a demo identity mint
+ * - signed-in — `SessionStatusPanel` identity summary, account-gated Live
+ *   Auction entry (present only when configured)
  * - expired session — honest re-authentication guidance
  * - return URL — `resolveReturnTarget`'s open-redirect guard and
  *   `extractVehicleSlug`'s vehicle-context extraction
@@ -17,8 +20,7 @@
  * module is tested as pure functions taking `Storage`-shaped callbacks
  * rather than touching `window.localStorage` directly.
  *
- * Never asserts that a production account was created or that an external
- * Live Auction sign-in/bid occurred — RULE-10.
+ * Never asserts that a demo/non-production identity path exists — CUST-30.
  */
 import { describe, it, expect, vi } from 'vitest';
 import fs from 'fs';
@@ -32,8 +34,9 @@ import {
   readStoredSession,
   writeStoredSession,
   clearStoredSession,
+  SESSION_STORAGE_KEY,
 } from '../features/account-entry/session-storage.js';
-import { DemoSignInPanel } from '../features/account-entry/components/DemoSignInPanel.js';
+import { AccountAccessPanel } from '../features/account-entry/components/AccountAccessPanel.js';
 import { SessionStatusPanel } from '../features/account-entry/components/SessionStatusPanel.js';
 import { ReservationSignInGuidance } from '../features/account-entry/components/ReservationSignInGuidance.js';
 
@@ -97,6 +100,11 @@ describe('extractVehicleSlug', () => {
    session-storage read/write/clear round-trip
    -------------------------------------------------------------------------- */
 describe('session-storage read/write/clear', () => {
+  it('uses an honest, non-demo storage key', () => {
+    expect(SESSION_STORAGE_KEY).toBe('carchief.session.v1');
+    expect(SESSION_STORAGE_KEY.toLowerCase()).not.toContain('demo');
+  });
+
   it('round-trips a stored session through a Storage-shaped fake', () => {
     const backing = new Map<string, string>();
     writeStoredSession((key, value) => backing.set(key, value), { token: 'tok-1', claims: claimsFixture });
@@ -121,8 +129,9 @@ describe('session-storage read/write/clear', () => {
 describe('SessionService HTTP contract', () => {
   // `startDemoSession` was removed (D02-P12-T002, CUST-30): the Mock API no
   // longer mints a no-input demo session. Real registration/sign-in
-  // coverage for `AuthService` lives in `packages/api-client/src/__tests__`;
-  // this suite keeps only the still-present `getCurrentSession` contract.
+  // coverage for `AuthService` lives in `packages/api-client/src/__tests__`
+  // and `apps/public-web/src/__tests__/registration.test.ts`; this suite
+  // keeps only the still-present `getCurrentSession` contract.
   it('returns null (never throws) from getCurrentSession for the honest anonymous 401 state', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
       new Response(JSON.stringify({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' }), {
@@ -150,60 +159,57 @@ describe('ConfigService — Live Auction gate', () => {
 });
 
 /* --------------------------------------------------------------------------
-   DemoSignInPanel rendering (anonymous / expired)
+   AccountAccessPanel rendering (anonymous / expired) — CUST-30 replacement
+   for the removed DemoSignInPanel.
    -------------------------------------------------------------------------- */
-describe('DemoSignInPanel rendering', () => {
-  it('renders the anonymous sign-in entry point with an explicit demo-mode label', async () => {
+describe('AccountAccessPanel rendering', () => {
+  const customerAppUrl = 'http://127.0.0.1:3001';
+
+  it('renders the anonymous entry point with real Sign In / Create an Account actions, no demo affordance', async () => {
     const React = await import('react');
     const { renderToStaticMarkup } = await import('react-dom/server');
     const html = renderToStaticMarkup(
-      React.createElement(DemoSignInPanel, { variant: 'anonymous', onSignIn: vi.fn(), isSigningIn: false, error: null })
+      React.createElement(AccountAccessPanel, { variant: 'anonymous', customerAppUrl })
     );
-    expect(html).toContain('Sign in or create an account');
-    expect(html).toContain('Demo Mode');
-    expect(html).toContain('Continue with Demo Customer Account');
+    expect(html).toContain('An account is required');
+    expect(html).toContain('Sign In');
+    expect(html).toContain('Create an Account');
+    expect(html).toContain(customerAppUrl);
+    expect(html).toContain('href="/register"');
+    expect(html.toLowerCase()).not.toContain('demo account');
+    expect(html.toLowerCase()).not.toContain('demo session');
+    expect(html.toLowerCase()).not.toContain('non-production identity');
   });
 
-  it('renders honest expired-session re-authentication guidance', async () => {
+  it('renders honest expired-session re-authentication copy', async () => {
     const React = await import('react');
     const { renderToStaticMarkup } = await import('react-dom/server');
     const html = renderToStaticMarkup(
-      React.createElement(DemoSignInPanel, { variant: 'expired', onSignIn: vi.fn(), isSigningIn: false, error: null })
+      React.createElement(AccountAccessPanel, { variant: 'expired', customerAppUrl })
     );
-    expect(html).toContain('demo session has expired');
+    expect(html).toContain('Your session has expired');
+    expect(html.toLowerCase()).not.toContain('demo');
   });
 
-  it('renders an accessible, recoverable error state', async () => {
+  it('includes contextual vehicle copy when a vehicleLabel is supplied', async () => {
     const React = await import('react');
     const { renderToStaticMarkup } = await import('react-dom/server');
     const html = renderToStaticMarkup(
-      React.createElement(DemoSignInPanel, {
+      React.createElement(AccountAccessPanel, {
         variant: 'anonymous',
-        onSignIn: vi.fn(),
-        isSigningIn: false,
-        error: 'We could not start a demo session. Please check your connection and try again.',
+        customerAppUrl,
+        vehicleLabel: 'the vehicle you were viewing (veh-1)',
       })
     );
-    expect(html).toContain('role="alert"');
-    expect(html).toContain('We could not start a demo session');
-  });
-
-  it('disables the sign-in control while a session mint is in flight', async () => {
-    const React = await import('react');
-    const { renderToStaticMarkup } = await import('react-dom/server');
-    const html = renderToStaticMarkup(
-      React.createElement(DemoSignInPanel, { variant: 'anonymous', onSignIn: vi.fn(), isSigningIn: true, error: null })
-    );
-    expect(html).toContain('disabled=""');
-    expect(html).toContain('Starting demo session');
+    expect(html).toContain('veh-1');
   });
 });
 
 /* --------------------------------------------------------------------------
-   SessionStatusPanel rendering (demo signed-in + Live Auction gate)
+   SessionStatusPanel rendering (signed-in + Live Auction gate)
    -------------------------------------------------------------------------- */
 describe('SessionStatusPanel rendering', () => {
-  it('renders the demo identity summary and never claims a production account', async () => {
+  it('renders the identity summary honestly, with no demo/non-production label', async () => {
     const React = await import('react');
     const { renderToStaticMarkup } = await import('react-dom/server');
     const html = renderToStaticMarkup(
@@ -211,8 +217,11 @@ describe('SessionStatusPanel rendering', () => {
     );
     expect(html).toContain('user@carchief.com');
     expect(html).toContain('CustomerBuyer');
-    expect(html).toContain('Demo Mode');
     expect(html).toContain('Sign out');
+    expect(html.toLowerCase()).not.toContain('demo account');
+    expect(html.toLowerCase()).not.toContain('demo session');
+    expect(html.toLowerCase()).not.toContain('demo mode');
+    expect(html.toLowerCase()).not.toContain('non-production identity');
   });
 
   it('hides the Live Auction entry when no approved destination is configured', async () => {
@@ -257,6 +266,7 @@ describe('ReservationSignInGuidance rendering', () => {
     expect(html).toContain('Sign in to reserve this vehicle');
     expect(html).toContain('Nothing has been reserved yet');
     expect(html).toContain('/account?returnTo=%2Fallstock%2Fveh-1');
+    expect(html.toLowerCase()).not.toContain('demo');
   });
 
   it('renders honest expired-session guidance distinct from the first-visit copy', async () => {
@@ -266,9 +276,10 @@ describe('ReservationSignInGuidance rendering', () => {
       React.createElement(ReservationSignInGuidance, { status: 'expired', signInHref: '/account' })
     );
     expect(html).toContain('Sign in again to reserve this vehicle');
+    expect(html.toLowerCase()).not.toContain('demo');
   });
 
-  it('confirms an active demo session without claiming reservation creation itself is implemented here', async () => {
+  it('confirms an active session without claiming reservation creation itself is implemented here', async () => {
     const React = await import('react');
     const { renderToStaticMarkup } = await import('react-dom/server');
     const html = renderToStaticMarkup(
@@ -277,6 +288,7 @@ describe('ReservationSignInGuidance rendering', () => {
     expect(html.toLowerCase()).toContain('signed in');
     expect(html.toLowerCase()).not.toContain('reservation confirmed');
     expect(html.toLowerCase()).not.toContain('reserved successfully');
+    expect(html.toLowerCase()).not.toContain('demo');
   });
 });
 
@@ -304,7 +316,7 @@ describe('Account entry DOM id hygiene', () => {
 });
 
 /* --------------------------------------------------------------------------
-   Header — removed portal trigger, new Login + Register actions
+   Header — removed portal trigger, Login + Register actions
    (D02-P12-T003, CUST-26, CUST-27). `usePathname` needs a Next.js router
    context `renderToStaticMarkup` does not provide, so — matching this
    file's other source-level guard tests — the real shipped source is
@@ -343,5 +355,50 @@ describe('HeaderComponent source (Customer Portal removal, Login + Register acti
     expect(headerSource).toContain("href=\"/register\"");
     expect(headerSource).toContain('resolveCustomerAppUrl');
     expect(headerSource).not.toMatch(/href=\{`https?:\/\//);
+  });
+});
+
+/* --------------------------------------------------------------------------
+   Site-wide demo-identity guard (CUST-30 acceptance): no shipped public-web
+   source file under src/ may claim a demo account, demo session or
+   non-production identity anywhere in its rendered/literal text. This scans
+   the actual shipped TSX/TS source rather than a rendered subset, so it
+   catches anything the component-level tests above did not directly render.
+   -------------------------------------------------------------------------- */
+describe('Site-wide demo-identity removal (CUST-30)', () => {
+  const FORBIDDEN_PHRASES = ['demo account', 'demo session', 'non-production identity'];
+  // Test files and this file's own guard-comment prose reference the removed
+  // phrases by name to document what was removed; they carry no risk of
+  // being rendered to a visitor. Generated/build output is excluded.
+  const EXCLUDED_DIR_SEGMENTS = ['__tests__', 'node_modules', '.next', 'dist'];
+
+  function collectSourceFiles(dir: string): string[] {
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    const files: string[] = [];
+    for (const entry of entries) {
+      if (EXCLUDED_DIR_SEGMENTS.includes(entry.name)) continue;
+      const fullPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        files.push(...collectSourceFiles(fullPath));
+      } else if (/\.(tsx?|css)$/.test(entry.name)) {
+        files.push(fullPath);
+      }
+    }
+    return files;
+  }
+
+  it('contains no "demo account", "demo session" or "non-production identity" text anywhere under src/', () => {
+    const root = path.resolve(__dirname, '..');
+    const files = collectSourceFiles(root);
+    const offenders: string[] = [];
+    for (const file of files) {
+      const content = fs.readFileSync(file, 'utf-8').toLowerCase();
+      for (const phrase of FORBIDDEN_PHRASES) {
+        if (content.includes(phrase)) {
+          offenders.push(`${path.relative(root, file)} contains "${phrase}"`);
+        }
+      }
+    }
+    expect(offenders).toEqual([]);
   });
 });

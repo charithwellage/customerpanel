@@ -24,7 +24,7 @@ export const ContactPageContent: React.FC<ContactPageContentProps> = ({
               <dt className="cc-contact-page__dt">Email Assistance</dt>
               <dd className="cc-contact-page__dd">
                 <a href="mailto:support@carchief.com" className="cc-contact-page__link">
-                  support@carchief.com (demo contact — pending approval)
+                  support@carchief.com (placeholder — pending approval)
                 </a>
               </dd>
             </div>
@@ -33,7 +33,7 @@ export const ContactPageContent: React.FC<ContactPageContentProps> = ({
               <dt className="cc-contact-page__dt">Hotline & WhatsApp</dt>
               <dd className="cc-contact-page__dd">
                 <a href="tel:+256700000000" className="cc-contact-page__link">
-                  +256 700 000 000 (demo number — pending approval)
+                  +256 700 000 000 (placeholder — pending approval)
                 </a>
               </dd>
             </div>
@@ -92,13 +92,13 @@ export const ContactPageContent: React.FC<ContactPageContentProps> = ({
                       <strong>Location:</strong> {office.city}, {office.country}
                     </p>
                     <p className="cc-office-card__address">
-                      <strong>Address:</strong> {office.address} (demo location — pending approval)
+                      <strong>Address:</strong> {office.address} (placeholder — pending approval)
                     </p>
                     <p className="cc-office-card__phone">
-                      <strong>Phone:</strong> {office.phone} (demo number — pending approval)
+                      <strong>Phone:</strong> {office.phone} (placeholder — pending approval)
                     </p>
                     <p className="cc-office-card__email">
-                      <strong>Email:</strong> {office.email} (demo contact — pending approval)
+                      <strong>Email:</strong> {office.email} (placeholder — pending approval)
                     </p>
                     <p className="cc-office-card__hours">
                       <strong>Operating Hours:</strong> {office.operatingHours}
