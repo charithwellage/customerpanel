@@ -1,4 +1,4 @@
-import type { VehicleDomainSummary, VehicleDetail, VehicleFacets, SearchVehiclesQuery, CustomerTier } from '@carchief/domain';
+import type { VehicleDomainSummary, VehicleDetail, VehicleFacets, SearchVehiclesQuery } from '@carchief/domain';
 
 export interface CustomerInventoryState {
   items: VehicleDomainSummary[];

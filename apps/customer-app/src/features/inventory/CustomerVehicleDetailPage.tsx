@@ -1,6 +1,5 @@
 import React from 'react';
 import { VehicleGalleryPrimitive, formatVehicleTitle, getVisibleGalleryImages } from '@carchief/vehicle-detail';
-import { useCustomerShell } from '../shell/index.js';
 import { useCustomerVehicleDetail } from './useCustomerVehicleDetail.js';
 
 export interface CustomerVehicleDetailPageProps {
@@ -16,7 +15,6 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
   token,
   onBack,
 }) => {
-  const { user } = useCustomerShell();
   const { state, refetch, reserveVehicle, requestPriceInquiry } = useCustomerVehicleDetail({
     idOrSlug: slug,
     apiBaseUrl,

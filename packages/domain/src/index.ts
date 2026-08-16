@@ -90,7 +90,6 @@ export interface CustomerPaymentNotificationListResponse {
   total: number;
 }
 export type ShipmentStatus = 'Purchased' | 'Inspection' | 'Ready' | 'InTransit' | 'Delivered';
-export type CustomerTier = 'Platinum' | 'Gold' | 'Silver' | 'Standard';
 export type VehicleLocationStatus = 'In Japan' | 'In Transit' | 'In Port';
 export type PublicVehicleCategory = 'arrival' | 'premium' | 'clearance' | 'best_offer';
 
@@ -962,3 +961,4 @@ export * from './auth.js';
 export * from './freight.js';
 export * from './content.js';
 export * from './countries.js';
+import type { CustomerTier } from './auth.js';

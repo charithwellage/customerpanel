@@ -1,4 +1,3 @@
-import React from 'react';
 
 export interface SearchPaginationProps { page: number; totalPages: number; total: number; limit: number; hasNextPage: boolean; hasPrevPage: boolean; onPageChange: (page: number) => void; }
 

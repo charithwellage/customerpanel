@@ -1,4 +1,5 @@
 import React from 'react';
+import { formatUsdAmount } from '../formatters.js';
 
 export interface InvoiceSummaryKpiCardsProps {
   totalInvoicedUsd: number;
@@ -11,9 +12,9 @@ export const InvoiceSummaryKpiCards: React.FC<InvoiceSummaryKpiCardsProps> = ({
   totalPaidUsd,
   totalOutstandingUsd,
 }) => {
-  const formattedInvoiced = `$${totalInvoicedUsd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  const formattedPaid = `$${totalPaidUsd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  const formattedOutstanding = `$${totalOutstandingUsd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const formattedInvoiced = formatUsdAmount(totalInvoicedUsd);
+  const formattedPaid = formatUsdAmount(totalPaidUsd);
+  const formattedOutstanding = formatUsdAmount(totalOutstandingUsd);
 
   return (
     <div className="cc-invoice-kpi-grid" data-testid="invoice-kpi-grid">

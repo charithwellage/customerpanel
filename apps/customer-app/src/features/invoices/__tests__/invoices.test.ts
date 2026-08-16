@@ -12,6 +12,7 @@ import { PaymentAllocationsTable } from '../components/PaymentAllocationsTable.j
 import { PrintableInvoiceModal } from '../components/PrintableInvoiceModal.js';
 import { CustomerInvoicesPage } from '../CustomerInvoicesPage.js';
 import { CustomerInvoiceDetailPage } from '../CustomerInvoiceDetailPage.js';
+import { formatInvoiceDate, formatUsdAmount, getInvoiceStatusBadgeClass } from '../formatters.js';
 import type { CustomerInvoiceSummary } from '@carchief/domain';
 
 const queryClient = new QueryClient({
@@ -71,6 +72,14 @@ const MOCK_COMM_SUMMARY: CustomerInvoiceSummary = {
 };
 
 describe('Customer Invoices UI Components (D02-P05-T002)', () => {
+  it('reuses deterministic invoice presentation formatters', () => {
+    expect(formatUsdAmount(1234.5)).toBe('$1,234.50');
+    expect(formatInvoiceDate()).toBe('—');
+    expect(formatInvoiceDate('not-a-date')).toBe('not-a-date');
+    expect(getInvoiceStatusBadgeClass('Paid')).toBe('cc-invoice-badge--paid');
+    expect(getInvoiceStatusBadgeClass('Unknown')).toBe('cc-invoice-badge--neutral');
+  });
+
   it('keeps invoice styling in CSS rather than static inline styles', async () => {
     const { readFile } = await import('node:fs/promises');
     const source = await readFile(new URL('../invoices.css', import.meta.url), 'utf8');

@@ -84,4 +84,16 @@ test.describe('Customer Application Shell & Navigation E2E', () => {
     await expect(toggle).toHaveAttribute('aria-expanded', 'true');
     await expect(page.locator('.cc-cust-shell-nav--mobile')).toBeVisible();
   });
+
+  test('keeps the complete authenticated header inside the 1440px desktop viewport', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await signIn(page);
+
+    await expect(page.getByRole('button', { name: 'Sign out' })).toBeVisible();
+    const dimensions = await page.evaluate(() => ({
+      viewport: window.innerWidth,
+      document: document.documentElement.scrollWidth,
+    }));
+    expect(dimensions.document).toBeLessThanOrEqual(dimensions.viewport);
+  });
 });

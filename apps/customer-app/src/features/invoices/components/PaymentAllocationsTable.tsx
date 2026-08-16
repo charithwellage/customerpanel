@@ -1,5 +1,6 @@
 import React from 'react';
 import type { CustomerInvoiceAllocationItem } from '@carchief/domain';
+import { formatInvoiceDate, formatUsdAmount } from '../formatters.js';
 
 export interface PaymentAllocationsTableProps {
   allocations: CustomerInvoiceAllocationItem[];
@@ -20,19 +21,6 @@ export const PaymentAllocationsTable: React.FC<PaymentAllocationsTableProps> = (
       </div>
     );
   }
-
-  const formattedDate = (isoString?: string) => {
-    if (!isoString) return '—';
-    try {
-      return new Date(isoString).toLocaleDateString(undefined, {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-      });
-    } catch {
-      return isoString;
-    }
-  };
 
   return (
     <div className="cc-invoice-allocations-card" data-testid="invoice-allocations-card">
@@ -63,9 +51,9 @@ export const PaymentAllocationsTable: React.FC<PaymentAllocationsTableProps> = (
                 <td className="cc-alloc-td">
                   <span className="cc-alloc-pay-id">{alloc.paymentId}</span>
                 </td>
-                <td className="cc-alloc-td">{formattedDate(alloc.allocatedAt)}</td>
+                <td className="cc-alloc-td">{formatInvoiceDate(alloc.allocatedAt)}</td>
                 <td className="cc-alloc-td cc-alloc-td--amount">
-                  +${alloc.amountUsd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  +{formatUsdAmount(alloc.amountUsd)}
                 </td>
                 <td className="cc-alloc-td cc-alloc-td--status">
                   <span className="cc-alloc-status-badge cc-alloc-status-badge--approved">
@@ -79,7 +67,7 @@ export const PaymentAllocationsTable: React.FC<PaymentAllocationsTableProps> = (
             <tr className="cc-alloc-tfoot-tr">
               <td colSpan={3} className="cc-alloc-tfoot-lbl">Total Confirmed Payments:</td>
               <td className="cc-alloc-tfoot-val" data-testid="allocations-total-amount">
-                ${paidAmountUsd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                {formatUsdAmount(paidAmountUsd)}
               </td>
               <td></td>
             </tr>
