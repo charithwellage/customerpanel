@@ -82,12 +82,13 @@ const CustomerShellInner: React.FC<CustomerShellInnerProps> = ({
           <p>&copy; {new Date().getFullYear()} CarChief Operations Portal. All rights reserved.</p>
           <div className="cc-cust-shell-footer__links">
             {/*
-              This build has no Keycloak integration — the Mock API mints a
-              stand-in token signed `demo-signature`. The badge therefore states
-              what is actually running instead of claiming a live identity
-              provider (REQUIREMENT_GAPS_AND_ASSUMPTIONS.md operating rule 5).
+              This build has no Keycloak integration — the Mock API verifies a
+              real credential and mints a stand-in token signed
+              `demo-signature`. The badge states what is actually running
+              instead of claiming a live identity provider
+              (REQUIREMENT_GAPS_AND_ASSUMPTIONS.md operating rule 5), and no
+              demo/placeholder identity badge is shown (CUST-30).
             */}
-            <span className="cc-cust-shell-footer__badge">🔒 Demo session — not a production identity</span>
             <span className="cc-cust-shell-footer__badge">⚡ Mock API Enabled</span>
           </div>
         </div>
@@ -103,10 +104,17 @@ export const CustomerShell: React.FC<CustomerShellProps> = ({
   initialRoute,
   themeId,
   navItems,
+  onSignOut,
   ...innerProps
 }) => {
   return (
-    <CustomerShellProvider initialUser={initialUser} initialRoute={initialRoute} themeId={themeId} navItems={navItems}>
+    <CustomerShellProvider
+      initialUser={initialUser}
+      initialRoute={initialRoute}
+      themeId={themeId}
+      navItems={navItems}
+      onSignOut={onSignOut}
+    >
       <CustomerShellInner {...innerProps} />
     </CustomerShellProvider>
   );

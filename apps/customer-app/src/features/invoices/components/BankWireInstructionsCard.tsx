@@ -29,7 +29,7 @@ export const BankWireInstructionsCard: React.FC<BankWireInstructionsCardProps> =
           <span className="cc-bank-wire-card__badge">Pending Finance confirmation</span>
         </div>
         <p className="cc-bank-wire-card__unavailable" role="status">
-          Bank instructions are unavailable pending Finance confirmation. No payment account details are published for this demo record.
+          Bank instructions are unavailable pending Finance confirmation. No payment account details have been published for this invoice yet.
         </p>
       </div>
     );

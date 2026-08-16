@@ -2,36 +2,36 @@
 
 import React, { useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { PUBLIC_NAV_ITEMS } from './Header';
-import { useSession } from '../features/account-entry';
+import { PUBLIC_NAV_ITEMS, resolveCustomerAppUrl } from './Header';
 
 export interface HeaderComponentProps {
   activePath?: string;
 }
 
-interface AccountEntryTriggerProps {
+interface HeaderAuthActionsProps {
   className?: string;
   onNavigate?: () => void;
 }
 
-function AccountEntryTrigger({ className = '', onNavigate }: AccountEntryTriggerProps) {
-  const pathname = usePathname();
-  const session = useSession();
-  const href = `/account?returnTo=${encodeURIComponent(pathname || '/')}`;
-  const label = session.status === 'active' ? 'DEMO ACCOUNT' : 'CUSTOMER PORTAL';
+/**
+ * Login (secondary) + Register (primary) header actions (D02-P12-T003,
+ * CUST-26, CUST-27). Industry-standard placement: Login first, Register
+ * last, so the strongest call to action sits rightmost. Login deep-links to
+ * the Customer application's own sign-in entry point (resolved from
+ * configuration, never a hard-coded host); Register is an in-app route.
+ * Replaces the removed demo Customer Portal entry point.
+ */
+function HeaderAuthActions({ className = '', onNavigate }: HeaderAuthActionsProps) {
+  const customerAppUrl = resolveCustomerAppUrl();
   return (
-    <a
-      href={href}
-      className={`customer-portal-btn ${className}`}
-      onClick={onNavigate}
-      aria-label={session.status === 'active' ? 'View demo account' : 'Access Customer Portal'}
-    >
-      <svg className="portal-user-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-        <circle cx="12" cy="7" r="4" />
-      </svg>
-      <span>{label}</span>
-    </a>
+    <div className={`header-auth-actions ${className}`}>
+      <a href={customerAppUrl} className="header-auth-btn header-auth-btn--login" onClick={onNavigate}>
+        Login
+      </a>
+      <a href="/register" className="header-auth-btn header-auth-btn--register" onClick={onNavigate}>
+        Register
+      </a>
+    </div>
   );
 }
 
@@ -120,9 +120,9 @@ export const HeaderComponent: React.FC<HeaderComponentProps> = ({ activePath: pr
           })}
         </nav>
 
-        {/* Customer Portal / Account Action */}
+        {/* Login / Register */}
         <div className="header-actions">
-          <AccountEntryTrigger />
+          <HeaderAuthActions />
         </div>
 
         {/* Mobile Menu Toggle */}
@@ -161,10 +161,9 @@ export const HeaderComponent: React.FC<HeaderComponentProps> = ({ activePath: pr
               </a>
             );
           })}
-          <AccountEntryTrigger className="mobile-account-link" onNavigate={() => setMobileMenuOpen(false)} />
+          <HeaderAuthActions className="mobile-header-auth-actions" onNavigate={() => setMobileMenuOpen(false)} />
         </nav>
       )}
     </header>
   );
 };
-

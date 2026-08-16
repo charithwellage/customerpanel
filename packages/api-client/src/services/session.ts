@@ -1,24 +1,18 @@
-import type { DemoSessionResponse, JwtClaims } from '@carchief/domain';
+import type { JwtClaims } from '@carchief/domain';
 import type { HttpClient } from '../http.js';
 
 /**
- * Stand-in demo session service (DEC-PUB-AUTH-BOUNDARY, PUB-22,
- * D01-P06-T003). `startDemoSession` never accepts a role argument — the
- * public entry point can only ever mint the `CustomerBuyer` stand-in
- * identity, server-authoritatively (RULE-10, CODE_REVIEW_RULES #6).
+ * Session lookup for the currently bearer-authenticated identity
+ * (DEC-PUB-AUTH-BOUNDARY, PUB-22, D01-P06-T003). `startDemoSession` was
+ * removed (D02-P12-T002, CUST-30): the Mock API no longer mints a no-input
+ * demo `CustomerBuyer` session — a real credential goes through
+ * `AuthService.login` instead (`packages/api-client/src/services/auth.ts`).
  * `getCurrentSession` mirrors `VehicleService.getVehicleDetail`'s
  * null-on-absence convention: `null` for an unauthenticated/invalid bearer
  * token (401), any other failure still throws.
  */
 export class SessionService {
   constructor(private httpClient?: HttpClient) {}
-
-  public async startDemoSession(): Promise<DemoSessionResponse> {
-    if (!this.httpClient) {
-      throw new Error('SessionService.startDemoSession requires an HttpClient');
-    }
-    return this.httpClient.request<DemoSessionResponse>('/api/v1/auth/demo-session', { method: 'POST' });
-  }
 
   public async getCurrentSession(): Promise<JwtClaims | null> {
     if (!this.httpClient) {

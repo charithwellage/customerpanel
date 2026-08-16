@@ -74,8 +74,14 @@
     {
       "tag": "a",
       "role": "link",
-      "name": "Access Customer Portal",
-      "href": "/account?returnTo=%2F"
+      "name": "Login",
+      "href": "http://127.0.0.1:3001"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "Register",
+      "href": "/register"
     },
     {
       "tag": "button",
@@ -169,93 +175,6 @@
     {
       "tag": "article",
       "role": "article",
-      "name": "2021 BMW X3 xDrive20d - USD 26,500"
-    },
-    {
-      "tag": "a",
-      "role": "link",
-      "name": "View details for 2021 BMW X3 xDrive20d",
-      "href": "/allstock/2021-bmw-x3-xdrive20d-veh-10"
-    },
-    {
-      "tag": "a",
-      "role": "link",
-      "name": "2021 BMW X3 XDRIVE20D",
-      "href": "/allstock/2021-bmw-x3-xdrive20d-veh-10"
-    },
-    {
-      "tag": "h3",
-      "role": "heading",
-      "name": "X3 XDRIVE20D",
-      "level": 3
-    },
-    {
-      "tag": "a",
-      "role": "link",
-      "name": "VIEW DETAILS",
-      "href": "/allstock/2021-bmw-x3-xdrive20d-veh-10"
-    },
-    {
-      "tag": "article",
-      "role": "article",
-      "name": "2020 Audi A4 Avant - USD 15,900"
-    },
-    {
-      "tag": "a",
-      "role": "link",
-      "name": "View details for 2020 Audi A4 Avant",
-      "href": "/allstock/2020-audi-a4-avant-veh-11"
-    },
-    {
-      "tag": "a",
-      "role": "link",
-      "name": "2020 AUDI A4 AVANT",
-      "href": "/allstock/2020-audi-a4-avant-veh-11"
-    },
-    {
-      "tag": "h3",
-      "role": "heading",
-      "name": "A4 AVANT",
-      "level": 3
-    },
-    {
-      "tag": "a",
-      "role": "link",
-      "name": "VIEW DETAILS",
-      "href": "/allstock/2020-audi-a4-avant-veh-11"
-    },
-    {
-      "tag": "article",
-      "role": "article",
-      "name": "2022 Land Rover Defender 110 - USD 49,000"
-    },
-    {
-      "tag": "a",
-      "role": "link",
-      "name": "View details for 2022 Land Rover Defender 110",
-      "href": "/allstock/2022-land-rover-defender-110-veh-12"
-    },
-    {
-      "tag": "a",
-      "role": "link",
-      "name": "2022 LAND ROVER DEFENDER 110",
-      "href": "/allstock/2022-land-rover-defender-110-veh-12"
-    },
-    {
-      "tag": "h3",
-      "role": "heading",
-      "name": "DEFENDER 110",
-      "level": 3
-    },
-    {
-      "tag": "a",
-      "role": "link",
-      "name": "VIEW DETAILS",
-      "href": "/allstock/2022-land-rover-defender-110-veh-12"
-    },
-    {
-      "tag": "article",
-      "role": "article",
       "name": "2023 Lexus RX450h - USD 38,000"
     },
     {
@@ -343,6 +262,93 @@
     {
       "tag": "article",
       "role": "article",
+      "name": "2021 BMW X3 xDrive20d - USD 26,500"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "View details for 2021 BMW X3 xDrive20d",
+      "href": "/allstock/2021-bmw-x3-xdrive20d-veh-10"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "2021 BMW X3 XDRIVE20D",
+      "href": "/allstock/2021-bmw-x3-xdrive20d-veh-10"
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "X3 XDRIVE20D",
+      "level": 3
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "VIEW DETAILS",
+      "href": "/allstock/2021-bmw-x3-xdrive20d-veh-10"
+    },
+    {
+      "tag": "article",
+      "role": "article",
+      "name": "2020 Audi A4 Avant - USD 15,900"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "View details for 2020 Audi A4 Avant",
+      "href": "/allstock/2020-audi-a4-avant-veh-11"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "2020 AUDI A4 AVANT",
+      "href": "/allstock/2020-audi-a4-avant-veh-11"
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "A4 AVANT",
+      "level": 3
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "VIEW DETAILS",
+      "href": "/allstock/2020-audi-a4-avant-veh-11"
+    },
+    {
+      "tag": "article",
+      "role": "article",
+      "name": "2022 Land Rover Defender 110 - USD 49,000"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "View details for 2022 Land Rover Defender 110",
+      "href": "/allstock/2022-land-rover-defender-110-veh-12"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "2022 LAND ROVER DEFENDER 110",
+      "href": "/allstock/2022-land-rover-defender-110-veh-12"
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "DEFENDER 110",
+      "level": 3
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "VIEW DETAILS",
+      "href": "/allstock/2022-land-rover-defender-110-veh-12"
+    },
+    {
+      "tag": "article",
+      "role": "article",
       "name": "2023 Lexus LX570 - Price on Request"
     },
     {
@@ -408,64 +414,6 @@
       "role": "link",
       "name": "VIEW DETAILS",
       "href": "/allstock/2021-toyota-corolla-axio-veh-1"
-    },
-    {
-      "tag": "article",
-      "role": "article",
-      "name": "2021 BMW X3 xDrive20d - USD 26,500"
-    },
-    {
-      "tag": "a",
-      "role": "link",
-      "name": "View details for 2021 BMW X3 xDrive20d",
-      "href": "/allstock/2021-bmw-x3-xdrive20d-veh-10"
-    },
-    {
-      "tag": "a",
-      "role": "link",
-      "name": "2021 BMW X3 XDRIVE20D",
-      "href": "/allstock/2021-bmw-x3-xdrive20d-veh-10"
-    },
-    {
-      "tag": "h3",
-      "role": "heading",
-      "name": "X3 XDRIVE20D",
-      "level": 3
-    },
-    {
-      "tag": "a",
-      "role": "link",
-      "name": "VIEW DETAILS",
-      "href": "/allstock/2021-bmw-x3-xdrive20d-veh-10"
-    },
-    {
-      "tag": "article",
-      "role": "article",
-      "name": "2022 Land Rover Defender 110 - USD 49,000"
-    },
-    {
-      "tag": "a",
-      "role": "link",
-      "name": "View details for 2022 Land Rover Defender 110",
-      "href": "/allstock/2022-land-rover-defender-110-veh-12"
-    },
-    {
-      "tag": "a",
-      "role": "link",
-      "name": "2022 LAND ROVER DEFENDER 110",
-      "href": "/allstock/2022-land-rover-defender-110-veh-12"
-    },
-    {
-      "tag": "h3",
-      "role": "heading",
-      "name": "DEFENDER 110",
-      "level": 3
-    },
-    {
-      "tag": "a",
-      "role": "link",
-      "name": "VIEW DETAILS",
-      "href": "/allstock/2022-land-rover-defender-110-veh-12"
     },
     {
       "tag": "article",
@@ -562,6 +510,64 @@
     {
       "tag": "article",
       "role": "article",
+      "name": "2021 BMW X3 xDrive20d - USD 26,500"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "View details for 2021 BMW X3 xDrive20d",
+      "href": "/allstock/2021-bmw-x3-xdrive20d-veh-10"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "2021 BMW X3 XDRIVE20D",
+      "href": "/allstock/2021-bmw-x3-xdrive20d-veh-10"
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "X3 XDRIVE20D",
+      "level": 3
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "VIEW DETAILS",
+      "href": "/allstock/2021-bmw-x3-xdrive20d-veh-10"
+    },
+    {
+      "tag": "article",
+      "role": "article",
+      "name": "2022 Land Rover Defender 110 - USD 49,000"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "View details for 2022 Land Rover Defender 110",
+      "href": "/allstock/2022-land-rover-defender-110-veh-12"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "2022 LAND ROVER DEFENDER 110",
+      "href": "/allstock/2022-land-rover-defender-110-veh-12"
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "DEFENDER 110",
+      "level": 3
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "VIEW DETAILS",
+      "href": "/allstock/2022-land-rover-defender-110-veh-12"
+    },
+    {
+      "tag": "article",
+      "role": "article",
       "name": "2023 Lexus LX570 - Price on Request"
     },
     {
@@ -610,35 +616,6 @@
       "role": "heading",
       "name": "Discounted & Clearance Stock",
       "level": 2
-    },
-    {
-      "tag": "article",
-      "role": "article",
-      "name": "2020 Audi A4 Avant - USD 15,900"
-    },
-    {
-      "tag": "a",
-      "role": "link",
-      "name": "View details for 2020 Audi A4 Avant",
-      "href": "/allstock/2020-audi-a4-avant-veh-11"
-    },
-    {
-      "tag": "a",
-      "role": "link",
-      "name": "2020 AUDI A4 AVANT",
-      "href": "/allstock/2020-audi-a4-avant-veh-11"
-    },
-    {
-      "tag": "h3",
-      "role": "heading",
-      "name": "A4 AVANT",
-      "level": 3
-    },
-    {
-      "tag": "a",
-      "role": "link",
-      "name": "VIEW DETAILS",
-      "href": "/allstock/2020-audi-a4-avant-veh-11"
     },
     {
       "tag": "article",
@@ -726,6 +703,35 @@
       "role": "link",
       "name": "VIEW DETAILS",
       "href": "/allstock/2018-mitsubishi-fuso-canter-veh-6"
+    },
+    {
+      "tag": "article",
+      "role": "article",
+      "name": "2020 Audi A4 Avant - USD 15,900"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "View details for 2020 Audi A4 Avant",
+      "href": "/allstock/2020-audi-a4-avant-veh-11"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "2020 AUDI A4 AVANT",
+      "href": "/allstock/2020-audi-a4-avant-veh-11"
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "A4 AVANT",
+      "level": 3
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "VIEW DETAILS",
+      "href": "/allstock/2020-audi-a4-avant-veh-11"
     },
     {
       "tag": "header",
@@ -1320,5 +1326,5 @@
       "level": 4
     }
   ],
-  "text": "Skip to main content C CAR CHIEF ONLINE ☰ CURATED GLOBAL ACQUISITIONS CHECK OUR SELECTION OF PREMIUM VEHICLES Browse our hand-picked, premium global acquisitions of hypercars, custom performance coupes, and bespoke luxury SUVs. Every vehicle is thoroughly inspected, complete with detailed digital logs, and delivered via premium secure ocean transit. CHECK PREMIUM VEHICLES → HOW TO PURCHASE 🛡️ ELITE QUALITY SOURCING Strict inspection & technical logs for every chassis. 🚢 CONTAINER OCEAN FREIGHT Secure maritime container pipelines & customs clearing. 🔒 DEDICATED SECURE PORTAL Track order pipelines, invoices & documents live. DESTINATION MARKET: 🇺🇬 Uganda (Mombasa Port) 🇰🇪 Kenya (Mombasa Port) 🇹🇿 Tanzania (Dar es Salaam Port) 🌐 Global / All Ports (Manual market selection active) [[countdown]] Latest Arrivals (In Japan) Eligible stock created within the last 5 days. ● AVAILABLE In Japan 2021 TOYOTA COROLLA AXIO PRICE $8,500 VIEW DETAILS BMW X3 xDrive20d ● AVAILABLE In Japan 2021 BMW X3 XDRIVE20D PRICE $26,500 VIEW DETAILS Audi A4 Avant ● AVAILABLE In Japan 2020 AUDI A4 AVANT PRICE $15,900 VIEW DETAILS Land Rover Defender 110 ● AVAILABLE In Japan 2022 LAND ROVER DEFENDER 110 PRICE $49,000 VIEW DETAILS Lexus RX450h ● AVAILABLE In Japan 2023 LEXUS RX450H PRICE $38,000 VIEW DETAILS Mazda CX-5 ● AVAILABLE In Japan 2020 MAZDA CX-5 PRICE $13,500 VIEW DETAILS Mercedes-Benz C200 AMG Line ● AVAILABLE In Japan 2019 MERCEDES-BENZ C200 AMG LINE PRICE $17,800 VIEW DETAILS Lexus LX570 ● AVAILABLE In Japan 2023 LEXUS LX570 PRICE Request Price VIEW DETAILS EXCLUSIVE COLLECTION Premium Stock Teaser Browse up to 10 curated high-grade vehicles available for immediate reservation. ● AVAILABLE In Japan 2021 TOYOTA COROLLA AXIO PRICE $8,500 VIEW DETAILS BMW X3 xDrive20d ● AVAILABLE In Japan 2021 BMW X3 XDRIVE20D PRICE $26,500 VIEW DETAILS Land Rover Defender 110 ● AVAILABLE In Japan 2022 LAND ROVER DEFENDER 110 PRICE $49,000 VIEW DETAILS ● AVAILABLE In Port 2022 NISSAN X-TRAIL PRICE $19,500 VIEW DETAILS Lexus RX450h ● AVAILABLE In Japan 2023 LEXUS RX450H PRICE $38,000 VIEW DETAILS Mercedes-Benz C200 AMG Line ● AVAILABLE In Japan 2019 MERCEDES-BENZ C200 AMG LINE PRICE $17,800 VIEW DETAILS Lexus LX570 ● AVAILABLE In Japan 2023 LEXUS LX570 PRICE Request Price VIEW DETAILS Browse all Premium Stock 💬 Chat with Sales on WhatsApp Discounted & Clearance Stock Special pricing and clearance offers. Audi A4 Avant ● AVAILABLE In Japan 2020 AUDI A4 AVANT PRICE $15,900 VIEW DETAILS Subaru Forester ● AVAILABLE In Japan 2019 SUBARU FORESTER -10% discount PRICE Request Price VIEW DETAILS Honda Fit Hybrid ● AVAILABLE In Transit 2021 HONDA FIT HYBRID -5% discount PRICE $7,900$7,505 VIEW DETAILS Mitsubishi Fuso Canter ● AVAILABLE In Port 2018 MITSUBISHI FUSO CANTER -15% discount PRICE $16,000$13,600 VIEW DETAILS Browse All Stock Available inventory ordered by location (In Port -> In Transit -> In Japan). ● AVAILABLE In Port 2022 NISSAN X-TRAIL PRICE $19,500 VIEW DETAILS Mitsubishi Fuso Canter ● AVAILABLE In Port 2018 MITSUBISHI FUSO CANTER -15% discount PRICE $16,000$13,600 VIEW DETAILS ● RESERVEDWITHPI In Transit 2020 TOYOTA HIACE VAN PRICE $14,200 VIEW DETAILS Honda Fit Hybrid ● AVAILABLE In Transit 2021 HONDA FIT HYBRID -5% discount PRICE $7,900$7,505 VIEW DETAILS ● AVAILABLE In Japan 2021 TOYOTA COROLLA AXIO PRICE $8,500 VIEW DETAILS BMW X3 xDrive20d ● AVAILABLE In Japan 2021 BMW X3 XDRIVE20D PRICE $26,500 VIEW DETAILS Audi A4 Avant ● AVAILABLE In Japan 2020 AUDI A4 AVANT PRICE $15,900 VIEW DETAILS Land Rover Defender 110 ● AVAILABLE In Japan 2022 LAND ROVER DEFENDER 110 PRICE $49,000 VIEW DETAILS Lexus RX450h ● AVAILABLE In Japan 2023 LEXUS RX450H PRICE $38,000 VIEW DETAILS Mazda CX-5 ● AVAILABLE In Japan 2020 MAZDA CX-5 PRICE $13,500 VIEW DETAILS Mercedes-Benz C200 AMG Line ● AVAILABLE In Japan 2019 MERCEDES-BENZ C200 AMG LINE PRICE $17,800 VIEW DETAILS Subaru Forester ● AVAILABLE In Japan 2018 SUBARU FORESTER PRICE $9,800 VIEW DETAILS Lexus LX570 ● AVAILABLE In Japan 2023 LEXUS LX570 PRICE Request Price VIEW DETAILS Mazda CX-5 ● SOLD In Japan 2019 MAZDA CX-5 PRICE $12,000 VIEW DETAILS Subaru Forester ● AVAILABLE In Japan 2019 SUBARU FORESTER -10% discount PRICE Request Price VIEW DETAILS SOURCING GUIDE CarChief 5-Step Sourcing Process 01 Select Vehicle & Get Quote Browse available stock and request a quotation for your destination port. 02 Confirm Proforma Invoice Review pricing breakdown and confirm payment terms with bank wire instructions. 03 Complete Bank Transfer Transfer funds securely and provide swift confirmation to our billing department. 04 Maritime Vessel Shipping Vehicle is loaded onto ocean carrier and shipping title documents dispatched. 05 Port Delivery & Clearance Receive vehicle at your local port, settle customs clearance, and take delivery. CUSTOMER FEEDBACK Buyer Endorsements \"The pre-shipment diagnostic report and video inspections were thorough. Smooth delivery to port.\" Julian Vance Geneva, Switzerland • Porsche 911 GT3 RS \"Clear communication throughout maritime transit and exact document dispatch upon vessel departure.\" Sophia Chen Kampala, Uganda • Toyota Land Cruiser Prado \"Vehicle arrived in exact accordance with the auction sheet and inspection checklist.\" Marcus Sterling Mombasa, Kenya • Toyota HiAce Van HELP & INFORMATION Frequently Asked Questions Is CarChief an authorized exporter of Japanese used vehicles? − CarChief functions as a curated exporter and logistics coordinator, acquiring vehicles from certified Japanese auctions and networks with 150-point pre-export diagnostics. What shipping title documents are provided upon vessel departure? + How are freight costs calculated for Mombasa and Dar es Salaam ports? + CC CARCHIEF PREMIUM GLOBAL VEHICLE EXPORTERS CarChief is a high-end showcase portal providing direct ocean-cargo logistics, certified pre-owned inspections, and custom spec tracking. LOGISTICS CORE PORTALS Showroom Catalog How to Buy About Us Testimonials FAQ Contact Us SECURE VERIFICATION CarChief utilizes highly secure cloud-replicated server architectures for real-time transaction records and client logs. 🔒 SECURED CLOUD ENVELOPE © 2026 CARCHIEF AUTO GROUP. ALL RIGHTS RESERVED. CLOUDRUN ENVIRONMENT · REGISTRY SECURITY PROTOCOL SHIELD-V2"
+  "text": "Skip to main content C CAR CHIEF ONLINE ☰ CURATED GLOBAL ACQUISITIONS CHECK OUR SELECTION OF PREMIUM VEHICLES Browse our hand-picked, premium global acquisitions of hypercars, custom performance coupes, and bespoke luxury SUVs. Every vehicle is thoroughly inspected, complete with detailed digital logs, and delivered via premium secure ocean transit. CHECK PREMIUM VEHICLES → HOW TO PURCHASE 🛡️ ELITE QUALITY SOURCING Strict inspection & technical logs for every chassis. 🚢 CONTAINER OCEAN FREIGHT Secure maritime container pipelines & customs clearing. 🔒 DEDICATED SECURE PORTAL Track order pipelines, invoices & documents live. DESTINATION MARKET: 🇺🇬 Uganda (Mombasa Port) 🇰🇪 Kenya (Mombasa Port) 🇹🇿 Tanzania (Dar es Salaam Port) 🌐 Global / All Ports (Manual market selection active) [[countdown]] Latest Arrivals (In Japan) Eligible stock created within the last 5 days. ● AVAILABLE In Japan 2021 TOYOTA COROLLA AXIO PRICE $8,500 VIEW DETAILS Lexus RX450h ● AVAILABLE In Japan 2023 LEXUS RX450H PRICE $38,000 VIEW DETAILS Mazda CX-5 ● AVAILABLE In Japan 2020 MAZDA CX-5 PRICE $13,500 VIEW DETAILS Mercedes-Benz C200 AMG Line ● AVAILABLE In Japan 2019 MERCEDES-BENZ C200 AMG LINE PRICE $17,800 VIEW DETAILS BMW X3 xDrive20d ● AVAILABLE In Japan 2021 BMW X3 XDRIVE20D PRICE $26,500 VIEW DETAILS Audi A4 Avant ● AVAILABLE In Japan 2020 AUDI A4 AVANT PRICE $15,900 VIEW DETAILS Land Rover Defender 110 ● AVAILABLE In Japan 2022 LAND ROVER DEFENDER 110 PRICE $49,000 VIEW DETAILS Lexus LX570 ● AVAILABLE In Japan 2023 LEXUS LX570 PRICE Request Price VIEW DETAILS EXCLUSIVE COLLECTION Premium Stock Teaser Browse up to 10 curated high-grade vehicles available for immediate reservation. ● AVAILABLE In Japan 2021 TOYOTA COROLLA AXIO PRICE $8,500 VIEW DETAILS ● AVAILABLE In Port 2022 NISSAN X-TRAIL PRICE $19,500 VIEW DETAILS Lexus RX450h ● AVAILABLE In Japan 2023 LEXUS RX450H PRICE $38,000 VIEW DETAILS Mercedes-Benz C200 AMG Line ● AVAILABLE In Japan 2019 MERCEDES-BENZ C200 AMG LINE PRICE $17,800 VIEW DETAILS BMW X3 xDrive20d ● AVAILABLE In Japan 2021 BMW X3 XDRIVE20D PRICE $26,500 VIEW DETAILS Land Rover Defender 110 ● AVAILABLE In Japan 2022 LAND ROVER DEFENDER 110 PRICE $49,000 VIEW DETAILS Lexus LX570 ● AVAILABLE In Japan 2023 LEXUS LX570 PRICE Request Price VIEW DETAILS Browse all Premium Stock 💬 Chat with Sales on WhatsApp Discounted & Clearance Stock Special pricing and clearance offers. Subaru Forester ● AVAILABLE In Japan 2019 SUBARU FORESTER -10% discount PRICE Request Price VIEW DETAILS Honda Fit Hybrid ● AVAILABLE In Transit 2021 HONDA FIT HYBRID -5% discount PRICE $7,900$7,505 VIEW DETAILS Mitsubishi Fuso Canter ● AVAILABLE In Port 2018 MITSUBISHI FUSO CANTER -15% discount PRICE $16,000$13,600 VIEW DETAILS Audi A4 Avant ● AVAILABLE In Japan 2020 AUDI A4 AVANT PRICE $15,900 VIEW DETAILS Browse All Stock Available inventory ordered by location (In Port -> In Transit -> In Japan). ● AVAILABLE In Port 2022 NISSAN X-TRAIL PRICE $19,500 VIEW DETAILS Mitsubishi Fuso Canter ● AVAILABLE In Port 2018 MITSUBISHI FUSO CANTER -15% discount PRICE $16,000$13,600 VIEW DETAILS ● RESERVEDWITHPI In Transit 2020 TOYOTA HIACE VAN PRICE $14,200 VIEW DETAILS Honda Fit Hybrid ● AVAILABLE In Transit 2021 HONDA FIT HYBRID -5% discount PRICE $7,900$7,505 VIEW DETAILS ● AVAILABLE In Japan 2021 TOYOTA COROLLA AXIO PRICE $8,500 VIEW DETAILS BMW X3 xDrive20d ● AVAILABLE In Japan 2021 BMW X3 XDRIVE20D PRICE $26,500 VIEW DETAILS Audi A4 Avant ● AVAILABLE In Japan 2020 AUDI A4 AVANT PRICE $15,900 VIEW DETAILS Land Rover Defender 110 ● AVAILABLE In Japan 2022 LAND ROVER DEFENDER 110 PRICE $49,000 VIEW DETAILS Lexus RX450h ● AVAILABLE In Japan 2023 LEXUS RX450H PRICE $38,000 VIEW DETAILS Mazda CX-5 ● AVAILABLE In Japan 2020 MAZDA CX-5 PRICE $13,500 VIEW DETAILS Mercedes-Benz C200 AMG Line ● AVAILABLE In Japan 2019 MERCEDES-BENZ C200 AMG LINE PRICE $17,800 VIEW DETAILS Subaru Forester ● AVAILABLE In Japan 2018 SUBARU FORESTER PRICE $9,800 VIEW DETAILS Lexus LX570 ● AVAILABLE In Japan 2023 LEXUS LX570 PRICE Request Price VIEW DETAILS Mazda CX-5 ● SOLD In Japan 2019 MAZDA CX-5 PRICE $12,000 VIEW DETAILS Subaru Forester ● AVAILABLE In Japan 2019 SUBARU FORESTER -10% discount PRICE Request Price VIEW DETAILS SOURCING GUIDE CarChief 5-Step Sourcing Process 01 Select Vehicle & Get Quote Browse available stock and request a quotation for your destination port. 02 Confirm Proforma Invoice Review pricing breakdown and confirm payment terms with bank wire instructions. 03 Complete Bank Transfer Transfer funds securely and provide swift confirmation to our billing department. 04 Maritime Vessel Shipping Vehicle is loaded onto ocean carrier and shipping title documents dispatched. 05 Port Delivery & Clearance Receive vehicle at your local port, settle customs clearance, and take delivery. CUSTOMER FEEDBACK Buyer Endorsements \"The pre-shipment diagnostic report and video inspections were thorough. Smooth delivery to port.\" Julian Vance Geneva, Switzerland • Porsche 911 GT3 RS \"Clear communication throughout maritime transit and exact document dispatch upon vessel departure.\" Sophia Chen Kampala, Uganda • Toyota Land Cruiser Prado \"Vehicle arrived in exact accordance with the auction sheet and inspection checklist.\" Marcus Sterling Mombasa, Kenya • Toyota HiAce Van HELP & INFORMATION Frequently Asked Questions Is CarChief an authorized exporter of Japanese used vehicles? − CarChief functions as a curated exporter and logistics coordinator, acquiring vehicles from certified Japanese auctions and networks with 150-point pre-export diagnostics. What shipping title documents are provided upon vessel departure? + How are freight costs calculated for Mombasa and Dar es Salaam ports? + CC CARCHIEF PREMIUM GLOBAL VEHICLE EXPORTERS CarChief is a high-end showcase portal providing direct ocean-cargo logistics, certified pre-owned inspections, and custom spec tracking. LOGISTICS CORE PORTALS Showroom Catalog How to Buy About Us Testimonials FAQ Contact Us SECURE VERIFICATION CarChief utilizes highly secure cloud-replicated server architectures for real-time transaction records and client logs. 🔒 SECURED CLOUD ENVELOPE © 2026 CARCHIEF AUTO GROUP. ALL RIGHTS RESERVED. CLOUDRUN ENVIRONMENT · REGISTRY SECURITY PROTOCOL SHIELD-V2"
 }

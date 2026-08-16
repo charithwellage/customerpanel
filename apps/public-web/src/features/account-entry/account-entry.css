@@ -1,7 +1,7 @@
 /*
  * account-entry.css
- * Feature-level styles for account entry, the stand-in demo session and
- * reservation sign-in guidance (PUB-22, PUB-23, PUB-27, D01-P06-T003).
+ * Feature-level styles for account entry and reservation sign-in guidance
+ * (PUB-22, PUB-23, PUB-27, D01-P06-T003, CUST-30).
  * Owned path: apps/public-web/src/features/account-entry/
  *
  * Every value uses a semantic token emitted by packages/theme/src/provider.ts.
@@ -45,28 +45,10 @@
   line-height: 1.6;
 }
 
-.cc-account-entry__demo-badge {
-  font-family: var(--font-body);
-  font-size: var(--font-size-xs);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--color-warning);
-  background: var(--color-warning-surface);
-  border-radius: var(--radius-pill);
-  padding: var(--spacing-xs) var(--spacing-sm);
-  align-self: flex-start;
-  margin: 0;
-}
-
-.cc-account-entry__error {
-  font-family: var(--font-body);
-  font-size: var(--font-size-sm);
-  color: var(--color-error);
-  background: var(--color-error-surface);
-  border-radius: var(--radius-md);
-  padding: var(--spacing-sm) var(--spacing-md);
-  margin: 0;
+.cc-account-entry__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
 }
 
 .cc-account-entry__identity {

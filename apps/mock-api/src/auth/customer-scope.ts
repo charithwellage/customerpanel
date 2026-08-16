@@ -1,10 +1,14 @@
 /**
- * Resolves the server-owned customer scope for a signed demo identity.
+ * Resolves the server-owned customer scope for an authenticated identity.
  *
- * The demo token deliberately uses a stable subject (`user-123`) while the
- * deterministic fixture store uses its canonical customer id (`cust-123`).
- * This mapping is mock-only and never accepts a customer id from the browser.
+ * A registered customer account's session subject (`JwtClaims.sub`) is
+ * always minted as that account's own canonical customer id, so it is
+ * already its own scope. The one legacy exception is the long-standing
+ * seeded fixture subject `user-123`, kept mapped to `cust-123` so every
+ * existing Delivery 02 customer suite built against that fixture keeps a
+ * working identity. This mapping is mock-only and never accepts a customer
+ * id supplied directly by the browser.
  */
-export function resolveDemoCustomerScope(subject: string): string {
+export function resolveCustomerScope(subject: string): string {
   return subject === 'user-123' ? 'cust-123' : subject;
 }

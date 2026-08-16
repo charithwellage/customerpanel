@@ -6,6 +6,7 @@
 @import "../features/enquiry/enquiry.css";
 @import "../features/account-entry/account-entry.css";
 @import "../features/reservation/reservation.css";
+@import "../features/registration/registration.css";
 
 :root {
   font-family: var(--font-body, Inter, system-ui, sans-serif);
@@ -168,33 +169,58 @@ html, body {
   align-items: center;
 }
 
-.customer-portal-btn {
+/* Login (secondary) + Register (primary) header actions (D02-P12-T003,
+   CUST-26, CUST-27). Login first, Register last so the strongest call to
+   action is rightmost. Semantic tokens only — see COMMON_FRONTEND_RULES.md;
+   the surrounding header block's remaining literal hex values are a
+   pre-existing deviation this task does not need to fix. */
+.header-auth-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm, 0.6rem);
+}
+
+.header-auth-btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  color: #ffffff;
   text-decoration: none;
   font-family: var(--font-display);
-  font-size: 0.78rem;
+  font-size: var(--font-size-xs);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   padding: 0.48rem 1.1rem;
-  border-radius: 9999px;
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  background: rgba(255, 255, 255, 0.04);
+  border-radius: var(--radius-pill);
   transition: all 180ms ease;
   cursor: pointer;
+  min-height: var(--min-touch-target);
 }
 
-.customer-portal-btn:hover {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.45);
+.header-auth-btn--login {
+  color: var(--color-text-on-dark);
+  border: 1px solid color-mix(in srgb, var(--color-text-on-dark) 28%, transparent);
+  background: color-mix(in srgb, var(--color-text-on-dark) 4%, transparent);
 }
 
-.portal-user-icon {
-  color: #f97316;
-  flex-shrink: 0;
+.header-auth-btn--login:hover {
+  background: color-mix(in srgb, var(--color-text-on-dark) 12%, transparent);
+  border-color: color-mix(in srgb, var(--color-text-on-dark) 45%, transparent);
+}
+
+.header-auth-btn--register {
+  color: var(--color-text-on-accent);
+  background: var(--color-accent);
+  border: 1px solid var(--color-accent);
+}
+
+.header-auth-btn--register:hover {
+  background: var(--color-primary-hover, var(--color-accent));
+}
+
+.mobile-header-auth-actions {
+  margin-top: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid color-mix(in srgb, var(--color-text-on-dark) 12%, transparent);
 }
 
 .mobile-menu-toggle {

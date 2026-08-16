@@ -28,10 +28,10 @@ export interface AppProps {
 /**
  * Maps the verified session onto the shell's display user.
  *
- * Only fields the demo JWT actually carries are used. `JwtClaims` has no name
- * or company field, so `session.user.name` is whatever
- * `createDemoCustomerSession` derived from the real address and `company` stays
- * undefined rather than being invented.
+ * Only fields the session token actually carries are used. `JwtClaims` has no
+ * name or company field, so `session.user.name` is whatever the sign-in
+ * response derived from the real address and `company` stays undefined
+ * rather than being invented.
  */
 function toShellUser(session: CustomerSession): CustomerUser {
   return {
@@ -150,13 +150,21 @@ const AppContent: React.FC<{ session: CustomerSession; apiBaseUrl: string }> = (
 export const App: React.FC<AppProps> = ({ apiBaseUrl = '' }) => (
   <OfflineGuard>
     <AccountGuard apiBaseUrl={apiBaseUrl}>
-      {(session) => (
+      {(session, actions) => (
         <QueryClientProvider client={queryClient}>
           <HttpClientProvider apiBaseUrl={apiBaseUrl}>
             <CustomerShell
               initialUser={toShellUser(session)}
               pageTitle="Customer Portal"
               pageSubtitle="Account access and application shell"
+              onSignOut={() => {
+                // The guard clears the session and Service Worker caches;
+                // this app also discards any cached query data so no
+                // authenticated response outlives the session (T005 contract:
+                // "any cached query data is discarded" on sign-out).
+                queryClient.clear();
+                actions.signOut();
+              }}
             >
               <AppContent session={session} apiBaseUrl={apiBaseUrl} />
             </CustomerShell>

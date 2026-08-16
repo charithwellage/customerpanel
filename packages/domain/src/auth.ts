@@ -28,7 +28,17 @@ export const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
   SystemAdmin: ['read:public', 'read:all', 'write:all', 'reset:data'],
 };
 
-export function createDemoJwtToken(
+/**
+ * Mints a signed-shape session token carrying the supplied role/claims
+ * (`Phase 2.12`, `DEC-CUST-IDENTITY-RECOVERY`). This is the Mock API's own
+ * token minting primitive — the only production identity provider is
+ * AutoPulse/Keycloak, which this repo never claims to be. Renamed from
+ * `createDemoJwtToken` (D02-P12-T002, CUST-30): the mock no longer exposes a
+ * no-input demo identity, but every session — including the one seeded
+ * fixture credential kept for existing Delivery 02 suites — is still minted
+ * through this one helper.
+ */
+export function issueSessionToken(
   role: UserRole,
   sub = 'user-123',
   email = 'user@carchief.com',
@@ -47,7 +57,12 @@ export function createDemoJwtToken(
   return `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.${payload}.demo-signature`;
 }
 
-export function parseDemoJwtToken(token: string): JwtClaims | null {
+/**
+ * Decodes the claims carried by a token minted with `issueSessionToken`.
+ * Renamed from `parseDemoJwtToken` (D02-P12-T002, CUST-30) — same decode-only
+ * behaviour, no signature verification claim either way.
+ */
+export function parseSessionToken(token: string): JwtClaims | null {
   try {
     const parts = token.split('.');
     if (parts.length !== 3) return null;
@@ -64,20 +79,8 @@ export function hasPermission(role: UserRole, permission: string): boolean {
 }
 
 /**
- * Response shape for the mock's demo sign-in endpoint (DEC-PUB-AUTH-BOUNDARY,
- * PUB-22, D01-P06-T003). `nonProduction` is always `true` so a caller can
- * render an honest "demo mode" label without inferring it from anything
- * else (RULE-10) — there is no production identity path in this repo.
- */
-export interface DemoSessionResponse {
-  token: string;
-  claims: JwtClaims;
-  nonProduction: true;
-}
-
-/**
  * True once `claims.exp` (Unix seconds) has passed `nowSeconds`. The mock's
- * `parseDemoJwtToken` only decodes. API auth middleware must apply this
+ * `parseSessionToken` only decodes. API auth middleware must apply this
  * predicate before authorizing a request; browser session state also uses it
  * to present an honest expired-session state.
  */

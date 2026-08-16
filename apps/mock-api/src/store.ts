@@ -1,4 +1,5 @@
 import { Pool, PoolClient } from 'pg';
+import { randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
 import type {
   VehicleDomainSummary,
   VehicleStatus,
@@ -546,10 +547,447 @@ export interface DemoStore {
   listCustomerPaymentNotifications(customerId: string, paymentId?: string): Promise<CustomerPaymentNotificationListResponse>;
   resubmitCustomerPayment(customerId: string, paymentId: string, nowISO?: string): Promise<CustomerPayment>;
   recordPaymentNotification(paymentId: string, request: RecordPaymentNotificationRequest, nowISO?: string): Promise<CustomerPaymentNotification | null>;
+  // Phase 2.12: customer self-registration, credentials and password reset
+  // (CUST-26..30, D02-ASM-005/006/007). The Mock API is the only authority
+  // for credentials and sessions; no password, hash or salt is ever
+  // returned, logged or cached, and no route accepts a client-supplied
+  // customer id.
+  registerCustomerAccount(request: RegisterCustomerRequest, nowISO?: string): Promise<CustomerAccountProjection>;
+  authenticateCustomer(request: LoginRequest): Promise<CustomerAccountProjection>;
+  changeCustomerPassword(customerId: string, request: ChangePasswordRequest, nowISO?: string): Promise<void>;
+  requestPasswordReset(request: PasswordResetRequest, nowISO?: string): Promise<void>;
+  confirmPasswordReset(request: ConfirmPasswordResetRequest, nowISO?: string): Promise<void>;
+  listPasswordResetOutbox(): Promise<PasswordResetOutboxRecord[]>;
+  getCountries(): Promise<CountriesResponse>;
   reset(): Promise<void>;
   close(): Promise<void>;
 }
 
+// --- Phase 2.12: customer self-registration, credential handling and the
+// password-reset contract (CUST-26..30, D02-ASM-005/006/007). ---
+//
+// The account and reset-outbox entities live in both `MemoryStore` and
+// `PostgresStore` per the `enquiries`/`reservations` precedent. Passwords are
+// hashed with salted `scrypt` from `node:crypto`; no plaintext password, hash
+// or salt is ever stored elsewhere, logged, cached or returned by any route.
+// `AccountRequestError` follows the existing `ReservationRequestError` /
+// `EnquiryRequestError` typed-error idiom for field-level 400/409 responses.
+
+export class AccountRequestError extends Error {
+  public readonly statusCode: number;
+  public readonly field?: string;
+
+  constructor(statusCode: number, message: string, field?: string) {
+    super(message);
+    this.name = 'AccountRequestError';
+    this.statusCode = statusCode;
+    this.field = field;
+  }
+}
+
+/**
+ * A single generic authentication failure — reused for "unknown email" and
+ * "wrong password" so a caller can never distinguish account existence from
+ * a login response (CUST-27, account-enumeration boundary).
+ */
+export class AuthenticationError extends Error {
+  readonly statusCode = 401;
+
+  constructor(message = 'Invalid email or password') {
+    super(message);
+    this.name = 'AuthenticationError';
+  }
+}
+
+export interface CustomerAccountRecord {
+  id: string;
+  customerId: string;
+  nameWithInitials: string;
+  countryCode: string;
+  dialCode: string;
+  mobileNumber: string;
+  email: string;
+  passwordHash: string;
+  passwordSalt: string;
+  status: 'active';
+  verificationState: 'unverified';
+  createdAt: string;
+  updatedAt: string;
+  passwordUpdatedAt: string;
+}
+
+export interface PasswordResetOutboxRecord {
+  token: string;
+  email: string;
+  issuedAt: string;
+  expiresAt: string;
+  consumed: boolean;
+}
+
+export interface CustomerAccountProjection {
+  id: string;
+  customerId: string;
+  nameWithInitials: string;
+  countryCode: string;
+  dialCode: string;
+  mobileNumber: string;
+  email: string;
+  status: string;
+  verificationState: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface RegisterCustomerRequest {
+  nameWithInitials: string;
+  countryCode: string;
+  mobileNumber: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+  confirmNewPassword: string;
+}
+
+export interface PasswordResetRequest {
+  email: string;
+}
+
+export interface ConfirmPasswordResetRequest {
+  token: string;
+  newPassword: string;
+  confirmNewPassword: string;
+}
+
+export interface CountryOption {
+  isoCode: string;
+  name: string;
+  dialCode: string;
+}
+
+export interface CountriesResponse {
+  items: CountryOption[];
+}
+
+// ISO-3166 country + E.164 dial-code catalog. Deliberately covers CarChief's
+// primary export destinations plus a broad conventional set so registration
+// is usable for any visitor; `packages/domain` may later become the single
+// shared source (Phase 2.12 T002) without changing this route's contract.
+const COUNTRIES: CountryOption[] = [
+  { isoCode: 'UG', name: 'Uganda', dialCode: '+256' },
+  { isoCode: 'KE', name: 'Kenya', dialCode: '+254' },
+  { isoCode: 'TZ', name: 'Tanzania', dialCode: '+255' },
+  { isoCode: 'RW', name: 'Rwanda', dialCode: '+250' },
+  { isoCode: 'SS', name: 'South Sudan', dialCode: '+211' },
+  { isoCode: 'BI', name: 'Burundi', dialCode: '+257' },
+  { isoCode: 'ET', name: 'Ethiopia', dialCode: '+251' },
+  { isoCode: 'SO', name: 'Somalia', dialCode: '+252' },
+  { isoCode: 'ZM', name: 'Zambia', dialCode: '+260' },
+  { isoCode: 'MW', name: 'Malawi', dialCode: '+265' },
+  { isoCode: 'CD', name: 'DR Congo', dialCode: '+243' },
+  { isoCode: 'NG', name: 'Nigeria', dialCode: '+234' },
+  { isoCode: 'GH', name: 'Ghana', dialCode: '+233' },
+  { isoCode: 'ZA', name: 'South Africa', dialCode: '+27' },
+  { isoCode: 'GB', name: 'United Kingdom', dialCode: '+44' },
+  { isoCode: 'US', name: 'United States', dialCode: '+1' },
+  { isoCode: 'AE', name: 'United Arab Emirates', dialCode: '+971' },
+  { isoCode: 'JP', name: 'Japan', dialCode: '+81' },
+  { isoCode: 'IN', name: 'India', dialCode: '+91' },
+  { isoCode: 'AU', name: 'Australia', dialCode: '+61' },
+];
+
+const SCRYPT_KEY_LENGTH = 64;
+
+/** Salted `scrypt` derivation (`node:crypto`), server-side only. */
+function hashPassword(password: string): { hash: string; salt: string } {
+  const salt = randomBytes(16).toString('hex');
+  const hash = scryptSync(password, salt, SCRYPT_KEY_LENGTH).toString('hex');
+  return { hash, salt };
+}
+
+/** Constant-length comparison against the stored derivation. */
+function verifyPassword(password: string, hash: string, salt: string): boolean {
+  const candidate = scryptSync(password, salt, SCRYPT_KEY_LENGTH);
+  const stored = Buffer.from(hash, 'hex');
+  if (candidate.length !== stored.length) return false;
+  return timingSafeEqual(candidate, stored);
+}
+
+// A fixed dummy derivation, computed once at module load, so an unknown
+// email still performs a `scrypt` comparison before the login route
+// responds — the same generic 401 either way, with no obviously-faster path
+// for an unregistered address (CUST-27 account-enumeration boundary).
+const DUMMY_PASSWORD_DERIVATION = hashPassword('unknown-account-timing-parity');
+
+/**
+ * D02-ASM-005: minimum 12 characters, no maximum below 128, at least one
+ * letter and one digit, no forced rotation and no further composition rule.
+ * Declared once here and enforced authoritatively by the Mock API; the
+ * shared `packages/validation` copy is Phase 2.12 T002's responsibility.
+ */
+function validatePasswordPolicy(password: string): string | null {
+  if (typeof password !== 'string' || password.length < 12) {
+    return 'Password must be at least 12 characters long';
+  }
+  if (password.length > 128) {
+    return 'Password must be no more than 128 characters long';
+  }
+  if (!/[A-Za-z]/.test(password)) {
+    return 'Password must contain at least one letter';
+  }
+  if (!/[0-9]/.test(password)) {
+    return 'Password must contain at least one digit';
+  }
+  return null;
+}
+
+function normalizeEmail(email: unknown): string {
+  return typeof email === 'string' ? email.trim().toLowerCase() : '';
+}
+
+interface ValidatedRegistration {
+  nameWithInitials: string;
+  countryCode: string;
+  dialCode: string;
+  mobileNumber: string;
+  email: string;
+  password: string;
+}
+
+function validateRegisterCustomerRequest(request: RegisterCustomerRequest, countries: CountryOption[]): ValidatedRegistration {
+  const nameWithInitials = typeof request?.nameWithInitials === 'string' ? request.nameWithInitials.trim() : '';
+  if (!nameWithInitials) {
+    throw new AccountRequestError(400, 'Name with initials is required', 'nameWithInitials');
+  }
+
+  const countryCode = typeof request?.countryCode === 'string' ? request.countryCode.trim().toUpperCase() : '';
+  const country = countries.find((c) => c.isoCode === countryCode);
+  if (!country) {
+    throw new AccountRequestError(400, 'A valid country is required', 'countryCode');
+  }
+
+  const mobileNumber = typeof request?.mobileNumber === 'string' ? request.mobileNumber.trim() : '';
+  if (!mobileNumber || !/^[0-9]{4,15}$/.test(mobileNumber)) {
+    throw new AccountRequestError(400, 'A valid mobile number is required', 'mobileNumber');
+  }
+
+  const rawEmail = typeof request?.email === 'string' ? request.email.trim() : '';
+  if (!rawEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rawEmail)) {
+    throw new AccountRequestError(400, 'A valid email address is required', 'email');
+  }
+
+  const password = typeof request?.password === 'string' ? request.password : '';
+  const policyError = validatePasswordPolicy(password);
+  if (policyError) {
+    throw new AccountRequestError(400, policyError, 'password');
+  }
+
+  const confirmPassword = typeof request?.confirmPassword === 'string' ? request.confirmPassword : '';
+  if (password !== confirmPassword) {
+    throw new AccountRequestError(400, 'Passwords do not match', 'confirmPassword');
+  }
+
+  return {
+    nameWithInitials,
+    countryCode,
+    dialCode: country.dialCode,
+    mobileNumber,
+    email: normalizeEmail(rawEmail),
+    password,
+  };
+}
+
+function toCustomerAccountProjection(record: CustomerAccountRecord): CustomerAccountProjection {
+  return {
+    id: record.id,
+    customerId: record.customerId,
+    nameWithInitials: record.nameWithInitials,
+    countryCode: record.countryCode,
+    dialCode: record.dialCode,
+    mobileNumber: record.mobileNumber,
+    email: record.email,
+    status: record.status,
+    verificationState: record.verificationState,
+    createdAt: record.createdAt,
+    updatedAt: record.updatedAt,
+  };
+}
+
+function generateAccountId(): string {
+  return `acct-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function generateCustomerId(): string {
+  return `cust-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function performRegisterCustomerAccount(
+  accounts: CustomerAccountRecord[],
+  request: RegisterCustomerRequest,
+  nowISO: string
+): CustomerAccountRecord {
+  const validated = validateRegisterCustomerRequest(request, COUNTRIES);
+  const existing = accounts.find((a) => a.email === validated.email);
+  if (existing) {
+    throw new AccountRequestError(409, 'An account with this email already exists', 'email');
+  }
+  const { hash, salt } = hashPassword(validated.password);
+  return {
+    id: generateAccountId(),
+    customerId: generateCustomerId(),
+    nameWithInitials: validated.nameWithInitials,
+    countryCode: validated.countryCode,
+    dialCode: validated.dialCode,
+    mobileNumber: validated.mobileNumber,
+    email: validated.email,
+    passwordHash: hash,
+    passwordSalt: salt,
+    status: 'active',
+    verificationState: 'unverified',
+    createdAt: nowISO,
+    updatedAt: nowISO,
+    passwordUpdatedAt: nowISO,
+  };
+}
+
+function performAuthenticateCustomer(accounts: CustomerAccountRecord[], request: LoginRequest): CustomerAccountRecord {
+  const email = normalizeEmail(request?.email);
+  const password = typeof request?.password === 'string' ? request.password : '';
+  const account = accounts.find((a) => a.email === email);
+  if (!account) {
+    verifyPassword(password, DUMMY_PASSWORD_DERIVATION.hash, DUMMY_PASSWORD_DERIVATION.salt);
+    throw new AuthenticationError();
+  }
+  if (!verifyPassword(password, account.passwordHash, account.passwordSalt)) {
+    throw new AuthenticationError();
+  }
+  return account;
+}
+
+function performChangeCustomerPassword(
+  accounts: CustomerAccountRecord[],
+  customerId: string,
+  request: ChangePasswordRequest,
+  nowISO: string
+): void {
+  const account = accounts.find((a) => a.customerId === customerId);
+  if (!account) {
+    throw new AuthenticationError('Current password is incorrect');
+  }
+  const currentPassword = typeof request?.currentPassword === 'string' ? request.currentPassword : '';
+  if (!verifyPassword(currentPassword, account.passwordHash, account.passwordSalt)) {
+    throw new AuthenticationError('Current password is incorrect');
+  }
+  const newPassword = typeof request?.newPassword === 'string' ? request.newPassword : '';
+  const policyError = validatePasswordPolicy(newPassword);
+  if (policyError) {
+    throw new AccountRequestError(400, policyError, 'newPassword');
+  }
+  const confirmNewPassword = typeof request?.confirmNewPassword === 'string' ? request.confirmNewPassword : '';
+  if (newPassword !== confirmNewPassword) {
+    throw new AccountRequestError(400, 'Passwords do not match', 'confirmNewPassword');
+  }
+  const { hash, salt } = hashPassword(newPassword);
+  account.passwordHash = hash;
+  account.passwordSalt = salt;
+  account.passwordUpdatedAt = nowISO;
+  account.updatedAt = nowISO;
+}
+
+const PASSWORD_RESET_TOKEN_TTL_MINUTES = 30;
+
+function performRequestPasswordReset(
+  accounts: CustomerAccountRecord[],
+  outbox: PasswordResetOutboxRecord[],
+  request: PasswordResetRequest,
+  nowISO: string
+): void {
+  const email = normalizeEmail(request?.email);
+  const account = accounts.find((a) => a.email === email);
+  // Always a silent no-op for an unknown email — the caller always responds
+  // 202 regardless (D02-ASM-007 account-enumeration boundary).
+  if (!account) return;
+  const token = randomBytes(24).toString('hex');
+  const expiresAt = new Date(new Date(nowISO).getTime() + PASSWORD_RESET_TOKEN_TTL_MINUTES * 60 * 1000).toISOString();
+  outbox.push({ token, email, issuedAt: nowISO, expiresAt, consumed: false });
+}
+
+function performConfirmPasswordReset(
+  accounts: CustomerAccountRecord[],
+  outbox: PasswordResetOutboxRecord[],
+  request: ConfirmPasswordResetRequest,
+  nowISO: string
+): void {
+  const token = typeof request?.token === 'string' ? request.token : '';
+  const entry = outbox.find((o) => o.token === token);
+  if (!entry) {
+    throw new AccountRequestError(400, 'Invalid or expired reset token', 'token');
+  }
+  if (entry.consumed) {
+    throw new AccountRequestError(400, 'Reset token has already been used', 'token');
+  }
+  if (new Date(entry.expiresAt).getTime() <= new Date(nowISO).getTime()) {
+    throw new AccountRequestError(400, 'Reset token has expired', 'token');
+  }
+
+  const newPassword = typeof request?.newPassword === 'string' ? request.newPassword : '';
+  const policyError = validatePasswordPolicy(newPassword);
+  if (policyError) {
+    throw new AccountRequestError(400, policyError, 'newPassword');
+  }
+  const confirmNewPassword = typeof request?.confirmNewPassword === 'string' ? request.confirmNewPassword : '';
+  if (newPassword !== confirmNewPassword) {
+    throw new AccountRequestError(400, 'Passwords do not match', 'confirmNewPassword');
+  }
+
+  const account = accounts.find((a) => a.email === entry.email);
+  if (!account) {
+    throw new AccountRequestError(400, 'Invalid or expired reset token', 'token');
+  }
+
+  const { hash, salt } = hashPassword(newPassword);
+  account.passwordHash = hash;
+  account.passwordSalt = salt;
+  account.passwordUpdatedAt = nowISO;
+  account.updatedAt = nowISO;
+  entry.consumed = true;
+}
+
+const SEED_CUSTOMER_ACCOUNT_EMAIL = 'demo.customer@carchief.com';
+// Fixture-only credential bound to the seeded `cust-123` identity so every
+// existing Delivery 02 customer suite keeps a working sign-in. Never a
+// production secret — mock/dev-only, and only ever stored as its scrypt hash.
+const SEED_CUSTOMER_ACCOUNT_PASSWORD = 'CarChief#Fixture2026';
+
+function buildSeedCustomerAccount(): CustomerAccountRecord {
+  const { hash, salt } = hashPassword(SEED_CUSTOMER_ACCOUNT_PASSWORD);
+  const seedTimestamp = '2026-01-01T00:00:00.000Z';
+  return {
+    id: 'acct-cust-123',
+    customerId: 'cust-123',
+    nameWithInitials: 'J. K. Demo',
+    countryCode: 'UG',
+    dialCode: '+256',
+    mobileNumber: '700000000',
+    email: SEED_CUSTOMER_ACCOUNT_EMAIL,
+    passwordHash: hash,
+    passwordSalt: salt,
+    status: 'active',
+    verificationState: 'unverified',
+    createdAt: seedTimestamp,
+    updatedAt: seedTimestamp,
+    passwordUpdatedAt: seedTimestamp,
+  };
+}
 
 // --- Phase 1.5: freight destination, port and rate lookup (D01-ASM-001) ---
 //
@@ -3481,6 +3919,8 @@ class MemoryStore implements DemoStore {
   private publicPages = seedPublicContentPages.map((p) => ({ ...p }));
   private offices = seedOfficeLocations.map((o) => ({ ...o }));
   private branches = seedBranches.map((b) => ({ ...b }));
+  private customerAccounts: CustomerAccountRecord[] = [buildSeedCustomerAccount()];
+  private passwordResetOutbox: PasswordResetOutboxRecord[] = [];
 
   ready(): Promise<void> {
     return Promise.resolve();
@@ -3944,6 +4384,45 @@ class MemoryStore implements DemoStore {
     return Promise.resolve(toCustomerPaymentNotification(applyPaymentNotification(payment, request, this.paymentNotifications, this.allocations, nowISO)));
   }
 
+  async registerCustomerAccount(request: RegisterCustomerRequest, nowISO: string = new Date().toISOString()): Promise<CustomerAccountProjection> {
+    const record = performRegisterCustomerAccount(this.customerAccounts, request, nowISO);
+    this.customerAccounts.push(record);
+    this.customerProfiles.push({
+      customerId: record.customerId,
+      companyName: '',
+      phone: '',
+      deliveryAddress: '',
+      version: 1,
+      updatedAt: nowISO,
+    });
+    return toCustomerAccountProjection(record);
+  }
+
+  async authenticateCustomer(request: LoginRequest): Promise<CustomerAccountProjection> {
+    const account = performAuthenticateCustomer(this.customerAccounts, request);
+    return toCustomerAccountProjection(account);
+  }
+
+  async changeCustomerPassword(customerId: string, request: ChangePasswordRequest, nowISO: string = new Date().toISOString()): Promise<void> {
+    performChangeCustomerPassword(this.customerAccounts, customerId, request, nowISO);
+  }
+
+  async requestPasswordReset(request: PasswordResetRequest, nowISO: string = new Date().toISOString()): Promise<void> {
+    performRequestPasswordReset(this.customerAccounts, this.passwordResetOutbox, request, nowISO);
+  }
+
+  async confirmPasswordReset(request: ConfirmPasswordResetRequest, nowISO: string = new Date().toISOString()): Promise<void> {
+    performConfirmPasswordReset(this.customerAccounts, this.passwordResetOutbox, request, nowISO);
+  }
+
+  async listPasswordResetOutbox(): Promise<PasswordResetOutboxRecord[]> {
+    return this.passwordResetOutbox.map((o) => ({ ...o }));
+  }
+
+  async getCountries(): Promise<CountriesResponse> {
+    return { items: COUNTRIES.map((c) => ({ ...c })) };
+  }
+
   reset(): Promise<void> {
     this.config = { ...seedConfig };
     this.vehicles = seedVehicles.map((vehicle) => ({ ...vehicle }));
@@ -3964,6 +4443,8 @@ class MemoryStore implements DemoStore {
     this.publicPages = seedPublicContentPages.map((p) => ({ ...p }));
     this.offices = seedOfficeLocations.map((o) => ({ ...o }));
     this.branches = seedBranches.map((b) => ({ ...b }));
+    this.customerAccounts = [buildSeedCustomerAccount()];
+    this.passwordResetOutbox = [];
     return Promise.resolve();
   }
 
@@ -4174,6 +4655,65 @@ class PostgresStore implements DemoStore {
         recently_discounted_query text
       );`
     );
+    // Phase 2.12 (D02-P12-T001): customer_accounts and password_reset_outbox
+    // are brand-new tables, so CREATE TABLE IF NOT EXISTS alone is
+    // sufficient for an already-existing local volume — there is no prior
+    // shape to reconcile with ADD COLUMN IF NOT EXISTS (unlike `enquiries`).
+    await this.pool.query(
+      `CREATE TABLE IF NOT EXISTS customer_accounts (
+        id text PRIMARY KEY,
+        customer_id text NOT NULL,
+        name_with_initials text NOT NULL,
+        country_code text NOT NULL,
+        dial_code text NOT NULL,
+        mobile_number text NOT NULL,
+        email text NOT NULL,
+        password_hash text NOT NULL,
+        password_salt text NOT NULL,
+        status text NOT NULL,
+        verification_state text NOT NULL,
+        created_at text NOT NULL,
+        updated_at text NOT NULL,
+        password_updated_at text NOT NULL
+      );`
+    );
+    await this.pool.query(
+      'CREATE UNIQUE INDEX IF NOT EXISTS customer_accounts_email_lower_idx ON customer_accounts (lower(email));'
+    );
+    await this.pool.query(
+      `CREATE TABLE IF NOT EXISTS password_reset_outbox (
+        token text PRIMARY KEY,
+        email text NOT NULL,
+        issued_at text NOT NULL,
+        expires_at text NOT NULL,
+        consumed boolean NOT NULL
+      );`
+    );
+
+    const seededAccountResult = await this.pool.query('SELECT id FROM customer_accounts WHERE id = $1', ['acct-cust-123']);
+    if (seededAccountResult.rows.length === 0) {
+      const seed = buildSeedCustomerAccount();
+      await this.pool.query(
+        `INSERT INTO customer_accounts (id, customer_id, name_with_initials, country_code, dial_code, mobile_number, email, password_hash, password_salt, status, verification_state, created_at, updated_at, password_updated_at)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
+        [
+          seed.id,
+          seed.customerId,
+          seed.nameWithInitials,
+          seed.countryCode,
+          seed.dialCode,
+          seed.mobileNumber,
+          seed.email,
+          seed.passwordHash,
+          seed.passwordSalt,
+          seed.status,
+          seed.verificationState,
+          seed.createdAt,
+          seed.updatedAt,
+          seed.passwordUpdatedAt,
+        ]
+      );
+    }
 
     const configResult = await this.pool.query('SELECT id FROM public_config WHERE id = 1');
     if (configResult.rows.length === 0) {
@@ -4967,6 +5507,179 @@ class PostgresStore implements DemoStore {
     return toCustomerPaymentNotification(applyPaymentNotification(payment, request, this.paymentNotifications, this.allocations, nowISO));
   }
 
+  private static rowToCustomerAccountRecord(row: {
+    id: string;
+    customer_id: string;
+    name_with_initials: string;
+    country_code: string;
+    dial_code: string;
+    mobile_number: string;
+    email: string;
+    password_hash: string;
+    password_salt: string;
+    status: string;
+    verification_state: string;
+    created_at: string;
+    updated_at: string;
+    password_updated_at: string;
+  }): CustomerAccountRecord {
+    return {
+      id: row.id,
+      customerId: row.customer_id,
+      nameWithInitials: row.name_with_initials,
+      countryCode: row.country_code,
+      dialCode: row.dial_code,
+      mobileNumber: row.mobile_number,
+      email: row.email,
+      passwordHash: row.password_hash,
+      passwordSalt: row.password_salt,
+      status: row.status as CustomerAccountRecord['status'],
+      verificationState: row.verification_state as CustomerAccountRecord['verificationState'],
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+      passwordUpdatedAt: row.password_updated_at,
+    };
+  }
+
+  async registerCustomerAccount(request: RegisterCustomerRequest, nowISO: string = new Date().toISOString()): Promise<CustomerAccountProjection> {
+    const validated = validateRegisterCustomerRequest(request, COUNTRIES);
+    const existing = await this.pool.query('SELECT id FROM customer_accounts WHERE lower(email) = $1 LIMIT 1', [validated.email]);
+    if (existing.rows.length > 0) {
+      throw new AccountRequestError(409, 'An account with this email already exists', 'email');
+    }
+    const { hash, salt } = hashPassword(validated.password);
+    const id = generateAccountId();
+    const customerId = generateCustomerId();
+    await this.pool.query(
+      `INSERT INTO customer_accounts (id, customer_id, name_with_initials, country_code, dial_code, mobile_number, email, password_hash, password_salt, status, verification_state, created_at, updated_at, password_updated_at)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
+      [id, customerId, validated.nameWithInitials, validated.countryCode, validated.dialCode, validated.mobileNumber, validated.email, hash, salt, 'active', 'unverified', nowISO, nowISO, nowISO]
+    );
+    this.customerProfiles.push({
+      customerId,
+      companyName: '',
+      phone: '',
+      deliveryAddress: '',
+      version: 1,
+      updatedAt: nowISO,
+    });
+    return toCustomerAccountProjection({
+      id,
+      customerId,
+      nameWithInitials: validated.nameWithInitials,
+      countryCode: validated.countryCode,
+      dialCode: validated.dialCode,
+      mobileNumber: validated.mobileNumber,
+      email: validated.email,
+      passwordHash: hash,
+      passwordSalt: salt,
+      status: 'active',
+      verificationState: 'unverified',
+      createdAt: nowISO,
+      updatedAt: nowISO,
+      passwordUpdatedAt: nowISO,
+    });
+  }
+
+  async authenticateCustomer(request: LoginRequest): Promise<CustomerAccountProjection> {
+    const email = normalizeEmail(request?.email);
+    const password = typeof request?.password === 'string' ? request.password : '';
+    const result = await this.pool.query('SELECT * FROM customer_accounts WHERE lower(email) = $1 LIMIT 1', [email]);
+    const row = result.rows[0];
+    if (!row) {
+      verifyPassword(password, DUMMY_PASSWORD_DERIVATION.hash, DUMMY_PASSWORD_DERIVATION.salt);
+      throw new AuthenticationError();
+    }
+    const record = PostgresStore.rowToCustomerAccountRecord(row);
+    if (!verifyPassword(password, record.passwordHash, record.passwordSalt)) {
+      throw new AuthenticationError();
+    }
+    return toCustomerAccountProjection(record);
+  }
+
+  async changeCustomerPassword(customerId: string, request: ChangePasswordRequest, nowISO: string = new Date().toISOString()): Promise<void> {
+    const result = await this.pool.query('SELECT * FROM customer_accounts WHERE customer_id = $1 LIMIT 1', [customerId]);
+    const row = result.rows[0];
+    if (!row) {
+      throw new AuthenticationError('Current password is incorrect');
+    }
+    const record = PostgresStore.rowToCustomerAccountRecord(row);
+    const currentPassword = typeof request?.currentPassword === 'string' ? request.currentPassword : '';
+    if (!verifyPassword(currentPassword, record.passwordHash, record.passwordSalt)) {
+      throw new AuthenticationError('Current password is incorrect');
+    }
+    const newPassword = typeof request?.newPassword === 'string' ? request.newPassword : '';
+    const policyError = validatePasswordPolicy(newPassword);
+    if (policyError) {
+      throw new AccountRequestError(400, policyError, 'newPassword');
+    }
+    const confirmNewPassword = typeof request?.confirmNewPassword === 'string' ? request.confirmNewPassword : '';
+    if (newPassword !== confirmNewPassword) {
+      throw new AccountRequestError(400, 'Passwords do not match', 'confirmNewPassword');
+    }
+    const { hash, salt } = hashPassword(newPassword);
+    await this.pool.query(
+      'UPDATE customer_accounts SET password_hash = $1, password_salt = $2, password_updated_at = $3, updated_at = $3 WHERE customer_id = $4',
+      [hash, salt, nowISO, customerId]
+    );
+  }
+
+  async requestPasswordReset(request: PasswordResetRequest, nowISO: string = new Date().toISOString()): Promise<void> {
+    const email = normalizeEmail(request?.email);
+    const result = await this.pool.query('SELECT email FROM customer_accounts WHERE lower(email) = $1 LIMIT 1', [email]);
+    if (result.rows.length === 0) return;
+    const token = randomBytes(24).toString('hex');
+    const expiresAt = new Date(new Date(nowISO).getTime() + PASSWORD_RESET_TOKEN_TTL_MINUTES * 60 * 1000).toISOString();
+    await this.pool.query('INSERT INTO password_reset_outbox (token, email, issued_at, expires_at, consumed) VALUES ($1,$2,$3,$4,$5)', [token, email, nowISO, expiresAt, false]);
+  }
+
+  async confirmPasswordReset(request: ConfirmPasswordResetRequest, nowISO: string = new Date().toISOString()): Promise<void> {
+    const token = typeof request?.token === 'string' ? request.token : '';
+    const result = await this.pool.query('SELECT * FROM password_reset_outbox WHERE token = $1 LIMIT 1', [token]);
+    const row = result.rows[0];
+    if (!row) {
+      throw new AccountRequestError(400, 'Invalid or expired reset token', 'token');
+    }
+    if (row.consumed) {
+      throw new AccountRequestError(400, 'Reset token has already been used', 'token');
+    }
+    if (new Date(row.expires_at).getTime() <= new Date(nowISO).getTime()) {
+      throw new AccountRequestError(400, 'Reset token has expired', 'token');
+    }
+
+    const newPassword = typeof request?.newPassword === 'string' ? request.newPassword : '';
+    const policyError = validatePasswordPolicy(newPassword);
+    if (policyError) {
+      throw new AccountRequestError(400, policyError, 'newPassword');
+    }
+    const confirmNewPassword = typeof request?.confirmNewPassword === 'string' ? request.confirmNewPassword : '';
+    if (newPassword !== confirmNewPassword) {
+      throw new AccountRequestError(400, 'Passwords do not match', 'confirmNewPassword');
+    }
+
+    const { hash, salt } = hashPassword(newPassword);
+    await this.pool.query(
+      'UPDATE customer_accounts SET password_hash = $1, password_salt = $2, password_updated_at = $3, updated_at = $3 WHERE lower(email) = $4',
+      [hash, salt, nowISO, row.email]
+    );
+    await this.pool.query('UPDATE password_reset_outbox SET consumed = true WHERE token = $1', [token]);
+  }
+
+  async listPasswordResetOutbox(): Promise<PasswordResetOutboxRecord[]> {
+    const result = await this.pool.query('SELECT token, email, issued_at, expires_at, consumed FROM password_reset_outbox ORDER BY issued_at ASC');
+    return result.rows.map((row) => ({
+      token: row.token,
+      email: row.email,
+      issuedAt: row.issued_at,
+      expiresAt: row.expires_at,
+      consumed: Boolean(row.consumed),
+    }));
+  }
+
+  async getCountries(): Promise<CountriesResponse> {
+    return { items: COUNTRIES.map((c) => ({ ...c })) };
+  }
+
   async reset(): Promise<void> {
     const client = await this.pool.connect();
     try {
@@ -4981,6 +5694,30 @@ class PostgresStore implements DemoStore {
       await client.query('DELETE FROM content_pages');
       await client.query('DELETE FROM office_locations');
       await client.query('DELETE FROM branch_content');
+      await client.query('DELETE FROM password_reset_outbox');
+      await client.query('DELETE FROM customer_accounts');
+
+      const seedAccount = buildSeedCustomerAccount();
+      await client.query(
+        `INSERT INTO customer_accounts (id, customer_id, name_with_initials, country_code, dial_code, mobile_number, email, password_hash, password_salt, status, verification_state, created_at, updated_at, password_updated_at)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
+        [
+          seedAccount.id,
+          seedAccount.customerId,
+          seedAccount.nameWithInitials,
+          seedAccount.countryCode,
+          seedAccount.dialCode,
+          seedAccount.mobileNumber,
+          seedAccount.email,
+          seedAccount.passwordHash,
+          seedAccount.passwordSalt,
+          seedAccount.status,
+          seedAccount.verificationState,
+          seedAccount.createdAt,
+          seedAccount.updatedAt,
+          seedAccount.passwordUpdatedAt,
+        ]
+      );
 
       await client.query('INSERT INTO public_config (id, site_name, currency, contact_phone) VALUES (1, $1, $2, $3)', [
         seedConfig.siteName,

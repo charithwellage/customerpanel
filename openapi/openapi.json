@@ -47,16 +47,232 @@
         }
       }
     },
-    "/api/v1/auth/demo-session": {
-      "post": {
-        "summary": "Mint a stand-in demo customer session (DEC-PUB-AUTH-BOUNDARY, PUB-22, D01-P06-T003) — never a production identity",
-        "operationId": "startDemoSession",
+    "/api/v1/auth/me": {
+      "get": {
+        "summary": "Inspect the authenticated identity's session claims",
+        "operationId": "getCurrentSession",
         "responses": {
-          "201": {
-            "description": "A CustomerBuyer stand-in session was minted",
+          "200": {
+            "description": "Session claims for the authenticated identity",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/DemoSessionResponse" }
+                "schema": { "$ref": "#/components/schemas/SessionClaims" }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired bearer token",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/register": {
+      "post": {
+        "summary": "Register a new CarChief customer account (CUST-26, D02-ASM-005/006)",
+        "operationId": "registerCustomerAccount",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/RegisterCustomerRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The account was created; no credential material is returned",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CustomerAccount" }
+              }
+            }
+          },
+          "400": {
+            "description": "The first invalid input field",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "409": {
+            "description": "An account with this email already exists",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "summary": "Sign in with a registered email and password (CUST-27)",
+        "operationId": "loginCustomer",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/LoginRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "A CustomerBuyer session was minted",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/LoginResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid email or password — identical for an unknown email and a wrong password",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/change-password": {
+      "post": {
+        "summary": "Change the authenticated customer's password (CUST-28)",
+        "operationId": "changeCustomerPassword",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ChangePasswordRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The password was changed",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "New password fails the declared policy or confirmation mismatch",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated, or the current password is incorrect",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/password-reset": {
+      "post": {
+        "summary": "Request a password reset token via the deterministic mock outbox (CUST-29, D02-ASM-007)",
+        "operationId": "requestPasswordReset",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/PasswordResetRequest" }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Always returned, whether or not the email is registered (no account enumeration)",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PasswordResetAcceptedResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/password-reset/confirm": {
+      "post": {
+        "summary": "Consume a single-use reset token and apply a new password (CUST-29, D02-ASM-007)",
+        "operationId": "confirmPasswordReset",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ConfirmPasswordResetRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The password was reset",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid, already-used or expired token, or the new password fails policy/confirmation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/__outbox": {
+      "get": {
+        "summary": "Read the deterministic password-reset outbox (non-production only, D02-ASM-007)",
+        "operationId": "getPasswordResetOutbox",
+        "responses": {
+          "200": {
+            "description": "Every issued reset-token outbox entry",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PasswordResetOutboxListResponse" }
+              }
+            }
+          },
+          "403": {
+            "description": "Disabled in production",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/config/countries": {
+      "get": {
+        "summary": "Country, ISO code and E.164 dial-code catalog (CUST-26)",
+        "operationId": "getCountries",
+        "responses": {
+          "200": {
+            "description": "The supported country list",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CountriesResponse" }
               }
             }
           }
@@ -1538,14 +1754,131 @@
         },
         "required": ["sub", "email", "role", "permissions", "exp"]
       },
-      "DemoSessionResponse": {
+      "CustomerAccount": {
+        "type": "object",
+        "description": "Registered customer account projection. Never carries a password, hash or salt (Phase 2.12, CUST-26).",
+        "properties": {
+          "id": { "type": "string", "example": "acct-cust-123" },
+          "customerId": { "type": "string", "example": "cust-123" },
+          "nameWithInitials": { "type": "string", "example": "J. K. Demo" },
+          "countryCode": { "type": "string", "example": "UG" },
+          "dialCode": { "type": "string", "example": "+256" },
+          "mobileNumber": { "type": "string", "example": "700000000" },
+          "email": { "type": "string", "example": "demo.customer@carchief.com" },
+          "status": { "type": "string", "example": "active" },
+          "verificationState": { "type": "string", "example": "unverified" },
+          "createdAt": { "type": "string", "example": "2026-08-15T00:00:00.000Z" },
+          "updatedAt": { "type": "string", "example": "2026-08-15T00:00:00.000Z" }
+        },
+        "required": ["id", "customerId", "nameWithInitials", "countryCode", "dialCode", "mobileNumber", "email", "status", "verificationState", "createdAt", "updatedAt"]
+      },
+      "RegisterCustomerRequest": {
+        "type": "object",
+        "properties": {
+          "nameWithInitials": { "type": "string", "example": "J. K. Doe" },
+          "countryCode": { "type": "string", "example": "UG" },
+          "mobileNumber": { "type": "string", "example": "700111222" },
+          "email": { "type": "string", "example": "jkdoe@example.com" },
+          "password": { "type": "string", "description": "Minimum 12 characters, at least one letter and one digit (D02-ASM-005). Never echoed back." },
+          "confirmPassword": { "type": "string" }
+        },
+        "required": ["nameWithInitials", "countryCode", "mobileNumber", "email", "password", "confirmPassword"]
+      },
+      "LoginRequest": {
+        "type": "object",
+        "properties": {
+          "email": { "type": "string", "example": "demo.customer@carchief.com" },
+          "password": { "type": "string" }
+        },
+        "required": ["email", "password"]
+      },
+      "LoginResponse": {
         "type": "object",
         "properties": {
           "token": { "type": "string" },
-          "claims": { "$ref": "#/components/schemas/SessionClaims" },
-          "nonProduction": { "type": "boolean", "example": true }
+          "claims": { "$ref": "#/components/schemas/SessionClaims" }
         },
-        "required": ["token", "claims", "nonProduction"]
+        "required": ["token", "claims"]
+      },
+      "ChangePasswordRequest": {
+        "type": "object",
+        "properties": {
+          "currentPassword": { "type": "string" },
+          "newPassword": { "type": "string" },
+          "confirmNewPassword": { "type": "string" }
+        },
+        "required": ["currentPassword", "newPassword", "confirmNewPassword"]
+      },
+      "SuccessResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "example": true }
+        },
+        "required": ["success"]
+      },
+      "PasswordResetRequest": {
+        "type": "object",
+        "properties": {
+          "email": { "type": "string", "example": "demo.customer@carchief.com" }
+        },
+        "required": ["email"]
+      },
+      "PasswordResetAcceptedResponse": {
+        "type": "object",
+        "properties": {
+          "message": { "type": "string", "example": "If an account exists for that email, a password reset token has been issued to the mock outbox." }
+        },
+        "required": ["message"]
+      },
+      "ConfirmPasswordResetRequest": {
+        "type": "object",
+        "properties": {
+          "token": { "type": "string" },
+          "newPassword": { "type": "string" },
+          "confirmNewPassword": { "type": "string" }
+        },
+        "required": ["token", "newPassword", "confirmNewPassword"]
+      },
+      "PasswordResetOutboxEntry": {
+        "type": "object",
+        "description": "Non-production-only mock outbox entry. Never contains a password, hash or salt.",
+        "properties": {
+          "token": { "type": "string" },
+          "email": { "type": "string" },
+          "issuedAt": { "type": "string" },
+          "expiresAt": { "type": "string" },
+          "consumed": { "type": "boolean" }
+        },
+        "required": ["token", "email", "issuedAt", "expiresAt", "consumed"]
+      },
+      "PasswordResetOutboxListResponse": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/PasswordResetOutboxEntry" }
+          }
+        },
+        "required": ["items"]
+      },
+      "CountryOption": {
+        "type": "object",
+        "properties": {
+          "isoCode": { "type": "string", "example": "UG" },
+          "name": { "type": "string", "example": "Uganda" },
+          "dialCode": { "type": "string", "example": "+256" }
+        },
+        "required": ["isoCode", "name", "dialCode"]
+      },
+      "CountriesResponse": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/CountryOption" }
+          }
+        },
+        "required": ["items"]
       },
       "VehicleSummary": {
         "type": "object",

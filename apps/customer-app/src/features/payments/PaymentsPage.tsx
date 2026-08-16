@@ -99,7 +99,7 @@ export const PaymentsPage: React.FC = () => {
       <form className="cc-cust-payment-submit" aria-labelledby="payment-submit-title" onSubmit={(event) => void handleSubmit(onSubmit)(event)} noValidate>
         <div className="cc-cust-payment-submit__header">
           <div><p className="cc-cust-payments-eyebrow">Secure submission</p><h2 id="payment-submit-title">Submit a TT payment</h2></div>
-          <p className="cc-cust-payments-muted">Only proof metadata is sent to this demo API; file contents never enter browser logs or persistence.</p>
+          <p className="cc-cust-payments-muted">Only proof metadata is sent to the Mock API; file contents never enter browser logs or persistence.</p>
         </div>
         {!online && <p className="cc-cust-payment-submit__offline" role="status">You are offline. TT submission is blocked until the connection is restored.</p>}
         {submitMessage && <p className="cc-cust-payment-submit__success" role="status">{submitMessage}</p>}

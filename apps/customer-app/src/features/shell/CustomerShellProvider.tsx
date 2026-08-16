@@ -28,6 +28,8 @@ export interface CustomerShellContextValue {
   closeMobileMenu: () => void;
   themeId: ThemeId;
   navigationItems: NavigationItem[];
+  /** Signs the customer out. Absent when the shell is rendered without a live session (for example an isolated component test). */
+  onSignOut?: () => void;
 }
 
 const DEFAULT_NAV_ITEMS: NavigationItem[] = [
@@ -50,28 +52,16 @@ export interface CustomerShellProviderProps {
   initialRoute?: string;
   themeId?: string;
   navItems?: NavigationItem[];
+  onSignOut?: () => void;
 }
-
-/**
- * Stand-in used only when the shell is rendered outside a verified session (for
- * example an isolated component test). It is a deliberately generic label with
- * a reserved-for-testing address (RFC 2606) and no company, so nothing here can
- * be mistaken for a real person or organisation. The running application passes
- * the identity from the actual session instead — see `src/app/App.tsx`.
- */
-export const PLACEHOLDER_CUSTOMER_USER: CustomerUser = {
-  id: 'demo-customer',
-  name: 'Demo Customer',
-  email: 'demo.customer@example.invalid',
-  role: 'CUSTOMER',
-};
 
 export const CustomerShellProvider: React.FC<CustomerShellProviderProps> = ({
   children,
-  initialUser = PLACEHOLDER_CUSTOMER_USER,
+  initialUser = null,
   initialRoute,
   themeId,
   navItems = DEFAULT_NAV_ITEMS,
+  onSignOut,
 }) => {
   const getInitialPath = () => {
     if (initialRoute) return initialRoute;
@@ -117,6 +107,7 @@ export const CustomerShellProvider: React.FC<CustomerShellProviderProps> = ({
         closeMobileMenu,
         themeId: resolvedTheme,
         navigationItems: navItems,
+        onSignOut,
       }}
     >
       {children}

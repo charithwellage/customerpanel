@@ -122,6 +122,12 @@
   border-color: var(--color-focus);
 }
 
+.cc-acc-login-card__field-error,
+.cc-acc-recovery-card__field-error {
+  font-size: var(--font-size-xs);
+  color: var(--color-error);
+}
+
 .cc-acc-login-card__forgot-btn {
   padding: 0;
   background: none;

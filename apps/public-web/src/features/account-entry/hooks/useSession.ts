@@ -12,7 +12,7 @@ import {
 } from '../session-storage';
 
 /** Same-tab session-change signal — the browser `storage` event only fires in *other* tabs (RULE-08: a same-tab sign-in/out must update immediately, never appear stale). */
-const SESSION_EVENT = 'carchief:demo-session-changed';
+const SESSION_EVENT = 'carchief:session-changed';
 
 function resolveBaseUrl(): string {
   // In the browser this resolves relative to the current origin, so the
@@ -33,9 +33,6 @@ export interface UseSessionReturn {
   claims: JwtClaims | null;
   /** The bearer token backing an `active` session, for a caller (e.g. the reservation feature) that needs to authorize its own `HttpClient`. Always `null` outside `active`. */
   token: string | null;
-  isSigningIn: boolean;
-  signInError: string | null;
-  signInDemo: () => Promise<void>;
   signOut: () => void;
 }
 
@@ -46,23 +43,19 @@ function deriveStatus(stored: StoredSession | null): { status: SessionStatus; cl
 }
 
 /**
- * Orchestrates the stand-in demo customer session (DEC-PUB-AUTH-BOUNDARY,
- * PUB-22, D01-P06-T003): reading/writing the browser-persisted session,
- * minting one via `SessionService.startDemoSession`, and deriving an honest
- * `anonymous` / `active` / `expired` status from the persisted claims'
- * `exp` — the mock does not itself enforce expiry, so this hook is the
- * session's actual lifetime boundary. Never calls Firebase/Firestore/
- * Supabase and never embeds a forced identity; every identity comes from
- * the mock's own `POST /api/v1/auth/demo-session` response.
+ * Reads/derives the current public-web session (DEC-PUB-AUTH-BOUNDARY,
+ * PUB-22, CUST-30): reads the browser-persisted session and derives an
+ * honest `anonymous` / `active` / `expired` status from the persisted
+ * claims' `exp` — the mock does not itself enforce expiry, so this hook is
+ * the session's actual lifetime boundary. Never calls
+ * Firebase/Firestore/Supabase and never embeds a forced identity. There is
+ * no sign-in capability here: the public website never mints a token; a
+ * session only ever arrives already-issued by the real Mock API sign-in
+ * flow reached through the Customer application (`DEC-CUST-IDENTITY-RECOVERY`,
+ * `resolveCustomerAppUrl`).
  */
-export function useSession(options: UseSessionOptions = {}): UseSessionReturn {
-  const service = useMemo(
-    () => options.sessionService ?? new SessionService(new HttpClient({ baseUrl: resolveBaseUrl() })),
-    [options.sessionService]
-  );
+export function useSession(_options: UseSessionOptions = {}): UseSessionReturn {
   const [stored, setStored] = useState<StoredSession | null>(null);
-  const [isSigningIn, setIsSigningIn] = useState(false);
-  const [signInError, setSignInError] = useState<string | null>(null);
 
   const refresh = useCallback(() => {
     if (typeof window === 'undefined') return;
@@ -81,28 +74,6 @@ export function useSession(options: UseSessionOptions = {}): UseSessionReturn {
     };
   }, [refresh]);
 
-  const signInDemo = useCallback(async () => {
-    setIsSigningIn(true);
-    setSignInError(null);
-    try {
-      const session = await service.startDemoSession();
-      if (typeof window !== 'undefined') {
-        writeStoredSession((key, value) => window.localStorage.setItem(key, value), {
-          token: session.token,
-          claims: session.claims,
-        });
-        // Dispatching synchronously runs every mounted `useSession` instance's
-        // own listener (including this one), so no separate `refresh()` call
-        // is needed here (RULE-08: every mounted instance updates together).
-        window.dispatchEvent(new Event(SESSION_EVENT));
-      }
-    } catch {
-      setSignInError('We could not start a demo session. Please check your connection and try again.');
-    } finally {
-      setIsSigningIn(false);
-    }
-  }, [service]);
-
   const signOut = useCallback(() => {
     if (typeof window === 'undefined') return;
     clearStoredSession((key) => window.localStorage.removeItem(key));
@@ -111,5 +82,10 @@ export function useSession(options: UseSessionOptions = {}): UseSessionReturn {
 
   const { status, claims, token } = deriveStatus(stored);
 
-  return { status, claims, token, isSigningIn, signInError, signInDemo, signOut };
+  return { status, claims, token, signOut };
 }
+
+// Re-exported so a future same-origin session bridge (none exists yet — no
+// code path in this app writes a session) can reuse the exact persistence
+// shape/event this hook reads, without duplicating it.
+export { writeStoredSession, SESSION_EVENT };

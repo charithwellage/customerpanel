@@ -16,7 +16,7 @@ export const RESERVATION_LINK_STORAGE_KEY = 'carchief.reservationLinks.v1';
 
 export interface StoredReservationLink {
   reservationId: string;
-  /** The customer identity that created this link, so switching demo identities never shows a stranger's reservation as "yours". */
+  /** The customer identity that created this link, so switching accounts never shows a stranger's reservation as "yours". */
   customerId: string;
 }
 
