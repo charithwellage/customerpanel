@@ -104,6 +104,34 @@ describe('Customer self-registration (POST /api/v1/auth/register)', () => {
     expect(thirdDifferentCase.status).toBe(409);
   });
 
+  it('provisions a minimal CustomerProfile at registration so GET /api/v1/customer/profile succeeds immediately (D02-P12-T001 reopen)', async () => {
+    const email = 'fresh.profile.customer@example.com';
+    const registration = await register(validPayload({ email }));
+    expect(registration.status).toBe(201);
+
+    const login = await fetch(`${baseUrl}/api/v1/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password: VALID_PASSWORD }),
+    });
+    expect(login.status).toBe(200);
+    const { token } = (await login.json()) as { token: string };
+
+    const profile = await fetch(`${baseUrl}/api/v1/customer/profile`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    expect(profile.status).toBe(200);
+    const body = await profile.json();
+    expect(body).toMatchObject({
+      email,
+      name: email.split('@')[0],
+      companyName: '',
+      phone: '',
+      deliveryAddress: '',
+      version: 1,
+    });
+  });
+
   it('normalizes email case so sign-in matches regardless of the case used at registration', async () => {
     await register(validPayload({ email: 'Case.Sensitive@Example.com' }));
     const login = await fetch(`${baseUrl}/api/v1/auth/login`, {

@@ -4387,6 +4387,14 @@ class MemoryStore implements DemoStore {
   async registerCustomerAccount(request: RegisterCustomerRequest, nowISO: string = new Date().toISOString()): Promise<CustomerAccountProjection> {
     const record = performRegisterCustomerAccount(this.customerAccounts, request, nowISO);
     this.customerAccounts.push(record);
+    this.customerProfiles.push({
+      customerId: record.customerId,
+      companyName: '',
+      phone: '',
+      deliveryAddress: '',
+      version: 1,
+      updatedAt: nowISO,
+    });
     return toCustomerAccountProjection(record);
   }
 
@@ -5547,6 +5555,14 @@ class PostgresStore implements DemoStore {
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
       [id, customerId, validated.nameWithInitials, validated.countryCode, validated.dialCode, validated.mobileNumber, validated.email, hash, salt, 'active', 'unverified', nowISO, nowISO, nowISO]
     );
+    this.customerProfiles.push({
+      customerId,
+      companyName: '',
+      phone: '',
+      deliveryAddress: '',
+      version: 1,
+      updatedAt: nowISO,
+    });
     return toCustomerAccountProjection({
       id,
       customerId,
