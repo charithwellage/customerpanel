@@ -90,6 +90,16 @@ export const CUSTOMER_FEATURE_REGISTRY: Record<string, FeatureOwnershipRecord> =
     fixtureNamespace: 'customer_profile',
     e2eSpecPath: 'tests/e2e/customer/profile.spec.ts',
   },
+  auth: {
+    id: 'auth',
+    phase: 'Phase 2.12',
+    title: 'Registration, Credential Sign-In & Password Recovery',
+    routePath: '/',
+    openapiPrefix: '/api/v1/auth',
+    mockApiPrefix: '/api/v1/auth',
+    fixtureNamespace: 'customer_auth',
+    e2eSpecPath: 'tests/e2e/customer/registration-login.spec.ts',
+  },
 };
 
 export interface RegistryValidationResult {

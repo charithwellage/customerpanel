@@ -22,9 +22,16 @@ function uniqueEmail(prefix: string): string {
  * never by a stored token (DEC-CUST-IDENTITY-RECOVERY).
  */
 test.describe('Header Login/Register actions', () => {
-  test.beforeEach(async ({ request, baseURL }) => {
-    await request.post(`${baseURL}/api/v1/__reset`);
-  });
+  // No shared `__reset` here (D02-P12-T007): `__reset` clears every
+  // registered account process-wide on the one shared Profile A Mock API
+  // instance, and this file's own registration tests below use uniquely
+  // emailed accounts specifically so they do not depend on it — calling it
+  // per test instead created cross-worker fixture contention with other
+  // concurrently running viewport projects/spec files (a duplicate-email
+  // 409 test observed a 201 because another project's reset ran between its
+  // two submissions), the same class of issue documented in
+  // tasks/execution_logs/D02-P12-T004.md and D02-P12-T006.md. These header
+  // assertions do not depend on Mock API state at all.
 
   test('the header shows Login and Register, with no remaining Customer Portal/demo entry point', async ({ page }) => {
     await page.goto('/');
@@ -51,9 +58,9 @@ test.describe('Header Login/Register actions', () => {
 });
 
 test.describe('Self-service registration (/register)', () => {
-  test.beforeEach(async ({ request, baseURL }) => {
-    await request.post(`${baseURL}/api/v1/__reset`);
-  });
+  // No shared `__reset` — see the note above. Every test here registers its
+  // own uniquely emailed account per `uniqueEmail()`, so no cross-test or
+  // cross-worker reset is required for independence.
 
   test('a visitor completes registration and is offered a forward link to the Customer sign-in with their email pre-filled', async ({ page }) => {
     await page.goto('/register');

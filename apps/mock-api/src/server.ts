@@ -797,8 +797,23 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
       return;
     }
 
-    await store.reset();
-    res.json({ success: true, message: 'Data reset successfully' });
+    try {
+      await store.reset();
+      res.json({ success: true, message: 'Data reset successfully' });
+    } catch (error) {
+      // Concurrent `__reset` calls against PostgresStore can race (two
+      // overlapping DELETE+INSERT transactions producing a duplicate-key
+      // violation); without this catch the rejection was unhandled and
+      // crashed the whole Node process (Node >=15 terminates on an
+      // unhandled promise rejection), taking down every other in-flight
+      // request. Surface it as a normal 500 instead — the caller (or the
+      // next `__reset`) can retry.
+      res.status(500).json({
+        statusCode: 500,
+        message: error instanceof Error ? error.message : 'Reset failed',
+        correlationId: `corr-500-${Date.now()}`,
+      });
+    }
   });
 
   // 6. OpenAPI JSON spec

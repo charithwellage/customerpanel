@@ -2,9 +2,18 @@ import { test, expect, type Page } from '@playwright/test';
 import { issueSessionToken } from '@carchief/domain';
 import { CUSTOMER_APP_BASE_URL } from './customerAppBase.js';
 
+const FIXTURE_EMAIL = 'demo.customer@carchief.com';
+const FIXTURE_PASSWORD = 'CarChief#Fixture2026';
+
+/** Signs in with the seeded fixture credential (D02-P12-T001), the removed
+ * demo-session endpoint's replacement (D02-P12-T007 reopen of D02-P12-T005's
+ * customer-app e2e migration — this file's helper still targeted the deleted
+ * `Request Demo Session` button). */
 async function signIn(page: Page): Promise<void> {
   await page.goto(CUSTOMER_APP_BASE_URL);
-  await page.getByRole('button', { name: /Request Demo Session/ }).click();
+  await page.getByTestId('cust-login-email').fill(FIXTURE_EMAIL);
+  await page.getByTestId('cust-login-password').fill(FIXTURE_PASSWORD);
+  await page.getByTestId('cust-login-submit').click();
   await expect(page.getByRole('heading', { name: 'Customer Portal' })).toBeVisible();
 }
 
