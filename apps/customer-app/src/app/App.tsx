@@ -28,10 +28,10 @@ export interface AppProps {
 /**
  * Maps the verified session onto the shell's display user.
  *
- * Only fields the demo JWT actually carries are used. `JwtClaims` has no name
- * or company field, so `session.user.name` is whatever
- * `createDemoCustomerSession` derived from the real address and `company` stays
- * undefined rather than being invented.
+ * Only fields the session token actually carries are used. `JwtClaims` has no
+ * name or company field, so `session.user.name` is whatever the sign-in
+ * response derived from the real address and `company` stays undefined
+ * rather than being invented.
  */
 function toShellUser(session: CustomerSession): CustomerUser {
   return {
