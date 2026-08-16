@@ -150,13 +150,21 @@ const AppContent: React.FC<{ session: CustomerSession; apiBaseUrl: string }> = (
 export const App: React.FC<AppProps> = ({ apiBaseUrl = '' }) => (
   <OfflineGuard>
     <AccountGuard apiBaseUrl={apiBaseUrl}>
-      {(session) => (
+      {(session, actions) => (
         <QueryClientProvider client={queryClient}>
           <HttpClientProvider apiBaseUrl={apiBaseUrl}>
             <CustomerShell
               initialUser={toShellUser(session)}
               pageTitle="Customer Portal"
               pageSubtitle="Account access and application shell"
+              onSignOut={() => {
+                // The guard clears the session and Service Worker caches;
+                // this app also discards any cached query data so no
+                // authenticated response outlives the session (T005 contract:
+                // "any cached query data is discarded" on sign-out).
+                queryClient.clear();
+                actions.signOut();
+              }}
             >
               <AppContent session={session} apiBaseUrl={apiBaseUrl} />
             </CustomerShell>

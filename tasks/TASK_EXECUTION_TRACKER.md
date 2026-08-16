@@ -145,15 +145,15 @@
 | [D02-P12-T002](delivery_02/phase_12/D02-P12-T002.md) | Add shared country, credential validation and authentication client capabilities | COMPLETE | self_ai | not_applicable | Claude Sonnet 5 (subagent) | `feat_delivery02_phase_12` | D02-P12-CODE_REVIEW (NOT_STARTED) | D02-P12-T001 | D02-P12-SEQUENTIAL | 2026-08-15T17:53:51.645Z |
 | [D02-P12-T003](delivery_02/phase_12/D02-P12-T003.md) | Replace the public-web Customer Portal action with Register and Login and build the registration page | COMPLETE | self_ai | playwright_mcp | Claude Sonnet 5 (subagent) | `feat_delivery02_phase_12` | D02-P12-CODE_REVIEW (NOT_STARTED) | D02-P12-T002 | D02-P12-SEQUENTIAL | 2026-08-16T01:26:26.746Z |
 | [D02-P12-T004](delivery_02/phase_12/D02-P12-T004.md) | Remove demo-mode identity from the public website | COMPLETE | self_ai | playwright_mcp | Claude Sonnet 5 (subagent) | `feat_delivery02_phase_12` | D02-P12-CODE_REVIEW (NOT_STARTED) | D02-P12-T003 | D02-P12-SEQUENTIAL | 2026-08-16T01:50:24.846Z |
-| [D02-P12-T005](delivery_02/phase_12/D02-P12-T005.md) | Deliver real credential sign-in and password recovery in the Customer application | READY | self_ai | playwright_mcp | — | `feat_delivery02_phase_12` | D02-P12-CODE_REVIEW (NOT_STARTED) | D02-P12-T004 | D02-P12-SEQUENTIAL | — |
-| [D02-P12-T006](delivery_02/phase_12/D02-P12-T006.md) | Rebuild the Customer profile page with working password management and remove residual demo copy | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery02_phase_12` | D02-P12-CODE_REVIEW (NOT_STARTED) | D02-P12-T005 | D02-P12-SEQUENTIAL | — |
+| [D02-P12-T005](delivery_02/phase_12/D02-P12-T005.md) | Deliver real credential sign-in and password recovery in the Customer application | COMPLETE | self_ai | playwright_mcp | Claude Sonnet 5 (subagent) | `feat_delivery02_phase_12` | D02-P12-CODE_REVIEW (NOT_STARTED) | D02-P12-T004 | D02-P12-SEQUENTIAL | 2026-08-16T02:26:57.203Z |
+| [D02-P12-T006](delivery_02/phase_12/D02-P12-T006.md) | Rebuild the Customer profile page with working password management and remove residual demo copy | READY | self_ai | playwright_mcp | — | `feat_delivery02_phase_12` | D02-P12-CODE_REVIEW (NOT_STARTED) | D02-P12-T005 | D02-P12-SEQUENTIAL | — |
 | [D02-P12-T007](delivery_02/phase_12/D02-P12-T007.md) | Verify the end-to-end account journey, container gate and Phase 2.12 acceptance | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery02_phase_12` | D02-P12-CODE_REVIEW (NOT_STARTED) | D02-P12-T006 | D02-P12-SEQUENTIAL | — |
 | [D02-P12-CODE_REVIEW](delivery_02/phase_12/D02-P12-CODE_REVIEW.md) | Phase 2.12 PR code review and tech-lead approval | NOT_STARTED | phase_manual | not_applicable | — | `feat_delivery02_phase_12` | D02-P12-CODE_REVIEW (NOT_STARTED) | D02-P12-T007 | D02-P12-REVIEW | — |
 
 
 ## Current execution frontiers
 
-- D02-ACCOUNT: D02-P12-T005 — Deliver real credential sign-in and password recovery in the Customer application (NOT_STARTED)
+- D02-ACCOUNT: D02-P12-T006 — Rebuild the Customer profile page with working password management and remove residual demo copy (NOT_STARTED)
 - Sequential within each lane; dependencies coordinate work across lanes.
 - Optional Phase 2.11 is excluded until explicitly started with `--opt-in theme`.
 - Downstream work waits for COMPLETE or SUPERSEDED; IN_REVIEW is not complete.

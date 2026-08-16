@@ -1,5 +1,11 @@
 import React, { useId, useState } from 'react';
-import { CustomerSession, requestDemoCustomerSession } from './accountState.js';
+import { NormalizedApiError } from '@carchief/api-client';
+import {
+  CustomerSession,
+  loginCustomer,
+  toAccountRequestFieldError,
+} from './accountState.js';
+import { isMutationBlockedOffline } from '../pwa/pwaConfig.js';
 
 export interface LoginFormProps {
   onLoginSuccess: (session: CustomerSession) => void;
@@ -7,33 +13,70 @@ export interface LoginFormProps {
   apiBaseUrl?: string;
 }
 
+const GENERIC_INVALID_CREDENTIAL_MESSAGE = 'Invalid email or password. Please try again.';
+
+/** Reads the `email` query param T003's registration confirmation forwards. */
+function readPrefilledEmail(): string {
+  if (typeof window === 'undefined') return '';
+  try {
+    return new URLSearchParams(window.location.search).get('email') || '';
+  } catch {
+    return '';
+  }
+}
+
 export const LoginForm: React.FC<LoginFormProps> = ({
   onLoginSuccess,
   onRequestRecovery,
   apiBaseUrl = '',
 }) => {
-  // Both fields start genuinely empty. Pre-filling them with a specimen address
-  // and dot-filled password made the form look like a real account was already
-  // signed in (prohibited "forced identity", TASK_EXECUTION_PROTOCOL.md §7);
-  // the example address now lives in a `placeholder`, which is not a value.
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState<string>(readPrefilledEmail);
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [summaryError, setSummaryError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
   const fieldId = useId();
   const emailId = `${fieldId}-email`;
   const passwordId = `${fieldId}-password`;
+  const summaryErrorId = `${fieldId}-summary-error`;
+  const emailErrorId = `${fieldId}-email-error`;
+  const passwordErrorId = `${fieldId}-password-error`;
 
-  const handleDemoLogin = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
-    setError(null);
+    setSummaryError(null);
+    setFieldErrors({});
 
+    if (!email.trim() || !password) {
+      setFieldErrors({
+        ...(email.trim() ? {} : { email: 'Enter your email address.' }),
+        ...(password ? {} : { password: 'Enter your password.' }),
+      });
+      return;
+    }
+
+    if (isMutationBlockedOffline()) {
+      setSummaryError('You are offline. Reconnect to sign in.');
+      return;
+    }
+
+    setIsSubmitting(true);
     try {
-      const session = await requestDemoCustomerSession(apiBaseUrl);
+      const session = await loginCustomer(email.trim(), password, apiBaseUrl);
       onLoginSuccess(session);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unable to sign in');
+      const detail = toAccountRequestFieldError(err);
+      if (err instanceof NormalizedApiError && err.statusCode === 401) {
+        // Byte-identical for unknown email and wrong password — the Mock API
+        // never distinguishes the two, and neither does this form.
+        setSummaryError(GENERIC_INVALID_CREDENTIAL_MESSAGE);
+      } else if (detail.field === 'email' || detail.field === 'password') {
+        setFieldErrors({ [detail.field]: detail.message });
+      } else if (detail.statusCode === 0 || detail.statusCode >= 500) {
+        setSummaryError('Unable to reach the server. Check your connection and try again.');
+      } else {
+        setSummaryError(detail.message || GENERIC_INVALID_CREDENTIAL_MESSAGE);
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -49,32 +92,41 @@ export const LoginForm: React.FC<LoginFormProps> = ({
         </p>
       </div>
 
-      {error && (
-        <div className="cc-acc-login-card__error" role="alert" aria-live="assertive">
-          <strong>Authentication Error</strong>
-          <span>{error}</span>
+      {summaryError && (
+        <div
+          id={summaryErrorId}
+          className="cc-acc-login-card__error"
+          role="alert"
+          aria-live="assertive"
+        >
+          <strong>Sign-in failed</strong>
+          <span>{summaryError}</span>
         </div>
       )}
 
-      <form className="cc-acc-login-card__form" onSubmit={handleDemoLogin}>
+      <form className="cc-acc-login-card__form" onSubmit={handleSubmit} noValidate>
         <div className="cc-acc-login-card__field">
           <label htmlFor={emailId} className="cc-acc-login-card__label">
-            Work Email Address
+            Email Address
           </label>
           <input
             id={emailId}
             data-testid="cust-login-email"
             type="email"
-            // Deliberately not `required`. The demo-session endpoint ignores
-            // these fields entirely, so enforcing them in the browser would be
-            // validation with no server counterpart — the "browser-only
-            // validation" defect listed in TASK_EXECUTION_PROTOCOL.md §7.
+            required
             autoComplete="email"
             placeholder="you@example.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="cc-acc-login-card__input"
+            aria-invalid={fieldErrors.email ? true : undefined}
+            aria-describedby={fieldErrors.email ? emailErrorId : undefined}
           />
+          {fieldErrors.email && (
+            <span id={emailErrorId} className="cc-acc-login-card__field-error" role="alert">
+              {fieldErrors.email}
+            </span>
+          )}
         </div>
 
         <div className="cc-acc-login-card__field">
@@ -88,7 +140,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
                 className="cc-acc-login-card__forgot-btn"
                 onClick={onRequestRecovery}
               >
-                Forgot Password?
+                Forgot password?
               </button>
             )}
           </div>
@@ -96,32 +148,33 @@ export const LoginForm: React.FC<LoginFormProps> = ({
             id={passwordId}
             data-testid="cust-login-password"
             type="password"
+            required
             autoComplete="current-password"
             placeholder="Your password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="cc-acc-login-card__input"
+            aria-invalid={fieldErrors.password ? true : undefined}
+            aria-describedby={fieldErrors.password ? passwordErrorId : undefined}
           />
+          {fieldErrors.password && (
+            <span id={passwordErrorId} className="cc-acc-login-card__field-error" role="alert">
+              {fieldErrors.password}
+            </span>
+          )}
         </div>
 
         <div className="cc-acc-login-card__actions">
           <button
             type="submit"
             disabled={isSubmitting}
+            data-testid="cust-login-submit"
             className="cc-cust-shell-btn cc-cust-shell-btn--primary cc-acc-login-card__submit"
           >
-            {isSubmitting ? 'Requesting demo session…' : 'Request Demo Session 🚀'}
+            {isSubmitting ? 'Signing in…' : 'Sign In'}
           </button>
         </div>
       </form>
-
-      <div className="cc-acc-login-card__footer">
-        <span className="cc-acc-login-card__footer-note">
-          🛡️ This build issues a non-production stand-in session from the CarChief Mock API. The address and password
-          above are not verified and are not transmitted; production credential sign-in belongs to AutoPulse identity
-          services.
-        </span>
-      </div>
     </div>
   );
 };

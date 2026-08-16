@@ -2,7 +2,16 @@ import React, { useId } from 'react';
 import { useCustomerShell } from './CustomerShellProvider.js';
 
 export const CustomerNav: React.FC = () => {
-  const { user, activeRoute, setActiveRoute, isMobileMenuOpen, toggleMobileMenu, closeMobileMenu, navigationItems } = useCustomerShell();
+  const {
+    user,
+    activeRoute,
+    setActiveRoute,
+    isMobileMenuOpen,
+    toggleMobileMenu,
+    closeMobileMenu,
+    navigationItems,
+    onSignOut,
+  } = useCustomerShell();
   // Generated rather than fixed so a second nav instance cannot duplicate the
   // id that `aria-controls` points at (CODE_REVIEW_RULES.md #4).
   const mobileMenuId = useId();
@@ -60,9 +69,25 @@ export const CustomerNav: React.FC = () => {
                 <span className="cc-cust-shell-user__name">{user.name}</span>
                 {user.company && <span className="cc-cust-shell-user__company">{user.company}</span>}
               </div>
+              {onSignOut && (
+                <button type="button" className="cc-cust-shell-signout-btn" onClick={onSignOut}>
+                  Sign out
+                </button>
+              )}
             </div>
           ) : (
-            <a href="/login" className="cc-cust-shell-login-btn">Sign In</a>
+            /*
+              No router and no `/login` route exists in this app — the
+              pre-authentication `LoginForm` is reached only through
+              `AccountGuard`, never through navigation. This state is
+              unreachable in the running application (the guard blocks the
+              shell from rendering without a session) and only appears in
+              isolated component tests, so it is a static, non-interactive
+              indicator rather than a dead link (CUST-30).
+            */
+            <span className="cc-cust-shell-login-btn" data-testid="cust-nav-signed-out">
+              Not signed in
+            </span>
           )}
 
           <button

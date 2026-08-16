@@ -1,18 +1,6 @@
-import type { JwtClaims, CustomerTier } from '@carchief/domain';
-
-/**
- * Local mirror of the response shape the mock's now-removed no-input demo
- * sign-in endpoint used to return (`@carchief/domain`'s `DemoSessionResponse`
- * was deleted in D02-P12-T002, CUST-30). Kept here only so this file's
- * existing demo-session helpers keep compiling until D02-P12-T005 replaces
- * them with the real `AuthService.login` credential flow — not a shared
- * package type, and not a claim that a demo identity path still exists.
- */
-interface DemoSessionResponse {
-  token: string;
-  claims: JwtClaims;
-  nonProduction: true;
-}
+import type { CustomerTier, JwtClaims } from '@carchief/domain';
+import { AuthService, HttpClient, NormalizedApiError } from '@carchief/api-client';
+import type { LoginResponse, SuccessResponse, PasswordResetAcceptedResponse } from '@carchief/api-client';
 
 export type AccountStatus = 'ACTIVE' | 'INACTIVE' | 'LOCKED' | 'UNAUTHORIZED' | 'EXPIRED';
 
@@ -76,27 +64,28 @@ export function isSessionExpired(session: CustomerSession): boolean {
 }
 
 /** Fallback label when the token carries no address to derive one from. */
-export const DEMO_CUSTOMER_DISPLAY_NAME = 'Demo Customer';
+export const FALLBACK_CUSTOMER_DISPLAY_NAME = 'Customer';
 
 /**
  * Derives a display label from the address the token actually carries.
  *
- * `JwtClaims` has no `name` field, so there is nothing to read: the local part
- * of the verified email is the only honest label available. Inventing a
- * plausible personal name here would reproduce the "forced identities" defect
- * that `tasks/TASK_EXECUTION_PROTOCOL.md` §7 prohibits.
+ * `SessionClaims` has no `name` field, so there is nothing else to read: the
+ * local part of the verified email is the only honest label available.
+ * Inventing a plausible personal name here would reproduce the "forced
+ * identities" defect that `tasks/TASK_EXECUTION_PROTOCOL.md` §7 prohibits.
  */
 export function deriveCustomerDisplayName(email: string | undefined): string {
   const localPart = email?.split('@')[0]?.trim();
-  return localPart ? localPart : DEMO_CUSTOMER_DISPLAY_NAME;
+  return localPart ? localPart : FALLBACK_CUSTOMER_DISPLAY_NAME;
 }
 
 /**
- * Builds the session from the claims the Mock API returned. Every field comes
- * from the response; `company` is left undefined because the token carries no
- * organisation and one must not be invented.
+ * Builds the session from the claims the Mock API returned for a real
+ * credential sign-in. Every field comes from the response; `company` and
+ * `tier` are left undefined because `SessionClaims` carries neither and one
+ * must not be invented.
  */
-export function createDemoCustomerSession(response: DemoSessionResponse): CustomerSession {
+export function createCustomerSessionFromLogin(response: LoginResponse): CustomerSession {
   return {
     token: response.token,
     user: {
@@ -105,25 +94,80 @@ export function createDemoCustomerSession(response: DemoSessionResponse): Custom
       email: response.claims.email,
       role: response.claims.role,
       permissions: response.claims.permissions || [],
-      tier: response.claims.tier,
     },
     expiresAt: response.claims.exp,
     status: 'ACTIVE',
   };
 }
 
-export async function requestDemoCustomerSession(baseUrl = ''): Promise<CustomerSession> {
-  const url = `${baseUrl}/api/v1/auth/demo-session`;
-  const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+/**
+ * `AuthService` posts full `/api/v1/auth/...` paths, so it needs an
+ * origin-only `HttpClient` base URL — never the `${origin}/api/v1` base the
+ * authenticated `/customer/**` services use (see `AuthService`'s own doc
+ * comment and this phase's CONTEXT.md §5).
+ */
+function createAuthService(baseUrl = ''): AuthService {
+  const originBaseUrl = baseUrl || (typeof window !== 'undefined' ? window.location.origin : '');
+  const httpClient = new HttpClient({ baseUrl: originBaseUrl, timeoutMs: 10000 });
+  return new AuthService(httpClient);
+}
 
-  if (!res.ok) {
-    throw new Error(`Failed to mint demo customer session: HTTP ${res.status}`);
-  }
-
-  const data = (await res.json()) as DemoSessionResponse;
-  const session = createDemoCustomerSession(data);
+/**
+ * Signs in with real credentials through `AuthService.login`. The Mock API is
+ * the sole authority: on success the returned session is persisted to
+ * `sessionStorage`; on failure the caller receives the `NormalizedApiError`
+ * to render (a single generic message for any invalid-credential outcome).
+ */
+export async function loginCustomer(email: string, password: string, baseUrl = ''): Promise<CustomerSession> {
+  const authService = createAuthService(baseUrl);
+  const response = await authService.login({ email, password });
+  const session = createCustomerSessionFromLogin(response);
   saveCustomerSession(session);
   return session;
+}
+
+/**
+ * Requests a password reset. Per D02-ASM-007 the Mock API always returns the
+ * same neutral 202 response whether or not the email exists — this function
+ * never lets the caller infer account existence from the outcome.
+ */
+export async function requestCustomerPasswordReset(
+  email: string,
+  baseUrl = ''
+): Promise<PasswordResetAcceptedResponse> {
+  const authService = createAuthService(baseUrl);
+  return authService.requestPasswordReset({ email });
+}
+
+/** Confirms a password reset with the single-use token and a new password. */
+export async function confirmCustomerPasswordReset(
+  token: string,
+  newPassword: string,
+  confirmNewPassword: string,
+  baseUrl = ''
+): Promise<SuccessResponse> {
+  const authService = createAuthService(baseUrl);
+  return authService.confirmPasswordReset({ token, newPassword, confirmNewPassword });
+}
+
+/** Field-level detail the Mock API attaches to a 400 validation failure. */
+export interface AccountRequestFieldError {
+  statusCode: number;
+  message: string;
+  field?: string;
+}
+
+/** Narrows a caught error into the field/message shape the forms render. */
+export function toAccountRequestFieldError(error: unknown): AccountRequestFieldError {
+  if (error instanceof NormalizedApiError) {
+    const raw = error.rawError;
+    const field =
+      raw && typeof raw === 'object' && 'field' in raw && typeof (raw as { field?: unknown }).field === 'string'
+        ? (raw as { field: string }).field
+        : undefined;
+    return { statusCode: error.statusCode, message: error.message, field };
+  }
+  return { statusCode: 0, message: error instanceof Error ? error.message : 'Unable to reach the server' };
 }
 
 export async function fetchCustomerAccountProfile(token: string, baseUrl = ''): Promise<JwtClaims> {
