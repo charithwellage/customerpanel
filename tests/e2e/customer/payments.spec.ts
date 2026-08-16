@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
-import { createDemoJwtToken } from '@carchief/domain';
+import { issueSessionToken } from '@carchief/domain';
 import { CUSTOMER_APP_BASE_URL } from './customerAppBase.js';
 
 async function signIn(page: Page): Promise<void> {
@@ -60,7 +60,7 @@ test.describe('Customer TT submission (D02-P06-T003)', () => {
 test.describe('Customer payment workflow (D02-P06-T004)', () => {
   test('shows the server hold reason and allows an online owner resubmission', async ({ page }, testInfo) => {
     const suffix = `${testInfo.project.name}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-    const customerToken = createDemoJwtToken('CustomerBuyer');
+    const customerToken = issueSessionToken('CustomerBuyer');
     const customerPayment = await page.request.post('/api/v1/customer/payments', {
       headers: { Authorization: `Bearer ${customerToken}` },
       data: {
@@ -71,7 +71,7 @@ test.describe('Customer payment workflow (D02-P06-T004)', () => {
     });
     expect(customerPayment.status()).toBe(201);
     const payment = await customerPayment.json() as { id: string };
-    const financeToken = createDemoJwtToken('FinanceManager');
+    const financeToken = issueSessionToken('FinanceManager');
     const hold = await page.request.post(`/api/v1/finance/customer-payments/${payment.id}/notifications`, {
       headers: { Authorization: `Bearer ${financeToken}` },
       data: { event: 'PaymentHeld', reason: 'Playwright workflow hold' },

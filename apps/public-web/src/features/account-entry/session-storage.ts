@@ -42,7 +42,7 @@ export function clearStoredSession(removeItem: (key: string) => void): void {
  * True once `claims.exp` (Unix seconds) has passed `nowSeconds`. Deliberately
  * reimplemented here rather than importing `@carchief/domain`'s
  * `isJwtExpired` at runtime: `@carchief/domain/auth.js` imports `node:buffer`
- * (for `createDemoJwtToken`/`parseDemoJwtToken`) at module scope, which
+ * (for `issueSessionToken`/`parseSessionToken`) at module scope, which
  * Next.js's client webpack bundle cannot resolve — this module stays a pure,
  * browser-safe leaf so a client component can import it directly. `JwtClaims`
  * is imported with `import type`, which is erased at compile time and never

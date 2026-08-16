@@ -35,12 +35,12 @@ async function openMobileMenuIfNeeded(page: Page): Promise<void> {
 }
 
 /**
- * Crafts a token in the mock's own unsigned demo-JWT format
- * (`packages/domain/src/auth.ts`'s `createDemoJwtToken`) without importing
+ * Crafts a token in the mock's own unsigned session-token format
+ * (`packages/domain/src/auth.ts`'s `issueSessionToken`) without importing
  * server-side code into this Node-side test script. This is the only way an
  * automated test can exercise a `Salesperson`/other-customer identity: the
- * public `POST /api/v1/auth/demo-session` endpoint deliberately mints a
- * `CustomerBuyer` identity only and never a caller-supplied role
+ * customer sign-in path deliberately mints a `CustomerBuyer` identity only
+ * for its own registered account and never a caller-supplied role
  * (`D01-P06-T003`, so the public UI itself can never self-elevate). No
  * product code takes this path — it only exercises the already-implemented,
  * server-authoritative `hasPermission` gate from outside.

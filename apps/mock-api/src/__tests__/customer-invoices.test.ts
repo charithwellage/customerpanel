@@ -3,7 +3,7 @@ import type { Server } from 'node:http';
 import { createStore } from '../store.js';
 import { createMockApiApp } from '../server.js';
 import {
-  createDemoJwtToken,
+  issueSessionToken,
   type CustomerInvoiceListResponse,
   type CustomerInvoiceDetail,
   type CustomerInvoiceDocument,
@@ -47,7 +47,7 @@ describe('Customer Invoices & PI Contract (D02-P05-T001)', () => {
     });
 
     it('returns 403 Forbidden when role does not have read:customer permission', async () => {
-      const publicToken = createDemoJwtToken('PublicVisitor');
+      const publicToken = issueSessionToken('PublicVisitor');
       const res = await fetch(`${baseUrl}/api/v1/customer/invoices`, {
         headers: { Authorization: `Bearer ${publicToken}` },
       });
@@ -60,7 +60,7 @@ describe('Customer Invoices & PI Contract (D02-P05-T001)', () => {
 
   describe('2. Customer Invoice Listing (CUST-02, CUST-14, CUST-15, RULE-04, RULE-08)', () => {
     it('returns customer invoices and proforma invoices with aggregate counts and totals for authenticated customer', async () => {
-      const token = createDemoJwtToken('CustomerBuyer');
+      const token = issueSessionToken('CustomerBuyer');
       const res = await fetch(`${baseUrl}/api/v1/customer/invoices`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -98,7 +98,7 @@ describe('Customer Invoices & PI Contract (D02-P05-T001)', () => {
     });
 
     it('filters customer invoices by type (Proforma vs Commercial)', async () => {
-      const token = createDemoJwtToken('CustomerBuyer');
+      const token = issueSessionToken('CustomerBuyer');
       const piRes = await fetch(`${baseUrl}/api/v1/customer/invoices?type=Proforma`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -120,7 +120,7 @@ describe('Customer Invoices & PI Contract (D02-P05-T001)', () => {
     });
 
     it('filters customer invoices by search query keyword', async () => {
-      const token = createDemoJwtToken('CustomerBuyer');
+      const token = issueSessionToken('CustomerBuyer');
       const res = await fetch(`${baseUrl}/api/v1/customer/invoices?query=HiAce`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -132,7 +132,7 @@ describe('Customer Invoices & PI Contract (D02-P05-T001)', () => {
     });
 
     it('filters customer invoices by status', async () => {
-      const token = createDemoJwtToken('CustomerBuyer');
+      const token = issueSessionToken('CustomerBuyer');
       const res = await fetch(`${baseUrl}/api/v1/customer/invoices?status=PartiallyPaid`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -147,7 +147,7 @@ describe('Customer Invoices & PI Contract (D02-P05-T001)', () => {
 
   describe('3. Customer Invoice Detail & Calculations (CUST-14, CUST-15, CUST-16, CUST-21, RULE-04, RULE-07)', () => {
     it('returns full commercial invoice detail with authoritative totals and allocations', async () => {
-      const token = createDemoJwtToken('CustomerBuyer');
+      const token = issueSessionToken('CustomerBuyer');
       const res = await fetch(`${baseUrl}/api/v1/customer/invoices/inv-001`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -184,7 +184,7 @@ describe('Customer Invoices & PI Contract (D02-P05-T001)', () => {
     });
 
     it('returns full proforma invoice detail with 72h payment deadline and 50% deposit requirement (RULE-07)', async () => {
-      const token = createDemoJwtToken('CustomerBuyer');
+      const token = issueSessionToken('CustomerBuyer');
       const res = await fetch(`${baseUrl}/api/v1/customer/invoices/pi-001`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -209,7 +209,7 @@ describe('Customer Invoices & PI Contract (D02-P05-T001)', () => {
     });
 
     it('enforces IDOR isolation and returns 404 when customer accesses an invoice owned by another customer (RULE-04)', async () => {
-      const token = createDemoJwtToken('CustomerBuyer');
+      const token = issueSessionToken('CustomerBuyer');
       // inv-004 is owned by cust-exception-001, not cust-123
       const res = await fetch(`${baseUrl}/api/v1/customer/invoices/inv-004`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -220,7 +220,7 @@ describe('Customer Invoices & PI Contract (D02-P05-T001)', () => {
     });
 
     it('returns 404 for a non-existent invoice identifier', async () => {
-      const token = createDemoJwtToken('CustomerBuyer');
+      const token = issueSessionToken('CustomerBuyer');
       const res = await fetch(`${baseUrl}/api/v1/customer/invoices/inv-non-existent-999`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -230,7 +230,7 @@ describe('Customer Invoices & PI Contract (D02-P05-T001)', () => {
     });
 
     it('correctly projects expired PI status when evaluated past the 72h deadline', async () => {
-      const token = createDemoJwtToken('CustomerBuyer');
+      const token = issueSessionToken('CustomerBuyer');
       // Send x-mock-now header set to future time past deadline
       const futureISO = '2026-08-25T10:00:00.000Z';
       const res = await fetch(`${baseUrl}/api/v1/customer/invoices/pi-001`, {
@@ -250,7 +250,7 @@ describe('Customer Invoices & PI Contract (D02-P05-T001)', () => {
 
   describe('4. Printable Document Projections (CUST-16, RULE-04)', () => {
     it('returns authorized printable/downloadable document projection for customer invoice', async () => {
-      const token = createDemoJwtToken('CustomerBuyer');
+      const token = issueSessionToken('CustomerBuyer');
       const res = await fetch(`${baseUrl}/api/v1/customer/invoices/inv-001/document`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -271,7 +271,7 @@ describe('Customer Invoices & PI Contract (D02-P05-T001)', () => {
     });
 
     it('returns 404 for document request of another customer invoice (RULE-04 IDOR)', async () => {
-      const token = createDemoJwtToken('CustomerBuyer');
+      const token = issueSessionToken('CustomerBuyer');
       const res = await fetch(`${baseUrl}/api/v1/customer/invoices/inv-004/document`, {
         headers: { Authorization: `Bearer ${token}` },
       });

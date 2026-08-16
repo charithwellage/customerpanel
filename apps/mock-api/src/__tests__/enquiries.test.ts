@@ -3,7 +3,7 @@ import type { Server } from 'node:http';
 import { createStore } from '../store.js';
 import { createMockApiApp } from '../server.js';
 import type { EnquiryResponse, LeadRecord, LeadListResponse } from '@carchief/domain';
-import { createDemoJwtToken } from '@carchief/domain';
+import { issueSessionToken } from '@carchief/domain';
 
 // PUB-13, PUB-15, D01-P05-T004. The enquiry flow does not depend on
 // DEC-PUB-FREIGHT-MODEL/DEC-PUB-CITY-DELIVERY (D01-ASM-001): a visitor can
@@ -586,7 +586,7 @@ describe('Quotation enquiry submission (PUB-13, PUB-15, D01-ASM-001)', () => {
       it('returns 403 for GET /api/v1/enquiries when authenticated as a role without read:leads', async () => {
         const { server, port } = await startServer(store);
         try {
-          const token = createDemoJwtToken('CustomerBuyer');
+          const token = issueSessionToken('CustomerBuyer');
           const res = await fetch(`http://localhost:${port}/api/v1/enquiries`, {
             headers: { Authorization: `Bearer ${token}` },
           });
@@ -611,7 +611,7 @@ describe('Quotation enquiry submission (PUB-13, PUB-15, D01-ASM-001)', () => {
             }),
           });
 
-          const token = createDemoJwtToken('Salesperson');
+          const token = issueSessionToken('Salesperson');
           const res = await fetch(`http://localhost:${port}/api/v1/enquiries`, {
             headers: { Authorization: `Bearer ${token}` },
           });
@@ -641,7 +641,7 @@ describe('Quotation enquiry submission (PUB-13, PUB-15, D01-ASM-001)', () => {
           });
           const created = (await createRes.json()) as EnquiryResponse;
 
-          const token = createDemoJwtToken('Salesperson');
+          const token = issueSessionToken('Salesperson');
           const res = await fetch(`http://localhost:${port}/api/v1/enquiries/${created.id}`, {
             headers: { Authorization: `Bearer ${token}` },
           });
@@ -658,7 +658,7 @@ describe('Quotation enquiry submission (PUB-13, PUB-15, D01-ASM-001)', () => {
       it('returns 404 for GET /api/v1/enquiries/:id with an unknown id', async () => {
         const { server, port } = await startServer(store);
         try {
-          const token = createDemoJwtToken('Salesperson');
+          const token = issueSessionToken('Salesperson');
           const res = await fetch(`http://localhost:${port}/api/v1/enquiries/not-a-real-id`, {
             headers: { Authorization: `Bearer ${token}` },
           });
@@ -686,7 +686,7 @@ describe('Quotation enquiry submission (PUB-13, PUB-15, D01-ASM-001)', () => {
           const resetRes = await fetch(`http://localhost:${port}/api/v1/__reset`, { method: 'POST' });
           expect(resetRes.status).toBe(200);
 
-          const token = createDemoJwtToken('Salesperson');
+          const token = issueSessionToken('Salesperson');
           const res = await fetch(`http://localhost:${port}/api/v1/enquiries`, {
             headers: { Authorization: `Bearer ${token}` },
           });

@@ -3,7 +3,7 @@ import type { Server } from 'node:http';
 import { createStore } from '../store.js';
 import { createMockApiApp } from '../server.js';
 import type { ReservationResponse } from '@carchief/domain';
-import { createDemoJwtToken, generateVehicleSlug, RESERVATION_HOLD_HOURS, MAX_ACTIVE_RESERVATIONS_PER_CUSTOMER } from '@carchief/domain';
+import { issueSessionToken, generateVehicleSlug, RESERVATION_HOLD_HOURS, MAX_ACTIVE_RESERVATIONS_PER_CUSTOMER } from '@carchief/domain';
 
 // PUB-23, RULE-05, RULE-08, RULE-10, D01-P06-T004. A reservation is a
 // transactional 48-hour hold on one vehicle for one authenticated demo
@@ -18,9 +18,9 @@ const VEHICLE_SLUG_5 = generateVehicleSlug(2021, 'Honda', 'Fit Hybrid', 'veh-5')
 const VEHICLE_SLUG_7 = generateVehicleSlug(2023, 'Lexus', 'RX450h', 'veh-7');
 const VEHICLE_SLUG_SOLD = generateVehicleSlug(2019, 'Mazda', 'CX-5', 'veh-sold');
 
-const CUSTOMER_A_TOKEN = createDemoJwtToken('CustomerBuyer', 'customer-a', 'a@example.com');
-const CUSTOMER_B_TOKEN = createDemoJwtToken('CustomerBuyer', 'customer-b', 'b@example.com');
-const SALESPERSON_TOKEN = createDemoJwtToken('Salesperson', 'staff-1', 'staff@example.com');
+const CUSTOMER_A_TOKEN = issueSessionToken('CustomerBuyer', 'customer-a', 'a@example.com');
+const CUSTOMER_B_TOKEN = issueSessionToken('CustomerBuyer', 'customer-b', 'b@example.com');
+const SALESPERSON_TOKEN = issueSessionToken('Salesperson', 'staff-1', 'staff@example.com');
 
 async function startServer(store: ReturnType<typeof createStore>) {
   const app = createMockApiApp(store);

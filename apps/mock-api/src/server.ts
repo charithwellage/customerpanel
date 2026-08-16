@@ -1,7 +1,7 @@
 import express, { Request, Response, NextFunction, Express } from 'express';
 import { readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { parseDemoJwtToken, createDemoJwtToken, JwtClaims, hasPermission, isJwtExpired } from '@carchief/domain';
+import { parseSessionToken, issueSessionToken as mintDomainSessionToken, JwtClaims, hasPermission, isJwtExpired } from '@carchief/domain';
 import type { FreightEstimateRequest, EnquiryRequest, ReservationRequest } from '@carchief/domain';
 import {
   createStore,
@@ -42,7 +42,7 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
     const authHeader = req.headers.authorization;
     if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.substring(7);
-      const claims = parseDemoJwtToken(token);
+      const claims = parseSessionToken(token);
       if (claims && !isJwtExpired(claims)) {
         req.user = claims;
       }
@@ -275,12 +275,13 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
   // password-reset contract (CUST-26..30, D02-ASM-005/006/007). The Mock API
   // is the only authority for credentials and sessions; no route accepts a
   // client-supplied customer id, and no response ever carries a password,
-  // hash or salt. `issueSessionToken` reuses the existing demo JWT minting
-  // primitive internally — it stays an internal detail, never a claim of a
-  // production identity provider (DEC-CUST-IDENTITY-RECOVERY is unchanged).
-  function issueSessionToken(customerId: string, email: string) {
-    const token = createDemoJwtToken('CustomerBuyer', customerId, email);
-    const claims = parseDemoJwtToken(token);
+  // hash or salt. `mintCustomerSessionToken` reuses `@carchief/domain`'s
+  // `issueSessionToken` primitive internally — it stays an internal detail,
+  // never a claim of a production identity provider
+  // (DEC-CUST-IDENTITY-RECOVERY is unchanged).
+  function mintCustomerSessionToken(customerId: string, email: string) {
+    const token = mintDomainSessionToken('CustomerBuyer', customerId, email);
+    const claims = parseSessionToken(token);
     return { token, claims };
   }
 
@@ -305,7 +306,7 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
   app.post('/api/v1/auth/login', async (req: Request, res: Response) => {
     try {
       const account = await store.authenticateCustomer(req.body ?? {});
-      const { token, claims } = issueSessionToken(account.customerId, account.email);
+      const { token, claims } = mintCustomerSessionToken(account.customerId, account.email);
       if (!claims) {
         res.status(500).json({ statusCode: 500, message: 'Failed to mint session', correlationId: `corr-500-${Date.now()}` });
         return;

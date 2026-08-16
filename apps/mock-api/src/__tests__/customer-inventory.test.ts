@@ -3,7 +3,7 @@ import type { Server } from 'node:http';
 import { createStore } from '../store.js';
 import { createMockApiApp } from '../server.js';
 import {
-  createDemoJwtToken,
+  issueSessionToken,
   calculateTierPricing,
   TIER_DISCOUNTS,
   type CustomerTier,
@@ -85,7 +85,7 @@ describe('Customer Inventory Projection & Tier Pricing Contract (D02-P03-T001)',
     });
 
     it('projects customer tier pricing on /api/v1/vehicles when authenticated with Platinum token', async () => {
-      const token = createDemoJwtToken('CustomerBuyer', 'cust-plat-1', 'plat@example.com', 'Platinum');
+      const token = issueSessionToken('CustomerBuyer', 'cust-plat-1', 'plat@example.com', 'Platinum');
       const res = await fetch(`${baseUrl}/api/v1/vehicles`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -117,7 +117,7 @@ describe('Customer Inventory Projection & Tier Pricing Contract (D02-P03-T001)',
     });
 
     it('projects customer tier pricing on /api/v1/vehicles/:idOrSlug detail lookup', async () => {
-      const token = createDemoJwtToken('CustomerBuyer', 'cust-silv-1', 'silv@example.com', 'Silver');
+      const token = issueSessionToken('CustomerBuyer', 'cust-silv-1', 'silv@example.com', 'Silver');
       const res = await fetch(`${baseUrl}/api/v1/vehicles/veh-1`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -135,7 +135,7 @@ describe('Customer Inventory Projection & Tier Pricing Contract (D02-P03-T001)',
 
   describe('2. Reservation Eligibility and 48-Hour Second-Customer Conflict (RULE-05, RULE-08, RULE-10)', () => {
     it('returns eligible: true for unheld, priced, available vehicles', async () => {
-      const token = createDemoJwtToken('CustomerBuyer', 'cust-user-1', 'u1@example.com');
+      const token = issueSessionToken('CustomerBuyer', 'cust-user-1', 'u1@example.com');
       const res = await fetch(`${baseUrl}/api/v1/vehicles/veh-1`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -148,7 +148,7 @@ describe('Customer Inventory Projection & Tier Pricing Contract (D02-P03-T001)',
 
     it('returns eligible: false with reason: "reserved_by_other" when another customer holds active reservation', async () => {
       // veh-2 is seeded with an active 48-hour reservation hold by user-other-456
-      const token = createDemoJwtToken('CustomerBuyer', 'cust-second-buyer', 'buyer2@example.com');
+      const token = issueSessionToken('CustomerBuyer', 'cust-second-buyer', 'buyer2@example.com');
       const res = await fetch(`${baseUrl}/api/v1/vehicles/veh-2`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -166,7 +166,7 @@ describe('Customer Inventory Projection & Tier Pricing Contract (D02-P03-T001)',
 
     it('returns eligible: false with reason: "already_reserved_by_you" when the holder herself views the vehicle', async () => {
       // veh-2 is seeded with hold owned by user-other-456
-      const token = createDemoJwtToken('CustomerBuyer', 'user-other-456', 'other@example.com');
+      const token = issueSessionToken('CustomerBuyer', 'user-other-456', 'other@example.com');
       const res = await fetch(`${baseUrl}/api/v1/vehicles/veh-2`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -182,7 +182,7 @@ describe('Customer Inventory Projection & Tier Pricing Contract (D02-P03-T001)',
 
     it('deterministically returns to Now On Sale / eligible: true after reservation hold expires (RULE-05)', async () => {
       // veh-3 had a reservation that expired on 2026-08-08 (relative to 2026-08-10 reference date)
-      const token = createDemoJwtToken('CustomerBuyer', 'cust-user-1', 'u1@example.com');
+      const token = issueSessionToken('CustomerBuyer', 'cust-user-1', 'u1@example.com');
       const res = await fetch(`${baseUrl}/api/v1/vehicles/veh-3`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -198,7 +198,7 @@ describe('Customer Inventory Projection & Tier Pricing Contract (D02-P03-T001)',
 
   describe('3. Price Readiness & Price on Request (CUST-09)', () => {
     it('returns price_on_request reason for vehicles without a fixed price', async () => {
-      const token = createDemoJwtToken('CustomerBuyer', 'cust-user-1', 'u1@example.com');
+      const token = issueSessionToken('CustomerBuyer', 'cust-user-1', 'u1@example.com');
       const res = await fetch(`${baseUrl}/api/v1/vehicles/veh-4`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -216,7 +216,7 @@ describe('Customer Inventory Projection & Tier Pricing Contract (D02-P03-T001)',
 
   describe('4. Privacy, Field Isolation and Draft Exclusions (CUST-02)', () => {
     it('never returns Draft vehicles in customer inventory queries', async () => {
-      const token = createDemoJwtToken('CustomerBuyer', 'cust-user-1', 'u1@example.com');
+      const token = issueSessionToken('CustomerBuyer', 'cust-user-1', 'u1@example.com');
       const res = await fetch(`${baseUrl}/api/v1/vehicles/search?searchQuery=Civic`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -227,7 +227,7 @@ describe('Customer Inventory Projection & Tier Pricing Contract (D02-P03-T001)',
     });
 
     it('returns 404 if customer tries to look up a Draft vehicle directly', async () => {
-      const token = createDemoJwtToken('CustomerBuyer', 'cust-user-1', 'u1@example.com');
+      const token = issueSessionToken('CustomerBuyer', 'cust-user-1', 'u1@example.com');
       const res = await fetch(`${baseUrl}/api/v1/vehicles/veh-draft`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -235,7 +235,7 @@ describe('Customer Inventory Projection & Tier Pricing Contract (D02-P03-T001)',
     });
 
     it('never leaks internalNotes or staffOwnerId in vehicle summary or detail projections', async () => {
-      const token = createDemoJwtToken('CustomerBuyer', 'cust-user-1', 'u1@example.com');
+      const token = issueSessionToken('CustomerBuyer', 'cust-user-1', 'u1@example.com');
       const resList = await fetch(`${baseUrl}/api/v1/vehicles`, {
         headers: { Authorization: `Bearer ${token}` },
       });

@@ -23,7 +23,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { HttpClient } from '@carchief/api-client';
 import { SessionService, ConfigService } from '@carchief/api-client';
-import type { DemoSessionResponse, JwtClaims } from '@carchief/domain';
+import type { JwtClaims } from '@carchief/domain';
 import {
   resolveReturnTarget,
   extractVehicleSlug,
@@ -117,17 +117,10 @@ describe('session-storage read/write/clear', () => {
    SessionService / ConfigService HTTP contract (via fetch mock)
    -------------------------------------------------------------------------- */
 describe('SessionService HTTP contract', () => {
-  it('mints a non-production demo session', async () => {
-    const responseFixture: DemoSessionResponse = { token: 'tok-1', claims: claimsFixture, nonProduction: true };
-    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
-      new Response(JSON.stringify(responseFixture), { status: 201, headers: { 'content-type': 'application/json' } })
-    );
-    const service = new SessionService(new HttpClient({ baseUrl: 'http://mock-api.test' }));
-    const session = await service.startDemoSession();
-    expect(session.nonProduction).toBe(true);
-    expect(session.claims.role).toBe('CustomerBuyer');
-  });
-
+  // `startDemoSession` was removed (D02-P12-T002, CUST-30): the Mock API no
+  // longer mints a no-input demo session. Real registration/sign-in
+  // coverage for `AuthService` lives in `packages/api-client/src/__tests__`;
+  // this suite keeps only the still-present `getCurrentSession` contract.
   it('returns null (never throws) from getCurrentSession for the honest anonymous 401 state', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
       new Response(JSON.stringify({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' }), {

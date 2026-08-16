@@ -46,14 +46,30 @@ function deriveStatus(stored: StoredSession | null): { status: SessionStatus; cl
 }
 
 /**
+ * Local mirror of the response shape the mock's now-removed no-input demo
+ * sign-in endpoint used to return (`@carchief/domain`'s `DemoSessionResponse`
+ * and `SessionService.startDemoSession` were both deleted in D02-P12-T002,
+ * CUST-30). Kept here only so this hook's existing demo-session call keeps
+ * compiling until D02-P12-T004 replaces the whole flow with the real
+ * `/register` + Customer sign-in journey — not a shared package type, and
+ * not a claim that a demo identity path still exists.
+ */
+interface DemoSessionResponse {
+  token: string;
+  claims: JwtClaims;
+  nonProduction: true;
+}
+
+/**
  * Orchestrates the stand-in demo customer session (DEC-PUB-AUTH-BOUNDARY,
- * PUB-22, D01-P06-T003): reading/writing the browser-persisted session,
- * minting one via `SessionService.startDemoSession`, and deriving an honest
- * `anonymous` / `active` / `expired` status from the persisted claims'
- * `exp` — the mock does not itself enforce expiry, so this hook is the
- * session's actual lifetime boundary. Never calls Firebase/Firestore/
- * Supabase and never embeds a forced identity; every identity comes from
- * the mock's own `POST /api/v1/auth/demo-session` response.
+ * PUB-22, D01-P06-T003): reading/writing the browser-persisted session and
+ * deriving an honest `anonymous` / `active` / `expired` status from the
+ * persisted claims' `exp` — the mock does not itself enforce expiry, so this
+ * hook is the session's actual lifetime boundary. Never calls
+ * Firebase/Firestore/Supabase and never embeds a forced identity. The
+ * demo-session mint call this hook made is D02-P12-T004's removal target
+ * (CUST-30) — its underlying Mock API route no longer exists as of
+ * D02-P12-T001.
  */
 export function useSession(options: UseSessionOptions = {}): UseSessionReturn {
   const service = useMemo(
@@ -85,7 +101,16 @@ export function useSession(options: UseSessionOptions = {}): UseSessionReturn {
     setIsSigningIn(true);
     setSignInError(null);
     try {
-      const session = await service.startDemoSession();
+      // `SessionService.startDemoSession` was removed (D02-P12-T002,
+      // CUST-30); its Mock API route no longer exists either
+      // (D02-P12-T001). This call is a compile-preserving stand-in only —
+      // D02-P12-T004 replaces this whole method with the real `/register` +
+      // Customer sign-in journey.
+      const res = await fetch(`${resolveBaseUrl()}/api/v1/auth/demo-session`, { method: 'POST' });
+      if (!res.ok) {
+        throw new Error(`Failed to start demo session: HTTP ${res.status}`);
+      }
+      const session = (await res.json()) as DemoSessionResponse;
       if (typeof window !== 'undefined') {
         writeStoredSession((key, value) => window.localStorage.setItem(key, value), {
           token: session.token,

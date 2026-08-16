@@ -1,4 +1,18 @@
-import type { JwtClaims, DemoSessionResponse, CustomerTier } from '@carchief/domain';
+import type { JwtClaims, CustomerTier } from '@carchief/domain';
+
+/**
+ * Local mirror of the response shape the mock's now-removed no-input demo
+ * sign-in endpoint used to return (`@carchief/domain`'s `DemoSessionResponse`
+ * was deleted in D02-P12-T002, CUST-30). Kept here only so this file's
+ * existing demo-session helpers keep compiling until D02-P12-T005 replaces
+ * them with the real `AuthService.login` credential flow — not a shared
+ * package type, and not a claim that a demo identity path still exists.
+ */
+interface DemoSessionResponse {
+  token: string;
+  claims: JwtClaims;
+  nonProduction: true;
+}
 
 export type AccountStatus = 'ACTIVE' | 'INACTIVE' | 'LOCKED' | 'UNAUTHORIZED' | 'EXPIRED';
 

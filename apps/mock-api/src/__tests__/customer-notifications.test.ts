@@ -1,13 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { Server } from 'node:http';
-import { createDemoJwtToken } from '@carchief/domain';
+import { issueSessionToken } from '@carchief/domain';
 import { createMockApiApp } from '../server.js';
 import { createStore } from '../store.js';
 
 describe('Customer notification contract (D02-P08-T001)', () => {
   let server: Server | undefined;
   let baseUrl = '';
-  const customerHeaders = (customerId = 'cust-123') => ({ Authorization: `Bearer ${createDemoJwtToken('CustomerBuyer', customerId)}` });
+  const customerHeaders = (customerId = 'cust-123') => ({ Authorization: `Bearer ${issueSessionToken('CustomerBuyer', customerId)}` });
 
   beforeEach(async () => {
     const app = createMockApiApp(createStore(''));

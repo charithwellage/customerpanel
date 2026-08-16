@@ -1,13 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { Server } from 'node:http';
-import { createDemoJwtToken } from '@carchief/domain';
+import { issueSessionToken } from '@carchief/domain';
 import { createMockApiApp } from '../server.js';
 import { createStore } from '../store.js';
 
 describe('Customer profile contract (D02-P08-T004)', () => {
   let server: Server | undefined;
   let baseUrl = '';
-  const headers = (customerId = 'user-123') => ({ Authorization: `Bearer ${createDemoJwtToken('CustomerBuyer', customerId)}` });
+  const headers = (customerId = 'user-123') => ({ Authorization: `Bearer ${issueSessionToken('CustomerBuyer', customerId)}` });
 
   beforeEach(async () => {
     const app = createMockApiApp(createStore(''));
@@ -41,7 +41,7 @@ describe('Customer profile contract (D02-P08-T004)', () => {
 
   it('requires customer authorization and resets deterministic profile data', async () => {
     expect((await fetch(`${baseUrl}/api/v1/customer/profile`)).status).toBe(401);
-    expect((await fetch(`${baseUrl}/api/v1/customer/profile`, { headers: { Authorization: `Bearer ${createDemoJwtToken('PublicVisitor')}` } })).status).toBe(403);
+    expect((await fetch(`${baseUrl}/api/v1/customer/profile`, { headers: { Authorization: `Bearer ${issueSessionToken('PublicVisitor')}` } })).status).toBe(403);
     await fetch(`${baseUrl}/api/v1/__reset`, { method: 'POST' });
     const profile = await (await fetch(`${baseUrl}/api/v1/customer/profile`, { headers: headers() })).json();
     expect(profile.companyName).toBe('CarChief Demo Customer');

@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { Server } from 'node:http';
-import { createDemoJwtToken } from '@carchief/domain';
+import { issueSessionToken } from '@carchief/domain';
 import { createMockApiApp } from '../server.js';
 import { createStore } from '../store.js';
 
@@ -22,7 +22,7 @@ describe('Customer security acceptance matrix (D02-P09-T002)', () => {
   });
 
   const headers = (customerId: string) => ({
-    Authorization: `Bearer ${createDemoJwtToken('CustomerBuyer', customerId)}`,
+    Authorization: `Bearer ${issueSessionToken('CustomerBuyer', customerId)}`,
   });
 
   it('never returns another customer’s vehicle, invoice, shipment, document, payment, notification, or profile', async () => {
@@ -129,7 +129,7 @@ describe('Customer security acceptance matrix (D02-P09-T002)', () => {
   });
 
   it('rejects expired sessions before any customer route can authorize them', async () => {
-    const expired = createDemoJwtToken('CustomerBuyer');
+    const expired = issueSessionToken('CustomerBuyer');
     const payload = JSON.parse(Buffer.from(expired.split('.')[1], 'base64').toString('utf8')) as { exp: number };
     payload.exp = Math.floor(Date.now() / 1000) - 1;
     const token = `${expired.split('.')[0]}.${Buffer.from(JSON.stringify(payload)).toString('base64')}.${expired.split('.')[2]}`;

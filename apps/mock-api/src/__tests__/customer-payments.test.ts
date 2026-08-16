@@ -1,13 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { Server } from 'node:http';
-import { createDemoJwtToken } from '@carchief/domain';
+import { issueSessionToken } from '@carchief/domain';
 import { createMockApiApp } from '../server.js';
 import { createStore } from '../store.js';
 
 describe('Customer TT payment journal contract (D02-P06-T001)', () => {
   let server: Server | undefined;
   let baseUrl: string;
-  const token = () => createDemoJwtToken('CustomerBuyer');
+  const token = () => issueSessionToken('CustomerBuyer');
   beforeEach(async () => {
     const app = createMockApiApp(createStore(''));
     server = await new Promise<Server>((resolve) => {
@@ -87,7 +87,7 @@ describe('Customer TT payment journal contract (D02-P06-T001)', () => {
     });
     expect(customerAttempt.status).toBe(403);
 
-    const financeHeaders = { Authorization: `Bearer ${createDemoJwtToken('FinanceManager')}`, 'Content-Type': 'application/json' };
+    const financeHeaders = { Authorization: `Bearer ${issueSessionToken('FinanceManager')}`, 'Content-Type': 'application/json' };
     const missingReason = await fetch(`${baseUrl}/api/v1/finance/customer-payments/pay-004/notifications`, {
       method: 'POST', headers: financeHeaders, body: JSON.stringify({ event: 'PaymentHeld' }),
     });
@@ -105,10 +105,10 @@ describe('Customer TT payment journal contract (D02-P06-T001)', () => {
 
   it('supports owner-only resubmission and idempotent approval/allocation with reconciled balances', async () => {
     const customerHeaders = { Authorization: `Bearer ${token()}` };
-    const financeHeaders = { Authorization: `Bearer ${createDemoJwtToken('FinanceManager')}`, 'Content-Type': 'application/json' };
+    const financeHeaders = { Authorization: `Bearer ${issueSessionToken('FinanceManager')}`, 'Content-Type': 'application/json' };
     const hold = await fetch(`${baseUrl}/api/v1/finance/customer-payments/pay-004/notifications`, { method: 'POST', headers: financeHeaders, body: JSON.stringify({ event: 'PaymentHeld', reason: 'Awaiting bank confirmation' }) });
     expect(hold.status).toBe(201);
-    const otherCustomer = await fetch(`${baseUrl}/api/v1/customer/payments/pay-004/resubmit`, { method: 'POST', headers: { Authorization: `Bearer ${createDemoJwtToken('CustomerBuyer', 'cust-999')}` } });
+    const otherCustomer = await fetch(`${baseUrl}/api/v1/customer/payments/pay-004/resubmit`, { method: 'POST', headers: { Authorization: `Bearer ${issueSessionToken('CustomerBuyer', 'cust-999')}` } });
     expect(otherCustomer.status).toBe(404);
     const resubmit = await fetch(`${baseUrl}/api/v1/customer/payments/pay-004/resubmit`, { method: 'POST', headers: customerHeaders });
     const repeated = await fetch(`${baseUrl}/api/v1/customer/payments/pay-004/resubmit`, { method: 'POST', headers: customerHeaders });

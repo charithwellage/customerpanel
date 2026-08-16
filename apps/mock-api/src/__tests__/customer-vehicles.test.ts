@@ -3,7 +3,7 @@ import type { Server } from 'node:http';
 import { createStore } from '../store.js';
 import { createMockApiApp } from '../server.js';
 import {
-  createDemoJwtToken,
+  issueSessionToken,
   calculateVehicleDeposit,
   type CustomerVehicleListResponse,
   type CustomerVehicleDetail,
@@ -47,7 +47,7 @@ describe('Customer Vehicles & Status Projection Contract (D02-P04-T001)', () => 
     });
 
     it('returns 403 Forbidden when role does not have read:customer permission', async () => {
-      const publicToken = createDemoJwtToken('PublicVisitor');
+      const publicToken = issueSessionToken('PublicVisitor');
       const res = await fetch(`${baseUrl}/api/v1/customer/vehicles`, {
         headers: { Authorization: `Bearer ${publicToken}` },
       });
@@ -59,7 +59,7 @@ describe('Customer Vehicles & Status Projection Contract (D02-P04-T001)', () => 
 
   describe('2. Customer Vehicle List Projection (CUST-02, CUST-10, RULE-04, RULE-08)', () => {
     it('returns customer fleet with unique counts and no category duplication', async () => {
-      const token = createDemoJwtToken('CustomerBuyer');
+      const token = issueSessionToken('CustomerBuyer');
       const res = await fetch(`${baseUrl}/api/v1/customer/vehicles`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -89,7 +89,7 @@ describe('Customer Vehicles & Status Projection Contract (D02-P04-T001)', () => 
     });
 
     it('filters customer vehicles by status', async () => {
-      const token = createDemoJwtToken('CustomerBuyer');
+      const token = issueSessionToken('CustomerBuyer');
       const res = await fetch(`${baseUrl}/api/v1/customer/vehicles?status=Confirmed`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -105,7 +105,7 @@ describe('Customer Vehicles & Status Projection Contract (D02-P04-T001)', () => 
     });
 
     it('searches customer vehicles by text keyword', async () => {
-      const token = createDemoJwtToken('CustomerBuyer');
+      const token = issueSessionToken('CustomerBuyer');
       const res = await fetch(`${baseUrl}/api/v1/customer/vehicles?query=Corolla`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -139,7 +139,7 @@ describe('Customer Vehicles & Status Projection Contract (D02-P04-T001)', () => 
     });
 
     it('returns server-computed deposit info for vehicle under negotiation with PI', async () => {
-      const token = createDemoJwtToken('CustomerBuyer');
+      const token = issueSessionToken('CustomerBuyer');
       const res = await fetch(`${baseUrl}/api/v1/customer/vehicles/veh-5`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -159,7 +159,7 @@ describe('Customer Vehicles & Status Projection Contract (D02-P04-T001)', () => 
 
   describe('4. Status History Timeline & Export Documents (CUST-11, CUST-12, CUST-13)', () => {
     it('expires the PI exactly after the server-authoritative 72-hour deadline', async () => {
-      const headers = { Authorization: `Bearer ${createDemoJwtToken('CustomerBuyer')}` };
+      const headers = { Authorization: `Bearer ${issueSessionToken('CustomerBuyer')}` };
       const active = await fetch(`${baseUrl}/api/v1/customer/vehicles/veh-5`, { headers: { ...headers, 'x-mock-now': '2026-08-13T09:59:59.000Z' } });
       const expired = await fetch(`${baseUrl}/api/v1/customer/vehicles/veh-5`, { headers: { ...headers, 'x-mock-now': '2026-08-13T10:00:00.000Z' } });
       expect((await active.json()).status).toBe('Under Negotiation With PI');
@@ -169,7 +169,7 @@ describe('Customer Vehicles & Status Projection Contract (D02-P04-T001)', () => 
       expect(expiredBody.statusHistory.at(-1)?.notes).toMatch(/72-hour PI hold expired/);
     });
     it('returns full vehicle detail with chronological status timeline and linked documents', async () => {
-      const token = createDemoJwtToken('CustomerBuyer');
+      const token = issueSessionToken('CustomerBuyer');
       const res = await fetch(`${baseUrl}/api/v1/customer/vehicles/veh-1`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -199,7 +199,7 @@ describe('Customer Vehicles & Status Projection Contract (D02-P04-T001)', () => 
     });
 
     it('returns 404 for unknown vehicle or vehicle not owned by customer (IDOR protection)', async () => {
-      const token = createDemoJwtToken('CustomerBuyer');
+      const token = issueSessionToken('CustomerBuyer');
       const res = await fetch(`${baseUrl}/api/v1/customer/vehicles/veh-unknown-999`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -211,7 +211,7 @@ describe('Customer Vehicles & Status Projection Contract (D02-P04-T001)', () => 
 
   describe('5. 48-Hour Hold Expiry (RULE-05)', () => {
     it('updates status from Under Negotiation to Expired when hold window expires', async () => {
-      const token = createDemoJwtToken('CustomerBuyer');
+      const token = issueSessionToken('CustomerBuyer');
 
       // Before expiry (2026-08-10): veh-6 is active under negotiation
       const activeRes = await fetch(`${baseUrl}/api/v1/customer/vehicles/veh-6`, {

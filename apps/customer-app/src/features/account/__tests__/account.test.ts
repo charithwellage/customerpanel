@@ -61,7 +61,7 @@ describe('Customer App Account & Auth Feature Unit Tests', () => {
     const demoRes = {
       token: 'mock_demo_jwt_token_456',
       nonProduction: true as const,
-      // Exactly what apps/mock-api mints via createDemoJwtToken('CustomerBuyer').
+      // Exactly what apps/mock-api mints via issueSessionToken('CustomerBuyer').
       claims: {
         sub: 'user-123',
         email: 'user@carchief.com',
