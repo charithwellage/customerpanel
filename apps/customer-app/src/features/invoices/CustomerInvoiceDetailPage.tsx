@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useCustomerShell } from '../shell/index.js';
+import { formatInvoiceDate, formatUsdAmount, getInvoiceStatusBadgeClass } from './formatters.js';
 import { useCustomerInvoiceDetail } from './useCustomerInvoiceDetail.js';
 import { useCustomerInvoiceDocument } from './useCustomerInvoiceDocument.js';
 import { BankWireInstructionsCard } from './components/BankWireInstructionsCard.js';
@@ -70,39 +71,9 @@ export const CustomerInvoiceDetailPage: React.FC<CustomerInvoiceDetailPageProps>
   }
 
   const isProforma = invoice.type === 'Proforma';
-  const formattedTotal = `$${invoice.totalAmountUsd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  const formattedPaid = `$${invoice.paidAmountUsd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  const formattedOutstanding = `$${invoice.outstandingAmountUsd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-
-  const getStatusBadgeClass = (status: string) => {
-    switch (status) {
-      case 'Paid':
-        return 'cc-invoice-badge--paid';
-      case 'PartiallyPaid':
-        return 'cc-invoice-badge--partial';
-      case 'Issued':
-        return 'cc-invoice-badge--issued';
-      case 'Expired':
-        return 'cc-invoice-badge--expired';
-      case 'Cancelled':
-        return 'cc-invoice-badge--cancelled';
-      default:
-        return 'cc-invoice-badge--neutral';
-    }
-  };
-
-  const formattedDate = (isoString?: string) => {
-    if (!isoString) return '—';
-    try {
-      return new Date(isoString).toLocaleDateString(undefined, {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-      });
-    } catch {
-      return isoString;
-    }
-  };
+  const formattedTotal = formatUsdAmount(invoice.totalAmountUsd);
+  const formattedPaid = formatUsdAmount(invoice.paidAmountUsd);
+  const formattedOutstanding = formatUsdAmount(invoice.outstandingAmountUsd);
 
   return (
     <div className="cc-invoice-detail-page" data-testid="customer-invoice-detail-page">
@@ -126,7 +97,7 @@ export const CustomerInvoiceDetailPage: React.FC<CustomerInvoiceDetailPageProps>
             <span className={`cc-invoice-type-pill ${isProforma ? 'cc-invoice-type-pill--pi' : 'cc-invoice-type-pill--comm'}`}>
               {isProforma ? 'Proforma Invoice (PI)' : 'Commercial Invoice'}
             </span>
-            <span className={`cc-invoice-badge ${getStatusBadgeClass(invoice.status)}`} data-testid="invoice-detail-status">
+            <span className={`cc-invoice-badge ${getInvoiceStatusBadgeClass(invoice.status)}`} data-testid="invoice-detail-status">
               {invoice.status}
             </span>
           </div>
@@ -187,10 +158,10 @@ export const CustomerInvoiceDetailPage: React.FC<CustomerInvoiceDetailPageProps>
             <p>
               Under CarChief trade rules, a minimum 50% deposit of{' '}
               <strong>
-                ${(invoice.depositRequiredUsd || Math.round(invoice.totalAmountUsd * 0.5)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
+                {formatUsdAmount(invoice.depositRequiredUsd || Math.round(invoice.totalAmountUsd * 0.5))} USD
               </strong>{' '}
               must be remitted via wire transfer by{' '}
-              <strong>{formattedDate(invoice.paymentDeadline || invoice.dueDate)}</strong> to lock this vehicle reservation.
+              <strong>{formatInvoiceDate(invoice.paymentDeadline || invoice.dueDate)}</strong> to lock this vehicle reservation.
             </p>
             {invoice.isExpired && (
               <p className="cc-invoice-pi-banner__expired" data-testid="pi-expired-alert">
@@ -226,7 +197,6 @@ export const CustomerInvoiceDetailPage: React.FC<CustomerInvoiceDetailPageProps>
             bankDetails={invoice.bankDetails}
             referenceFallback={invoice.invoiceNumber}
             depositRequiredUsd={invoice.depositRequiredUsd}
-            outstandingAmountUsd={invoice.outstandingAmountUsd}
             isProforma={isProforma}
           />
 
@@ -240,11 +210,11 @@ export const CustomerInvoiceDetailPage: React.FC<CustomerInvoiceDetailPageProps>
               </div>
               <div className="cc-invoice-meta-row">
                 <dt>Issue Date:</dt>
-                <dd>{formattedDate(invoice.issuedAt)}</dd>
+                <dd>{formatInvoiceDate(invoice.issuedAt)}</dd>
               </div>
               <div className="cc-invoice-meta-row">
                 <dt>{isProforma ? 'Payment Deadline:' : 'Due Date:'}</dt>
-                <dd>{formattedDate(invoice.dueDate || invoice.paymentDeadline)}</dd>
+                <dd>{formatInvoiceDate(invoice.dueDate || invoice.paymentDeadline)}</dd>
               </div>
               <div className="cc-invoice-meta-row">
                 <dt>Vehicle Chassis:</dt>

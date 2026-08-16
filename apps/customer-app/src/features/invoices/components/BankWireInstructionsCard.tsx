@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import type { CustomerInvoiceBankDetails } from '@carchief/domain';
+import { formatUsdAmount } from '../formatters.js';
 
 export interface BankWireInstructionsCardProps {
   bankDetails?: CustomerInvoiceBankDetails;
   referenceFallback?: string;
   depositRequiredUsd?: number;
-  outstandingAmountUsd?: number;
   isProforma?: boolean;
 }
 
@@ -13,7 +13,6 @@ export const BankWireInstructionsCard: React.FC<BankWireInstructionsCardProps> =
   bankDetails,
   referenceFallback,
   depositRequiredUsd,
-  outstandingAmountUsd,
   isProforma,
 }) => {
   const [copied, setCopied] = useState(false);
@@ -84,7 +83,7 @@ export const BankWireInstructionsCard: React.FC<BankWireInstructionsCardProps> =
           <div>
             <strong>50% Minimum Deposit Required: </strong>
             <span>
-              ${depositRequiredUsd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD must be received within 72 hours to confirm vehicle reservation.
+              {formatUsdAmount(depositRequiredUsd)} USD must be received within 72 hours to confirm vehicle reservation.
             </span>
           </div>
         </div>

@@ -58,9 +58,9 @@
 .cc-cust-overview__error {
   padding: var(--spacing-md);
   background: var(--color-surface);
-  border: 1px solid var(--color-border-error);
+  border: 1px solid var(--color-error);
   border-radius: var(--radius-md);
-  color: var(--color-text-error);
+  color: var(--color-error);
 }
 
 .cc-cust-overview__error p {
@@ -70,7 +70,7 @@
 .cc-cust-overview__error details {
   margin-top: var(--spacing-md);
   padding-top: var(--spacing-md);
-  border-top: 1px solid var(--color-border-error);
+  border-top: 1px solid var(--color-error);
 }
 
 .cc-cust-overview__error summary {
@@ -107,9 +107,9 @@
 .cc-cust-overview__partial-failure {
   padding: var(--spacing-md);
   background: var(--color-surface);
-  border: 1px solid var(--color-border-warning);
+  border: 1px solid var(--color-warning);
   border-radius: var(--radius-md);
-  color: var(--color-text-warning);
+  color: var(--color-warning);
 }
 
 .cc-cust-overview__partial-failure p {
@@ -170,7 +170,7 @@
 }
 
 .cc-cust-card__link:hover {
-  background: var(--color-primary-dark);
+  background: var(--color-primary-hover);
 }
 
 .cc-cust-card__link:focus-visible {

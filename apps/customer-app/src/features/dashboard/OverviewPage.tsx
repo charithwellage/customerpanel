@@ -1,5 +1,4 @@
 import React from 'react';
-import type { CustomerDashboard } from '@carchief/api-client';
 import { useDashboard } from './useDashboard.js';
 import { CreditUtilisationCard } from './components/CreditUtilisationCard.js';
 import { VehicleCountCard } from './components/VehicleCountCard.js';

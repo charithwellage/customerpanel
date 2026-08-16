@@ -34,7 +34,7 @@ export const VehicleCardPrimitive: React.FC<VehicleCardPrimitiveProps> = ({
 
   const targetHref = actionHref || `/allstock/${vehicle.slug || vehicle.id}`;
 
-  const handleCardClick = (e: React.MouseEvent<HTMLElement>) => {
+  const handleCardClick = () => {
     if (onSelect) {
       onSelect(vehicle);
     }
