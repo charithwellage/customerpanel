@@ -155,8 +155,6 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = '' }) => (
           <HttpClientProvider apiBaseUrl={apiBaseUrl}>
             <CustomerShell
               initialUser={toShellUser(session)}
-              pageTitle="Customer Portal"
-              pageSubtitle="Account access and application shell"
               onSignOut={() => {
                 // The guard clears the session and Service Worker caches;
                 // this app also discards any cached query data so no
