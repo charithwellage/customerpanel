@@ -136,9 +136,8 @@ export const CorporateTrustShowcase: React.FC = () => {
             </div>
 
             <div className="cc-statement-action">
-              <a href="/about" className="cc-statement-link">
-                <span>EXPLORE OUR FULL VISION</span>
-                <span aria-hidden="true">→</span>
+              <a href="/about" className="cc-btn-trust-primary">
+                EXPLORE OUR FULL VISION
               </a>
             </div>
           </div>
