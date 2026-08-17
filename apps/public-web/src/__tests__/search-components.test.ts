@@ -6,6 +6,7 @@ import { SearchResultsHeader } from '../features/vehicle-search/components/Searc
 import { SearchEmptyState } from '../features/vehicle-search/components/SearchEmptyState.js';
 import { SearchErrorState } from '../features/vehicle-search/components/SearchErrorState.js';
 import { SearchPagination } from '../features/vehicle-search/components/SearchPagination.js';
+import { VehicleCardPrimitive } from '@carchief/vehicle-search';
 
 describe('Search Components & Presentation Tests (PUB-04, PUB-07, RULE-09)', () => {
   const dummyFacets = {
@@ -94,5 +95,26 @@ describe('Search Components & Presentation Tests (PUB-04, PUB-07, RULE-09)', () 
     expect(html).toContain('Showing items 5–8 of 12');
     expect(html).toContain('← Prev');
     expect(html).toContain('Next →');
+  });
+
+  it('keeps the public inventory card link active when no selection callback is supplied', () => {
+    const html = renderToStaticMarkup(
+      React.createElement(VehicleCardPrimitive, {
+        vehicle: {
+          id: 'veh-1',
+          slug: '2021-toyota-corolla-axio-veh-1',
+          make: 'Toyota',
+          model: 'Corolla Axio',
+          year: 2021,
+          status: 'Available',
+          priceState: 'priced',
+          priceUsd: 12500,
+          requestPrice: false,
+          images: [],
+        },
+      }),
+    );
+
+    expect(html).toContain('href="/allstock/2021-toyota-corolla-axio-veh-1"');
   });
 });

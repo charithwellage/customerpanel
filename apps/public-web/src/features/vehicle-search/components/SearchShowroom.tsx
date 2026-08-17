@@ -71,7 +71,7 @@ export function SearchShowroom({
                 vehicles={result?.items || []}
                 isLoading={isLoading}
                 error={null}
-                onSelectVehicle={(v) => onSelectVehicle?.(v.id)}
+                onSelectVehicle={onSelectVehicle ? (v) => onSelectVehicle(v.id) : undefined}
               />
             )}
 

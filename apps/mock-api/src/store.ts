@@ -88,6 +88,7 @@ import {
   RESERVATION_HOLD_HOURS,
   MAX_ACTIVE_RESERVATIONS_PER_CUSTOMER,
   RESERVABLE_VEHICLE_STATUSES,
+  COUNTRIES,
 } from '@carchief/domain';
 import { validateEmail } from '@carchief/validation';
 export { FreightRequestError, resolveFreightRateStatus } from '@carchief/domain';
@@ -678,33 +679,6 @@ export interface CountriesResponse {
   items: CountryOption[];
 }
 
-// ISO-3166 country + E.164 dial-code catalog. Deliberately covers CarChief's
-// primary export destinations plus a broad conventional set so registration
-// is usable for any visitor; `packages/domain` may later become the single
-// shared source (Phase 2.12 T002) without changing this route's contract.
-const COUNTRIES: CountryOption[] = [
-  { isoCode: 'UG', name: 'Uganda', dialCode: '+256' },
-  { isoCode: 'KE', name: 'Kenya', dialCode: '+254' },
-  { isoCode: 'TZ', name: 'Tanzania', dialCode: '+255' },
-  { isoCode: 'RW', name: 'Rwanda', dialCode: '+250' },
-  { isoCode: 'SS', name: 'South Sudan', dialCode: '+211' },
-  { isoCode: 'BI', name: 'Burundi', dialCode: '+257' },
-  { isoCode: 'ET', name: 'Ethiopia', dialCode: '+251' },
-  { isoCode: 'SO', name: 'Somalia', dialCode: '+252' },
-  { isoCode: 'ZM', name: 'Zambia', dialCode: '+260' },
-  { isoCode: 'MW', name: 'Malawi', dialCode: '+265' },
-  { isoCode: 'CD', name: 'DR Congo', dialCode: '+243' },
-  { isoCode: 'NG', name: 'Nigeria', dialCode: '+234' },
-  { isoCode: 'GH', name: 'Ghana', dialCode: '+233' },
-  { isoCode: 'ZA', name: 'South Africa', dialCode: '+27' },
-  { isoCode: 'GB', name: 'United Kingdom', dialCode: '+44' },
-  { isoCode: 'US', name: 'United States', dialCode: '+1' },
-  { isoCode: 'AE', name: 'United Arab Emirates', dialCode: '+971' },
-  { isoCode: 'JP', name: 'Japan', dialCode: '+81' },
-  { isoCode: 'IN', name: 'India', dialCode: '+91' },
-  { isoCode: 'AU', name: 'Australia', dialCode: '+61' },
-];
-
 const SCRYPT_KEY_LENGTH = 64;
 
 /** Salted `scrypt` derivation (`node:crypto`), server-side only. */
@@ -763,7 +737,7 @@ interface ValidatedRegistration {
   password: string;
 }
 
-function validateRegisterCustomerRequest(request: RegisterCustomerRequest, countries: CountryOption[]): ValidatedRegistration {
+function validateRegisterCustomerRequest(request: RegisterCustomerRequest, countries: readonly CountryOption[]): ValidatedRegistration {
   const nameWithInitials = typeof request?.nameWithInitials === 'string' ? request.nameWithInitials.trim() : '';
   if (!nameWithInitials) {
     throw new AccountRequestError(400, 'Name with initials is required', 'nameWithInitials');

@@ -5,6 +5,7 @@ import { StatusTimeline } from './components/StatusTimeline.js';
 import { DepositSummaryCard } from './components/DepositSummaryCard.js';
 import { ShippingTrackingCard } from './components/ShippingTrackingCard.js';
 import { ExportDocumentsCard } from './components/ExportDocumentsCard.js';
+import { VehicleGalleryPrimitive } from '@carchief/vehicle-detail';
 
 export interface CustomerFleetDetailPageProps {
   vehicleId: string;
@@ -52,8 +53,11 @@ export const CustomerFleetDetailPage: React.FC<CustomerFleetDetailPageProps> = (
   }
 
   const statusSlug = vehicle.status.toLowerCase().replace(/\s+/g, '-');
-  const fallbackImage = 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=400';
-  const images = vehicle.images && vehicle.images.length > 0 ? vehicle.images : [vehicle.primaryImage || fallbackImage];
+  const images = vehicle.images && vehicle.images.length > 0
+    ? vehicle.images
+    : vehicle.primaryImage
+      ? [vehicle.primaryImage]
+      : [];
 
   return (
     <div className="cc-cust-fleet-detail" data-testid="customer-fleet-detail-page">
@@ -86,25 +90,11 @@ export const CustomerFleetDetailPage: React.FC<CustomerFleetDetailPageProps> = (
         <div className="cc-cust-fleet-detail__main">
           {/* Gallery */}
           <section className="cc-cust-fleet-card cc-cust-fleet-gallery" aria-label="Vehicle Images">
-            <div className="cc-cust-fleet-gallery__primary-wrap">
-              <img
-                src={images[0]}
-                alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
-                className="cc-cust-fleet-gallery__primary"
-              />
-            </div>
-            {images.length > 1 && (
-              <div className="cc-cust-fleet-gallery__thumbs">
-                {images.map((img, idx) => (
-                  <img
-                    key={idx}
-                    src={img}
-                    alt={`${vehicle.make} ${vehicle.model} view ${idx + 1}`}
-                    className="cc-cust-fleet-gallery__thumb"
-                  />
-                ))}
-              </div>
-            )}
+            <VehicleGalleryPrimitive
+              images={images}
+              title={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
+              badges={[{ label: vehicle.status, tone: vehicle.status.toLowerCase().includes('delivered') ? ('success' as const) : ('warning' as const) }]}
+            />
           </section>
 
           {/* Specifications */}
