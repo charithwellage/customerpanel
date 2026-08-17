@@ -1,0 +1,145 @@
+/*
+ * quote-request.css
+ * Feature-level styles for the vehicle-detail "Get Free Quote" action (CUST-31,
+ * CUST-32, D02-P13-T004).
+ * Owned path: apps/public-web/src/features/quote-request/
+ *
+ * Every value uses a semantic token emitted by packages/theme/src/provider.ts.
+ * No literal colours, no fallback palettes.
+ */
+
+.cc-quote-request-action {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.cc-quote-request-action--success {
+  background: var(--color-success-surface);
+  border-color: var(--color-success);
+}
+
+.cc-quote-request-action__heading {
+  font-family: var(--font-display);
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.cc-quote-request-action__description {
+  font-family: var(--font-body);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin: 0;
+  line-height: 1.6;
+}
+
+.cc-quote-request-action__message {
+  font-family: var(--font-body);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin: 0;
+  line-height: 1.6;
+}
+
+.cc-quote-request-action__error {
+  font-family: var(--font-body);
+  font-size: var(--font-size-sm);
+  color: var(--color-error);
+  background: var(--color-error-surface);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  margin: 0;
+}
+
+.cc-quote-request-form__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.cc-quote-request-form__label {
+  font-family: var(--font-body);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  display: flex;
+  gap: var(--spacing-xs);
+}
+
+.cc-required-indicator {
+  color: var(--color-error);
+}
+
+.cc-quote-request-form__input {
+  min-height: var(--min-touch-target);
+  padding: 0.55rem 0.75rem;
+  font-family: var(--font-body);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.cc-quote-request-form__input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-surface);
+}
+
+.cc-quote-request-form__input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.cc-quote-request-form__input[aria-invalid='true'] {
+  border-color: var(--color-error);
+}
+
+.cc-quote-request-form__error {
+  font-family: var(--font-body);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-error);
+  margin: 0;
+}
+
+.cc-quote-request-form__submit {
+  align-self: flex-start;
+  margin-top: var(--spacing-sm);
+}
+
+.cc-quote-request-action .cc-btn {
+  align-self: flex-start;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .cc-quote-request-action {
+    padding: var(--spacing-md);
+    gap: var(--spacing-sm);
+  }
+
+  .cc-quote-request-action__heading {
+    font-size: var(--font-size-md);
+  }
+
+  .cc-quote-request-form__input {
+    font-size: 16px; /* iOS fix: prevents zoom on input focus */
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .cc-quote-request-form__input {
+    transition: none;
+  }
+}

@@ -6,6 +6,7 @@
 @import "../features/enquiry/enquiry.css";
 @import "../features/account-entry/account-entry.css";
 @import "../features/reservation/reservation.css";
+@import "../features/quote-request/quote-request.css";
 @import "../features/registration/registration.css";
 
 :root {

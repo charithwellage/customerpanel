@@ -12,6 +12,7 @@ import {
   serializeJsonLd,
 } from '@carchief/vehicle-detail';
 import { ReservationSection } from '../reservation';
+import { QuoteRequestSection } from '../quote-request';
 
 const TOAST_DISMISS_MS = 3000;
 
@@ -666,6 +667,10 @@ export default function VehicleDetailPage({ vehicle }: VehicleDetailPageProps) {
 
             <div className="cc-detail-reservation-box">
               <ReservationSection vehicleSlug={vehicle.slug} vehicleStatus={vehicle.status} vehicleLabel={title} />
+            </div>
+
+            <div className="cc-detail-quote-request-box">
+              <QuoteRequestSection vehicleSlug={vehicle.slug} vehicleLabel={title} />
             </div>
           </div>
         </div>
