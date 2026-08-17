@@ -859,4 +859,382 @@
   letter-spacing: 0.1em;
 }
 
+/* ==========================================================================
+   Corporate Trust Showcase & Operations Footprint Section
+   ========================================================================== */
+.cc-trust-showcase-wrapper {
+  margin-top: var(--spacing-xl);
+  margin-bottom: var(--spacing-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+/* SECTION 1: Explore Our Premium Stock Banner Card */
+.cc-trust-banner-card {
+  background-color: var(--color-surface-dark);
+  color: var(--color-text-on-dark);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid color-mix(in srgb, var(--color-surface-dark) 70%, var(--color-text-on-dark));
+  overflow: hidden;
+}
+
+.cc-trust-banner-hero {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  align-items: center;
+  padding: var(--spacing-xl) var(--spacing-xl) var(--spacing-lg) var(--spacing-xl);
+  gap: var(--spacing-xl);
+}
+
+@media (max-width: 900px) {
+  .cc-trust-banner-hero {
+    grid-template-columns: 1fr;
+    padding: var(--spacing-lg);
+  }
+}
+
+.cc-trust-eyebrow {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  font-weight: 800;
+  color: var(--color-accent);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: var(--spacing-sm);
+}
+
+.cc-trust-banner-title {
+  font-family: var(--font-display);
+  font-size: var(--font-size-2xl);
+  font-weight: 800;
+  color: var(--color-text-on-dark);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  margin: 0 0 var(--spacing-md);
+}
+
+.cc-trust-title-highlight {
+  color: var(--color-accent);
+}
+
+.cc-trust-banner-desc {
+  font-family: var(--font-body);
+  font-size: var(--font-size-sm);
+  color: color-mix(in srgb, var(--color-text-on-dark) 75%, transparent);
+  line-height: 1.6;
+  margin: 0 0 var(--spacing-lg);
+}
+
+.cc-trust-banner-cta {
+  display: flex;
+  margin-top: var(--spacing-md);
+}
+
+.cc-btn-trust-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-accent);
+  color: var(--color-text-on-dark);
+  padding: var(--spacing-sm) var(--spacing-xl);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-display);
+  font-size: var(--font-size-xs);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--color-accent);
+  transition: all var(--motion-fast) var(--motion-easing);
+}
+
+.cc-btn-trust-primary:hover {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-text-on-primary);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lg);
+}
+
+.cc-trust-banner-media {
+  position: relative;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  height: 100%;
+  min-height: 240px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid color-mix(in srgb, var(--color-surface-dark) 70%, var(--color-text-on-dark));
+}
+
+.cc-trust-car-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.cc-trust-media-gradient {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to right, var(--color-surface-dark) 0%, color-mix(in srgb, var(--color-surface-dark) 20%, transparent) 40%, transparent 100%);
+  pointer-events: none;
+}
+
+/* 5 Feature Pillars Strip */
+.cc-trust-pillars-strip {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg) var(--spacing-xl);
+  background-color: color-mix(in srgb, var(--color-surface-dark) 75%, var(--color-text-on-dark) 3%);
+  border-top: 1px solid color-mix(in srgb, var(--color-surface-dark) 70%, var(--color-text-on-dark));
+}
+
+@media (max-width: 1024px) {
+  .cc-trust-pillars-strip {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .cc-trust-pillars-strip {
+    grid-template-columns: 1fr;
+    padding: var(--spacing-md);
+  }
+}
+
+.cc-pillar-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.cc-pillar-icon-wrapper {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-pill);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: color-mix(in srgb, var(--color-accent) 20%, transparent);
+  color: var(--color-accent);
+  border: 1px solid var(--color-accent);
+  margin-bottom: var(--spacing-xs);
+  flex-shrink: 0;
+}
+
+.cc-pillar-title {
+  font-family: var(--font-display);
+  font-size: var(--font-size-xs);
+  font-weight: 800;
+  color: var(--color-text-on-dark);
+  margin: 0;
+  letter-spacing: 0.04em;
+}
+
+.cc-pillar-desc {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  color: color-mix(in srgb, var(--color-text-on-dark) 65%, transparent);
+  margin: 0;
+  line-height: 1.45;
+}
+
+/* SECTION 2: Corporate Statement (Dark) & Operations Footprint (Light) */
+.cc-trust-duo-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-lg);
+  align-items: stretch;
+}
+
+@media (max-width: 900px) {
+  .cc-trust-duo-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.cc-statement-card {
+  background-color: var(--color-surface-dark);
+  color: var(--color-text-on-dark);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid color-mix(in srgb, var(--color-surface-dark) 70%, var(--color-text-on-dark));
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.cc-statement-eyebrow {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--color-accent);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: var(--spacing-sm);
+}
+
+.cc-statement-title {
+  font-family: var(--font-display);
+  font-size: var(--font-size-xl);
+  font-weight: 800;
+  color: var(--color-text-on-dark);
+  line-height: 1.2;
+  margin: 0 0 var(--spacing-md);
+}
+
+.cc-statement-title-highlight {
+  color: var(--color-accent);
+}
+
+.cc-statement-desc {
+  font-family: var(--font-body);
+  font-size: var(--font-size-sm);
+  color: color-mix(in srgb, var(--color-text-on-dark) 75%, transparent);
+  line-height: 1.55;
+  margin: 0 0 var(--spacing-lg);
+}
+
+.cc-statement-vision-mission {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-xl);
+}
+
+@media (max-width: 640px) {
+  .cc-statement-vision-mission {
+    grid-template-columns: 1fr;
+  }
+}
+
+.cc-vm-label {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--color-accent);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  display: block;
+  margin-bottom: var(--spacing-xs);
+}
+
+.cc-vm-value {
+  font-family: var(--font-display);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--color-text-on-dark);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.cc-statement-action {
+  margin-top: auto;
+}
+
+.cc-statement-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-family: var(--font-display);
+  font-size: var(--font-size-xs);
+  font-weight: 800;
+  color: var(--color-accent);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  transition: transform var(--motion-fast) var(--motion-easing), color var(--motion-fast) var(--motion-easing);
+}
+
+.cc-statement-link:hover {
+  color: var(--color-primary);
+  transform: translateX(3px);
+}
+
+/* Global Footprint / Operations Card */
+.cc-footprint-card {
+  background-color: var(--color-surface);
+  color: var(--color-text-primary);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.cc-footprint-eyebrow {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--color-accent);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: var(--spacing-sm);
+}
+
+.cc-footprint-title {
+  font-family: var(--font-display);
+  font-size: var(--font-size-xl);
+  font-weight: 800;
+  color: var(--color-text-primary);
+  line-height: 1.2;
+  margin: 0 0 var(--spacing-md);
+}
+
+.cc-footprint-desc {
+  font-family: var(--font-body);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.55;
+  margin: 0 0 var(--spacing-lg);
+}
+
+.cc-footprint-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-md);
+}
+
+.cc-footprint-stat-item {
+  background-color: color-mix(in srgb, var(--color-surface) 96%, var(--color-neutral-surface));
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-lg) var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
+}
+
+.cc-stat-num {
+  font-family: var(--font-display);
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  line-height: 1;
+}
+
+.cc-stat-name {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+
 

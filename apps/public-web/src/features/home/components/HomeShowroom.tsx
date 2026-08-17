@@ -11,6 +11,7 @@ import { BuyingProcessPreview } from './BuyingProcessPreview';
 import { TestimonialsPreview } from './TestimonialsPreview';
 import { FaqPreview } from './FaqPreview';
 import { GlobalLogisticsSection } from './GlobalLogisticsSection';
+import { CorporateTrustShowcase } from './CorporateTrustShowcase';
 
 export interface HomeShowroomProps {
   initialVehicles?: VehicleDomainSummary[];
@@ -156,6 +157,9 @@ export const HomeShowroom: React.FC<HomeShowroomProps> = ({ initialVehicles = []
 
       {/* Global Logistics Pipeline & Tailored Export Solutions */}
       <GlobalLogisticsSection />
+
+      {/* Ultimate Sourcing Trust & Corporate Statement */}
+      <CorporateTrustShowcase />
 
       <BuyingProcessPreview />
       <TestimonialsPreview />
