@@ -17,6 +17,7 @@ export interface NavigationItem {
   href: string;
   icon?: string;
   badge?: string | number;
+  altLabel?: string;
 }
 
 export interface CustomerShellContextValue {
@@ -33,15 +34,15 @@ export interface CustomerShellContextValue {
 }
 
 const DEFAULT_NAV_ITEMS: NavigationItem[] = [
-  { id: 'dashboard', label: 'Dashboard', href: '/dashboard', icon: '📊' },
-  { id: 'inventory', label: 'Inventory', href: '/inventory', icon: '🚗' },
-  { id: 'vehicles', label: 'My Vehicles', href: '/vehicles', icon: '🔑' },
-  { id: 'invoices', label: 'Invoices & Ledger', href: '/invoices', icon: '📄' },
-  { id: 'payments', label: 'Payments', href: '/payments', icon: '💳' },
-  { id: 'shipments', label: 'Shipments', href: '/shipments', icon: '🚢' },
-  { id: 'documents', label: 'Documents', href: '/documents', icon: '📁' },
-  { id: 'notifications', label: 'Notifications', href: '/notifications', icon: '🔔' },
-  { id: 'profile', label: 'Profile & Account', href: '/profile', icon: '👤' },
+  { id: 'dashboard', label: 'Overview Desk', altLabel: 'Dashboard', href: '/dashboard', icon: '📊' },
+  { id: 'inventory', label: 'Sourcing Showroom', altLabel: 'Inventory', href: '/inventory', icon: '🚗' },
+  { id: 'vehicles', label: 'Sourced Vehicles', altLabel: 'My Vehicles', href: '/vehicles', icon: '🚙' },
+  { id: 'shipments', label: 'Reserved Vehicles', altLabel: 'Shipments', href: '/shipments', icon: '⏱️' },
+  { id: 'invoices', label: 'Billed Invoices', altLabel: 'Invoices & Ledger', href: '/invoices', icon: '📄' },
+  { id: 'payments', label: 'Wire Remittance', altLabel: 'Payments', href: '/payments', icon: '💲' },
+  { id: 'documents', label: 'Secure Vault', altLabel: 'Documents', href: '/documents', icon: '🛡️' },
+  { id: 'notifications', label: 'Bulletins', altLabel: 'Notifications', href: '/notifications', icon: '🔔', badge: 3 },
+  { id: 'profile', label: 'Client Profile', altLabel: 'Profile & Account', href: '/profile', icon: '👤' },
 ];
 
 const CustomerShellContext = createContext<CustomerShellContextValue | undefined>(undefined);

@@ -15,7 +15,7 @@ const VEHICLE_SLUG_1 = generateVehicleSlug(2021, 'Toyota', 'Corolla Axio', 'veh-
 const VEHICLE_SLUG_3 = generateVehicleSlug(2022, 'Nissan', 'X-Trail', 'veh-3');
 const VEHICLE_SLUG_4 = generateVehicleSlug(2019, 'Subaru', 'Forester', 'veh-4');
 const VEHICLE_SLUG_5 = generateVehicleSlug(2021, 'Honda', 'Fit Hybrid', 'veh-5');
-const VEHICLE_SLUG_7 = generateVehicleSlug(2023, 'Lexus', 'RX450h', 'veh-7');
+const VEHICLE_SLUG_7 = generateVehicleSlug(2024, 'Toyota', 'Raize', 'veh-7');
 const VEHICLE_SLUG_SOLD = generateVehicleSlug(2019, 'Mazda', 'CX-5', 'veh-sold');
 
 const CUSTOMER_A_TOKEN = issueSessionToken('CustomerBuyer', 'customer-a', 'a@example.com');

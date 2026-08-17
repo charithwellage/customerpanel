@@ -690,6 +690,12 @@ export interface CustomerVehicleDepositInfo {
   isFullyPaid: boolean;
 }
 
+export interface CustomerCommercialBillInfo {
+  soldAmountUsd: number;
+  paidAmountUsd: number;
+  balanceAmountUsd: number;
+}
+
 export interface CustomerVehicleSummary {
   id: string;
   vehicleId: string;
@@ -708,6 +714,14 @@ export interface CustomerVehicleSummary {
   proformaInvoiceId?: string;
   paymentDeadline?: string;
   deposit?: CustomerVehicleDepositInfo;
+  stockNumber?: string;
+  color?: string;
+  colorSpec?: string;
+  mileage?: number;
+  logisticsStatus?: string;
+  piRef?: string;
+  commercialBill?: CustomerCommercialBillInfo;
+  shippingStage?: 'Reserved' | 'Inspection' | 'In Transit' | 'Delivered' | string;
   createdAt: string;
   updatedAt: string;
 }

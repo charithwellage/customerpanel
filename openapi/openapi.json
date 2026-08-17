@@ -2641,6 +2641,21 @@
           "proformaInvoiceId": { "type": "string", "example": "pi-001" },
           "paymentDeadline": { "type": "string", "example": "2026-08-15T10:00:00.000Z" },
           "deposit": { "$ref": "#/components/schemas/CustomerVehicleDepositInfo" },
+          "stockNumber": { "type": "string", "example": "STK: YV1MV4" },
+          "color": { "type": "string", "example": "Red" },
+          "colorSpec": { "type": "string", "example": "Red" },
+          "mileage": { "type": "integer", "example": 155391 },
+          "logisticsStatus": { "type": "string", "example": "RESERVED" },
+          "piRef": { "type": "string", "example": "PI-YV1MV4" },
+          "commercialBill": {
+            "type": "object",
+            "properties": {
+              "soldAmountUsd": { "type": "number", "example": 17360.00 },
+              "paidAmountUsd": { "type": "number", "example": 0.00 },
+              "balanceAmountUsd": { "type": "number", "example": 17360.00 }
+            }
+          },
+          "shippingStage": { "type": "string", "example": "Reserved" },
           "createdAt": { "type": "string", "example": "2026-08-10T10:00:00.000Z" },
           "updatedAt": { "type": "string", "example": "2026-08-10T10:00:00.000Z" }
         },

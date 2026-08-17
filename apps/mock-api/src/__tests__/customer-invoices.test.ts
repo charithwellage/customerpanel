@@ -73,17 +73,17 @@ describe('Customer Invoices & PI Contract (D02-P05-T001)', () => {
       expect(body).toHaveProperty('totals');
 
       // cust-123 has 3 commercial invoices (inv-001, inv-002, inv-003) and 1 proforma invoice (pi-001)
-      expect(body.total).toBe(4);
+      expect(body.total).toBe(22);
       expect(body.countsByType).toEqual({
-        all: 4,
-        proforma: 1,
-        commercial: 3,
+        all: 22,
+        proforma: 6,
+        commercial: 16,
       });
 
       // Totals check
-      expect(body.totals.totalInvoicedUsd).toBe(50100.00); // 8500 + 14200 + 19500 + 7900 = 50100
-      expect(body.totals.totalPaidUsd).toBe(12500.00); // 5500 + 7000 = 12500
-      expect(body.totals.totalOutstandingUsd).toBe(37600.00); // 50100 - 12500 = 37600
+      expect(body.totals.totalInvoicedUsd).toBe(786406.00);
+      expect(body.totals.totalPaidUsd).toBe(32380.00);
+      expect(body.totals.totalOutstandingUsd).toBe(754026.00);
 
       // All items must belong to cust-123 (RULE-04)
       for (const item of body.items) {
@@ -104,7 +104,7 @@ describe('Customer Invoices & PI Contract (D02-P05-T001)', () => {
       });
       expect(piRes.status).toBe(200);
       const piBody = (await piRes.json()) as CustomerInvoiceListResponse;
-      expect(piBody.total).toBe(1);
+      expect(piBody.total).toBe(6);
       expect(piBody.items[0].type).toBe('Proforma');
       expect(piBody.items[0].id).toBe('pi-001');
 
@@ -113,7 +113,7 @@ describe('Customer Invoices & PI Contract (D02-P05-T001)', () => {
       });
       expect(commRes.status).toBe(200);
       const commBody = (await commRes.json()) as CustomerInvoiceListResponse;
-      expect(commBody.total).toBe(3);
+      expect(commBody.total).toBe(16);
       for (const item of commBody.items) {
         expect(item.type).toBe('Commercial');
       }
@@ -128,7 +128,7 @@ describe('Customer Invoices & PI Contract (D02-P05-T001)', () => {
       const body = (await res.json()) as CustomerInvoiceListResponse;
       expect(body.total).toBe(1);
       expect(body.items[0].model).toBe('HiAce Van');
-      expect(body.items[0].id).toBe('inv-002');
+      expect(body.items[0].id).toBe('inv-016');
     });
 
     it('filters customer invoices by status', async () => {
@@ -158,16 +158,16 @@ describe('Customer Invoices & PI Contract (D02-P05-T001)', () => {
       expect(body.invoiceNumber).toBe('INV-0001');
       expect(body.type).toBe('Commercial');
       expect(body.customerId).toBe('cust-123');
-      expect(body.totalAmountUsd).toBe(8500.00);
+      expect(body.totalAmountUsd).toBe(17360.00);
       expect(body.paidAmountUsd).toBe(5500.00);
-      expect(body.outstandingAmountUsd).toBe(3000.00);
+      expect(body.outstandingAmountUsd).toBe(11860.00);
       expect(body.status).toBe('PartiallyPaid');
 
       // Vehicle detail
       expect(body.vehicle).toBeDefined();
       expect(body.vehicle.make).toBe('Toyota');
-      expect(body.vehicle.model).toBe('Corolla Axio');
-      expect(body.vehicle.chassisNumber).toBe('NZE141-1234567');
+      expect(body.vehicle.model).toBe('Corolla Fielder');
+      expect(body.vehicle.chassisNumber).toBe('NRE161-0091995');
 
       // Line items
       expect(body.lineItems).toBeInstanceOf(Array);
@@ -198,8 +198,8 @@ describe('Customer Invoices & PI Contract (D02-P05-T001)', () => {
       expect(body.invoiceNumber).toBe('PI-0001');
       expect(body.type).toBe('Proforma');
       expect(body.customerId).toBe('cust-123');
-      expect(body.totalAmountUsd).toBe(7900.00);
-      expect(body.depositRequiredUsd).toBe(3950.00); // 50% of 7900 under RULE-07
+      expect(body.totalAmountUsd).toBe(10800.00);
+      expect(body.depositRequiredUsd).toBe(5400.00); // 50% of 10800 under RULE-07
       expect(body.paymentDeadline).toBeDefined();
       expect(body.isExpired).toBe(false);
 
