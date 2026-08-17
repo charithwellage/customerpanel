@@ -10,6 +10,7 @@ import { PromotionsCountdown } from './PromotionsCountdown';
 import { BuyingProcessPreview } from './BuyingProcessPreview';
 import { TestimonialsPreview } from './TestimonialsPreview';
 import { FaqPreview } from './FaqPreview';
+import { GlobalLogisticsSection } from './GlobalLogisticsSection';
 
 export interface HomeShowroomProps {
   initialVehicles?: VehicleDomainSummary[];
@@ -152,6 +153,9 @@ export const HomeShowroom: React.FC<HomeShowroomProps> = ({ initialVehicles = []
           </div>
         )}
       </section>
+
+      {/* Global Logistics Pipeline & Tailored Export Solutions */}
+      <GlobalLogisticsSection />
 
       <BuyingProcessPreview />
       <TestimonialsPreview />

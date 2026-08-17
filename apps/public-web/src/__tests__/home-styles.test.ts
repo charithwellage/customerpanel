@@ -6,6 +6,7 @@ describe('Home Components Style Ownership & Static Inline Style Source Guard', (
   const namedHomeComponents = [
     'BuyingProcessPreview.tsx',
     'FaqPreview.tsx',
+    'GlobalLogisticsSection.tsx',
     'HomeShowroom.tsx',
     'MarketControls.tsx',
     'PremiumTeaserSection.tsx',

@@ -443,7 +443,7 @@ export default function VehicleDetailPage({ vehicle }: VehicleDetailPageProps) {
             <div className="cc-cif-header">
               <span className="cc-cif-header-icon">⚓</span>
               <div>
-                <h3 className="cc-cif-header-title">OCEAN FREIGHT ESTIMATOR (CIF)</h3>
+                <h3 className="cc-cif-header-title">Estimate Shipping Cost (CIF Ocean Freight)</h3>
                 <p className="cc-cif-header-sub">
                   Calculate global logistics ocean cargo fees and marine insurance for exporting this {vehicle.make}.
                 </p>
