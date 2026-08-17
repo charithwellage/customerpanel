@@ -484,4 +484,31 @@ describe('VehicleGalleryPrimitive (shared package)', () => {
     expect(multiple).toContain('role="tablist"');
     expect(multiple).toContain('aria-label="Image 1 of 2"');
   });
+
+  it('renders shared status badges and an accessible image fallback contract', async () => {
+    const React = await import('react');
+    const { renderToStaticMarkup } = await import('react-dom/server');
+    const { VehicleGalleryPrimitive } = await import('@carchief/vehicle-detail');
+
+    const html = renderToStaticMarkup(
+      React.createElement(VehicleGalleryPrimitive, {
+        images: ['https://example.com/1.jpg', 'https://example.com/2.jpg'],
+        title: '2024 Toyota Corolla',
+        badges: [
+          { label: 'Stock', tone: 'neutral' },
+          { label: 'Available', tone: 'success' },
+        ],
+      }),
+    );
+
+    expect(html).toContain('Vehicle status');
+    expect(html).toContain('Stock');
+    expect(html).toContain('Available');
+    expect(html).toContain('aria-current="true"');
+    expect(html).toContain('loading="lazy"');
+    const empty = renderToStaticMarkup(
+      React.createElement(VehicleGalleryPrimitive, { images: [], title: '2024 Toyota Corolla' }),
+    );
+    expect(empty).toContain('No images available for this vehicle yet.');
+  });
 });

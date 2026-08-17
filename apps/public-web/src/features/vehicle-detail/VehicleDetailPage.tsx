@@ -156,7 +156,14 @@ export default function VehicleDetailPage({ vehicle }: VehicleDetailPageProps) {
 
       <section className="cc-vehicle-detail__gallery" aria-label="Vehicle media gallery">
         <h2 className="sr-only">Media Gallery</h2>
-        <VehicleGalleryPrimitive images={galleryImages} title={title} />
+        <VehicleGalleryPrimitive
+          images={galleryImages}
+          title={title}
+          badges={[
+            { label: vehicle.category === 'premium' ? 'Premium' : 'Stock', tone: 'neutral' as const },
+            { label: availabilityLabel, tone: (isSold ? 'error' : available ? 'success' : 'warning') as 'error' | 'success' | 'warning' },
+          ]}
+        />
       </section>
 
       {/* Contact intent actions (PUB-28). These declare intent only — the site

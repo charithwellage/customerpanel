@@ -44,4 +44,10 @@ describe('Domain Country Catalog', () => {
     const codes = COUNTRIES.map((c) => c.isoCode);
     expect(new Set(codes).size).toBe(codes.length);
   });
+
+  it('contains the complete platform country catalog, not only CarChief destinations', () => {
+    expect(COUNTRIES.length).toBeGreaterThan(200);
+    expect(COUNTRIES.some((country) => country.isoCode === 'BR' && country.name === 'Brazil')).toBe(true);
+    expect(COUNTRIES.some((country) => country.isoCode === 'DE' && country.name === 'Germany')).toBe(true);
+  });
 });

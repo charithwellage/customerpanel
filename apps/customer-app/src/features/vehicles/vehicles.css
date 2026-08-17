@@ -539,39 +539,9 @@
   gap: var(--spacing-lg);
 }
 
-/* Gallery */
+/* Gallery container; image behavior is owned by @carchief/vehicle-detail. */
 .cc-cust-fleet-gallery {
-  padding: var(--spacing-md);
-  gap: var(--spacing-md);
-}
-
-.cc-cust-fleet-gallery__primary-wrap {
-  width: 100%;
-  aspect-ratio: 16 / 10;
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  background: var(--color-neutral-surface);
-}
-
-.cc-cust-fleet-gallery__primary {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.cc-cust-fleet-gallery__thumbs {
-  display: flex;
-  gap: var(--spacing-sm);
-  overflow-x: auto;
-  padding-bottom: var(--spacing-xs);
-}
-
-.cc-cust-fleet-gallery__thumb {
-  width: 80px;
-  height: 60px;
-  object-fit: cover;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--color-border);
+  padding: 0;
 }
 
 /* Specs */

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useId, useState } from 'react';
+import React, { useId, useMemo, useState } from 'react';
 import type { CountryOption } from '@carchief/domain/dist/countries.js';
 import type { RegistrationFieldErrors, RegistrationFormValues } from '../hooks/useRegistrationForm';
 
@@ -57,6 +57,40 @@ export function RegistrationForm({
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [countrySearch, setCountrySearch] = useState('');
+  const [countryMenuOpen, setCountryMenuOpen] = useState(false);
+  const [highlightedCountry, setHighlightedCountry] = useState(0);
+
+  const selectedCountry = countries.find((country) => country.isoCode === values.countryCode);
+  const filteredCountries = useMemo(() => {
+    const query = countrySearch.trim().toLocaleLowerCase();
+    if (!query) return countries;
+    return countries.filter((country) =>
+      `${country.name} ${country.isoCode} ${country.dialCode}`.toLocaleLowerCase().includes(query),
+    );
+  }, [countries, countrySearch]);
+
+  function selectCountry(country: CountryOption) {
+    onFieldChange('countryCode', country.isoCode);
+    setCountrySearch('');
+    setCountryMenuOpen(false);
+  }
+
+  function handleCountryKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      setCountryMenuOpen(true);
+      setHighlightedCountry((current) => Math.min(current + 1, Math.max(filteredCountries.length - 1, 0)));
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      setHighlightedCountry((current) => Math.max(current - 1, 0));
+    } else if (event.key === 'Enter' && countryMenuOpen && filteredCountries[highlightedCountry]) {
+      event.preventDefault();
+      selectCountry(filteredCountries[highlightedCountry]);
+    } else if (event.key === 'Escape') {
+      setCountryMenuOpen(false);
+    }
+  }
 
   const hasAnyError = Object.values(fieldErrors).some(Boolean) || Boolean(submitError);
   const firstErrorMessage =
@@ -128,22 +162,51 @@ export function RegistrationForm({
         )}
 
         {!countriesLoading && !countriesError && (
-          <select
+          <div className="cc-registration-form__country-picker">
+            <input
             id={countryId}
-            className="cc-registration-form__select cnt-form-input"
-            value={values.countryCode}
-            onChange={(e) => onFieldChange('countryCode', e.target.value)}
+            className="cc-registration-form__input cc-registration-form__country-input cnt-form-input"
+            role="combobox"
+            type="search"
+            autoComplete="off"
+            placeholder="Search countries..."
+            value={countryMenuOpen ? countrySearch : selectedCountry?.name ?? ''}
+            onFocus={() => setCountryMenuOpen(true)}
+            onChange={(event) => {
+              setCountrySearch(event.target.value);
+              setCountryMenuOpen(true);
+              setHighlightedCountry(0);
+            }}
+            onKeyDown={handleCountryKeyDown}
+            onBlur={() => window.setTimeout(() => setCountryMenuOpen(false), 150)}
             aria-required="true"
             aria-invalid={Boolean(fieldErrors.countryCode)}
             aria-describedby={fieldErrors.countryCode ? countryErrorId : undefined}
-          >
-            <option value="">Select your country&hellip;</option>
-            {countries.map((country) => (
-              <option key={country.isoCode} value={country.isoCode}>
-                {country.name}
-              </option>
-            ))}
-          </select>
+            aria-expanded={countryMenuOpen}
+            aria-controls={`${countryId}-options`}
+            aria-activedescendant={countryMenuOpen && filteredCountries[highlightedCountry] ? `${countryId}-option-${filteredCountries[highlightedCountry].isoCode}` : undefined}
+            />
+            {countryMenuOpen && (
+              <ul id={`${countryId}-options`} role="listbox" className="cc-registration-form__country-options">
+                {filteredCountries.length > 0 ? filteredCountries.map((country, index) => (
+                  <li
+                    id={`${countryId}-option-${country.isoCode}`}
+                    key={country.isoCode}
+                    role="option"
+                    aria-selected={country.isoCode === values.countryCode}
+                    className={index === highlightedCountry ? 'cc-registration-form__country-option--highlighted' : undefined}
+                    onMouseDown={(event) => event.preventDefault()}
+                    onClick={() => selectCountry(country)}
+                  >
+                    <span>{country.name}</span>
+                    {country.dialCode && <span>{country.dialCode}</span>}
+                  </li>
+                )) : (
+                  <li className="cc-registration-form__country-empty">No countries match your search.</li>
+                )}
+              </ul>
+            )}
+          </div>
         )}
         {fieldErrors.countryCode && (
           <p id={countryErrorId} role="alert" className="cc-registration-form__field-error cnt-error-msg">

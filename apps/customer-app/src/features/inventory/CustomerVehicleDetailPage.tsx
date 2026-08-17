@@ -85,7 +85,11 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
       <div className="cc-cust-detail-grid">
         {/* Gallery Section */}
         <div className="cc-cust-detail-gallery-col">
-          <VehicleGalleryPrimitive images={images} title={title} />
+          <VehicleGalleryPrimitive
+            images={images}
+            title={title}
+            badges={[{ label: vehicle.status, tone: vehicle.status === 'Available' ? ('success' as const) : ('warning' as const) }]}
+          />
         </div>
 
         {/* Info & Action Section */}

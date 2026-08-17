@@ -25,6 +25,50 @@
   justify-content: center;
 }
 
+.cc-gallery__badges {
+  position: absolute;
+  top: var(--spacing-md);
+  left: var(--spacing-md);
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+}
+
+.cc-gallery__badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  padding: 0 var(--spacing-sm);
+  border: 1px solid color-mix(in srgb, var(--color-text-on-dark) 18%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--color-surface-dark) 88%, transparent);
+  color: var(--color-text-on-dark);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.cc-gallery__badge--success { background: var(--color-success); color: var(--color-text-on-primary); }
+.cc-gallery__badge--warning { background: var(--color-warning); color: var(--color-text-primary); }
+.cc-gallery__badge--error { background: var(--color-error); color: var(--color-text-on-primary); }
+.cc-gallery__badge--info { background: var(--color-info); color: var(--color-text-on-primary); }
+
+.cc-gallery__image-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  min-height: 14rem;
+  padding: var(--spacing-lg);
+  color: var(--color-text-on-dark);
+  font-family: var(--font-body);
+  text-align: center;
+}
+
 .cc-gallery__image {
   width: 100%;
   height: 100%;
@@ -77,6 +121,12 @@
 
 .cc-gallery__nav:hover {
   background: var(--color-primary);
+}
+
+.cc-gallery__nav:focus-visible,
+.cc-gallery__thumb:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus);
+  outline-offset: 2px;
 }
 
 /* Thumbnails strip */
@@ -132,6 +182,10 @@
   pointer-events: none;
 }
 
+.cc-gallery__thumb[aria-selected="true"] {
+  border-color: var(--color-primary);
+}
+
 .cc-gallery__placeholder {
   display: flex;
   align-items: center;
@@ -161,6 +215,12 @@
   .cc-gallery__thumb--active {
     transform: none;
   }
+}
+
+@media (max-width: 480px) {
+  .cc-gallery__badges { top: var(--spacing-sm); left: var(--spacing-sm); }
+  .cc-gallery__nav { opacity: 1; width: 2.25rem; height: 2.25rem; }
+  .cc-gallery__thumb { width: 3.75rem; }
 }
 
 @media print {

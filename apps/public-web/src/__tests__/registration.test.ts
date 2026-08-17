@@ -216,8 +216,8 @@ describe('RegistrationForm rendering', () => {
     expect(html).toContain('Email address');
     expect(html).toContain('Password');
     expect(html).toContain('Re-enter password');
-    expect(html).toContain('Kenya');
-    expect(html).toContain('Uganda');
+    expect(html).toContain('role="combobox"');
+    expect(html).toContain('Search countries...');
   });
 
   it('displays the selected country dial code beside the mobile number and updates when the country changes', async () => {
