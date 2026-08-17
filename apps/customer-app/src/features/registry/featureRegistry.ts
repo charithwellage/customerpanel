@@ -30,6 +30,16 @@ export const CUSTOMER_FEATURE_REGISTRY: Record<string, FeatureOwnershipRecord> =
     fixtureNamespace: 'customer_inventory',
     e2eSpecPath: 'tests/e2e/customer/inventory.spec.ts',
   },
+  inquiries: {
+    id: 'inquiries',
+    phase: 'Phase 2.13',
+    title: 'My Inquiries',
+    routePath: '/inquiries',
+    openapiPrefix: '/api/v1/customer/inquiries',
+    mockApiPrefix: '/api/v1/customer/inquiries',
+    fixtureNamespace: 'customer_inquiries',
+    e2eSpecPath: 'tests/e2e/customer/inquiries.spec.ts',
+  },
   vehicles: {
     id: 'vehicles',
     phase: 'Phase 2.4',

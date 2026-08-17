@@ -36,6 +36,7 @@ export interface CustomerShellContextValue {
 const DEFAULT_NAV_ITEMS: NavigationItem[] = [
   { id: 'dashboard', label: 'Overview Desk', altLabel: 'Dashboard', href: '/dashboard', icon: '📊' },
   { id: 'inventory', label: 'Sourcing Showroom', altLabel: 'Inventory', href: '/inventory', icon: '🚗' },
+  { id: 'inquiries', label: 'My Inquiries', altLabel: 'My Inquiries', href: '/inquiries', icon: '💬' },
   { id: 'vehicles', label: 'Sourced Vehicles', altLabel: 'My Vehicles', href: '/vehicles', icon: '🚙' },
   { id: 'shipments', label: 'Reserved Vehicles', altLabel: 'Shipments', href: '/shipments', icon: '⏱️' },
   { id: 'invoices', label: 'Billed Invoices', altLabel: 'Invoices & Ledger', href: '/invoices', icon: '📄' },
