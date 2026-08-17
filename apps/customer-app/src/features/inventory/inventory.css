@@ -486,3 +486,42 @@
   gap: var(--spacing-sm);
   margin-top: var(--spacing-md);
 }
+
+/* Customer Actions Card (D02-P13-T005) */
+.cc-cust-actions-card {
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.cc-cust-actions-card__heading {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0 0 var(--spacing-md) 0;
+  color: var(--color-text-primary);
+}
+
+.cc-cust-actions-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-md);
+}
+
+@media (min-width: 480px) {
+  .cc-cust-actions-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.cc-cust-action-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.cc-cust-btn--secondary:hover:not(:disabled) {
+  background: var(--color-neutral-surface-hover);
+  border-color: var(--color-primary);
+}

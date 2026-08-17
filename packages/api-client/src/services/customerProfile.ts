@@ -10,11 +10,11 @@ export class CustomerProfileService {
   }
 
   get(): Promise<CustomerProfile> {
-    return this.requireClient().request<CustomerProfile>('/customer/profile');
+    return this.requireClient().request<CustomerProfile>('/api/v1/customer/profile');
   }
 
   update(request: UpdateCustomerProfileRequest): Promise<CustomerProfile> {
-    return this.requireClient().request<CustomerProfile>('/customer/profile', {
+    return this.requireClient().request<CustomerProfile>('/api/v1/customer/profile', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(request),

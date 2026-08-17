@@ -15,7 +15,7 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
   token,
   onBack,
 }) => {
-  const { state, refetch, reserveVehicle, requestPriceInquiry } = useCustomerVehicleDetail({
+  const { state, refetch, reserveVehicle, requestPriceInquiry, submitQuoteRequest, toggleWishlist } = useCustomerVehicleDetail({
     idOrSlug: slug,
     apiBaseUrl,
     token,
@@ -235,6 +235,66 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
                 <p>This vehicle is currently not available for reservation.</p>
               </div>
             )}
+          </div>
+
+          {/* Customer App Actions: Quote Request and Wishlist (D02-P13-T005) */}
+          <div className="cc-cust-actions-card" data-testid="customer-actions-card">
+            <h2 className="cc-cust-actions-card__heading">Customer Actions</h2>
+            <div className="cc-cust-actions-grid">
+              {/* Quote Request Button */}
+              <div className="cc-cust-action-item">
+                {state.quoteSubmitSuccess ? (
+                  <div className="cc-cust-status-banner cc-cust-status-banner--success" role="status">
+                    <span className="cc-cust-status-banner__icon">✓</span>
+                    <div>
+                      <strong>Quote Requested</strong>
+                      <p>Our export desk will contact you shortly with pricing information.</p>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    {state.quoteSubmitError && (
+                      <div className="cc-cust-reservation-error" role="alert">
+                        <p>{state.quoteSubmitError}</p>
+                      </div>
+                    )}
+                    <button
+                      type="button"
+                      className="cc-cust-btn cc-cust-btn--primary cc-cust-btn--large"
+                      onClick={submitQuoteRequest}
+                      disabled={state.quoteSubmitting}
+                      data-testid="quote-request-btn"
+                      aria-label={state.quoteSubmitting ? 'Requesting quote...' : 'Request free quote'}
+                    >
+                      {state.quoteSubmitting ? 'Requesting Quote...' : 'Get Free Quote'}
+                    </button>
+                  </>
+                )}
+              </div>
+
+              {/* Wishlist Toggle Button */}
+              <div className="cc-cust-action-item">
+                {state.wishlistError && (
+                  <div className="cc-cust-reservation-error" role="alert">
+                    <p>{state.wishlistError}</p>
+                  </div>
+                )}
+                <button
+                  type="button"
+                  className={`cc-cust-btn cc-cust-btn--large ${state.isWishlisted ? 'cc-cust-btn--secondary' : 'cc-cust-btn--primary'}`}
+                  onClick={toggleWishlist}
+                  disabled={state.wishlistLoading}
+                  data-testid="wishlist-toggle-btn"
+                  aria-label={state.isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+                >
+                  {state.wishlistLoading
+                    ? 'Updating Wishlist...'
+                    : state.isWishlisted
+                      ? '♥ Remove from Wishlist'
+                      : '♡ Add to Wishlist'}
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* Specifications Table */}
