@@ -183,9 +183,9 @@ function validate({ quiet = false } = {}) {
     'D01-P05-T004', 'D01-P06-T005', 'D01-P07-T004', 'D01-P08-T004',
     'D02-P01-T003', 'D02-P02-T002', 'D02-P03-T003', 'D02-P04-T003',
     'D02-P05-T003', 'D02-P06-T004', 'D02-P07-T004', 'D02-P08-T003', 'D02-P09-T004', 'D02-P10-T003', 'D02-P11-T002',
-    'D02-P12-T007',
+    'D02-P12-T007', 'D02-P13-T008',
   ]);
-  if (tasks.size !== 127) errors.push(`expected 127 task/gate files, found ${tasks.size}`);
+  if (tasks.size !== 136) errors.push(`expected 136 task/gate files, found ${tasks.size}`);
   for (const task of tasks.values()) {
     for (const field of ['task_id', 'title', 'delivery', 'phase', 'estimate', 'model_tier', 'parallel_group', 'phase_branch', 'task_branch']) {
       if (!task[field]) errors.push(`${task.task_id || task.file}: missing ${field}`);
@@ -378,6 +378,7 @@ function executionLane(task) {
   if (/^D02-P(?:09|10)-/.test(task.task_id)) return 'D02-FINAL';
   if (/^D02-P11-/.test(task.task_id)) return 'D02-OPTIONAL-THEME';
   if (/^D02-P12-/.test(task.task_id)) return 'D02-ACCOUNT';
+  if (/^D02-P13-/.test(task.task_id)) return 'D02-INQUIRIES-WISHLIST';
   return 'GLOBAL';
 }
 
