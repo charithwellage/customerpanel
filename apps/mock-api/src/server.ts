@@ -144,9 +144,10 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
   // Independent of DEC-PUB-FREIGHT-MODEL/DEC-PUB-CITY-DELIVERY (D01-ASM-001):
   // a visitor can submit an enquiry about a vehicle, a shipping destination,
   // or neither, with no computed total ever attached to it (RULE-09).
-  app.post('/api/v1/enquiries', async (req: Request, res: Response) => {
+  app.post('/api/v1/enquiries', async (req: AuthenticatedRequest, res: Response) => {
     try {
-      const enquiry = await store.createEnquiry((req.body ?? {}) as EnquiryRequest);
+      const customerId = req.user ? resolveCustomerScope(req.user.sub) : undefined;
+      const enquiry = await store.createEnquiry((req.body ?? {}) as EnquiryRequest, customerId);
       res.status(enquiry.duplicate ? 200 : 201).json(enquiry);
     } catch (error) {
       if (error instanceof EnquiryRequestError) {
@@ -199,6 +200,32 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
       return;
     }
     res.json(lead);
+  });
+
+  // 3j. Customer inquiry list (D02-P13-T001, CUST-34): returns only the
+  // signed-in customer's own quote requests, one row per distinct vehicle.
+  app.get('/api/v1/customer/inquiries', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) {
+      res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+      return;
+    }
+    const customerId = resolveCustomerScope(req.user.sub);
+    const inquiries = await store.listCustomerInquiries(customerId);
+    res.json(inquiries);
+  });
+
+  // 3k. Vehicle inquiry aggregate (D02-P13-T001, CUST-35): returns the count
+  // of distinct people who have requested a quote for a given vehicle.
+  app.get('/api/v1/vehicles/:idOrSlug/inquiry-count', async (req: Request, res: Response) => {
+    const rawParam = req.params.idOrSlug;
+    const idOrSlug = Array.isArray(rawParam) ? rawParam[0] : rawParam;
+    const vehicle = await store.getVehicleDetail(idOrSlug);
+    if (!vehicle) {
+      res.status(404).json({ statusCode: 404, message: `Vehicle '${idOrSlug}' not found`, correlationId: `corr-404-${Date.now()}` });
+      return;
+    }
+    const aggregate = await store.getVehicleInquiryAggregate(idOrSlug);
+    res.json(aggregate);
   });
 
   // 3i-r. Transactional reservation eligibility and hold (PUB-23, RULE-05,

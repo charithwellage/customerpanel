@@ -177,6 +177,81 @@ describe('Quotation enquiry submission (PUB-13, PUB-15, D01-ASM-001)', () => {
       expect(second.duplicate).toBe(false);
       expect(second.id).not.toBe(first.id);
     });
+
+    it('persists customerId for authenticated submissions (D02-P13-T001)', async () => {
+      const result = await store.createEnquiry(
+        {
+          name: 'Signed-In Customer',
+          consent: true,
+          email: 'customer@example.com',
+          phone: '+256700999888',
+          message: 'Get a quote please.',
+          vehicleSlug: VALID_VEHICLE_SLUG,
+          enquiryType: 'price-request',
+        },
+        'cust-123'
+      );
+      expect(result.customerId).toBe('cust-123');
+    });
+
+    it('does not persist customerId for anonymous submissions (D02-P13-T001)', async () => {
+      const result = await store.createEnquiry({
+        name: 'Anonymous Visitor',
+        consent: true,
+        email: 'visitor@example.com',
+        phone: '+256700999888',
+        message: 'I am interested.',
+        vehicleSlug: VALID_VEHICLE_SLUG,
+        enquiryType: 'price-request',
+      });
+      expect(result.customerId).toBeUndefined();
+    });
+
+    it('deduplicates authenticated customer submissions by customerId, not email (D02-P13-T001)', async () => {
+      const request1 = {
+        name: 'Customer A',
+        consent: true,
+        email: 'shared@example.com',
+        phone: '+256700111111',
+        message: 'Quote request.',
+        vehicleSlug: VALID_VEHICLE_SLUG,
+        enquiryType: 'price-request',
+      };
+      const request2 = {
+        name: 'Customer B',
+        consent: true,
+        email: 'shared@example.com',
+        phone: '+256700222222',
+        message: 'Quote request.',
+        vehicleSlug: VALID_VEHICLE_SLUG,
+        enquiryType: 'price-request',
+      };
+
+      const first = await store.createEnquiry(request1, 'cust-alice');
+      const second = await store.createEnquiry(request2, 'cust-bob');
+      expect(first.duplicate).toBe(false);
+      expect(second.duplicate).toBe(false);
+      expect(first.id).not.toBe(second.id);
+    });
+
+    it('redeuplicate a resubmission by the same authenticated customer', async () => {
+      const request = {
+        name: 'Signed-In Customer',
+        consent: true,
+        email: 'customer@example.com',
+        phone: '+256700999888',
+        message: 'Quote request.',
+        vehicleSlug: VALID_VEHICLE_SLUG,
+        enquiryType: 'price-request',
+      };
+
+      const first = await store.createEnquiry(request, 'cust-123');
+      expect(first.duplicate).toBe(false);
+
+      const second = await store.createEnquiry(request, 'cust-123');
+      expect(second.duplicate).toBe(true);
+      expect(second.id).toBe(first.id);
+    });
   });
 
   describe('HTTP contract via Express app', () => {

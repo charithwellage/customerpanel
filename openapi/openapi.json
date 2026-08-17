@@ -821,6 +821,64 @@
         }
       }
     },
+    "/api/v1/customer/inquiries": {
+      "get": {
+        "summary": "List the signed-in customer's quote requests, one row per distinct vehicle (D02-P13-T001, CUST-34)",
+        "operationId": "listCustomerInquiries",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "The customer's inquiry list",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CustomerInquiryListResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "No authenticated identity supplied",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/vehicles/{idOrSlug}/inquiry-count": {
+      "get": {
+        "summary": "Get the aggregate count of distinct inquirers for a vehicle (D02-P13-T001, CUST-35)",
+        "operationId": "getVehicleInquiryAggregate",
+        "parameters": [
+          {
+            "name": "idOrSlug",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "example": "2021-toyota-corolla-axio-veh-1"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The vehicle inquiry aggregate",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/VehicleInquiryAggregate" }
+              }
+            }
+          },
+          "404": {
+            "description": "No vehicle exists with this id or slug",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/reservations": {
       "post": {
         "summary": "Create a transactional 48-hour reservation hold on a vehicle for the authenticated demo customer (PUB-23, RULE-05, RULE-08, RULE-10, D01-P06-T004)",
@@ -2213,7 +2271,8 @@
             "example": "form"
           },
           "vehicleSlug": { "type": "string", "example": "2021-toyota-corolla-axio-veh-1" },
-          "estimateSnapshot": { "$ref": "#/components/schemas/EnquiryEstimateSnapshot" }
+          "estimateSnapshot": { "$ref": "#/components/schemas/EnquiryEstimateSnapshot" },
+          "customerId": { "type": "string", "example": "cust-1", "description": "Set only for authenticated submissions" }
         },
         "required": ["id", "receivedAt", "status", "duplicate", "enquiryType", "source"]
       },
@@ -2272,6 +2331,37 @@
           "total": { "type": "integer", "example": 1 }
         },
         "required": ["items", "total"]
+      },
+      "CustomerInquirySummary": {
+        "type": "object",
+        "description": "A signed-in customer's quote request for a specific vehicle, with the aggregate inquirer count.",
+        "properties": {
+          "vehicleSlug": { "type": "string", "example": "2021-toyota-corolla-axio-veh-1" },
+          "vehicleId": { "type": "string", "example": "veh-1" },
+          "vehicleTitle": { "type": "string", "example": "2021 Toyota Corolla Axio" },
+          "requestedAt": { "type": "string", "example": "2026-08-11T12:00:00.000Z" },
+          "inquirerCount": { "type": "integer", "example": 3, "description": "Count of distinct inquirers for this vehicle" }
+        },
+        "required": ["vehicleSlug", "vehicleId", "vehicleTitle", "requestedAt", "inquirerCount"]
+      },
+      "CustomerInquiryListResponse": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/CustomerInquirySummary" }
+          }
+        },
+        "required": ["items"]
+      },
+      "VehicleInquiryAggregate": {
+        "type": "object",
+        "description": "Aggregate count of distinct inquirers for a vehicle (D02-P13-T001, CUST-35).",
+        "properties": {
+          "vehicleSlug": { "type": "string", "example": "2021-toyota-corolla-axio-veh-1" },
+          "inquirerCount": { "type": "integer", "example": 5, "description": "Count of distinct people who have requested a quote for this vehicle" }
+        },
+        "required": ["vehicleSlug", "inquirerCount"]
       },
       "ReservationRequest": {
         "type": "object",

@@ -433,6 +433,7 @@ export interface EnquiryRequest {
   preferredDriveSide?: EnquiryPreferredDriveSide;
   preferredYear?: number;
   targetPriceUsd?: number;
+  customerId?: string; // server-populated only, never client-supplied
 }
 
 /**
@@ -453,6 +454,7 @@ export interface EnquiryResponse {
   source: EnquirySource;
   vehicleSlug?: string;
   estimateSnapshot?: EnquiryEstimateSnapshot;
+  customerId?: string; // set only for authenticated submissions
 }
 
 /**
@@ -491,6 +493,26 @@ export interface LeadRecord {
 export interface LeadListResponse {
   items: LeadRecord[];
   total: number;
+}
+
+/** Customer's own quote request summary (D02-P13-T001, CUST-34). */
+export interface CustomerInquirySummary {
+  vehicleSlug: string;
+  vehicleId: string;
+  vehicleTitle: string;
+  requestedAt: string;
+  inquirerCount: number;
+}
+
+/** Signed-in customer's inquiry list (D02-P13-T001, CUST-34). */
+export interface CustomerInquiryListResponse {
+  items: CustomerInquirySummary[];
+}
+
+/** Aggregate of distinct inquirers for a vehicle (D02-P13-T001, CUST-35). */
+export interface VehicleInquiryAggregate {
+  vehicleSlug: string;
+  inquirerCount: number;
 }
 
 // --- Phase 1.6: transactional reservation eligibility and hold (PUB-23,

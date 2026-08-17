@@ -149,8 +149,8 @@
 | [D02-P12-T006](delivery_02/phase_12/D02-P12-T006.md) | Rebuild the Customer profile page with working password management and remove residual demo copy | COMPLETE | self_ai | playwright_mcp | Claude Sonnet 5 (subagent) | `feat_delivery02_phase_12` | D02-P12-CODE_REVIEW (COMPLETE) | D02-P12-T005 | D02-P12-SEQUENTIAL | 2026-08-16T02:41:38.266Z |
 | [D02-P12-T007](delivery_02/phase_12/D02-P12-T007.md) | Verify the end-to-end account journey, container gate and Phase 2.12 acceptance | COMPLETE | self_ai | playwright_mcp | Claude Sonnet 5 (subagent) | `feat_delivery02_phase_12` | D02-P12-CODE_REVIEW (COMPLETE) | D02-P12-T006 | D02-P12-SEQUENTIAL | 2026-08-16T06:35:00.000Z |
 | [D02-P12-CODE_REVIEW](delivery_02/phase_12/D02-P12-CODE_REVIEW.md) | Phase 2.12 PR code review and tech-lead approval | COMPLETE | phase_manual | not_applicable | Claude Sonnet 5 (subagent) | `feat_delivery02_phase_12` | D02-P12-CODE_REVIEW (COMPLETE) | D02-P12-T007 | D02-P12-REVIEW | 2026-08-16T09:53:50.618Z |
-| [D02-P13-T001](delivery_02/phase_13/D02-P13-T001.md) | Extend the enquiries contract to link quote requests to customers and expose an inquirer-count aggregate | READY | self_ai | not_applicable | — | `feat_delivery02_phase_13` | D02-P13-CODE_REVIEW (NOT_STARTED) | D02-P12-CODE_REVIEW | D02-P13-SEQUENTIAL | — |
-| [D02-P13-T002](delivery_02/phase_13/D02-P13-T002.md) | Add the Wishlist and Favourites Mock API entities, routes and facets endpoint | NOT_STARTED | self_ai | not_applicable | — | `feat_delivery02_phase_13` | D02-P13-CODE_REVIEW (NOT_STARTED) | D02-P13-T001 | D02-P13-SEQUENTIAL | — |
+| [D02-P13-T001](delivery_02/phase_13/D02-P13-T001.md) | Extend the enquiries contract to link quote requests to customers and expose an inquirer-count aggregate | COMPLETE | self_ai | not_applicable | — | `feat_delivery02_phase_13` | D02-P13-CODE_REVIEW (NOT_STARTED) | D02-P12-CODE_REVIEW | D02-P13-SEQUENTIAL | 2026-08-17T15:09:59.791Z |
+| [D02-P13-T002](delivery_02/phase_13/D02-P13-T002.md) | Add the Wishlist and Favourites Mock API entities, routes and facets endpoint | READY | self_ai | not_applicable | — | `feat_delivery02_phase_13` | D02-P13-CODE_REVIEW (NOT_STARTED) | D02-P13-T001 | D02-P13-SEQUENTIAL | — |
 | [D02-P13-T003](delivery_02/phase_13/D02-P13-T003.md) | Add shared validation schemas and api-client services for quotes, inquiries, wishlist and favourites | NOT_STARTED | self_ai | not_applicable | — | `feat_delivery02_phase_13` | D02-P13-CODE_REVIEW (NOT_STARTED) | D02-P13-T002 | D02-P13-SEQUENTIAL | — |
 | [D02-P13-T004](delivery_02/phase_13/D02-P13-T004.md) | Add Get Free Quote to the public-web vehicle detail page | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery02_phase_13` | D02-P13-CODE_REVIEW (NOT_STARTED) | D02-P13-T003 | D02-P13-SEQUENTIAL | — |
 | [D02-P13-T005](delivery_02/phase_13/D02-P13-T005.md) | Add Get Free Quote and Add to Wishlist to the customer-app vehicle detail page | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery02_phase_13` | D02-P13-CODE_REVIEW (NOT_STARTED) | D02-P13-T004 | D02-P13-SEQUENTIAL | — |
@@ -162,7 +162,7 @@
 
 ## Current execution frontiers
 
-- D02-INQUIRIES-WISHLIST: D02-P13-T001 — Extend the enquiries contract to link quote requests to customers and expose an inquirer-count aggregate (NOT_STARTED)
+- D02-INQUIRIES-WISHLIST: D02-P13-T002 — Add the Wishlist and Favourites Mock API entities, routes and facets endpoint (NOT_STARTED)
 - Sequential within each lane; dependencies coordinate work across lanes.
 - Optional Phase 2.11 is excluded until explicitly started with `--opt-in theme`.
 - Downstream work waits for COMPLETE or SUPERSEDED; IN_REVIEW is not complete.
