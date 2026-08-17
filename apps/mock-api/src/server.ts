@@ -214,6 +214,136 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
     res.json(inquiries);
   });
 
+  // 3l. Wishlist operations (D02-P13-T002, CUST-36/CUST-37): list, add, remove
+  // wishlist items for the signed-in customer.
+  app.get('/api/v1/customer/wishlist', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) {
+      res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+      return;
+    }
+    const customerId = resolveCustomerScope(req.user.sub);
+    const wishlist = await store.listWishlist(customerId);
+    res.json(wishlist);
+  });
+
+  app.post('/api/v1/customer/wishlist', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) {
+      res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+      return;
+    }
+    try {
+      const customerId = resolveCustomerScope(req.user.sub);
+      const { vehicleSlug } = req.body ?? {};
+      if (!vehicleSlug) {
+        res.status(400).json({ statusCode: 400, message: 'vehicleSlug is required' });
+        return;
+      }
+      const response = await store.toggleWishlist(customerId, vehicleSlug);
+      res.status(200).json(response);
+    } catch (error) {
+      if (typeof error === 'object' && error !== null && 'statusCode' in error) {
+        const err = error as { statusCode: number; message: string };
+        res.status(err.statusCode).json({ statusCode: err.statusCode, message: err.message });
+        return;
+      }
+      throw error;
+    }
+  });
+
+  app.delete('/api/v1/customer/wishlist/:vehicleSlug', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) {
+      res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+      return;
+    }
+    const rawParam = req.params.vehicleSlug;
+    const vehicleSlug = Array.isArray(rawParam) ? rawParam[0] : rawParam;
+    try {
+      const customerId = resolveCustomerScope(req.user.sub);
+      // Idempotent: if not present, still return 200 with wishlisted: false
+      const existing = await store.listWishlist(customerId);
+      const item = existing.items.find((w) => w.vehicleSlug === vehicleSlug);
+      if (item) {
+        // Simulate removal by toggling
+        const response = await store.toggleWishlist(customerId, vehicleSlug);
+        res.status(200).json(response);
+      } else {
+        res.status(200).json({ wishlisted: false });
+      }
+    } catch (error) {
+      throw error;
+    }
+  });
+
+  // 3m. Favourites operations (D02-P13-T002, CUST-38/CUST-39/CUST-40): list,
+  // create, delete favourite search criteria, and facets endpoint.
+  app.get('/api/v1/customer/favourites', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) {
+      res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+      return;
+    }
+    const customerId = resolveCustomerScope(req.user.sub);
+    const favourites = await store.listFavourites(customerId);
+    res.json(favourites);
+  });
+
+  app.post('/api/v1/customer/favourites', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) {
+      res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+      return;
+    }
+    try {
+      const customerId = resolveCustomerScope(req.user.sub);
+      const { name, criteria } = req.body ?? {};
+      if (!name) {
+        res.status(400).json({ statusCode: 400, message: 'name is required' });
+        return;
+      }
+      if (!criteria) {
+        res.status(400).json({ statusCode: 400, message: 'criteria is required' });
+        return;
+      }
+      const favourite = await store.createFavourite(customerId, name, criteria, req.header('x-mock-now') || undefined);
+      res.status(201).json(favourite);
+    } catch (error) {
+      if (typeof error === 'object' && error !== null && 'statusCode' in error) {
+        const err = error as { statusCode: number; message: string; reason?: string };
+        res.status(err.statusCode).json({
+          statusCode: err.statusCode,
+          message: err.message,
+          ...(err.reason ? { reason: err.reason } : {}),
+        });
+        return;
+      }
+      throw error;
+    }
+  });
+
+  app.delete('/api/v1/customer/favourites/:id', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) {
+      res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+      return;
+    }
+    try {
+      const rawParam = req.params.id;
+      const id = Array.isArray(rawParam) ? rawParam[0] : rawParam;
+      const customerId = resolveCustomerScope(req.user.sub);
+      await store.deleteFavourite(customerId, id);
+      res.status(204).send();
+    } catch (error) {
+      if (typeof error === 'object' && error !== null && 'statusCode' in error) {
+        const err = error as { statusCode: number; message: string };
+        res.status(err.statusCode).json({ statusCode: err.statusCode, message: err.message });
+        return;
+      }
+      throw error;
+    }
+  });
+
+  app.get('/api/v1/customer/favourites/facets', async (req: Request, res: Response) => {
+    const facets = await store.getFavouriteFacets();
+    res.json(facets);
+  });
+
   // 3k. Vehicle inquiry aggregate (D02-P13-T001, CUST-35): returns the count
   // of distinct people who have requested a quote for a given vehicle.
   app.get('/api/v1/vehicles/:idOrSlug/inquiry-count', async (req: Request, res: Response) => {

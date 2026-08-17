@@ -515,6 +515,90 @@ export interface VehicleInquiryAggregate {
   inquirerCount: number;
 }
 
+// --- Phase 2.13: Wishlist and Favourites (D02-P13-T002, CUST-36 through CUST-40) ---
+//
+// A wishlist item saves a specific vehicle for a customer. A favourite saves
+// reusable search-criteria profiles; up to 25 per customer, with an at-cap 409
+// rejection (CUST-40). Favourites fields without backing VehicleRecord columns
+// today (Model Code, Engine CC, Color, Steering per D02-ASM-008) return empty
+// arrays from the facets endpoint, never fabricated option lists.
+
+/** A customer's saved vehicle (D02-P13-T002, CUST-36). */
+export interface WishlistItem {
+  id: string;
+  customerId: string;
+  vehicleId: string;
+  vehicleSlug: string;
+  createdAt: string;
+}
+
+/** Wishlist list response (D02-P13-T002, CUST-36/CUST-37). */
+export interface WishlistListResponse {
+  items: WishlistItem[];
+}
+
+/** Wishlist add/remove request (D02-P13-T002, CUST-36). */
+export interface WishlistToggleRequest {
+  vehicleSlug: string;
+}
+
+/** Wishlist add/remove response (D02-P13-T002, CUST-36). */
+export interface WishlistToggleResponse {
+  wishlisted: boolean;
+  item?: WishlistItem;
+}
+
+/** Search criteria for a favourite (D02-P13-T002, CUST-38/CUST-39, D02-ASM-008/010). */
+export interface FavouriteSearchCriteria {
+  make?: string;
+  model?: string;
+  modelCode?: string; // D02-ASM-008: no backing column today
+  yearFrom?: number;
+  yearTo?: number;
+  priceFromUsd?: number;
+  priceToUsd?: number;
+  mileageMin?: number;
+  mileageMax?: number;
+  engineCc?: string; // D02-ASM-008: no backing column today
+  fuelType?: string;
+  color?: string; // D02-ASM-008: no backing column today
+  steering?: string; // D02-ASM-008: no backing column today
+  driveTrain?: string;
+  transmission?: string;
+}
+
+/** A customer's saved search criteria (D02-P13-T002, CUST-38/CUST-39). */
+export interface FavouriteSearch {
+  id: string;
+  customerId: string;
+  name: string;
+  criteria: FavouriteSearchCriteria;
+  createdAt: string;
+}
+
+/** Favourite list response (D02-P13-T002, CUST-38/CUST-39, CUST-40). */
+export interface FavouriteSearchListResponse {
+  items: FavouriteSearch[];
+  limit: number;
+}
+
+/** Distinct values available for each favourite field (D02-P13-T002, CUST-39, D02-ASM-008). */
+export interface FavouriteSearchFacets {
+  makes: Array<{ name: string; count: number }>;
+  models: Array<{ name: string; count: number }>;
+  fuelTypes: Array<{ name: string; count: number }>;
+  driveTrains: Array<{ name: string; count: number }>;
+  transmissions: Array<{ name: string; count: number }>;
+  yearRange: { min: number; max: number };
+  priceRange: { min: number; max: number };
+  mileageRange: { min: number; max: number };
+  // D02-ASM-008: these four fields have no backing columns today; return empty.
+  modelCodes: string[];
+  engineCcOptions: string[];
+  colors: string[];
+  steeringOptions: string[];
+}
+
 // --- Phase 1.6: transactional reservation eligibility and hold (PUB-23,
 // RULE-05, RULE-08, RULE-10, D01-P06-T004) ---
 //
