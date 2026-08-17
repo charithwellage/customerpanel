@@ -13,7 +13,7 @@ function run(...args) {
 test('task metadata and dependency graph validate', () => {
   const result = run('validate');
   assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stdout, /Validated 127 task\/gate files/);
+  assert.match(result.stdout, /Validated 136 task\/gate files/);
 });
 
 test('next reports the current tracker frontier', () => {

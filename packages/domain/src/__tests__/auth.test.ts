@@ -34,6 +34,7 @@ describe('Domain Country Catalog', () => {
   it('resolves the E.164 dial code for a known country', () => {
     expect(resolveDialCode('UG')).toBe('+256');
     expect(resolveDialCode('US')).toBe('+1');
+    expect(resolveDialCode('BR')).toBe('+55');
   });
 
   it('returns undefined dial code for an unknown country', () => {
