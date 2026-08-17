@@ -46,13 +46,21 @@ export function ReservationSignInGuidance({ status, signInHref, vehicleLabel }: 
 
   return (
     <div className="cc-reservation-guidance" role="status" aria-live="polite" aria-labelledby={headingId}>
-      <h3 id={headingId} className="cc-reservation-guidance__heading">
-        {heading}
-      </h3>
+      <div className="cc-reservation-guidance__header">
+        <span className="cc-reservation-guidance__badge">🔒 AUTHENTICATED BUYER PORTAL</span>
+        <h3 id={headingId} className="cc-reservation-guidance__heading">
+          {heading}
+        </h3>
+      </div>
       <p className="cc-reservation-guidance__message">{message}</p>
-      <a href={signInHref} className="cc-btn cc-btn--primary">
-        Sign In to Reserve
+      <a href={signInHref} className="cc-reservation-guidance__btn cc-btn cc-btn--primary">
+        <span>Sign In to Reserve</span>
+        <span className="cc-reservation-btn-arrow" aria-hidden="true">→</span>
       </a>
+      <div className="cc-reservation-guidance__trust">
+        <span className="cc-trust-icon" aria-hidden="true">ⓘ</span>
+        <span>Instant temporary inventory hold upon verified customer sign-in.</span>
+      </div>
     </div>
   );
 }

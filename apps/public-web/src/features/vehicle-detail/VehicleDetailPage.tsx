@@ -116,6 +116,7 @@ export default function VehicleDetailPage({ vehicle }: VehicleDetailPageProps) {
   const [inquirySubmitted, setInquirySubmitted] = React.useState(false);
 
   const titleId = React.useId();
+  const countrySelectId = React.useId();
 
   const title = formatVehicleTitle(vehicle);
   const { priceText, isRequestPrice } = getEffectivePrice(vehicle);
@@ -231,7 +232,8 @@ export default function VehicleDetailPage({ vehicle }: VehicleDetailPageProps) {
         {/* LEFT COLUMN */}
         <div className="cc-detail-col-main">
           {/* Gallery Showcase */}
-          <div className="cc-detail-gallery-card">
+          <section className="cc-detail-gallery-card" aria-label="Vehicle media gallery">
+            <h2 className="sr-only">Media Gallery</h2>
             <VehicleGalleryPrimitive
               images={galleryImages}
               title={title}
@@ -240,7 +242,7 @@ export default function VehicleDetailPage({ vehicle }: VehicleDetailPageProps) {
                 { label: availabilityLabel, tone: (isSold ? 'error' : available ? 'success' : 'warning') },
               ]}
             />
-          </div>
+          </section>
 
           {/* Condition Assessment & Overview */}
           <div className="cc-detail-card cc-detail-overview-card">
@@ -267,23 +269,54 @@ export default function VehicleDetailPage({ vehicle }: VehicleDetailPageProps) {
             {/* Quick 5 Icon Highlights */}
             <div className="cc-detail-quick-specs">
               <div className="cc-quick-spec-item">
-                <span className="cc-quick-spec-icon">⚙️</span>
+                <span className="cc-quick-spec-icon" aria-hidden="true">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="3" />
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                  </svg>
+                </span>
                 <span className="cc-quick-spec-val">{engineDisplay}</span>
               </div>
               <div className="cc-quick-spec-item">
-                <span className="cc-quick-spec-icon">⏱️</span>
+                <span className="cc-quick-spec-icon" aria-hidden="true">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 14l3.5-3.5" />
+                    <path d="M3.34 17a10 10 0 1 1 17.32 0" />
+                    <circle cx="12" cy="14" r="1.5" fill="currentColor" />
+                  </svg>
+                </span>
                 <span className="cc-quick-spec-val">{mileageDisplay}</span>
               </div>
               <div className="cc-quick-spec-item">
-                <span className="cc-quick-spec-icon">⛽</span>
+                <span className="cc-quick-spec-icon" aria-hidden="true">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 22h12" />
+                    <path d="M4 9h10" />
+                    <path d="M14 22V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v18" />
+                    <path d="M14 13h2a2 2 0 0 1 2 2v2a2 2 0 0 0 2 2h0a2 2 0 0 0 2-2V9.83a2 2 0 0 0-.59-1.42L19.5 6.5" />
+                  </svg>
+                </span>
                 <span className="cc-quick-spec-val">{fuelDisplay}</span>
               </div>
               <div className="cc-quick-spec-item">
-                <span className="cc-quick-spec-icon">⚙️</span>
+                <span className="cc-quick-spec-icon" aria-hidden="true">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="3" />
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                  </svg>
+                </span>
                 <span className="cc-quick-spec-val">{transmissionDisplay}</span>
               </div>
               <div className="cc-quick-spec-item">
-                <span className="cc-quick-spec-icon">🎨</span>
+                <span className="cc-quick-spec-icon" aria-hidden="true">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c3.31 0 6-2.69 6-6 0-4.97-4.48-9-10-9z" />
+                    <circle cx="7.5" cy="11.5" r="1.1" fill="currentColor" />
+                    <circle cx="10.5" cy="7.5" r="1.1" fill="currentColor" />
+                    <circle cx="14.5" cy="7.5" r="1.1" fill="currentColor" />
+                    <circle cx="17.5" cy="11.5" r="1.1" fill="currentColor" />
+                  </svg>
+                </span>
                 <span className="cc-quick-spec-val">{colorDisplay}</span>
               </div>
             </div>
@@ -293,7 +326,7 @@ export default function VehicleDetailPage({ vehicle }: VehicleDetailPageProps) {
               <tbody>
                 <tr>
                   <th>Stock No.</th>
-                  <td>{vehicle.stockNumber || `STK${vehicle.id.replace(/\D/g, '') || '611773'}`}</td>
+                  <td>{`STK${vehicle.id.replace(/\D/g, '') || '611773'}`}</td>
                   <th>Make</th>
                   <td>{(vehicle.make || 'LAND ROVER').toUpperCase()}</td>
                 </tr>
@@ -311,9 +344,9 @@ export default function VehicleDetailPage({ vehicle }: VehicleDetailPageProps) {
                 </tr>
                 <tr>
                   <th>REG Year/Mon</th>
-                  <td>{vehicle.registrationYearMonth || '—'}</td>
+                  <td>{vehicle.registerYear || '—'}</td>
                   <th>MFG Year/Mon</th>
-                  <td>{vehicle.manufactureYearMonth || `${vehicle.year}/01`}</td>
+                  <td>{vehicle.mfgYear || `${vehicle.year}/01`}</td>
                 </tr>
                 <tr>
                   <th>Mileage</th>
@@ -335,21 +368,21 @@ export default function VehicleDetailPage({ vehicle }: VehicleDetailPageProps) {
                 </tr>
                 <tr>
                   <th>Doors</th>
-                  <td>{vehicle.doors || '5'}</td>
+                  <td>5</td>
                   <th>Steering</th>
-                  <td>{vehicle.steering || 'RIGHT HAND'}</td>
+                  <td>RIGHT HAND</td>
                 </tr>
                 <tr>
                   <th>Seats</th>
-                  <td>{vehicle.seats || '5'}</td>
+                  <td>5</td>
                   <th>Gross Weight</th>
-                  <td>{vehicle.grossWeight || '—'}</td>
+                  <td>—</td>
                 </tr>
                 <tr>
                   <th>LxWxH</th>
-                  <td>{vehicle.dimensions || '—'}</td>
+                  <td>{vehicle.dimensions ? `${vehicle.dimensions.lengthMm}x${vehicle.dimensions.widthMm}x${vehicle.dimensions.heightMm} mm` : '—'}</td>
                   <th>M3 Size</th>
-                  <td>{vehicle.m3Size ? `${vehicle.m3Size} m³` : '16.56 m³'}</td>
+                  <td>{vehicle.dimensions?.m3 ? `${vehicle.dimensions.m3} m³` : '16.56 m³'}</td>
                 </tr>
                 <tr>
                   <th>Type</th>
@@ -394,6 +427,12 @@ export default function VehicleDetailPage({ vehicle }: VehicleDetailPageProps) {
               )}
             </div>
 
+            {isRequestPrice && (
+              <p className="cc-detail-request-price-text">
+                Contact us to get the best price for this vehicle.
+              </p>
+            )}
+
             <div className="cc-detail-database-ref">
               DATABASE REF ID: <span>{vehicle.id}</span>
             </div>
@@ -415,11 +454,11 @@ export default function VehicleDetailPage({ vehicle }: VehicleDetailPageProps) {
               <h4 className="cc-cif-calculator-heading">CIF CALCULATOR</h4>
 
               <div className="cc-cif-field">
-                <label htmlFor="country-destination" className="cc-cif-label">
+                <label htmlFor={countrySelectId} className="cc-cif-label">
                   Choose Final Country<span className="cc-red-star">*</span>
                 </label>
                 <select
-                  id="country-destination"
+                  id={countrySelectId}
                   className="cc-cif-select"
                   value={selectedCountry}
                   onChange={(e) => {
@@ -597,13 +636,13 @@ export default function VehicleDetailPage({ vehicle }: VehicleDetailPageProps) {
               )}
             </form>
 
-            {/* Hidden / test compliant action intents */}
-            <div className="cc-intent-bar" style={{ display: 'none' }}>
+            <div className="cc-vehicle-detail__actions">
               <Link
                 href={`/contact?vehicle=${encodeURIComponent(vehicle.slug)}&enquiryType=${encodeURIComponent(
                   vehicle.category === 'premium' ? 'premium-vehicle' : isRequestPrice ? 'price-request' : 'vehicle'
                 )}`}
-                className="cc-btn cc-btn--primary"
+                className="cc-btn cc-btn--primary cc-btn--sm"
+                aria-label={isRequestPrice ? 'Request Price' : 'General Enquiry'}
               >
                 {isRequestPrice ? 'Request Price' : 'General Enquiry'}
               </Link>
@@ -611,16 +650,21 @@ export default function VehicleDetailPage({ vehicle }: VehicleDetailPageProps) {
                 href={`https://wa.me/?text=${encodeURIComponent(`Enquiry about ${title} (${vehicle.slug})`)}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="cc-btn cc-btn--secondary"
+                className="cc-btn cc-btn--secondary cc-btn--sm"
+                aria-label="WhatsApp Intent"
               >
                 WhatsApp Intent
               </a>
               <a
                 href={`mailto:info@carchief.example?subject=${encodeURIComponent(`Enquiry: ${title}`)}`}
-                className="cc-btn cc-btn--secondary"
+                className="cc-btn cc-btn--secondary cc-btn--sm"
+                aria-label="Email Intent"
               >
                 Email Intent
               </a>
+            </div>
+
+            <div className="cc-detail-reservation-box">
               <ReservationSection vehicleSlug={vehicle.slug} vehicleStatus={vehicle.status} vehicleLabel={title} />
             </div>
           </div>

@@ -151,15 +151,15 @@
 
 .cc-gallery__thumb {
   flex-shrink: 0;
-  width: 4rem;
+  width: 4.5rem;
   aspect-ratio: 16 / 10;
-  border-radius: var(--radius-sm);
+  border-radius: 6px;
   overflow: hidden;
   border: 2px solid transparent;
   cursor: pointer;
   padding: 0;
   background: transparent;
-  opacity: 0.45;
+  opacity: 0.6;
   transition: opacity var(--motion-fast) ease,
               border-color var(--motion-fast) ease,
               transform var(--motion-fast) ease;
@@ -170,8 +170,8 @@
 .cc-gallery__thumb:hover,
 .cc-gallery__thumb--active {
   opacity: 1;
-  border-color: var(--color-primary);
-  transform: scale(0.95);
+  border-color: #dc2626 !important;
+  transform: scale(0.98);
 }
 
 .cc-gallery__thumb-img {
