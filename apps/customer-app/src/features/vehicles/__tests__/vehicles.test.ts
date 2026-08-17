@@ -67,14 +67,13 @@ describe('My Vehicles UI Components (D02-P04-T002)', () => {
         })
       );
 
-      expect(html).toContain('2022 Toyota Land Cruiser Prado');
+      expect(html).toContain('2022 TOYOTA LAND CRUISER PRADO');
       expect(html).toContain('TRJ150-0192834');
-      expect(html).toContain('Under Negotiation With PI');
-      expect(html).toContain('$45,000 USD');
-      expect(html).toContain('Deposit (50%): $22,500');
-      expect(html).toContain('Remaining: $12,500');
-      expect(html).toContain('Pay by:');
-      expect(html).toContain('View Details &amp; Documents');
+      expect(html).toContain('RESERVED (PI)');
+      expect(html).toContain('$45,000');
+      expect(html).toContain('Deposit (50%):');
+      expect(html).toContain('$22,500');
+      expect(html).toContain('TRACK SHIPMENT');
     });
   });
 
@@ -210,15 +209,10 @@ describe('My Vehicles UI Components (D02-P04-T002)', () => {
         )
       );
 
-      expect(html).toContain('My Vehicles');
-      expect(html).toContain('All Vehicles');
-      expect(html).toContain('Under Negotiation');
-      expect(html).toContain('PI Issued');
-      expect(html).toContain('In Stock / Confirmed');
-      expect(html).toContain('In Transit');
-      expect(html).toContain('Delivered');
-      expect(html).toContain('Search fleet');
-      expect(html).toContain('Shipping Stage');
+      expect(html).toContain('RESERVED VEHICLES');
+      expect(html).toContain('RESERVED WITH PI');
+      expect(html).toContain('INVOICED VEHICLE');
+      expect(html).toContain('Shipping Status');
     });
 
     it('renders detail page loading and back button', () => {

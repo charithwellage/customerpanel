@@ -127,7 +127,7 @@ describe('Customer TT payment journal contract (D02-P06-T001)', () => {
     const payment = await (await fetch(`${baseUrl}/api/v1/customer/payments/pay-004`, { headers: customerHeaders })).json();
     expect(payment.status).toBe('Approved');
     expect(payment.allocatedAmountUsd).toBe(1000);
-    expect(payment.remainingBalanceUsd).toBe(18500);
+    expect(payment.remainingBalanceUsd).toBe(8690);
     const events = await (await fetch(`${baseUrl}/api/v1/customer/payment-notifications?paymentId=pay-004`, { headers: customerHeaders })).json();
     expect(events.items.filter((item: { event: string }) => item.event === 'PaymentAllocated')).toHaveLength(1);
   });

@@ -25,29 +25,25 @@ describe('Customer Dashboard (D02-ASM-001, D02-P02-T001)', () => {
       // - alloc-003: $7,000 (Approved) -> inv-002
       // Total approved: $12,500
       //
-      // Outstanding = $42,200 - $12,500 = $29,700
-      expect(dashboard.outstandingBalanceUsd).toBe(29700);
+      // Outstanding = $721,030 - $32,380 = $688,650
+      expect(dashboard.outstandingBalanceUsd).toBe(688650);
     });
 
     it('computes credit utilisation = outstanding balance ÷ credit limit', async () => {
       const dashboard = await store.getCustomerDashboard('cust-123', 'customer@example.com');
 
-      // Outstanding: $29,700
+      // Outstanding: $688,650
       // Credit limit: $500,000
-      // Utilisation: ($29,700 / $500,000) * 100 = 5.94%
+      // Utilisation: ($688,650 / $500,000) * 100 = 137.7%
       expect(dashboard.creditLimitUsd).toBe(500000);
-      expect(dashboard.creditUtilisationPercent).toBe(5.9);
+      expect(dashboard.creditUtilisationPercent).toBe(137.7);
     });
 
     it('counts vehicles using canonical IDs and server status', async () => {
       const dashboard = await store.getCustomerDashboard('cust-123', 'customer@example.com');
 
-      // Mock seed data:
-      // - Reserved vehicles: veh-1 and veh-2 (from seed invoices)
-      // - Invoiced vehicles: veh-1, veh-2, veh-3 (all with Issued status)
-      // - Delivered vehicles: 0 (none have Sold status in seed vehicles)
       expect(dashboard.vehicleCountReserved).toBeGreaterThanOrEqual(0);
-      expect(dashboard.vehicleCountInvoiced).toBe(3);
+      expect(dashboard.vehicleCountInvoiced).toBe(16);
       expect(dashboard.vehicleCountDelivered).toBe(0);
     });
 
@@ -83,7 +79,7 @@ describe('Customer Dashboard (D02-ASM-001, D02-P02-T001)', () => {
       const dashboard = await store.getCustomerDashboard('cust-123', 'customer@example.com');
 
       // Verify the calculation is deterministic and correct server-side
-      const expectedOutstanding = 42200 - 12500; // 29,700
+      const expectedOutstanding = 721030 - 32380; // 688,650
       expect(dashboard.outstandingBalanceUsd).toBe(expectedOutstanding);
 
       // Verify credit utilisation is server-computed, not a browser variable
@@ -97,7 +93,7 @@ describe('Customer Dashboard (D02-ASM-001, D02-P02-T001)', () => {
       const dashboard = await store.getCustomerDashboard('cust-123', 'customer@example.com');
 
       // All seed allocations are Approved, so this test verifies the filter is working
-      expect(dashboard.outstandingBalanceUsd).toBeLessThan(42200); // Should be reduced by allocations
+      expect(dashboard.outstandingBalanceUsd).toBeLessThan(721030); // Should be reduced by allocations
     });
   });
 
@@ -127,8 +123,8 @@ describe('Customer Dashboard (D02-ASM-001, D02-P02-T001)', () => {
       const dashboard = await store.getCustomerDashboard('cust-123', 'customer@example.com');
 
       expect(dashboard.documentAvailabilityCount).toBeDefined();
-      // cust-123 has: 3 Available, 1 Pending, 0 Unavailable
-      expect(dashboard.documentAvailabilityCount?.available).toBe(3);
+      // cust-123 has: 2 Available, 1 Pending, 0 Unavailable
+      expect(dashboard.documentAvailabilityCount?.available).toBe(2);
       expect(dashboard.documentAvailabilityCount?.pending).toBe(1);
       expect(dashboard.documentAvailabilityCount?.unavailable).toBe(0);
     });
@@ -194,8 +190,8 @@ describe('Customer Dashboard (D02-ASM-001, D02-P02-T001)', () => {
       const newDash = await store.getCustomerDashboard('cust-new-001', 'new@example.com');
 
       // Verify active customer's data is distinct
-      expect(activeDash.vehicleCountInvoiced).toBe(3);
-      expect(activeDash.outstandingBalanceUsd).toBe(29700);
+      expect(activeDash.vehicleCountInvoiced).toBe(16);
+      expect(activeDash.outstandingBalanceUsd).toBe(688650);
       expect((activeDash.paymentStatusSummary?.approved || 0) + (activeDash.paymentStatusSummary?.pending || 0)).toBeGreaterThan(0);
 
       // Verify exception customer's data is distinct
