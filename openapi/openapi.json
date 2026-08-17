@@ -846,6 +846,244 @@
         }
       }
     },
+    "/api/v1/customer/wishlist": {
+      "get": {
+        "summary": "List the signed-in customer's wishlisted vehicles (D02-P13-T002, CUST-36/CUST-37)",
+        "operationId": "listCustomerWishlist",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "The customer's wishlist",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/WishlistListResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "No authenticated identity supplied",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Add or remove a vehicle from the signed-in customer's wishlist (idempotent) (D02-P13-T002, CUST-36)",
+        "operationId": "toggleCustomerWishlist",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/WishlistToggleRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Wishlist item added or removed",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/WishlistToggleResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or missing vehicleSlug",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "No authenticated identity supplied",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "Vehicle not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/customer/wishlist/{vehicleSlug}": {
+      "delete": {
+        "summary": "Remove a vehicle from the signed-in customer's wishlist (idempotent) (D02-P13-T002, CUST-36)",
+        "operationId": "deleteCustomerWishlistItem",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "vehicleSlug",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "example": "2021-toyota-corolla-axio-veh-1"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Wishlist item removed (or was not present)",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/WishlistToggleResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "No authenticated identity supplied",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/customer/favourites": {
+      "get": {
+        "summary": "List the signed-in customer's saved search-criteria profiles (D02-P13-T002, CUST-38/CUST-39)",
+        "operationId": "listCustomerFavourites",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "The customer's favourites list",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/FavouriteSearchListResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "No authenticated identity supplied",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new saved search-criteria profile for the signed-in customer (D02-P13-T002, CUST-38/CUST-39/CUST-40)",
+        "operationId": "createCustomerFavourite",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string", "example": "Affordable Corollas" },
+                  "criteria": { "$ref": "#/components/schemas/FavouriteSearchCriteria" }
+                },
+                "required": ["name", "criteria"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Favourite created",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/FavouriteSearch" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid criteria (all fields empty; D02-ASM-010)",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "No authenticated identity supplied",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "409": {
+            "description": "Favourite limit exceeded (25 per customer; CUST-40) (reason: limit_exceeded)",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/customer/favourites/{id}": {
+      "delete": {
+        "summary": "Delete a saved search-criteria profile (D02-P13-T002, CUST-38/CUST-39)",
+        "operationId": "deleteCustomerFavourite",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "example": "fav-1723368000000-abc123"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Favourite deleted"
+          },
+          "401": {
+            "description": "No authenticated identity supplied",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "Favourite not found or not owned by customer",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/customer/favourites/facets": {
+      "get": {
+        "summary": "Get distinct values for each favourite field from real vehicle data (D02-P13-T002, CUST-39, D02-ASM-008)",
+        "operationId": "getFavouriteFacets",
+        "responses": {
+          "200": {
+            "description": "Available facet values",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/FavouriteSearchFacets" }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/vehicles/{idOrSlug}/inquiry-count": {
       "get": {
         "summary": "Get the aggregate count of distinct inquirers for a vehicle (D02-P13-T001, CUST-35)",
@@ -2362,6 +2600,197 @@
           "inquirerCount": { "type": "integer", "example": 5, "description": "Count of distinct people who have requested a quote for this vehicle" }
         },
         "required": ["vehicleSlug", "inquirerCount"]
+      },
+      "WishlistItem": {
+        "type": "object",
+        "description": "A customer's saved vehicle (D02-P13-T002, CUST-36).",
+        "properties": {
+          "id": { "type": "string", "example": "wish-1723368000000-abc123" },
+          "customerId": { "type": "string", "example": "cust-123" },
+          "vehicleId": { "type": "string", "example": "veh-1" },
+          "vehicleSlug": { "type": "string", "example": "2021-toyota-corolla-axio-veh-1" },
+          "createdAt": { "type": "string", "example": "2026-08-11T12:00:00.000Z" }
+        },
+        "required": ["id", "customerId", "vehicleId", "vehicleSlug", "createdAt"]
+      },
+      "WishlistListResponse": {
+        "type": "object",
+        "description": "List of wishlisted vehicles for the customer (D02-P13-T002, CUST-36/CUST-37).",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/WishlistItem" }
+          }
+        },
+        "required": ["items"]
+      },
+      "WishlistToggleRequest": {
+        "type": "object",
+        "description": "Request to add or remove a vehicle from the wishlist (D02-P13-T002, CUST-36).",
+        "properties": {
+          "vehicleSlug": { "type": "string", "example": "2021-toyota-corolla-axio-veh-1" }
+        },
+        "required": ["vehicleSlug"]
+      },
+      "WishlistToggleResponse": {
+        "type": "object",
+        "description": "Response to a wishlist add/remove action (D02-P13-T002, CUST-36).",
+        "properties": {
+          "wishlisted": { "type": "boolean", "example": true, "description": "True if the vehicle is now wishlisted, false if removed" },
+          "item": { "$ref": "#/components/schemas/WishlistItem", "description": "The wishlist item (only present when wishlisted: true)" }
+        },
+        "required": ["wishlisted"]
+      },
+      "FavouriteSearchCriteria": {
+        "type": "object",
+        "description": "Search criteria for a favourite (D02-P13-T002, CUST-38/CUST-39, D02-ASM-008/010). All fields are optional but at least one must be non-empty.",
+        "properties": {
+          "make": { "type": "string", "example": "Toyota" },
+          "model": { "type": "string", "example": "Corolla" },
+          "modelCode": { "type": "string", "example": "DEC-ASM-008: no backing column today" },
+          "yearFrom": { "type": "integer", "example": 2015 },
+          "yearTo": { "type": "integer", "example": 2024 },
+          "priceFromUsd": { "type": "number", "example": 5000 },
+          "priceToUsd": { "type": "number", "example": 20000 },
+          "mileageMin": { "type": "integer", "example": 0 },
+          "mileageMax": { "type": "integer", "example": 50000 },
+          "engineCc": { "type": "string", "example": "D02-ASM-008: no backing column today" },
+          "fuelType": { "type": "string", "example": "Petrol" },
+          "color": { "type": "string", "example": "D02-ASM-008: no backing column today" },
+          "steering": { "type": "string", "example": "D02-ASM-008: no backing column today" },
+          "driveTrain": { "type": "string", "example": "2WD" },
+          "transmission": { "type": "string", "example": "Automatic" }
+        }
+      },
+      "FavouriteSearch": {
+        "type": "object",
+        "description": "A customer's saved search-criteria profile (D02-P13-T002, CUST-38/CUST-39).",
+        "properties": {
+          "id": { "type": "string", "example": "fav-1723368000000-abc123" },
+          "customerId": { "type": "string", "example": "cust-123" },
+          "name": { "type": "string", "example": "Affordable Corollas" },
+          "criteria": { "$ref": "#/components/schemas/FavouriteSearchCriteria" },
+          "createdAt": { "type": "string", "example": "2026-08-11T12:00:00.000Z" }
+        },
+        "required": ["id", "customerId", "name", "criteria", "createdAt"]
+      },
+      "FavouriteSearchListResponse": {
+        "type": "object",
+        "description": "List of saved search-criteria profiles for the customer (D02-P13-T002, CUST-38/CUST-39, CUST-40).",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/FavouriteSearch" }
+          },
+          "limit": { "type": "integer", "example": 25, "description": "Maximum number of favourites allowed per customer (CUST-40)" }
+        },
+        "required": ["items", "limit"]
+      },
+      "FavouriteSearchFacets": {
+        "type": "object",
+        "description": "Distinct values available for each favourite field, populated from real vehicle data (D02-P13-T002, CUST-39, D02-ASM-008). The four fields without backing columns (modelCodes, engineCcOptions, colors, steeringOptions) return empty arrays.",
+        "properties": {
+          "makes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": { "type": "string", "example": "Toyota" },
+                "count": { "type": "integer", "example": 5 }
+              },
+              "required": ["name", "count"]
+            }
+          },
+          "models": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": { "type": "string", "example": "Corolla" },
+                "count": { "type": "integer", "example": 3 }
+              },
+              "required": ["name", "count"]
+            }
+          },
+          "fuelTypes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": { "type": "string", "example": "Petrol" },
+                "count": { "type": "integer", "example": 7 }
+              },
+              "required": ["name", "count"]
+            }
+          },
+          "driveTrains": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": { "type": "string", "example": "2WD" },
+                "count": { "type": "integer", "example": 10 }
+              },
+              "required": ["name", "count"]
+            }
+          },
+          "transmissions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": { "type": "string", "example": "Automatic" },
+                "count": { "type": "integer", "example": 12 }
+              },
+              "required": ["name", "count"]
+            }
+          },
+          "yearRange": {
+            "type": "object",
+            "properties": {
+              "min": { "type": "integer", "example": 2015 },
+              "max": { "type": "integer", "example": 2024 }
+            },
+            "required": ["min", "max"]
+          },
+          "priceRange": {
+            "type": "object",
+            "properties": {
+              "min": { "type": "number", "example": 0 },
+              "max": { "type": "number", "example": 50000 }
+            },
+            "required": ["min", "max"]
+          },
+          "mileageRange": {
+            "type": "object",
+            "properties": {
+              "min": { "type": "integer", "example": 0 },
+              "max": { "type": "integer", "example": 100000 }
+            },
+            "required": ["min", "max"]
+          },
+          "modelCodes": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "D02-ASM-008: no backing column; always empty"
+          },
+          "engineCcOptions": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "D02-ASM-008: no backing column; always empty"
+          },
+          "colors": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "D02-ASM-008: no backing column; always empty"
+          },
+          "steeringOptions": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "D02-ASM-008: no backing column; always empty"
+          }
+        },
+        "required": ["makes", "models", "fuelTypes", "driveTrains", "transmissions", "yearRange", "priceRange", "mileageRange", "modelCodes", "engineCcOptions", "colors", "steeringOptions"]
       },
       "ReservationRequest": {
         "type": "object",

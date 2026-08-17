@@ -27,6 +27,14 @@ import type {
   CustomerInquirySummary,
   CustomerInquiryListResponse,
   VehicleInquiryAggregate,
+  WishlistItem,
+  WishlistListResponse,
+  WishlistToggleRequest,
+  WishlistToggleResponse,
+  FavouriteSearchCriteria,
+  FavouriteSearch,
+  FavouriteSearchListResponse,
+  FavouriteSearchFacets,
   ReservationRequest,
   ReservationResponse,
   ReservationStatus,
@@ -990,6 +998,13 @@ export interface DemoStore {
   confirmPasswordReset(request: ConfirmPasswordResetRequest, nowISO?: string): Promise<void>;
   listPasswordResetOutbox(): Promise<PasswordResetOutboxRecord[]>;
   getCountries(): Promise<CountriesResponse>;
+  // Phase 2.13: Wishlist and Favourites (D02-P13-T002, CUST-36..40)
+  listWishlist(customerId: string): Promise<WishlistListResponse>;
+  toggleWishlist(customerId: string, vehicleSlug: string): Promise<WishlistToggleResponse>;
+  listFavourites(customerId: string): Promise<FavouriteSearchListResponse>;
+  createFavourite(customerId: string, name: string, criteria: FavouriteSearchCriteria, nowISO?: string): Promise<FavouriteSearch>;
+  deleteFavourite(customerId: string, id: string): Promise<void>;
+  getFavouriteFacets(): Promise<FavouriteSearchFacets>;
   reset(): Promise<void>;
   close(): Promise<void>;
 }
@@ -2059,6 +2074,24 @@ export interface EnquiryRecord {
   preferredYear?: number;
   targetPriceUsd?: number;
   customerId?: string;
+}
+
+/** Wishlist item internal record (D02-P13-T002, CUST-36). */
+export interface WishlistItemRecord {
+  id: string;
+  customerId: string;
+  vehicleId: string;
+  vehicleSlug: string;
+  createdAt: string;
+}
+
+/** Favourite search internal record (D02-P13-T002, CUST-38/CUST-39). */
+export interface FavouriteSearchRecord {
+  id: string;
+  customerId: string;
+  name: string;
+  criteriaJson: string; // Stored as JSON string for easy DB persistence
+  createdAt: string;
 }
 
 interface PreparedEnquiry {
@@ -4452,6 +4485,10 @@ class MemoryStore implements DemoStore {
   private branches = seedBranches.map((b) => ({ ...b }));
   private customerAccounts: CustomerAccountRecord[] = [buildSeedCustomerAccount()];
   private passwordResetOutbox: PasswordResetOutboxRecord[] = [];
+  private wishlistItems: WishlistItemRecord[] = [];
+  private wishlistSeq = 0;
+  private favourites: FavouriteSearchRecord[] = [];
+  private favouriteSeq = 0;
 
   ready(): Promise<void> {
     return Promise.resolve();
@@ -4995,6 +5032,176 @@ class MemoryStore implements DemoStore {
     return { items: COUNTRIES.map((c) => ({ ...c })) };
   }
 
+  // --- Phase 2.13: Wishlist and Favourites (D02-P13-T002) ---
+
+  async listWishlist(customerId: string): Promise<WishlistListResponse> {
+    const items = this.wishlistItems
+      .filter((w) => w.customerId === customerId)
+      .map((w) => ({ ...w }));
+    return { items };
+  }
+
+  async toggleWishlist(customerId: string, vehicleSlug: string): Promise<WishlistToggleResponse> {
+    // Find the vehicle to ensure it exists and get its ID
+    const vehicle = findVehicleRecord(this.vehicles, vehicleSlug);
+    if (!vehicle) {
+      throw { statusCode: 404, message: `Vehicle '${vehicleSlug}' not found` };
+    }
+
+    // Check if already in wishlist
+    const existing = this.wishlistItems.find(
+      (w) => w.customerId === customerId && w.vehicleSlug === vehicleSlug
+    );
+
+    if (existing) {
+      // Remove from wishlist
+      const index = this.wishlistItems.indexOf(existing);
+      this.wishlistItems.splice(index, 1);
+      return { wishlisted: false };
+    } else {
+      // Add to wishlist
+      const id = `wish-${Date.now()}-${this.wishlistSeq++}`;
+      const item: WishlistItemRecord = {
+        id,
+        customerId,
+        vehicleId: vehicle.id,
+        vehicleSlug,
+        createdAt: new Date().toISOString(),
+      };
+      this.wishlistItems.push(item);
+      return { wishlisted: true, item };
+    }
+  }
+
+  async listFavourites(customerId: string): Promise<FavouriteSearchListResponse> {
+    const items = this.favourites
+      .filter((f) => f.customerId === customerId)
+      .map((f) => ({
+        id: f.id,
+        customerId: f.customerId,
+        name: f.name,
+        criteria: JSON.parse(f.criteriaJson),
+        createdAt: f.createdAt,
+      }));
+    return { items, limit: 25 };
+  }
+
+  async createFavourite(
+    customerId: string,
+    name: string,
+    criteria: FavouriteSearchCriteria,
+    nowISO?: string
+  ): Promise<FavouriteSearch> {
+    // Validate: at least one non-empty criteria field (D02-ASM-010)
+    const hasAtLeastOne = Object.values(criteria).some((v) => v != null && v !== '' && v !== 0 && v !== false);
+    if (!hasAtLeastOne) {
+      throw { statusCode: 400, message: 'At least one criteria field is required' };
+    }
+
+    // Check 25-favourite cap (CUST-40)
+    const count = this.favourites.filter((f) => f.customerId === customerId).length;
+    if (count >= 25) {
+      throw { statusCode: 409, message: 'Favourite limit exceeded', reason: 'limit_exceeded' };
+    }
+
+    const id = `fav-${Date.now()}-${this.favouriteSeq++}`;
+    const createdAt = nowISO || new Date().toISOString();
+    const record: FavouriteSearchRecord = {
+      id,
+      customerId,
+      name,
+      criteriaJson: JSON.stringify(criteria),
+      createdAt,
+    };
+    this.favourites.push(record);
+
+    return {
+      id,
+      customerId,
+      name,
+      criteria,
+      createdAt,
+    };
+  }
+
+  async deleteFavourite(customerId: string, id: string): Promise<void> {
+    const index = this.favourites.findIndex((f) => f.id === id && f.customerId === customerId);
+    if (index === -1) {
+      throw { statusCode: 404, message: 'Favourite not found' };
+    }
+    this.favourites.splice(index, 1);
+  }
+
+  async getFavouriteFacets(): Promise<FavouriteSearchFacets> {
+    const vehicles = this.vehicles.filter((v) => v.status !== 'Draft');
+
+    const makeMap = new Map<string, number>();
+    const modelMap = new Map<string, number>();
+    const fuelTypeMap = new Map<string, number>();
+    const driveTrainMap = new Map<string, number>();
+    const transmissionMap = new Map<string, number>();
+
+    let minYear = 2026;
+    let maxYear = 1970;
+    let minPrice = Infinity;
+    let maxPrice = -Infinity;
+    let minMileage = Infinity;
+    let maxMileage = -Infinity;
+
+    vehicles.forEach((v) => {
+      if (v.make) makeMap.set(v.make, (makeMap.get(v.make) || 0) + 1);
+      if (v.model) modelMap.set(v.model, (modelMap.get(v.model) || 0) + 1);
+      if (v.fuelType) fuelTypeMap.set(v.fuelType, (fuelTypeMap.get(v.fuelType) || 0) + 1);
+      if (v.driveTrain) driveTrainMap.set(v.driveTrain, (driveTrainMap.get(v.driveTrain) || 0) + 1);
+      if (v.transmission) transmissionMap.set(v.transmission, (transmissionMap.get(v.transmission) || 0) + 1);
+
+      if (v.year) {
+        if (v.year < minYear) minYear = v.year;
+        if (v.year > maxYear) maxYear = v.year;
+      }
+
+      if (v.priceUsd && !v.requestPrice) {
+        if (v.priceUsd < minPrice) minPrice = v.priceUsd;
+        if (v.priceUsd > maxPrice) maxPrice = v.priceUsd;
+      }
+
+      if (v.mileage !== undefined && v.mileage !== null) {
+        if (v.mileage < minMileage) minMileage = v.mileage;
+        if (v.mileage > maxMileage) maxMileage = v.mileage;
+      }
+    });
+
+    const sortFacets = (map: Map<string, number>) =>
+      Array.from(map.entries())
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+
+    return {
+      makes: sortFacets(makeMap),
+      models: sortFacets(modelMap),
+      fuelTypes: sortFacets(fuelTypeMap),
+      driveTrains: sortFacets(driveTrainMap),
+      transmissions: sortFacets(transmissionMap),
+      yearRange: {
+        min: minYear <= maxYear ? minYear : 2015,
+        max: minYear <= maxYear ? maxYear : 2024,
+      },
+      priceRange: {
+        min: minPrice <= maxPrice ? minPrice : 0,
+        max: minPrice <= maxPrice ? maxPrice : 50000,
+      },
+      mileageRange: {
+        min: minMileage <= maxMileage ? minMileage : 0,
+        max: minMileage <= maxMileage ? maxMileage : 100000,
+      },
+      // D02-ASM-008: these four fields have no backing columns today
+      modelCodes: [],
+      engineCcOptions: [],
+      colors: [],
+      steeringOptions: [],
+    };
+  }
+
   reset(): Promise<void> {
     this.config = { ...seedConfig };
     this.vehicles = seedVehicles.map((vehicle) => ({ ...vehicle }));
@@ -5017,6 +5224,8 @@ class MemoryStore implements DemoStore {
     this.branches = seedBranches.map((b) => ({ ...b }));
     this.customerAccounts = [buildSeedCustomerAccount()];
     this.passwordResetOutbox = [];
+    this.wishlistItems = [];
+    this.favourites = [];
     return Promise.resolve();
   }
 
@@ -5149,6 +5358,26 @@ class PostgresStore implements DemoStore {
         created_at text NOT NULL,
         expires_at text NOT NULL,
         hold_hours integer NOT NULL
+      );`
+    );
+    // Phase 2.13 (D02-P13-T002): Wishlist and Favourites entities
+    await this.pool.query(
+      `CREATE TABLE IF NOT EXISTS wishlist_items (
+        id text PRIMARY KEY,
+        customer_id text NOT NULL,
+        vehicle_id text NOT NULL,
+        vehicle_slug text NOT NULL,
+        created_at text NOT NULL,
+        UNIQUE(customer_id, vehicle_id)
+      );`
+    );
+    await this.pool.query(
+      `CREATE TABLE IF NOT EXISTS favourite_searches (
+        id text PRIMARY KEY,
+        customer_id text NOT NULL,
+        name text NOT NULL,
+        criteria_json text NOT NULL,
+        created_at text NOT NULL
       );`
     );
     await this.pool.query(
@@ -6309,6 +6538,197 @@ class PostgresStore implements DemoStore {
     return { items: COUNTRIES.map((c) => ({ ...c })) };
   }
 
+  // --- Phase 2.13: Wishlist and Favourites (D02-P13-T002) ---
+
+  async listWishlist(customerId: string): Promise<WishlistListResponse> {
+    const result = await this.pool.query(
+      `SELECT id, customer_id, vehicle_id, vehicle_slug, created_at FROM wishlist_items WHERE customer_id = $1 ORDER BY created_at DESC`,
+      [customerId]
+    );
+    const items = result.rows.map((row) => ({
+      id: row.id,
+      customerId: row.customer_id,
+      vehicleId: row.vehicle_id,
+      vehicleSlug: row.vehicle_slug,
+      createdAt: row.created_at,
+    }));
+    return { items };
+  }
+
+  async toggleWishlist(customerId: string, vehicleSlug: string): Promise<WishlistToggleResponse> {
+    // Find the vehicle to ensure it exists and get its ID
+    const rawVehicles = await this.getRawVehicles();
+    const vehicle = findVehicleRecord(rawVehicles, vehicleSlug);
+    if (!vehicle) {
+      throw { statusCode: 404, message: `Vehicle '${vehicleSlug}' not found` };
+    }
+
+    // Check if already in wishlist
+    const existingResult = await this.pool.query(
+      `SELECT id FROM wishlist_items WHERE customer_id = $1 AND vehicle_slug = $2 LIMIT 1`,
+      [customerId, vehicleSlug]
+    );
+
+    if (existingResult.rows.length > 0) {
+      // Remove from wishlist
+      const itemId = existingResult.rows[0].id;
+      await this.pool.query(`DELETE FROM wishlist_items WHERE id = $1`, [itemId]);
+      return { wishlisted: false };
+    } else {
+      // Add to wishlist
+      const id = `wish-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      const createdAt = new Date().toISOString();
+      await this.pool.query(
+        `INSERT INTO wishlist_items (id, customer_id, vehicle_id, vehicle_slug, created_at) VALUES ($1, $2, $3, $4, $5)`,
+        [id, customerId, vehicle.id, vehicleSlug, createdAt]
+      );
+      const item: WishlistItem = {
+        id,
+        customerId,
+        vehicleId: vehicle.id,
+        vehicleSlug,
+        createdAt,
+      };
+      return { wishlisted: true, item };
+    }
+  }
+
+  async listFavourites(customerId: string): Promise<FavouriteSearchListResponse> {
+    const result = await this.pool.query(
+      `SELECT id, customer_id, name, criteria_json, created_at FROM favourite_searches WHERE customer_id = $1 ORDER BY created_at DESC`,
+      [customerId]
+    );
+    const items = result.rows.map((row) => ({
+      id: row.id,
+      customerId: row.customer_id,
+      name: row.name,
+      criteria: JSON.parse(row.criteria_json),
+      createdAt: row.created_at,
+    }));
+    return { items, limit: 25 };
+  }
+
+  async createFavourite(
+    customerId: string,
+    name: string,
+    criteria: FavouriteSearchCriteria,
+    nowISO?: string
+  ): Promise<FavouriteSearch> {
+    // Validate: at least one non-empty criteria field (D02-ASM-010)
+    const hasAtLeastOne = Object.values(criteria).some((v) => v != null && v !== '' && v !== 0 && v !== false);
+    if (!hasAtLeastOne) {
+      throw { statusCode: 400, message: 'At least one criteria field is required' };
+    }
+
+    // Check 25-favourite cap (CUST-40)
+    const countResult = await this.pool.query(
+      `SELECT COUNT(*) as cnt FROM favourite_searches WHERE customer_id = $1`,
+      [customerId]
+    );
+    const count = Number(countResult.rows[0].cnt);
+    if (count >= 25) {
+      throw { statusCode: 409, message: 'Favourite limit exceeded', reason: 'limit_exceeded' };
+    }
+
+    const id = `fav-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const createdAt = nowISO || new Date().toISOString();
+    const criteriaJson = JSON.stringify(criteria);
+
+    await this.pool.query(
+      `INSERT INTO favourite_searches (id, customer_id, name, criteria_json, created_at) VALUES ($1, $2, $3, $4, $5)`,
+      [id, customerId, name, criteriaJson, createdAt]
+    );
+
+    return {
+      id,
+      customerId,
+      name,
+      criteria,
+      createdAt,
+    };
+  }
+
+  async deleteFavourite(customerId: string, id: string): Promise<void> {
+    const result = await this.pool.query(
+      `DELETE FROM favourite_searches WHERE id = $1 AND customer_id = $2`,
+      [id, customerId]
+    );
+    if (result.rowCount === 0) {
+      throw { statusCode: 404, message: 'Favourite not found' };
+    }
+  }
+
+  async getFavouriteFacets(): Promise<FavouriteSearchFacets> {
+    const rawVehicles = await this.getRawVehicles();
+    const vehicles = rawVehicles.filter((v) => v.status !== 'Draft');
+
+    const makeMap = new Map<string, number>();
+    const modelMap = new Map<string, number>();
+    const fuelTypeMap = new Map<string, number>();
+    const driveTrainMap = new Map<string, number>();
+    const transmissionMap = new Map<string, number>();
+
+    let minYear = 2026;
+    let maxYear = 1970;
+    let minPrice = Infinity;
+    let maxPrice = -Infinity;
+    let minMileage = Infinity;
+    let maxMileage = -Infinity;
+
+    vehicles.forEach((v) => {
+      if (v.make) makeMap.set(v.make, (makeMap.get(v.make) || 0) + 1);
+      if (v.model) modelMap.set(v.model, (modelMap.get(v.model) || 0) + 1);
+      if (v.fuelType) fuelTypeMap.set(v.fuelType, (fuelTypeMap.get(v.fuelType) || 0) + 1);
+      if (v.driveTrain) driveTrainMap.set(v.driveTrain, (driveTrainMap.get(v.driveTrain) || 0) + 1);
+      if (v.transmission) transmissionMap.set(v.transmission, (transmissionMap.get(v.transmission) || 0) + 1);
+
+      if (v.year) {
+        if (v.year < minYear) minYear = v.year;
+        if (v.year > maxYear) maxYear = v.year;
+      }
+
+      if (v.priceUsd && !v.requestPrice) {
+        if (v.priceUsd < minPrice) minPrice = v.priceUsd;
+        if (v.priceUsd > maxPrice) maxPrice = v.priceUsd;
+      }
+
+      if (v.mileage !== undefined && v.mileage !== null) {
+        if (v.mileage < minMileage) minMileage = v.mileage;
+        if (v.mileage > maxMileage) maxMileage = v.mileage;
+      }
+    });
+
+    const sortFacets = (map: Map<string, number>) =>
+      Array.from(map.entries())
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+
+    return {
+      makes: sortFacets(makeMap),
+      models: sortFacets(modelMap),
+      fuelTypes: sortFacets(fuelTypeMap),
+      driveTrains: sortFacets(driveTrainMap),
+      transmissions: sortFacets(transmissionMap),
+      yearRange: {
+        min: minYear <= maxYear ? minYear : 2015,
+        max: minYear <= maxYear ? maxYear : 2024,
+      },
+      priceRange: {
+        min: minPrice <= maxPrice ? minPrice : 0,
+        max: minPrice <= maxPrice ? maxPrice : 50000,
+      },
+      mileageRange: {
+        min: minMileage <= maxMileage ? minMileage : 0,
+        max: minMileage <= maxMileage ? maxMileage : 100000,
+      },
+      // D02-ASM-008: these four fields have no backing columns today
+      modelCodes: [],
+      engineCcOptions: [],
+      colors: [],
+      steeringOptions: [],
+    };
+  }
+
   async reset(): Promise<void> {
     const client = await this.pool.connect();
     try {
@@ -6325,6 +6745,8 @@ class PostgresStore implements DemoStore {
       await client.query('DELETE FROM branch_content');
       await client.query('DELETE FROM password_reset_outbox');
       await client.query('DELETE FROM customer_accounts');
+      await client.query('DELETE FROM wishlist_items');
+      await client.query('DELETE FROM favourite_searches');
 
       const seedAccount = buildSeedCustomerAccount();
       await client.query(
