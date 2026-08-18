@@ -53,6 +53,9 @@ export const CustomerNav: React.FC = () => {
   } = useCustomerShell();
   const mobileMenuId = useId();
   const [isSyncing, setIsSyncing] = useState(false);
+  const publicWebUrl = typeof window !== 'undefined'
+    ? `${window.location.protocol}//${window.location.hostname}:3000`
+    : 'http://127.0.0.1:3000';
 
   const handleSyncData = () => {
     setIsSyncing(true);
@@ -194,7 +197,7 @@ export const CustomerNav: React.FC = () => {
             </button>
 
             <a
-              href="http://localhost:3000"
+              href={publicWebUrl}
               className="cc-cust-sidebar-tool-btn"
             >
               <span className="cc-cust-tool-icon" aria-hidden="true">
