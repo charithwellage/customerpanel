@@ -17,6 +17,7 @@ import {
   BulletinsBellIcon,
   ClientProfileUserIcon,
   MidnightMoonIcon,
+  DaylightSunIcon,
   SyncArrowsIcon,
   ExternalArrowIcon,
   SecureLogoutDoorIcon,
@@ -46,24 +47,18 @@ export const CustomerNav: React.FC = () => {
     toggleMobileMenu,
     closeMobileMenu,
     navigationItems,
+    themeMode,
+    toggleThemeMode,
     onSignOut,
   } = useCustomerShell();
   const mobileMenuId = useId();
   const [isSyncing, setIsSyncing] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
 
   const handleSyncData = () => {
     setIsSyncing(true);
     setTimeout(() => {
       setIsSyncing(false);
     }, 800);
-  };
-
-  const handleToggleMidnight = () => {
-    setIsDarkMode((prev) => !prev);
-    if (typeof document !== 'undefined') {
-      document.documentElement.classList.toggle('dark-mode');
-    }
   };
 
   const renderNavIcon = (itemId: string, fallbackIcon?: string) => {
@@ -172,12 +167,18 @@ export const CustomerNav: React.FC = () => {
             <button
               type="button"
               className="cc-cust-sidebar-tool-btn"
-              onClick={handleToggleMidnight}
+              onClick={toggleThemeMode}
+              aria-pressed={themeMode === 'midnight'}
+              title={themeMode === 'midnight' ? 'Switch to Daylight Mode' : 'Switch to Midnight Mode'}
             >
               <span className="cc-cust-tool-icon" aria-hidden="true">
-                <MidnightMoonIcon size={16} />
+                {themeMode === 'midnight' ? (
+                  <DaylightSunIcon size={16} />
+                ) : (
+                  <MidnightMoonIcon size={16} />
+                )}
               </span>
-              <span>{isDarkMode ? 'Daylight Mode' : 'Midnight Mode'}</span>
+              <span>{themeMode === 'midnight' ? 'Daylight Mode' : 'Midnight Mode'}</span>
             </button>
 
             <button

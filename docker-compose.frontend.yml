@@ -72,7 +72,7 @@ services:
       target: runtime
     environment:
       NODE_ENV: production
-      PORT: 3000
+      PORT: 3000align
       API_BASE_URL: http://mock-api:4000
     depends_on:
       mock-api:
