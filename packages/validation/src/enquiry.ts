@@ -82,3 +82,23 @@ export const enquiryFormSchema = z
 export type EnquiryFormSchemaValues = z.infer<typeof enquiryFormSchema>;
 /** Input shape (before defaults) — matches what `react-hook-form`'s `useForm` manages field-by-field. */
 export type EnquiryFormSchemaInput = z.input<typeof enquiryFormSchema>;
+
+/**
+ * Client-side quote-request form validation (D02-P13-T004, D02-P13-T005, CUST-31/CUST-32/CUST-33).
+ * Shows only name, email and phone; message and consent are auto-filled server-side (D02-ASM-009).
+ * Field names match the flat `EnquiryRequest` contract 1:1.
+ */
+export const quoteRequestFormSchema = z.object({
+  name: z.string().trim().min(1, 'Enter your name.'),
+  email: z
+    .string()
+    .trim()
+    .min(1, 'Enter your email address.')
+    .refine((value) => EMAIL_PATTERN.test(value), 'Enter a valid email address.'),
+  phone: z.string().trim().min(1, 'Enter your phone number.'),
+});
+
+/** Output shape (after zod's `.default()` is applied) — every field resolved, used once a submission passes validation. */
+export type QuoteRequestFormSchemaValues = z.infer<typeof quoteRequestFormSchema>;
+/** Input shape (before defaults) — matches what `react-hook-form`'s `useForm` manages field-by-field. */
+export type QuoteRequestFormSchemaInput = z.input<typeof quoteRequestFormSchema>;

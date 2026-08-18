@@ -1,18 +1,19 @@
 import { describe, expect, it } from 'vitest';
 
 /**
- * Customer Account Lifecycle Requirement Traceability Suite (D02-P12-T007).
- * Maps CUST-26 through CUST-30 — self-registration, credential sign-in,
- * in-session password change, password recovery without a live mail
- * provider, and complete demo-identity removal — to their acceptance
- * evidence, mirroring the PUB-01..35 pattern in requirement-coverage.test.ts.
+ * Customer Account Lifecycle Requirement Traceability Suite.
+ * Maps CUST-26 through CUST-40:
+ * - CUST-26 through CUST-30: self-registration, credential sign-in, password change,
+ *   password recovery, and demo-identity removal (D02-P12-T007)
+ * - CUST-31 through CUST-40: quote requests, inquiries, wishlist, and favourites
+ *   (D02-P13-T001 through T007)
  *
- * `tasks/delivery_02/DELIVERY_02_COVERAGE_MATRIX.md` (lines 36-40) already
- * carries these five requirement rows and their evidence description; this
- * suite is the automated, always-run check that the referenced test files
- * still exist and still exercise the requirement.
+ * Mirrors the PUB-01..35 pattern in requirement-coverage.test.ts.
+ * `tasks/delivery_02/DELIVERY_02_COVERAGE_MATRIX.md` carries the full requirement
+ * descriptions; this suite is the automated check that test files exist and exercise
+ * each requirement.
  */
-describe('Customer Account Lifecycle Requirement Coverage (CUST-26 to CUST-30)', () => {
+describe('Customer Account Lifecycle and Features Requirement Coverage (CUST-26 to CUST-40)', () => {
   const customerAccountRequirementsMap: Record<
     string,
     { title: string; phase: string; testFiles: string[]; status: 'COVERED' | 'UNRESOLVED' }
@@ -74,10 +75,102 @@ describe('Customer Account Lifecycle Requirement Coverage (CUST-26 to CUST-30)',
       ],
       status: 'COVERED',
     },
+    'CUST-31': {
+      title: 'A shopper viewing a vehicle detail page in public-web or Customer application sees a "Get Free Quote" action',
+      phase: 'Phase 2.13',
+      testFiles: [
+        'apps/public-web/src/features/quote-request/__tests__/quote-request.test.ts',
+        'apps/customer-app/src/features/inventory/__tests__/inventory.test.ts',
+        'apps/mock-api/src/__tests__/enquiries.test.ts',
+      ],
+      status: 'COVERED',
+    },
+    'CUST-32': {
+      title: 'In public-web, requesting a quote requires name, email address and mobile number (all mandatory)',
+      phase: 'Phase 2.13',
+      testFiles: [
+        'apps/public-web/src/features/quote-request/__tests__/quote-request.test.ts',
+        'packages/validation/src/__tests__/enquiry.test.ts',
+      ],
+      status: 'COVERED',
+    },
+    'CUST-33': {
+      title: 'In Customer application, requesting a quote submits directly using signed-in customer identity',
+      phase: 'Phase 2.13',
+      testFiles: [
+        'apps/customer-app/src/features/inventory/__tests__/inventory.test.ts',
+        'apps/mock-api/src/__tests__/customer-inquiries.test.ts',
+      ],
+      status: 'COVERED',
+    },
+    'CUST-34': {
+      title: 'Customer application has "My Inquiries" navigation item leading to page listing every vehicle customer requested quote for',
+      phase: 'Phase 2.13',
+      testFiles: [
+        'apps/customer-app/src/features/inquiries/__tests__/inquiries.test.ts',
+        'apps/mock-api/src/__tests__/customer-inquiries.test.ts',
+      ],
+      status: 'COVERED',
+    },
+    'CUST-35': {
+      title: 'Each vehicle on Inquiries page shows how many distinct people in total have requested quote for that vehicle',
+      phase: 'Phase 2.13',
+      testFiles: [
+        'apps/customer-app/src/features/inquiries/__tests__/inquiries.test.ts',
+        'apps/mock-api/src/__tests__/customer-inquiries.test.ts',
+      ],
+      status: 'COVERED',
+    },
+    'CUST-36': {
+      title: 'Customer application vehicle detail page has "Add to Wishlist" action that saves vehicle against signed-in customer',
+      phase: 'Phase 2.13',
+      testFiles: [
+        'apps/customer-app/src/features/inventory/__tests__/inventory.test.ts',
+        'apps/mock-api/src/__tests__/wishlist.test.ts',
+      ],
+      status: 'COVERED',
+    },
+    'CUST-37': {
+      title: 'Customer application has "My Wishlist" navigation item leading to page listing every vehicle customer wishlisted',
+      phase: 'Phase 2.13',
+      testFiles: [
+        'apps/customer-app/src/features/wishlist/__tests__/wishlist.test.ts',
+        'apps/mock-api/src/__tests__/wishlist.test.ts',
+      ],
+      status: 'COVERED',
+    },
+    'CUST-38': {
+      title: 'Customer application has "Favourites" navigation leading to page where customer creates saved search-criteria profiles from 15 dropdown fields',
+      phase: 'Phase 2.13',
+      testFiles: [
+        'apps/customer-app/src/features/favourites/__tests__/favourites.test.ts',
+        'apps/mock-api/src/__tests__/favourites.test.ts',
+        'packages/validation/src/__tests__/favourites.test.ts',
+      ],
+      status: 'COVERED',
+    },
+    'CUST-39': {
+      title: 'Every Favourites dropdown is populated from real, database-backed distinct values, never hardcoded',
+      phase: 'Phase 2.13',
+      testFiles: [
+        'apps/customer-app/src/features/favourites/__tests__/favourites.test.ts',
+        'apps/mock-api/src/__tests__/favourites.test.ts',
+      ],
+      status: 'COVERED',
+    },
+    'CUST-40': {
+      title: 'A signed-in customer may hold at most 25 favourites; 26th creation attempt is rejected',
+      phase: 'Phase 2.13',
+      testFiles: [
+        'apps/customer-app/src/features/favourites/__tests__/favourites.test.ts',
+        'apps/mock-api/src/__tests__/favourites.test.ts',
+      ],
+      status: 'COVERED',
+    },
   };
 
-  it('maps CUST-26 through CUST-30 to active test suites', () => {
-    for (let number = 26; number <= 30; number += 1) {
+  it('maps CUST-26 through CUST-40 to active test suites', () => {
+    for (let number = 26; number <= 40; number += 1) {
       const id = `CUST-${number}`;
       const entry = customerAccountRequirementsMap[id];
       expect(entry).toBeDefined();

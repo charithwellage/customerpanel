@@ -7,7 +7,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import { ENQUIRY_SOURCES, ENQUIRY_PREFERRED_DRIVE_SIDES } from '@carchief/domain';
-import { enquiryFormSchema, validateEmail } from '../index.js';
+import { enquiryFormSchema, quoteRequestFormSchema, validateEmail } from '../index.js';
 
 const VALID = {
   name: 'Jane Doe',
@@ -96,5 +96,56 @@ describe('enquiryFormSchema', () => {
     expect(enquiryFormSchema.safeParse({ ...VALID, email: 'jane@example.com' }).success).toBe(true);
     expect(validateEmail('not-an-email')).toBe(false);
     expect(enquiryFormSchema.safeParse({ ...VALID, email: 'not-an-email' }).success).toBe(false);
+  });
+});
+
+describe('quoteRequestFormSchema', () => {
+  const VALID_QUOTE = {
+    name: 'John Smith',
+    email: 'john@example.com',
+    phone: '+256701234567',
+  };
+
+  it('accepts the minimum required quote-request fields (name, email, phone)', () => {
+    const result = quoteRequestFormSchema.safeParse(VALID_QUOTE);
+    expect(result.success).toBe(true);
+  });
+
+  it('requires name field', () => {
+    const result = quoteRequestFormSchema.safeParse({ ...VALID_QUOTE, name: '' });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues.some((issue) => issue.path[0] === 'name')).toBe(true);
+    }
+  });
+
+  it('requires email field and validates format', () => {
+    const result = quoteRequestFormSchema.safeParse({ ...VALID_QUOTE, email: '' });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues.some((issue) => issue.path[0] === 'email')).toBe(true);
+    }
+
+    const invalidEmailResult = quoteRequestFormSchema.safeParse({ ...VALID_QUOTE, email: 'invalid-email' });
+    expect(invalidEmailResult.success).toBe(false);
+  });
+
+  it('requires phone field', () => {
+    const result = quoteRequestFormSchema.safeParse({ ...VALID_QUOTE, phone: '' });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues.some((issue) => issue.path[0] === 'phone')).toBe(true);
+    }
+  });
+
+  it('accepts valid email addresses', () => {
+    expect(quoteRequestFormSchema.safeParse({ ...VALID_QUOTE, email: 'test@example.com' }).success).toBe(true);
+    expect(quoteRequestFormSchema.safeParse({ ...VALID_QUOTE, email: 'user+tag@domain.co.uk' }).success).toBe(true);
+  });
+
+  it('rejects invalid email addresses', () => {
+    expect(quoteRequestFormSchema.safeParse({ ...VALID_QUOTE, email: 'no-at-sign.com' }).success).toBe(false);
+    expect(quoteRequestFormSchema.safeParse({ ...VALID_QUOTE, email: '@example.com' }).success).toBe(false);
+    expect(quoteRequestFormSchema.safeParse({ ...VALID_QUOTE, email: 'user@' }).success).toBe(false);
   });
 });

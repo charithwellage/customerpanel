@@ -24,6 +24,12 @@ export interface CustomerVehicleDetailState {
   inquirySuccess: boolean;
   inquiryError: string | null;
   inquiryId?: string;
+  wishlistLoading: boolean;
+  wishlistError: string | null;
+  isWishlisted: boolean;
+  quoteSubmitting: boolean;
+  quoteSubmitError: string | null;
+  quoteSubmitSuccess: boolean;
 }
 
 export interface CustomerInventoryFilterState extends SearchVehiclesQuery {

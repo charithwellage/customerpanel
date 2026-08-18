@@ -15,4 +15,7 @@ export * from './services/customerNotifications.js';
 export * from './services/customerProfile.js';
 export * from './services/auth.js';
 export * from './services/country.js';
+export * from './services/customerInquiries.js';
+export * from './services/wishlist.js';
+export * from './services/favourites.js';
 export * from './http.js';

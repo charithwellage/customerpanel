@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { VehicleDetail, ReservationResponse, EnquiryResponse } from '@carchief/domain';
-import { HttpClient, VehicleService, ReservationService, EnquiryService } from '@carchief/api-client';
+import type { VehicleDetail, ReservationResponse, EnquiryResponse, CustomerProfile } from '@carchief/domain';
+import { HttpClient, VehicleService, ReservationService, EnquiryService, WishlistService, CustomerProfileService } from '@carchief/api-client';
 import type { CustomerVehicleDetailState } from './types.js';
 
 export interface UseCustomerVehicleDetailOptions {
@@ -24,6 +24,12 @@ export function useCustomerVehicleDetail({
     inquirySubmitting: false,
     inquirySuccess: false,
     inquiryError: null,
+    wishlistLoading: true,
+    wishlistError: null,
+    isWishlisted: false,
+    quoteSubmitting: false,
+    quoteSubmitError: null,
+    quoteSubmitSuccess: false,
   });
 
   const fetchDetail = useCallback(async () => {
@@ -67,9 +73,40 @@ export function useCustomerVehicleDetail({
     }
   }, [apiBaseUrl, idOrSlug, token]);
 
+  const fetchWishlistState = useCallback(async () => {
+    if (!idOrSlug) return;
+    setState((prev) => ({ ...prev, wishlistLoading: true, wishlistError: null }));
+
+    try {
+      const httpClient = new HttpClient({
+        baseUrl: apiBaseUrl,
+        getAuthToken: () => token,
+      });
+      const wishlistService = new WishlistService(httpClient);
+
+      const response = await wishlistService.list();
+      const isWishlisted = response.items.some((item) => item.vehicleSlug === idOrSlug);
+
+      setState((prev) => ({
+        ...prev,
+        wishlistLoading: false,
+        isWishlisted,
+        wishlistError: null,
+      }));
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Unable to load wishlist status.';
+      setState((prev) => ({
+        ...prev,
+        wishlistLoading: false,
+        wishlistError: message,
+      }));
+    }
+  }, [apiBaseUrl, idOrSlug, token]);
+
   useEffect(() => {
     fetchDetail();
-  }, [fetchDetail]);
+    fetchWishlistState();
+  }, [fetchDetail, fetchWishlistState]);
 
   const reserveVehicle = useCallback(async () => {
     if (!state.vehicle) return;
@@ -200,10 +237,128 @@ export function useCustomerVehicleDetail({
     }
   }, [apiBaseUrl, state.vehicle, token]);
 
+  const submitQuoteRequest = useCallback(async () => {
+    if (!state.vehicle) return;
+
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      setState((prev) => ({
+        ...prev,
+        quoteSubmitting: false,
+        quoteSubmitError: 'You are currently offline. Quotes cannot be requested while offline.',
+      }));
+      return;
+    }
+
+    setState((prev) => ({
+      ...prev,
+      quoteSubmitting: true,
+      quoteSubmitError: null,
+    }));
+
+    try {
+      const httpClient = new HttpClient({
+        baseUrl: apiBaseUrl,
+        getAuthToken: () => token,
+      });
+
+      const profileService = new CustomerProfileService(httpClient);
+      const profile: CustomerProfile = await profileService.get();
+
+      const enquiryService = new EnquiryService(httpClient);
+      await enquiryService.submit({
+        name: profile.name || 'Customer',
+        email: profile.email || '',
+        phone: profile.phone || '',
+        message: 'Quote request from customer application',
+        consent: true,
+        vehicleSlug: state.vehicle.slug,
+        enquiryType: 'price-request',
+        source: 'form',
+      });
+
+      setState((prev) => ({
+        ...prev,
+        quoteSubmitting: false,
+        quoteSubmitSuccess: true,
+        quoteSubmitError: null,
+      }));
+
+      // Reset success state after a short delay to allow the UI to show feedback
+      setTimeout(() => {
+        setState((prev) => ({
+          ...prev,
+          quoteSubmitSuccess: false,
+        }));
+      }, 2000);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Unable to submit quote request.';
+      setState((prev) => ({
+        ...prev,
+        quoteSubmitting: false,
+        quoteSubmitSuccess: false,
+        quoteSubmitError: msg,
+      }));
+    }
+  }, [apiBaseUrl, state.vehicle, token]);
+
+  const toggleWishlist = useCallback(async () => {
+    if (!state.vehicle) return;
+
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      setState((prev) => ({
+        ...prev,
+        wishlistLoading: false,
+        wishlistError: 'You are currently offline. Wishlist cannot be modified while offline.',
+      }));
+      return;
+    }
+
+    setState((prev) => ({
+      ...prev,
+      wishlistLoading: true,
+      wishlistError: null,
+    }));
+
+    try {
+      const httpClient = new HttpClient({
+        baseUrl: apiBaseUrl,
+        getAuthToken: () => token,
+      });
+      const wishlistService = new WishlistService(httpClient);
+
+      if (state.isWishlisted) {
+        await wishlistService.remove(state.vehicle.slug);
+        setState((prev) => ({
+          ...prev,
+          wishlistLoading: false,
+          isWishlisted: false,
+          wishlistError: null,
+        }));
+      } else {
+        await wishlistService.add(state.vehicle.slug);
+        setState((prev) => ({
+          ...prev,
+          wishlistLoading: false,
+          isWishlisted: true,
+          wishlistError: null,
+        }));
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Unable to update wishlist.';
+      setState((prev) => ({
+        ...prev,
+        wishlistLoading: false,
+        wishlistError: message,
+      }));
+    }
+  }, [apiBaseUrl, state.vehicle, state.isWishlisted, token]);
+
   return {
     state,
     refetch: fetchDetail,
     reserveVehicle,
     requestPriceInquiry,
+    submitQuoteRequest,
+    toggleWishlist,
   };
 }
