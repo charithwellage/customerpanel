@@ -154,15 +154,15 @@
 | [D02-P13-T003](delivery_02/phase_13/D02-P13-T003.md) | Add shared validation schemas and api-client services for quotes, inquiries, wishlist and favourites | COMPLETE | self_ai | not_applicable | Claude Haiku | `feat_delivery02_phase_13` | D02-P13-CODE_REVIEW (NOT_STARTED) | D02-P13-T002 | D02-P13-SEQUENTIAL | 2026-08-17T15:54:59.873Z |
 | [D02-P13-T004](delivery_02/phase_13/D02-P13-T004.md) | Add Get Free Quote to the public-web vehicle detail page | COMPLETE | self_ai | playwright_mcp | Claude Haiku | `feat_delivery02_phase_13` | D02-P13-CODE_REVIEW (NOT_STARTED) | D02-P13-T003 | D02-P13-SEQUENTIAL | 2026-08-17T16:28:00.863Z |
 | [D02-P13-T005](delivery_02/phase_13/D02-P13-T005.md) | Add Get Free Quote and Add to Wishlist to the customer-app vehicle detail page | COMPLETE | self_ai | playwright_mcp | Claude Haiku | `feat_delivery02_phase_13` | D02-P13-CODE_REVIEW (NOT_STARTED) | D02-P13-T004 | D02-P13-SEQUENTIAL | 2026-08-17T16:50:01.225Z |
-| [D02-P13-T006](delivery_02/phase_13/D02-P13-T006.md) | Build the customer-app My Inquiries page and nav entry | IN_PROGRESS | self_ai | playwright_mcp | Claude Haiku | `feat_delivery02_phase_13` | D02-P13-CODE_REVIEW (NOT_STARTED) | D02-P13-T005 | D02-P13-SEQUENTIAL | 2026-08-17T16:53:51.882Z |
-| [D02-P13-T007](delivery_02/phase_13/D02-P13-T007.md) | Build the customer-app My Wishlist and Favourites pages with nav entries and 25-cap UX | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery02_phase_13` | D02-P13-CODE_REVIEW (NOT_STARTED) | D02-P13-T006 | D02-P13-SEQUENTIAL | — |
+| [D02-P13-T006](delivery_02/phase_13/D02-P13-T006.md) | Build the customer-app My Inquiries page and nav entry | COMPLETE | self_ai | playwright_mcp | Claude Haiku | `feat_delivery02_phase_13` | D02-P13-CODE_REVIEW (NOT_STARTED) | D02-P13-T005 | D02-P13-SEQUENTIAL | 2026-08-18T00:38:19.609Z |
+| [D02-P13-T007](delivery_02/phase_13/D02-P13-T007.md) | Build the customer-app My Wishlist and Favourites pages with nav entries and 25-cap UX | READY | self_ai | playwright_mcp | — | `feat_delivery02_phase_13` | D02-P13-CODE_REVIEW (NOT_STARTED) | D02-P13-T006 | D02-P13-SEQUENTIAL | — |
 | [D02-P13-T008](delivery_02/phase_13/D02-P13-T008.md) | Verify cross-feature integration, customer isolation, container gate and Phase 2.13 acceptance | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery02_phase_13` | D02-P13-CODE_REVIEW (NOT_STARTED) | D02-P13-T007 | D02-P13-SEQUENTIAL | — |
 | [D02-P13-CODE_REVIEW](delivery_02/phase_13/D02-P13-CODE_REVIEW.md) | Phase 2.13 PR code review and tech-lead approval | NOT_STARTED | phase_manual | not_applicable | — | `feat_delivery02_phase_13` | D02-P13-CODE_REVIEW (NOT_STARTED) | D02-P13-T008 | D02-P13-REVIEW | — |
 
 
 ## Current execution frontiers
 
-- D02-INQUIRIES-WISHLIST: D02-P13-T006 — Build the customer-app My Inquiries page and nav entry (IN_PROGRESS)
+- D02-INQUIRIES-WISHLIST: D02-P13-T007 — Build the customer-app My Wishlist and Favourites pages with nav entries and 25-cap UX (NOT_STARTED)
 - Sequential within each lane; dependencies coordinate work across lanes.
 - Optional Phase 2.11 is excluded until explicitly started with `--opt-in theme`.
 - Downstream work waits for COMPLETE or SUPERSEDED; IN_REVIEW is not complete.
