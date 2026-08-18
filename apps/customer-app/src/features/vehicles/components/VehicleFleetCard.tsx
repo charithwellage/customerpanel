@@ -4,9 +4,10 @@ import type { CustomerVehicleSummary } from '@carchief/domain';
 export interface VehicleFleetCardProps {
   vehicle: CustomerVehicleSummary;
   onSelect: (vehicle: CustomerVehicleSummary) => void;
+  onTrackShipment?: (vehicle: CustomerVehicleSummary) => void;
 }
 
-export const VehicleFleetCard: React.FC<VehicleFleetCardProps> = ({ vehicle, onSelect }) => {
+export const VehicleFleetCard: React.FC<VehicleFleetCardProps> = ({ vehicle, onSelect, onTrackShipment }) => {
   const isPI = vehicle.status === 'Under Negotiation With PI' || Boolean(vehicle.proformaInvoiceId);
   const isInvoiced = vehicle.status === 'Confirmed' || vehicle.status === 'In Transit' || vehicle.status === 'Delivered' || Boolean(vehicle.commercialBill);
   const isReserved = (vehicle.status === 'Under Negotiation' || (!isPI && !isInvoiced));
@@ -247,7 +248,15 @@ export const VehicleFleetCard: React.FC<VehicleFleetCardProps> = ({ vehicle, onS
           <button
             type="button"
             className="cc-cust-fleet-card__track-btn"
-            onClick={() => onSelect(vehicle)}
+            data-testid={`fleet-card-track-btn-${vehicle.id || vehicle.chassisNumber}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (onTrackShipment) {
+                onTrackShipment(vehicle);
+              } else {
+                onSelect(vehicle);
+              }
+            }}
             aria-label={`Track shipment for ${vehicle.year} ${vehicle.make} ${vehicle.model}`}
           >
             <svg className="cc-cust-fleet-card__track-svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

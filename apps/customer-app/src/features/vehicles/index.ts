@@ -9,3 +9,4 @@ export * from './components/DepositSummaryCard.js';
 export * from './components/ShippingTrackingCard.js';
 export * from './components/ExportDocumentsCard.js';
 export * from './components/VehicleFleetCard.js';
+export * from './components/VehicleTrackingModal.js';

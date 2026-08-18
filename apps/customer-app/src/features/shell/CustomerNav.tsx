@@ -6,6 +6,9 @@ import {
   BrandBuildingIcon,
   DashboardGridIcon,
   ShowroomCarIcon,
+  InquiriesChatIcon,
+  WishlistHeartIcon,
+  FavouritesStarIcon,
   VehiclesSideCarIcon,
   StopwatchClockIcon,
   InvoiceDocumentIcon,
@@ -69,6 +72,12 @@ export const CustomerNav: React.FC = () => {
         return <DashboardGridIcon size={18} />;
       case 'inventory':
         return <ShowroomCarIcon size={18} />;
+      case 'inquiries':
+        return <InquiriesChatIcon size={18} />;
+      case 'wishlist':
+        return <WishlistHeartIcon size={18} />;
+      case 'favourites':
+        return <FavouritesStarIcon size={18} />;
       case 'vehicles':
         return <VehiclesSideCarIcon size={18} />;
       case 'shipments':
