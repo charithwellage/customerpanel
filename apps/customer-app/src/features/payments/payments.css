@@ -40,19 +40,21 @@
 
 .cc-remit-kpi-card__label {
   font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
+  font-size: 0.70rem;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   color: var(--color-text-secondary);
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .cc-remit-kpi-card__value {
-  font-family: var(--font-display);
+  font-family: var(--font-mono);
   font-size: var(--font-size-2xl);
   font-weight: 800;
   line-height: 1.1;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
 }
 
 .cc-remit-kpi-card__value--green {
@@ -64,7 +66,7 @@
 }
 
 .cc-remit-kpi-card__value--red {
-  color: var(--color-primary);
+  color: var(--color-error);
 }
 
 .cc-remit-kpi-card__icon-badge {
@@ -208,6 +210,10 @@
 }
 
 .cc-remit-td--amount {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
   white-space: nowrap;
 }
 
