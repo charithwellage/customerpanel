@@ -1,5 +1,7 @@
 import React, { useId, useState } from 'react';
 import { useCustomerShell } from './CustomerShellProvider.js';
+import { QueryClientContext } from '@tanstack/react-query';
+import { useCustomerNotifications } from '../notifications/useCustomerNotifications.js';
 import {
   BrandBuildingIcon,
   DashboardGridIcon,
@@ -16,6 +18,21 @@ import {
   ExternalArrowIcon,
   SecureLogoutDoorIcon,
 } from '../../components/Icons.js';
+
+const LiveNotificationBadge: React.FC = () => {
+  const { data } = useCustomerNotifications('all', '');
+  const count = data?.unreadCount ?? 0;
+  if (count <= 0) return null;
+  return <span className="cc-cust-shell-nav__badge">{count}</span>;
+};
+
+const LiveNotificationBadgeWrapper: React.FC<{ fallbackBadge?: string | number }> = ({ fallbackBadge }) => {
+  const queryClient = React.useContext(QueryClientContext);
+  if (!queryClient) {
+    return fallbackBadge ? <span className="cc-cust-shell-nav__badge">{fallbackBadge}</span> : null;
+  }
+  return <LiveNotificationBadge />;
+};
 
 export const CustomerNav: React.FC = () => {
   const {
@@ -128,7 +145,11 @@ export const CustomerNav: React.FC = () => {
                     </span>
                     <span className="cc-cust-shell-nav__label">{item.label}</span>
                     {item.altLabel && <span className="sr-only">{item.altLabel}</span>}
-                    {item.badge && <span className="cc-cust-shell-nav__badge">{item.badge}</span>}
+                    {item.id === 'notifications' ? (
+                      <LiveNotificationBadgeWrapper fallbackBadge={item.badge} />
+                    ) : (
+                      item.badge ? <span className="cc-cust-shell-nav__badge">{item.badge}</span> : null
+                    )}
                   </a>
                 </li>
               );
@@ -220,7 +241,11 @@ export const CustomerNav: React.FC = () => {
                     </span>
                     <span>{item.label}</span>
                     {item.altLabel && <span className="sr-only">{item.altLabel}</span>}
-                    {item.badge && <span className="cc-cust-shell-nav__badge">{item.badge}</span>}
+                    {item.id === 'notifications' ? (
+                      <LiveNotificationBadgeWrapper fallbackBadge={item.badge} />
+                    ) : (
+                      item.badge ? <span className="cc-cust-shell-nav__badge">{item.badge}</span> : null
+                    )}
                   </a>
                 </li>
               );

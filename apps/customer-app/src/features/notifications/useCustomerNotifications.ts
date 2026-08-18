@@ -40,3 +40,15 @@ export function useMarkAllNotificationsRead() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['customer', 'notifications'] }),
   });
 }
+
+export function useDeleteNotification() {
+  const httpClient = useHttpClient();
+  const queryClient = useQueryClient();
+  return useMutation<{ success: boolean }, Error, string>({
+    mutationFn: async (id) => {
+      if (!httpClient) throw new Error('Customer API is unavailable');
+      return new CustomerNotificationService(httpClient).delete(id);
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['customer', 'notifications'] }),
+  });
+}

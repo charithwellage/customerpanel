@@ -974,6 +974,7 @@ export interface DemoStore {
   getCustomerNotification(customerId: string, notificationId: string): Promise<Notification | null>;
   markCustomerNotificationRead(customerId: string, notificationId: string): Promise<Notification | null>;
   markAllCustomerNotificationsRead(customerId: string): Promise<MarkNotificationsReadResponse>;
+  deleteCustomerNotification(customerId: string, notificationId: string): Promise<boolean>;
   getCustomerProfile(customerId: string, email: string): Promise<CustomerProfile>;
   updateCustomerProfile(customerId: string, email: string, request: UpdateCustomerProfileRequest, nowISO?: string): Promise<CustomerProfile>;
   // Phase 2.5: customer invoice projections (CUST-02, CUST-14, CUST-15, CUST-16, CUST-21, RULE-04, RULE-08, RULE-10)
@@ -5033,6 +5034,15 @@ class MemoryStore implements DemoStore {
     return Promise.resolve({ updatedCount, unreadCount: 0 });
   }
 
+  deleteCustomerNotification(customerId: string, notificationId: string): Promise<boolean> {
+    const index = this.notifications.findIndex((candidate) => candidate.customerId === customerId && candidate.id === notificationId);
+    if (index !== -1) {
+      this.notifications.splice(index, 1);
+      return Promise.resolve(true);
+    }
+    return Promise.resolve(false);
+  }
+
   getCustomerProfile(customerId: string, email: string): Promise<CustomerProfile> {
     const profile = this.customerProfiles.find((candidate) => candidate.customerId === customerId);
     if (!profile) throw new Error('Customer profile not found');
@@ -5715,6 +5725,20 @@ class PostgresStore implements DemoStore {
         created_at text NOT NULL
       );`
     );
+    await this.pool.query(
+      `CREATE TABLE IF NOT EXISTS notifications (
+        id text PRIMARY KEY,
+        customer_id text NOT NULL,
+        title text,
+        message text NOT NULL,
+        type text NOT NULL,
+        is_read boolean NOT NULL DEFAULT false,
+        created_at text NOT NULL,
+        related_kind text,
+        related_id text,
+        related_href text
+      );`
+    );
 
     // Always upsert all seed vehicles into the database
     for (const vehicle of seedVehicles) {
@@ -6006,6 +6030,75 @@ class PostgresStore implements DemoStore {
             [p.id, customerId, p.invoiceId, p.amountUsd, p.paidAt, p.status, p.reference, p.bankName, p.currency, p.remarks]
           );
         }
+      }
+    }
+
+    // 8. Notifications
+    const notifCountResult = await this.pool.query('SELECT count(*) FROM notifications WHERE customer_id = $1', [customerId]);
+    if (Number(notifCountResult.rows[0]?.count || 0) < 5) {
+      const clientName = customerEmail ? (customerEmail.includes('@') ? customerEmail.split('@')[0] : customerEmail) : 'Charith Wellage';
+      const displayName = customerId === 'cust-123' ? 'Demo Customer' : (clientName.includes('.') ? clientName.split('.').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ') : 'Charith Wellage');
+
+      const defaultNotifs = [
+        {
+          id: `notif-${customerId}-pmt-001`,
+          customerId,
+          title: 'TT WIRE PAYMENT APPROVED',
+          message: `Dear ${displayName}, your wire transfer payment of $15,000 USD (Ref / Swift Code: 112310036) for Invoice INV-31644 has been audited and approved by the Finance Team. Your invoice allocation has been updated successfully.`,
+          type: 'Payment',
+          isRead: false,
+          createdAt: '2026-07-15T16:34:22.000Z',
+          related: { kind: 'Invoice', id: 'inv-31644', href: '/customer/invoices/inv-31644' },
+        },
+        {
+          id: `notif-${customerId}-pmt-002`,
+          customerId,
+          title: 'TT WIRE PAYMENT APPROVED ✔',
+          message: `Dear ${displayName}, your Telegraphic Transfer (TT) wire transfer payment of ¥10,000 JPY (Ref / Swift Code: 112310036) has been audited and approved by the Finance Team. Allocated to Invoice: BULK ALLOCATION.`,
+          type: 'Payment',
+          isRead: false,
+          createdAt: '2026-07-30T13:31:19.000Z',
+          related: { kind: 'Payment', id: 'pay-bulk-1', href: '/customer/payments' },
+        },
+        {
+          id: `notif-${customerId}-pmt-003`,
+          customerId,
+          title: 'TT WIRE PAYMENT APPROVED',
+          message: `Dear ${displayName}, your wire transfer payment of $50,000 USD (Reference Code: ffgff) for Invoice INV-31644 has been audited and approved by the Finance Team. Your invoice allocation has been updated successfully.`,
+          type: 'Payment',
+          isRead: true,
+          createdAt: '2026-07-21T22:01:21.000Z',
+          related: { kind: 'Invoice', id: 'inv-31644', href: '/customer/invoices/inv-31644' },
+        },
+        {
+          id: `notif-${customerId}-pmt-004`,
+          customerId,
+          title: 'TT WIRE PAYMENT APPROVED',
+          message: `Dear ${displayName}, your wire transfer payment of $4,700 USD (Reference Code: TEST) for Invoice INV-79873 has been audited and approved by the Finance Team. Your invoice allocation has been updated successfully.`,
+          type: 'Payment',
+          isRead: true,
+          createdAt: '2026-07-21T21:45:47.000Z',
+          related: { kind: 'Invoice', id: 'inv-79873', href: '/customer/invoices/inv-79873' },
+        },
+        {
+          id: `notif-${customerId}-pmt-005`,
+          customerId,
+          title: 'TT WIRE PAYMENT APPROVED ✔',
+          message: `Dear ${displayName}, your Telegraphic Transfer (TT) wire transfer payment of $15,000 USD (Ref / Swift Code: charith wellage) has been audited and approved by the Finance Team. Available TT deposit balance: $15,000 USD.`,
+          type: 'Payment',
+          isRead: true,
+          createdAt: '2026-07-23T13:52:26.000Z',
+          related: { kind: 'Payment', id: 'pay-deposit-1', href: '/customer/payments' },
+        },
+      ];
+
+      for (const n of defaultNotifs) {
+        await this.pool.query(
+          `INSERT INTO notifications (id, customer_id, title, message, type, is_read, created_at, related_kind, related_id, related_href)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+           ON CONFLICT (id) DO NOTHING;`,
+          [n.id, n.customerId, n.title, n.message, n.type, n.isRead, n.createdAt, n.related?.kind || null, n.related?.id || null, n.related?.href || null]
+        );
       }
     }
   }
@@ -6784,26 +6877,87 @@ class PostgresStore implements DemoStore {
     return toCustomerDocument(document);
   }
 
+  private async getRawNotifications(customerId: string): Promise<NotificationRecord[]> {
+    const res = await this.pool.query('SELECT * FROM notifications WHERE customer_id = $1 ORDER BY created_at DESC', [customerId]);
+    return res.rows.map((row) => ({
+      id: row.id,
+      customerId: row.customer_id,
+      title: row.title || undefined,
+      message: row.message,
+      type: row.type as any,
+      isRead: Boolean(row.is_read),
+      createdAt: row.created_at,
+      related: row.related_kind ? {
+        kind: row.related_kind,
+        id: row.related_id,
+        href: row.related_href,
+      } : undefined,
+    }));
+  }
+
   async listCustomerNotifications(customerId: string, query?: { status?: 'all' | 'read' | 'unread'; q?: string }): Promise<CustomerNotificationListResponse> {
-    return queryCustomerNotifications(this.notifications.filter((notification) => notification.customerId === customerId), query);
+    await this.ensureCustomerFleetDataInPostgres(customerId);
+    const notifications = await this.getRawNotifications(customerId);
+    return queryCustomerNotifications(notifications, query);
   }
 
   async getCustomerNotification(customerId: string, notificationId: string): Promise<Notification | null> {
-    const notification = this.notifications.find((candidate) => candidate.customerId === customerId && candidate.id === notificationId);
-    return notification ? toCustomerNotification(notification) : null;
+    await this.ensureCustomerFleetDataInPostgres(customerId);
+    const res = await this.pool.query('SELECT * FROM notifications WHERE customer_id = $1 AND id = $2', [customerId, notificationId]);
+    if (res.rows.length === 0) return null;
+    const row = res.rows[0];
+    return toCustomerNotification({
+      id: row.id,
+      customerId: row.customer_id,
+      title: row.title || undefined,
+      message: row.message,
+      type: row.type as any,
+      isRead: Boolean(row.is_read),
+      createdAt: row.created_at,
+      related: row.related_kind ? {
+        kind: row.related_kind,
+        id: row.related_id,
+        href: row.related_href,
+      } : undefined,
+    });
   }
 
   async markCustomerNotificationRead(customerId: string, notificationId: string): Promise<Notification | null> {
-    const notification = this.notifications.find((candidate) => candidate.customerId === customerId && candidate.id === notificationId);
-    if (notification) notification.isRead = true;
-    return notification ? toCustomerNotification(notification) : null;
+    await this.ensureCustomerFleetDataInPostgres(customerId);
+    const res = await this.pool.query(
+      'UPDATE notifications SET is_read = true WHERE customer_id = $1 AND id = $2 RETURNING *',
+      [customerId, notificationId]
+    );
+    if (res.rows.length === 0) return null;
+    const row = res.rows[0];
+    return toCustomerNotification({
+      id: row.id,
+      customerId: row.customer_id,
+      title: row.title || undefined,
+      message: row.message,
+      type: row.type as any,
+      isRead: Boolean(row.is_read),
+      createdAt: row.created_at,
+      related: row.related_kind ? {
+        kind: row.related_kind,
+        id: row.related_id,
+        href: row.related_href,
+      } : undefined,
+    });
   }
 
   async markAllCustomerNotificationsRead(customerId: string): Promise<MarkNotificationsReadResponse> {
-    const owned = this.notifications.filter((notification) => notification.customerId === customerId);
-    const updatedCount = owned.filter((notification) => !notification.isRead).length;
-    owned.forEach((notification) => { notification.isRead = true; });
+    await this.ensureCustomerFleetDataInPostgres(customerId);
+    const unreadCountRes = await this.pool.query('SELECT count(*) FROM notifications WHERE customer_id = $1 AND is_read = false', [customerId]);
+    const updatedCount = Number(unreadCountRes.rows[0]?.count || 0);
+    await this.pool.query('UPDATE notifications SET is_read = true WHERE customer_id = $1', [customerId]);
     return { updatedCount, unreadCount: 0 };
+  }
+
+  async deleteCustomerNotification(customerId: string, notificationId: string): Promise<boolean> {
+    await this.ensureCustomerFleetDataInPostgres(customerId);
+    const res = await this.pool.query('DELETE FROM notifications WHERE customer_id = $1 AND id = $2', [customerId, notificationId]);
+    return (res.rowCount || 0) > 0;
   }
 
   async getCustomerProfile(customerId: string, email: string): Promise<CustomerProfile> {
@@ -6986,6 +7140,23 @@ class PostgresStore implements DemoStore {
          currency = EXCLUDED.currency,
          remarks = EXCLUDED.remarks;`,
       [record.id, record.customerId, record.invoiceId, record.amountUsd, record.paidAt, record.status, record.reference || null, record.bankName || null, record.currency || 'USD', record.remarks || null]
+    );
+    const notifId = `notif-${customerId}-pmt-${Date.now()}`;
+    await this.pool.query(
+      `INSERT INTO notifications (id, customer_id, title, message, type, is_read, created_at, related_kind, related_id, related_href)
+       VALUES ($1, $2, $3, $4, $5, false, $6, $7, $8, $9)
+       ON CONFLICT (id) DO NOTHING;`,
+      [
+        notifId,
+        customerId,
+        'TT WIRE PAYMENT SUBMITTED',
+        `Your telegraphic transfer payment proof (Ref: ${record.reference || 'TT'}) has been submitted and queued for finance audit.`,
+        'Payment',
+        nowISO,
+        'Payment',
+        record.id,
+        '/customer/payments',
+      ]
     );
     return toCustomerPayment(record, invoices, allocations);
   }

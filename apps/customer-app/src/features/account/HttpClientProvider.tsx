@@ -52,8 +52,5 @@ export const HttpClientProvider: React.FC<HttpClientProviderProps> = ({
 
 export function useHttpClient(): HttpClient | null {
   const context = useContext(HttpClientContext);
-  if (!context) {
-    throw new Error('useHttpClient must be used within an HttpClientProvider');
-  }
-  return context.httpClient;
+  return context ? context.httpClient : null;
 }

@@ -28,4 +28,8 @@ export class CustomerNotificationService {
   markAllRead(): Promise<MarkNotificationsReadResponse> {
     return this.requireClient().request<MarkNotificationsReadResponse>('/customer/notifications/read-all', { method: 'POST' });
   }
+
+  delete(id: string): Promise<{ success: boolean }> {
+    return this.requireClient().request<{ success: boolean }>(`/customer/notifications/${encodeURIComponent(id)}`, { method: 'DELETE' });
+  }
 }
