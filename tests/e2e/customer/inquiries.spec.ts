@@ -1,15 +1,67 @@
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, type Page, type APIRequestContext } from '@playwright/test';
 import { CUSTOMER_APP_BASE_URL } from './customerAppBase.js';
 
-const FIXTURE_EMAIL = 'demo.customer@carchief.com';
-const FIXTURE_PASSWORD = 'CarChief#Fixture2026';
+/**
+ * D02-P13-T006 — My Inquiries page and nav entry (CUST-34, CUST-35).
+ *
+ * D02-P13-CODE_REVIEW Finding 2: `signIn()` waited on a "Customer Portal"
+ * heading absent from the rendered shell (fixed below — the real always-
+ * present landmark is `.cc-cust-shell-layout`). Running the suite for real
+ * after that fix also surfaced two further pre-existing defects in this
+ * file: (1) the quote button's real `data-testid` is `quote-request-btn`
+ * (T005), not `request-quote-btn`, so the quote was silently never
+ * requested; (2) the success banner text is "Quote Requested", not "Quote
+ * requested successfully".
+ *
+ * Registers a fresh, uniquely emailed account per test (the
+ * `account-access.spec.ts` / `registration-login.spec.ts` precedent) rather
+ * than using the single shared fixture account plus a global
+ * `POST /api/v1/__reset`: `__reset` wipes state for every account, so with
+ * the three viewport projects running concurrently, one project's reset can
+ * wipe another project's just-created inquiry moments before its own
+ * assertion runs. A freshly registered account's `CustomerProfile.phone`
+ * defaults to `''`, and `POST /api/v1/enquiries` (which the "Get Free
+ * Quote" button calls) requires a non-empty phone, so this file sets the
+ * profile's phone via `PUT /api/v1/customer/profile` right after
+ * registering — a one-time, real-contract call, not a fixture shortcut.
+ */
+const REGISTERED_PASSWORD = 'Sup3rSecretPass1';
 
-async function signIn(page: Page): Promise<void> {
+async function registerFreshCustomerWithPhone(request: APIRequestContext): Promise<string> {
+  const email = `cust-inquiries-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@example.com`;
+  const registerResponse = await request.post(`${CUSTOMER_APP_BASE_URL}/api/v1/auth/register`, {
+    data: {
+      nameWithInitials: 'J. Inquiries',
+      countryCode: 'KE',
+      mobileNumber: '712345678',
+      email,
+      password: REGISTERED_PASSWORD,
+      confirmPassword: REGISTERED_PASSWORD,
+    },
+  });
+  expect(registerResponse.status()).toBe(201);
+
+  const loginResponse = await request.post(`${CUSTOMER_APP_BASE_URL}/api/v1/auth/login`, {
+    data: { email, password: REGISTERED_PASSWORD },
+  });
+  expect(loginResponse.status()).toBe(200);
+  const { token } = (await loginResponse.json()) as { token: string };
+
+  const profileResponse = await request.put(`${CUSTOMER_APP_BASE_URL}/api/v1/customer/profile`, {
+    headers: { Authorization: `Bearer ${token}` },
+    data: { companyName: 'Isolation Test Co', phone: '+254712345678', deliveryAddress: '1 Test Lane, Nairobi' },
+  });
+  expect(profileResponse.status()).toBe(200);
+
+  return email;
+}
+
+async function signIn(page: Page, email: string): Promise<void> {
   await page.goto(CUSTOMER_APP_BASE_URL);
-  await page.getByTestId('cust-login-email').fill(FIXTURE_EMAIL);
-  await page.getByTestId('cust-login-password').fill(FIXTURE_PASSWORD);
+  await page.getByTestId('cust-login-email').fill(email);
+  await page.getByTestId('cust-login-password').fill(REGISTERED_PASSWORD);
   await page.getByTestId('cust-login-submit').click();
-  await expect(page.getByRole('heading', { name: 'Customer Portal' })).toBeVisible();
+  await page.waitForSelector('.cc-cust-shell-layout', { timeout: 10000 });
 }
 
 async function navigateToInquiries(page: Page): Promise<void> {
@@ -21,12 +73,29 @@ async function navigateToInquiries(page: Page): Promise<void> {
   await nav.getByRole('link', { name: /My Inquiries/ }).click();
 }
 
+/** Opens the first inventory vehicle and requests a quote for it. */
+async function requestQuoteForFirstVehicle(page: Page): Promise<void> {
+  const isDesktop = (page.viewportSize()?.width ?? 0) >= 1024;
+  if (!isDesktop) {
+    await page.getByTestId('cust-mobile-toggle').click();
+  }
+  const nav = page.locator(isDesktop ? '.cc-cust-shell-nav--desktop' : '.cc-cust-shell-nav--mobile');
+  await nav.getByRole('link', { name: /Inventory/ }).click();
+  await expect(page.getByTestId('customer-inventory-page')).toBeVisible();
+
+  await page.locator('.cc-vehicle-card').first().click();
+  await expect(page.getByTestId('customer-vehicle-detail-page')).toBeVisible();
+
+  await page.getByTestId('quote-request-btn').click();
+  await expect(page.getByText('Quote Requested')).toBeVisible({ timeout: 5000 });
+}
+
 test.describe('Customer My Inquiries E2E (D02-P13-T006)', () => {
-  test('displays empty state when customer has no inquiries', async ({ page }) => {
-    await signIn(page);
+  test('displays empty state when customer has no inquiries', async ({ page, request }) => {
+    const email = await registerFreshCustomerWithPhone(request);
+    await signIn(page, email);
     await navigateToInquiries(page);
 
-    // Verify empty state is displayed
     await expect(page.getByTestId('customer-inquiries-page')).toBeVisible();
     await expect(page.getByRole('heading', { name: 'My Inquiries' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'No inquiries yet' })).toBeVisible();
@@ -34,160 +103,96 @@ test.describe('Customer My Inquiries E2E (D02-P13-T006)', () => {
     await expect(page.getByRole('button', { name: /Browse Inventory/ })).toBeVisible();
   });
 
-  test('navigates to inventory from empty state', async ({ page }) => {
-    await signIn(page);
+  test('navigates to inventory from empty state', async ({ page, request }) => {
+    const email = await registerFreshCustomerWithPhone(request);
+    await signIn(page, email);
     await navigateToInquiries(page);
 
-    // Click browse inventory link
     await page.getByRole('button', { name: /Browse Inventory/ }).click();
-
-    // Verify inventory page is shown
     await expect(page.getByTestId('customer-inventory-page')).toBeVisible();
   });
 
-  test('displays inquiries list after requesting quote for a vehicle', async ({ page }) => {
-    await signIn(page);
+  test('displays inquiries list after requesting quote for a vehicle', async ({ page, request }) => {
+    const email = await registerFreshCustomerWithPhone(request);
+    await signIn(page, email);
+    await requestQuoteForFirstVehicle(page);
 
-    const isDesktop = (page.viewportSize()?.width ?? 0) >= 1024;
-    if (!isDesktop) {
-      await page.getByTestId('cust-mobile-toggle').click();
-    }
-    const nav = page.locator(isDesktop ? '.cc-cust-shell-nav--desktop' : '.cc-cust-shell-nav--mobile');
-
-    // Navigate to inventory
-    await nav.getByRole('link', { name: /Inventory/ }).click();
-    await expect(page.getByTestId('customer-inventory-page')).toBeVisible();
-
-    // Click the first vehicle card
-    const firstCard = page.locator('.cc-vehicle-card').first();
-    await firstCard.click();
-
-    // Verify detail page is loaded
-    await expect(page.getByTestId('customer-vehicle-detail-page')).toBeVisible();
-
-    // Request a quote if button is visible
-    const quoteBtn = page.getByTestId('request-quote-btn');
-    if (await quoteBtn.isVisible()) {
-      await quoteBtn.click();
-      // Wait for successful quote submission
-      await expect(page.getByText(/Quote requested successfully/i)).toBeVisible({ timeout: 5000 });
-    }
-
-    // Navigate back to inventory
-    await page.getByTestId('back-to-inventory-btn').click();
-    await expect(page.getByTestId('customer-inventory-page')).toBeVisible();
-
-    // Navigate to My Inquiries
-    await nav.getByRole('link', { name: /My Inquiries/ }).click();
-
-    // Verify My Inquiries page is displayed
+    await navigateToInquiries(page);
     await expect(page.getByTestId('customer-inquiries-page')).toBeVisible();
     await expect(page.getByRole('heading', { name: 'My Inquiries' })).toBeVisible();
 
-    // Verify at least one inquiry is shown
     const inquiryCards = page.locator('[role="article"]');
     await expect(inquiryCards.first()).toBeVisible();
 
-    // Verify inquiry contains vehicle title
     const firstInquiry = inquiryCards.first();
-    const vehicleTitle = firstInquiry.locator('h3');
-    await expect(vehicleTitle).toBeVisible();
-
-    // Verify inquirer count is displayed
+    await expect(firstInquiry.locator('h3')).toBeVisible();
     await expect(firstInquiry.locator('.inquirer-count-badge')).toBeVisible();
   });
 
-  test('displays inquiry with correct singular/plural inquirer copy', async ({ page }) => {
-    await signIn(page);
-
-    // Navigate to inquiries
+  test('displays inquiry with correct singular/plural inquirer copy', async ({ page, request }) => {
+    const email = await registerFreshCustomerWithPhone(request);
+    await signIn(page, email);
+    await requestQuoteForFirstVehicle(page);
     await navigateToInquiries(page);
 
-    // Check if there are any inquiries
-    const inquiryCards = page.locator('[role="article"]');
-    const cardCount = await inquiryCards.count();
+    const firstInquiry = page.locator('[role="article"]').first();
+    await expect(firstInquiry).toBeVisible();
 
-    if (cardCount > 0) {
-      const firstInquiry = inquiryCards.first();
-
-      // Verify inquirer count text
-      const inquirerText = await firstInquiry.locator('.inquiry-inquirer-count').textContent();
-      expect(inquirerText).toBeTruthy();
-
-      // If count is 1, should have "person is inquiring"
-      // If count > 1, should have "people are inquiring"
-      if (inquirerText?.includes('1 person')) {
-        expect(inquirerText).toContain('person is inquiring');
-      } else {
-        expect(inquirerText).toContain('people are inquiring');
-      }
+    const inquirerText = await firstInquiry.locator('.inquiry-inquirer-count').textContent();
+    expect(inquirerText).toBeTruthy();
+    if (inquirerText?.includes('1 person')) {
+      expect(inquirerText).toContain('person is inquiring');
+    } else {
+      expect(inquirerText).toContain('people are inquiring');
     }
   });
 
-  test('displays inquiry date in correct format', async ({ page }) => {
-    await signIn(page);
-
-    // Navigate to inquiries
+  test('displays inquiry date in correct format', async ({ page, request }) => {
+    const email = await registerFreshCustomerWithPhone(request);
+    await signIn(page, email);
+    await requestQuoteForFirstVehicle(page);
     await navigateToInquiries(page);
 
-    // Check if there are any inquiries
-    const inquiryCards = page.locator('[role="article"]');
-    const cardCount = await inquiryCards.count();
+    const firstInquiry = page.locator('[role="article"]').first();
+    await expect(firstInquiry).toBeVisible();
 
-    if (cardCount > 0) {
-      const firstInquiry = inquiryCards.first();
-
-      // Verify date is displayed
-      const dateText = await firstInquiry.locator('.inquiry-date').textContent();
-      expect(dateText).toMatch(/Requested:/);
-      // Check for date format like "Aug 17, 2026"
-      expect(dateText).toMatch(/\w{3} \d{1,2}, \d{4}/);
-    }
+    const dateText = await firstInquiry.locator('.inquiry-date').textContent();
+    expect(dateText).toMatch(/Requested:/);
+    expect(dateText).toMatch(/\w{3} \d{1,2}, \d{4}/);
   });
 
-  test('navigates to vehicle details from inquiry row', async ({ page }) => {
-    await signIn(page);
-
-    // Navigate to inquiries
+  test('navigates to vehicle details from inquiry row', async ({ page, request }) => {
+    const email = await registerFreshCustomerWithPhone(request);
+    await signIn(page, email);
+    await requestQuoteForFirstVehicle(page);
     await navigateToInquiries(page);
 
-    const inquiryCards = page.locator('[role="article"]');
-    const cardCount = await inquiryCards.count();
+    const firstInquiry = page.locator('[role="article"]').first();
+    await expect(firstInquiry).toBeVisible();
+    await firstInquiry.getByRole('button', { name: /View Vehicle Details/ }).click();
 
-    if (cardCount > 0) {
-      // Click the view details button on the first inquiry
-      const firstInquiry = inquiryCards.first();
-      const viewBtn = firstInquiry.getByRole('button', { name: /View Vehicle Details/ });
-      await viewBtn.click();
-
-      // Verify vehicle detail page is shown
-      await expect(page.getByTestId('customer-vehicle-detail-page')).toBeVisible();
-    }
+    await expect(page.getByTestId('customer-vehicle-detail-page')).toBeVisible();
   });
 
-  test('handles loading state gracefully', async ({ page }) => {
-    await signIn(page);
+  test('handles loading state gracefully', async ({ page, request }) => {
+    const email = await registerFreshCustomerWithPhone(request);
+    await signIn(page, email);
 
     const isDesktop = (page.viewportSize()?.width ?? 0) >= 1024;
     if (!isDesktop) {
       await page.getByTestId('cust-mobile-toggle').click();
     }
     const nav = page.locator(isDesktop ? '.cc-cust-shell-nav--desktop' : '.cc-cust-shell-nav--mobile');
-
-    // Navigate to inquiries
     await nav.getByRole('link', { name: /My Inquiries/ }).click();
 
-    // Wait for the page to load (should not crash during loading)
     await expect(page.getByRole('heading', { name: 'My Inquiries' })).toBeVisible({ timeout: 10000 });
   });
 
-  test('displays page title and description', async ({ page }) => {
-    await signIn(page);
-
-    // Navigate to inquiries
+  test('displays page title and description', async ({ page, request }) => {
+    const email = await registerFreshCustomerWithPhone(request);
+    await signIn(page, email);
     await navigateToInquiries(page);
 
-    // Verify page header
     await expect(page.getByRole('heading', { name: 'My Inquiries' })).toBeVisible();
     await expect(page.getByText(/Your quote requests and inquiries/)).toBeVisible();
   });
