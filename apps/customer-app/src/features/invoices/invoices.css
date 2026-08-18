@@ -7,10 +7,11 @@
 .cc-cust-invoices-page {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-lg);
+  gap: var(--spacing-xl);
   width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
+  max-width: 100%;
+  margin: 0;
+  padding: 0 0 var(--spacing-2xl);
 }
 
 .cc-cust-invoices-header {
