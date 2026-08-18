@@ -13,6 +13,8 @@ import { NotificationsPage } from '../features/notifications/index.js';
 import { ShipmentPage } from '../features/shipments/index.js';
 import { ProfilePage } from '../features/profile/index.js';
 import { CustomerInquiriesPage } from '../features/inquiries/index.js';
+import { CustomerWishlistPage } from '../features/wishlist/index.js';
+import { CustomerFavouritesPage } from '../features/favourites/index.js';
 import { PortalPlaceholder } from './PortalPlaceholder.js';
 
 const queryClient = new QueryClient();
@@ -83,6 +85,14 @@ const AppContent: React.FC<{ session: CustomerSession; apiBaseUrl: string }> = (
 
   if (activeRoute === '/inquiries') {
     return <CustomerInquiriesPage />;
+  }
+
+  if (activeRoute === '/wishlist') {
+    return <CustomerWishlistPage />;
+  }
+
+  if (activeRoute === '/favourites') {
+    return <CustomerFavouritesPage />;
   }
 
   if (activeRoute === '/vehicles') {
