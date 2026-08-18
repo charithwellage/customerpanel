@@ -1,6 +1,10 @@
 .cc-cust-shipments {
   display: grid;
   gap: var(--spacing-xl);
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 0 0 var(--spacing-2xl);
 }
 
 .cc-cust-shipments__header,

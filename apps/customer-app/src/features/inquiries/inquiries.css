@@ -1,5 +1,8 @@
 .inquiries-page {
-  padding: var(--spacing-lg);
+  padding: 0 0 var(--spacing-2xl);
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
 }
 
 .inquiries-header {

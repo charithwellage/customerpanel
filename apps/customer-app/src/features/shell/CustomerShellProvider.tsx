@@ -1,14 +1,14 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { ThemeId, resolveThemeId } from '@carchief/theme';
-import type { CustomerTier } from '@carchief/domain';
+import { applyCustomerTheme, ThemeMode } from '../../theme.js';
 
 export interface CustomerUser {
   id: string;
   name: string;
   email: string;
   company?: string;
-  role: 'CUSTOMER';
-  tier?: CustomerTier;
+  role?: string;
+  tier?: string;
 }
 
 export interface NavigationItem {
@@ -16,7 +16,7 @@ export interface NavigationItem {
   label: string;
   href: string;
   icon?: string;
-  badge?: string | number;
+  badge?: string;
   altLabel?: string;
 }
 
@@ -28,6 +28,9 @@ export interface CustomerShellContextValue {
   toggleMobileMenu: () => void;
   closeMobileMenu: () => void;
   themeId: ThemeId;
+  themeMode: ThemeMode;
+  toggleThemeMode: () => void;
+  setThemeMode: (mode: ThemeMode) => void;
   navigationItems: NavigationItem[];
   /** Signs the customer out. Absent when the shell is rendered without a live session (for example an isolated component test). */
   onSignOut?: () => void;
@@ -44,7 +47,7 @@ const DEFAULT_NAV_ITEMS: NavigationItem[] = [
   { id: 'invoices', label: 'Billed Invoices', altLabel: 'Invoices & Ledger', href: '/invoices', icon: '📄' },
   { id: 'payments', label: 'Wire Remittance', altLabel: 'Payments', href: '/payments', icon: '💲' },
   { id: 'documents', label: 'Secure Vault', altLabel: 'Documents', href: '/documents', icon: '🛡️' },
-  { id: 'notifications', label: 'Bulletins', altLabel: 'Notifications', href: '/notifications', icon: '🔔', badge: 3 },
+  { id: 'notifications', label: 'Bulletins', altLabel: 'Notifications', href: '/notifications', icon: '🔔' },
   { id: 'profile', label: 'Client Profile', altLabel: 'Profile & Account', href: '/profile', icon: '👤' },
 ];
 
@@ -55,6 +58,7 @@ export interface CustomerShellProviderProps {
   initialUser?: CustomerUser | null;
   initialRoute?: string;
   themeId?: string;
+  initialThemeMode?: ThemeMode;
   navItems?: NavigationItem[];
   onSignOut?: () => void;
 }
@@ -64,6 +68,7 @@ export const CustomerShellProvider: React.FC<CustomerShellProviderProps> = ({
   initialUser = null,
   initialRoute,
   themeId,
+  initialThemeMode,
   navItems = DEFAULT_NAV_ITEMS,
   onSignOut,
 }) => {
@@ -78,6 +83,47 @@ export const CustomerShellProvider: React.FC<CustomerShellProviderProps> = ({
   const [user] = useState<CustomerUser | null>(initialUser);
   const [activeRoute, setActiveRouteState] = useState<string>(getInitialPath);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
+
+  const [themeMode, setThemeModeState] = useState<ThemeMode>(() => {
+    if (initialThemeMode) return initialThemeMode;
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('carchief_theme_mode');
+        if (saved === 'midnight' || saved === 'daylight') return saved;
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+          return 'midnight';
+        }
+      } catch {
+        // Ignore storage exceptions
+      }
+    }
+    return 'daylight';
+  });
+
+  const resolvedTheme = resolveThemeId(themeId);
+
+  const setThemeMode = (mode: ThemeMode) => {
+    setThemeModeState(mode);
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('carchief_theme_mode', mode);
+      } catch {
+        // Ignore storage exceptions
+      }
+      applyCustomerTheme(document.documentElement, resolvedTheme, mode);
+    }
+  };
+
+  const toggleThemeMode = () => {
+    const nextMode: ThemeMode = themeMode === 'midnight' ? 'daylight' : 'midnight';
+    setThemeMode(nextMode);
+  };
+
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      applyCustomerTheme(document.documentElement, resolvedTheme, themeMode);
+    }
+  }, [resolvedTheme, themeMode]);
 
   const setActiveRoute = (route: string) => {
     setActiveRouteState(route);
@@ -98,8 +144,6 @@ export const CustomerShellProvider: React.FC<CustomerShellProviderProps> = ({
   const toggleMobileMenu = () => setIsMobileMenuOpen((prev) => !prev);
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
 
-  const resolvedTheme = resolveThemeId(themeId);
-
   return (
     <CustomerShellContext.Provider
       value={{
@@ -110,6 +154,9 @@ export const CustomerShellProvider: React.FC<CustomerShellProviderProps> = ({
         toggleMobileMenu,
         closeMobileMenu,
         themeId: resolvedTheme,
+        themeMode,
+        toggleThemeMode,
+        setThemeMode,
         navigationItems: navItems,
         onSignOut,
       }}

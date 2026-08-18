@@ -1,11 +1,13 @@
-import React from 'react';
-import type { CustomerVehicleSummary, CustomerInvoiceSummary } from '@carchief/domain';
-import type { Notification } from '@carchief/api-client';
+import React, { useState } from 'react';
+import type { CustomerVehicleSummary } from '@carchief/domain';
 import { useDashboard } from './useDashboard.js';
 import { useCustomerShell } from '../shell/index.js';
 import { useCustomerVehicles } from '../vehicles/useCustomerVehicles.js';
 import { useCustomerInvoices } from '../invoices/useCustomerInvoices.js';
 import { useCustomerNotifications } from '../notifications/useCustomerNotifications.js';
+import { useCustomerProfile } from '../profile/useCustomerProfile.js';
+import { useDocuments } from '../documents/useDocuments.js';
+import { VehicleTrackingModal } from '../vehicles/components/VehicleTrackingModal.js';
 import {
   SecurityShieldIcon,
   BoughtCarsIcon,
@@ -15,47 +17,28 @@ import {
   PendingBalanceDollarIcon,
 } from '../../components/Icons.js';
 
-interface TrackingVehicleItem {
-  id: string;
-  title: string;
-  chassis: string;
-  status: string;
-  eta: string;
-  imageUrl: string;
-}
-
-interface BillingInvoiceItem {
-  id: string;
-  invoiceNo: string;
-  type: string;
-  amount: string;
-  outstanding: string;
-  dueDate: string;
-  status: string;
-}
-
-interface BulletinItem {
-  id: string;
-  title: string;
-  priority: string;
-  body: string;
-  date: string;
-}
-
 export const OverviewPage: React.FC = () => {
   const { user, setActiveRoute } = useCustomerShell();
   const { data: dashboard, isLoading, error } = useDashboard();
-  const { data: vehiclesData } = useCustomerVehicles();
-  const { data: invoicesData } = useCustomerInvoices();
-  const { data: notificationsData } = useCustomerNotifications('all', '');
+  const { data: vehiclesData, isLoading: isLoadingVehicles } = useCustomerVehicles();
+  const { data: invoicesData, isLoading: isLoadingInvoices } = useCustomerInvoices();
+  const { data: notificationsData, isLoading: isLoadingNotifications } = useCustomerNotifications('all', '');
+  const { data: profile } = useCustomerProfile();
+  const { data: documents } = useDocuments();
 
-  const displayName = user?.name ? user.name.toUpperCase() : 'CHARITH WELLAGE';
-  const customerId = user?.id || dashboard?.customerId || 'CC-CUST-1254';
-  const country = user?.company?.includes('Kenya') ? 'Kenya' : 'Kenya';
+  const [selectedTrackingVehicle, setSelectedTrackingVehicle] = useState<CustomerVehicleSummary | null>(null);
+
+  const displayName = profile?.name
+    ? profile.name.toUpperCase()
+    : (user?.name ? user.name.toUpperCase() : (dashboard?.customerId ? dashboard.customerId.toUpperCase() : 'CUSTOMER'));
+  const customerId = profile?.customerId || user?.id || dashboard?.customerId || 'N/A';
+  const country = profile?.deliveryAddress
+    ? profile.deliveryAddress
+    : (profile?.companyName || user?.company || 'Kenya');
 
   // Financial values
-  const outstandingBalance = dashboard?.outstandingBalanceUsd ?? 833336;
-  const creditLimit = dashboard?.creditLimitUsd ?? 100000;
+  const outstandingBalance = dashboard?.outstandingBalanceUsd ?? (invoicesData?.totals?.totalOutstandingUsd ?? 0);
+  const creditLimit = dashboard?.creditLimitUsd ?? 500000;
   const formattedBalance = new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
@@ -66,124 +49,13 @@ export const OverviewPage: React.FC = () => {
     maximumFractionDigits: 0,
   }).format(creditLimit);
 
-  // Counts
+  // Counts from database
   const boughtCarsCount = dashboard
     ? dashboard.vehicleCountReserved + dashboard.vehicleCountInvoiced + dashboard.vehicleCountDelivered
-    : 24;
-  const inTransitCount = dashboard?.shipmentStatusSummary?.inTransit ?? 0;
-  const portReadyCount = dashboard?.shipmentStatusSummary?.ready ?? 0;
-  const dueBillsCount = invoicesData?.totals?.totalOutstandingUsd ? invoicesData.items?.length : 28;
-
-  // Real or fallback vehicle tracking items
-  const trackingVehicles: TrackingVehicleItem[] = vehiclesData?.items?.length
-    ? vehiclesData.items.slice(0, 3).map((v: CustomerVehicleSummary) => ({
-        id: v.id,
-        title: `${v.year} ${v.make} ${v.model}`.trim(),
-        chassis: v.chassisNumber ? `Chassis: ${v.chassisNumber} | Stock: ${v.vehicleId || v.id}` : `Stock: ${v.vehicleId || v.id}`,
-        status: v.status === 'Confirmed' ? 'RESERVED' : v.status === 'In Transit' ? 'IN TRANSIT' : 'INSPECTION',
-        eta: 'ETA TBD',
-        imageUrl: v.primaryImage || '/images/luxury_premium_supercar.jpg',
-      }))
-    : [
-        {
-          id: 'v1',
-          title: '2024 TOYOTA LAND CRUISER 250',
-          chassis: 'Chassis: | Stock: STK-6ISF',
-          status: 'RESERVED',
-          eta: 'ETA TBD',
-          imageUrl: '/images/luxury_premium_supercar.jpg',
-        },
-        {
-          id: 'v2',
-          title: '2021 TOYOTA COROLLA FIELDER',
-          chassis: 'Chassis: NRE161-0091995 | Stock: NRE161',
-          status: 'INSPECTION',
-          eta: 'ETA TBD',
-          imageUrl: '/images/luxury_premium_supercar.jpg',
-        },
-        {
-          id: 'v3',
-          title: '2013 VOLVO V40',
-          chassis: 'Chassis: YV1MV4859E209044078877 | Stock: YV1MV4',
-          status: 'RESERVED',
-          eta: 'ETA TBD',
-          imageUrl: '/images/luxury_premium_supercar.jpg',
-        },
-      ];
-
-  // Financial table items
-  const billingInvoices: BillingInvoiceItem[] = invoicesData?.items?.length
-    ? invoicesData.items.slice(0, 3).map((inv: CustomerInvoiceSummary) => ({
-        id: inv.id,
-        invoiceNo: inv.invoiceNumber || inv.id,
-        type: String(inv.type || 'PROFORMA').toUpperCase(),
-        amount: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(inv.totalAmountUsd),
-        outstanding: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(inv.outstandingAmountUsd),
-        dueDate: inv.dueDate ? new Date(inv.dueDate).toISOString().split('T')[0] : '2026-07-25',
-        status: String(inv.status || 'UNPAID').toUpperCase(),
-      }))
-    : [
-        {
-          id: 'i1',
-          invoiceNo: 'P-85492',
-          type: 'PROFORMA',
-          amount: '$12,730',
-          outstanding: '$12,730',
-          dueDate: '2026-07-25',
-          status: 'UNPAID',
-        },
-        {
-          id: 'i2',
-          invoiceNo: 'P-94324',
-          type: 'PROFORMA',
-          amount: '$8,974',
-          outstanding: '$8,974',
-          dueDate: '2026-07-23',
-          status: 'UNPAID',
-        },
-        {
-          id: 'i3',
-          invoiceNo: 'P-12689',
-          type: 'PROFORMA',
-          amount: '$9,690',
-          outstanding: '$9,690',
-          dueDate: '2026-07-23',
-          status: 'UNPAID',
-        },
-      ];
-
-  // Bulletins / Notifications items
-  const bulletinsList: BulletinItem[] = notificationsData?.items?.length
-    ? notificationsData.items.slice(0, 3).map((n: Notification) => ({
-        id: n.id,
-        title: n.title || 'NOTIFICATION UPDATE',
-        priority: 'HIGH',
-        body: n.message,
-        date: new Date(n.createdAt).toLocaleDateString('en-GB'),
-      }))
-    : [
-        {
-          id: 'b1',
-          title: 'TT WIRE PAYMENT APPROVED',
-          priority: 'HIGH',
-          body: `Dear ${user?.name || 'Charith Wellage'}, your wire transfer payment of $50,000 USD (Reference Code: ffgff) for Invoice INV-31644 has been audited and...`,
-          date: '21/07/2026',
-        },
-        {
-          id: 'b2',
-          title: 'TT WIRE PAYMENT APPROVED',
-          priority: 'HIGH',
-          body: `Dear ${user?.name || 'Charith Wellage'}, your wire transfer payment of $4,700 USD (Reference Code: TEST) for Invoice INV-79873 has been audited and...`,
-          date: '21/07/2026',
-        },
-        {
-          id: 'b3',
-          title: 'TT WIRE PAYMENT APPROVED ✓',
-          priority: 'HIGH',
-          body: `Dear ${user?.name || 'Charith Wellage'}, your Telegraphic Transfer (TT) wire transfer payment of $15,000 USD (Ref / Swift Code: charith wellage) has been audited and...`,
-          date: '23/07/2026',
-        },
-      ];
+    : (vehiclesData?.items?.length ?? 0);
+  const inTransitCount = dashboard?.shipmentStatusSummary?.inTransit ?? (vehiclesData?.items?.filter(v => v.status === 'In Transit' || v.logisticsStatus === 'IN TRANSIT').length ?? 0);
+  const portReadyCount = dashboard?.shipmentStatusSummary?.ready ?? (vehiclesData?.items?.filter(v => v.logisticsStatus === 'READY FOR LOADING' || v.logisticsStatus === 'VESSEL BOOKED' || v.logisticsStatus === 'LOADED').length ?? 0);
+  const dueBillsCount = invoicesData?.items?.filter(inv => inv.status?.toLowerCase() === 'issued' || inv.status?.toLowerCase() === 'unpaid' || (inv.outstandingAmountUsd && inv.outstandingAmountUsd > 0)).length ?? (dashboard?.vehicleCountInvoiced ?? 0);
 
   return (
     <div className="cc-dash-page">
@@ -329,11 +201,11 @@ export const OverviewPage: React.FC = () => {
                 <p className="cc-dash-card-subtitle">Live ocean logistics &amp; container status</p>
               </div>
               <a
-                href="/shipments"
+                href="/vehicles"
                 className="cc-dash-card-link"
                 onClick={(e) => {
                   e.preventDefault();
-                  setActiveRoute('/shipments');
+                  setActiveRoute('/vehicles');
                 }}
               >
                 VIEW ALL →
@@ -341,28 +213,58 @@ export const OverviewPage: React.FC = () => {
             </div>
 
             <div className="cc-dash-shipment-list">
-              {trackingVehicles.map((vehicle) => (
-                <div key={vehicle.id} className="cc-dash-shipment-item">
-                  <div className="cc-dash-shipment-thumb">
-                    <img
-                      src={vehicle.imageUrl}
-                      alt={vehicle.title}
-                      className="cc-dash-shipment-img"
-                      loading="lazy"
-                    />
-                  </div>
-                  <div className="cc-dash-shipment-info">
-                    <h3 className="cc-dash-shipment-name">{vehicle.title}</h3>
-                    <p className="cc-dash-shipment-meta">{vehicle.chassis}</p>
-                  </div>
-                  <div className="cc-dash-shipment-status-wrap">
-                    <span className={`cc-dash-status-pill cc-dash-status-pill--${vehicle.status.toLowerCase()}`}>
-                      {vehicle.status}
-                    </span>
-                    <span className="cc-dash-shipment-eta">{vehicle.eta}</span>
-                  </div>
-                </div>
-              ))}
+              {isLoadingVehicles ? (
+                <div className="cc-dash-empty-block">Loading active shipments&hellip;</div>
+              ) : vehiclesData?.items && vehiclesData.items.length > 0 ? (
+                vehiclesData.items.slice(0, 4).map((vehicle) => {
+                  const title = `${vehicle.year || ''} ${vehicle.make || ''} ${vehicle.model || ''}`.trim() || 'Vehicle';
+                  const stockLabel = vehicle.stockNumber || vehicle.vehicleId || vehicle.id;
+                  const chassisText = vehicle.chassisNumber
+                    ? `Chassis: ${vehicle.chassisNumber} | Stock: ${stockLabel}`
+                    : `Stock: ${stockLabel}`;
+                  const status = (vehicle.logisticsStatus || vehicle.shippingStage || vehicle.status || 'RESERVED').toUpperCase();
+                  const etaText = vehicle.destinationPort ? `Port: ${vehicle.destinationPort}` : (vehicle.locationStatus || 'ETA TBD');
+                  const imageUrl = vehicle.primaryImage || '/images/luxury_premium_supercar.jpg';
+
+                  return (
+                    <div
+                      key={vehicle.id}
+                      className="cc-dash-shipment-item"
+                      onClick={() => setSelectedTrackingVehicle(vehicle)}
+                      role="button"
+                      tabIndex={0}
+                      title="Click to track shipment timeline"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          setSelectedTrackingVehicle(vehicle);
+                        }
+                      }}
+                    >
+                      <div className="cc-dash-shipment-thumb">
+                        <img
+                          src={imageUrl}
+                          alt={title}
+                          className="cc-dash-shipment-img"
+                          loading="lazy"
+                        />
+                      </div>
+                      <div className="cc-dash-shipment-info">
+                        <h3 className="cc-dash-shipment-name">{title}</h3>
+                        <p className="cc-dash-shipment-meta">{chassisText}</p>
+                      </div>
+                      <div className="cc-dash-shipment-status-wrap">
+                        <span className={`cc-dash-status-pill cc-dash-status-pill--${status.toLowerCase().replace(/\s+/g, '-')}`}>
+                          {status}
+                        </span>
+                        <span className="cc-dash-shipment-eta">{etaText}</span>
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="cc-dash-empty-block">No active vehicle shipments in tracking queue.</div>
+              )}
             </div>
           </section>
 
@@ -400,20 +302,37 @@ export const OverviewPage: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {billingInvoices.map((inv) => (
-                    <tr key={inv.id}>
-                      <td className="cc-dash-td-mono cc-dash-td-bold">{inv.invoiceNo}</td>
-                      <td className="cc-dash-td-type">{inv.type}</td>
-                      <td>{inv.amount}</td>
-                      <td className="cc-dash-td-outstanding">{inv.outstanding}</td>
-                      <td className="cc-dash-td-mono">{inv.dueDate}</td>
-                      <td>
-                        <span className="cc-dash-status-pill cc-dash-status-pill--unpaid">
-                          {inv.status}
-                        </span>
+                  {isLoadingInvoices ? (
+                    <tr>
+                      <td colSpan={6} className="cc-dash-empty-block">Loading billing ledger&hellip;</td>
+                    </tr>
+                  ) : invoicesData?.items && invoicesData.items.length > 0 ? (
+                    invoicesData.items.slice(0, 4).map((inv) => (
+                      <tr
+                        key={inv.id}
+                        className="cc-dash-table-row--interactive"
+                        onClick={() => setActiveRoute('/invoices')}
+                        title="Click to view in Billed Invoices"
+                      >
+                        <td className="cc-dash-td-mono cc-dash-td-bold">{inv.invoiceNumber || inv.id}</td>
+                        <td className="cc-dash-td-type">{String(inv.type || 'PROFORMA').toUpperCase()}</td>
+                        <td>{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(inv.totalAmountUsd)}</td>
+                        <td className="cc-dash-td-outstanding">{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(inv.outstandingAmountUsd)}</td>
+                        <td className="cc-dash-td-mono">{inv.dueDate ? new Date(inv.dueDate).toISOString().split('T')[0] : 'N/A'}</td>
+                        <td>
+                          <span className={`cc-dash-status-pill cc-dash-status-pill--${String(inv.status || 'UNPAID').toLowerCase()}`}>
+                            {String(inv.status || 'UNPAID').toUpperCase()}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={6} className="cc-dash-empty-block">
+                        No active or outstanding invoices.
                       </td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
             </div>
@@ -428,20 +347,44 @@ export const OverviewPage: React.FC = () => {
               <h2 id="dash-bulletins-heading" className="cc-dash-card-title">
                 UNREAD BULLETINS
               </h2>
-              <span className="cc-dash-badge-inbox">INBOX</span>
+              <a
+                href="/notifications"
+                className="cc-dash-badge-inbox"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setActiveRoute('/notifications');
+                }}
+              >
+                INBOX
+              </a>
             </div>
 
             <div className="cc-dash-bulletins-list">
-              {bulletinsList.map((item) => (
-                <article key={item.id} className="cc-dash-bulletin-item">
-                  <div className="cc-dash-bulletin-header">
-                    <h3 className="cc-dash-bulletin-title">{item.title}</h3>
-                    <span className="cc-dash-badge-high">{item.priority}</span>
-                  </div>
-                  <p className="cc-dash-bulletin-body">{item.body}</p>
-                  <time className="cc-dash-bulletin-time">{item.date}</time>
-                </article>
-              ))}
+              {isLoadingNotifications ? (
+                <div className="cc-dash-empty-block">Loading notifications&hellip;</div>
+              ) : notificationsData?.items && notificationsData.items.length > 0 ? (
+                notificationsData.items.slice(0, 4).map((item) => (
+                  <article
+                    key={item.id}
+                    className="cc-dash-bulletin-item"
+                    onClick={() => setActiveRoute('/notifications')}
+                    title="Click to open in Bulletins"
+                  >
+                    <div className="cc-dash-bulletin-header">
+                      <h3 className="cc-dash-bulletin-title">{item.title || `${item.type || 'NOTIFICATION'} UPDATE`}</h3>
+                      <span className={`cc-dash-badge-${(item.type || 'high').toLowerCase()}`}>
+                        {item.type ? item.type.toUpperCase() : 'UPDATE'}
+                      </span>
+                    </div>
+                    <p className="cc-dash-bulletin-body">{item.message}</p>
+                    <time className="cc-dash-bulletin-time">
+                      {new Date(item.createdAt).toLocaleDateString('en-GB')}
+                    </time>
+                  </article>
+                ))
+              ) : (
+                <div className="cc-dash-empty-block">No bulletins at this time.</div>
+              )}
             </div>
           </section>
 
@@ -463,12 +406,38 @@ export const OverviewPage: React.FC = () => {
               </a>
             </div>
 
-            <div className="cc-dash-vault-empty-box">
-              <span className="cc-dash-vault-empty-text">No export files uploaded.</span>
-            </div>
+            {documents && documents.length > 0 ? (
+              <div className="cc-dash-vault-list">
+                {documents.slice(0, 3).map((doc) => {
+                  const categoryName = doc.type === 'Invoice' ? 'Commercial Invoice' : (doc.type === 'ShippingLabel' ? 'Bill of Lading' : doc.type);
+                  return (
+                    <div
+                      key={doc.id}
+                      className="cc-dash-vault-item"
+                      onClick={() => setActiveRoute('/documents')}
+                      title="Click to view in Secure Vault"
+                    >
+                      <span className="cc-dash-vault-name">{categoryName}</span>
+                      <span className="cc-dash-vault-tag">{doc.status === 'Available' ? 'Available' : 'Pending'}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="cc-dash-vault-empty-box">
+                <span className="cc-dash-vault-empty-text">No export files uploaded.</span>
+              </div>
+            )}
           </section>
         </div>
       </div>
+
+      {/* Vehicle Tracking Modal on Overview Desk */}
+      <VehicleTrackingModal
+        isOpen={Boolean(selectedTrackingVehicle)}
+        vehicle={selectedTrackingVehicle}
+        onClose={() => setSelectedTrackingVehicle(null)}
+      />
     </div>
   );
 };

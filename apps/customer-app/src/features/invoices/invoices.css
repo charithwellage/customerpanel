@@ -7,10 +7,11 @@
 .cc-cust-invoices-page {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-lg);
+  gap: var(--spacing-xl);
   width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
+  max-width: 100%;
+  margin: 0;
+  padding: 0 0 var(--spacing-2xl);
 }
 
 .cc-cust-invoices-header {
@@ -2242,5 +2243,174 @@
 .cc-ledger-sheet__bank-val--ref {
   color: var(--color-primary);
   font-weight: 800;
+}
+
+/* Export Format Dropdown & Actions */
+.cc-ledger-export-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.cc-ledger-action-btn--active {
+  background-color: var(--color-neutral-surface);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.cc-ledger-export-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 320px;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: var(--spacing-sm);
+  z-index: 100;
+  text-align: left;
+}
+
+.cc-ledger-export-dropdown__header {
+  padding: var(--spacing-xs) var(--spacing-xs) var(--spacing-xs);
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: var(--spacing-xs);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cc-ledger-export-dropdown__title {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  letter-spacing: 0.5px;
+}
+
+.cc-ledger-export-dropdown__subtitle {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+}
+
+.cc-ledger-export-dropdown__list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cc-ledger-export-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.cc-ledger-export-item:hover,
+.cc-ledger-export-item:focus-visible {
+  background-color: var(--color-neutral-surface);
+  border-color: var(--color-border);
+  outline: none;
+}
+
+.cc-ledger-export-item__icon {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background-color: var(--color-neutral-surface);
+  color: var(--color-text-primary);
+}
+
+.cc-ledger-export-item__icon--pdf {
+  color: var(--color-primary);
+  background-color: var(--color-neutral-surface);
+}
+
+.cc-ledger-export-item__icon--csv {
+  color: var(--color-success);
+  background-color: var(--color-neutral-surface);
+}
+
+.cc-ledger-export-item__icon--txt {
+  color: var(--color-text-secondary);
+  background-color: var(--color-neutral-surface);
+}
+
+.cc-ledger-export-item__icon--json {
+  color: var(--color-primary);
+  background-color: var(--color-neutral-surface);
+}
+
+.cc-ledger-export-item__info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.cc-ledger-export-item__title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.cc-ledger-export-item__title {
+  font-family: var(--font-display, sans-serif);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.cc-ledger-export-item__badge {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 800;
+  padding: 1px 5px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.cc-ledger-export-item__badge--pdf {
+  color: var(--color-primary);
+  background-color: var(--color-neutral-surface);
+  border: 1px solid var(--color-border);
+}
+
+.cc-ledger-export-item__badge--csv {
+  color: var(--color-success);
+  background-color: var(--color-neutral-surface);
+  border: 1px solid var(--color-border);
+}
+
+.cc-ledger-export-item__badge--txt {
+  color: var(--color-text-secondary);
+  background-color: var(--color-neutral-surface);
+  border: 1px solid var(--color-border);
+}
+
+.cc-ledger-export-item__badge--json {
+  color: var(--color-primary);
+  background-color: var(--color-neutral-surface);
+  border: 1px solid var(--color-border);
+}
+
+.cc-ledger-export-item__desc {
+  font-size: 10px;
+  color: var(--color-text-secondary);
+  line-height: 1.3;
 }
 

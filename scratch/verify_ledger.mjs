@@ -12,23 +12,21 @@ async function main() {
   console.log('Logging in as r.a.rimazmoulana@gmail.com...');
   await page.fill('input[type="email"]', 'r.a.rimazmoulana@gmail.com');
   await page.fill('input[type="password"]', 'CarChief#Fixture2026');
+  await page.click('button[type="submit"]');
 
-  await Promise.all([
-    page.waitForResponse((r) => r.url().includes('/api/v1/auth/login')),
-    page.click('button[type="submit"]'),
-  ]);
-
+  await page.waitForSelector('nav, a[href*="invoices"], button:has-text("Overview")', { timeout: 15000 });
   await page.waitForTimeout(1000);
 
   // Navigate to /invoices
   console.log('Navigating to /invoices...');
-  const invoicesNav = page.locator('nav a:has-text("Billed Invoices"), a[href*="invoices"], button:has-text("Invoices")').first();
-  if (await invoicesNav.count() > 0) {
-    await invoicesNav.click();
+  const invoicesLink = page.locator('a[href*="invoices"], nav button:has-text("Invoices"), nav a:has-text("Invoices")').first();
+  if (await invoicesLink.count() > 0) {
+    await invoicesLink.click();
   } else {
     await page.goto('http://localhost:3001/invoices');
   }
 
+  await page.waitForSelector('.cc-inv-table, button:has-text("LEDGER")', { timeout: 15000 });
   await page.waitForTimeout(1500);
 
   const artifactDir = '/Users/rimaz/.gemini/antigravity-ide/brain/70666dde-7e00-4268-9465-f88bc49562c9';

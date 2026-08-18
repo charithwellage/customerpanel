@@ -1,9 +1,14 @@
 import React, { useId, useState } from 'react';
 import { useCustomerShell } from './CustomerShellProvider.js';
+import { QueryClientContext } from '@tanstack/react-query';
+import { useCustomerNotifications } from '../notifications/useCustomerNotifications.js';
 import {
   BrandBuildingIcon,
   DashboardGridIcon,
   ShowroomCarIcon,
+  InquiriesChatIcon,
+  WishlistHeartIcon,
+  FavouritesStarIcon,
   VehiclesSideCarIcon,
   StopwatchClockIcon,
   InvoiceDocumentIcon,
@@ -12,10 +17,26 @@ import {
   BulletinsBellIcon,
   ClientProfileUserIcon,
   MidnightMoonIcon,
+  DaylightSunIcon,
   SyncArrowsIcon,
   ExternalArrowIcon,
   SecureLogoutDoorIcon,
 } from '../../components/Icons.js';
+
+const LiveNotificationBadge: React.FC = () => {
+  const { data } = useCustomerNotifications('all', '');
+  const count = data?.unreadCount ?? 0;
+  if (count <= 0) return null;
+  return <span className="cc-cust-shell-nav__badge">{count}</span>;
+};
+
+const LiveNotificationBadgeWrapper: React.FC<{ fallbackBadge?: string | number }> = ({ fallbackBadge }) => {
+  const queryClient = React.useContext(QueryClientContext);
+  if (!queryClient) {
+    return fallbackBadge ? <span className="cc-cust-shell-nav__badge">{fallbackBadge}</span> : null;
+  }
+  return <LiveNotificationBadge />;
+};
 
 export const CustomerNav: React.FC = () => {
   const {
@@ -26,11 +47,12 @@ export const CustomerNav: React.FC = () => {
     toggleMobileMenu,
     closeMobileMenu,
     navigationItems,
+    themeMode,
+    toggleThemeMode,
     onSignOut,
   } = useCustomerShell();
   const mobileMenuId = useId();
   const [isSyncing, setIsSyncing] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
 
   const handleSyncData = () => {
     setIsSyncing(true);
@@ -39,19 +61,18 @@ export const CustomerNav: React.FC = () => {
     }, 800);
   };
 
-  const handleToggleMidnight = () => {
-    setIsDarkMode((prev) => !prev);
-    if (typeof document !== 'undefined') {
-      document.documentElement.classList.toggle('dark-mode');
-    }
-  };
-
   const renderNavIcon = (itemId: string, fallbackIcon?: string) => {
     switch (itemId) {
       case 'dashboard':
         return <DashboardGridIcon size={18} />;
       case 'inventory':
         return <ShowroomCarIcon size={18} />;
+      case 'inquiries':
+        return <InquiriesChatIcon size={18} />;
+      case 'wishlist':
+        return <WishlistHeartIcon size={18} />;
+      case 'favourites':
+        return <FavouritesStarIcon size={18} />;
       case 'vehicles':
         return <VehiclesSideCarIcon size={18} />;
       case 'shipments':
@@ -128,7 +149,11 @@ export const CustomerNav: React.FC = () => {
                     </span>
                     <span className="cc-cust-shell-nav__label">{item.label}</span>
                     {item.altLabel && <span className="sr-only">{item.altLabel}</span>}
-                    {item.badge && <span className="cc-cust-shell-nav__badge">{item.badge}</span>}
+                    {item.id === 'notifications' ? (
+                      <LiveNotificationBadgeWrapper fallbackBadge={item.badge} />
+                    ) : (
+                      item.badge ? <span className="cc-cust-shell-nav__badge">{item.badge}</span> : null
+                    )}
                   </a>
                 </li>
               );
@@ -142,12 +167,18 @@ export const CustomerNav: React.FC = () => {
             <button
               type="button"
               className="cc-cust-sidebar-tool-btn"
-              onClick={handleToggleMidnight}
+              onClick={toggleThemeMode}
+              aria-pressed={themeMode === 'midnight'}
+              title={themeMode === 'midnight' ? 'Switch to Daylight Mode' : 'Switch to Midnight Mode'}
             >
               <span className="cc-cust-tool-icon" aria-hidden="true">
-                <MidnightMoonIcon size={16} />
+                {themeMode === 'midnight' ? (
+                  <DaylightSunIcon size={16} />
+                ) : (
+                  <MidnightMoonIcon size={16} />
+                )}
               </span>
-              <span>{isDarkMode ? 'Daylight Mode' : 'Midnight Mode'}</span>
+              <span>{themeMode === 'midnight' ? 'Daylight Mode' : 'Midnight Mode'}</span>
             </button>
 
             <button
@@ -220,7 +251,11 @@ export const CustomerNav: React.FC = () => {
                     </span>
                     <span>{item.label}</span>
                     {item.altLabel && <span className="sr-only">{item.altLabel}</span>}
-                    {item.badge && <span className="cc-cust-shell-nav__badge">{item.badge}</span>}
+                    {item.id === 'notifications' ? (
+                      <LiveNotificationBadgeWrapper fallbackBadge={item.badge} />
+                    ) : (
+                      item.badge ? <span className="cc-cust-shell-nav__badge">{item.badge}</span> : null
+                    )}
                   </a>
                 </li>
               );

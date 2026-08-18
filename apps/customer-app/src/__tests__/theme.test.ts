@@ -41,8 +41,35 @@ describe('Customer theme provider integration', () => {
     const applied = applyCustomerTheme(root, 'ocean');
 
     expect(attributes.get('data-theme')).toBe('ocean');
+    expect(attributes.get('data-theme-mode')).toBe('daylight');
     expect(variables.get('--color-primary')).toBe(applied.variables['--color-primary']);
     expect(variables.size).toBe(Object.keys(applied.variables).length);
+  });
+
+  it('applies midnight dark mode and overrides color variables with midnight palette', () => {
+    const attributes = new Map<string, string>();
+    const variables = new Map<string, string>();
+    const classListSet = new Set<string>();
+    const root = {
+      setAttribute: (name: string, value: string) => attributes.set(name, value),
+      style: { setProperty: (name: string, value: string) => variables.set(name, value) },
+      classList: {
+        toggle: (cls: string, force?: boolean) => {
+          if (force) classListSet.add(cls);
+          else classListSet.delete(cls);
+        },
+      },
+    };
+
+    const midnight = applyCustomerTheme(root, 'carchief', 'midnight');
+
+    expect(attributes.get('data-theme-mode')).toBe('midnight');
+    expect(classListSet.has('dark-mode')).toBe(true);
+    expect(midnight.variables['--color-background']).toBe('#090d16');
+    expect(variables.get('--color-background')).toBe('#090d16');
+    expect(midnight.variables['--color-surface']).toBe('#111827');
+    expect(variables.get('--color-surface')).toBe('#111827');
+    expect(midnight.variables['--color-text-primary']).toBe('#f9fafb');
   });
 
   it('uses only emitted semantic theme variables and runtime-only CSS values', async () => {

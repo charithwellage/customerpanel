@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import type { CustomerInvoiceSummary } from '@carchief/domain';
 import { useCustomerShell } from '../shell/index.js';
 import { useCustomerInvoices } from './useCustomerInvoices.js';
+import { useCustomerVehicles } from '../vehicles/useCustomerVehicles.js';
 import { InvoiceSummaryKpiCards } from './components/InvoiceSummaryKpiCards.js';
 import { InvoiceLedgerModal } from './components/InvoiceLedgerModal.js';
 import { RedDocIcon, SearchGlassIcon, VehiclesSideCarIcon } from '../../components/Icons.js';
@@ -280,6 +281,11 @@ export const CustomerInvoicesPage: React.FC<CustomerInvoicesPageProps> = ({ onSe
     query: searchQuery.trim() || undefined,
   });
 
+  const { data: vehicleData } = useCustomerVehicles({
+    status: 'invoiced',
+    limit: 100,
+  });
+
   const apiInvoices = data?.items || [];
   const totals = data?.totals || {
     totalInvoicedUsd: 0,
@@ -287,27 +293,65 @@ export const CustomerInvoicesPage: React.FC<CustomerInvoicesPageProps> = ({ onSe
     totalOutstandingUsd: 0,
   };
 
-  // Combine live API invoices with the seed ledger entries
+  const invoicedVehiclesList = useMemo<InvoicedVehicleItem[]>(() => {
+    if (vehicleData?.items && vehicleData.items.length > 0) {
+      return vehicleData.items.map((v) => {
+        const title = `${v.year} ${v.make} ${v.model}`.toUpperCase();
+        const chassis = v.chassisNumber || v.id;
+        const stock = v.stockNumber || `STK: ${chassis.split('-')[0] || 'STK'}`;
+        const soldAmount = v.commercialBill?.soldAmountUsd || v.priceUsd || v.totalAmountUsd || 0;
+        const paidAmount = v.commercialBill?.paidAmountUsd || v.deposit?.paidAmountUsd || 0;
+        const balanceAmount = v.commercialBill?.balanceAmountUsd ?? (soldAmount - paidAmount);
+        const rawObj = v as unknown as Record<string, unknown>;
+        const engine = typeof rawObj.engine === 'string' ? rawObj.engine : '1500cc';
+        const vesselVoyage = typeof rawObj.vesselVoyage === 'string' ? rawObj.vesselVoyage : (typeof rawObj.vesselName === 'string' ? rawObj.vesselName : 'TBD');
+
+        return {
+          id: v.id,
+          stockNumber: stock,
+          chassisNumber: chassis,
+          title,
+          engine,
+          vesselVoyage,
+          destinationPort: v.destinationPort || 'Mombasa',
+          soldAmountUsd: soldAmount,
+          paidAmountUsd: paidAmount,
+          balanceAmountUsd: balanceAmount,
+          imageUrl: v.primaryImage || 'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=800&auto=format&fit=crop',
+        };
+      });
+    }
+    return SEED_INVOICED_VEHICLES;
+  }, [vehicleData?.items]);
+
+  // Use live API invoices from database, fallback to seed fixtures when uninitialized
   const allLedgerEntries = useMemo<InvoicedLedgerEntry[]>(() => {
-    const liveEntries: InvoicedLedgerEntry[] = apiInvoices.map((inv) => ({
-      id: inv.id,
-      invoiceNumber: inv.invoiceNumber,
-      type: inv.type === 'Proforma' ? 'PROFORMA' : 'COMMERCIAL',
-      issueDate: inv.issuedAt ? new Date(inv.issuedAt).toLocaleDateString('en-GB') : '21/07/2026',
-      totalAmountUsd: inv.totalAmountUsd,
-      paidAmountUsd: inv.paidAmountUsd,
-      outstandingAmountUsd: inv.outstandingAmountUsd,
-      dueDate: inv.dueDate ? inv.dueDate.slice(0, 10) : '2026-07-23',
-    }));
+    if (apiInvoices.length > 0) {
+      const liveEntries: InvoicedLedgerEntry[] = apiInvoices.map((inv) => ({
+        id: inv.id,
+        invoiceNumber: inv.invoiceNumber,
+        type: inv.type === 'Proforma' ? 'PROFORMA' : 'COMMERCIAL',
+        issueDate: inv.issuedAt ? new Date(inv.issuedAt).toLocaleDateString('en-GB') : '21/07/2026',
+        totalAmountUsd: inv.totalAmountUsd,
+        paidAmountUsd: inv.paidAmountUsd,
+        outstandingAmountUsd: inv.outstandingAmountUsd,
+        dueDate: inv.dueDate ? inv.dueDate.slice(0, 10) : '2026-07-23',
+      }));
 
-    const liveNumbers = new Set(liveEntries.map((e) => e.invoiceNumber.toLowerCase()));
-    const uniqueSeeds = SEED_INVOICE_LEDGER.filter((s) => !liveNumbers.has(s.invoiceNumber.toLowerCase()));
+      if (!searchQuery.trim()) return liveEntries;
+      const q = searchQuery.toLowerCase().trim();
+      return liveEntries.filter(
+        (e) =>
+          e.invoiceNumber.toLowerCase().includes(q) ||
+          e.type.toLowerCase().includes(q) ||
+          e.dueDate.toLowerCase().includes(q) ||
+          e.issueDate.toLowerCase().includes(q)
+      );
+    }
 
-    const combined = [...liveEntries, ...uniqueSeeds];
-
-    if (!searchQuery.trim()) return combined;
+    if (!searchQuery.trim()) return SEED_INVOICE_LEDGER;
     const q = searchQuery.toLowerCase().trim();
-    return combined.filter(
+    return SEED_INVOICE_LEDGER.filter(
       (e) =>
         e.invoiceNumber.toLowerCase().includes(q) ||
         e.type.toLowerCase().includes(q) ||
@@ -315,6 +359,10 @@ export const CustomerInvoicesPage: React.FC<CustomerInvoicesPageProps> = ({ onSe
         e.issueDate.toLowerCase().includes(q)
     );
   }, [apiInvoices, searchQuery]);
+
+  const computedTotalInvoiced = totals.totalInvoicedUsd || allLedgerEntries.reduce((sum, e) => sum + e.totalAmountUsd, 0);
+  const computedTotalPaid = totals.totalPaidUsd || allLedgerEntries.reduce((sum, e) => sum + e.paidAmountUsd, 0);
+  const computedTotalOutstanding = totals.totalOutstandingUsd || allLedgerEntries.reduce((sum, e) => sum + e.outstandingAmountUsd, 0);
 
   return (
     <div className="cc-cust-invoices-page" data-testid="customer-invoices-page">
@@ -331,10 +379,10 @@ export const CustomerInvoicesPage: React.FC<CustomerInvoicesPageProps> = ({ onSe
 
       {/* Top 3 KPI Cards */}
       <InvoiceSummaryKpiCards
-        totalInvoicedUsd={totals.totalInvoicedUsd}
-        totalPaidUsd={totals.totalPaidUsd}
-        totalOutstandingUsd={totals.totalOutstandingUsd}
-        totalUnits={16}
+        totalInvoicedUsd={computedTotalInvoiced}
+        totalPaidUsd={computedTotalPaid}
+        totalOutstandingUsd={computedTotalOutstanding}
+        totalUnits={invoicedVehiclesList.length}
       />
 
       {/* SECTION 1: Active Invoice Ledgers Table */}
@@ -463,12 +511,12 @@ export const CustomerInvoicesPage: React.FC<CustomerInvoicesPageProps> = ({ onSe
             </p>
           </div>
           <div className="cc-inv-vehicles-header__right">
-            <span className="cc-inv-units-badge">16 Units Billed</span>
+            <span className="cc-inv-units-badge">{invoicedVehiclesList.length} Units Billed</span>
           </div>
         </div>
 
         <div className="cc-inv-vehicles-grid">
-          {SEED_INVOICED_VEHICLES.map((vehicle) => (
+          {invoicedVehiclesList.map((vehicle) => (
             <article key={vehicle.id} className="cc-inv-veh-card">
               {/* Image & Badges */}
               <div className="cc-inv-veh-card__image-box">
@@ -555,11 +603,11 @@ export const CustomerInvoicesPage: React.FC<CustomerInvoicesPageProps> = ({ onSe
           setSelectedLedger(null);
         }}
         ledgerEntry={selectedLedger}
-        clientName="Charith Wellage"
-        clientCompany="charith wellage"
+        clientName={user?.name && user.name !== 'Customer' ? user.name : 'Charith Wellage'}
+        clientCompany={user?.company || 'charith wellage'}
         clientAddress="gampaha, sri lanka, Kenya"
         clientPhone="+94715991619"
-        vehicles={SEED_INVOICED_VEHICLES}
+        vehicles={invoicedVehiclesList}
       />
     </div>
   );

@@ -771,6 +771,14 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
     res.json(await store.markAllCustomerNotificationsRead(resolveCustomerScope(req.user.sub)));
   });
 
+  app.delete('/api/v1/customer/notifications/:id', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) return void res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+    if (!hasPermission(req.user.role, 'read:customer')) return void res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
+    const success = await store.deleteCustomerNotification(resolveCustomerScope(req.user.sub), req.params.id as string);
+    if (!success) return void res.status(404).json({ statusCode: 404, message: 'Notification not found', correlationId: `corr-404-${Date.now()}` });
+    res.json({ success: true });
+  });
+
   // 4e. Customer vehicle transaction fleet listing and detail.
   app.get('/api/v1/customer/vehicles', async (req: AuthenticatedRequest, res: Response) => {
     if (!req.user) {

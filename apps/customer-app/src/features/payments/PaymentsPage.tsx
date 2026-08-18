@@ -33,30 +33,7 @@ export interface RemittanceJournalEntry {
   status: 'APPROVED - AVAILABLE' | 'REJECTED' | 'UNDER REVIEW';
 }
 
-const SEED_REMITTANCE_JOURNAL: RemittanceJournalEntry[] = [
-  { id: 'rem-1', reference: 'TEST123', paymentDate: '2026-07-22', bankName: 'test (USD)', currency: 'USD', amountUsd: 80550, remainingBalanceUsd: 80550, remarks: 'None', status: 'APPROVED - AVAILABLE' },
-  { id: 'rem-2', reference: 'TEST', paymentDate: '2026-07-21', bankName: 'test (USD)', currency: 'USD', amountUsd: 5000, remainingBalanceUsd: 5000, remarks: 'None', status: 'APPROVED - AVAILABLE' },
-  { id: 'rem-3', reference: 'TEST004', paymentDate: '2026-07-15', bankName: 'test (USD)', currency: 'USD', amountUsd: 100000, remainingBalanceUsd: 100000, remarks: 'None', status: 'APPROVED - AVAILABLE' },
-  { id: 'rem-4', reference: 'test123@', paymentDate: '2026-07-21', bankName: 'test (USD)', currency: 'USD', amountUsd: 75750, remainingBalanceUsd: 75445, remarks: 'None', status: 'APPROVED - AVAILABLE' },
-  { id: 'rem-5', reference: 'TT2336635', paymentDate: '2026-07-30', bankName: 'Standard Chartered / SWIFT (JPY)', currency: 'JPY', amountUsd: 15000, remainingBalanceUsd: 15000, remarks: 'Salesperson Bulk TT Remittance Deposit', status: 'APPROVED - AVAILABLE' },
-  { id: 'rem-6', reference: 'ffgff', paymentDate: '2026-07-21', bankName: 'fg (USD)', currency: 'USD', amountUsd: 50000, remainingBalanceUsd: 50000, remarks: 'None', status: 'APPROVED - AVAILABLE' },
-  { id: 'rem-7', reference: 'TEST1234', paymentDate: '2026-07-23', bankName: 'Standard Chartered / SWIFT (USD)', currency: 'USD', amountUsd: 30000, remainingBalanceUsd: 18950, remarks: 'test123', status: 'APPROVED - AVAILABLE' },
-  { id: 'rem-8', reference: 'TEST123', paymentDate: '2026-07-15', bankName: 'test bank (USD)', currency: 'USD', amountUsd: 100000, remainingBalanceUsd: 100000, remarks: 'None', status: 'APPROVED - AVAILABLE' },
-  { id: 'rem-9', reference: 'TEST', paymentDate: '2026-07-17', bankName: 'Direct Wire (USD)', currency: 'USD', amountUsd: 3000, remainingBalanceUsd: 3000, remarks: 'None', status: 'APPROVED - AVAILABLE' },
-  { id: 'rem-10', reference: 'SACHINTHA123', paymentDate: '2026-07-27', bankName: 'Standard Chartered / SWIFT (USD)', currency: 'USD', amountUsd: 55000, remainingBalanceUsd: 55000, remarks: 'Salesperson Bulk TT Remittance Deposit', status: 'APPROVED - AVAILABLE' },
-  { id: 'rem-11', reference: 'charith wellage', paymentDate: '2026-07-23', bankName: 'charith wellage (USD)', currency: 'USD', amountUsd: 15000, remainingBalanceUsd: 15000, remarks: 'None', status: 'APPROVED - AVAILABLE' },
-  { id: 'rem-12', reference: 'TEST THE BANNER', paymentDate: '2026-07-23', bankName: 'Standard Chartered / SWIFT (USD)', currency: 'USD', amountUsd: 40000, remainingBalanceUsd: 40000, remarks: 'Salesperson Bulk TT Remittance Deposit', status: 'APPROVED - AVAILABLE' },
-  { id: 'rem-13', reference: 'test', paymentDate: '2026-07-21', bankName: 'test (USD)', currency: 'USD', amountUsd: 75750, remainingBalanceUsd: 75750, remarks: 'None', status: 'APPROVED - AVAILABLE' },
-  { id: 'rem-14', reference: 'test001', paymentDate: '2026-07-15', bankName: 'swift bank (USD)', currency: 'USD', amountUsd: 200000, remainingBalanceUsd: 200000, remarks: 'please find the attached TT', status: 'APPROVED - AVAILABLE' },
-  { id: 'rem-15', reference: 'TEST CHARITH 1', paymentDate: '2026-07-23', bankName: 'test (USD)', currency: 'USD', amountUsd: 50000, remainingBalanceUsd: 50000, remarks: 'pleasec check this', status: 'APPROVED - AVAILABLE' },
-  { id: 'rem-16', reference: 'TEST1233', paymentDate: '2026-07-22', bankName: 'test (USD)', currency: 'USD', amountUsd: 149999, remainingBalanceUsd: 149999, remarks: 'rejected', status: 'REJECTED' },
-  { id: 'rem-17', reference: 'TEST', paymentDate: '2026-07-21', bankName: 'Direct Wire (USD)', currency: 'USD', amountUsd: 4700, remainingBalanceUsd: 4700, remarks: 'None', status: 'APPROVED - AVAILABLE' },
-  { id: 'rem-18', reference: 'TEST', paymentDate: '2026-07-21', bankName: 'Direct Wire (USD)', currency: 'USD', amountUsd: 5000, remainingBalanceUsd: 5000, remarks: 'None', status: 'APPROVED - AVAILABLE' },
-  { id: 'rem-19', reference: 'TEST', paymentDate: '2026-07-21', bankName: 'Direct Wire (USD)', currency: 'USD', amountUsd: 4770, remainingBalanceUsd: 4770, remarks: 'None', status: 'APPROVED - AVAILABLE' },
-  { id: 'rem-20', reference: 'TEST123', paymentDate: '2026-07-22', bankName: 'test (USD)', currency: 'USD', amountUsd: 100000, remainingBalanceUsd: 100000, remarks: 'None', status: 'APPROVED - AVAILABLE' },
-  { id: 'rem-21', reference: 'test123', paymentDate: '2026-07-21', bankName: 'test (USD)', currency: 'USD', amountUsd: 12780, remainingBalanceUsd: 12780, remarks: 'None', status: 'APPROVED - AVAILABLE' },
-  { id: 'rem-22', reference: '134354', paymentDate: '2026-07-17', bankName: 'Direct Wire (USD)', currency: 'USD', amountUsd: 7000, remainingBalanceUsd: 7000, remarks: 'None', status: 'APPROVED - AVAILABLE' },
-];
+
 
 export function getCustomerPaymentStatus(
   payment: CustomerPayment,
@@ -90,13 +67,21 @@ export const PaymentsPage: React.FC = () => {
     setActiveRoute('/payments');
   }, [setActiveRoute]);
 
-  // Merge live API payments with rich demo remittance journal records
+  // Map live PostgreSQL database payments
   const allEntries = useMemo<RemittanceJournalEntry[]>(() => {
-    const liveEntries: RemittanceJournalEntry[] = apiPayments.map((p) => {
+    return apiPayments.map((p) => {
       const statusText = getCustomerPaymentStatus(p, notifications);
       let statusType: RemittanceJournalEntry['status'] = 'APPROVED - AVAILABLE';
-      if (statusText === 'Rejected') statusType = 'REJECTED';
-      else if (statusText === 'Pending' || statusText === 'Held' || statusText === 'Resubmitted') {
+      if (statusText === 'Rejected' || p.status === 'Rejected') {
+        statusType = 'REJECTED';
+      } else if (
+        statusText === 'Pending' ||
+        statusText === 'Held' ||
+        statusText === 'Resubmitted' ||
+        p.status === 'Pending' ||
+        p.status === 'Held' ||
+        p.status === 'Resubmitted'
+      ) {
         statusType = 'UNDER REVIEW';
       }
 
@@ -104,7 +89,7 @@ export const PaymentsPage: React.FC = () => {
         id: p.id,
         reference: p.reference,
         paymentDate: p.paymentDate,
-        bankName: p.bankName ? `${p.bankName} (${p.currency || 'USD'})` : `Direct Wire (${p.currency || 'USD'})`,
+        bankName: p.bankName ? (p.bankName.includes('(') ? p.bankName : `${p.bankName} (${p.currency || 'USD'})`) : `Direct Wire (${p.currency || 'USD'})`,
         currency: p.currency || 'USD',
         amountUsd: p.amountUsd,
         remainingBalanceUsd: p.remainingBalanceUsd ?? p.amountUsd,
@@ -112,15 +97,9 @@ export const PaymentsPage: React.FC = () => {
         status: statusType,
       };
     });
-
-    // Combine newly created live entries on top with the base journal
-    const liveIds = new Set(liveEntries.map((e) => e.reference.toLowerCase()));
-    const uniqueSeeds = SEED_REMITTANCE_JOURNAL.filter((s) => !liveIds.has(s.reference.toLowerCase()));
-
-    return [...liveEntries, ...uniqueSeeds];
   }, [apiPayments, notifications]);
 
-  // Compute KPI card totals
+  // Compute KPI card totals directly from database records
   const { totalApprovedPaid, totalUnderReview, totalRemainingBalance } = useMemo(() => {
     let approved = 0;
     let review = 0;
@@ -135,11 +114,10 @@ export const PaymentsPage: React.FC = () => {
       }
     }
 
-    // Default to the reference mockup baseline totals if no dynamic changes
     return {
-      totalApprovedPaid: approved > 0 ? approved : 1056998,
+      totalApprovedPaid: approved,
       totalUnderReview: review,
-      totalRemainingBalance: remaining > 0 ? remaining : 833336,
+      totalRemainingBalance: remaining,
     };
   }, [allEntries]);
 
@@ -442,8 +420,18 @@ export const PaymentsPage: React.FC = () => {
                     id="remit-currency-select"
                     className="cc-remit-form-select"
                     {...register('currency')}
+                    data-testid="remit-currency-select"
                   >
-                    <option value="USD">USD ($)</option>
+                    <option value="USD">USD ($) - US Dollar</option>
+                    <option value="JPY">JPY (¥) - Japanese Yen</option>
+                    <option value="EUR">EUR (€) - Euro</option>
+                    <option value="GBP">GBP (£) - British Pound</option>
+                    <option value="KES">KES (KSh) - Kenyan Shilling</option>
+                    <option value="AED">AED (AED) - UAE Dirham</option>
+                    <option value="AUD">AUD (A$) - Australian Dollar</option>
+                    <option value="CAD">CAD (C$) - Canadian Dollar</option>
+                    <option value="NZD">NZD (NZ$) - New Zealand Dollar</option>
+                    <option value="SGD">SGD (S$) - Singapore Dollar</option>
                   </select>
                 </div>
 

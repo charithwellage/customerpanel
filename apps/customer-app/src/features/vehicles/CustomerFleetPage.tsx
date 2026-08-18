@@ -3,6 +3,7 @@ import type { CustomerVehicleSummary } from '@carchief/domain';
 import { useCustomerShell } from '../shell/index.js';
 import { useCustomerVehicles } from './useCustomerVehicles.js';
 import { VehicleFleetCard } from './components/VehicleFleetCard.js';
+import { VehicleTrackingModal } from './components/VehicleTrackingModal.js';
 
 export interface CustomerFleetPageProps {
   onSelectVehicle: (vehicle: CustomerVehicleSummary) => void;
@@ -15,6 +16,7 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
   const [activeTab, setActiveTab] = useState<FleetTabKey>('withPI');
   const [searchQuery, setSearchQuery] = useState('');
   const [shippingStatusFilter, setShippingStatusFilter] = useState('all');
+  const [selectedTrackingVehicle, setSelectedTrackingVehicle] = useState<CustomerVehicleSummary | null>(null);
 
   React.useEffect(() => {
     setActiveRoute('/vehicles');
@@ -283,10 +285,22 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
       {!isLoading && !error && displayedVehicles.length > 0 && (
         <div className="cc-cust-fleet-grid" data-testid="fleet-vehicles-grid">
           {displayedVehicles.map((v) => (
-            <VehicleFleetCard key={v.id} vehicle={v} onSelect={onSelectVehicle} />
+            <VehicleFleetCard
+              key={v.id}
+              vehicle={v}
+              onSelect={onSelectVehicle}
+              onTrackShipment={(vehicle) => setSelectedTrackingVehicle(vehicle)}
+            />
           ))}
         </div>
       )}
+
+      {/* Vehicle Logistics & Shipment Timeline Tracking Modal */}
+      <VehicleTrackingModal
+        isOpen={Boolean(selectedTrackingVehicle)}
+        vehicle={selectedTrackingVehicle}
+        onClose={() => setSelectedTrackingVehicle(null)}
+      />
     </div>
   );
 };
