@@ -522,6 +522,6 @@
 }
 
 .cc-cust-btn--secondary:hover:not(:disabled) {
-  background: var(--color-neutral-surface-hover);
+  background: var(--color-neutral-surface);
   border-color: var(--color-primary);
 }
