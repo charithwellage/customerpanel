@@ -274,6 +274,56 @@ export const InvoiceLedgerModal: React.FC<InvoiceLedgerModalProps> = ({
               </tbody>
             </table>
           </div>
+
+          {/* Financial Summary Calculation (Gross subtotal, Deposit Received, Balance Due) */}
+          <div className="cc-ledger-sheet__summary-wrap">
+            <div className="cc-ledger-sheet__summary">
+              <div className="cc-ledger-sheet__summary-row">
+                <span className="cc-ledger-sheet__summary-label">Gross subtotal:</span>
+                <span className="cc-ledger-sheet__summary-val">
+                  ${ledgerEntry.totalAmountUsd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+              </div>
+              <div className="cc-ledger-sheet__summary-row cc-ledger-sheet__summary-row--deposit">
+                <span className="cc-ledger-sheet__summary-label">Deposit Received:</span>
+                <span className="cc-ledger-sheet__summary-val cc-ledger-sheet__summary-val--green">
+                  -${ledgerEntry.paidAmountUsd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+              </div>
+              <div className="cc-ledger-sheet__summary-divider" />
+              <div className="cc-ledger-sheet__summary-row cc-ledger-sheet__summary-row--balance">
+                <span className="cc-ledger-sheet__summary-label-balance">BALANCE DUE:</span>
+                <span className="cc-ledger-sheet__summary-val-balance">
+                  ${ledgerEntry.outstandingAmountUsd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Telegraphic Bank Remittance Instructions */}
+          <div className="cc-ledger-sheet__bank-box">
+            <div className="cc-ledger-sheet__bank-title">TELEGRAPHIC BANK REMITTANCE INSTRUCTIONS:</div>
+            <div className="cc-ledger-sheet__bank-grid">
+              <div className="cc-ledger-sheet__bank-row">
+                <span className="cc-ledger-sheet__bank-label">Beneficiary Bank:</span>
+                <span className="cc-ledger-sheet__bank-val">SUMITOMO MITSUI BANKING CORP (SMBC) TOKYO</span>
+              </div>
+              <div className="cc-ledger-sheet__bank-row">
+                <span className="cc-ledger-sheet__bank-label">SWIFT Identifier:</span>
+                <span className="cc-ledger-sheet__bank-val">SMBCJPJTXXX</span>
+              </div>
+              <div className="cc-ledger-sheet__bank-row">
+                <span className="cc-ledger-sheet__bank-label">Account Number:</span>
+                <span className="cc-ledger-sheet__bank-val">882-11009382-USD</span>
+              </div>
+              <div className="cc-ledger-sheet__bank-row">
+                <span className="cc-ledger-sheet__bank-label">Reference parameter:</span>
+                <span className="cc-ledger-sheet__bank-val cc-ledger-sheet__bank-val--ref">
+                  MUST REFERENCE {ledgerEntry.invoiceNumber}
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
