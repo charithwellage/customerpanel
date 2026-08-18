@@ -4420,8 +4420,21 @@ function applyPaymentNotification(
   return record;
 }
 
+const SUPPORTED_PAYMENT_CURRENCIES_SET = new Set([
+  'USD',
+  'JPY',
+  'EUR',
+  'GBP',
+  'KES',
+  'AED',
+  'AUD',
+  'CAD',
+  'NZD',
+  'SGD',
+]);
+
 function validatePaymentRequest(request: CreateCustomerPaymentRequest): void {
-  if (!request || !request.invoiceId || !request.reference || !request.bankName || request.currency !== 'USD') throw new Error('Invalid payment or invoice reference');
+  if (!request || !request.invoiceId || !request.reference || !request.bankName || !SUPPORTED_PAYMENT_CURRENCIES_SET.has(request.currency)) throw new Error('Invalid payment or invoice reference');
   if (!Number.isFinite(request.amountUsd) || request.amountUsd <= 0) throw new Error('amountUsd must be greater than zero');
   if (!request.idempotencyKey) throw new Error('idempotencyKey is required');
   if (!request.proof || !['PDF', 'JPG', 'PNG'].includes(request.proof.fileType)) throw new Error('Proof must be PDF, JPG or PNG metadata');
@@ -4436,14 +4449,19 @@ function createPaymentRecord(
   invoices: InvoiceRecord[],
 ): PaymentRecord {
   validatePaymentRequest(request);
-  const invoice = invoices.find((candidate) => candidate.id === request.invoiceId);
-  if (!invoice || invoice.customerId !== customerId) throw new Error('Invoice not found or not owned by customer');
+  let invoice = invoices.find((candidate) => candidate.id === request.invoiceId);
+  if (!invoice && (request.invoiceId === 'INV-GENERAL' || request.invoiceId === 'GENERAL')) {
+    invoice = invoices.find((candidate) => candidate.customerId === customerId);
+  }
+  if (!invoice || invoice.customerId !== customerId) {
+    throw new Error('Invoice not found or not owned by customer');
+  }
   const duplicate = existing.find((payment) => payment.customerId === customerId && payment.idempotencyKey === request.idempotencyKey);
   if (duplicate) return duplicate;
   const record: PaymentRecord = {
     id: `pay-${Date.now()}-${existing.length + 1}`,
     customerId,
-    invoiceId: request.invoiceId,
+    invoiceId: invoice.id,
     amountUsd: request.amountUsd,
     paidAt: request.paymentDate,
     paymentDate: request.paymentDate,
@@ -5682,6 +5700,10 @@ class PostgresStore implements DemoStore {
         status text NOT NULL
       );`
     );
+    await this.pool.query(`ALTER TABLE payments ADD COLUMN IF NOT EXISTS reference text;`);
+    await this.pool.query(`ALTER TABLE payments ADD COLUMN IF NOT EXISTS bank_name text;`);
+    await this.pool.query(`ALTER TABLE payments ADD COLUMN IF NOT EXISTS currency text;`);
+    await this.pool.query(`ALTER TABLE payments ADD COLUMN IF NOT EXISTS remarks text;`);
     await this.pool.query(
       `CREATE TABLE IF NOT EXISTS payment_notifications (
         id text PRIMARY KEY,
@@ -5938,16 +5960,50 @@ class PostgresStore implements DemoStore {
 
     // 7. Payments
     const payCountResult = await this.pool.query('SELECT count(*) FROM payments WHERE customer_id = $1', [customerId]);
-    if (Number(payCountResult.rows[0]?.count || 0) === 0) {
-      for (const p of seedPayments) {
-        if (p.customerId === 'cust-123' || p.customerId === customerId) {
-          const id = customerId === 'cust-123' ? p.id : `pay-${customerId}-${p.id.replace(/^pay-/, '')}`;
-          const invoiceId = customerId === 'cust-123' ? p.invoiceId : `inv-${customerId}-${p.invoiceId.replace(/^inv-/, '')}`;
+    if (Number(payCountResult.rows[0]?.count || 0) < 5) {
+      if (customerId === 'cust-123') {
+        for (const p of seedPayments) {
+          if (p.customerId === 'cust-123') {
+            await this.pool.query(
+              `INSERT INTO payments (id, customer_id, invoice_id, amount_usd, paid_at, status, reference, bank_name, currency, remarks)
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+               ON CONFLICT (id) DO NOTHING;`,
+              [p.id, p.customerId, p.invoiceId, p.amountUsd, p.paidAt, p.status, p.reference || p.id.toUpperCase(), p.bankName || 'Sumitomo Mitsui Banking Corp (USD)', p.currency || 'USD', p.remarks || 'Wire Remittance']
+            );
+          }
+        }
+      } else {
+        const customPayments = [
+          { id: `pay-${customerId}-001`, invoiceId: `inv-${customerId}-001`, amountUsd: 80550, paidAt: '2026-07-22T10:00:00.000Z', status: 'Approved', reference: 'TT-2026-80550-SMBC', bankName: 'Sumitomo Mitsui Banking Corp', currency: 'USD', remarks: 'Fleet Pre-payment Deposit' },
+          { id: `pay-${customerId}-002`, invoiceId: `inv-${customerId}-001`, amountUsd: 5000, paidAt: '2026-07-21T11:00:00.000Z', status: 'Approved', reference: 'TT-2026-5000-MUFG', bankName: 'MUFG Bank Tokyo', currency: 'USD', remarks: 'Deposit for Corolla Fielder' },
+          { id: `pay-${customerId}-003`, invoiceId: `inv-${customerId}-002`, amountUsd: 100000, paidAt: '2026-07-15T14:00:00.000Z', status: 'Approved', reference: 'TT-2026-100000-SCB', bankName: 'Standard Chartered / SWIFT', currency: 'USD', remarks: 'Commercial Consignment Escrow' },
+          { id: `pay-${customerId}-004`, invoiceId: `inv-${customerId}-003`, amountUsd: 75750, paidAt: '2026-07-21T09:00:00.000Z', status: 'Approved', reference: 'TT-2026-75750-BARC', bankName: 'Barclays Bank PLC', currency: 'USD', remarks: 'Advance Remittance for Demio & Premio' },
+          { id: `pay-${customerId}-005`, invoiceId: `inv-${customerId}-004`, amountUsd: 15000, paidAt: '2026-07-30T10:00:00.000Z', status: 'Approved', reference: 'TT-2026-15000-JPY', bankName: 'Mizuho Bank / SWIFT', currency: 'JPY', remarks: 'Salesperson Bulk TT Remittance Deposit' },
+          { id: `pay-${customerId}-006`, invoiceId: `inv-${customerId}-005`, amountUsd: 12780, paidAt: '2026-07-21T12:00:00.000Z', status: 'Approved', reference: 'TT-2026-12780-DIRECT', bankName: 'Direct Wire Transfer', currency: 'USD', remarks: 'Allocated to 2019 SUZUKI ALTO' },
+          { id: `pay-${customerId}-007`, invoiceId: `inv-${customerId}-016`, amountUsd: 7100, paidAt: '2026-07-17T15:00:00.000Z', status: 'Approved', reference: 'TT-2026-7100-DIRECT', bankName: 'Direct Wire Transfer', currency: 'USD', remarks: 'Allocated to 2020 TOYOTA HIACE VAN' },
+          { id: `pay-${customerId}-008`, invoiceId: `inv-${customerId}-007`, amountUsd: 50000, paidAt: '2026-07-21T08:30:00.000Z', status: 'Approved', reference: 'TT-2026-50000-SMBC', bankName: 'Sumitomo Mitsui Banking Corp', currency: 'USD', remarks: 'Prestige Vehicle Sourcing Wire' },
+          { id: `pay-${customerId}-009`, invoiceId: `inv-${customerId}-008`, amountUsd: 30000, paidAt: '2026-07-23T14:20:00.000Z', status: 'Approved', reference: 'TT-2026-30000-SCB', bankName: 'Standard Chartered / SWIFT', currency: 'USD', remarks: 'Escrow Advance for Supercars' },
+          { id: `pay-${customerId}-010`, invoiceId: `inv-${customerId}-009`, amountUsd: 55000, paidAt: '2026-07-27T16:00:00.000Z', status: 'Approved', reference: 'TT-2026-55000-STAN', bankName: 'Standard Chartered / SWIFT', currency: 'USD', remarks: 'Salesperson Bulk TT Remittance Deposit' },
+          { id: `pay-${customerId}-011`, invoiceId: `inv-${customerId}-010`, amountUsd: 40000, paidAt: '2026-07-23T11:45:00.000Z', status: 'Approved', reference: 'TT-2026-40000-SMBC', bankName: 'Sumitomo Mitsui Banking Corp', currency: 'USD', remarks: 'Logistics and Container Surcharge' },
+          { id: `pay-${customerId}-012`, invoiceId: `inv-${customerId}-011`, amountUsd: 200000, paidAt: '2026-07-15T09:15:00.000Z', status: 'Approved', reference: 'TT-2026-200000-SWIFT', bankName: 'SWIFT International Wire', currency: 'USD', remarks: 'Bulk Commercial Portfolio Deposit' },
+          { id: `pay-${customerId}-013`, invoiceId: `inv-${customerId}-012`, amountUsd: 149999, paidAt: '2026-07-22T13:00:00.000Z', status: 'Rejected', reference: 'TT-2026-149999-REJ', bankName: 'Commercial Bank of Africa', currency: 'USD', remarks: 'Invalid swift document reference rejected by compliance' },
+          { id: `pay-${customerId}-014`, invoiceId: `inv-${customerId}-013`, amountUsd: 45000, paidAt: '2026-08-14T10:00:00.000Z', status: 'Pending', reference: 'TT-2026-45000-REV', bankName: 'Barclays Bank International', currency: 'USD', remarks: 'Under finance verification review' },
+          { id: `pay-${customerId}-015`, invoiceId: `inv-${customerId}-014`, amountUsd: 25000, paidAt: '2026-08-15T11:30:00.000Z', status: 'Pending', reference: 'TT-2026-25000-REV', bankName: 'Standard Chartered Bank', currency: 'USD', remarks: 'Awaiting correspondent bank clearance' },
+        ];
+
+        for (const p of customPayments) {
           await this.pool.query(
-            `INSERT INTO payments (id, customer_id, invoice_id, amount_usd, paid_at, status)
-             VALUES ($1, $2, $3, $4, $5, $6)
-             ON CONFLICT (id) DO NOTHING;`,
-            [id, customerId, invoiceId, p.amountUsd, p.paidAt, p.status]
+            `INSERT INTO payments (id, customer_id, invoice_id, amount_usd, paid_at, status, reference, bank_name, currency, remarks)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+             ON CONFLICT (id) DO UPDATE SET
+               amount_usd = EXCLUDED.amount_usd,
+               paid_at = EXCLUDED.paid_at,
+               status = EXCLUDED.status,
+               reference = EXCLUDED.reference,
+               bank_name = EXCLUDED.bank_name,
+               currency = EXCLUDED.currency,
+               remarks = EXCLUDED.remarks;`,
+            [p.id, customerId, p.invoiceId, p.amountUsd, p.paidAt, p.status, p.reference, p.bankName, p.currency, p.remarks]
           );
         }
       }
@@ -6851,31 +6907,93 @@ class PostgresStore implements DemoStore {
 
   async listCustomerPayments(customerId: string): Promise<CustomerPaymentListResponse> {
     await this.ensureCustomerFleetDataInPostgres(customerId);
-    const invoices = await this.getRawInvoices();
-    const allocations = await this.getRawAllocations();
-    const items = this.paymentRecords.filter((payment) => payment.customerId === customerId).map((payment) => toCustomerPayment(payment, invoices, allocations));
+    const invoices = await this.getRawInvoices(customerId);
+    const allocations = await this.getRawAllocations(customerId);
+    const result = await this.pool.query(
+      'SELECT id, customer_id, invoice_id, amount_usd, paid_at, status, reference, bank_name, currency, remarks FROM payments WHERE customer_id = $1 ORDER BY paid_at DESC, id DESC',
+      [customerId]
+    );
+    if (result.rows.length === 0) {
+      const items = this.paymentRecords.filter((payment) => payment.customerId === customerId).map((payment) => toCustomerPayment(payment, invoices, allocations));
+      return { items, total: items.length };
+    }
+    const items = result.rows.map((row) => {
+      const memoryMatch = this.paymentRecords.find((p) => p.id === row.id);
+      const record: PaymentRecord = {
+        id: row.id,
+        customerId: row.customer_id,
+        invoiceId: row.invoice_id,
+        amountUsd: Number(row.amount_usd),
+        paidAt: row.paid_at,
+        paymentDate: row.paid_at.slice(0, 10),
+        status: row.status as any,
+        reference: row.reference || memoryMatch?.reference || `TT-${row.id.replace(/^pay-/, '').toUpperCase()}`,
+        bankName: row.bank_name || memoryMatch?.bankName || 'Sumitomo Mitsui Banking Corp (USD)',
+        currency: row.currency || memoryMatch?.currency || 'USD',
+        remarks: row.remarks || memoryMatch?.remarks || 'None',
+        proof: memoryMatch?.proof,
+        idempotencyKey: memoryMatch?.idempotencyKey,
+      };
+      return toCustomerPayment(record, invoices, allocations);
+    });
     return { items, total: items.length };
   }
 
   async getCustomerPayment(customerId: string, id: string): Promise<CustomerPayment | null> {
     await this.ensureCustomerFleetDataInPostgres(customerId);
-    const invoices = await this.getRawInvoices();
-    const allocations = await this.getRawAllocations();
-    const payment = this.paymentRecords.find((candidate) => candidate.customerId === customerId && candidate.id === id);
-    return payment ? toCustomerPayment(payment, invoices, allocations) : null;
+    const invoices = await this.getRawInvoices(customerId);
+    const allocations = await this.getRawAllocations(customerId);
+    const result = await this.pool.query(
+      'SELECT id, customer_id, invoice_id, amount_usd, paid_at, status, reference, bank_name, currency, remarks FROM payments WHERE customer_id = $1 AND id = $2',
+      [customerId, id]
+    );
+    if (result.rows.length === 0) {
+      const payment = this.paymentRecords.find((candidate) => candidate.customerId === customerId && candidate.id === id);
+      return payment ? toCustomerPayment(payment, invoices, allocations) : null;
+    }
+    const row = result.rows[0];
+    const memoryMatch = this.paymentRecords.find((p) => p.id === row.id);
+    const record: PaymentRecord = {
+      id: row.id,
+      customerId: row.customer_id,
+      invoiceId: row.invoice_id,
+      amountUsd: Number(row.amount_usd),
+      paidAt: row.paid_at,
+      paymentDate: row.paid_at.slice(0, 10),
+      status: row.status as any,
+      reference: row.reference || memoryMatch?.reference || `TT-${row.id.replace(/^pay-/, '').toUpperCase()}`,
+      bankName: row.bank_name || memoryMatch?.bankName || 'Sumitomo Mitsui Banking Corp (USD)',
+      currency: row.currency || memoryMatch?.currency || 'USD',
+      remarks: row.remarks || memoryMatch?.remarks || 'None',
+      proof: memoryMatch?.proof,
+      idempotencyKey: memoryMatch?.idempotencyKey,
+    };
+    return toCustomerPayment(record, invoices, allocations);
   }
 
   async createCustomerPayment(customerId: string, request: CreateCustomerPaymentRequest, nowISO = new Date().toISOString()): Promise<CustomerPayment> {
     await this.ensureCustomerFleetDataInPostgres(customerId);
-    const invoices = await this.getRawInvoices();
-    const allocations = await this.getRawAllocations();
-    return toCustomerPayment(createPaymentRecord(customerId, request, nowISO, this.paymentRecords, invoices), invoices, allocations);
+    const invoices = await this.getRawInvoices(customerId);
+    const allocations = await this.getRawAllocations(customerId);
+    const record = createPaymentRecord(customerId, request, nowISO, this.paymentRecords, invoices);
+    await this.pool.query(
+      `INSERT INTO payments (id, customer_id, invoice_id, amount_usd, paid_at, status, reference, bank_name, currency, remarks)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+       ON CONFLICT (id) DO UPDATE SET
+         status = EXCLUDED.status,
+         reference = EXCLUDED.reference,
+         bank_name = EXCLUDED.bank_name,
+         currency = EXCLUDED.currency,
+         remarks = EXCLUDED.remarks;`,
+      [record.id, record.customerId, record.invoiceId, record.amountUsd, record.paidAt, record.status, record.reference || null, record.bankName || null, record.currency || 'USD', record.remarks || null]
+    );
+    return toCustomerPayment(record, invoices, allocations);
   }
 
   async resubmitCustomerPayment(customerId: string, paymentId: string, nowISO = new Date().toISOString()): Promise<CustomerPayment> {
     await this.ensureCustomerFleetDataInPostgres(customerId);
-    const invoices = await this.getRawInvoices();
-    const allocations = await this.getRawAllocations();
+    const invoices = await this.getRawInvoices(customerId);
+    const allocations = await this.getRawAllocations(customerId);
     const payment = this.paymentRecords.find((candidate) => candidate.id === paymentId && candidate.customerId === customerId);
     if (!payment) throw new PaymentWorkflowError(404, 'Payment not found or not owned by customer');
     applyPaymentNotification(payment, { event: 'PaymentResubmitted' }, this.paymentNotifications, allocations, nowISO);

@@ -29,8 +29,8 @@ export type {
   FavouriteSearchCreateSchemaValues,
   FavouriteSearchCreateSchemaInput,
 } from './favourites.js';
-export { customerPaymentFormSchema, MAX_PAYMENT_PROOF_BYTES } from './payment.js';
-export type { CustomerPaymentFormInput, CustomerPaymentFormValues } from './payment.js';
+export { customerPaymentFormSchema, MAX_PAYMENT_PROOF_BYTES, SUPPORTED_PAYMENT_CURRENCIES } from './payment.js';
+export type { CustomerPaymentFormInput, CustomerPaymentFormValues, SupportedPaymentCurrency } from './payment.js';
 export {
   registrationFormSchema,
   loginFormSchema,

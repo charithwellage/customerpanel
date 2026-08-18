@@ -3294,7 +3294,7 @@
         "type": "object",
         "properties": {
           "invoiceId": { "type": "string" }, "reference": { "type": "string" }, "bankName": { "type": "string" },
-          "currency": { "type": "string", "enum": ["USD"] }, "amountUsd": { "type": "number" }, "paymentDate": { "type": "string" },
+          "currency": { "type": "string", "enum": ["USD", "JPY", "EUR", "GBP", "KES", "AED", "AUD", "CAD", "NZD", "SGD"] }, "amountUsd": { "type": "number" }, "paymentDate": { "type": "string" },
           "remarks": { "type": "string" }, "proof": { "$ref": "#/components/schemas/CustomerPaymentProofMetadata" }, "idempotencyKey": { "type": "string" }
         },
         "required": ["invoiceId", "reference", "bankName", "currency", "amountUsd", "paymentDate", "proof", "idempotencyKey"]

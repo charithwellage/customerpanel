@@ -444,9 +444,11 @@
   font-weight: 800;
   color: var(--color-text-primary);
   line-height: 1.3;
-  white-space: nowrap;
+  min-height: 2.6em;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
   text-transform: uppercase;
 }
 
@@ -472,6 +474,11 @@
   font-size: var(--font-size-xs);
 }
 
+.cc-cust-fleet-card__spec-label--fob {
+  color: var(--color-text-primary);
+  font-weight: 700;
+}
+
 .cc-cust-fleet-card__spec-value {
   font-weight: 600;
   color: var(--color-text-primary);
@@ -490,54 +497,24 @@
 .cc-cust-fleet-card__spec-value--fob {
   color: var(--color-primary);
   font-weight: 800;
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-sm);
+}
+
+.cc-cust-fleet-card__spec-divider {
+  width: 100%;
+  height: 1px;
+  background: var(--color-border);
+  margin: 3px 0;
 }
 
 /* Highlight Boxes */
 .cc-cust-fleet-card__highlight {
   border-radius: var(--radius-sm);
-  padding: 6px 8px;
+  padding: 8px 10px;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
   font-size: var(--font-size-xs);
-}
-
-.cc-cust-fleet-card__highlight-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--spacing-xs);
-}
-
-.cc-cust-fleet-card__highlight-label {
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-xs);
-}
-
-.cc-cust-fleet-card__highlight-value {
-  font-size: var(--font-size-xs);
-  font-weight: 600;
-}
-
-.cc-cust-fleet-card__highlight-value--danger {
-  color: var(--color-primary);
-  font-weight: 700;
-}
-
-.cc-cust-fleet-card__highlight-value--bold {
-  color: var(--color-text-primary);
-  font-weight: 700;
-}
-
-.cc-cust-fleet-card__highlight-value--purple {
-  color: var(--color-info);
-  font-weight: 600;
-}
-
-.cc-cust-fleet-card__highlight-value--purple-bold {
-  color: var(--color-info);
-  font-weight: 700;
 }
 
 .cc-cust-fleet-card__highlight--purple {
@@ -555,35 +532,87 @@
   border: 1px solid var(--color-border);
 }
 
-.cc-cust-fleet-card__highlight-title--bill {
+.cc-cust-fleet-card__highlight-title {
+  display: flex;
+  align-items: center;
+  gap: 4px;
   font-weight: 800;
   letter-spacing: 0.5px;
   text-transform: uppercase;
-  color: var(--color-success);
-  font-size: 8.5px;
+  font-size: var(--font-size-xs);
   margin-bottom: 2px;
 }
 
-.cc-cust-fleet-card__bill-grid {
+.cc-cust-fleet-card__highlight-title--bill {
+  color: var(--color-success);
+}
+
+.cc-cust-fleet-card__highlight-title--amber {
+  color: var(--color-warning);
+}
+
+.cc-cust-fleet-card__highlight-title--purple {
+  color: var(--color-info);
+}
+
+.cc-cust-fleet-card__highlight-icon {
+  flex-shrink: 0;
+}
+
+.cc-cust-fleet-card__bill-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 2px;
+  gap: var(--spacing-xs);
+  padding: 1px 0;
 }
 
-.cc-cust-fleet-card__bill-col {
-  display: flex;
-  gap: 2px;
-  font-size: var(--font-size-xs);
+.cc-cust-fleet-card__bill-divider {
+  width: 100%;
+  height: 1px;
+  background: var(--color-border);
+  margin: 2px 0;
 }
 
 .cc-cust-fleet-card__bill-label {
-  color: var(--color-success);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
   font-weight: 500;
 }
 
 .cc-cust-fleet-card__bill-val {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  text-align: right;
+}
+
+.cc-cust-fleet-card__bill-val--sold {
+  color: var(--color-text-primary);
+  font-weight: 700;
+}
+
+.cc-cust-fleet-card__bill-val--paid {
   color: var(--color-success);
+  font-weight: 700;
+}
+
+.cc-cust-fleet-card__bill-val--bal {
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+.cc-cust-fleet-card__bill-val--bold {
+  color: var(--color-text-primary);
+  font-weight: 700;
+}
+
+.cc-cust-fleet-card__bill-val--danger {
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+.cc-cust-fleet-card__bill-val--purple {
+  color: var(--color-info);
   font-weight: 700;
 }
 
@@ -593,16 +622,16 @@
   flex-direction: column;
   gap: 4px;
   margin-top: auto;
-  padding-top: 2px;
+  padding-top: 4px;
 }
 
 .cc-cust-fleet-card__progress-track {
   width: 100%;
-  height: 2px;
+  height: 2.5px;
   background: var(--color-border);
   position: relative;
-  display: flex;
-  align-items: center;
+  border-radius: var(--radius-pill);
+  overflow: hidden;
 }
 
 .cc-cust-fleet-card__progress-line {
@@ -610,41 +639,15 @@
   transition: width var(--motion-normal) ease;
 }
 
-.cc-cust-fleet-card__progress-dot {
-  position: absolute;
-  width: 6px;
-  height: 6px;
-  border-radius: var(--radius-pill);
-  background: var(--color-border);
-  top: 50%;
-  transform: translate(-50%, -50%);
-}
-
-.cc-cust-fleet-card__progress-dot--start {
-  left: 0;
-  background: var(--color-text-primary);
-}
-
-.cc-cust-fleet-card__progress-dot--mid {
-  left: 50%;
-}
-
-.cc-cust-fleet-card__progress-dot--end {
-  left: 100%;
-}
-
-.cc-cust-fleet-card__progress-wrap--amber .cc-cust-fleet-card__progress-line,
-.cc-cust-fleet-card__progress-wrap--amber .cc-cust-fleet-card__progress-dot--active {
+.cc-cust-fleet-card__progress-wrap--amber .cc-cust-fleet-card__progress-line {
   background: var(--color-warning);
 }
 
-.cc-cust-fleet-card__progress-wrap--purple .cc-cust-fleet-card__progress-line,
-.cc-cust-fleet-card__progress-wrap--purple .cc-cust-fleet-card__progress-dot--active {
+.cc-cust-fleet-card__progress-wrap--purple .cc-cust-fleet-card__progress-line {
   background: var(--color-info);
 }
 
-.cc-cust-fleet-card__progress-wrap--green .cc-cust-fleet-card__progress-line,
-.cc-cust-fleet-card__progress-wrap--green .cc-cust-fleet-card__progress-dot--active {
+.cc-cust-fleet-card__progress-wrap--green .cc-cust-fleet-card__progress-line {
   background: var(--color-success);
 }
 
@@ -652,19 +655,20 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 8.5px;
+  font-size: 9px;
   color: var(--color-text-secondary);
   font-weight: 500;
 }
 
 .cc-cust-fleet-card__progress-step--active {
   color: var(--color-text-primary);
-  font-weight: 700;
+  font-weight: 800;
+  text-transform: uppercase;
 }
 
 /* Action Button */
 .cc-cust-fleet-card__actions {
-  padding-top: 2px;
+  padding-top: 4px;
 }
 
 .cc-cust-fleet-card__track-btn {
@@ -673,11 +677,11 @@
   align-items: center;
   justify-content: center;
   gap: var(--spacing-xs);
-  padding: 6px var(--spacing-sm);
-  background: var(--color-error-surface);
-  border: 1px solid var(--color-error);
+  padding: 7px var(--spacing-sm);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  color: var(--color-error);
+  color: var(--color-text-primary);
   font-size: var(--font-size-xs);
   font-weight: 800;
   letter-spacing: 0.5px;
@@ -686,8 +690,9 @@
 }
 
 .cc-cust-fleet-card__track-btn:hover {
-  background: var(--color-error);
-  color: var(--color-text-on-primary);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--color-neutral-surface);
 }
 
 .cc-cust-fleet-card__track-btn:focus-visible {
@@ -695,8 +700,9 @@
   outline-offset: 1px;
 }
 
-.cc-cust-fleet-card__track-icon {
-  font-size: var(--font-size-xs);
+.cc-cust-fleet-card__track-svg {
+  color: var(--color-primary);
+  flex-shrink: 0;
 }
 
 /* Loading, Error, and Empty States */

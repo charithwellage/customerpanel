@@ -135,8 +135,10 @@ export const VehicleFleetCard: React.FC<VehicleFleetCardProps> = ({ vehicle, onS
             </span>
           </div>
 
+          <div className="cc-cust-fleet-card__spec-divider" />
+
           <div className="cc-cust-fleet-card__spec-row">
-            <span className="cc-cust-fleet-card__spec-label">FOB Price:</span>
+            <span className="cc-cust-fleet-card__spec-label cc-cust-fleet-card__spec-label--fob">FOB Price:</span>
             <span className="cc-cust-fleet-card__spec-value cc-cust-fleet-card__spec-value--fob">
               ${price.toLocaleString()}
             </span>
@@ -146,34 +148,44 @@ export const VehicleFleetCard: React.FC<VehicleFleetCardProps> = ({ vehicle, onS
         {/* Highlight Summary Box */}
         {isReserved && (
           <div className="cc-cust-fleet-card__highlight cc-cust-fleet-card__highlight--amber">
-            <div className="cc-cust-fleet-card__highlight-row">
-              <span className="cc-cust-fleet-card__highlight-label">Status / Type:</span>
-              <span className="cc-cust-fleet-card__highlight-value cc-cust-fleet-card__highlight-value--danger">
-                ONLINE RESERVED
-              </span>
+            <div className="cc-cust-fleet-card__highlight-title cc-cust-fleet-card__highlight-title--amber">
+              <svg className="cc-cust-fleet-card__highlight-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+              </svg>
+              ONLINE RESERVATION
             </div>
-            <div className="cc-cust-fleet-card__highlight-row">
-              <span className="cc-cust-fleet-card__highlight-label">Deposit (50%):</span>
-              <span className="cc-cust-fleet-card__highlight-value cc-cust-fleet-card__highlight-value--bold">
-                ${depositReq.toLocaleString()}
-              </span>
+            <div className="cc-cust-fleet-card__bill-row">
+              <span className="cc-cust-fleet-card__bill-label">Status:</span>
+              <span className="cc-cust-fleet-card__bill-val cc-cust-fleet-card__bill-val--danger">ONLINE RESERVED</span>
+            </div>
+            <div className="cc-cust-fleet-card__bill-divider" />
+            <div className="cc-cust-fleet-card__bill-row">
+              <span className="cc-cust-fleet-card__bill-label">Deposit (50%):</span>
+              <span className="cc-cust-fleet-card__bill-val cc-cust-fleet-card__bill-val--bold">${depositReq.toLocaleString()}</span>
             </div>
           </div>
         )}
 
         {isPI && (
           <div className="cc-cust-fleet-card__highlight cc-cust-fleet-card__highlight--purple">
-            <div className="cc-cust-fleet-card__highlight-row">
-              <span className="cc-cust-fleet-card__highlight-label">Deposit (50%):</span>
-              <span className="cc-cust-fleet-card__highlight-value cc-cust-fleet-card__highlight-value--purple-bold">
-                ${depositReq.toLocaleString()}
-              </span>
+            <div className="cc-cust-fleet-card__highlight-title cc-cust-fleet-card__highlight-title--purple">
+              <svg className="cc-cust-fleet-card__highlight-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+                <line x1="16" y1="17" x2="8" y2="17" />
+              </svg>
+              PROFORMA INVOICE
             </div>
-            <div className="cc-cust-fleet-card__highlight-row">
-              <span className="cc-cust-fleet-card__highlight-label">PI Ref:</span>
-              <span className="cc-cust-fleet-card__highlight-value cc-cust-fleet-card__highlight-value--purple">
-                {piRefDisplay}
-              </span>
+            <div className="cc-cust-fleet-card__bill-row">
+              <span className="cc-cust-fleet-card__bill-label">PI Ref:</span>
+              <span className="cc-cust-fleet-card__bill-val cc-cust-fleet-card__bill-val--purple">{piRefDisplay}</span>
+            </div>
+            <div className="cc-cust-fleet-card__bill-divider" />
+            <div className="cc-cust-fleet-card__bill-row">
+              <span className="cc-cust-fleet-card__bill-label">Deposit (50%):</span>
+              <span className="cc-cust-fleet-card__bill-val cc-cust-fleet-card__bill-val--bold">${depositReq.toLocaleString()}</span>
             </div>
           </div>
         )}
@@ -181,27 +193,30 @@ export const VehicleFleetCard: React.FC<VehicleFleetCardProps> = ({ vehicle, onS
         {isInvoiced && (
           <div className="cc-cust-fleet-card__highlight cc-cust-fleet-card__highlight--green">
             <div className="cc-cust-fleet-card__highlight-title cc-cust-fleet-card__highlight-title--bill">
+              <svg className="cc-cust-fleet-card__highlight-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                <polyline points="9 12 11 14 15 10" />
+              </svg>
               COMMERCIAL BILL
             </div>
-            <div className="cc-cust-fleet-card__bill-grid">
-              <div className="cc-cust-fleet-card__bill-col">
-                <span className="cc-cust-fleet-card__bill-label">Sold:</span>
-                <span className="cc-cust-fleet-card__bill-val">
-                  ${soldAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </span>
-              </div>
-              <div className="cc-cust-fleet-card__bill-col">
-                <span className="cc-cust-fleet-card__bill-label">Paid:</span>
-                <span className="cc-cust-fleet-card__bill-val">
-                  ${paidAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </span>
-              </div>
-              <div className="cc-cust-fleet-card__bill-col">
-                <span className="cc-cust-fleet-card__bill-label">Bal:</span>
-                <span className="cc-cust-fleet-card__bill-val">
-                  ${balanceAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </span>
-              </div>
+            <div className="cc-cust-fleet-card__bill-row">
+              <span className="cc-cust-fleet-card__bill-label">Sold:</span>
+              <span className="cc-cust-fleet-card__bill-val cc-cust-fleet-card__bill-val--sold">
+                ${soldAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </span>
+            </div>
+            <div className="cc-cust-fleet-card__bill-row">
+              <span className="cc-cust-fleet-card__bill-label">Paid:</span>
+              <span className="cc-cust-fleet-card__bill-val cc-cust-fleet-card__bill-val--paid">
+                ${paidAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </span>
+            </div>
+            <div className="cc-cust-fleet-card__bill-divider" />
+            <div className="cc-cust-fleet-card__bill-row">
+              <span className="cc-cust-fleet-card__bill-label">Bal:</span>
+              <span className="cc-cust-fleet-card__bill-val cc-cust-fleet-card__bill-val--bal">
+                ${balanceAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </span>
             </div>
           </div>
         )}
@@ -213,15 +228,12 @@ export const VehicleFleetCard: React.FC<VehicleFleetCardProps> = ({ vehicle, onS
               className="cc-cust-fleet-card__progress-line"
               style={{ width: `${progressPercent}%` }}
             />
-            <span className="cc-cust-fleet-card__progress-dot cc-cust-fleet-card__progress-dot--start" />
-            <span className={`cc-cust-fleet-card__progress-dot cc-cust-fleet-card__progress-dot--mid ${progressPercent >= 50 ? 'cc-cust-fleet-card__progress-dot--active' : ''}`} />
-            <span className={`cc-cust-fleet-card__progress-dot cc-cust-fleet-card__progress-dot--end ${progressPercent >= 100 ? 'cc-cust-fleet-card__progress-dot--active' : ''}`} />
           </div>
           <div className="cc-cust-fleet-card__progress-labels">
-            <span className="cc-cust-fleet-card__progress-step cc-cust-fleet-card__progress-step--active">
+            <span className={`cc-cust-fleet-card__progress-step ${progressPercent <= 35 ? 'cc-cust-fleet-card__progress-step--active' : ''}`}>
               Reserved
             </span>
-            <span className={`cc-cust-fleet-card__progress-step ${progressPercent >= 50 ? 'cc-cust-fleet-card__progress-step--active' : ''}`}>
+            <span className={`cc-cust-fleet-card__progress-step ${progressPercent > 35 && progressPercent < 100 ? 'cc-cust-fleet-card__progress-step--active' : ''}`}>
               {middleStage}
             </span>
             <span className={`cc-cust-fleet-card__progress-step ${progressPercent >= 100 ? 'cc-cust-fleet-card__progress-step--active' : ''}`}>
@@ -238,7 +250,10 @@ export const VehicleFleetCard: React.FC<VehicleFleetCardProps> = ({ vehicle, onS
             onClick={() => onSelect(vehicle)}
             aria-label={`Track shipment for ${vehicle.year} ${vehicle.make} ${vehicle.model}`}
           >
-            <span className="cc-cust-fleet-card__track-icon" aria-hidden="true">⊘</span>
+            <svg className="cc-cust-fleet-card__track-svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="10" />
+              <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
+            </svg>
             TRACK SHIPMENT
           </button>
         </div>
