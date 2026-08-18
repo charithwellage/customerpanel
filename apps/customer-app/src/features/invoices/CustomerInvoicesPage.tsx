@@ -3,6 +3,7 @@ import type { CustomerInvoiceSummary } from '@carchief/domain';
 import { useCustomerShell } from '../shell/index.js';
 import { useCustomerInvoices } from './useCustomerInvoices.js';
 import { InvoiceSummaryKpiCards } from './components/InvoiceSummaryKpiCards.js';
+import { InvoiceLedgerModal } from './components/InvoiceLedgerModal.js';
 import { RedDocIcon, SearchGlassIcon, VehiclesSideCarIcon } from '../../components/Icons.js';
 
 export interface CustomerInvoicesPageProps {
@@ -54,7 +55,7 @@ const SEED_INVOICE_LEDGER: InvoicedLedgerEntry[] = [
   { id: 'inv-row-17', invoiceNumber: 'INV-65232', type: 'COMMERCIAL', issueDate: '21/07/2026', totalAmountUsd: 180550, paidAmountUsd: 180550, outstandingAmountUsd: 0, dueDate: '2026-07-23' },
 ];
 
-const SEED_INVOICED_VEHICLES: InvoicedVehicleItem[] = [
+export const SEED_INVOICED_VEHICLES: InvoicedVehicleItem[] = [
   {
     id: 'veh-inv-1',
     stockNumber: 'STK: NRE161',
@@ -89,9 +90,9 @@ const SEED_INVOICED_VEHICLES: InvoicedVehicleItem[] = [
     engine: '1500',
     vesselVoyage: 'TBD',
     destinationPort: 'Mombasa',
-    soldAmountUsd: 9690,
+    soldAmountUsd: 9440,
     paidAmountUsd: 0,
-    balanceAmountUsd: 9690,
+    balanceAmountUsd: 9440,
     imageUrl: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=600',
   },
   {
@@ -115,35 +116,35 @@ const SEED_INVOICED_VEHICLES: InvoicedVehicleItem[] = [
     engine: '660',
     vesselVoyage: 'TBD',
     destinationPort: 'Mombasa',
-    soldAmountUsd: 12780,
-    paidAmountUsd: 12780,
+    soldAmountUsd: 12480,
+    paidAmountUsd: 12480,
     balanceAmountUsd: 0,
     imageUrl: 'https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=600',
   },
   {
     id: 'veh-inv-6',
     stockNumber: 'STK: NCP165',
-    chassisNumber: 'CHASSIS: NCP165-0065034',
+    chassisNumber: 'CHASSIS: NCP165-0063834',
     title: '2019 TOYOTA SUCCEED VAN',
     engine: '1500',
     vesselVoyage: 'TBD',
     destinationPort: 'Mombasa',
-    soldAmountUsd: 13770,
+    soldAmountUsd: 13520,
     paidAmountUsd: 0,
-    balanceAmountUsd: 13770,
+    balanceAmountUsd: 13520,
     imageUrl: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=600',
   },
   {
     id: 'veh-inv-7',
     stockNumber: 'STK: YV1MV4',
-    chassisNumber: 'CHASSIS: YV1MV485BE2022833',
+    chassisNumber: 'CHASSIS: YV1MV4858E20882527777',
     title: '2013 VOLVO V40',
-    engine: 'DBA-MB4164T',
+    engine: '1600',
     vesselVoyage: 'TBD',
     destinationPort: 'Mombasa',
-    soldAmountUsd: 12800,
+    soldAmountUsd: 10800,
     paidAmountUsd: 0,
-    balanceAmountUsd: 12800,
+    balanceAmountUsd: 10800,
     imageUrl: 'https://images.unsplash.com/photo-1502877338535-766e1452684a?w=600',
   },
   {
@@ -266,8 +267,10 @@ const SEED_INVOICED_VEHICLES: InvoicedVehicleItem[] = [
 ];
 
 export const CustomerInvoicesPage: React.FC<CustomerInvoicesPageProps> = ({ onSelectInvoice }) => {
-  const { setActiveRoute } = useCustomerShell();
+  const { setActiveRoute, user } = useCustomerShell();
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedLedger, setSelectedLedger] = useState<InvoicedLedgerEntry | null>(null);
+  const [isLedgerModalOpen, setIsLedgerModalOpen] = useState(false);
 
   useEffect(() => {
     setActiveRoute('/invoices');
@@ -333,7 +336,6 @@ export const CustomerInvoicesPage: React.FC<CustomerInvoicesPageProps> = ({ onSe
         totalOutstandingUsd={totals.totalOutstandingUsd}
         totalUnits={16}
       />
-
 
       {/* SECTION 1: Active Invoice Ledgers Table */}
       <section className="cc-inv-section" aria-labelledby="active-ledgers-heading">
@@ -428,7 +430,10 @@ export const CustomerInvoicesPage: React.FC<CustomerInvoicesPageProps> = ({ onSe
                       <button
                         type="button"
                         className="cc-inv-action-btn"
+                        data-testid={`btn-ledger-${row.id}`}
                         onClick={() => {
+                          setSelectedLedger(row);
+                          setIsLedgerModalOpen(true);
                           const matched = apiInvoices.find((i) => i.id === row.id || i.invoiceNumber === row.invoiceNumber);
                           if (matched) onSelectInvoice(matched);
                         }}
@@ -542,6 +547,21 @@ export const CustomerInvoicesPage: React.FC<CustomerInvoicesPageProps> = ({ onSe
           ))}
         </div>
       </section>
+
+      {/* Invoice Ledger Modal Popup */}
+      <InvoiceLedgerModal
+        isOpen={isLedgerModalOpen}
+        onClose={() => {
+          setIsLedgerModalOpen(false);
+          setSelectedLedger(null);
+        }}
+        ledgerEntry={selectedLedger}
+        clientName={user?.name || 'Charith Wellage'}
+        clientCompany={user?.company || 'charith wellage'}
+        clientAddress="gampaha, sri lanka, Kenya"
+        clientPhone="+94715991619"
+        vehicles={SEED_INVOICED_VEHICLES}
+      />
     </div>
   );
 };

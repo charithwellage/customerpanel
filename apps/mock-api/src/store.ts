@@ -4725,6 +4725,7 @@ class MemoryStore implements DemoStore {
   }
 
   getCustomerDashboard(customerId: string, customerEmail: string): Promise<CustomerDashboard> {
+    this.ensureCustomerFleetInMemory(customerId);
     // Outstanding balance = sum of issued invoices - sum of approved allocations (D02-ASM-001)
     const customerInvoices = this.invoices.filter((i) => i.customerId === customerId && i.status === 'Issued');
     const totalIssuedAmount = customerInvoices.reduce((sum, inv) => sum + inv.totalAmountUsd, 0);
@@ -4817,7 +4818,123 @@ class MemoryStore implements DemoStore {
     });
   }
 
+  private ensureCustomerFleetInMemory(customerId: string): void {
+    if (customerId.startsWith('cust-exception')) return;
+    const isRegistered = this.customerAccounts.some((a) => a.customerId === customerId) || customerId === 'cust-123';
+    if (!isRegistered) return;
+    const hasInvoices = this.invoices.some((i) => i.customerId === customerId);
+    const hasPIs = this.proformaInvoices.some((p) => p.customerId === customerId);
+    const hasReservations = this.reservations.some((r) => r.customerId === customerId);
+
+    if (!hasPIs) {
+      for (const pi of seedProformaInvoices) {
+        this.proformaInvoices.push({
+          ...pi,
+          id: `pi-${customerId}-${pi.id.replace(/^pi-/, '')}`,
+          customerId,
+          paymentDeadline: '2029-01-01T00:00:00.000Z',
+        });
+      }
+    }
+    if (!hasInvoices) {
+      for (const inv of seedInvoices) {
+        if (inv.customerId === 'cust-123') {
+          this.invoices.push({
+            ...inv,
+            id: `inv-${customerId}-${inv.id.replace(/^inv-/, '')}`,
+            customerId,
+          });
+        }
+      }
+      for (const a of seedAllocations) {
+        if (a.customerId === 'cust-123') {
+          this.allocations.push({
+            ...a,
+            id: `alloc-${customerId}-${a.id.replace(/^alloc-/, '')}`,
+            customerId,
+            invoiceId: `inv-${customerId}-${a.invoiceId.replace(/^inv-/, '')}`,
+            paymentId: `pay-${customerId}-${a.paymentId.replace(/^pay-/, '')}`,
+          });
+        }
+      }
+      for (const s of seedShipments) {
+        if (s.customerId === 'cust-123') {
+          this.shipments.push({
+            ...s,
+            id: `ship-${customerId}-${s.id.replace(/^ship-/, '')}`,
+            customerId,
+          });
+        }
+      }
+      for (const d of seedDocuments) {
+        if (d.customerId === 'cust-123') {
+          this.documents.push({
+            ...d,
+            id: `doc-${customerId}-${d.id.replace(/^doc-/, '')}`,
+            customerId,
+            shipmentId: d.shipmentId ? `ship-${customerId}-${d.shipmentId.replace(/^ship-/, '')}` : undefined,
+          });
+        }
+      }
+    }
+    if (!hasReservations) {
+      this.reservations.push(
+        {
+          id: `res-${customerId}-1`,
+          vehicleId: 'veh-1',
+          vehicleSlug: '2021-toyota-corolla-axio-veh-1',
+          customerId,
+          customerEmail: `${customerId}@example.com`,
+          createdAt: '2026-08-10T10:00:00.000Z',
+          expiresAt: '2029-01-01T00:00:00.000Z',
+          holdHours: 48,
+        },
+        {
+          id: `res-${customerId}-2`,
+          vehicleId: 'veh-5',
+          vehicleSlug: '2021-honda-fit-hybrid-veh-5',
+          customerId,
+          customerEmail: `${customerId}@example.com`,
+          createdAt: '2026-08-10T10:00:00.000Z',
+          expiresAt: '2029-01-01T00:00:00.000Z',
+          holdHours: 48,
+        },
+        {
+          id: `res-${customerId}-3`,
+          vehicleId: 'veh-7',
+          vehicleSlug: '2023-lexus-rx450h-veh-7',
+          customerId,
+          customerEmail: `${customerId}@example.com`,
+          createdAt: '2026-08-10T10:00:00.000Z',
+          expiresAt: '2029-01-01T00:00:00.000Z',
+          holdHours: 48,
+        },
+        {
+          id: `res-${customerId}-4`,
+          vehicleId: 'veh-9',
+          vehicleSlug: '2019-mercedes-benz-c200-amg-line-veh-9',
+          customerId,
+          customerEmail: `${customerId}@example.com`,
+          createdAt: '2026-08-10T10:00:00.000Z',
+          expiresAt: '2029-01-01T00:00:00.000Z',
+          holdHours: 48,
+        },
+        {
+          id: `res-${customerId}-5`,
+          vehicleId: 'veh-10',
+          vehicleSlug: '2021-bmw-x3-xdrive20d-veh-10',
+          customerId,
+          customerEmail: `${customerId}@example.com`,
+          createdAt: '2026-08-10T10:00:00.000Z',
+          expiresAt: '2029-01-01T00:00:00.000Z',
+          holdHours: 48,
+        }
+      );
+    }
+  }
+
   getCustomerVehicles(customerId: string, query?: ListCustomerVehiclesQuery, nowISO?: string): Promise<CustomerVehicleListResponse> {
+    this.ensureCustomerFleetInMemory(customerId);
     const all = buildCustomerVehicleProjections(
       customerId,
       this.vehicles,
@@ -5319,20 +5436,12 @@ class PostgresStore implements DemoStore {
         received_at text NOT NULL
       );`
     );
-    // Phase 1.6 (D01-P06-T001): ADD COLUMN IF NOT EXISTS because
-    // CREATE TABLE IF NOT EXISTS above does not add columns to an
-    // already-existing volume (see TASK_EXECUTION_PROTOCOL.md §3 Docker
-    // schema-drift note).
     await this.pool.query(
       `ALTER TABLE enquiries
         ADD COLUMN IF NOT EXISTS enquiry_type text,
         ADD COLUMN IF NOT EXISTS source text,
         ADD COLUMN IF NOT EXISTS duplicate_resubmission_count integer;`
     );
-    // Phase 1.6 (D01-P06-T002): consent and the optional vehicle-preference
-    // capture fields — same ADD COLUMN IF NOT EXISTS schema-drift pattern as
-    // above, since an already-existing local volume never gets these columns
-    // from CREATE TABLE IF NOT EXISTS alone.
     await this.pool.query(
       `ALTER TABLE enquiries
         ADD COLUMN IF NOT EXISTS consent boolean,
@@ -5342,8 +5451,6 @@ class PostgresStore implements DemoStore {
         ADD COLUMN IF NOT EXISTS preferred_year integer,
         ADD COLUMN IF NOT EXISTS target_price_usd numeric;`
     );
-    // Phase 2.13 (D02-P13-T001): customer_id links a quote request to its
-    // submitting customer; null for anonymous submissions.
     await this.pool.query(
       `ALTER TABLE enquiries
         ADD COLUMN IF NOT EXISTS customer_id text;`
@@ -5360,7 +5467,6 @@ class PostgresStore implements DemoStore {
         hold_hours integer NOT NULL
       );`
     );
-    // Phase 2.13 (D02-P13-T002): Wishlist and Favourites entities
     await this.pool.query(
       `CREATE TABLE IF NOT EXISTS wishlist_items (
         id text PRIMARY KEY,
@@ -5462,10 +5568,6 @@ class PostgresStore implements DemoStore {
         recently_discounted_query text
       );`
     );
-    // Phase 2.12 (D02-P12-T001): customer_accounts and password_reset_outbox
-    // are brand-new tables, so CREATE TABLE IF NOT EXISTS alone is
-    // sufficient for an already-existing local volume — there is no prior
-    // shape to reconcile with ADD COLUMN IF NOT EXISTS (unlike `enquiries`).
     await this.pool.query(
       `CREATE TABLE IF NOT EXISTS customer_accounts (
         id text PRIMARY KEY,
@@ -5496,6 +5598,160 @@ class PostgresStore implements DemoStore {
         consumed boolean NOT NULL
       );`
     );
+    await this.pool.query(
+      `CREATE TABLE IF NOT EXISTS proforma_invoices (
+        id text PRIMARY KEY,
+        customer_id text NOT NULL,
+        vehicle_id text NOT NULL,
+        vehicle_slug text NOT NULL,
+        make text NOT NULL,
+        model text NOT NULL,
+        year integer NOT NULL,
+        total_amount_usd numeric NOT NULL,
+        issued_at text NOT NULL,
+        payment_deadline text NOT NULL,
+        status text NOT NULL
+      );`
+    );
+    await this.pool.query(
+      `CREATE TABLE IF NOT EXISTS invoices (
+        id text PRIMARY KEY,
+        customer_id text NOT NULL,
+        vehicle_id text NOT NULL,
+        vehicle_slug text NOT NULL,
+        make text NOT NULL,
+        model text NOT NULL,
+        year integer NOT NULL,
+        total_amount_usd numeric NOT NULL,
+        invoiced_at text NOT NULL,
+        due_date text,
+        status text NOT NULL,
+        currency text,
+        type text,
+        document_status text
+      );`
+    );
+    await this.pool.query(
+      `CREATE TABLE IF NOT EXISTS allocations (
+        id text PRIMARY KEY,
+        customer_id text NOT NULL,
+        payment_id text NOT NULL,
+        invoice_id text NOT NULL,
+        amount_usd numeric NOT NULL,
+        allocated_at text NOT NULL,
+        status text NOT NULL
+      );`
+    );
+    await this.pool.query(
+      `CREATE TABLE IF NOT EXISTS shipments (
+        id text PRIMARY KEY,
+        customer_id text NOT NULL,
+        vehicle_id text NOT NULL,
+        status text NOT NULL,
+        shipped_at text,
+        delivered_at text,
+        eta text,
+        location text,
+        freshness text,
+        ship_ok_status text,
+        ship_ok_rejection_reason text,
+        document_release_status text,
+        document_release_rejection_reason text
+      );`
+    );
+    await this.pool.query(
+      `CREATE TABLE IF NOT EXISTS documents (
+        id text PRIMARY KEY,
+        customer_id text NOT NULL,
+        shipment_id text,
+        vehicle_id text,
+        type text NOT NULL,
+        status text NOT NULL,
+        created_at text NOT NULL,
+        release_approved boolean NOT NULL,
+        visible_to_customer boolean NOT NULL
+      );`
+    );
+    await this.pool.query(
+      `CREATE TABLE IF NOT EXISTS payments (
+        id text PRIMARY KEY,
+        customer_id text NOT NULL,
+        invoice_id text NOT NULL,
+        amount_usd numeric NOT NULL,
+        paid_at text NOT NULL,
+        status text NOT NULL
+      );`
+    );
+    await this.pool.query(
+      `CREATE TABLE IF NOT EXISTS payment_notifications (
+        id text PRIMARY KEY,
+        customer_id text NOT NULL,
+        payment_id text NOT NULL,
+        invoice_id text NOT NULL,
+        event text NOT NULL,
+        delivery_status text NOT NULL,
+        created_at text NOT NULL
+      );`
+    );
+
+    // Always upsert all seed vehicles into the database
+    for (const vehicle of seedVehicles) {
+      await this.pool.query(
+        `INSERT INTO vehicles (id, chassis_number, make, model, year, price_usd, status, category, location_status, created_at, images, featured, stock_type, destination_port, discount_percent, internal_notes, staff_owner_id, body_style, fuel_type, transmission, drive_train, mileage, etd, eta, request_price)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25)
+         ON CONFLICT (id) DO UPDATE SET
+           chassis_number = EXCLUDED.chassis_number,
+           make = EXCLUDED.make,
+           model = EXCLUDED.model,
+           year = EXCLUDED.year,
+           price_usd = EXCLUDED.price_usd,
+           status = EXCLUDED.status,
+           category = EXCLUDED.category,
+           location_status = EXCLUDED.location_status,
+           images = EXCLUDED.images,
+           featured = EXCLUDED.featured,
+           stock_type = EXCLUDED.stock_type,
+           destination_port = EXCLUDED.destination_port,
+           discount_percent = EXCLUDED.discount_percent,
+           internal_notes = EXCLUDED.internal_notes,
+           staff_owner_id = EXCLUDED.staff_owner_id,
+           body_style = EXCLUDED.body_style,
+           fuel_type = EXCLUDED.fuel_type,
+           transmission = EXCLUDED.transmission,
+           drive_train = EXCLUDED.drive_train,
+           mileage = EXCLUDED.mileage,
+           etd = EXCLUDED.etd,
+           eta = EXCLUDED.eta,
+           request_price = EXCLUDED.request_price;`,
+        [
+          vehicle.id,
+          vehicle.chassisNumber,
+          vehicle.make,
+          vehicle.model,
+          vehicle.year,
+          vehicle.priceUsd,
+          vehicle.status,
+          vehicle.category || null,
+          vehicle.locationStatus || null,
+          vehicle.createdAt || null,
+          vehicle.images ? JSON.stringify(vehicle.images) : null,
+          vehicle.featured ?? false,
+          vehicle.stockType || null,
+          vehicle.destinationPort || null,
+          vehicle.discountPercent || null,
+          vehicle.internalNotes || null,
+          vehicle.staffOwnerId || null,
+          vehicle.bodyStyle || null,
+          vehicle.fuelType || null,
+          vehicle.transmission || null,
+          vehicle.driveTrain || null,
+          vehicle.mileage || null,
+          vehicle.etd || null,
+          vehicle.eta || null,
+          vehicle.requestPrice ?? false,
+        ]
+      );
+    }
 
     const seededAccountResult = await this.pool.query('SELECT id FROM customer_accounts WHERE id = $1', ['acct-cust-123']);
     if (seededAccountResult.rows.length === 0) {
@@ -5528,44 +5784,6 @@ class PostgresStore implements DemoStore {
         'INSERT INTO public_config (id, site_name, currency, contact_phone) VALUES (1, $1, $2, $3)',
         [seedConfig.siteName, seedConfig.currency, seedConfig.contactPhone]
       );
-      for (const vehicle of seedVehicles) {
-        await this.pool.query(
-          'INSERT INTO vehicles (id, chassis_number, make, model, year, price_usd, status, category, location_status, created_at, images, featured, stock_type, destination_port, discount_percent, internal_notes, staff_owner_id, body_style, fuel_type, transmission, drive_train, mileage, etd, eta, request_price) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25)',
-          [
-            vehicle.id,
-            vehicle.chassisNumber,
-            vehicle.make,
-            vehicle.model,
-            vehicle.year,
-            vehicle.priceUsd,
-            vehicle.status,
-            vehicle.category || null,
-            vehicle.locationStatus || null,
-            vehicle.createdAt || null,
-            vehicle.images ? JSON.stringify(vehicle.images) : null,
-            vehicle.featured ?? false,
-            vehicle.stockType || null,
-            vehicle.destinationPort || null,
-            vehicle.discountPercent || null,
-            vehicle.internalNotes || null,
-            vehicle.staffOwnerId || null,
-            vehicle.bodyStyle || null,
-            vehicle.fuelType || null,
-            vehicle.transmission || null,
-            vehicle.driveTrain || null,
-            vehicle.mileage || null,
-            vehicle.etd || null,
-            vehicle.eta || null,
-            vehicle.requestPrice ?? false,
-          ]
-        );
-      }
-      for (const res of seedReservations) {
-        await this.pool.query(
-          'INSERT INTO reservations (id, vehicle_id, vehicle_slug, customer_id, customer_email, created_at, expires_at, hold_hours) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
-          [res.id, res.vehicleId, res.vehicleSlug, res.customerId, res.customerEmail, res.createdAt, res.expiresAt, res.holdHours]
-        );
-      }
       for (const cat of seedFaqCategories) {
         await this.pool.query('INSERT INTO faq_categories (id, name, description, sort_order) VALUES ($1, $2, $3, $4)', [cat.id, cat.name, cat.description || null, cat.order]);
       }
@@ -5585,6 +5803,155 @@ class PostgresStore implements DemoStore {
         await this.pool.query('INSERT INTO branch_content (id, name, code, destination_port, introduction, welcome_banner, contact_banner, team_members, meet_and_greet_info, contact_details, content_owner, status, latest_arrivals_query, recently_discounted_query) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)', [branch.id, branch.name, branch.code, branch.destinationPort, branch.introduction, branch.welcomeBanner, branch.contactBanner, JSON.stringify(branch.teamMembers), branch.meetAndGreetInfo, JSON.stringify(branch.contactDetails), branch.contentOwner, branch.status, branch.latestArrivalsQuery ? JSON.stringify(branch.latestArrivalsQuery) : null, branch.recentlyDiscountedQuery ? JSON.stringify(branch.recentlyDiscountedQuery) : null]);
       }
     }
+
+    // Ensure fleet seed data in PostgreSQL for all registered accounts
+    const allAccounts = await this.pool.query('SELECT customer_id, email FROM customer_accounts');
+    for (const acct of allAccounts.rows) {
+      await this.ensureCustomerFleetDataInPostgres(acct.customer_id, acct.email);
+    }
+  }
+
+  private async ensureCustomerFleetDataInPostgres(customerId: string, customerEmail?: string): Promise<void> {
+    if (customerId.startsWith('cust-exception')) return;
+    if (customerId !== 'cust-123') {
+      const acctResult = await this.pool.query('SELECT email FROM customer_accounts WHERE customer_id = $1', [customerId]);
+      if (acctResult.rows.length === 0) return;
+      if (!customerEmail) customerEmail = acctResult.rows[0].email;
+    }
+
+    // 1. Proforma Invoices (Reserved with PI)
+    const piCountResult = await this.pool.query('SELECT count(*) FROM proforma_invoices WHERE customer_id = $1', [customerId]);
+    if (Number(piCountResult.rows[0]?.count || 0) === 0) {
+      for (const pi of seedProformaInvoices) {
+        const deadline = customerId === 'cust-123' ? pi.paymentDeadline : '2029-01-01T00:00:00.000Z';
+        const id = customerId === 'cust-123' ? pi.id : `pi-${customerId}-${pi.id.replace(/^pi-/, '')}`;
+        await this.pool.query(
+          `INSERT INTO proforma_invoices (id, customer_id, vehicle_id, vehicle_slug, make, model, year, total_amount_usd, issued_at, payment_deadline, status)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+           ON CONFLICT (id) DO NOTHING;`,
+          [id, customerId, pi.vehicleId, pi.vehicleSlug, pi.make, pi.model, pi.year, pi.totalAmountUsd, pi.issuedAt, deadline, pi.status]
+        );
+      }
+    }
+
+    // 2. Commercial Invoices
+    const invCountResult = await this.pool.query('SELECT count(*) FROM invoices WHERE customer_id = $1', [customerId]);
+    if (Number(invCountResult.rows[0]?.count || 0) === 0) {
+      for (const inv of seedInvoices) {
+        if (inv.customerId === 'cust-123' || inv.customerId === customerId) {
+          const id = customerId === 'cust-123' ? inv.id : `inv-${customerId}-${inv.id.replace(/^inv-/, '')}`;
+          await this.pool.query(
+            `INSERT INTO invoices (id, customer_id, vehicle_id, vehicle_slug, make, model, year, total_amount_usd, invoiced_at, due_date, status, currency, type, document_status)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+             ON CONFLICT (id) DO NOTHING;`,
+            [id, customerId, inv.vehicleId, inv.vehicleSlug, inv.make, inv.model, inv.year, inv.totalAmountUsd, inv.invoicedAt, (inv as any).dueDate || null, inv.status, (inv as any).currency || 'USD', (inv as any).type || 'Commercial', (inv as any).documentStatus || 'Issued']
+          );
+        }
+      }
+    }
+
+    // 3. Payment Allocations
+    const allocCountResult = await this.pool.query('SELECT count(*) FROM allocations WHERE customer_id = $1', [customerId]);
+    if (Number(allocCountResult.rows[0]?.count || 0) === 0) {
+      for (const a of seedAllocations) {
+        if (a.customerId === 'cust-123' || a.customerId === customerId) {
+          const id = customerId === 'cust-123' ? a.id : `alloc-${customerId}-${a.id.replace(/^alloc-/, '')}`;
+          const invoiceId = customerId === 'cust-123' ? a.invoiceId : `inv-${customerId}-${a.invoiceId.replace(/^inv-/, '')}`;
+          const paymentId = customerId === 'cust-123' ? a.paymentId : `pay-${customerId}-${a.paymentId.replace(/^pay-/, '')}`;
+          await this.pool.query(
+            `INSERT INTO allocations (id, customer_id, payment_id, invoice_id, amount_usd, allocated_at, status)
+             VALUES ($1, $2, $3, $4, $5, $6, $7)
+             ON CONFLICT (id) DO NOTHING;`,
+            [id, customerId, paymentId, invoiceId, a.amountUsd, a.allocatedAt, a.status]
+          );
+        }
+      }
+    }
+
+    // 4. Shipments
+    const shipCountResult = await this.pool.query('SELECT count(*) FROM shipments WHERE customer_id = $1', [customerId]);
+    if (Number(shipCountResult.rows[0]?.count || 0) === 0) {
+      for (const s of seedShipments) {
+        if (s.customerId === 'cust-123' || s.customerId === customerId) {
+          const id = customerId === 'cust-123' ? s.id : `ship-${customerId}-${s.id.replace(/^ship-/, '')}`;
+          await this.pool.query(
+            `INSERT INTO shipments (id, customer_id, vehicle_id, status, shipped_at, delivered_at, eta, location, freshness, ship_ok_status, ship_ok_rejection_reason, document_release_status, document_release_rejection_reason)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+             ON CONFLICT (id) DO NOTHING;`,
+            [id, customerId, s.vehicleId, s.status, s.shippedAt || null, s.deliveredAt || null, s.eta || null, s.location || null, s.freshness || null, s.shipOkStatus || null, s.shipOkRejectionReason || null, s.documentReleaseStatus || null, s.documentReleaseRejectionReason || null]
+          );
+        }
+      }
+    }
+
+    // 5. Documents
+    const docCountResult = await this.pool.query('SELECT count(*) FROM documents WHERE customer_id = $1', [customerId]);
+    if (Number(docCountResult.rows[0]?.count || 0) === 0) {
+      for (const d of seedDocuments) {
+        if (d.customerId === 'cust-123' || d.customerId === customerId) {
+          const id = customerId === 'cust-123' ? d.id : `doc-${customerId}-${d.id.replace(/^doc-/, '')}`;
+          const shipmentId = d.shipmentId ? (customerId === 'cust-123' ? d.shipmentId : `ship-${customerId}-${d.shipmentId.replace(/^ship-/, '')}`) : null;
+          await this.pool.query(
+            `INSERT INTO documents (id, customer_id, shipment_id, vehicle_id, type, status, created_at, release_approved, visible_to_customer)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+             ON CONFLICT (id) DO NOTHING;`,
+            [id, customerId, shipmentId, d.vehicleId || null, d.type, d.status, d.createdAt, d.releaseApproved, d.visibleToCustomer]
+          );
+        }
+      }
+    }
+
+    // 6. Reservations (Reserved Vehicles)
+    const resCountResult = await this.pool.query('SELECT count(*) FROM reservations WHERE customer_id = $1', [customerId]);
+    if (Number(resCountResult.rows[0]?.count || 0) === 0) {
+      const email = customerEmail || (customerId === 'cust-123' ? 'demo.customer@carchief.com' : `${customerId}@example.com`);
+      if (customerId === 'cust-123') {
+        for (const res of seedReservations) {
+          if (res.customerId === 'cust-123') {
+            await this.pool.query(
+              `INSERT INTO reservations (id, vehicle_id, vehicle_slug, customer_id, customer_email, created_at, expires_at, hold_hours)
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+               ON CONFLICT (id) DO NOTHING;`,
+              [res.id, res.vehicleId, res.vehicleSlug, res.customerId, res.customerEmail, res.createdAt, res.expiresAt, res.holdHours]
+            );
+          }
+        }
+      } else {
+        const reservedVehicles = [
+          { id: 'veh-1', slug: '2021-toyota-corolla-axio-veh-1' },
+          { id: 'veh-5', slug: '2021-honda-fit-hybrid-veh-5' },
+          { id: 'veh-7', slug: '2023-lexus-rx450h-veh-7' },
+          { id: 'veh-9', slug: '2019-mercedes-benz-c200-amg-line-veh-9' },
+          { id: 'veh-10', slug: '2021-bmw-x3-xdrive20d-veh-10' },
+        ];
+        let seq = 1;
+        for (const v of reservedVehicles) {
+          await this.pool.query(
+            `INSERT INTO reservations (id, vehicle_id, vehicle_slug, customer_id, customer_email, created_at, expires_at, hold_hours)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+             ON CONFLICT (id) DO NOTHING;`,
+            [`res-${customerId}-${seq++}`, v.id, v.slug, customerId, email, '2026-08-10T10:00:00.000Z', '2029-01-01T00:00:00.000Z', 48]
+          );
+        }
+      }
+    }
+
+    // 7. Payments
+    const payCountResult = await this.pool.query('SELECT count(*) FROM payments WHERE customer_id = $1', [customerId]);
+    if (Number(payCountResult.rows[0]?.count || 0) === 0) {
+      for (const p of seedPayments) {
+        if (p.customerId === 'cust-123' || p.customerId === customerId) {
+          const id = customerId === 'cust-123' ? p.id : `pay-${customerId}-${p.id.replace(/^pay-/, '')}`;
+          const invoiceId = customerId === 'cust-123' ? p.invoiceId : `inv-${customerId}-${p.invoiceId.replace(/^inv-/, '')}`;
+          await this.pool.query(
+            `INSERT INTO payments (id, customer_id, invoice_id, amount_usd, paid_at, status)
+             VALUES ($1, $2, $3, $4, $5, $6)
+             ON CONFLICT (id) DO NOTHING;`,
+            [id, customerId, invoiceId, p.amountUsd, p.paidAt, p.status]
+          );
+        }
+      }
+    }
   }
 
   private async getRawReservations(): Promise<ReservationRecord[]> {
@@ -5592,6 +5959,121 @@ class PostgresStore implements DemoStore {
       'SELECT id, vehicle_id, vehicle_slug, customer_id, customer_email, created_at, expires_at, hold_hours FROM reservations'
     );
     return result.rows.map(PostgresStore.rowToReservationRecord);
+  }
+
+  private async getRawProformaInvoices(customerId?: string): Promise<ProformaInvoiceRecord[]> {
+    const query = customerId
+      ? 'SELECT id, customer_id, vehicle_id, vehicle_slug, make, model, year, total_amount_usd, issued_at, payment_deadline, status FROM proforma_invoices WHERE customer_id = $1'
+      : 'SELECT id, customer_id, vehicle_id, vehicle_slug, make, model, year, total_amount_usd, issued_at, payment_deadline, status FROM proforma_invoices';
+    const params = customerId ? [customerId] : [];
+    const result = await this.pool.query(query, params);
+    if (result.rows.length === 0 && customerId === 'cust-123') {
+      return seedProformaInvoices;
+    }
+    return result.rows.map((row) => ({
+      id: row.id,
+      customerId: row.customer_id,
+      vehicleId: row.vehicle_id,
+      vehicleSlug: row.vehicle_slug,
+      make: row.make,
+      model: row.model,
+      year: Number(row.year),
+      totalAmountUsd: Number(row.total_amount_usd),
+      issuedAt: row.issued_at,
+      paymentDeadline: row.payment_deadline,
+      status: row.status as 'Issued' | 'Expired' | 'Cancelled',
+    }));
+  }
+
+  private async getRawInvoices(customerId?: string): Promise<InvoiceRecord[]> {
+    const query = customerId
+      ? 'SELECT id, customer_id, vehicle_id, vehicle_slug, make, model, year, total_amount_usd, invoiced_at, due_date, status, currency, type, document_status FROM invoices WHERE customer_id = $1'
+      : 'SELECT id, customer_id, vehicle_id, vehicle_slug, make, model, year, total_amount_usd, invoiced_at, due_date, status, currency, type, document_status FROM invoices';
+    const params = customerId ? [customerId] : [];
+    const result = await this.pool.query(query, params);
+    if (result.rows.length === 0 && (!customerId || customerId === 'cust-123' || customerId === 'cust-exception-001')) {
+      return customerId ? seedInvoices.filter((i) => i.customerId === customerId) : seedInvoices;
+    }
+    return result.rows.map((row) => ({
+      id: row.id,
+      customerId: row.customer_id,
+      vehicleId: row.vehicle_id,
+      vehicleSlug: row.vehicle_slug,
+      make: row.make,
+      model: row.model,
+      year: Number(row.year),
+      totalAmountUsd: Number(row.total_amount_usd),
+      invoicedAt: row.invoiced_at,
+      status: row.status as 'Draft' | 'Issued' | 'Paid' | 'Overdue',
+    }));
+  }
+
+  private async getRawAllocations(customerId?: string): Promise<AllocationRecord[]> {
+    const query = customerId
+      ? 'SELECT id, customer_id, payment_id, invoice_id, amount_usd, allocated_at, status FROM allocations WHERE customer_id = $1'
+      : 'SELECT id, customer_id, payment_id, invoice_id, amount_usd, allocated_at, status FROM allocations';
+    const params = customerId ? [customerId] : [];
+    const result = await this.pool.query(query, params);
+    if (result.rows.length === 0 && (!customerId || customerId === 'cust-123')) {
+      return customerId ? seedAllocations.filter((a) => a.customerId === customerId) : seedAllocations;
+    }
+    return result.rows.map((row) => ({
+      id: row.id,
+      customerId: row.customer_id,
+      paymentId: row.payment_id,
+      invoiceId: row.invoice_id,
+      amountUsd: Number(row.amount_usd),
+      allocatedAt: row.allocated_at,
+      status: row.status as 'Approved' | 'Pending' | 'Rejected',
+    }));
+  }
+
+  private async getRawShipments(customerId?: string): Promise<ShipmentRecord[]> {
+    const query = customerId
+      ? 'SELECT id, customer_id, vehicle_id, status, shipped_at, delivered_at, eta, location, freshness, ship_ok_status, ship_ok_rejection_reason, document_release_status, document_release_rejection_reason FROM shipments WHERE customer_id = $1'
+      : 'SELECT id, customer_id, vehicle_id, status, shipped_at, delivered_at, eta, location, freshness, ship_ok_status, ship_ok_rejection_reason, document_release_status, document_release_rejection_reason FROM shipments';
+    const params = customerId ? [customerId] : [];
+    const result = await this.pool.query(query, params);
+    if (result.rows.length === 0 && (!customerId || customerId === 'cust-123' || customerId === 'cust-exception-001')) {
+      return customerId ? seedShipments.filter((s) => s.customerId === customerId) : seedShipments;
+    }
+    return result.rows.map((row) => ({
+      id: row.id,
+      customerId: row.customer_id,
+      vehicleId: row.vehicle_id,
+      status: row.status as 'Purchased' | 'Inspection' | 'Ready' | 'InTransit' | 'Delivered',
+      shippedAt: row.shipped_at || '',
+      deliveredAt: row.delivered_at || undefined,
+      eta: row.eta || undefined,
+      location: row.location || undefined,
+      freshness: row.freshness as any,
+      shipOkStatus: row.ship_ok_status as any,
+      shipOkRejectionReason: row.ship_ok_rejection_reason || undefined,
+      documentReleaseStatus: row.document_release_status as any,
+      documentReleaseRejectionReason: row.document_release_rejection_reason || undefined,
+    }));
+  }
+
+  private async getRawDocuments(customerId?: string): Promise<DocumentRecord[]> {
+    const query = customerId
+      ? 'SELECT id, customer_id, shipment_id, vehicle_id, type, status, created_at, release_approved, visible_to_customer FROM documents WHERE customer_id = $1'
+      : 'SELECT id, customer_id, shipment_id, vehicle_id, type, status, created_at, release_approved, visible_to_customer FROM documents';
+    const params = customerId ? [customerId] : [];
+    const result = await this.pool.query(query, params);
+    if (result.rows.length === 0 && (!customerId || customerId === 'cust-123' || customerId === 'cust-exception-001')) {
+      return customerId ? seedDocuments.filter((d) => d.customerId === customerId) : seedDocuments;
+    }
+    return result.rows.map((row) => ({
+      id: row.id,
+      customerId: row.customer_id,
+      shipmentId: row.shipment_id || undefined,
+      vehicleId: row.vehicle_id || undefined,
+      type: row.type as any,
+      status: row.status as any,
+      createdAt: row.created_at,
+      releaseApproved: Boolean(row.release_approved),
+      visibleToCustomer: Boolean(row.visible_to_customer),
+    }));
   }
 
   private async getRawVehicles(): Promise<VehicleRecord[]> {
@@ -6081,24 +6563,20 @@ class PostgresStore implements DemoStore {
   }
 
   async getCustomerDashboard(customerId: string, customerEmail: string): Promise<CustomerDashboard> {
-    // For PostgresStore, use the seed data like MemoryStore until database tables are added
-    // Outstanding balance = sum of issued invoices - sum of approved allocations (D02-ASM-001)
-    const customerInvoices = seedInvoices.filter((i) => i.customerId === customerId && i.status === 'Issued');
-    const totalIssuedAmount = customerInvoices.reduce((sum, inv) => sum + inv.totalAmountUsd, 0);
+    await this.ensureCustomerFleetDataInPostgres(customerId, customerEmail);
+    const customerInvoices = await this.getRawInvoices(customerId);
+    const issuedInvoices = customerInvoices.filter((i) => i.status === 'Issued');
+    const totalIssuedAmount = issuedInvoices.reduce((sum, inv) => sum + inv.totalAmountUsd, 0);
 
-    const customerAllocations = seedAllocations.filter((a) => a.customerId === customerId && a.status === 'Approved');
-    const totalApprovedAmount = customerAllocations.reduce((sum, alloc) => sum + alloc.amountUsd, 0);
+    const customerAllocations = await this.getRawAllocations(customerId);
+    const approvedAllocations = customerAllocations.filter((a) => a.status === 'Approved');
+    const totalApprovedAmount = approvedAllocations.reduce((sum, alloc) => sum + alloc.amountUsd, 0);
 
     const outstandingBalanceUsd = Math.max(0, totalIssuedAmount - totalApprovedAmount);
-
-    // Credit utilisation = outstanding balance / credit limit
-    const creditLimitUsd = 500000.00; // Mock credit limit
+    const creditLimitUsd = 500000.00;
     const creditUtilisationPercent = (outstandingBalanceUsd / creditLimitUsd) * 100;
 
-    // Vehicle counts use canonical vehicle IDs and current server status
     const vehicles = await this.getRawVehicles();
-
-    // Get reservations for this customer
     const reservationResult = await this.pool.query(
       'SELECT vehicle_id, customer_id, expires_at FROM reservations WHERE customer_id = $1 ORDER BY id',
       [customerId]
@@ -6111,11 +6589,9 @@ class PostgresStore implements DemoStore {
       }
     }
 
-    const invoicedVehicleIds = new Set(customerInvoices.map((i) => i.vehicleId));
-
-    // Count delivered vehicles (those invoiced and with Sold status)
+    const invoicedVehicleIds = new Set(issuedInvoices.map((i) => i.vehicleId));
     const deliveredVehicleIds = new Set(
-      customerInvoices
+      issuedInvoices
         .filter((i) => {
           const vehicle = vehicles.find((v) => v.id === i.vehicleId);
           return vehicle && vehicle.status === 'Sold';
@@ -6123,19 +6599,14 @@ class PostgresStore implements DemoStore {
         .map((i) => i.vehicleId)
     );
 
-    // Compute linked record aggregates from seed data (D02-P02-T001)
-    // Payment status summary: count payments by status for this customer's invoices
-    const customerInvoiceIds = new Set(customerInvoices.map((i) => i.id));
-    const customerPayments = seedPayments.filter((p) => p.customerId === customerId && customerInvoiceIds.has(p.invoiceId));
+    const customerPayments = (await this.listCustomerPayments(customerId)).items;
     const paymentStatusSummary = {
       approved: customerPayments.filter((p) => p.status === 'Approved').length,
       pending: customerPayments.filter((p) => p.status === 'Pending').length,
       rejected: customerPayments.filter((p) => p.status === 'Rejected').length,
     };
 
-    // Shipment status summary: count shipments by status for this customer's vehicles
-    const customerVehicleIds = new Set(customerInvoices.map((i) => i.vehicleId));
-    const customerShipments = seedShipments.filter((s) => s.customerId === customerId && customerVehicleIds.has(s.vehicleId));
+    const customerShipments = await this.getRawShipments(customerId);
     const shipmentStatusSummary = {
       ready: customerShipments.filter((s) => s.status === 'Ready').length,
       inTransit: customerShipments.filter((s) => s.status === 'InTransit').length,
@@ -6143,19 +6614,15 @@ class PostgresStore implements DemoStore {
       other: customerShipments.filter((s) => !['Ready', 'InTransit', 'Delivered'].includes(s.status)).length,
     };
 
-    // Document availability: count documents by status for this customer's shipments/vehicles
-    const customerShipmentIds = new Set(customerShipments.map((s) => s.id));
-    const customerDocuments = seedDocuments.filter((d) => d.customerId === customerId && (customerShipmentIds.has(d.shipmentId || '') || customerVehicleIds.has(d.vehicleId || '')));
+    const customerDocuments = await this.getRawDocuments(customerId);
     const documentAvailabilityCount = {
       available: customerDocuments.filter((d) => d.status === 'Available').length,
       pending: customerDocuments.filter((d) => d.status === 'Pending').length,
       unavailable: customerDocuments.filter((d) => d.status === 'Unavailable').length,
     };
 
-    // Notification unread count for this customer
-    const notificationUnreadCount = seedNotifications.filter((n) => n.customerId === customerId && !n.isRead).length;
+    const notificationUnreadCount = this.notifications.filter((n) => n.customerId === customerId && !n.isRead).length;
 
-    // Partial failure indicators: all set to false since this is seed data (no actual failures)
     const partialFailureIndicators = {
       paymentsFailed: false,
       shipmentsFailed: false,
@@ -6182,34 +6649,46 @@ class PostgresStore implements DemoStore {
   }
 
   async getCustomerVehicles(customerId: string, query?: ListCustomerVehiclesQuery, nowISO?: string): Promise<CustomerVehicleListResponse> {
+    await this.ensureCustomerFleetDataInPostgres(customerId);
     const vehicles = await this.getRawVehicles();
     const reservations = await this.getRawReservations();
+    const proformaInvoices = await this.getRawProformaInvoices();
+    const invoices = await this.getRawInvoices();
+    const allocations = await this.getRawAllocations();
+    const shipments = await this.getRawShipments();
+    const documents = await this.getRawDocuments();
     const all = buildCustomerVehicleProjections(
       customerId,
       vehicles,
       reservations,
-      seedProformaInvoices,
-      seedInvoices,
-      seedAllocations,
-      seedShipments,
-      seedDocuments,
+      proformaInvoices,
+      invoices,
+      allocations,
+      shipments,
+      documents,
       nowISO || new Date().toISOString()
     );
     return queryCustomerVehicles(all, query);
   }
 
   async getCustomerVehicleById(customerId: string, idOrSlug: string, nowISO?: string): Promise<CustomerVehicleDetail | null> {
+    await this.ensureCustomerFleetDataInPostgres(customerId);
     const vehicles = await this.getRawVehicles();
     const reservations = await this.getRawReservations();
+    const proformaInvoices = await this.getRawProformaInvoices();
+    const invoices = await this.getRawInvoices();
+    const allocations = await this.getRawAllocations();
+    const shipments = await this.getRawShipments();
+    const documents = await this.getRawDocuments();
     const all = buildCustomerVehicleProjections(
       customerId,
       vehicles,
       reservations,
-      seedProformaInvoices,
-      seedInvoices,
-      seedAllocations,
-      seedShipments,
-      seedDocuments,
+      proformaInvoices,
+      invoices,
+      allocations,
+      shipments,
+      documents,
       nowISO || new Date().toISOString()
     );
     const target = all.find((v) => v.id === idOrSlug || v.vehicleId === idOrSlug || v.slug === idOrSlug);
@@ -6217,30 +6696,34 @@ class PostgresStore implements DemoStore {
   }
 
   async listCustomerShipments(customerId: string): Promise<CustomerShipment[]> {
-    return seedShipments
-      .filter((shipment) => shipment.customerId === customerId)
-      .map(toCustomerShipment);
+    await this.ensureCustomerFleetDataInPostgres(customerId);
+    const shipments = await this.getRawShipments(customerId);
+    return shipments.map(toCustomerShipment);
   }
 
   async getCustomerShipment(customerId: string, shipmentId: string): Promise<CustomerShipment | null> {
-    const shipment = seedShipments.find((candidate) => candidate.id === shipmentId && candidate.customerId === customerId);
+    await this.ensureCustomerFleetDataInPostgres(customerId);
+    const shipments = await this.getRawShipments(customerId);
+    const shipment = shipments.find((candidate) => candidate.id === shipmentId);
     return shipment ? toCustomerShipment(shipment) : null;
   }
 
   async listCustomerDocuments(customerId: string): Promise<CustomerDocument[]> {
-    const customerShipmentIds = new Set(seedShipments
-      .filter((shipment) => shipment.customerId === customerId)
-      .map((shipment) => shipment.id));
-    return seedDocuments
-      .filter((document) => document.customerId === customerId
-        && document.releaseApproved === true
+    await this.ensureCustomerFleetDataInPostgres(customerId);
+    const shipments = await this.getRawShipments(customerId);
+    const customerShipmentIds = new Set(shipments.map((s) => s.id));
+    const documents = await this.getRawDocuments(customerId);
+    return documents
+      .filter((document) => document.releaseApproved === true
         && document.visibleToCustomer === true
         && (!document.shipmentId || customerShipmentIds.has(document.shipmentId)))
       .map(toCustomerDocument);
   }
 
   async getCustomerDocument(customerId: string, documentId: string): Promise<CustomerDocument | null> {
-    const document = seedDocuments.find((candidate) => candidate.id === documentId && candidate.customerId === customerId);
+    await this.ensureCustomerFleetDataInPostgres(customerId);
+    const documents = await this.getRawDocuments(customerId);
+    const document = documents.find((candidate) => candidate.id === documentId);
     if (!document || document.releaseApproved !== true || document.visibleToCustomer !== true) return null;
     return toCustomerDocument(document);
   }
@@ -6268,15 +6751,35 @@ class PostgresStore implements DemoStore {
   }
 
   async getCustomerProfile(customerId: string, email: string): Promise<CustomerProfile> {
-    const profile = this.customerProfiles.find((candidate) => candidate.customerId === customerId);
-    if (!profile) throw new Error('Customer profile not found');
+    let profile = this.customerProfiles.find((candidate) => candidate.customerId === customerId);
+    if (!profile) {
+      profile = {
+        customerId,
+        companyName: '',
+        phone: '',
+        deliveryAddress: '',
+        version: 1,
+        updatedAt: new Date().toISOString(),
+      };
+      this.customerProfiles.push(profile);
+    }
     return toCustomerProfile(profile, email);
   }
 
   async updateCustomerProfile(customerId: string, email: string, request: UpdateCustomerProfileRequest, nowISO = new Date().toISOString()): Promise<CustomerProfile> {
     validateCustomerProfileRequest(request);
-    const profile = this.customerProfiles.find((candidate) => candidate.customerId === customerId);
-    if (!profile) throw new Error('Customer profile not found');
+    let profile = this.customerProfiles.find((candidate) => candidate.customerId === customerId);
+    if (!profile) {
+      profile = {
+        customerId,
+        companyName: '',
+        phone: '',
+        deliveryAddress: '',
+        version: 1,
+        updatedAt: nowISO,
+      };
+      this.customerProfiles.push(profile);
+    }
     if (request.expectedVersion !== undefined && request.expectedVersion !== profile.version) throw new ProfileConflictError();
     profile.companyName = request.companyName.trim();
     profile.phone = request.phone.trim();
@@ -6287,28 +6790,38 @@ class PostgresStore implements DemoStore {
   }
 
   async getCustomerInvoices(customerId: string, query?: ListCustomerInvoicesQuery, nowISO?: string): Promise<CustomerInvoiceListResponse> {
+    await this.ensureCustomerFleetDataInPostgres(customerId);
     const vehicles = await this.getRawVehicles();
+    const invoices = await this.getRawInvoices();
+    const proformaInvoices = await this.getRawProformaInvoices();
+    const allocations = await this.getRawAllocations();
+    const documents = await this.getRawDocuments();
     const all = buildCustomerInvoiceProjections(
       customerId,
-      seedInvoices,
-      seedProformaInvoices,
-      seedAllocations,
+      invoices,
+      proformaInvoices,
+      allocations,
       vehicles,
-      seedDocuments,
+      documents,
       nowISO || new Date().toISOString()
     );
     return queryCustomerInvoices(all, query);
   }
 
   async getCustomerInvoiceById(customerId: string, id: string, nowISO?: string): Promise<CustomerInvoiceDetail | null> {
+    await this.ensureCustomerFleetDataInPostgres(customerId);
     const vehicles = await this.getRawVehicles();
+    const invoices = await this.getRawInvoices();
+    const proformaInvoices = await this.getRawProformaInvoices();
+    const allocations = await this.getRawAllocations();
+    const documents = await this.getRawDocuments();
     const all = buildCustomerInvoiceProjections(
       customerId,
-      seedInvoices,
-      seedProformaInvoices,
-      seedAllocations,
+      invoices,
+      proformaInvoices,
+      allocations,
       vehicles,
-      seedDocuments,
+      documents,
       nowISO || new Date().toISOString()
     );
     const target = all.find((i) => i.id === id || i.invoiceNumber.toLowerCase() === id.toLowerCase());
@@ -6316,14 +6829,19 @@ class PostgresStore implements DemoStore {
   }
 
   async getCustomerInvoiceDocument(customerId: string, id: string, nowISO?: string): Promise<CustomerInvoiceDocument | null> {
+    await this.ensureCustomerFleetDataInPostgres(customerId);
     const vehicles = await this.getRawVehicles();
+    const invoices = await this.getRawInvoices();
+    const proformaInvoices = await this.getRawProformaInvoices();
+    const allocations = await this.getRawAllocations();
+    const documents = await this.getRawDocuments();
     const all = buildCustomerInvoiceProjections(
       customerId,
-      seedInvoices,
-      seedProformaInvoices,
-      seedAllocations,
+      invoices,
+      proformaInvoices,
+      allocations,
       vehicles,
-      seedDocuments,
+      documents,
       nowISO || new Date().toISOString()
     );
     const target = all.find((i) => i.id === id || i.invoiceNumber.toLowerCase() === id.toLowerCase());
@@ -6332,24 +6850,36 @@ class PostgresStore implements DemoStore {
   }
 
   async listCustomerPayments(customerId: string): Promise<CustomerPaymentListResponse> {
-    const items = this.paymentRecords.filter((payment) => payment.customerId === customerId).map((payment) => toCustomerPayment(payment, seedInvoices, this.allocations));
+    await this.ensureCustomerFleetDataInPostgres(customerId);
+    const invoices = await this.getRawInvoices();
+    const allocations = await this.getRawAllocations();
+    const items = this.paymentRecords.filter((payment) => payment.customerId === customerId).map((payment) => toCustomerPayment(payment, invoices, allocations));
     return { items, total: items.length };
   }
 
   async getCustomerPayment(customerId: string, id: string): Promise<CustomerPayment | null> {
+    await this.ensureCustomerFleetDataInPostgres(customerId);
+    const invoices = await this.getRawInvoices();
+    const allocations = await this.getRawAllocations();
     const payment = this.paymentRecords.find((candidate) => candidate.customerId === customerId && candidate.id === id);
-    return payment ? toCustomerPayment(payment, seedInvoices, this.allocations) : null;
+    return payment ? toCustomerPayment(payment, invoices, allocations) : null;
   }
 
   async createCustomerPayment(customerId: string, request: CreateCustomerPaymentRequest, nowISO = new Date().toISOString()): Promise<CustomerPayment> {
-    return toCustomerPayment(createPaymentRecord(customerId, request, nowISO, this.paymentRecords, seedInvoices), seedInvoices, this.allocations);
+    await this.ensureCustomerFleetDataInPostgres(customerId);
+    const invoices = await this.getRawInvoices();
+    const allocations = await this.getRawAllocations();
+    return toCustomerPayment(createPaymentRecord(customerId, request, nowISO, this.paymentRecords, invoices), invoices, allocations);
   }
 
   async resubmitCustomerPayment(customerId: string, paymentId: string, nowISO = new Date().toISOString()): Promise<CustomerPayment> {
+    await this.ensureCustomerFleetDataInPostgres(customerId);
+    const invoices = await this.getRawInvoices();
+    const allocations = await this.getRawAllocations();
     const payment = this.paymentRecords.find((candidate) => candidate.id === paymentId && candidate.customerId === customerId);
     if (!payment) throw new PaymentWorkflowError(404, 'Payment not found or not owned by customer');
-    applyPaymentNotification(payment, { event: 'PaymentResubmitted' }, this.paymentNotifications, this.allocations, nowISO);
-    return toCustomerPayment(payment, seedInvoices, this.allocations);
+    applyPaymentNotification(payment, { event: 'PaymentResubmitted' }, this.paymentNotifications, allocations, nowISO);
+    return toCustomerPayment(payment, invoices, allocations);
   }
 
   async listCustomerPaymentNotifications(customerId: string, paymentId?: string): Promise<CustomerPaymentNotificationListResponse> {
@@ -6421,6 +6951,7 @@ class PostgresStore implements DemoStore {
       version: 1,
       updatedAt: nowISO,
     });
+    await this.ensureCustomerFleetDataInPostgres(customerId, validated.email);
     return toCustomerAccountProjection({
       id,
       customerId,
@@ -6452,6 +6983,7 @@ class PostgresStore implements DemoStore {
     if (!verifyPassword(password, record.passwordHash, record.passwordSalt)) {
       throw new AuthenticationError();
     }
+    await this.ensureCustomerFleetDataInPostgres(record.customerId, record.email);
     return toCustomerAccountProjection(record);
   }
 
@@ -6556,26 +7088,22 @@ class PostgresStore implements DemoStore {
   }
 
   async toggleWishlist(customerId: string, vehicleSlug: string): Promise<WishlistToggleResponse> {
-    // Find the vehicle to ensure it exists and get its ID
     const rawVehicles = await this.getRawVehicles();
     const vehicle = findVehicleRecord(rawVehicles, vehicleSlug);
     if (!vehicle) {
       throw { statusCode: 404, message: `Vehicle '${vehicleSlug}' not found` };
     }
 
-    // Check if already in wishlist
     const existingResult = await this.pool.query(
       `SELECT id FROM wishlist_items WHERE customer_id = $1 AND vehicle_slug = $2 LIMIT 1`,
       [customerId, vehicleSlug]
     );
 
     if (existingResult.rows.length > 0) {
-      // Remove from wishlist
       const itemId = existingResult.rows[0].id;
       await this.pool.query(`DELETE FROM wishlist_items WHERE id = $1`, [itemId]);
       return { wishlisted: false };
     } else {
-      // Add to wishlist
       const id = `wish-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
       const createdAt = new Date().toISOString();
       await this.pool.query(
@@ -6614,13 +7142,11 @@ class PostgresStore implements DemoStore {
     criteria: FavouriteSearchCriteria,
     nowISO?: string
   ): Promise<FavouriteSearch> {
-    // Validate: at least one non-empty criteria field (D02-ASM-010)
     const hasAtLeastOne = Object.values(criteria).some((v) => v != null && v !== '' && v !== 0 && v !== false);
     if (!hasAtLeastOne) {
       throw { statusCode: 400, message: 'At least one criteria field is required' };
     }
 
-    // Check 25-favourite cap (CUST-40)
     const countResult = await this.pool.query(
       `SELECT COUNT(*) as cnt FROM favourite_searches WHERE customer_id = $1`,
       [customerId]
@@ -6721,7 +7247,6 @@ class PostgresStore implements DemoStore {
         min: minMileage <= maxMileage ? minMileage : 0,
         max: minMileage <= maxMileage ? maxMileage : 100000,
       },
-      // D02-ASM-008: these four fields have no backing columns today
       modelCodes: [],
       engineCcOptions: [],
       colors: [],
@@ -6747,6 +7272,13 @@ class PostgresStore implements DemoStore {
       await client.query('DELETE FROM customer_accounts');
       await client.query('DELETE FROM wishlist_items');
       await client.query('DELETE FROM favourite_searches');
+      await client.query('DELETE FROM proforma_invoices');
+      await client.query('DELETE FROM invoices');
+      await client.query('DELETE FROM allocations');
+      await client.query('DELETE FROM shipments');
+      await client.query('DELETE FROM documents');
+      await client.query('DELETE FROM payments');
+      await client.query('DELETE FROM payment_notifications');
 
       const seedAccount = buildSeedCustomerAccount();
       await client.query(
@@ -6835,6 +7367,11 @@ class PostgresStore implements DemoStore {
       await client.query('COMMIT');
       this.notifications = seedNotifications.map((notification) => ({ ...notification }));
       this.customerProfiles = seedCustomerProfiles.map((profile) => ({ ...profile }));
+      this.paymentRecords = seedPayments.map((payment) => ({ ...payment }));
+      this.paymentNotifications = seedPaymentNotifications.map((notification) => ({ ...notification }));
+      this.allocations = seedAllocations.map((allocation) => ({ ...allocation }));
+
+      await this.ensureCustomerFleetDataInPostgres(seedAccount.customerId, seedAccount.email);
     } catch (error) {
       await client.query('ROLLBACK');
       throw error;

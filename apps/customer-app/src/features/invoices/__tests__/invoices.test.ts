@@ -10,6 +10,7 @@ import { BankWireInstructionsCard } from '../components/BankWireInstructionsCard
 import { InvoiceLineItemsTable } from '../components/InvoiceLineItemsTable.js';
 import { PaymentAllocationsTable } from '../components/PaymentAllocationsTable.js';
 import { PrintableInvoiceModal } from '../components/PrintableInvoiceModal.js';
+import { InvoiceLedgerModal } from '../components/InvoiceLedgerModal.js';
 import { CustomerInvoicesPage } from '../CustomerInvoicesPage.js';
 import { CustomerInvoiceDetailPage } from '../CustomerInvoiceDetailPage.js';
 import { formatInvoiceDate, formatUsdAmount, getInvoiceStatusBadgeClass } from '../formatters.js';
@@ -251,6 +252,68 @@ describe('Customer Invoices UI Components (D02-P05-T002)', () => {
       expect(html).toContain('CarChief Commercial Invoice');
       expect(html).toContain('🖨️ Print / Save as PDF');
       expect(html).toContain('data-testid="printable-invoice-modal"');
+    });
+  });
+
+  describe('InvoiceLedgerModal', () => {
+    it('renders official CarChief accounts department popup with ledger sheet and sourced vehicle line items', () => {
+      const html = renderToStaticMarkup(
+        React.createElement(InvoiceLedgerModal, {
+          isOpen: true,
+          onClose: () => {},
+          ledgerEntry: {
+            id: 'inv-row-1',
+            invoiceNumber: 'P-85492',
+            type: 'PROFORMA',
+            issueDate: '23/07/2026',
+            totalAmountUsd: 12730,
+            paidAmountUsd: 0,
+            outstandingAmountUsd: 12730,
+            dueDate: '2026-07-25',
+          },
+          clientName: 'Charith Wellage',
+          clientCompany: 'charith wellage',
+          clientAddress: 'gampaha, sri lanka, Kenya',
+          clientPhone: '+94715991619',
+          vehicles: [
+            {
+              id: 'veh-1',
+              stockNumber: 'STK: NRE161',
+              chassisNumber: 'CHASSIS: NRE161-0091995',
+              title: '2021 TOYOTA COROLLA FIELDER',
+              engine: 'DBA-NRE161G',
+              vesselVoyage: 'TBD',
+              destinationPort: 'Mombasa',
+              soldAmountUsd: 17360,
+              paidAmountUsd: 0,
+              balanceAmountUsd: 17360,
+              imageUrl: '',
+            },
+          ],
+        })
+      );
+
+      expect(html).toContain('CAR CHIEF ACCOUNTS DEPT');
+      expect(html).toContain('P-85492');
+      expect(html).toContain('PROFORMA INVOICE');
+      expect(html).toContain('Charith Wellage');
+      expect(html).toContain('2026-07-25');
+      expect(html).toContain('2021 TOYOTA COROLLA FIELDER');
+      expect(html).toContain('NRE161-0091995');
+      expect(html).toContain('$17,360.00');
+      expect(html).toContain('data-testid="invoice-ledger-modal"');
+    });
+
+    it('returns null when isOpen is false', () => {
+      const html = renderToStaticMarkup(
+        React.createElement(InvoiceLedgerModal, {
+          isOpen: false,
+          onClose: () => {},
+          ledgerEntry: null,
+        })
+      );
+
+      expect(html).toBe('');
     });
   });
 

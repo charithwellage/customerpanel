@@ -1778,11 +1778,14 @@
   }
 
   .cc-invoice-modal-dialog,
-  .cc-invoice-modal-dialog * {
+  .cc-invoice-modal-dialog *,
+  .cc-ledger-modal-dialog,
+  .cc-ledger-modal-dialog * {
     visibility: visible;
   }
 
-  .cc-invoice-modal-dialog {
+  .cc-invoice-modal-dialog,
+  .cc-ledger-modal-dialog {
     position: absolute;
     left: 0;
     top: 0;
@@ -1793,8 +1796,310 @@
   }
 
   .cc-invoice-modal-header__actions,
+  .cc-ledger-modal-header__actions,
   .cc-cust-shell-header,
   .cc-cust-shell-nav {
     display: none !important;
   }
+}
+
+/* ==========================================================================
+   INVOICE LEDGER MODAL (CAR CHIEF ACCOUNTS DEPT PROJECTION)
+   ========================================================================== */
+
+.cc-ledger-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-md);
+}
+
+.cc-ledger-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background-color: var(--color-surface-dark);
+  opacity: 0.6;
+}
+
+.cc-ledger-modal-dialog {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 880px;
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  overflow-y: auto;
+}
+
+.cc-ledger-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-md) var(--spacing-xl);
+  border-bottom: 1px solid var(--color-border);
+  background-color: var(--color-surface);
+}
+
+.cc-ledger-modal-header__left {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.cc-ledger-brand-icon {
+  color: var(--color-primary);
+}
+
+.cc-ledger-header-title {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  font-family: var(--font-mono);
+}
+
+.cc-ledger-modal-header__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.cc-ledger-action-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border);
+  background-color: var(--color-surface);
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--motion-fast);
+}
+
+.cc-ledger-action-btn:hover {
+  background-color: var(--color-neutral-surface);
+  color: var(--color-text-primary);
+  border-color: var(--color-text-secondary);
+}
+
+.cc-ledger-sheet {
+  margin: var(--spacing-md);
+  padding: var(--spacing-xl);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.cc-ledger-sheet__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--spacing-lg);
+}
+
+.cc-ledger-sheet__company {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cc-ledger-sheet__brand {
+  margin: 0 0 var(--spacing-xs) 0;
+  font-size: var(--font-size-xl);
+  font-weight: 800;
+  color: var(--color-text-primary);
+  letter-spacing: -0.5px;
+}
+
+.cc-ledger-sheet__brand-accent {
+  color: var(--color-primary);
+}
+
+.cc-ledger-sheet__corp-line {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+  font-family: var(--font-mono);
+}
+
+.cc-ledger-sheet__meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--spacing-xs);
+  text-align: right;
+}
+
+.cc-ledger-sheet__doc-badge {
+  font-size: var(--font-size-xs);
+  font-weight: 800;
+  padding: 2px var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-neutral-surface);
+  color: var(--color-text-secondary);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.cc-ledger-sheet__doc-number {
+  font-size: var(--font-size-2xl);
+  font-weight: 800;
+  color: var(--color-text-primary);
+  letter-spacing: 0.5px;
+  line-height: 1;
+}
+
+.cc-ledger-sheet__doc-date {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  font-family: var(--font-mono);
+}
+
+.cc-ledger-sheet__parties {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-xl);
+  padding-top: var(--spacing-sm);
+}
+
+.cc-ledger-sheet__consignee {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cc-ledger-sheet__section-label {
+  display: block;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: var(--spacing-xs);
+  font-family: var(--font-mono);
+}
+
+.cc-ledger-sheet__client-name {
+  font-size: var(--font-size-base);
+  font-weight: 800;
+  color: var(--color-text-primary);
+}
+
+.cc-ledger-sheet__client-company,
+.cc-ledger-sheet__client-address,
+.cc-ledger-sheet__client-contact {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+}
+
+.cc-ledger-sheet__schedule {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.cc-ledger-sheet__sched-row {
+  display: flex;
+  justify-content: flex-start;
+  gap: var(--spacing-sm);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.cc-ledger-sheet__sched-label {
+  min-width: 70px;
+  font-weight: 500;
+  font-family: var(--font-mono);
+}
+
+.cc-ledger-sheet__sched-val {
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.cc-ledger-sheet__sched-val--due {
+  color: var(--color-primary);
+  font-weight: 800;
+}
+
+.cc-ledger-sheet__items-table-wrap {
+  overflow-x: auto;
+  margin-top: var(--spacing-sm);
+}
+
+.cc-ledger-sheet__table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.cc-ledger-th--desc {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  padding: var(--spacing-xs) 0;
+  border-bottom: 1px solid var(--color-border);
+  letter-spacing: 0.5px;
+}
+
+.cc-ledger-th--qty,
+.cc-ledger-th--price,
+.cc-ledger-th--amount {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  padding: var(--spacing-xs) 0;
+  border-bottom: 1px solid var(--color-border);
+  text-align: right;
+  letter-spacing: 0.5px;
+}
+
+.cc-ledger-tr {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.cc-ledger-td--desc {
+  padding: var(--spacing-sm) 0;
+}
+
+.cc-ledger-item__title {
+  font-size: var(--font-size-xs);
+  font-weight: 800;
+  color: var(--color-text-primary);
+  text-transform: uppercase;
+}
+
+.cc-ledger-item__sub {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  font-family: var(--font-mono);
+  margin-top: 2px;
+}
+
+.cc-ledger-td--qty,
+.cc-ledger-td--price,
+.cc-ledger-td--amount {
+  padding: var(--spacing-sm) 0;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  text-align: right;
+  vertical-align: middle;
+  font-family: var(--font-mono);
 }
