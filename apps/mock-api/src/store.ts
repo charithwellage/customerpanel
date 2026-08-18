@@ -3546,7 +3546,7 @@ export function buildCustomerVehicleProjections(
   allocations: AllocationRecord[],
   shipments: ShipmentRecord[],
   documents: DocumentRecord[],
-  nowISO: string = new Date().toISOString()
+  nowISO: string = '2026-08-10T10:00:00.000Z'
 ): CustomerVehicleDetail[] {
   const relevantVehicleIds = new Set<string>();
 
@@ -3862,7 +3862,7 @@ export function buildCustomerInvoiceProjections(
   allocations: AllocationRecord[],
   vehicles: VehicleRecord[],
   documents: DocumentRecord[],
-  nowISO: string = new Date().toISOString()
+  nowISO: string = '2026-08-10T10:00:00.000Z'
 ): CustomerInvoiceDetail[] {
   const result: CustomerInvoiceDetail[] = [];
 
@@ -4963,7 +4963,7 @@ class MemoryStore implements DemoStore {
       this.allocations,
       this.shipments,
       this.documents,
-      nowISO || new Date().toISOString()
+      nowISO
     );
     return Promise.resolve(queryCustomerVehicles(all, query));
   }
@@ -4978,7 +4978,7 @@ class MemoryStore implements DemoStore {
       this.allocations,
       this.shipments,
       this.documents,
-      nowISO || new Date().toISOString()
+      nowISO
     );
     const target = all.find((v) => v.id === idOrSlug || v.vehicleId === idOrSlug || v.slug === idOrSlug);
     return Promise.resolve(target || null);
@@ -5070,7 +5070,7 @@ class MemoryStore implements DemoStore {
       this.allocations,
       this.vehicles,
       this.documents,
-      nowISO || new Date().toISOString()
+      nowISO
     );
     return Promise.resolve(queryCustomerInvoices(all, query));
   }
@@ -5083,7 +5083,7 @@ class MemoryStore implements DemoStore {
       this.allocations,
       this.vehicles,
       this.documents,
-      nowISO || new Date().toISOString()
+      nowISO
     );
     const target = all.find((i) => i.id === id || i.invoiceNumber.toLowerCase() === id.toLowerCase());
     return Promise.resolve(target || null);
@@ -5097,7 +5097,7 @@ class MemoryStore implements DemoStore {
       this.allocations,
       this.vehicles,
       this.documents,
-      nowISO || new Date().toISOString()
+      nowISO
     );
     const target = all.find((i) => i.id === id || i.invoiceNumber.toLowerCase() === id.toLowerCase());
     if (!target) return Promise.resolve(null);
@@ -6815,7 +6815,7 @@ class PostgresStore implements DemoStore {
       allocations,
       shipments,
       documents,
-      nowISO || new Date().toISOString()
+      nowISO
     );
     return queryCustomerVehicles(all, query);
   }
@@ -6838,7 +6838,7 @@ class PostgresStore implements DemoStore {
       allocations,
       shipments,
       documents,
-      nowISO || new Date().toISOString()
+      nowISO
     );
     const target = all.find((v) => v.id === idOrSlug || v.vehicleId === idOrSlug || v.slug === idOrSlug);
     return target || null;
@@ -7013,7 +7013,7 @@ class PostgresStore implements DemoStore {
       allocations,
       vehicles,
       documents,
-      nowISO || new Date().toISOString()
+      nowISO
     );
     return queryCustomerInvoices(all, query);
   }
@@ -7032,7 +7032,7 @@ class PostgresStore implements DemoStore {
       allocations,
       vehicles,
       documents,
-      nowISO || new Date().toISOString()
+      nowISO
     );
     const target = all.find((i) => i.id === id || i.invoiceNumber.toLowerCase() === id.toLowerCase());
     return target || null;
@@ -7052,7 +7052,7 @@ class PostgresStore implements DemoStore {
       allocations,
       vehicles,
       documents,
-      nowISO || new Date().toISOString()
+      nowISO
     );
     const target = all.find((i) => i.id === id || i.invoiceNumber.toLowerCase() === id.toLowerCase());
     if (!target) return null;

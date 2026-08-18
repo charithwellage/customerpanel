@@ -13,7 +13,7 @@ export type FleetTabKey = 'reserved' | 'withPI' | 'invoiced' | 'all' | 'underNeg
 
 export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVehicle }) => {
   const { setActiveRoute } = useCustomerShell();
-  const [activeTab, setActiveTab] = useState<FleetTabKey>('withPI');
+  const [activeTab, setActiveTab] = useState<FleetTabKey>('invoiced');
   const [searchQuery, setSearchQuery] = useState('');
   const [shippingStatusFilter, setShippingStatusFilter] = useState('all');
   const [selectedTrackingVehicle, setSelectedTrackingVehicle] = useState<CustomerVehicleSummary | null>(null);
