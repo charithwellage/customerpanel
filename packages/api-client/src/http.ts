@@ -51,7 +51,12 @@ export class HttpClient {
       headers.set('Authorization', `Bearer ${token}`);
     }
 
-    const url = `${this.baseUrl}${path.startsWith('/') ? path : `/${path}`}`;
+    const cleanBase = this.baseUrl.replace(/\/$/, '');
+    let finalPath = path.startsWith('/') ? path : `/${path}`;
+    if (cleanBase.endsWith('/api/v1') && finalPath.startsWith('/api/v1/')) {
+      finalPath = finalPath.substring('/api/v1'.length);
+    }
+    const url = `${cleanBase}${finalPath}`;
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.timeoutMs);
 
