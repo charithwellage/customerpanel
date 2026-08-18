@@ -282,11 +282,13 @@
 }
 
 .cc-dash-kpi-value {
-  font-family: var(--font-display);
+  font-family: var(--font-mono);
   font-size: var(--font-size-2xl);
   font-weight: 800;
   color: var(--color-text-primary);
   line-height: 1.1;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
   margin: var(--spacing-xs) 0 2px;
 }
 
@@ -303,8 +305,11 @@
 }
 
 .cc-dash-kpi-value--balance {
+  font-family: var(--font-mono);
   font-size: var(--font-size-lg);
-  letter-spacing: -0.02em;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
 }
 
 .cc-dash-kpi-subtext--limit {

@@ -116,18 +116,22 @@
 }
 
 .cc-cust-kpi-card__title {
-  font-size: var(--font-size-xs);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
   font-weight: 700;
-  letter-spacing: 0.6px;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--color-text-secondary);
 }
 
 .cc-cust-kpi-card__count {
-  font-size: var(--font-size-xl);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-2xl);
   font-weight: 800;
   color: var(--color-text-primary);
-  line-height: 1.2;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
 }
 
 .cc-cust-kpi-card__subtitle {
