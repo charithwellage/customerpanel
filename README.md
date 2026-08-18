@@ -58,6 +58,23 @@ This account is a development fixture for local testing. It is separate from
 the POC account above. The Public Web registration page is available at
 [http://127.0.0.1:3000/register](http://127.0.0.1:3000/register).
 
+### Share the web apps on a local network
+
+The frontend Compose stack publishes the Public Web and Customer App on all
+host interfaces by default. Find the computer's LAN IP address, for example
+with `ipconfig getifaddr en0` on macOS, then share these URLs with devices on
+the same network:
+
+- Public Web: `http://<your-lan-ip>:3000`
+- Customer App: `http://<your-lan-ip>:3001`
+
+The Mock API, PostgreSQL, and pgAdmin remain restricted to this computer. If
+you want the web apps bound to a specific interface, set
+`CARCHIEF_BIND_ADDRESS` in a local `.env` file before starting Compose. Allow
+TCP ports 3000 and 3001 through the computer's firewall only on a trusted
+local network; this configuration is for development and is not a production
+deployment.
+
 ## Inspect the Mock PostgreSQL database with pgAdmin
 
 The frontend Compose stack includes a local-only pgAdmin container for browsing
