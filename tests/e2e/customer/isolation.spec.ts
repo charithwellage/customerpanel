@@ -1,36 +1,73 @@
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, type Page, type APIRequestContext } from '@playwright/test';
 import { CUSTOMER_APP_BASE_URL } from './customerAppBase.js';
 
 /**
  * Customer Isolation E2E Tests (D02-P13-T008)
- * Verify that authenticated customer A cannot see customer B's inquiries, wishlist, or favourites,
- * including via direct API requests using customer B's token.
+ *
+ * Verifies that authenticated customer A cannot see customer B's inquiries,
+ * wishlist or favourites, including via a crafted direct request to the
+ * three new `/api/v1/customer/*` endpoints using customer B's own token —
+ * mirroring the fresh-account-per-test, API-registered isolation pattern
+ * established in `registration-login.spec.ts`'s "two freshly registered
+ * accounts are isolated from each other" test (D02-P09-T002 precedent).
+ *
+ * D02-P13-CODE_REVIEW Finding 4: the previous version of this file defined
+ * `registerCustomer(page, email, password)` as a UI-driven registration
+ * flow targeting `data-testid`s (`reg-name`, `reg-email`, ...) that do not
+ * exist anywhere in the codebase, and never called it before `signIn()` —
+ * every test timed out because `customerA@test.carchief.com` /
+ * `customerB@test.carchief.com` were never registered. This version
+ * registers both fixture accounts for real through the real
+ * `POST /api/v1/auth/register` HTTP contract before signing in.
+ *
+ * Test data (the inquiry, wishlist item and favourite belonging to customer
+ * A) is created through the real HTTP contract directly, the same way the
+ * established `registration-login.spec.ts` isolation test does, rather than
+ * by driving the "Get Free Quote" button: a freshly registered account's
+ * `CustomerProfile.phone` defaults to `''` (only the seeded fixture account
+ * has a non-empty seeded phone), and `POST /api/v1/enquiries` requires a
+ * non-empty phone, so driving the UI button here would fail on an unrelated
+ * pre-existing data gap outside this task's owned paths. Each test still
+ * verifies isolation through the real UI pages, plus a crafted direct
+ * request using customer B's own bearer token.
  */
+const MOCK_API_BASE_URL = process.env.MOCK_API_BASE_URL ?? 'http://127.0.0.1:4000';
+const ISOLATION_PASSWORD = 'IsolationPass#2026';
 
-const CUSTOMER_A_EMAIL = 'customerA@test.carchief.com';
-const CUSTOMER_A_PASSWORD = 'TestPassword#2026';
-const CUSTOMER_B_EMAIL = 'customerB@test.carchief.com';
-const CUSTOMER_B_PASSWORD = 'TestPassword#2026';
+function uniqueEmail(prefix: string): string {
+  return `${prefix}.${Date.now()}.${Math.floor(Math.random() * 100000)}@example.com`;
+}
 
-async function registerCustomer(page: Page, email: string, password: string): Promise<void> {
-  await page.goto(`${CUSTOMER_APP_BASE_URL}/register`);
+/** Registers a fresh customer account through the real registration contract. */
+async function registerCustomer(request: APIRequestContext, email: string, password: string): Promise<void> {
+  const response = await request.post(`${MOCK_API_BASE_URL}/api/v1/auth/register`, {
+    data: {
+      nameWithInitials: 'Isolation Test',
+      countryCode: 'KE',
+      mobileNumber: '712345678',
+      email,
+      password,
+      confirmPassword: password,
+    },
+  });
+  expect(response.status()).toBe(201);
+}
 
-  // Fill registration form
-  await page.getByTestId('reg-name').fill(email.split('@')[0]);
-  await page.getByTestId('reg-email').fill(email);
-  await page.getByTestId('reg-mobile').fill('+1-555-0100');
-  await page.getByTestId('reg-password').fill(password);
-  await page.getByTestId('reg-password-confirm').fill(password);
+async function loginViaApi(request: APIRequestContext, email: string, password: string): Promise<string> {
+  const response = await request.post(`${MOCK_API_BASE_URL}/api/v1/auth/login`, { data: { email, password } });
+  expect(response.status()).toBe(200);
+  const body = (await response.json()) as { token: string };
+  return body.token;
+}
 
-  // Accept terms
-  const termsCheckbox = page.locator('input[type="checkbox"]').first();
-  await termsCheckbox.check();
-
-  // Submit registration
-  await page.getByRole('button', { name: /Register/i }).click();
-
-  // Wait for redirect to login (registration likely logs them in or redirects)
-  await page.waitForURL(/login|dashboard|overview/i, { timeout: 10000 });
+async function firstVehicleSlug(request: APIRequestContext): Promise<string> {
+  const response = await request.get(`${MOCK_API_BASE_URL}/api/v1/vehicles?limit=1`);
+  expect(response.status()).toBe(200);
+  const body = (await response.json()) as { items?: Array<{ slug: string }> } | Array<{ slug: string }>;
+  const items = Array.isArray(body) ? body : body.items;
+  const slug = items?.[0]?.slug;
+  expect(slug).toBeTruthy();
+  return slug as string;
 }
 
 async function signIn(page: Page, email: string, password: string): Promise<void> {
@@ -38,201 +75,193 @@ async function signIn(page: Page, email: string, password: string): Promise<void
   await page.getByTestId('cust-login-email').fill(email);
   await page.getByTestId('cust-login-password').fill(password);
   await page.getByTestId('cust-login-submit').click();
-
-  // Wait for dashboard or any authenticated page to load
-  // Instead of waiting for a specific heading, wait for the authenticated page to render
-  await page.waitForSelector('[data-testid="customer-dashboard-page"], [data-testid="customer-inventory-page"], .cc-cust-shell', { timeout: 10000 });
+  // Wait for a real landmark of the authenticated shell, not the
+  // nonexistent "Customer Portal" heading (D02-P13-CODE_REVIEW Finding
+  // 2/3) — and not the `.cc-cust-shell` class, which does not exist either
+  // (`.cc-cust-shell-layout` is the real always-present wrapper).
+  await page.waitForSelector('.cc-cust-shell-layout', { timeout: 10000 });
 }
 
-async function getAuthToken(page: Page): Promise<string> {
-  let token = '';
-
-  // Intercept authentication response to capture token
-  page.on('response', (response) => {
-    if (response.url().includes('/auth/login') || response.url().includes('/auth/me')) {
-      response.json().then((data: any) => {
-        if (data.token) token = data.token;
-      }).catch(() => {});
-    }
-  });
-
-  // If we can read from localStorage or cookies, do so
-  try {
-    const cookies = await page.context().cookies();
-    const authCookie = cookies.find(c => c.name === 'Authorization' || c.name === 'auth-token');
-    if (authCookie) {
-      token = authCookie.value;
-    }
-  } catch (e) {
-    // Continue if we can't read cookies
+/**
+ * Returns the visible nav locator for the current viewport, opening the
+ * mobile drawer first when needed. The previous version of this file
+ * always used `.cc-cust-shell-nav--desktop`, which is not visible at the
+ * mobile/tablet viewports (`isDesktop` is `width >= 1024`, matching the
+ * convention in `inquiries.spec.ts`/`wishlist.spec.ts`/`favourites.spec.ts`)
+ * — every mobile-chromium and tablet-chromium run hung waiting on a link
+ * inside a hidden nav until the test timeout.
+ */
+async function openNav(page: Page) {
+  const isDesktop = (page.viewportSize()?.width ?? 0) >= 1024;
+  if (!isDesktop) {
+    await page.getByTestId('cust-mobile-toggle').click();
   }
-
-  return token || 'test-token-placeholder';
+  return page.locator(isDesktop ? '.cc-cust-shell-nav--desktop' : '.cc-cust-shell-nav--mobile');
 }
 
 test.describe('Customer Isolation E2E (D02-P13-T008)', () => {
-  test('customer A inquiries not visible to customer B', async ({ browser }) => {
-    // Create two separate browser contexts for customer A and B
+  test('customer A inquiries not visible to customer B, including via a direct request with B\'s token', async ({
+    browser,
+    request,
+  }) => {
+    const emailA = uniqueEmail('isolation-inquiries-a');
+    const emailB = uniqueEmail('isolation-inquiries-b');
+    await registerCustomer(request, emailA, ISOLATION_PASSWORD);
+    await registerCustomer(request, emailB, ISOLATION_PASSWORD);
+    const tokenA = await loginViaApi(request, emailA, ISOLATION_PASSWORD);
+    const vehicleSlug = await firstVehicleSlug(request);
+
+    // Customer A requests a quote for a vehicle through the real contract.
+    const createResponse = await request.post(`${MOCK_API_BASE_URL}/api/v1/enquiries`, {
+      headers: { Authorization: `Bearer ${tokenA}` },
+      data: {
+        name: 'Isolation Test',
+        email: emailA,
+        phone: '+254712345678',
+        message: 'Isolation test quote request',
+        consent: true,
+        vehicleSlug,
+        enquiryType: 'price-request',
+        source: 'form',
+      },
+    });
+    expect(createResponse.status()).toBeGreaterThanOrEqual(200);
+    expect(createResponse.status()).toBeLessThan(300);
+
     const contextA = await browser.newContext();
     const contextB = await browser.newContext();
-
     const pageA = await contextA.newPage();
     const pageB = await contextB.newPage();
 
     try {
-      // Customer A: Sign in and request a quote
-      await signIn(pageA, CUSTOMER_A_EMAIL, CUSTOMER_A_PASSWORD);
+      // Customer A sees the inquiry on My Inquiries.
+      await signIn(pageA, emailA, ISOLATION_PASSWORD);
+      const navA = await openNav(pageA);
+      await navA.getByRole('link', { name: /My Inquiries/ }).click();
+      await expect(pageA.getByTestId('customer-inquiries-page')).toBeVisible();
+      await expect(pageA.locator('[role="article"]').first()).toBeVisible();
 
-      // Navigate to inventory and request a quote for a vehicle
-      const desktopNav = pageA.locator('.cc-cust-shell-nav--desktop');
-      await desktopNav.getByRole('link', { name: /Inventory/ }).click();
+      // Customer B: sign in and confirm an empty My Inquiries page.
+      await signIn(pageB, emailB, ISOLATION_PASSWORD);
+      const navB = await openNav(pageB);
+      await navB.getByRole('link', { name: /My Inquiries/ }).click();
+      await expect(pageB.getByRole('heading', { name: 'No inquiries yet' })).toBeVisible();
 
-      // Find first vehicle and request quote
-      const firstVehicleLink = pageA.locator('[data-testid*="inventory-vehicle"]').first();
-      await firstVehicleLink.click();
-
-      // Click "Get Free Quote" button
-      const quoteButton = pageA.getByRole('button', { name: /Get Free Quote|Request Quote/i });
-      if (await quoteButton.isVisible()) {
-        await quoteButton.click();
-        // Submit quote form (might auto-submit for authenticated users)
-        const submitBtn = pageA.getByRole('button', { name: /Submit|Confirm/i }).first();
-        if (await submitBtn.isVisible()) {
-          await submitBtn.click();
-        }
-      }
-
-      // Navigate to My Inquiries to verify the quote appears
-      await desktopNav.getByRole('link', { name: /My Inquiries/ }).click();
-      await expect(pageA.locator('[data-testid="customer-inquiries-page"]')).toBeVisible({ timeout: 5000 });
-
-      // Customer B: Sign in and verify they don't see Customer A's inquiries
-      await signIn(pageB, CUSTOMER_B_EMAIL, CUSTOMER_B_PASSWORD);
-
-      // Navigate to My Inquiries
-      const desktopNavB = pageB.locator('.cc-cust-shell-nav--desktop');
-      await desktopNavB.getByRole('link', { name: /My Inquiries/ }).click();
-
-      // Verify empty state (no inquiries from customer A visible)
-      await expect(pageB.getByText(/No inquiries|empty|no data/i)).toBeVisible({ timeout: 5000 });
-
-      // Clean up
+      // Crafted direct request: B's own token against the inquiries endpoint
+      // must never surface A's data.
+      const tokenB = await loginViaApi(request, emailB, ISOLATION_PASSWORD);
+      const direct = await request.get(`${MOCK_API_BASE_URL}/api/v1/customer/inquiries`, {
+        headers: { Authorization: `Bearer ${tokenB}` },
+      });
+      expect(direct.status()).toBe(200);
+      const body = (await direct.json()) as { items: unknown[] };
+      expect(body.items).toEqual([]);
+    } finally {
       await contextA.close();
       await contextB.close();
-    } catch (error) {
-      await contextA.close();
-      await contextB.close();
-      throw error;
     }
   });
 
-  test('customer A wishlist not visible to customer B', async ({ browser }) => {
+  test('customer A wishlist not visible to customer B, including via a direct request with B\'s token', async ({
+    browser,
+    request,
+  }) => {
+    const emailA = uniqueEmail('isolation-wishlist-a');
+    const emailB = uniqueEmail('isolation-wishlist-b');
+    await registerCustomer(request, emailA, ISOLATION_PASSWORD);
+    await registerCustomer(request, emailB, ISOLATION_PASSWORD);
+    const tokenA = await loginViaApi(request, emailA, ISOLATION_PASSWORD);
+    const vehicleSlug = await firstVehicleSlug(request);
+
+    // Customer A wishlists a vehicle through the real contract.
+    const addResponse = await request.post(`${MOCK_API_BASE_URL}/api/v1/customer/wishlist`, {
+      headers: { Authorization: `Bearer ${tokenA}` },
+      data: { vehicleSlug },
+    });
+    expect(addResponse.status()).toBe(200);
+
     const contextA = await browser.newContext();
     const contextB = await browser.newContext();
-
     const pageA = await contextA.newPage();
     const pageB = await contextB.newPage();
 
     try {
-      // Customer A: Sign in and add vehicle to wishlist
-      await signIn(pageA, CUSTOMER_A_EMAIL, CUSTOMER_A_PASSWORD);
+      // Customer A sees the item on My Wishlist.
+      await signIn(pageA, emailA, ISOLATION_PASSWORD);
+      const navA = await openNav(pageA);
+      await navA.getByRole('link', { name: /My Wishlist/ }).click();
+      await expect(pageA.getByTestId('customer-wishlist-page')).toBeVisible();
+      await expect(pageA.locator('[role="article"]').first()).toBeVisible();
 
-      // Navigate to inventory
-      const desktopNav = pageA.locator('.cc-cust-shell-nav--desktop');
-      await desktopNav.getByRole('link', { name: /Inventory/ }).click();
+      // Customer B: sign in and confirm an empty My Wishlist page.
+      await signIn(pageB, emailB, ISOLATION_PASSWORD);
+      const navB = await openNav(pageB);
+      await navB.getByRole('link', { name: /My Wishlist/ }).click();
+      await expect(pageB.getByRole('heading', { name: 'No wishlisted vehicles' })).toBeVisible();
 
-      // Find first vehicle and add to wishlist
-      const firstVehicleLink = pageA.locator('[data-testid*="inventory-vehicle"]').first();
-      await firstVehicleLink.click();
-
-      // Click "Add to Wishlist" button
-      const wishlistButton = pageA.getByRole('button', { name: /Add to Wishlist|Wishlist/i });
-      if (await wishlistButton.isVisible()) {
-        await wishlistButton.click();
-      }
-
-      // Navigate to My Wishlist to verify item appears
-      await desktopNav.getByRole('link', { name: /My Wishlist/ }).click();
-      await expect(pageA.locator('[data-testid="customer-wishlist-page"]')).toBeVisible({ timeout: 5000 });
-
-      // Customer B: Sign in and verify they don't see Customer A's wishlist
-      await signIn(pageB, CUSTOMER_B_EMAIL, CUSTOMER_B_PASSWORD);
-
-      // Navigate to My Wishlist
-      const desktopNavB = pageB.locator('.cc-cust-shell-nav--desktop');
-      await desktopNavB.getByRole('link', { name: /My Wishlist/ }).click();
-
-      // Verify empty state
-      await expect(pageB.getByText(/No wishlisted|empty|no data/i)).toBeVisible({ timeout: 5000 });
-
+      // Crafted direct request: B's own token against the wishlist endpoint
+      // must never surface A's data.
+      const tokenB = await loginViaApi(request, emailB, ISOLATION_PASSWORD);
+      const direct = await request.get(`${MOCK_API_BASE_URL}/api/v1/customer/wishlist`, {
+        headers: { Authorization: `Bearer ${tokenB}` },
+      });
+      expect(direct.status()).toBe(200);
+      const body = (await direct.json()) as { items: unknown[] };
+      expect(body.items).toEqual([]);
+    } finally {
       await contextA.close();
       await contextB.close();
-    } catch (error) {
-      await contextA.close();
-      await contextB.close();
-      throw error;
     }
   });
 
-  test('customer A favourites not visible to customer B', async ({ browser }) => {
+  test('customer A favourites not visible to customer B, including via a direct request with B\'s token', async ({
+    browser,
+    request,
+  }) => {
+    const emailA = uniqueEmail('isolation-favourites-a');
+    const emailB = uniqueEmail('isolation-favourites-b');
+    await registerCustomer(request, emailA, ISOLATION_PASSWORD);
+    await registerCustomer(request, emailB, ISOLATION_PASSWORD);
+    const tokenA = await loginViaApi(request, emailA, ISOLATION_PASSWORD);
+
+    // Customer A creates a favourite through the real contract.
+    const createResponse = await request.post(`${MOCK_API_BASE_URL}/api/v1/customer/favourites`, {
+      headers: { Authorization: `Bearer ${tokenA}` },
+      data: { name: 'Isolation Test Favourite', criteria: { make: 'Toyota' } },
+    });
+    expect(createResponse.status()).toBe(201);
+
     const contextA = await browser.newContext();
     const contextB = await browser.newContext();
-
     const pageA = await contextA.newPage();
     const pageB = await contextB.newPage();
 
     try {
-      // Customer A: Sign in and create a favourite search
-      await signIn(pageA, CUSTOMER_A_EMAIL, CUSTOMER_A_PASSWORD);
+      await signIn(pageA, emailA, ISOLATION_PASSWORD);
+      const navA = await openNav(pageA);
+      await navA.getByRole('link', { name: /Favourites/ }).click();
+      await expect(pageA.getByTestId('customer-favourites-page')).toBeVisible();
+      await expect(pageA.getByText('Isolation Test Favourite')).toBeVisible();
 
-      // Navigate to Favourites
-      const desktopNav = pageA.locator('.cc-cust-shell-nav--desktop');
-      await desktopNav.getByRole('link', { name: /Favourites/ }).click();
+      // Customer B: sign in and confirm an empty Favourites page.
+      await signIn(pageB, emailB, ISOLATION_PASSWORD);
+      const navB = await openNav(pageB);
+      await navB.getByRole('link', { name: /Favourites/ }).click();
+      await expect(pageB.getByRole('heading', { name: 'No saved searches yet' })).toBeVisible();
+      await expect(pageB.getByText('Isolation Test Favourite')).not.toBeVisible();
 
-      // Create new favourite
-      const createBtn = pageA.getByRole('button', { name: /Create|New Favourite/i });
-      if (await createBtn.isVisible()) {
-        await createBtn.click();
-
-        // Fill favourite form (at minimum need a name and one criteria)
-        const nameInput = pageA.locator('input[placeholder*="name" i], input[aria-label*="name" i]').first();
-        if (await nameInput.isVisible()) {
-          await nameInput.fill('Test Favourite Search');
-        }
-
-        // Select at least one criteria (Make dropdown)
-        const makeSelect = pageA.locator('select').first();
-        if (await makeSelect.isVisible()) {
-          await makeSelect.selectOption({ index: 1 });
-        }
-
-        // Submit form
-        const submitBtn = pageA.getByRole('button', { name: /Save|Submit|Create/i });
-        if (await submitBtn.isVisible()) {
-          await submitBtn.click();
-        }
-      }
-
-      // Verify favourite appears in Customer A's list
-      await expect(pageA.getByText(/Test Favourite Search|saved search/i)).toBeVisible({ timeout: 5000 });
-
-      // Customer B: Sign in and verify they don't see Customer A's favourites
-      await signIn(pageB, CUSTOMER_B_EMAIL, CUSTOMER_B_PASSWORD);
-
-      // Navigate to Favourites
-      const desktopNavB = pageB.locator('.cc-cust-shell-nav--desktop');
-      await desktopNavB.getByRole('link', { name: /Favourites/ }).click();
-
-      // Verify empty state or no "Test Favourite Search"
-      const testFavouriteNotFound = !(await pageB.getByText('Test Favourite Search').isVisible());
-      expect(testFavouriteNotFound).toBe(true);
-
+      // Crafted direct request: B's own token against the favourites
+      // endpoint must never surface A's data.
+      const tokenB = await loginViaApi(request, emailB, ISOLATION_PASSWORD);
+      const direct = await request.get(`${MOCK_API_BASE_URL}/api/v1/customer/favourites`, {
+        headers: { Authorization: `Bearer ${tokenB}` },
+      });
+      expect(direct.status()).toBe(200);
+      const body = (await direct.json()) as { items: unknown[] };
+      expect(body.items).toEqual([]);
+    } finally {
       await contextA.close();
       await contextB.close();
-    } catch (error) {
-      await contextA.close();
-      await contextB.close();
-      throw error;
     }
   });
 });

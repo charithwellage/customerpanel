@@ -31,7 +31,7 @@ export const CustomerInquiriesPage: React.FC = () => {
           <h1 className="inquiries-title">My Inquiries</h1>
           <p className="inquiries-description">Your quote requests and inquiries</p>
         </div>
-        <div className="error-state">
+        <div className="error-state" role="alert">
           <p className="error-message">
             {error?.message || 'Failed to load inquiries. Please try again.'}
           </p>

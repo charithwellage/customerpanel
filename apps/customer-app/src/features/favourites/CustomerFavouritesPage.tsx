@@ -48,7 +48,7 @@ export const CustomerFavouritesPage: React.FC = () => {
           <h1 className="favourites-title">Favourites</h1>
           <p className="favourites-description">Saved search criteria for automated alerts</p>
         </div>
-        <div className="error-state">
+        <div className="error-state" role="alert">
           <p className="error-message">
             {error?.message || 'Failed to load your favourites. Please try again.'}
           </p>

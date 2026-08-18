@@ -32,7 +32,7 @@ export const CustomerWishlistPage: React.FC = () => {
           <h1 className="wishlist-title">My Wishlist</h1>
           <p className="wishlist-description">Vehicles you've saved for later</p>
         </div>
-        <div className="error-state">
+        <div className="error-state" role="alert">
           <p className="error-message">
             {error?.message || 'Failed to load your wishlist. Please try again.'}
           </p>
