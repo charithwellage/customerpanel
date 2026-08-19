@@ -7,6 +7,7 @@ import { useCustomerInvoices } from '../invoices/useCustomerInvoices.js';
 import { useCustomerNotifications } from '../notifications/useCustomerNotifications.js';
 import { useCustomerProfile } from '../profile/useCustomerProfile.js';
 import { useDocuments } from '../documents/useDocuments.js';
+import { useShipments } from '../shipments/useShipments.js';
 import { VehicleTrackingModal } from '../vehicles/components/VehicleTrackingModal.js';
 import {
   SecurityShieldIcon,
@@ -25,8 +26,32 @@ export const OverviewPage: React.FC = () => {
   const { data: notificationsData, isLoading: isLoadingNotifications } = useCustomerNotifications('all', '');
   const { data: profile } = useCustomerProfile();
   const { data: documents } = useDocuments();
+  const { data: shipmentsData, isLoading: isLoadingShipments } = useShipments();
 
   const [selectedTrackingVehicle, setSelectedTrackingVehicle] = useState<CustomerVehicleSummary | null>(null);
+
+  const latestShipmentVehicles = React.useMemo(() => {
+    if (!vehiclesData?.items || vehiclesData.items.length === 0) return [];
+
+    const withShipment = vehiclesData.items.map((vehicle) => {
+      const shipment = shipmentsData?.find(
+        (s) => s.vehicleId === vehicle.id || s.vehicleId === vehicle.vehicleId
+      );
+      const sortDate = shipment?.shippedAt || shipment?.eta || vehicle.updatedAt || vehicle.createdAt || '';
+      const sortTimestamp = sortDate ? new Date(sortDate).getTime() : 0;
+
+      return {
+        vehicle,
+        shipment,
+        sortDate,
+        sortTimestamp,
+      };
+    });
+
+    withShipment.sort((a, b) => b.sortTimestamp - a.sortTimestamp);
+
+    return withShipment.slice(0, 4);
+  }, [vehiclesData?.items, shipmentsData]);
 
   const displayName = profile?.name
     ? profile.name.toUpperCase()
@@ -213,31 +238,34 @@ export const OverviewPage: React.FC = () => {
             </div>
 
             <div className="cc-dash-shipment-list">
-              {isLoadingVehicles ? (
+              {isLoadingVehicles || isLoadingShipments ? (
                 <div className="cc-dash-empty-block">Loading active shipments&hellip;</div>
-              ) : vehiclesData?.items && vehiclesData.items.length > 0 ? (
-                vehiclesData.items.slice(0, 4).map((vehicle) => {
-                  const title = `${vehicle.year || ''} ${vehicle.make || ''} ${vehicle.model || ''}`.trim() || 'Vehicle';
-                  const stockLabel = vehicle.stockNumber || vehicle.vehicleId || vehicle.id;
+              ) : latestShipmentVehicles.length > 0 ? (
+                latestShipmentVehicles.map(({ vehicle, shipment }) => {
+                  const make = vehicle.make || '';
+                  const model = vehicle.model || '';
+                  const yom = vehicle.year || '';
+                  const stockNumber = vehicle.stockNumber || vehicle.vehicleId || vehicle.id;
+                  const title = `${make} ${model}`.trim() || 'Vehicle';
                   const chassisText = vehicle.chassisNumber
-                    ? `Chassis: ${vehicle.chassisNumber} | Stock: ${stockLabel}`
-                    : `Stock: ${stockLabel}`;
-                  const status = (vehicle.logisticsStatus || vehicle.shippingStage || vehicle.status || 'RESERVED').toUpperCase();
-                  const etaText = vehicle.destinationPort ? `Port: ${vehicle.destinationPort}` : (vehicle.locationStatus || 'ETA TBD');
+                    ? `Chassis: ${vehicle.chassisNumber} | Stock: ${stockNumber}`
+                    : `Stock: ${stockNumber}`;
+                  const status = (shipment?.stage || vehicle.logisticsStatus || vehicle.shippingStage || vehicle.status || 'RESERVED').toUpperCase();
+                  const etaText = shipment?.location || (vehicle.destinationPort ? `Port: ${vehicle.destinationPort}` : (vehicle.locationStatus || 'ETA TBD'));
                   const imageUrl = vehicle.primaryImage || '/images/luxury_premium_supercar.jpg';
 
                   return (
                     <div
                       key={vehicle.id}
                       className="cc-dash-shipment-item"
-                      onClick={() => setSelectedTrackingVehicle(vehicle)}
+                      onClick={() => setActiveRoute(`/vehicles/${vehicle.id || vehicle.slug}`)}
                       role="button"
                       tabIndex={0}
-                      title="Click to track shipment timeline"
+                      title="Click to view purchased vehicle detail"
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
                           e.preventDefault();
-                          setSelectedTrackingVehicle(vehicle);
+                          setActiveRoute(`/vehicles/${vehicle.id || vehicle.slug}`);
                         }
                       }}
                     >
@@ -250,7 +278,10 @@ export const OverviewPage: React.FC = () => {
                         />
                       </div>
                       <div className="cc-dash-shipment-info">
-                        <h3 className="cc-dash-shipment-name">{title}</h3>
+                        <h3 className="cc-dash-shipment-name">
+                          <span className="cc-dash-shipment-make-model">{title}</span>
+                          <span className="cc-dash-shipment-yom">YOM: {yom}</span>
+                        </h3>
                         <p className="cc-dash-shipment-meta">{chassisText}</p>
                       </div>
                       <div className="cc-dash-shipment-status-wrap">
@@ -259,6 +290,17 @@ export const OverviewPage: React.FC = () => {
                         </span>
                         <span className="cc-dash-shipment-eta">{etaText}</span>
                       </div>
+                      <button
+                        type="button"
+                        className="cc-dash-shipment-view-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveRoute(`/vehicles/${vehicle.id || vehicle.slug}`);
+                        }}
+                        title="View purchased vehicle details"
+                      >
+                        VIEW
+                      </button>
                     </div>
                   );
                 })
