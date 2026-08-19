@@ -336,6 +336,10 @@
   transition: transform var(--motion-normal) ease, box-shadow var(--motion-normal) ease;
 }
 
+.cc-cust-fleet-card--interactive {
+  cursor: pointer;
+}
+
 .cc-cust-fleet-card--interactive:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-md);

@@ -61,6 +61,7 @@ export const VehicleFleetCard: React.FC<VehicleFleetCardProps> = ({ vehicle, onS
       tabIndex={0}
       role="region"
       aria-label={`${vehicle.year} ${vehicle.make} ${vehicle.model} (${vehicle.status})`}
+      onClick={() => onSelect(vehicle)}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
