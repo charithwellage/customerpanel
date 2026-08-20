@@ -295,6 +295,7 @@ export interface SearchVehiclesQuery {
   priceMax?: number;
   mileageMin?: number;
   mileageMax?: number;
+  discountMin?: number;
   sortBy?: 'newest' | 'price_asc' | 'price_desc' | 'year_desc' | 'year_asc' | 'mileage_asc';
   page?: number;
   limit?: number;

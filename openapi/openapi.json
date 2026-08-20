@@ -387,6 +387,24 @@
             "schema": { "type": "number", "example": 25000 }
           },
           {
+            "name": "mileageMin",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "number", "example": 10000 }
+          },
+          {
+            "name": "mileageMax",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "number", "example": 80000 }
+          },
+          {
+            "name": "discountMin",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "number", "example": 5 }
+          },
+          {
             "name": "sortBy",
             "in": "query",
             "required": false,
@@ -535,6 +553,24 @@
             "in": "query",
             "required": false,
             "schema": { "type": "number", "example": 25000 }
+          },
+          {
+            "name": "mileageMin",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "number", "example": 10000 }
+          },
+          {
+            "name": "mileageMax",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "number", "example": 80000 }
+          },
+          {
+            "name": "discountMin",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "number", "example": 5 }
           },
           {
             "name": "sortBy",

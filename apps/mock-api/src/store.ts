@@ -3301,6 +3301,11 @@ function filterAndSortVehicles(
     list = list.filter((v) => v.mileage !== undefined && v.mileage <= Number(query.mileageMax));
   }
 
+  if (query?.discountMin !== undefined) {
+    const minD = Number(query.discountMin);
+    list = list.filter((v) => (v.discountPercent !== undefined && v.discountPercent >= minD));
+  }
+
   if (query?.engineCcMin !== undefined) list = list.filter((v) => v.engineCc !== undefined && v.engineCc >= Number(query.engineCcMin));
   if (query?.engineCcMax !== undefined) list = list.filter((v) => v.engineCc !== undefined && v.engineCc <= Number(query.engineCcMax));
 
