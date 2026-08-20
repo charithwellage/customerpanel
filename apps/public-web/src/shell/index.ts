@@ -4,3 +4,4 @@ export * from './HeaderComponent';
 export * from './FooterComponent';
 export * from './LayoutShell';
 export * from './NavigationDrawer';
+export * from './GlobalSearch';
