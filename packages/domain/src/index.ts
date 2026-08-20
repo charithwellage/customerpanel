@@ -19,6 +19,20 @@ export type PaymentStatus = 'Pending' | 'Held' | 'Resubmitted' | 'Approved' | 'R
 export type PaymentProofFileType = 'PDF' | 'JPG' | 'PNG';
 export type PaymentProofScanStatus = 'Pending' | 'Passed' | 'Rejected';
 
+export interface BankAccount {
+  id: string;
+  bankName: string;
+  swiftCode?: string;
+  branchName?: string;
+  branchCode?: string;
+  bankAddress?: string;
+  accountName: string;
+  accountNo: string;
+  currency: string;
+  logoUrl?: string;
+  type: 'WIRE' | 'PAYPAL';
+}
+
 export interface CustomerPaymentProofMetadata {
   fileName: string;
   fileType: PaymentProofFileType;

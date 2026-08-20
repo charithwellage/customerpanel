@@ -158,11 +158,19 @@
 | [D02-P13-T007](delivery_02/phase_13/D02-P13-T007.md) | Build the customer-app My Wishlist and Favourites pages with nav entries and 25-cap UX | COMPLETE | self_ai | playwright_mcp | Claude Haiku | `feat_delivery02_phase_13` | D02-P13-CODE_REVIEW (COMPLETE) | D02-P13-T006 | D02-P13-SEQUENTIAL | 2026-08-18T03:42:35.469Z |
 | [D02-P13-T008](delivery_02/phase_13/D02-P13-T008.md) | Verify cross-feature integration, customer isolation, container gate and Phase 2.13 acceptance | COMPLETE | self_ai | playwright_mcp | Claude Haiku | `feat_delivery02_phase_13` | D02-P13-CODE_REVIEW (COMPLETE) | D02-P13-T007 | D02-P13-SEQUENTIAL | 2026-08-18T03:43:25.612Z |
 | [D02-P13-CODE_REVIEW](delivery_02/phase_13/D02-P13-CODE_REVIEW.md) | Phase 2.13 PR code review and tech-lead approval | COMPLETE | phase_manual | not_applicable | Claude Code | `feat_delivery02_phase_13` | D02-P13-CODE_REVIEW (COMPLETE) | D02-P13-T008 | D02-P13-REVIEW | 2026-08-18T03:54:04.664Z |
+| [D02-P14-T001](delivery_02/phase_14/D02-P14-T001.md) | Update How to Buy page to dynamically fetch and display secure bank information for authenticated users only | COMPLETED | self_ai | playwright_mcp | Antigravity | `feat_delivery02_phase_14` | — | D02-P13-CODE_REVIEW | D02-P14-SEQUENTIAL | 2026-08-20T06:12:18.475Z |
+| [D02-P14-T002](delivery_02/phase_14/D02-P14-T002.md) | Redesign global menu bar to include e-commerce style global search and filtering | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery02_phase_14` | — | D02-P14-T001 | D02-P14-SEQUENTIAL | — |
+| [D02-P14-T003](delivery_02/phase_14/D02-P14-T003.md) | Implement 'Get a Free Quote' flow with authentication routing and quote calculator UI | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery02_phase_14` | — | D02-P14-T002 | D02-P14-SEQUENTIAL | — |
+| [D02-P14-T004](delivery_02/phase_14/D02-P14-T004.md) | Create and integrate the Services page highlighting shipping, clearing, and warranty offerings | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery02_phase_14` | — | D02-P14-T002 | D02-P14-SEQUENTIAL | — |
+| [D02-P14-T005](delivery_02/phase_14/D02-P14-T005.md) | Implement country-specific vehicle localization and compliance filtering for logged-in users | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery02_phase_14` | — | D02-P14-T002 | D02-P14-SEQUENTIAL | — |
+| [D02-P14-T006](delivery_02/phase_14/D02-P14-T006.md) | Implement globalization and language preferences using i18n and Google Translate integration | READY | self_ai | playwright_mcp | — | `feat_delivery02_phase_14` | — | None | D02-P14-PARALLEL | — |
+| [D02-P14-T007](delivery_02/phase_14/D02-P14-T007.md) | Update application terminology and consolidate customer sidebar navigation | READY | self_ai | playwright_mcp | — | `feat_delivery02_phase_14` | — | None | D02-P14-PARALLEL | — |
+| [D02-P14-T008](delivery_02/phase_14/D02-P14-T008.md) | Redesign the 'My Vehicles' (Sourced Vehicles) page to enhance status visibility and user interaction | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery02_phase_14` | — | D02-P14-T007 | D02-P14-PARALLEL | — |
 
 
 ## Current execution frontiers
 
-- All non-optional tasks are COMPLETE or SUPERSEDED.
+- GLOBAL: D02-P14-T002 — Redesign global menu bar to include e-commerce style global search and filtering (NOT_STARTED)
 - Sequential within each lane; dependencies coordinate work across lanes.
 - Optional Phase 2.11 is excluded until explicitly started with `--opt-in theme`.
 - Downstream work waits for COMPLETE or SUPERSEDED; IN_REVIEW is not complete.
