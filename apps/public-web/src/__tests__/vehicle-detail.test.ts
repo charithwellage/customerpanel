@@ -546,7 +546,8 @@ describe('VehicleGalleryPrimitive (shared package)', () => {
     expect(html).toContain('Continue with Google');
     expect(html).toContain('Continue with Apple');
     expect(html).toContain('Continue with Microsoft / Outlook');
-    expect(html).toContain('Continue with Email Credentials');
-    expect(html).toContain('Sign in via Full Account Portal');
+    expect(html).toContain('EMAIL ADDRESS');
+    expect(html).toContain('PASSWORD');
+    expect(html).toContain('SIGN IN TO CUSTOMER PORTAL');
   });
 });

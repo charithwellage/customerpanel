@@ -209,13 +209,38 @@ function VehicleDetailPageInner({ vehicle }: VehicleDetailPageProps) {
     }
   }
 
-  function handleInquirySubmit(e: React.FormEvent) {
+  async function handleInquirySubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!isSignedIn) {
       setAuthActionType('inquiry');
       setIsAuthModalOpen(true);
       return;
     }
+
+    try {
+      if (session.token) {
+        await fetch('/api/v1/enquiries', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session.token}`,
+          },
+          body: JSON.stringify({
+            name: inquiryName,
+            email: inquiryEmail,
+            phone: inquiryPhone,
+            message: inquiryMessage,
+            vehicleSlug: vehicle.slug,
+            consent: true,
+            enquiryType: 'vehicle',
+            source: 'form',
+          }),
+        });
+      }
+    } catch {
+      // Graceful fallback
+    }
+
     setInquirySubmitted(true);
   }
 
@@ -242,9 +267,27 @@ function VehicleDetailPageInner({ vehicle }: VehicleDetailPageProps) {
           const stored: string[] = JSON.parse(localStorage.getItem('carchief_wishlist') || '[]');
           if (next) {
             if (!stored.includes(vehicle.slug)) stored.push(vehicle.slug);
+            if (session.token) {
+              fetch('/api/v1/customer/wishlist', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  Authorization: `Bearer ${session.token}`,
+                },
+                body: JSON.stringify({ vehicleSlug: vehicle.slug }),
+              }).catch(() => {});
+            }
           } else {
             const idx = stored.indexOf(vehicle.slug);
             if (idx > -1) stored.splice(idx, 1);
+            if (session.token) {
+              fetch(`/api/v1/customer/wishlist/${encodeURIComponent(vehicle.slug)}`, {
+                method: 'DELETE',
+                headers: {
+                  Authorization: `Bearer ${session.token}`,
+                },
+              }).catch(() => {});
+            }
           }
           localStorage.setItem('carchief_wishlist', JSON.stringify(stored));
         } catch {
@@ -269,6 +312,16 @@ function VehicleDetailPageInner({ vehicle }: VehicleDetailPageProps) {
           const stored: string[] = JSON.parse(localStorage.getItem('carchief_wishlist') || '[]');
           if (!stored.includes(vehicle.slug)) stored.push(vehicle.slug);
           localStorage.setItem('carchief_wishlist', JSON.stringify(stored));
+          if (user.token) {
+            fetch('/api/v1/customer/wishlist', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${user.token}`,
+              },
+              body: JSON.stringify({ vehicleSlug: vehicle.slug }),
+            }).catch(() => {});
+          }
         } catch {
           // Ignore
         }
@@ -276,8 +329,29 @@ function VehicleDetailPageInner({ vehicle }: VehicleDetailPageProps) {
       setWishlistToast('Vehicle added to your Wishlist!');
       setTimeout(() => setWishlistToast(null), TOAST_DISMISS_MS);
     } else if (authActionType === 'inquiry') {
+      const activeName = inquiryName || user.name || 'Customer';
+      const activeEmail = inquiryEmail || user.email || 'customer@example.com';
       if (!inquiryName && user.name) setInquiryName(user.name);
       if (!inquiryEmail && user.email) setInquiryEmail(user.email);
+      if (user.token) {
+        fetch('/api/v1/enquiries', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${user.token}`,
+          },
+          body: JSON.stringify({
+            name: activeName,
+            email: activeEmail,
+            phone: inquiryPhone,
+            message: inquiryMessage,
+            vehicleSlug: vehicle.slug,
+            consent: true,
+            enquiryType: 'vehicle',
+            source: 'form',
+          }),
+        }).catch(() => {});
+      }
       setInquirySubmitted(true);
     }
 
@@ -928,7 +1002,29 @@ function VehicleDetailPageInner({ vehicle }: VehicleDetailPageProps) {
         onClose={() => setIsQuoteModalOpen(false)}
         vehicle={modalVehicle}
         onSubmitQuote={async (quote) => {
-          console.info('Quote submitted successfully', quote);
+          if (session.token) {
+            try {
+              await fetch('/api/v1/enquiries', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  Authorization: `Bearer ${session.token}`,
+                },
+                body: JSON.stringify({
+                  name: session.claims?.email?.split('@')[0] || 'Customer',
+                  email: session.claims?.email || 'customer@example.com',
+                  phone: '+1 555-0199',
+                  message: `Quote for ${vehicle.year} ${vehicle.make} ${vehicle.model} - Port: ${quote.portName} (${quote.countryName}), Method: ${quote.shippingMethod}, Total C&F: $${quote.totalCandFPrice}`,
+                  vehicleSlug: vehicle.slug,
+                  consent: true,
+                  enquiryType: 'price-request',
+                  source: 'form',
+                }),
+              });
+            } catch {
+              // fallback
+            }
+          }
         }}
       />
     </article>

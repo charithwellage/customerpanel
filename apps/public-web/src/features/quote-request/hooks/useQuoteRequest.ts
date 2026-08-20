@@ -3,6 +3,7 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { HttpClient, NormalizedApiError, EnquiryService } from '@carchief/api-client';
 import type { QuoteRequestFormSchemaValues } from '@carchief/validation';
+import { readStoredSession } from '../../account-entry';
 
 function resolveBaseUrl(): string {
   // Same-origin proxy in the browser (src/app/api/v1/[...path]/route.ts);
@@ -28,16 +29,27 @@ export interface UseQuoteRequestReturn {
 
 /**
  * Orchestrates the "Get Free Quote" action (CUST-31, CUST-32, D02-P13-T004).
- * On submission, sends name, email and phone to the backend; message and
- * consent are auto-filled server-side (D02-ASM-009). A repeat submission for
- * the same vehicle always renders the same success state, never an error
- * (the Mock API's dedupe collapse already guarantees this).
+ * On submission, sends name, email and phone to the backend with Bearer token;
+ * message and consent are auto-filled server-side (D02-ASM-009).
  */
 export function useQuoteRequest(options: UseQuoteRequestOptions = {}): UseQuoteRequestReturn {
   const service = useMemo(
     () =>
       options.enquiryService ??
-      new EnquiryService(new HttpClient({ baseUrl: resolveBaseUrl(), getAuthToken: () => null })),
+      new EnquiryService(
+        new HttpClient({
+          baseUrl: resolveBaseUrl(),
+          getAuthToken: () => {
+            if (typeof window === 'undefined') return null;
+            try {
+              const session = readStoredSession((k) => window.localStorage.getItem(k));
+              return session?.token || null;
+            } catch {
+              return null;
+            }
+          },
+        })
+      ),
     [options.enquiryService]
   );
 
