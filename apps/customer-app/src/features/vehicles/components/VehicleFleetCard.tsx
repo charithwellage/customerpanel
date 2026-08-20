@@ -1,16 +1,35 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { CustomerVehicleSummary } from '@carchief/domain';
+import { StatusTracker } from './StatusTracker.js';
 
 export interface VehicleFleetCardProps {
   vehicle: CustomerVehicleSummary;
   onSelect: (vehicle: CustomerVehicleSummary) => void;
   onTrackShipment?: (vehicle: CustomerVehicleSummary) => void;
+  onPayDeposit?: (vehicle: CustomerVehicleSummary) => void;
+  onViewDocuments?: (vehicle: CustomerVehicleSummary) => void;
 }
 
-export const VehicleFleetCard: React.FC<VehicleFleetCardProps> = ({ vehicle, onSelect, onTrackShipment }) => {
+export interface ContextualAction {
+  id: string;
+  label: string;
+  variant: 'primary' | 'secondary' | 'outline';
+  icon: string;
+  onClick: (e: React.MouseEvent) => void;
+}
+
+export const VehicleFleetCard: React.FC<VehicleFleetCardProps> = ({
+  vehicle,
+  onSelect,
+  onTrackShipment,
+  onPayDeposit,
+  onViewDocuments,
+}) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
   const isPI = vehicle.status === 'Under Negotiation With PI' || Boolean(vehicle.proformaInvoiceId);
   const isInvoiced = vehicle.status === 'Confirmed' || vehicle.status === 'In Transit' || vehicle.status === 'Delivered' || Boolean(vehicle.commercialBill);
-  const isReserved = (vehicle.status === 'Under Negotiation' || (!isPI && !isInvoiced));
+  const isReserved = vehicle.status === 'Under Negotiation' || (!isPI && !isInvoiced);
 
   const fallbackImage = 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=400';
   const stockDisplay = vehicle.stockNumber || `STK: ${vehicle.chassisNumber.slice(0, 6)}`;
@@ -28,36 +47,51 @@ export const VehicleFleetCard: React.FC<VehicleFleetCardProps> = ({ vehicle, onS
   const depositReq = vehicle.deposit?.requiredAmountUsd ?? Math.round(price * 0.5);
   const piRefDisplay = vehicle.piRef || (stockDisplay ? `PI-${stockDisplay.replace(/^STK:\s*/i, '')}` : 'PI-63519');
 
-  // Progress Bar Stages
-  let middleStage = 'RESERVED';
-  let progressPercent = 50;
-  let progressTone = 'amber';
-
-  if (isInvoiced) {
-    progressTone = 'green';
-    if (vehicle.status === 'Delivered') {
-      middleStage = 'DELIVERED';
-      progressPercent = 100;
-    } else if (vehicle.status === 'In Transit') {
-      middleStage = 'IN TRANSIT';
-      progressPercent = 75;
+  // Contextual actions calculation
+  const handleTrackClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onTrackShipment) {
+      onTrackShipment(vehicle);
     } else {
-      middleStage = 'INSPECTION';
-      progressPercent = 50;
+      onSelect(vehicle);
     }
-  } else if (isPI) {
-    middleStage = 'RESERVED';
-    progressPercent = 50;
-    progressTone = 'purple';
-  } else {
-    middleStage = 'RESERVED';
-    progressPercent = 50;
-    progressTone = 'amber';
-  }
+  };
+
+  const handlePayClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onPayDeposit) {
+      onPayDeposit(vehicle);
+    } else if (onTrackShipment) {
+      onTrackShipment(vehicle);
+    } else {
+      onSelect(vehicle);
+    }
+  };
+
+  const handleDocsClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onViewDocuments) {
+      onViewDocuments(vehicle);
+    } else {
+      onSelect(vehicle);
+    }
+  };
+
+  const nextActionDescription = isReserved
+    ? 'Awaiting 50% initial deposit wire remittance to finalize sourcing reservation.'
+    : isPI
+    ? `Proforma invoice ${piRefDisplay} issued. Complete remittance to initiate export prep.`
+    : vehicle.status === 'Confirmed'
+    ? 'Vehicle secured at Yokohama yard. Export inspection in progress.'
+    : vehicle.status === 'In Transit'
+    ? `Ocean transit active to ${vehicle.destinationPort || 'Mombasa'}. Track live voyage.`
+    : vehicle.status === 'Delivered'
+    ? 'Vehicle delivered to discharge port. Complete final customs clearance.'
+    : 'Transaction active. Review fulfillment milestones below.';
 
   return (
     <article
-      className={`cc-cust-fleet-card cc-cust-fleet-card--interactive ${isPI ? 'cc-cust-fleet-card--pi' : ''} ${isInvoiced ? 'cc-cust-fleet-card--invoiced' : ''}`}
+      className={`cc-cust-fleet-card cc-cust-fleet-card--interactive ${isPI ? 'cc-cust-fleet-card--pi' : ''} ${isInvoiced ? 'cc-cust-fleet-card--invoiced' : ''} ${isExpanded ? 'cc-cust-fleet-card--expanded' : ''}`}
       tabIndex={0}
       role="region"
       aria-label={`${vehicle.year} ${vehicle.make} ${vehicle.model} (${vehicle.status})`}
@@ -68,6 +102,7 @@ export const VehicleFleetCard: React.FC<VehicleFleetCardProps> = ({ vehicle, onS
           onSelect(vehicle);
         }
       }}
+      data-testid={`fleet-vehicle-card-${vehicle.id || vehicle.chassisNumber}`}
     >
       {/* Top Image Section */}
       <div className="cc-cust-fleet-card__image-wrap">
@@ -82,17 +117,17 @@ export const VehicleFleetCard: React.FC<VehicleFleetCardProps> = ({ vehicle, onS
         <div className="cc-cust-fleet-card__badges-row">
           {isPI && (
             <span className="cc-cust-fleet-badge cc-cust-fleet-badge--pi">
-              RESERVED (PI)
+              <span className="cc-cust-fleet-badge__dot cc-cust-fleet-badge__dot--pulse" aria-hidden="true">●</span> RESERVED (PI)
             </span>
           )}
           {isInvoiced && (
             <span className="cc-cust-fleet-badge cc-cust-fleet-badge--invoiced">
-              INVOICED
+              <span className="cc-cust-fleet-badge__dot" aria-hidden="true">✓</span> INVOICED
             </span>
           )}
           {isReserved && (
             <span className="cc-cust-fleet-badge cc-cust-fleet-badge--reserved">
-              <span className="cc-cust-fleet-badge__dot" aria-hidden="true">●</span> ONLINE RESERVED
+              <span className="cc-cust-fleet-badge__dot cc-cust-fleet-badge__dot--pulse" aria-hidden="true">●</span> ONLINE RESERVED
             </span>
           )}
 
@@ -110,9 +145,19 @@ export const VehicleFleetCard: React.FC<VehicleFleetCardProps> = ({ vehicle, onS
       {/* Card Body */}
       <div className="cc-cust-fleet-card__body">
         {/* Title */}
-        <h3 className="cc-cust-fleet-card__title">
-          {vehicle.year} {vehicle.make.toUpperCase()} {vehicle.model.toUpperCase()}
-        </h3>
+        <div className="cc-cust-fleet-card__header-row">
+          <h3 className="cc-cust-fleet-card__title">
+            {vehicle.year} {vehicle.make.toUpperCase()} {vehicle.model.toUpperCase()}
+          </h3>
+          <span className="cc-cust-fleet-card__price-badge">
+            ${price.toLocaleString()}
+          </span>
+        </div>
+
+        {/* Prominent Visual Status Tracker */}
+        <div className="cc-cust-fleet-card__status-tracker-container">
+          <StatusTracker vehicle={vehicle} variant="stepper" />
+        </div>
 
         {/* Specs Table */}
         <div className="cc-cust-fleet-card__specs-table">
@@ -223,41 +268,145 @@ export const VehicleFleetCard: React.FC<VehicleFleetCardProps> = ({ vehicle, onS
           </div>
         )}
 
-        {/* 3-Step Progress Bar */}
-        <div className={`cc-cust-fleet-card__progress-wrap cc-cust-fleet-card__progress-wrap--${progressTone}`}>
-          <div className="cc-cust-fleet-card__progress-track">
-            <div
-              className="cc-cust-fleet-card__progress-line"
-              style={{ width: `${progressPercent}%` }}
-            />
-          </div>
-          <div className="cc-cust-fleet-card__progress-labels">
-            <span className={`cc-cust-fleet-card__progress-step ${progressPercent <= 35 ? 'cc-cust-fleet-card__progress-step--active' : ''}`}>
-              Reserved
-            </span>
-            <span className={`cc-cust-fleet-card__progress-step ${progressPercent > 35 && progressPercent < 100 ? 'cc-cust-fleet-card__progress-step--active' : ''}`}>
-              {middleStage}
-            </span>
-            <span className={`cc-cust-fleet-card__progress-step ${progressPercent >= 100 ? 'cc-cust-fleet-card__progress-step--active' : ''}`}>
-              Delivered
-            </span>
-          </div>
-        </div>
+        {/* Expandable Quick View Toggle */}
+        <button
+          type="button"
+          className="cc-cust-fleet-card__expand-toggle"
+          aria-expanded={isExpanded}
+          aria-controls={`fleet-details-panel-${vehicle.id || vehicle.chassisNumber}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsExpanded(!isExpanded);
+          }}
+          data-testid={`fleet-card-expand-btn-${vehicle.id || vehicle.chassisNumber}`}
+        >
+          <span>{isExpanded ? 'Hide Status & Next Steps' : 'View Status Logs & Next Steps'}</span>
+          <svg
+            className={`cc-cust-fleet-card__expand-chevron ${isExpanded ? 'cc-cust-fleet-card__expand-chevron--open' : ''}`}
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </button>
 
-        {/* Track Shipment Action Button */}
+        {/* Expandable Panel for Detailed Status Logs & Next Steps */}
+        {isExpanded && (
+          <div
+            id={`fleet-details-panel-${vehicle.id || vehicle.chassisNumber}`}
+            className="cc-cust-fleet-card__expanded-panel"
+            data-testid={`fleet-card-expanded-panel-${vehicle.id || vehicle.chassisNumber}`}
+          >
+            <div className="cc-cust-fleet-card__next-step-box">
+              <div className="cc-cust-fleet-card__next-step-header">
+                <span className="cc-cust-fleet-card__next-step-icon" aria-hidden="true">💡</span>
+                <span className="cc-cust-fleet-card__next-step-title">NEXT STEP GUIDANCE</span>
+              </div>
+              <p className="cc-cust-fleet-card__next-step-text">{nextActionDescription}</p>
+            </div>
+
+            <div className="cc-cust-fleet-card__quick-info-grid">
+              <div className="cc-cust-fleet-card__quick-info-item">
+                <span className="cc-cust-fleet-card__quick-info-label">Destination Port</span>
+                <span className="cc-cust-fleet-card__quick-info-value">{vehicle.destinationPort || 'Mombasa'}</span>
+              </div>
+              <div className="cc-cust-fleet-card__quick-info-item">
+                <span className="cc-cust-fleet-card__quick-info-label">Location Status</span>
+                <span className="cc-cust-fleet-card__quick-info-value">{vehicle.locationStatus || 'In Japan'}</span>
+              </div>
+              {vehicle.paymentDeadline && (
+                <div className="cc-cust-fleet-card__quick-info-item">
+                  <span className="cc-cust-fleet-card__quick-info-label">Payment Due</span>
+                  <span className="cc-cust-fleet-card__quick-info-value cc-cust-fleet-card__quick-info-value--alert">
+                    {new Date(vehicle.paymentDeadline).toLocaleDateString()}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Contextual Action Buttons */}
         <div className="cc-cust-fleet-card__actions">
+          {/* Primary Action Button based on Status */}
+          {isReserved && (
+            <button
+              type="button"
+              className="cc-cust-fleet-card__action-btn cc-cust-fleet-card__action-btn--primary cc-cust-fleet-card__action-btn--amber"
+              data-testid={`fleet-card-primary-cta-${vehicle.id || vehicle.chassisNumber}`}
+              onClick={handlePayClick}
+              aria-label={`Pay deposit for ${vehicle.year} ${vehicle.make} ${vehicle.model}`}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <rect x="2" y="4" width="20" height="16" rx="2" />
+                <line x1="2" y1="10" x2="22" y2="10" />
+              </svg>
+              PAY DEPOSIT (50%)
+            </button>
+          )}
+
+          {isPI && (
+            <button
+              type="button"
+              className="cc-cust-fleet-card__action-btn cc-cust-fleet-card__action-btn--primary cc-cust-fleet-card__action-btn--purple"
+              data-testid={`fleet-card-primary-cta-${vehicle.id || vehicle.chassisNumber}`}
+              onClick={handlePayClick}
+              aria-label={`View proforma and pay deposit for ${vehicle.year} ${vehicle.make} ${vehicle.model}`}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+              </svg>
+              PAY ADVANCE DEPOSIT
+            </button>
+          )}
+
+          {isInvoiced && vehicle.status !== 'Delivered' && (
+            <button
+              type="button"
+              className="cc-cust-fleet-card__action-btn cc-cust-fleet-card__action-btn--primary cc-cust-fleet-card__action-btn--green"
+              data-testid={`fleet-card-primary-cta-${vehicle.id || vehicle.chassisNumber}`}
+              onClick={handleTrackClick}
+              aria-label={`Track live shipment for ${vehicle.year} ${vehicle.make} ${vehicle.model}`}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="10" />
+                <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
+              </svg>
+              TRACK SHIPMENT
+            </button>
+          )}
+
+          {vehicle.status === 'Delivered' && (
+            <button
+              type="button"
+              className="cc-cust-fleet-card__action-btn cc-cust-fleet-card__action-btn--primary cc-cust-fleet-card__action-btn--green"
+              data-testid={`fleet-card-primary-cta-${vehicle.id || vehicle.chassisNumber}`}
+              onClick={handleDocsClick}
+              aria-label={`View delivery & clearance documents for ${vehicle.year} ${vehicle.make} ${vehicle.model}`}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <path d="M9 15l2 2 4-4" />
+              </svg>
+              VIEW CLEARANCE DOCS
+            </button>
+          )}
+
+          {/* Secondary Track / Details Action */}
           <button
             type="button"
             className="cc-cust-fleet-card__track-btn"
             data-testid={`fleet-card-track-btn-${vehicle.id || vehicle.chassisNumber}`}
-            onClick={(e) => {
-              e.stopPropagation();
-              if (onTrackShipment) {
-                onTrackShipment(vehicle);
-              } else {
-                onSelect(vehicle);
-              }
-            }}
+            onClick={handleTrackClick}
             aria-label={`Track shipment for ${vehicle.year} ${vehicle.make} ${vehicle.model}`}
           >
             <svg className="cc-cust-fleet-card__track-svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

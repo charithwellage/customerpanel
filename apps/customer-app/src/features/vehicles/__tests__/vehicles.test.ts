@@ -49,7 +49,9 @@ const MOCK_SUMMARY: CustomerVehicleSummary = {
   paymentDeadline: '2026-08-20T00:00:00.000Z',
 };
 
-describe('My Vehicles UI Components (D02-P04-T002)', () => {
+import { StatusTracker, calculateVehiclePipeline } from '../components/StatusTracker.js';
+
+describe('My Vehicles UI Components (D02-P04-T002 & D02-P14-T008)', () => {
   it('keeps vehicle progress and cards in CSS rather than static inline styles', async () => {
     const { readFile } = await import('node:fs/promises');
     const source = await readFile(new URL('../vehicles.css', import.meta.url), 'utf8');
@@ -57,10 +59,95 @@ describe('My Vehicles UI Components (D02-P04-T002)', () => {
     expect(source).toContain('.cc-cust-fleet');
     expect(source).toContain('.cc-cust-fleet-card');
     expect(source).toContain('.cc-cust-fleet-badge--under-negotiation');
+    expect(source).toContain('.cc-status-tracker');
   });
 
-  describe('VehicleFleetCard', () => {
-    it('renders vehicle information, 50% deposit breakdown (RULE-07), and status pill', () => {
+  describe('StatusTracker (D02-P14-T008)', () => {
+    it('renders all 5 fulfillment pipeline steps with active milestone highlighted', () => {
+      const html = renderToStaticMarkup(
+        React.createElement(StatusTracker, {
+          vehicle: MOCK_SUMMARY,
+        })
+      );
+
+      expect(html).toContain('cc-status-tracker');
+      expect(html).toContain('Reserved &amp; Sourced');
+      expect(html).toContain('Reserved');
+      expect(html).toContain('Inspection');
+      expect(html).toContain('Port/Loading');
+      expect(html).toContain('In Transit');
+      expect(html).toContain('Delivered');
+      expect(html).toContain('Stage 1 of 5');
+      expect(html).toContain('aria-current="step"');
+    });
+
+    it('calculates pipeline stage, percent, and tone for different statuses', () => {
+      // Step 1: Reserved
+      const reserved = calculateVehiclePipeline('Under Negotiation');
+      expect(reserved.activeStepIndex).toBe(0);
+      expect(reserved.statusTone).toBe('amber');
+      expect(reserved.currentStage.shortLabel).toBe('Reserved');
+      expect(reserved.progressPercent).toBe(20);
+
+      // Step 1: With PI
+      const withPI = calculateVehiclePipeline('Under Negotiation With PI');
+      expect(withPI.activeStepIndex).toBe(0);
+      expect(withPI.statusTone).toBe('purple');
+
+      // Step 2: Confirmed / Inspection
+      const confirmed = calculateVehiclePipeline('Confirmed');
+      expect(confirmed.activeStepIndex).toBe(1);
+      expect(confirmed.statusTone).toBe('blue');
+      expect(confirmed.currentStage.shortLabel).toBe('Inspection');
+      expect(confirmed.progressPercent).toBe(40);
+
+      // Step 3: Ready for Loading / Port
+      const port = calculateVehiclePipeline('Confirmed', 'READY FOR LOADING');
+      expect(port.activeStepIndex).toBe(2);
+      expect(port.statusTone).toBe('blue');
+      expect(port.currentStage.shortLabel).toBe('Port/Loading');
+      expect(port.progressPercent).toBe(60);
+
+      // Step 4: In Transit
+      const transit = calculateVehiclePipeline('In Transit');
+      expect(transit.activeStepIndex).toBe(3);
+      expect(transit.statusTone).toBe('indigo');
+      expect(transit.currentStage.shortLabel).toBe('In Transit');
+      expect(transit.progressPercent).toBe(80);
+
+      // Step 5: Delivered
+      const delivered = calculateVehiclePipeline('Delivered');
+      expect(delivered.activeStepIndex).toBe(4);
+      expect(delivered.statusTone).toBe('green');
+      expect(delivered.currentStage.shortLabel).toBe('Delivered');
+      expect(delivered.progressPercent).toBe(100);
+    });
+
+    it('renders compact and mini variants correctly', () => {
+      const compactHtml = renderToStaticMarkup(
+        React.createElement(StatusTracker, {
+          vehicle: { ...MOCK_SUMMARY, status: 'In Transit' },
+          variant: 'compact',
+        })
+      );
+      expect(compactHtml).toContain('cc-status-tracker--compact');
+      expect(compactHtml).toContain('In Transit / Ocean');
+      expect(compactHtml).toContain('80%');
+
+      const miniHtml = renderToStaticMarkup(
+        React.createElement(StatusTracker, {
+          vehicle: { ...MOCK_SUMMARY, status: 'Delivered' },
+          variant: 'mini',
+        })
+      );
+      expect(miniHtml).toContain('cc-status-tracker--mini');
+      expect(miniHtml).toContain('Delivered');
+      expect(miniHtml).toContain('100%');
+    });
+  });
+
+  describe('VehicleFleetCard (D02-P14-T008)', () => {
+    it('renders vehicle information, 50% deposit breakdown (RULE-07), status pill, and status tracker', () => {
       const html = renderToStaticMarkup(
         React.createElement(VehicleFleetCard, {
           vehicle: MOCK_SUMMARY,
@@ -75,6 +162,38 @@ describe('My Vehicles UI Components (D02-P04-T002)', () => {
       expect(html).toContain('Deposit (50%):');
       expect(html).toContain('$22,500');
       expect(html).toContain('TRACK SHIPMENT');
+      expect(html).toContain('PAY ADVANCE DEPOSIT');
+      expect(html).toContain('cc-status-tracker');
+      expect(html).toContain('View Status Logs &amp; Next Steps');
+    });
+
+    it('renders contextual primary action buttons based on vehicle status', () => {
+      // Under Negotiation: PAY DEPOSIT
+      const reservedHtml = renderToStaticMarkup(
+        React.createElement(VehicleFleetCard, {
+          vehicle: { ...MOCK_SUMMARY, status: 'Under Negotiation', proformaInvoiceId: undefined },
+          onSelect: () => {},
+        })
+      );
+      expect(reservedHtml).toContain('PAY DEPOSIT (50%)');
+
+      // Delivered: VIEW CLEARANCE DOCS
+      const deliveredHtml = renderToStaticMarkup(
+        React.createElement(VehicleFleetCard, {
+          vehicle: { ...MOCK_SUMMARY, status: 'Delivered' },
+          onSelect: () => {},
+        })
+      );
+      expect(deliveredHtml).toContain('VIEW CLEARANCE DOCS');
+
+      // In Transit: TRACK SHIPMENT
+      const inTransitHtml = renderToStaticMarkup(
+        React.createElement(VehicleFleetCard, {
+          vehicle: { ...MOCK_SUMMARY, status: 'In Transit' },
+          onSelect: () => {},
+        })
+      );
+      expect(inTransitHtml).toContain('TRACK SHIPMENT');
     });
   });
 

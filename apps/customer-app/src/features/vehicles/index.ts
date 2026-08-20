@@ -5,6 +5,7 @@ export * from './useCustomerVehicleDetail.js';
 export * from './CustomerFleetPage.js';
 export * from './CustomerFleetDetailPage.js';
 export * from './components/StatusTimeline.js';
+export * from './components/StatusTracker.js';
 export * from './components/DepositSummaryCard.js';
 export * from './components/ShippingTrackingCard.js';
 export * from './components/ExportDocumentsCard.js';
