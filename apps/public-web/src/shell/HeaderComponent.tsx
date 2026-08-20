@@ -24,6 +24,7 @@ interface HeaderAuthActionsProps {
  */
 function HeaderAuthActions({ className = '', onNavigate, onOpenLogin }: HeaderAuthActionsProps) {
   const session = useSession();
+  const { t } = useTranslation();
   const customerAppUrl = resolveCustomerAppUrl();
   const isSignedIn = session.status === 'active';
 
@@ -85,7 +86,7 @@ function HeaderAuthActions({ className = '', onNavigate, onOpenLogin }: HeaderAu
           <line x1="15" y1="12" x2="3" y2="12" />
         </svg>
         <span>{t('header.login', undefined, 'Login')}</span>
-      </a>
+      </button>
       <a href="/register" className="header-auth-btn header-auth-btn--register" onClick={onNavigate}>
         <svg className="header-auth-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
