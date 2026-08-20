@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { PUBLIC_NAV_ITEMS, resolveCustomerAppUrl } from './Header';
 import { GlobalSearch } from './GlobalSearch';
+import { useSession, EnterpriseLoginModal } from '../features/account-entry';
 
 export interface HeaderComponentProps {
   activePath?: string;
@@ -12,30 +13,80 @@ export interface HeaderComponentProps {
 interface HeaderAuthActionsProps {
   className?: string;
   onNavigate?: () => void;
+  onOpenLogin?: () => void;
 }
 
 /**
- * Login (secondary) + Register (primary) header actions (D02-P12-T003,
- * CUST-26, CUST-27). Industry-standard placement: Login first, Register
- * last, so the strongest call to action sits rightmost. Login deep-links to
- * the Customer application's own sign-in entry point (resolved from
- * configuration, never a hard-coded host); Register is an in-app route.
- * Replaces the removed demo Customer Portal entry point.
+ * Enterprise Header Actions:
+ * - When Unauthenticated: Login (opens Enterprise Login Popup) + Register (/register).
+ * - When Authenticated: Active user status indicator + CUSTOMER PORTAL button + Sign Out action.
  */
-function HeaderAuthActions({ className = '', onNavigate }: HeaderAuthActionsProps) {
+function HeaderAuthActions({ className = '', onNavigate, onOpenLogin }: HeaderAuthActionsProps) {
+  const session = useSession();
   const customerAppUrl = resolveCustomerAppUrl();
+  const isSignedIn = session.status === 'active';
+
+  if (isSignedIn) {
+    const userDisplayName = session.claims?.email?.split('@')[0] || 'Member';
+    return (
+      <div className={`header-auth-actions ${className}`}>
+        <div className="header-user-status" title={`Signed in as ${session.claims?.email || 'Customer'}`}>
+          <span className="header-user-dot" />
+          <span className="header-user-name">{userDisplayName}</span>
+        </div>
+        <a
+          href={customerAppUrl}
+          className="header-auth-btn header-auth-btn--portal"
+          onClick={onNavigate}
+          aria-label="Customer Portal"
+        >
+          <svg className="header-auth-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <rect x="3" y="3" width="7" height="7" />
+            <rect x="14" y="3" width="7" height="7" />
+            <rect x="14" y="14" width="7" height="7" />
+            <rect x="3" y="14" width="7" height="7" />
+          </svg>
+          <span>CUSTOMER PORTAL</span>
+        </a>
+        <button
+          type="button"
+          className="header-auth-btn header-auth-btn--signout"
+          onClick={() => {
+            session.signOut();
+            onNavigate?.();
+          }}
+          title="Sign Out"
+          aria-label="Sign Out"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className={`header-auth-actions ${className}`}>
-      <a href={customerAppUrl} className="header-auth-btn header-auth-btn--login" onClick={onNavigate}>
-        <svg className="header-auth-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <button
+        type="button"
+        className="header-auth-btn header-auth-btn--login"
+        onClick={() => {
+          onOpenLogin?.();
+          onNavigate?.();
+        }}
+      >
+        <svg className="header-auth-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
           <polyline points="10 17 15 12 10 7" />
           <line x1="15" y1="12" x2="3" y2="12" />
         </svg>
         <span>Login</span>
-      </a>
+      </button>
       <a href="/register" className="header-auth-btn header-auth-btn--register" onClick={onNavigate}>
-        <svg className="header-auth-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg className="header-auth-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
           <circle cx="8.5" cy="7" r="4" />
           <line x1="20" y1="8" x2="20" y2="14" />
@@ -49,6 +100,7 @@ function HeaderAuthActions({ className = '', onNavigate }: HeaderAuthActionsProp
 
 export const HeaderComponent: React.FC<HeaderComponentProps> = ({ activePath: propActivePath }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [currentHash, setCurrentHash] = useState<string>('');
   const pathname = usePathname();
   const currentPath = propActivePath !== undefined ? propActivePath : (pathname || '/');
@@ -90,7 +142,7 @@ export const HeaderComponent: React.FC<HeaderComponentProps> = ({ activePath: pr
         Skip to main content
       </a>
 
-      {/* Top Utility Header Bar (Familiar Enterprise Bar) */}
+      {/* Top Utility Header Bar */}
       <div className="header-top-bar">
         <div className="header-top-container">
           <div className="header-top-left">
@@ -146,7 +198,7 @@ export const HeaderComponent: React.FC<HeaderComponentProps> = ({ activePath: pr
         </div>
       </div>
 
-      {/* Main E-Commerce Header Bar (Logo, Central Search, Auth) */}
+      {/* Main E-Commerce Header Bar */}
       <div className="header-container">
         {/* Brand Logo */}
         <a href="/" className="brand-logo" aria-label="CarChief Home">
@@ -168,14 +220,14 @@ export const HeaderComponent: React.FC<HeaderComponentProps> = ({ activePath: pr
           </span>
         </a>
 
-        {/* Amazon/Noon Style Global Search Bar */}
+        {/* Global Search Bar */}
         <div className="header-search-container">
           <GlobalSearch />
         </div>
 
-        {/* Login / Register Actions */}
+        {/* Login / Register / Customer Portal Actions */}
         <div className="header-actions">
-          <HeaderAuthActions />
+          <HeaderAuthActions onOpenLogin={() => setIsLoginModalOpen(true)} />
         </div>
 
         {/* Mobile Menu Toggle */}
@@ -190,7 +242,7 @@ export const HeaderComponent: React.FC<HeaderComponentProps> = ({ activePath: pr
         </button>
       </div>
 
-      {/* Secondary E-Commerce Navigation Bar (Sub-Nav Links) */}
+      {/* Secondary E-Commerce Navigation Bar */}
       <nav className="desktop-nav" aria-label="Main Navigation">
         <div className="desktop-nav-container">
           {PUBLIC_NAV_ITEMS.map((item) => {
@@ -248,9 +300,24 @@ export const HeaderComponent: React.FC<HeaderComponentProps> = ({ activePath: pr
             })}
           </div>
 
-          <HeaderAuthActions className="mobile-header-auth-actions" onNavigate={() => setMobileMenuOpen(false)} />
+          <HeaderAuthActions
+            className="mobile-header-auth-actions"
+            onNavigate={() => setMobileMenuOpen(false)}
+            onOpenLogin={() => {
+              setMobileMenuOpen(false);
+              setIsLoginModalOpen(true);
+            }}
+          />
         </nav>
       )}
+
+      {/* Enterprise Login Popup Modal */}
+      <EnterpriseLoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+        title="Enterprise Customer Sign In"
+        subtitle="Sign in to access your CarChief Customer Portal, live ocean freight calculations, wishlist, and verified vehicle bookings."
+      />
     </header>
   );
 };

@@ -511,4 +511,42 @@ describe('VehicleGalleryPrimitive (shared package)', () => {
     );
     expect(empty).toContain('No images available for this vehicle yet.');
   });
+
+  it('renders Customer Actions card with Get Free Quote, Add to Wishlist, and Specs Inquiry Form', async () => {
+    const React = await import('react');
+    const { renderToStaticMarkup } = await import('react-dom/server');
+
+    const html = renderToStaticMarkup(
+      React.createElement(VehicleDetailPage, { vehicle: basePricedVehicle })
+    );
+
+    expect(html).toContain('Customer Actions &amp; Free Quotation');
+    expect(html).toContain('GET FREE QUOTE');
+    expect(html).toContain('ADD TO WISHLIST');
+    expect(html).toContain('SPECS INQUIRY &amp; BOOKING FORM');
+    expect(html).toContain('SUBMIT INQUIRY SPEC FILE');
+    expect(html).toContain('Verified customer account required');
+  });
+
+  it('renders EnterpriseLoginModal when open with all enterprise SSO providers', async () => {
+    const React = await import('react');
+    const { renderToStaticMarkup } = await import('react-dom/server');
+    const { EnterpriseLoginModal } = await import('../features/account-entry/index.js');
+
+    const html = renderToStaticMarkup(
+      React.createElement(EnterpriseLoginModal, {
+        isOpen: true,
+        onClose: () => {},
+        title: 'Sign In to Add to Wishlist',
+        subtitle: 'Save this vehicle to your wishlist.',
+      })
+    );
+
+    expect(html).toContain('Sign In to Add to Wishlist');
+    expect(html).toContain('Continue with Google');
+    expect(html).toContain('Continue with Apple');
+    expect(html).toContain('Continue with Microsoft / Outlook');
+    expect(html).toContain('Continue with Email Credentials');
+    expect(html).toContain('Sign in via Full Account Portal');
+  });
 });
