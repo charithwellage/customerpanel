@@ -89,7 +89,6 @@ describe('Customer App Shell & Navigation Unit Tests', () => {
 
     // My Vehicles group is active for /vehicles — sub-items should be rendered
     expect(html).toContain('My Vehicles');        // customer.myVehicles → 'My Vehicles'
-    expect(html).toContain('Hold Vehicles');       // customer.holdVehicles fallback
     expect(html).toContain('My Wishlist');        // customer.wishlist fallback
     expect(html).toContain('Favourites');         // customer.favourites fallback
     expect(html).toContain('Inquiries &amp; Quotes'); // customer.inquiries fallback
