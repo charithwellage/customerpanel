@@ -140,6 +140,12 @@ export interface VehicleRecord {
   overdrive?: string;
   color?: string;
   exteriorGrade?: string;
+  steering?: string;
+  stockCountry?: string;
+  stockLocation?: string;
+  seats?: number;
+  loadCapacity?: number;
+  features?: Record<string, boolean>;
   fuelType?: string;
   transmission?: string;
   driveTrain?: string;
@@ -2699,6 +2705,12 @@ export function projectVehicle(
     overdrive: v.overdrive,
     color: v.color,
     exteriorGrade: v.exteriorGrade,
+    steering: v.steering,
+    stockCountry: v.stockCountry,
+    stockLocation: v.stockLocation,
+    seats: v.seats,
+    loadCapacity: v.loadCapacity,
+    features: v.features ? { ...v.features } : undefined,
     fuelType: v.fuelType,
     transmission: v.transmission,
     driveTrain: v.driveTrain,
@@ -2866,6 +2878,10 @@ function calculateFacets(vehicles: VehicleDomainSummary[]): VehicleFacets {
   const overdriveMap = new Map<string, number>();
   const colorMap = new Map<string, number>();
   const exteriorGradeMap = new Map<string, number>();
+  const steeringMap = new Map<string, number>();
+  const stockCountryMap = new Map<string, number>();
+  const stockLocationMap = new Map<string, number>();
+  const featureMap = new Map<string, number>();
 
   let minYear = 2026;
   let maxYear = 1970;
@@ -2875,6 +2891,10 @@ function calculateFacets(vehicles: VehicleDomainSummary[]): VehicleFacets {
   let maxMileage = -Infinity;
   let minEngineCc = Infinity;
   let maxEngineCc = -Infinity;
+  let minSeats = Infinity;
+  let maxSeats = -Infinity;
+  let minLoadCapacity = Infinity;
+  let maxLoadCapacity = -Infinity;
 
   vehicles.forEach((v) => {
     if (v.make) makeMap.set(v.make, (makeMap.get(v.make) || 0) + 1);
@@ -2891,6 +2911,12 @@ function calculateFacets(vehicles: VehicleDomainSummary[]): VehicleFacets {
     if (v.overdrive) overdriveMap.set(v.overdrive, (overdriveMap.get(v.overdrive) || 0) + 1);
     if (v.color) colorMap.set(v.color, (colorMap.get(v.color) || 0) + 1);
     if (v.exteriorGrade) exteriorGradeMap.set(v.exteriorGrade, (exteriorGradeMap.get(v.exteriorGrade) || 0) + 1);
+    if (v.steering) steeringMap.set(v.steering, (steeringMap.get(v.steering) || 0) + 1);
+    if (v.stockCountry) stockCountryMap.set(v.stockCountry, (stockCountryMap.get(v.stockCountry) || 0) + 1);
+    if (v.stockLocation) stockLocationMap.set(v.stockLocation, (stockLocationMap.get(v.stockLocation) || 0) + 1);
+    Object.entries(v.features || {}).forEach(([feature, enabled]) => {
+      if (enabled) featureMap.set(feature, (featureMap.get(feature) || 0) + 1);
+    });
 
     if (v.year) {
       if (v.year < minYear) minYear = v.year;
@@ -2908,6 +2934,14 @@ function calculateFacets(vehicles: VehicleDomainSummary[]): VehicleFacets {
     if (v.engineCc !== undefined && v.engineCc !== null) {
       if (v.engineCc < minEngineCc) minEngineCc = v.engineCc;
       if (v.engineCc > maxEngineCc) maxEngineCc = v.engineCc;
+    }
+    if (v.seats !== undefined && v.seats !== null) {
+      minSeats = Math.min(minSeats, v.seats);
+      maxSeats = Math.max(maxSeats, v.seats);
+    }
+    if (v.loadCapacity !== undefined && v.loadCapacity !== null) {
+      minLoadCapacity = Math.min(minLoadCapacity, v.loadCapacity);
+      maxLoadCapacity = Math.max(maxLoadCapacity, v.loadCapacity);
     }
   });
 
@@ -2931,6 +2965,10 @@ function calculateFacets(vehicles: VehicleDomainSummary[]): VehicleFacets {
     overdrives: sortFacets(overdriveMap),
     colors: sortFacets(colorMap),
     exteriorGrades: sortFacets(exteriorGradeMap),
+    steerings: sortFacets(steeringMap),
+    stockCountries: sortFacets(stockCountryMap),
+    stockLocations: sortFacets(stockLocationMap),
+    features: sortFacets(featureMap),
     yearRange: {
       min: minYear <= maxYear ? minYear : 2015,
       max: minYear <= maxYear ? maxYear : 2024,
@@ -2947,6 +2985,8 @@ function calculateFacets(vehicles: VehicleDomainSummary[]): VehicleFacets {
       min: minEngineCc <= maxEngineCc ? minEngineCc : 0,
       max: minEngineCc <= maxEngineCc ? maxEngineCc : 0,
     },
+    seatsRange: { min: minSeats <= maxSeats ? minSeats : 0, max: minSeats <= maxSeats ? maxSeats : 0 },
+    loadCapacityRange: { min: minLoadCapacity <= maxLoadCapacity ? minLoadCapacity : 0, max: minLoadCapacity <= maxLoadCapacity ? maxLoadCapacity : 0 },
   };
 }
 
@@ -2988,6 +3028,12 @@ function calculateSearchFacets(
   const overdriveFacets = without('overdrive');
   const colorFacets = without('color');
   const exteriorGradeFacets = without('exteriorGrade');
+  const steeringFacets = without('steering');
+  const stockCountryFacets = without('stockCountry');
+  const stockLocationFacets = without('stockLocation');
+  const seatsFacets = without('seatsMin', 'seatsMax');
+  const loadCapacityFacets = without('loadCapacityMin', 'loadCapacityMax');
+  const featureFacets = without('features');
   return {
     ...base,
     makes: makeFacets.makes,
@@ -3008,6 +3054,12 @@ function calculateSearchFacets(
     overdrives: overdriveFacets.overdrives,
     colors: colorFacets.colors,
     exteriorGrades: exteriorGradeFacets.exteriorGrades,
+    steerings: steeringFacets.steerings,
+    stockCountries: stockCountryFacets.stockCountries,
+    stockLocations: stockLocationFacets.stockLocations,
+    features: featureFacets.features,
+    seatsRange: seatsFacets.seatsRange,
+    loadCapacityRange: loadCapacityFacets.loadCapacityRange,
   };
 }
 
@@ -3104,6 +3156,10 @@ function filterAndSortVehicles(
         (v.vehicleSubType && v.vehicleSubType.toLowerCase().includes(q)) ||
         (v.color && v.color.toLowerCase().includes(q)) ||
         (v.exteriorGrade && v.exteriorGrade.toLowerCase().includes(q)) ||
+        (v.steering && v.steering.toLowerCase().includes(q)) ||
+        (v.stockCountry && v.stockCountry.toLowerCase().includes(q)) ||
+        (v.stockLocation && v.stockLocation.toLowerCase().includes(q)) ||
+        Object.keys(v.features || {}).some((feature) => feature.toLowerCase().includes(q)) ||
         (v.destinationPort && v.destinationPort.toLowerCase().includes(q))
     );
   }
@@ -3145,6 +3201,17 @@ function filterAndSortVehicles(
   if (query?.overdrive) list = list.filter((v) => v.overdrive === query.overdrive);
   if (query?.color) list = list.filter((v) => v.color?.toLowerCase() === query.color!.toLowerCase());
   if (query?.exteriorGrade) list = list.filter((v) => v.exteriorGrade === query.exteriorGrade);
+  if (query?.steering) list = list.filter((v) => v.steering?.toLowerCase() === query.steering!.toLowerCase());
+  if (query?.stockCountry) list = list.filter((v) => v.stockCountry?.toLowerCase() === query.stockCountry!.toLowerCase());
+  if (query?.stockLocation) list = list.filter((v) => v.stockLocation?.toLowerCase() === query.stockLocation!.toLowerCase());
+  if (query?.seatsMin !== undefined) list = list.filter((v) => v.seats !== undefined && v.seats >= Number(query.seatsMin));
+  if (query?.seatsMax !== undefined) list = list.filter((v) => v.seats !== undefined && v.seats <= Number(query.seatsMax));
+  if (query?.loadCapacityMin !== undefined) list = list.filter((v) => v.loadCapacity !== undefined && v.loadCapacity >= Number(query.loadCapacityMin));
+  if (query?.loadCapacityMax !== undefined) list = list.filter((v) => v.loadCapacity !== undefined && v.loadCapacity <= Number(query.loadCapacityMax));
+  const requestedFeatures = typeof (query as any)?.features === 'string'
+    ? String((query as any).features).split(',').filter(Boolean)
+    : (query?.features || []);
+  if (requestedFeatures.length) list = list.filter((v) => requestedFeatures.every((feature) => v.features?.[feature] === true));
 
   if (query?.stockType) {
     list = list.filter((v) => v.stockType === query.stockType);
@@ -3329,6 +3396,25 @@ const preparedSeedVehicles = seedVehicles.map((vehicle, index) => ({
   overdrive: vehicle.overdrive || (index % 2 === 0 ? 'Yes' : 'No'),
   color: vehicle.color || 'White',
   exteriorGrade: vehicle.exteriorGrade || (index % 3 === 0 ? '4.5' : '4'),
+  steering: vehicle.steering || (index % 2 === 0 ? 'Right' : 'Left'),
+  stockCountry: vehicle.stockCountry || 'Japan',
+  stockLocation: vehicle.stockLocation || vehicle.locationStatus || 'In Japan',
+  seats: vehicle.seats || (index % 3 === 0 ? 7 : 5),
+  loadCapacity: vehicle.loadCapacity || 500 + (index % 4) * 250,
+  features: vehicle.features || {
+    abs: index % 2 === 0,
+    airbag: true,
+    sunRoof: index % 3 === 0,
+    leatherSeat: index % 4 === 0,
+    alloyWheels: index % 2 === 0,
+    powerWindow: true,
+    airConditioning: true,
+    backCamera: index % 2 === 0,
+    navigation: index % 3 === 0,
+    turbo: index % 4 === 0,
+    oneOwner: index % 5 !== 0,
+    nonSmoker: true,
+  },
 }));
 
 function computeReservationStatus(record: Pick<ReservationRecord, 'expiresAt'>, nowISO: string): ReservationStatus {
@@ -6076,6 +6162,12 @@ class PostgresStore implements DemoStore {
         overdrive text,
         color text,
         exterior_grade text,
+        steering text,
+        stock_country text,
+        stock_location text,
+        seats integer,
+        load_capacity integer,
+        features text,
         mileage integer,
         etd text,
         eta text,
@@ -6104,6 +6196,12 @@ class PostgresStore implements DemoStore {
         ADD COLUMN IF NOT EXISTS overdrive text,
         ADD COLUMN IF NOT EXISTS color text,
         ADD COLUMN IF NOT EXISTS exterior_grade text,
+        ADD COLUMN IF NOT EXISTS steering text,
+        ADD COLUMN IF NOT EXISTS stock_country text,
+        ADD COLUMN IF NOT EXISTS stock_location text,
+        ADD COLUMN IF NOT EXISTS seats integer,
+        ADD COLUMN IF NOT EXISTS load_capacity integer,
+        ADD COLUMN IF NOT EXISTS features text,
         ADD COLUMN IF NOT EXISTS mileage integer,
         ADD COLUMN IF NOT EXISTS etd text,
         ADD COLUMN IF NOT EXISTS eta text,
@@ -6407,8 +6505,8 @@ class PostgresStore implements DemoStore {
     // Always upsert all seed vehicles into the database
     for (const vehicle of preparedSeedVehicles) {
       await this.pool.query(
-        `INSERT INTO vehicles (id, chassis_number, make, model, model_code, year, price_usd, status, category, location_status, created_at, images, featured, stock_type, destination_port, discount_percent, internal_notes, staff_owner_id, body_style, vehicle_sub_type, engine_cc, fuel_type, transmission, drive_train, overdrive, color, exterior_grade, mileage, etd, eta, request_price)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31)
+        `INSERT INTO vehicles (id, chassis_number, make, model, model_code, year, price_usd, status, category, location_status, created_at, images, featured, stock_type, destination_port, discount_percent, internal_notes, staff_owner_id, body_style, vehicle_sub_type, engine_cc, fuel_type, transmission, drive_train, overdrive, color, exterior_grade, steering, stock_country, stock_location, seats, load_capacity, features, mileage, etd, eta, request_price)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37)
          ON CONFLICT (id) DO UPDATE SET
            chassis_number = EXCLUDED.chassis_number,
            make = EXCLUDED.make,
@@ -6435,6 +6533,12 @@ class PostgresStore implements DemoStore {
            overdrive = EXCLUDED.overdrive,
            color = EXCLUDED.color,
            exterior_grade = EXCLUDED.exterior_grade,
+           steering = EXCLUDED.steering,
+           stock_country = EXCLUDED.stock_country,
+           stock_location = EXCLUDED.stock_location,
+           seats = EXCLUDED.seats,
+           load_capacity = EXCLUDED.load_capacity,
+           features = EXCLUDED.features,
            mileage = EXCLUDED.mileage,
            etd = EXCLUDED.etd,
            eta = EXCLUDED.eta,
@@ -6467,6 +6571,12 @@ class PostgresStore implements DemoStore {
           vehicle.overdrive || null,
           vehicle.color || null,
           vehicle.exteriorGrade || null,
+          vehicle.steering || null,
+          vehicle.stockCountry || null,
+          vehicle.stockLocation || null,
+          vehicle.seats || null,
+          vehicle.loadCapacity || null,
+          vehicle.features ? JSON.stringify(vehicle.features) : null,
           vehicle.mileage || null,
           vehicle.etd || null,
           vehicle.eta || null,
@@ -6904,7 +7014,7 @@ class PostgresStore implements DemoStore {
 
   private async getRawVehicles(): Promise<VehicleRecord[]> {
     const result = await this.pool.query(
-      'SELECT id, chassis_number, make, model, model_code, year, price_usd, status, category, location_status, created_at, images, featured, stock_type, destination_port, discount_percent, body_style, vehicle_sub_type, engine_cc, fuel_type, transmission, drive_train, overdrive, color, exterior_grade, mileage, etd, eta, request_price FROM vehicles ORDER BY id'
+      'SELECT id, chassis_number, make, model, model_code, year, price_usd, status, category, location_status, created_at, images, featured, stock_type, destination_port, discount_percent, body_style, vehicle_sub_type, engine_cc, fuel_type, transmission, drive_train, overdrive, color, exterior_grade, steering, stock_country, stock_location, seats, load_capacity, features, mileage, etd, eta, request_price FROM vehicles ORDER BY id'
     );
     return result.rows.map((row) => ({
       id: row.id,
@@ -6932,6 +7042,12 @@ class PostgresStore implements DemoStore {
       overdrive: row.overdrive,
       color: row.color,
       exteriorGrade: row.exterior_grade,
+      steering: row.steering,
+      stockCountry: row.stock_country,
+      stockLocation: row.stock_location,
+      seats: row.seats ? Number(row.seats) : undefined,
+      loadCapacity: row.load_capacity ? Number(row.load_capacity) : undefined,
+      features: row.features ? JSON.parse(row.features) : undefined,
       mileage: row.mileage ? Number(row.mileage) : undefined,
       etd: row.etd,
       eta: row.eta,
@@ -6941,7 +7057,7 @@ class PostgresStore implements DemoStore {
 
   private async getRawVehiclesWith(client: PoolClient): Promise<VehicleRecord[]> {
     const result = await client.query(
-      'SELECT id, chassis_number, make, model, model_code, year, price_usd, status, category, location_status, created_at, images, featured, stock_type, destination_port, discount_percent, body_style, vehicle_sub_type, engine_cc, fuel_type, transmission, drive_train, overdrive, color, exterior_grade, mileage, etd, eta, request_price FROM vehicles ORDER BY id'
+      'SELECT id, chassis_number, make, model, model_code, year, price_usd, status, category, location_status, created_at, images, featured, stock_type, destination_port, discount_percent, body_style, vehicle_sub_type, engine_cc, fuel_type, transmission, drive_train, overdrive, color, exterior_grade, steering, stock_country, stock_location, seats, load_capacity, features, mileage, etd, eta, request_price FROM vehicles ORDER BY id'
     );
     return result.rows.map((row) => ({
       id: row.id,
@@ -6968,6 +7084,12 @@ class PostgresStore implements DemoStore {
       overdrive: row.overdrive,
       color: row.color,
       exteriorGrade: row.exterior_grade,
+      steering: row.steering,
+      stockCountry: row.stock_country,
+      stockLocation: row.stock_location,
+      seats: row.seats ? Number(row.seats) : undefined,
+      loadCapacity: row.load_capacity ? Number(row.load_capacity) : undefined,
+      features: row.features ? JSON.parse(row.features) : undefined,
       mileage: row.mileage ? Number(row.mileage) : undefined,
       etd: row.etd,
       eta: row.eta,
@@ -8286,7 +8408,7 @@ class PostgresStore implements DemoStore {
       ]);
       for (const vehicle of preparedSeedVehicles) {
         await client.query(
-          'INSERT INTO vehicles (id, chassis_number, make, model, model_code, year, price_usd, status, category, location_status, created_at, images, featured, stock_type, destination_port, discount_percent, internal_notes, staff_owner_id, body_style, vehicle_sub_type, engine_cc, fuel_type, transmission, drive_train, overdrive, color, exterior_grade, mileage, etd, eta, request_price) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31)',
+          'INSERT INTO vehicles (id, chassis_number, make, model, model_code, year, price_usd, status, category, location_status, created_at, images, featured, stock_type, destination_port, discount_percent, internal_notes, staff_owner_id, body_style, vehicle_sub_type, engine_cc, fuel_type, transmission, drive_train, overdrive, color, exterior_grade, steering, stock_country, stock_location, seats, load_capacity, features, mileage, etd, eta, request_price) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37)',
           [
             vehicle.id,
             vehicle.chassisNumber,
@@ -8315,6 +8437,12 @@ class PostgresStore implements DemoStore {
             vehicle.overdrive || null,
             vehicle.color || null,
             vehicle.exteriorGrade || null,
+            vehicle.steering || null,
+            vehicle.stockCountry || null,
+            vehicle.stockLocation || null,
+            vehicle.seats || null,
+            vehicle.loadCapacity || null,
+            vehicle.features ? JSON.stringify(vehicle.features) : null,
             vehicle.mileage || null,
             vehicle.etd || null,
             vehicle.eta || null,

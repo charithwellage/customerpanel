@@ -2204,6 +2204,12 @@
           "overdrive": { "type": "string", "example": "Yes" },
           "color": { "type": "string", "example": "White" },
           "exteriorGrade": { "type": "string", "example": "4.5" },
+          "steering": { "type": "string", "example": "Right" },
+          "stockCountry": { "type": "string", "example": "Japan" },
+          "stockLocation": { "type": "string", "example": "In Japan" },
+          "seats": { "type": "integer", "example": 5 },
+          "loadCapacity": { "type": "integer", "example": 750 },
+          "features": { "type": "object", "additionalProperties": { "type": "boolean" } },
           "fuelType": { "type": "string", "example": "Petrol" },
           "transmission": { "type": "string", "example": "Automatic" },
           "driveTrain": { "type": "string", "example": "2WD" },
@@ -2390,12 +2396,18 @@
           "overdrives": { "type": "array", "items": { "$ref": "#/components/schemas/FacetCount" } },
           "colors": { "type": "array", "items": { "$ref": "#/components/schemas/FacetCount" } },
           "exteriorGrades": { "type": "array", "items": { "$ref": "#/components/schemas/FacetCount" } },
+          "steerings": { "type": "array", "items": { "$ref": "#/components/schemas/FacetCount" } },
+          "stockCountries": { "type": "array", "items": { "$ref": "#/components/schemas/FacetCount" } },
+          "stockLocations": { "type": "array", "items": { "$ref": "#/components/schemas/FacetCount" } },
+          "features": { "type": "array", "items": { "$ref": "#/components/schemas/FacetCount" } },
           "yearRange": { "$ref": "#/components/schemas/RangeFacet" },
           "priceRange": { "$ref": "#/components/schemas/RangeFacet" },
           "mileageRange": { "$ref": "#/components/schemas/RangeFacet" },
-          "engineCcRange": { "$ref": "#/components/schemas/RangeFacet" }
+          "engineCcRange": { "$ref": "#/components/schemas/RangeFacet" },
+          "seatsRange": { "$ref": "#/components/schemas/RangeFacet" },
+          "loadCapacityRange": { "$ref": "#/components/schemas/RangeFacet" }
         },
-        "required": ["makes", "bodyStyles", "fuelTypes", "transmissions", "driveTrains", "models", "modelCodes", "vehicleTypes", "vehicleSubTypes", "locationStatuses", "destinationPorts", "overdrives", "colors", "exteriorGrades", "yearRange", "priceRange", "mileageRange", "engineCcRange"]
+        "required": ["makes", "bodyStyles", "fuelTypes", "transmissions", "driveTrains", "models", "modelCodes", "vehicleTypes", "vehicleSubTypes", "locationStatuses", "destinationPorts", "overdrives", "colors", "exteriorGrades", "steerings", "stockCountries", "stockLocations", "features", "yearRange", "priceRange", "mileageRange", "engineCcRange", "seatsRange", "loadCapacityRange"]
       },
       "VehicleSearchResult": {
         "type": "object",

@@ -175,6 +175,12 @@ export interface VehicleDomainSummary {
   overdrive?: string;
   color?: string;
   exteriorGrade?: string;
+  steering?: string;
+  stockCountry?: string;
+  stockLocation?: string;
+  seats?: number;
+  loadCapacity?: number;
+  features?: Record<string, boolean>;
   fuelType?: string;
   transmission?: string;
   driveTrain?: string;
@@ -217,10 +223,16 @@ export interface VehicleFacets {
   overdrives: FacetCount[];
   colors: FacetCount[];
   exteriorGrades: FacetCount[];
+  steerings: FacetCount[];
+  stockCountries: FacetCount[];
+  stockLocations: FacetCount[];
+  features: FacetCount[];
   yearRange: RangeFacet<number>;
   priceRange: RangeFacet<number>;
   mileageRange: RangeFacet<number>;
   engineCcRange: RangeFacet<number>;
+  seatsRange: RangeFacet<number>;
+  loadCapacityRange: RangeFacet<number>;
 }
 
 export interface VehicleSearchResult {
@@ -249,6 +261,14 @@ export interface SearchVehiclesQuery {
   overdrive?: string;
   color?: string;
   exteriorGrade?: string;
+  steering?: string;
+  stockCountry?: string;
+  stockLocation?: string;
+  seatsMin?: number;
+  seatsMax?: number;
+  loadCapacityMin?: number;
+  loadCapacityMax?: number;
+  features?: string[];
   stockType?: string;
   locationStatus?: string;
   market?: string;

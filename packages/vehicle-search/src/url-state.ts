@@ -27,6 +27,10 @@ export function parseUrlSearchQuery(source: URLSearchParams | string): SearchVeh
   result.overdrive = getString('overdrive');
   result.color = getString('color');
   result.exteriorGrade = getString('exteriorGrade');
+  result.steering = getString('steering');
+  result.stockCountry = getString('stockCountry');
+  result.stockLocation = getString('stockLocation');
+  result.features = params.getAll('features').flatMap((value) => value.split(',')).filter(Boolean);
   result.stockType = getString('stockType') as 'J' | 'CRFO' | undefined;
   result.locationStatus = getString('locationStatus') as 'In Japan' | 'In Transit' | 'In Port' | undefined;
 
@@ -38,6 +42,10 @@ export function parseUrlSearchQuery(source: URLSearchParams | string): SearchVeh
   result.mileageMax = getNumber('mileageMax');
   result.engineCcMin = getNumber('engineCcMin');
   result.engineCcMax = getNumber('engineCcMax');
+  result.seatsMin = getNumber('seatsMin');
+  result.seatsMax = getNumber('seatsMax');
+  result.loadCapacityMin = getNumber('loadCapacityMin');
+  result.loadCapacityMax = getNumber('loadCapacityMax');
 
   result.sortBy = (getString('sortBy') || 'newest') as SearchVehiclesQuery['sortBy'];
   result.page = getNumber('page') || 1;
@@ -79,6 +87,10 @@ export function serializeSearchQuery(query: SearchVehiclesQuery, existingParams?
   setOrDelete('overdrive', query.overdrive);
   setOrDelete('color', query.color);
   setOrDelete('exteriorGrade', query.exteriorGrade);
+  setOrDelete('steering', query.steering);
+  setOrDelete('stockCountry', query.stockCountry);
+  setOrDelete('stockLocation', query.stockLocation);
+  setOrDelete('features', query.features?.join(','));
   setOrDelete('stockType', query.stockType);
   setOrDelete('locationStatus', query.locationStatus);
   setOrDelete('category', query.category);
@@ -92,6 +104,10 @@ export function serializeSearchQuery(query: SearchVehiclesQuery, existingParams?
   setOrDelete('mileageMax', query.mileageMax);
   setOrDelete('engineCcMin', query.engineCcMin);
   setOrDelete('engineCcMax', query.engineCcMax);
+  setOrDelete('seatsMin', query.seatsMin);
+  setOrDelete('seatsMax', query.seatsMax);
+  setOrDelete('loadCapacityMin', query.loadCapacityMin);
+  setOrDelete('loadCapacityMax', query.loadCapacityMax);
 
   if (query.sortBy && query.sortBy !== 'newest') {
     params.set('sortBy', query.sortBy);

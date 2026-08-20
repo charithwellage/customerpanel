@@ -49,10 +49,16 @@ export class VehicleService {
           overdrives: [],
           colors: [],
           exteriorGrades: [],
+          steerings: [],
+          stockCountries: [],
+          stockLocations: [],
+          features: [],
           yearRange: { min: 2000, max: 2026 },
           priceRange: { min: 0, max: 0 },
           mileageRange: { min: 0, max: 0 },
           engineCcRange: { min: 0, max: 0 },
+          seatsRange: { min: 0, max: 0 },
+          loadCapacityRange: { min: 0, max: 0 },
         },
       };
     }
@@ -70,6 +76,10 @@ export class VehicleService {
     if (query?.overdrive) params.set('overdrive', query.overdrive);
     if (query?.color) params.set('color', query.color);
     if (query?.exteriorGrade) params.set('exteriorGrade', query.exteriorGrade);
+    if (query?.steering) params.set('steering', query.steering);
+    if (query?.stockCountry) params.set('stockCountry', query.stockCountry);
+    if (query?.stockLocation) params.set('stockLocation', query.stockLocation);
+    if (query?.features?.length) params.set('features', query.features.join(','));
     if (query?.stockType) params.set('stockType', query.stockType);
     if (query?.locationStatus) params.set('locationStatus', query.locationStatus);
     if (query?.market) params.set('market', query.market);
@@ -83,6 +93,10 @@ export class VehicleService {
     if (query?.mileageMax !== undefined) params.set('mileageMax', String(query.mileageMax));
     if (query?.engineCcMin !== undefined) params.set('engineCcMin', String(query.engineCcMin));
     if (query?.engineCcMax !== undefined) params.set('engineCcMax', String(query.engineCcMax));
+    if (query?.seatsMin !== undefined) params.set('seatsMin', String(query.seatsMin));
+    if (query?.seatsMax !== undefined) params.set('seatsMax', String(query.seatsMax));
+    if (query?.loadCapacityMin !== undefined) params.set('loadCapacityMin', String(query.loadCapacityMin));
+    if (query?.loadCapacityMax !== undefined) params.set('loadCapacityMax', String(query.loadCapacityMax));
     if (query?.sortBy) params.set('sortBy', query.sortBy);
     if (query?.page !== undefined) params.set('page', String(query.page));
     if (query?.limit !== undefined) params.set('limit', String(query.limit));
