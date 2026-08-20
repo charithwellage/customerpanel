@@ -682,6 +682,7 @@
       "post": {
         "summary": "Submit a general, vehicle, price-request or Premium Vehicle enquiry (PUB-13, PUB-14, PUB-15, PUB-28, PUB-34, D01-P05-T004, D01-P06-T001) — independent of DEC-PUB-FREIGHT-MODEL",
         "operationId": "postEnquiry",
+        "security": [{ "bearerAuth": [] }],
         "requestBody": {
           "required": true,
           "content": {
@@ -709,6 +710,14 @@
           },
           "400": {
             "description": "Invalid, missing or unsupported field",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "An authenticated customer session is required",
             "content": {
               "application/json": {
                 "schema": { "$ref": "#/components/schemas/ErrorResponse" }
@@ -2538,9 +2547,6 @@
       "EnquiryRequest": {
         "type": "object",
         "properties": {
-          "name": { "type": "string", "example": "Jane Doe" },
-          "email": { "type": "string", "example": "jane@example.com" },
-          "phone": { "type": "string", "example": "+256 700 111 222" },
           "message": { "type": "string", "example": "Please send a shipping quotation for this vehicle." },
           "consent": {
             "type": "boolean",
@@ -2566,7 +2572,7 @@
           "preferredYear": { "type": "integer", "example": 2021 },
           "targetPriceUsd": { "type": "number", "example": 12000 }
         },
-        "required": ["name", "email", "phone", "message", "consent"]
+        "required": ["message", "consent"]
       },
       "EnquiryResponse": {
         "type": "object",
@@ -2587,9 +2593,9 @@
           },
           "vehicleSlug": { "type": "string", "example": "2021-toyota-corolla-axio-veh-1" },
           "estimateSnapshot": { "$ref": "#/components/schemas/EnquiryEstimateSnapshot" },
-          "customerId": { "type": "string", "example": "cust-1", "description": "Set only for authenticated submissions" }
+          "customerId": { "type": "string", "example": "cust-1", "description": "Authenticated customer owner" }
         },
-        "required": ["id", "receivedAt", "status", "duplicate", "enquiryType", "source"]
+        "required": ["id", "receivedAt", "status", "duplicate", "customerId", "enquiryType", "source"]
       },
       "LeadRecord": {
         "type": "object",
@@ -2608,6 +2614,7 @@
             "enum": ["form", "whatsapp", "email", "call"],
             "example": "form"
           },
+          "customerId": { "type": "string", "example": "cust-1" },
           "name": { "type": "string", "example": "Jane Doe" },
           "email": { "type": "string", "example": "jane@example.com" },
           "phone": { "type": "string", "example": "+256 700 111 222" },
@@ -2628,6 +2635,7 @@
           "status",
           "enquiryType",
           "source",
+          "customerId",
           "name",
           "email",
           "phone",

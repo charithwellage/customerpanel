@@ -134,13 +134,17 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
     }
   });
 
-  // 3g. Quotation enquiry submission (Public) — PUB-13, PUB-15, D01-P05-T004.
+  // 3g. Authenticated quotation enquiry submission — PUB-13, PUB-15, D01-P05-T004.
   // Independent of DEC-PUB-FREIGHT-MODEL/DEC-PUB-CITY-DELIVERY (D01-ASM-001):
   // a visitor can submit an enquiry about a vehicle, a shipping destination,
   // or neither, with no computed total ever attached to it (RULE-09).
   app.post('/api/v1/enquiries', async (req: AuthenticatedRequest, res: Response) => {
     try {
-      const customerId = req.user ? resolveCustomerScope(req.user.sub) : undefined;
+      if (!req.user) {
+        res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+        return;
+      }
+      const customerId = resolveCustomerScope(req.user.sub);
       const enquiry = await store.createEnquiry((req.body ?? {}) as EnquiryRequest, customerId);
       res.status(enquiry.duplicate ? 200 : 201).json(enquiry);
     } catch (error) {

@@ -508,9 +508,6 @@ export const ENQUIRY_PREFERRED_DRIVE_SIDES: readonly EnquiryPreferredDriveSide[]
  * intent only, never a saved search or matching guarantee.
  */
 export interface EnquiryRequest {
-  name: string;
-  email: string;
-  phone: string;
   message: string;
   consent: boolean;
   vehicleSlug?: string;
@@ -523,7 +520,6 @@ export interface EnquiryRequest {
   preferredDriveSide?: EnquiryPreferredDriveSide;
   preferredYear?: number;
   targetPriceUsd?: number;
-  customerId?: string; // server-populated only, never client-supplied
 }
 
 /**
@@ -544,7 +540,7 @@ export interface EnquiryResponse {
   source: EnquirySource;
   vehicleSlug?: string;
   estimateSnapshot?: EnquiryEstimateSnapshot;
-  customerId?: string; // set only for authenticated submissions
+  customerId: string;
 }
 
 /**
@@ -564,6 +560,7 @@ export interface LeadRecord {
   status: LeadStatus;
   enquiryType: EnquiryType;
   source: EnquirySource;
+  customerId: string;
   name: string;
   email: string;
   phone: string;

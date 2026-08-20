@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { VehicleDetail, ReservationResponse, EnquiryResponse, CustomerProfile } from '@carchief/domain';
-import { HttpClient, VehicleService, ReservationService, EnquiryService, WishlistService, CustomerProfileService } from '@carchief/api-client';
+import type { VehicleDetail, ReservationResponse, EnquiryResponse } from '@carchief/domain';
+import { HttpClient, VehicleService, ReservationService, EnquiryService, WishlistService } from '@carchief/api-client';
 import type { CustomerVehicleDetailState } from './types.js';
 
 export interface UseCustomerVehicleDetailOptions {
@@ -214,9 +214,6 @@ export function useCustomerVehicleDetail({
       const enquiryService = new EnquiryService(httpClient);
 
       const res: EnquiryResponse = await enquiryService.submit({
-        name: 'Customer Account User',
-        email: 'user@carchief.com',
-        phone: '+81-3-0000-0000',
         message: customMessage || `Price quotation request for vehicle ${state.vehicle.model} (${state.vehicle.chassisNumber})`,
         consent: true,
         vehicleSlug: state.vehicle.slug,
@@ -264,14 +261,8 @@ export function useCustomerVehicleDetail({
         getAuthToken: () => token,
       });
 
-      const profileService = new CustomerProfileService(httpClient);
-      const profile: CustomerProfile = await profileService.get();
-
       const enquiryService = new EnquiryService(httpClient);
       await enquiryService.submit({
-        name: profile.name || 'Customer',
-        email: profile.email || '',
-        phone: profile.phone || '',
         message: 'Quote request from customer application',
         consent: true,
         vehicleSlug: state.vehicle.slug,

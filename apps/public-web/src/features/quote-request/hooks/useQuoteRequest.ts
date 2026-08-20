@@ -29,8 +29,8 @@ export interface UseQuoteRequestReturn {
 
 /**
  * Orchestrates the "Get Free Quote" action (CUST-31, CUST-32, D02-P13-T004).
- * On submission, sends name, email and phone to the backend with Bearer token;
- * message and consent are auto-filled server-side (D02-ASM-009).
+ * On submission, the backend derives the customer identity and contact data
+ * from the Bearer token; the browser sends only enquiry-specific data.
  */
 export function useQuoteRequest(options: UseQuoteRequestOptions = {}): UseQuoteRequestReturn {
   const service = useMemo(
@@ -66,9 +66,6 @@ export function useQuoteRequest(options: UseQuoteRequestOptions = {}): UseQuoteR
 
       try {
         await service.submit({
-          name: data.name,
-          email: data.email,
-          phone: data.phone,
           message: 'Quote request from customer application',
           consent: true,
           vehicleSlug,
