@@ -8,6 +8,7 @@ export const PUBLIC_NAV_ITEMS: NavItem[] = [
   { label: 'ALL STOCK', href: '/allstock' },
   { label: 'Clearance Stock', href: '/clearance-stock' },
   { label: 'PREMIUM STOCK', href: '/#premium-stock' },
+  { label: 'SERVICES', href: '/services' },
   { label: 'HOW TO BUY', href: '/how-to-buy' },
   { label: 'ABOUT US', href: '/about' },
   { label: 'TESTIMONIALS', href: '/testimonials' },

@@ -26,10 +26,15 @@ test.describe('Public Content & Information Pages E2E Suite (PUB-17..PUB-35, D01
     await expect(page.getByRole('heading', { level: 2, name: 'DIRECT LEAD SUBMISSION' })).toBeVisible();
   });
 
-  test('renders Company Services page', async ({ page }) => {
+  test('renders Company Services page with shipping, clearing, warranty and border logistics', async ({ page }) => {
     await page.goto('/services');
-    await expect(page.locator('h1')).toHaveText('CarChief Company Services');
-    await expect(page.getByText('OperationsTeam')).toBeVisible();
+    await expect(page.locator('h1')).toContainText('Global Vehicle Services');
+    await expect(page.getByRole('heading', { level: 3, name: 'Vehicle Shipment & Fast-Track Logistics' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 3, name: 'Additional Services & CarChief Warranty' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 3, name: 'Destination Port Clearing Services' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 2, name: 'Border Delivery Logistics & Inland Partnerships' })).toBeVisible();
+    await expect(page.getByRole('tab', { name: 'Zimbabwe' })).toBeVisible();
+    await expect(page.getByRole('tab', { name: 'Zambia' })).toBeVisible();
   });
 
   test('renders Auction Services page', async ({ page }) => {
