@@ -5,6 +5,7 @@ import {
   getEffectivePrice,
   getVisibleGalleryImages,
   serializeJsonLd,
+  DEFAULT_DESTINATION_OPTIONS,
   type VehicleDetail,
   type CategorizedPublicMedia,
 } from '../index.js';
@@ -106,4 +107,15 @@ describe('Vehicle Detail Package Unit Tests', () => {
 
     expect(getVisibleGalleryImages(media)).toEqual(['https://example.com/japan1.jpg']);
   });
+
+  it('exports valid destination country and port pricing structures', () => {
+    expect(DEFAULT_DESTINATION_OPTIONS.length).toBeGreaterThan(0);
+    const lk = DEFAULT_DESTINATION_OPTIONS.find((c) => c.countryCode === 'LK');
+    expect(lk).toBeDefined();
+    if (!lk) throw new Error('LK country not found');
+    expect(lk.ports.length).toBeGreaterThan(0);
+    expect(lk.ports[0].baseFreightRoro).toBeGreaterThan(0);
+    expect(lk.ports[0].baseFreightContainer).toBeGreaterThan(lk.ports[0].baseFreightRoro);
+  });
 });
+

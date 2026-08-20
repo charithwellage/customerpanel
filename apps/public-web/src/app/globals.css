@@ -625,6 +625,13 @@ select:focus {
   scrollbar-width: none;
 }
 
+#showroom,
+#premium-stock,
+#site-header,
+#main-content {
+  scroll-margin-top: 130px;
+}
+
 .desktop-nav-container::-webkit-scrollbar {
   display: none;
 }
@@ -649,16 +656,6 @@ select:focus {
 .nav-link:hover {
   color: #ffffff;
   background: rgba(255, 255, 255, 0.08);
-}
-
-.nav-link--clearance {
-  background: #d97706;
-  color: #ffffff !important;
-  font-weight: 800;
-}
-
-.nav-link--clearance:hover {
-  background: #b45309;
 }
 
 .nav-link-active {
@@ -774,11 +771,6 @@ select:focus {
   text-transform: uppercase;
   padding: 0.6rem 1rem;
   border-radius: 8px;
-}
-
-.mobile-nav-link--clearance {
-  background: #d97706;
-  color: #ffffff !important;
 }
 
 .mobile-nav-link-active {

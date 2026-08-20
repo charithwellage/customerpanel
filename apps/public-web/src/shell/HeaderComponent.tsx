@@ -195,12 +195,11 @@ export const HeaderComponent: React.FC<HeaderComponentProps> = ({ activePath: pr
         <div className="desktop-nav-container">
           {PUBLIC_NAV_ITEMS.map((item) => {
             const isActive = isItemActive(item.href);
-            const isClearanceItem = item.href === '/clearance-stock' || item.label.toLowerCase().includes('clearance');
             return (
               <a
                 key={item.href}
                 href={item.href}
-                className={`nav-link ${isActive ? 'nav-link-active' : ''} ${isClearanceItem ? 'nav-link--clearance' : ''}`}
+                className={`nav-link ${isActive ? 'nav-link-active' : ''}`}
                 aria-current={isActive ? 'page' : undefined}
                 onClick={() => {
                   if (item.href.includes('#')) {
@@ -228,12 +227,11 @@ export const HeaderComponent: React.FC<HeaderComponentProps> = ({ activePath: pr
           <div className="mobile-nav-links-list">
             {PUBLIC_NAV_ITEMS.map((item) => {
               const isActive = isItemActive(item.href);
-              const isClearanceItem = item.href === '/clearance-stock' || item.label.toLowerCase().includes('clearance');
               return (
                 <a
                   key={item.href}
                   href={item.href}
-                  className={`mobile-nav-link ${isActive ? 'mobile-nav-link-active' : ''} ${isClearanceItem ? 'mobile-nav-link--clearance' : ''}`}
+                  className={`mobile-nav-link ${isActive ? 'mobile-nav-link-active' : ''}`}
                   onClick={() => {
                     setMobileMenuOpen(false);
                     if (item.href.includes('#')) {
