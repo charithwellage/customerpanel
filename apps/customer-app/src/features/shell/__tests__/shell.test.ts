@@ -67,13 +67,33 @@ describe('Customer App Shell & Navigation Unit Tests', () => {
       )
     );
 
-    expect(html).toContain('Dashboard');
-    expect(html).toContain('Inventory');
-    expect(html).toContain('My Vehicles');
-    expect(html).toContain('Invoices &amp; Ledger');
-    expect(html).toContain('Shipments');
-    expect(html).toContain('Documents');
-    expect(html).toContain('Profile &amp; Account');
+    // All 5 consolidated group toggles are always visible regardless of route
+    expect(html).toContain('Dashboard');           // customer.dashboard → 'Dashboard' (English i18n)
+    expect(html).toContain('All Inventory Stock'); // label fallback
+    expect(html).toContain('My Vehicles');         // customer.myVehicles → 'My Vehicles'
+    expect(html).toContain('Finances');            // label fallback
+    expect(html).toContain('Account');             // label fallback
+
+    // Active route is highlighted
+    expect(html).toContain('aria-current="page"');
+  });
+
+  it('renders My Vehicles sub-items including wishlist, favourites, and inquiries', () => {
+    const html = renderToStaticMarkup(
+      React.createElement(
+        CustomerShellProvider,
+        { initialRoute: '/vehicles' },
+        React.createElement(CustomerNav)
+      )
+    );
+
+    // My Vehicles group is active for /vehicles — sub-items should be rendered
+    expect(html).toContain('My Vehicles');        // customer.myVehicles → 'My Vehicles'
+    expect(html).toContain('Hold Vehicles');       // customer.holdVehicles fallback
+    expect(html).toContain('My Wishlist');        // customer.wishlist fallback
+    expect(html).toContain('Favourites');         // customer.favourites fallback
+    expect(html).toContain('Inquiries &amp; Quotes'); // customer.inquiries fallback
+    expect(html).toContain('My Statement');        // customer.statement fallback
     expect(html).toContain('aria-current="page"');
   });
 

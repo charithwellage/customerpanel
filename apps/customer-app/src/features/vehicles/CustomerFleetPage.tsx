@@ -74,7 +74,7 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
     <div className="cc-cust-fleet" data-testid="customer-fleet-page">
       {/* Top 3 KPI Summary Cards */}
       <section className="cc-cust-kpi-grid" aria-label="Fleet Overview Summary" data-testid="fleet-kpi-summary">
-        {/* KPI 1: Reserved */}
+        {/* KPI 1: Hold Vehicles */}
         <div
           role="button"
           tabIndex={0}
@@ -85,17 +85,17 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
         >
           <div className="cc-cust-kpi-card__content">
             <div className="cc-cust-kpi-card__header-row">
-              <span className="cc-cust-kpi-card__title">RESERVED VEHICLES</span>
+              <span className="cc-cust-kpi-card__title">HOLD VEHICLES</span>
             </div>
             <div className="cc-cust-kpi-card__count">{reservedCount} Units</div>
-            <p className="cc-cust-kpi-card__subtitle">Reserved active inventory</p>
+            <p className="cc-cust-kpi-card__subtitle">Active vehicle holds</p>
           </div>
           <div className="cc-cust-kpi-card__icon-wrap cc-cust-kpi-card__icon-wrap--amber">
             <span className="cc-cust-kpi-card__icon" aria-hidden="true">⏱</span>
           </div>
         </div>
 
-        {/* KPI 2: Reserved With PI */}
+        {/* KPI 2: Advanced Paid Vehicles */}
         <div
           role="button"
           tabIndex={0}
@@ -106,17 +106,17 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
         >
           <div className="cc-cust-kpi-card__content">
             <div className="cc-cust-kpi-card__header-row">
-              <span className="cc-cust-kpi-card__title">RESERVED WITH PI</span>
+              <span className="cc-cust-kpi-card__title">ADVANCED PAID VEHICLES</span>
             </div>
             <div className="cc-cust-kpi-card__count">{withPICount} Units</div>
-            <p className="cc-cust-kpi-card__subtitle">Proforma Invoice issued</p>
+            <p className="cc-cust-kpi-card__subtitle">Advance payment confirmed</p>
           </div>
           <div className="cc-cust-kpi-card__icon-wrap cc-cust-kpi-card__icon-wrap--purple">
             <span className="cc-cust-kpi-card__icon" aria-hidden="true">📄</span>
           </div>
         </div>
 
-        {/* KPI 3: Invoiced Vehicles */}
+        {/* KPI 3: Purchased Vehicles */}
         <div
           role="button"
           tabIndex={0}
@@ -127,10 +127,10 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
         >
           <div className="cc-cust-kpi-card__content">
             <div className="cc-cust-kpi-card__header-row">
-              <span className="cc-cust-kpi-card__title">INVOICED VEHICLE</span>
+              <span className="cc-cust-kpi-card__title">PURCHASED VEHICLES</span>
             </div>
             <div className="cc-cust-kpi-card__count">{invoicedCount} Units</div>
-            <p className="cc-cust-kpi-card__subtitle">Fully billed &amp; invoiced fleet</p>
+            <p className="cc-cust-kpi-card__subtitle">Fully purchased &amp; invoiced fleet</p>
           </div>
           <div className="cc-cust-kpi-card__icon-wrap cc-cust-kpi-card__icon-wrap--green">
             <span className="cc-cust-kpi-card__icon" aria-hidden="true">✓</span>
@@ -150,7 +150,7 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
             className={`cc-cust-fleet-pill cc-cust-fleet-pill--amber ${activeTab === 'reserved' || activeTab === 'underNegotiation' ? 'cc-cust-fleet-pill--active' : ''}`}
             onClick={() => setActiveTab('reserved')}
           >
-            <span className="cc-cust-fleet-pill__icon" aria-hidden="true">⏱</span> RESERVED ({reservedCount})
+            <span className="cc-cust-fleet-pill__icon" aria-hidden="true">⏱</span> HOLD VEHICLES ({reservedCount})
           </button>
 
           <button
@@ -161,7 +161,7 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
             className={`cc-cust-fleet-pill cc-cust-fleet-pill--purple ${activeTab === 'withPI' || activeTab === 'underNegotiationWithPI' ? 'cc-cust-fleet-pill--active' : ''}`}
             onClick={() => setActiveTab('withPI')}
           >
-            <span className="cc-cust-fleet-pill__icon" aria-hidden="true">📄</span> WITH PI ({withPICount})
+            <span className="cc-cust-fleet-pill__icon" aria-hidden="true">📄</span> ADVANCED PAID ({withPICount})
           </button>
 
           <button
@@ -172,7 +172,7 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
             className={`cc-cust-fleet-pill cc-cust-fleet-pill--green ${activeTab === 'invoiced' || activeTab === 'confirmed' || activeTab === 'inTransit' || activeTab === 'delivered' ? 'cc-cust-fleet-pill--active' : ''}`}
             onClick={() => setActiveTab('invoiced')}
           >
-            <span className="cc-cust-fleet-pill__icon" aria-hidden="true">✓</span> INVOICED ({invoicedCount})
+            <span className="cc-cust-fleet-pill__icon" aria-hidden="true">✓</span> PURCHASED ({invoicedCount})
           </button>
 
           {activeTab === 'all' && (

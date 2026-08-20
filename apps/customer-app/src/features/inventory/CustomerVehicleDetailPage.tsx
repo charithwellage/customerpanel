@@ -1,5 +1,7 @@
 import React from 'react';
 import { VehicleGalleryPrimitive, formatVehicleTitle, getVisibleGalleryImages } from '@carchief/vehicle-detail';
+import { useCustomerShell } from '../shell/index.js';
+import { useCustomerProfile } from '../profile/index.js';
 import { useCustomerVehicleDetail } from './useCustomerVehicleDetail.js';
 
 export interface CustomerVehicleDetailPageProps {
@@ -15,10 +17,15 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
   token,
   onBack,
 }) => {
+  const { user } = useCustomerShell();
+  const { data: profile } = useCustomerProfile();
+  const destinationCountry = profile?.deliveryAddress || user?.company || 'Kenya';
+
   const { state, refetch, reserveVehicle, requestPriceInquiry, submitQuoteRequest, toggleWishlist } = useCustomerVehicleDetail({
     idOrSlug: slug,
     apiBaseUrl,
     token,
+    destinationCountry,
   });
 
   const { vehicle, loading, error, reserving, reserveSuccess, reserveError, holdExpiresAt } = state;
@@ -109,6 +116,42 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
               )}
             </div>
           </header>
+
+          {/* Import Compliance Card (D02-P14-T005) */}
+          {vehicle.compliance && (
+            <div className="cc-cust-compliance-detail-card" role="region" aria-label="Import compliance evaluation" data-testid="vehicle-compliance-card">
+              <div className="cc-cust-compliance-detail-card__header">
+                <span className="cc-cust-compliance-detail-card__icon">
+                  {vehicle.compliance.isCompliant ? '✅' : '⚠️'}
+                </span>
+                <div>
+                  <h3 className="cc-cust-compliance-detail-card__title">
+                    {vehicle.compliance.isCompliant
+                      ? `Import Compliant for ${vehicle.compliance.countryName}`
+                      : `Import Restriction for ${vehicle.compliance.countryName}`}
+                  </h3>
+                  <p className="cc-cust-compliance-detail-card__summary">{vehicle.compliance.ruleSummary}</p>
+                </div>
+              </div>
+              <div className="cc-cust-compliance-detail-card__criteria">
+                {vehicle.compliance.passedCriteria.map((c, i) => (
+                  <div key={i} className="cc-cust-compliance-criterion cc-cust-compliance-criterion--pass">
+                    <span className="cc-cust-compliance-criterion__dot">✓</span> {c}
+                  </div>
+                ))}
+                {vehicle.compliance.failedCriteria.map((c, i) => (
+                  <div key={i} className="cc-cust-compliance-criterion cc-cust-compliance-criterion--fail">
+                    <span className="cc-cust-compliance-criterion__dot">✕</span> {c}
+                  </div>
+                ))}
+                {vehicle.compliance.requiredInspections && vehicle.compliance.requiredInspections.length > 0 && (
+                  <div className="cc-cust-compliance-inspections">
+                    <strong>Required Inspections:</strong> {vehicle.compliance.requiredInspections.join(', ')}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Pricing Card */}
           <div className="cc-cust-price-card" data-testid="vehicle-pricing-card">

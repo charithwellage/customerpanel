@@ -7,12 +7,14 @@ export interface UseCustomerVehicleDetailOptions {
   idOrSlug: string;
   apiBaseUrl?: string;
   token?: string;
+  destinationCountry?: string;
 }
 
 export function useCustomerVehicleDetail({
   idOrSlug,
   apiBaseUrl = '',
   token,
+  destinationCountry,
 }: UseCustomerVehicleDetailOptions) {
   const [state, setState] = useState<CustomerVehicleDetailState>({
     vehicle: null,
@@ -45,6 +47,7 @@ export function useCustomerVehicleDetail({
 
       const detail = await vehicleService.getVehicleDetail(idOrSlug, {
         audience: 'customer',
+        destinationCountry,
       });
 
       if (!detail) {

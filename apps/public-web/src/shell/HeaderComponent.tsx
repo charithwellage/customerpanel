@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { PUBLIC_NAV_ITEMS, resolveCustomerAppUrl } from './Header';
 import { GlobalSearch } from './GlobalSearch';
+import { useTranslation, LanguageSwitcher } from '../i18n';
 import { useSession, EnterpriseLoginModal } from '../features/account-entry';
 
 export interface HeaderComponentProps {
@@ -83,8 +84,8 @@ function HeaderAuthActions({ className = '', onNavigate, onOpenLogin }: HeaderAu
           <polyline points="10 17 15 12 10 7" />
           <line x1="15" y1="12" x2="3" y2="12" />
         </svg>
-        <span>Login</span>
-      </button>
+        <span>{t('header.login', undefined, 'Login')}</span>
+      </a>
       <a href="/register" className="header-auth-btn header-auth-btn--register" onClick={onNavigate}>
         <svg className="header-auth-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
@@ -92,7 +93,7 @@ function HeaderAuthActions({ className = '', onNavigate, onOpenLogin }: HeaderAu
           <line x1="20" y1="8" x2="20" y2="14" />
           <line x1="23" y1="11" x2="17" y2="11" />
         </svg>
-        <span>Register</span>
+        <span>{t('header.register', undefined, 'Register')}</span>
       </a>
     </div>
   );
@@ -104,6 +105,7 @@ export const HeaderComponent: React.FC<HeaderComponentProps> = ({ activePath: pr
   const [currentHash, setCurrentHash] = useState<string>('');
   const pathname = usePathname();
   const currentPath = propActivePath !== undefined ? propActivePath : (pathname || '/');
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -139,7 +141,7 @@ export const HeaderComponent: React.FC<HeaderComponentProps> = ({ activePath: pr
   return (
     <header className="header-shell" id="site-header">
       <a href="#main-content" className="skip-link">
-        Skip to main content
+        {t('header.skipLink', undefined, 'Skip to main content')}
       </a>
 
       {/* Top Utility Header Bar */}
@@ -151,24 +153,27 @@ export const HeaderComponent: React.FC<HeaderComponentProps> = ({ activePath: pr
                 <circle cx="12" cy="12" r="10" />
                 <polyline points="12 6 12 12 16 14" />
               </svg>
-              <span>Japan Time: <strong>JST (UTC+9)</strong></span>
+              <span>{t('header.japanTime', undefined, 'Japan Time: JST (UTC+9)')}</span>
             </span>
             <span className="header-top-divider">|</span>
             <span className="header-utility-item">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="1" y="3" width="15" height="13" rx="2" />
-                <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
+                <polygon points="16 8 20 8 23 11 23 16 16 16 8" />
                 <circle cx="5.5" cy="18.5" r="2.5" />
                 <circle cx="18.5" cy="18.5" r="2.5" />
               </svg>
-              <span>Total Cars in Stock: <strong>68,000+</strong></span>
+              <span>{t('header.carsInStock', undefined, 'Total Cars in Stock: 68,000+')}</span>
             </span>
           </div>
 
           <div className="header-top-right">
+            {/* Global Language Switcher (D02-P14-T006) */}
+            <LanguageSwitcher id="desktop-language-switcher" />
+
             <div className="header-utility-select-wrap">
               <span className="header-utility-icon">🌍</span>
-              <select className="header-utility-select" aria-label="Select Country" defaultValue="Global">
+              <select className="header-utility-select" aria-label={t('header.countrySelect', undefined, 'Select Country')} defaultValue="Global">
                 <option value="Global">Global / All Ports</option>
                 <option value="LK">Sri Lanka (Colombo)</option>
                 <option value="UG">Uganda (Mombasa / Kampala)</option>
@@ -182,7 +187,7 @@ export const HeaderComponent: React.FC<HeaderComponentProps> = ({ activePath: pr
 
             <div className="header-utility-select-wrap">
               <span className="header-utility-icon">💵</span>
-              <select className="header-utility-select" aria-label="Select Currency" defaultValue="USD">
+              <select className="header-utility-select" aria-label={t('header.currencySelect', undefined, 'Select Currency')} defaultValue="USD">
                 <option value="USD">USD ($)</option>
                 <option value="JPY">JPY (¥)</option>
               </select>
@@ -216,7 +221,7 @@ export const HeaderComponent: React.FC<HeaderComponentProps> = ({ activePath: pr
             <span className="brand-subtitle">www.carchief.com</span>
           </div>
           <span className="online-badge">
-            <span className="online-dot" /> ONLINE
+            <span className="online-dot" /> {t('header.online', undefined, 'ONLINE')}
           </span>
         </a>
 
@@ -247,6 +252,7 @@ export const HeaderComponent: React.FC<HeaderComponentProps> = ({ activePath: pr
         <div className="desktop-nav-container">
           {PUBLIC_NAV_ITEMS.map((item) => {
             const isActive = isItemActive(item.href);
+            const label = item.i18nKey ? t(item.i18nKey, undefined, item.label) : item.label;
             return (
               <a
                 key={item.href}
@@ -262,7 +268,7 @@ export const HeaderComponent: React.FC<HeaderComponentProps> = ({ activePath: pr
                   }
                 }}
               >
-                {item.label}
+                {label}
               </a>
             );
           })}
@@ -272,6 +278,10 @@ export const HeaderComponent: React.FC<HeaderComponentProps> = ({ activePath: pr
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
         <nav className="mobile-nav-drawer" aria-label="Mobile Navigation">
+          <div className="mobile-utility-section" style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--color-border-subtle)' }}>
+            <LanguageSwitcher id="mobile-language-switcher" />
+          </div>
+
           <div className="mobile-search-section">
             <GlobalSearch isMobile onSearchComplete={() => setMobileMenuOpen(false)} />
           </div>
@@ -279,6 +289,7 @@ export const HeaderComponent: React.FC<HeaderComponentProps> = ({ activePath: pr
           <div className="mobile-nav-links-list">
             {PUBLIC_NAV_ITEMS.map((item) => {
               const isActive = isItemActive(item.href);
+              const label = item.i18nKey ? t(item.i18nKey, undefined, item.label) : item.label;
               return (
                 <a
                   key={item.href}
@@ -294,7 +305,7 @@ export const HeaderComponent: React.FC<HeaderComponentProps> = ({ activePath: pr
                     }
                   }}
                 >
-                  {item.label}
+                  {label}
                 </a>
               );
             })}

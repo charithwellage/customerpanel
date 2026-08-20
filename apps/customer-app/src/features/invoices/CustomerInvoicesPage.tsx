@@ -496,14 +496,14 @@ export const CustomerInvoicesPage: React.FC<CustomerInvoicesPageProps> = ({ onSe
         </div>
       </section>
 
-      {/* SECTION 2: Invoiced Sourced Vehicles Ledger Grid */}
+      {/* SECTION 2: Purchased Vehicles Ledger Grid */}
       <section className="cc-inv-vehicles-section" aria-labelledby="invoiced-vehicles-heading">
         <div className="cc-inv-vehicles-header">
           <div className="cc-inv-vehicles-header__left">
             <div className="cc-inv-vehicles-title-row">
               <VehiclesSideCarIcon size={20} className="cc-inv-vehicles-icon" />
               <h2 id="invoiced-vehicles-heading" className="cc-inv-vehicles-title">
-                INVOICED SOURCED VEHICLES LEDGER
+                PURCHASED VEHICLES LEDGER
               </h2>
             </div>
             <p className="cc-inv-vehicles-subtitle">

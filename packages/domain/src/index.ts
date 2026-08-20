@@ -1,3 +1,5 @@
+import type { VehicleComplianceEvaluation } from './compliance.js';
+
 export type VehicleStatus =
   | 'Draft'
   | 'Available'
@@ -208,6 +210,7 @@ export interface VehicleDomainSummary {
   nowOnSale?: boolean;
   priceState?: 'priced' | 'request_price';
   countryEligibility?: string[];
+  compliance?: VehicleComplianceEvaluation;
   tierPricing?: VehicleTierPricing;
   reservationEligibility?: VehicleReservationEligibility;
 }
@@ -302,6 +305,8 @@ export interface SearchVehiclesQuery {
   mileageMin?: number;
   mileageMax?: number;
   discountMin?: number;
+  destinationCountry?: string;
+  complianceOnly?: boolean;
   sortBy?: 'newest' | 'price_asc' | 'price_desc' | 'year_desc' | 'year_asc' | 'mileage_asc';
   page?: number;
   limit?: number;
@@ -359,6 +364,7 @@ export interface VehicleDetail {
   eta?: string;
   featured?: boolean;
   countryEligibility?: string[];
+  compliance?: VehicleComplianceEvaluation;
   media: CategorizedPublicMedia;
 
   // Phase 2.3 Customer Projections (D02-P03-T001)
@@ -1269,4 +1275,6 @@ export * from './auth.js';
 export * from './freight.js';
 export * from './content.js';
 export * from './countries.js';
+export * from './compliance.js';
+export * from './i18n.js';
 import type { CustomerTier } from './auth.js';

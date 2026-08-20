@@ -436,6 +436,18 @@
             "in": "query",
             "required": false,
             "schema": { "type": "string", "enum": ["Platinum", "Gold", "Silver", "Standard"], "example": "Platinum" }
+          },
+          {
+            "name": "destinationCountry",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "example": "Kenya" }
+          },
+          {
+            "name": "complianceOnly",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "boolean", "example": true }
           }
         ],
         "responses": {
@@ -604,6 +616,18 @@
             "in": "query",
             "required": false,
             "schema": { "type": "string", "enum": ["Platinum", "Gold", "Silver", "Standard"], "example": "Platinum" }
+          },
+          {
+            "name": "destinationCountry",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "example": "Kenya" }
+          },
+          {
+            "name": "complianceOnly",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "boolean", "example": true }
           }
         ],
         "responses": {
