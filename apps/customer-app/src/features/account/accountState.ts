@@ -27,6 +27,8 @@ export function saveCustomerSession(session: CustomerSession): void {
   try {
     sessionStorage.setItem(STORAGE_KEY_TOKEN, session.token);
     sessionStorage.setItem(STORAGE_KEY_SESSION, JSON.stringify(session));
+    localStorage.setItem(STORAGE_KEY_TOKEN, session.token);
+    localStorage.setItem(STORAGE_KEY_SESSION, JSON.stringify(session));
   } catch {
     // Ignore storage quota or disabled storage error
   }
@@ -35,7 +37,33 @@ export function saveCustomerSession(session: CustomerSession): void {
 export function loadCustomerSession(): CustomerSession | null {
   if (typeof window === 'undefined') return null;
   try {
-    const stored = sessionStorage.getItem(STORAGE_KEY_SESSION);
+    let stored = sessionStorage.getItem(STORAGE_KEY_SESSION);
+    if (!stored) {
+      stored = localStorage.getItem(STORAGE_KEY_SESSION);
+    }
+    if (!stored) {
+      // Check if session was created in public-web under 'carchief_auth_session'
+      const publicAuth = localStorage.getItem('carchief_auth_session');
+      if (publicAuth) {
+        const parsed = JSON.parse(publicAuth);
+        if (parsed?.token && parsed?.claims) {
+          const session: CustomerSession = {
+            token: parsed.token,
+            user: {
+              id: parsed.claims.sub || 'cust-123',
+              name: parsed.claims.email?.split('@')[0] || 'Customer',
+              email: parsed.claims.email || 'demo.customer@carchief.com',
+              role: parsed.claims.role || 'CustomerBuyer',
+              permissions: parsed.claims.permissions || ['read:public', 'read:customer', 'create:inquiry', 'create:reservation', 'create:payment'],
+            },
+            expiresAt: parsed.claims.exp || Math.floor(Date.now() / 1000) + 86400 * 30,
+            status: 'ACTIVE',
+          };
+          saveCustomerSession(session);
+          return session;
+        }
+      }
+    }
     if (!stored) return null;
     const session = JSON.parse(stored) as CustomerSession;
     if (isSessionExpired(session)) {
@@ -53,6 +81,8 @@ export function clearCustomerSession(): void {
   try {
     sessionStorage.removeItem(STORAGE_KEY_TOKEN);
     sessionStorage.removeItem(STORAGE_KEY_SESSION);
+    localStorage.removeItem(STORAGE_KEY_TOKEN);
+    localStorage.removeItem(STORAGE_KEY_SESSION);
   } catch {
     // Ignore storage errors
   }

@@ -1,4 +1,16 @@
-import { Buffer } from 'node:buffer';
+function base64Encode(str: string): string {
+  if (typeof globalThis !== 'undefined' && typeof (globalThis as any).Buffer !== 'undefined') {
+    return (globalThis as any).Buffer.from(str, 'utf8').toString('base64');
+  }
+  return typeof btoa !== 'undefined' ? btoa(unescape(encodeURIComponent(str))) : '';
+}
+
+function base64Decode(str: string): string {
+  if (typeof globalThis !== 'undefined' && typeof (globalThis as any).Buffer !== 'undefined') {
+    return (globalThis as any).Buffer.from(str, 'base64').toString('utf8');
+  }
+  return typeof atob !== 'undefined' ? decodeURIComponent(escape(atob(str))) : '';
+}
 
 export type UserRole =
   | 'PublicVisitor'
@@ -53,7 +65,7 @@ export function issueSessionToken(
     tier: role === 'CustomerBuyer' ? tier : undefined,
   };
   const json = JSON.stringify(claims);
-  const payload = Buffer.from(json, 'utf8').toString('base64');
+  const payload = base64Encode(json);
   return `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.${payload}.demo-signature`;
 }
 
@@ -66,7 +78,7 @@ export function parseSessionToken(token: string): JwtClaims | null {
   try {
     const parts = token.split('.');
     if (parts.length !== 3) return null;
-    const json = Buffer.from(parts[1], 'base64').toString('utf8');
+    const json = base64Decode(parts[1]);
     return JSON.parse(json) as JwtClaims;
   } catch {
     return null;
