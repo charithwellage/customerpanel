@@ -68,6 +68,8 @@ export const CustomerNav: React.FC = () => {
     switch (itemId) {
       case 'dashboard':
         return <DashboardGridIcon size={18} />;
+      case 'statement':
+        return <InvoiceDocumentIcon size={18} />;
       case 'inventory':
         return <ShowroomCarIcon size={18} />;
       case 'inquiries':

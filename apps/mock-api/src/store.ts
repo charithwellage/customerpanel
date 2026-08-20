@@ -86,6 +86,13 @@ import type {
   MarkNotificationsReadResponse,
   CustomerProfile,
   UpdateCustomerProfileRequest,
+  CustomerStatementEntry,
+  CustomerStatementSummary,
+  CustomerDebitCreditRecord,
+  CustomerDebitCreditListResponse,
+  CustomerPolymorphicInquiry,
+  CustomerPolymorphicInquiryListResponse,
+  CustomerPairedAccount,
 } from '@carchief/domain';
 import {
   generateVehicleSlug,
@@ -1209,6 +1216,11 @@ export interface DemoStore {
   createFavourite(customerId: string, name: string, criteria: FavouriteSearchCriteria, nowISO?: string): Promise<FavouriteSearch>;
   deleteFavourite(customerId: string, id: string): Promise<void>;
   getFavouriteFacets(): Promise<FavouriteSearchFacets>;
+  // FRD Additions: Statement, Debit/Credit/Refunds, Polymorphic Inquiries, Paired Accounts
+  getCustomerStatement(customerId: string, fromDate?: string, toDate?: string): Promise<CustomerStatementSummary>;
+  getCustomerDebitCreditRefunds(customerId: string): Promise<CustomerDebitCreditListResponse>;
+  listCustomerPolymorphicInquiries(customerId: string): Promise<CustomerPolymorphicInquiryListResponse>;
+  getCustomerPairedAccounts(customerId: string): Promise<CustomerPairedAccount[]>;
   reset(): Promise<void>;
   close(): Promise<void>;
 }
@@ -5550,6 +5562,280 @@ class MemoryStore implements DemoStore {
     };
   }
 
+  getCustomerStatement(customerId: string, fromDate?: string, toDate?: string): Promise<CustomerStatementSummary> {
+    const openingBalance = 450.00;
+    const entries: CustomerStatementEntry[] = [
+      {
+        id: 'stmt-0',
+        date: fromDate || '2024-09-01',
+        description: 'Opening Balance (Forward from previous cycle)',
+        debitUsd: 0,
+        creditUsd: 0,
+        runningBalanceUsd: openingBalance,
+        isOpeningBalance: true,
+      },
+      {
+        id: 'stmt-1',
+        date: '2024-09-05',
+        description: 'Invoice P-85492 (2021 TOYOTA COROLLA FIELDER)',
+        referenceNo: 'P-85492',
+        debitUsd: 17360,
+        creditUsd: 0,
+        runningBalanceUsd: 17360 - openingBalance,
+      },
+      {
+        id: 'stmt-2',
+        date: '2024-09-10',
+        description: 'Telegraphic Wire Remittance Deposit (TT2400005)',
+        referenceNo: 'TT2400005',
+        debitUsd: 0,
+        creditUsd: 100000,
+        runningBalanceUsd: -83090,
+      },
+      {
+        id: 'stmt-3',
+        date: '2024-09-15',
+        description: 'Commercial Invoice INV-34503 (2024 TOYOTA LAND CRUISER 250)',
+        referenceNo: 'INV-34503',
+        debitUsd: 45000,
+        creditUsd: 0,
+        runningBalanceUsd: -38090,
+      },
+      {
+        id: 'stmt-4',
+        date: '2024-09-22',
+        description: 'Debit Note DN2400008 (Storage & demurrage adjustment)',
+        referenceNo: 'DN2400008',
+        debitUsd: 1000,
+        creditUsd: 0,
+        runningBalanceUsd: -37090,
+      },
+      {
+        id: 'stmt-5',
+        date: '2024-09-30',
+        description: 'Credit Note CR2400005 (Port handling allowance)',
+        referenceNo: 'CR2400005',
+        debitUsd: 0,
+        creditUsd: 400,
+        runningBalanceUsd: -37490,
+      },
+    ];
+
+    let filtered = entries;
+    if (fromDate) {
+      const fromTime = new Date(fromDate).getTime();
+      filtered = filtered.filter((e) => e.isOpeningBalance || new Date(e.date).getTime() >= fromTime);
+    }
+    if (toDate) {
+      const toTime = new Date(toDate).getTime();
+      filtered = filtered.filter((e) => e.isOpeningBalance || new Date(e.date).getTime() <= toTime);
+    }
+
+    const totalDebitsUsd = filtered.filter((e) => !e.isOpeningBalance).reduce((sum, e) => sum + e.debitUsd, 0);
+    const totalCreditsUsd = filtered.filter((e) => !e.isOpeningBalance).reduce((sum, e) => sum + e.creditUsd, 0);
+    const closingBalanceUsd = totalDebitsUsd - totalCreditsUsd + openingBalance;
+
+    return Promise.resolve({
+      customerId,
+      fromDate: fromDate || '2024-09-01',
+      toDate: toDate || '2024-10-31',
+      openingBalanceUsd: openingBalance,
+      totalDebitsUsd,
+      totalCreditsUsd,
+      closingBalanceUsd,
+      entries: filtered,
+    });
+  }
+
+  getCustomerDebitCreditRefunds(customerId: string): Promise<CustomerDebitCreditListResponse> {
+    const records: CustomerDebitCreditRecord[] = [
+      {
+        id: 'dc-1',
+        customerId,
+        refNumber: 'DN2400008',
+        type: 'Debit',
+        cashInDate: '2024-10-31',
+        stockId: 'J24013263',
+        currency: 'USD',
+        amount: 1000,
+        balanceAmount: 1000,
+        paidInCash: false,
+        approvedDate: '2024-10-31',
+        customerNotes: 'Storage & documentation demurrage adjustment.',
+        notesVisibleToCustomer: true,
+      },
+      {
+        id: 'dc-2',
+        customerId,
+        refNumber: 'RF2400006',
+        type: 'Refund',
+        cashInDate: '2024-10-25',
+        stockId: '-',
+        currency: 'USD',
+        amount: 5000,
+        balanceAmount: 5000,
+        paidInCash: true,
+        approvedDate: '2024-10-25',
+        customerNotes: 'Direct remittance excess wire refund.',
+        notesVisibleToCustomer: true,
+      },
+      {
+        id: 'dc-3',
+        customerId,
+        refNumber: 'CR2400008',
+        type: 'Credit',
+        cashInDate: '2024-10-24',
+        stockId: '-',
+        currency: 'USD',
+        amount: 4500,
+        balanceAmount: 4500,
+        paidInCash: false,
+        approvedDate: '2024-10-24',
+        customerNotes: 'Ocean freight discount rebate credited to ledger.',
+        notesVisibleToCustomer: true,
+      },
+      {
+        id: 'dc-4',
+        customerId,
+        refNumber: 'DN2400001',
+        type: 'Debit',
+        cashInDate: '2024-10-04',
+        stockId: 'NRE161',
+        currency: 'USD',
+        amount: 250,
+        balanceAmount: 250,
+        paidInCash: false,
+        approvedDate: '2024-10-04',
+        customerNotes: 'Inspection expediting fee.',
+        notesVisibleToCustomer: true,
+      },
+      {
+        id: 'dc-5',
+        customerId,
+        refNumber: 'CR2400005',
+        type: 'Credit',
+        cashInDate: '2024-09-30',
+        stockId: 'DE3FS-',
+        currency: 'USD',
+        amount: 400,
+        balanceAmount: 400,
+        paidInCash: false,
+        approvedDate: '2024-09-30',
+        customerNotes: 'Port handling allowance credited.',
+        notesVisibleToCustomer: true,
+      },
+    ];
+
+    const totalDebitsUsd = records.filter((r) => r.type === 'Debit').reduce((sum, r) => sum + r.amount, 0);
+    const totalCreditsUsd = records.filter((r) => r.type === 'Credit').reduce((sum, r) => sum + r.amount, 0);
+    const totalRefundsUsd = records.filter((r) => r.type === 'Refund').reduce((sum, r) => sum + r.amount, 0);
+
+    return Promise.resolve({
+      items: records,
+      total: records.length,
+      totalDebitsUsd,
+      totalCreditsUsd,
+      totalRefundsUsd,
+    });
+  }
+
+  listCustomerPolymorphicInquiries(customerId: string): Promise<CustomerPolymorphicInquiryListResponse> {
+    const items: CustomerPolymorphicInquiry[] = [
+      {
+        id: 'inq-1',
+        customerId,
+        inquiryNumber: 'IN-0003',
+        source: 'Stock',
+        status: 'Pending Reply',
+        inquiryDate: '26th Sep, 2024 13:45:00',
+        make: 'Toyota',
+        model: 'Corolla Fielder 1.5G',
+        yom: '2021',
+        stockNumber: 'J240111111',
+        chassisNumber: 'NRE161-0091995',
+        viewsCount: 12,
+        message: 'Could you please confirm the earliest vessel departure schedule for Mombasa?',
+        fobPriceUsd: 1400,
+        cfPriceUsd: 2400,
+        deliveryLocation: 'Kenya-Mombasa',
+        inquirerCount: 4,
+        imageUrl: 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=600',
+      },
+      {
+        id: 'inq-2',
+        customerId,
+        inquiryNumber: 'IN-0002',
+        source: 'Auction',
+        status: 'Replied',
+        inquiryDate: '26th Sep, 2024 13:45:00',
+        make: 'Toyota',
+        model: 'Raize Z 4WD',
+        yom: '2024',
+        lotNumber: '36071',
+        chassisModel: 'A210A',
+        viewsCount: 8,
+        message: 'Inspection grade request and maximum auction bidding cap confirmation.',
+        replyMessage: 'Grade 5.0 A condition verified. Starting bid placed at JAAI Yokohama.',
+        repliedAt: '26th Sep, 2024 15:30:00',
+        startPriceUsd: 1400,
+        auctionRemaining: '2 hr 45 min',
+        auctionFinished: false,
+        deliveryLocation: 'Kenya',
+        imageUrl: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=600',
+      },
+      {
+        id: 'inq-3',
+        customerId,
+        inquiryNumber: 'IN-0001',
+        source: 'General',
+        status: 'Replied',
+        inquiryDate: '26th Sep, 2024 13:45:00',
+        make: 'Toyota',
+        model: 'Land Cruiser 250 ZX',
+        yom: '2024',
+        message: 'Looking for 2024 Land Cruiser 250 with sunroof, leather interior, and 7 seats.',
+        replyMessage: 'We have reserved 2 units arriving at Yokohama port this week.',
+        repliedAt: '26th Sep, 2024 16:00:00',
+        driveType: 'RHD 4WD',
+        mfgYearRange: '2022 To 2024',
+        minFobUsd: 1400,
+        maxFobUsd: 3400,
+        deliveryLocation: 'Kenya',
+      },
+    ];
+
+    return Promise.resolve({
+      items,
+      total: items.length,
+    });
+  }
+
+  getCustomerPairedAccounts(customerId: string): Promise<CustomerPairedAccount[]> {
+    return Promise.resolve([
+      {
+        id: 'pa-1',
+        name: 'Charith Wellage (Primary)',
+        type: 'PRIMARY',
+        balanceUsd: 450,
+        isCredit: true,
+      },
+      {
+        id: 'pa-2',
+        name: 'CarChief Kenya Hub (Branch)',
+        type: 'BRANCH',
+        balanceUsd: 12500,
+        isCredit: false,
+      },
+      {
+        id: 'pa-3',
+        name: 'Wellage Logistics Fleet (Logistics)',
+        type: 'LOGISTICS',
+        balanceUsd: 0,
+        isCredit: true,
+      },
+    ]);
+  }
+
   reset(): Promise<void> {
     this.config = { ...seedConfig };
     this.vehicles = seedVehicles.map((vehicle) => ({ ...vehicle }));
@@ -7870,6 +8156,26 @@ class PostgresStore implements DemoStore {
     } finally {
       client.release();
     }
+  }
+
+  getCustomerStatement(customerId: string, fromDate?: string, toDate?: string): Promise<CustomerStatementSummary> {
+    const memory = new MemoryStore();
+    return memory.getCustomerStatement(customerId, fromDate, toDate);
+  }
+
+  getCustomerDebitCreditRefunds(customerId: string): Promise<CustomerDebitCreditListResponse> {
+    const memory = new MemoryStore();
+    return memory.getCustomerDebitCreditRefunds(customerId);
+  }
+
+  listCustomerPolymorphicInquiries(customerId: string): Promise<CustomerPolymorphicInquiryListResponse> {
+    const memory = new MemoryStore();
+    return memory.listCustomerPolymorphicInquiries(customerId);
+  }
+
+  getCustomerPairedAccounts(customerId: string): Promise<CustomerPairedAccount[]> {
+    const memory = new MemoryStore();
+    return memory.getCustomerPairedAccounts(customerId);
   }
 
   async close(): Promise<void> {

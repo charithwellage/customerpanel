@@ -1,0 +1,288 @@
+/* ==========================================================================
+   CUSTOMER STATEMENT (FRD SECTION 3)
+   ========================================================================== */
+
+.cc-stmt-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  width: 100%;
+}
+
+.cc-stmt-header-card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.cc-stmt-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+}
+
+.cc-stmt-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--font-size-xl);
+  font-weight: 800;
+  color: var(--color-text-primary);
+}
+
+.cc-stmt-subtitle {
+  margin: var(--spacing-xs) 0 0 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.cc-stmt-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
+.cc-stmt-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-md);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background-color: var(--color-surface);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--motion-fast);
+}
+
+.cc-stmt-action-btn:hover {
+  background-color: var(--color-neutral-surface);
+  border-color: var(--color-text-secondary);
+}
+
+.cc-stmt-action-btn--excel {
+  background-color: var(--color-primary);
+  color: var(--color-text-on-primary);
+  border-color: var(--color-primary);
+}
+
+.cc-stmt-action-btn--excel:hover {
+  background-color: var(--color-primary-hover);
+}
+
+.cc-stmt-filter-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+  padding-top: var(--spacing-sm);
+  border-top: 1px solid var(--color-border);
+}
+
+.cc-stmt-filter-group {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
+.cc-stmt-filter-label {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--color-text-secondary);
+}
+
+.cc-stmt-date-inputs {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.cc-stmt-date-input {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface);
+  color: var(--color-text-primary);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+}
+
+.cc-stmt-date-sep {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.cc-stmt-reset-btn {
+  background: transparent;
+  border: none;
+  color: var(--color-primary);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+}
+
+/* Statement KPI Bar */
+.cc-stmt-kpi-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md) var(--spacing-lg);
+  box-shadow: var(--shadow-sm);
+  gap: var(--spacing-md);
+}
+
+.cc-stmt-kpi-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.cc-stmt-kpi-label {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+}
+
+.cc-stmt-kpi-val {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-base);
+  font-weight: 800;
+}
+
+.cc-stmt-val--debit {
+  color: var(--color-error);
+}
+
+.cc-stmt-val--credit {
+  color: var(--color-success);
+}
+
+.cc-stmt-kpi-divider {
+  width: 1px;
+  height: 24px;
+  background-color: var(--color-border);
+}
+
+/* Transaction Ledger Table */
+.cc-stmt-table-section {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.cc-stmt-table-scroll-wrap {
+  overflow-x: auto;
+  max-height: 520px;
+  overflow-y: auto;
+}
+
+.cc-stmt-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.cc-stmt-table th {
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  border-bottom: 2px solid var(--color-border);
+  background-color: var(--color-neutral-surface);
+}
+
+.cc-stmt-th--right {
+  text-align: right;
+}
+
+.cc-stmt-tr {
+  border-bottom: 1px solid var(--color-border);
+  transition: background-color var(--motion-fast);
+}
+
+.cc-stmt-tr:hover {
+  background-color: var(--color-neutral-surface);
+}
+
+.cc-stmt-tr--opening {
+  background-color: var(--color-neutral-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.cc-stmt-tr--total {
+  background-color: var(--color-neutral-surface);
+  border-top: 2px solid var(--color-border);
+  font-weight: 800;
+}
+
+.cc-stmt-table td {
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-primary);
+}
+
+.cc-stmt-td-mono {
+  font-family: var(--font-mono);
+}
+
+.cc-stmt-td-bold {
+  font-weight: 700;
+}
+
+.cc-stmt-td-desc {
+  font-weight: 600;
+}
+
+.cc-stmt-td--right {
+  text-align: right;
+}
+
+/* Print Styles for Statement */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .cc-stmt-page,
+  .cc-stmt-page * {
+    visibility: visible;
+  }
+
+  .cc-stmt-page {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .cc-stmt-actions,
+  .cc-cust-shell-sidebar,
+  .cc-cust-shell-header {
+    display: none !important;
+  }
+}

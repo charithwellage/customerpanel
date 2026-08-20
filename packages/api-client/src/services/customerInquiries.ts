@@ -1,4 +1,4 @@
-import type { CustomerInquiryListResponse, VehicleInquiryAggregate } from '@carchief/domain';
+import type { CustomerInquiryListResponse, CustomerPolymorphicInquiryListResponse, VehicleInquiryAggregate } from '@carchief/domain';
 import type { HttpClient } from '../http.js';
 
 /**
@@ -20,6 +20,16 @@ export class CustomerInquiryService {
       throw new Error('CustomerInquiryService.list requires an HttpClient');
     }
     return this.httpClient.request<CustomerInquiryListResponse>('/api/v1/customer/inquiries');
+  }
+
+  /**
+   * List polymorphic inquiries (Stock, WhatsApp, Auction, General) for the signed-in customer (FRD Section 6).
+   */
+  public async listPolymorphic(): Promise<CustomerPolymorphicInquiryListResponse> {
+    if (!this.httpClient) {
+      throw new Error('CustomerInquiryService.listPolymorphic requires an HttpClient');
+    }
+    return this.httpClient.request<CustomerPolymorphicInquiryListResponse>('/api/v1/customer/inquiries');
   }
 
   /**
