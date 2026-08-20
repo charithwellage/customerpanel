@@ -164,13 +164,13 @@
 | [D02-P14-T004](delivery_02/phase_14/D02-P14-T004.md) | Create and integrate the Services page highlighting shipping, clearing, and warranty offerings | COMPLETE | self_ai | playwright_mcp | Antigravity | `feat_delivery02_phase_14` | — | D02-P14-T002 | D02-P14-SEQUENTIAL | 2026-08-20T09:48:30.985Z |
 | [D02-P14-T005](delivery_02/phase_14/D02-P14-T005.md) | Implement country-specific vehicle localization and compliance filtering for logged-in users | COMPLETE | self_ai | playwright_mcp | Antigravity | `feat_delivery02_phase_14` | — | D02-P14-T002 | D02-P14-SEQUENTIAL | 2026-08-20T10:44:56.035Z |
 | [D02-P14-T006](delivery_02/phase_14/D02-P14-T006.md) | Implement globalization and language preferences using i18n and Google Translate integration | COMPLETE | self_ai | playwright_mcp | Antigravity | `feat_delivery02_phase_14` | — | None | D02-P14-PARALLEL | 2026-08-20T11:05:34.562Z |
-| [D02-P14-T007](delivery_02/phase_14/D02-P14-T008.md) | Update application terminology and consolidate customer sidebar navigation | IN_PROGRESS | self_ai | playwright_mcp | Antigravity | `feat_delivery02_phase_14` | — | None | D02-P14-PARALLEL | 2026-08-20T11:06:30.147Z |
-| [D02-P14-T008](delivery_02/phase_14/D02-P14-T007.md) | Redesign the 'My Vehicles' (Sourced Vehicles) page to enhance status visibility and user interaction | NOT_STARTED | self_ai | playwright_mcp | — | `feat_delivery02_phase_14` | — | D02-P14-T007 | D02-P14-PARALLEL | — |
+| [D02-P14-T007](delivery_02/phase_14/D02-P14-T008.md) | Update application terminology and consolidate customer sidebar navigation | COMPLETE | self_ai | playwright_mcp | Antigravity | `feat_delivery02_phase_14` | — | None | D02-P14-PARALLEL | 2026-08-20T11:34:18.804Z |
+| [D02-P14-T008](delivery_02/phase_14/D02-P14-T007.md) | Redesign the 'My Vehicles' (Sourced Vehicles) page to enhance status visibility and user interaction | READY | self_ai | playwright_mcp | — | `feat_delivery02_phase_14` | — | D02-P14-T007 | D02-P14-PARALLEL | — |
 
 
 ## Current execution frontiers
 
-- GLOBAL: D02-P14-T007 — Update application terminology and consolidate customer sidebar navigation (IN_PROGRESS)
+- GLOBAL: D02-P14-T008 — Redesign the 'My Vehicles' (Sourced Vehicles) page to enhance status visibility and user interaction (NOT_STARTED)
 - Sequential within each lane; dependencies coordinate work across lanes.
 - Optional Phase 2.11 is excluded until explicitly started with `--opt-in theme`.
 - Downstream work waits for COMPLETE or SUPERSEDED; IN_REVIEW is not complete.
