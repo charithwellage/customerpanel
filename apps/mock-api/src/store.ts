@@ -109,6 +109,10 @@ import {
   MAX_ACTIVE_RESERVATIONS_PER_CUSTOMER,
   RESERVABLE_VEHICLE_STATUSES,
   COUNTRIES,
+  VehicleComplianceEvaluation,
+  evaluateVehicleCompliance,
+  isVehicleCompliantForCountry,
+  normalizeCountryCode,
 } from '@carchief/domain';
 import { validateEmail } from '@carchief/validation';
 export { FreightRequestError, resolveFreightRateStatus } from '@carchief/domain';
@@ -1154,6 +1158,8 @@ export interface VehicleQueryContext {
   audience?: 'public' | 'customer' | 'salesperson';
   customerId?: string;
   customerTier?: CustomerTier;
+  customerCountry?: string;
+  destinationCountry?: string;
   nowISO?: string;
   reservations?: ReservationRecord[];
 }
@@ -2770,6 +2776,9 @@ export function projectVehicle(
     nowOnSale,
     priceState,
     countryEligibility: [...DEMO_COUNTRY_ELIGIBILITY_PLACEHOLDER],
+    compliance: (context.destinationCountry || context.customerCountry)
+      ? evaluateVehicleCompliance(v, context.destinationCountry || context.customerCountry, new Date(nowISO).getUTCFullYear())
+      : undefined,
     tierPricing,
     reservationEligibility,
   };
@@ -2873,6 +2882,9 @@ export function buildVehicleDetail(
     eta: v.eta,
     featured: v.featured,
     countryEligibility: [...DEMO_COUNTRY_ELIGIBILITY_PLACEHOLDER],
+    compliance: (context.destinationCountry || context.customerCountry)
+      ? evaluateVehicleCompliance(v, context.destinationCountry || context.customerCountry, new Date(nowISO).getUTCFullYear())
+      : undefined,
     // The demo record carries a single uncategorized `images` array, so only the
     // general gallery is populated. Auction/Japan/Durban categories stay empty
     // with their visibility flags false rather than re-labelling gallery images
@@ -3308,6 +3320,20 @@ function filterAndSortVehicles(
 
   if (query?.engineCcMin !== undefined) list = list.filter((v) => v.engineCc !== undefined && v.engineCc >= Number(query.engineCcMin));
   if (query?.engineCcMax !== undefined) list = list.filter((v) => v.engineCc !== undefined && v.engineCc <= Number(query.engineCcMax));
+
+  // Country Import Compliance Filtering (D02-P14-T005)
+  const destCountry = (query?.destinationCountry || context?.destinationCountry || (effectiveAudience === 'customer' ? context?.customerCountry : undefined))?.trim();
+  if (destCountry) {
+    const complianceOnly = (query as any)?.complianceOnly !== false && (query as any)?.complianceOnly !== 'false';
+    const refYear = new Date(now).getUTCFullYear();
+    if (complianceOnly) {
+      list = list.filter((v) => isVehicleCompliantForCountry(v, destCountry, refYear));
+    }
+    list = list.map((v) => ({
+      ...v,
+      compliance: evaluateVehicleCompliance(v, destCountry, refYear),
+    }));
+  }
 
   // Sorting
   if (query?.sortBy) {

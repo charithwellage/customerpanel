@@ -17,6 +17,8 @@ export interface JwtClaims {
   permissions: string[];
   exp: number;
   tier?: CustomerTier;
+  country?: string;
+  countryCode?: string;
 }
 
 export const ROLE_PERMISSIONS: Record<UserRole, string[]> = {

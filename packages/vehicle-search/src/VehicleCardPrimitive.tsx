@@ -122,6 +122,20 @@ export const VehicleCardPrimitive: React.FC<VehicleCardPrimitiveProps> = ({
           <span className="cc-vehicle-card__discount">-{vehicle.discountPercent}% discount</span>
         )}
 
+        {vehicle.compliance && (
+          <div className="cc-vehicle-card__compliance">
+            {vehicle.compliance.isCompliant ? (
+              <span className="cc-compliance-badge cc-compliance-badge--pass" title={vehicle.compliance.passedCriteria.join('; ')}>
+                <span className="cc-compliance-badge__dot">✓</span> Compliant for {vehicle.compliance.countryName}
+              </span>
+            ) : (
+              <span className="cc-compliance-badge cc-compliance-badge--fail" title={vehicle.compliance.failedCriteria.join('; ')}>
+                <span className="cc-compliance-badge__dot">⚠️</span> {vehicle.compliance.countryName} Restricted
+              </span>
+            )}
+          </div>
+        )}
+
         <div className="cc-vehicle-card__footer">
           <span className="cc-vehicle-card__price-label">RETAIL PRICE</span>
           <div className="cc-vehicle-card__price-wrapper">

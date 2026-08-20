@@ -18,6 +18,8 @@ export class VehicleService {
     if (options?.limit) params.set('limit', String(options.limit));
     if (options?.audience) params.set('audience', options.audience);
     if (options?.tier) params.set('tier', options.tier);
+    if (options?.destinationCountry) params.set('destinationCountry', options.destinationCountry);
+    if (options?.complianceOnly !== undefined) params.set('complianceOnly', String(options.complianceOnly));
 
     const queryString = params.toString();
     const path = `/api/v1/vehicles${queryString ? `?${queryString}` : ''}`;
@@ -102,13 +104,15 @@ export class VehicleService {
     if (query?.limit !== undefined) params.set('limit', String(query.limit));
     if (query?.audience) params.set('audience', query.audience);
     if (query?.tier) params.set('tier', query.tier);
+    if (query?.destinationCountry) params.set('destinationCountry', query.destinationCountry);
+    if (query?.complianceOnly !== undefined) params.set('complianceOnly', String(query.complianceOnly));
 
     const queryString = params.toString();
     const path = `/api/v1/vehicles/search${queryString ? `?${queryString}` : ''}`;
     return this.httpClient.request<VehicleSearchResult>(path);
   }
 
-  public async getVehicleDetail(idOrSlug: string, options?: { audience?: 'public' | 'customer' | 'salesperson'; tier?: string }): Promise<VehicleDetail | null> {
+  public async getVehicleDetail(idOrSlug: string, options?: { audience?: 'public' | 'customer' | 'salesperson'; tier?: string; destinationCountry?: string }): Promise<VehicleDetail | null> {
     if (!this.httpClient) {
       return null;
     }
@@ -116,6 +120,7 @@ export class VehicleService {
       const params = new URLSearchParams();
       if (options?.audience) params.set('audience', options.audience);
       if (options?.tier) params.set('tier', options.tier);
+      if (options?.destinationCountry) params.set('destinationCountry', options.destinationCountry);
       const queryString = params.toString();
       const path = `/api/v1/vehicles/${encodeURIComponent(idOrSlug)}${queryString ? `?${queryString}` : ''}`;
       return await this.httpClient.request<VehicleDetail>(path);

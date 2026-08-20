@@ -250,7 +250,38 @@
   font-family: var(--font-mono, 'JetBrains Mono', monospace);
   font-size: 0.78rem;
   font-weight: 700;
-  margin-bottom: 0.85rem;
+  margin-bottom: 0.5rem;
+}
+
+.cc-vehicle-card__compliance {
+  margin-bottom: 0.65rem;
+}
+
+.cc-compliance-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  line-height: 1.2;
+}
+
+.cc-compliance-badge--pass {
+  background: #f0fdf4;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+.cc-compliance-badge--fail {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.cc-compliance-badge__dot {
+  font-size: 0.75rem;
 }
 
 .cc-vehicle-card__footer {

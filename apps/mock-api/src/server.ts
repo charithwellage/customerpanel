@@ -64,10 +64,13 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
   app.get('/api/v1/vehicles', async (req: AuthenticatedRequest, res: Response) => {
     const audience = (req.query.audience as string) || (req.user?.role === 'CustomerBuyer' ? 'customer' : 'public');
     const customerTier = (req.query.tier as any) || req.user?.tier;
+    const destinationCountry = (req.query.destinationCountry as string) || req.user?.country || req.user?.countryCode;
     const context = {
       audience: audience as 'public' | 'customer' | 'salesperson',
       customerId: req.user?.sub,
       customerTier,
+      customerCountry: req.user?.country || req.user?.countryCode,
+      destinationCountry,
     };
     res.json(await store.getVehicles(req.query as Record<string, string>, context));
   });
@@ -76,10 +79,13 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
   app.get('/api/v1/vehicles/search', async (req: AuthenticatedRequest, res: Response) => {
     const audience = (req.query.audience as string) || (req.user?.role === 'CustomerBuyer' ? 'customer' : 'public');
     const customerTier = (req.query.tier as any) || req.user?.tier;
+    const destinationCountry = (req.query.destinationCountry as string) || req.user?.country || req.user?.countryCode;
     const context = {
       audience: audience as 'public' | 'customer' | 'salesperson',
       customerId: req.user?.sub,
       customerTier,
+      customerCountry: req.user?.country || req.user?.countryCode,
+      destinationCountry,
     };
     res.json(await store.searchVehicles(req.query as Record<string, string>, context));
   });
@@ -90,10 +96,13 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
     const idOrSlug = Array.isArray(rawParam) ? rawParam[0] : rawParam;
     const audience = (req.query.audience as string) || (req.user?.role === 'CustomerBuyer' ? 'customer' : 'public');
     const customerTier = (req.query.tier as any) || req.user?.tier;
+    const destinationCountry = (req.query.destinationCountry as string) || req.user?.country || req.user?.countryCode;
     const context = {
       audience: audience as 'public' | 'customer' | 'salesperson',
       customerId: req.user?.sub,
       customerTier,
+      customerCountry: req.user?.country || req.user?.countryCode,
+      destinationCountry,
     };
     const detail = await store.getVehicleDetail(idOrSlug, context);
     if (!detail) {

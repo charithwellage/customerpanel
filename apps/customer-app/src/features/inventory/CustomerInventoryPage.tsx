@@ -10,6 +10,7 @@ import {
   VehicleSearchHero,
 } from '@carchief/vehicle-search';
 import { useCustomerShell } from '../shell/index.js';
+import { useCustomerProfile } from '../profile/index.js';
 import { useCustomerInventory } from './useCustomerInventory.js';
 
 export interface CustomerInventoryPageProps {
@@ -24,6 +25,9 @@ export const CustomerInventoryPage: React.FC<CustomerInventoryPageProps> = ({
   onSelectVehicle,
 }) => {
   const { user } = useCustomerShell();
+  const { data: profile } = useCustomerProfile();
+  const destinationCountry = profile?.deliveryAddress || user?.company || 'Kenya';
+
   const {
     state,
     query,
@@ -38,6 +42,7 @@ export const CustomerInventoryPage: React.FC<CustomerInventoryPageProps> = ({
   } = useCustomerInventory({
     apiBaseUrl,
     token,
+    destinationCountry,
   });
 
   const tier = user?.tier || 'Standard';
@@ -62,6 +67,35 @@ export const CustomerInventoryPage: React.FC<CustomerInventoryPageProps> = ({
             ) : (
               <p>Standard export inventory pricing with real-time stock allocation and 48-hour reservation holds.</p>
             )}
+          </div>
+        </div>
+
+        <div className="cc-cust-compliance-banner" role="region" aria-label="Country import compliance localization" data-testid="compliance-localization-banner">
+          <div className="cc-cust-compliance-banner__badge">
+            <span className="cc-cust-compliance-banner__icon">📍</span>
+            <div>
+              <span className="cc-cust-compliance-banner__tier-name">
+                {query.complianceOnly !== false
+                  ? `Import Compliance: ${destinationCountry}`
+                  : `Global Stock (${destinationCountry} Filter Off)`}
+              </span>
+              <p className="cc-cust-compliance-banner__subtitle">
+                {query.complianceOnly !== false
+                  ? `Showing vehicles compliant with ${destinationCountry} import regulations (YOM age & steering verified).`
+                  : `Showing all worldwide inventory without destination country restrictions.`}
+              </p>
+            </div>
+          </div>
+          <div className="cc-cust-compliance-banner__actions">
+            <button
+              type="button"
+              className="cc-cust-compliance-banner__btn"
+              onClick={() => updateQuery({ complianceOnly: query.complianceOnly === false ? true : false })}
+              aria-pressed={query.complianceOnly !== false}
+              data-testid="compliance-toggle-btn"
+            >
+              {query.complianceOnly !== false ? 'Show All Global Stock' : `Filter for ${destinationCountry} Only`}
+            </button>
           </div>
         </div>
         <SearchFilterBar
