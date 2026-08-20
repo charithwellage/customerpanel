@@ -200,6 +200,8 @@ export interface VehicleFacets {
   makes: FacetCount[];
   bodyStyles: FacetCount[];
   fuelTypes: FacetCount[];
+  transmissions: FacetCount[];
+  driveTrains: FacetCount[];
   yearRange: RangeFacet<number>;
   priceRange: RangeFacet<number>;
 }
@@ -1201,4 +1203,3 @@ export * from './freight.js';
 export * from './content.js';
 export * from './countries.js';
 import type { CustomerTier } from './auth.js';
-

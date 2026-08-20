@@ -65,8 +65,8 @@ export function SearchFilterBar({
           <FilterSelect id="filter-make-select" label="Make" value={query.make} options={facets?.makes.map((item) => item.name) ?? []} onChange={(value) => onUpdateQuery({ make: value || undefined })} />
           <FilterSelect id="filter-bodystyle-select" label="Body Style" value={query.bodyStyle} options={facets?.bodyStyles.map((item) => item.name) ?? []} onChange={(value) => onUpdateQuery({ bodyStyle: value || undefined })} />
           <FilterSelect id="filter-fuel-select" label="Fuel Type" value={query.fuelType} options={facets?.fuelTypes.map((item) => item.name) ?? []} onChange={(value) => onUpdateQuery({ fuelType: value || undefined })} />
-          <FilterSelect id="filter-transmission-select" label="Transmission" value={query.transmission} options={['Automatic', 'Manual']} onChange={(value) => onUpdateQuery({ transmission: value || undefined })} />
-          <FilterSelect id="filter-drivetrain-select" label="Drive Train" value={query.driveTrain} options={['2WD', '4WD', 'AWD']} onChange={(value) => onUpdateQuery({ driveTrain: value || undefined })} />
+          <FilterSelect id="filter-transmission-select" label="Transmission" value={query.transmission} options={facets?.transmissions.map((item) => item.name) ?? []} onChange={(value) => onUpdateQuery({ transmission: value || undefined })} />
+          <FilterSelect id="filter-drivetrain-select" label="Drive Train" value={query.driveTrain} options={facets?.driveTrains.map((item) => item.name) ?? []} onChange={(value) => onUpdateQuery({ driveTrain: value || undefined })} />
         </div>
       )}
     </section>

@@ -38,6 +38,8 @@ export class VehicleService {
           makes: [],
           bodyStyles: [],
           fuelTypes: [],
+          transmissions: [],
+          driveTrains: [],
           yearRange: { min: 2000, max: 2026 },
           priceRange: { min: 0, max: 0 },
         },

@@ -1,4 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
+import fs from 'node:fs';
+import path from 'node:path';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { SearchFilterBar } from '../features/vehicle-search/components/SearchFilterBar.js';
@@ -13,6 +15,8 @@ describe('Search Components & Presentation Tests (PUB-04, PUB-07, RULE-09)', () 
     makes: [{ name: 'Toyota', count: 5 }, { name: 'Nissan', count: 3 }],
     bodyStyles: [{ name: 'SUV', count: 4 }, { name: 'Sedan', count: 4 }],
     fuelTypes: [{ name: 'Petrol', count: 6 }, { name: 'Hybrid', count: 2 }],
+    transmissions: [{ name: 'Automatic', count: 7 }, { name: 'Manual', count: 1 }],
+    driveTrains: [{ name: '2WD', count: 5 }, { name: '4WD', count: 3 }],
     yearRange: { min: 2018, max: 2023 },
     priceRange: { min: 7500, max: 49000 },
   };
@@ -35,6 +39,14 @@ describe('Search Components & Presentation Tests (PUB-04, PUB-07, RULE-09)', () 
     expect(html).toContain('Parsed criteria:');
     expect(html).toContain('✓ Make: Toyota');
     expect(html).toContain('Reset All');
+  });
+
+  it('renders transmission and drive train options from API facets', () => {
+    const source = fs.readFileSync(path.resolve(__dirname, '../../../../packages/vehicle-search/src/SearchFilterBar.tsx'), 'utf8');
+    expect(source).toContain('facets?.transmissions.map((item) => item.name)');
+    expect(source).toContain('facets?.driveTrains.map((item) => item.name)');
+    expect(source).not.toContain("options={['Automatic', 'Manual']}");
+    expect(source).not.toContain("options={['2WD', '4WD', 'AWD']}");
   });
 
   it('renders SearchResultsHeader with result count and active filter chips', () => {

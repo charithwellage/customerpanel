@@ -2358,10 +2358,18 @@
             "type": "array",
             "items": { "$ref": "#/components/schemas/FacetCount" }
           },
+          "transmissions": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/FacetCount" }
+          },
+          "driveTrains": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/FacetCount" }
+          },
           "yearRange": { "$ref": "#/components/schemas/RangeFacet" },
           "priceRange": { "$ref": "#/components/schemas/RangeFacet" }
         },
-        "required": ["makes", "bodyStyles", "fuelTypes", "yearRange", "priceRange"]
+        "required": ["makes", "bodyStyles", "fuelTypes", "transmissions", "driveTrains", "yearRange", "priceRange"]
       },
       "VehicleSearchResult": {
         "type": "object",

@@ -2844,6 +2844,8 @@ function calculateFacets(vehicles: VehicleDomainSummary[]): VehicleFacets {
   const makeMap = new Map<string, number>();
   const bodyStyleMap = new Map<string, number>();
   const fuelTypeMap = new Map<string, number>();
+  const transmissionMap = new Map<string, number>();
+  const driveTrainMap = new Map<string, number>();
 
   let minYear = 2026;
   let maxYear = 1970;
@@ -2854,6 +2856,8 @@ function calculateFacets(vehicles: VehicleDomainSummary[]): VehicleFacets {
     if (v.make) makeMap.set(v.make, (makeMap.get(v.make) || 0) + 1);
     if (v.bodyStyle) bodyStyleMap.set(v.bodyStyle, (bodyStyleMap.get(v.bodyStyle) || 0) + 1);
     if (v.fuelType) fuelTypeMap.set(v.fuelType, (fuelTypeMap.get(v.fuelType) || 0) + 1);
+    if (v.transmission) transmissionMap.set(v.transmission, (transmissionMap.get(v.transmission) || 0) + 1);
+    if (v.driveTrain) driveTrainMap.set(v.driveTrain, (driveTrainMap.get(v.driveTrain) || 0) + 1);
 
     if (v.year) {
       if (v.year < minYear) minYear = v.year;
@@ -2875,6 +2879,8 @@ function calculateFacets(vehicles: VehicleDomainSummary[]): VehicleFacets {
     makes: sortFacets(makeMap),
     bodyStyles: sortFacets(bodyStyleMap),
     fuelTypes: sortFacets(fuelTypeMap),
+    transmissions: sortFacets(transmissionMap),
+    driveTrains: sortFacets(driveTrainMap),
     yearRange: {
       min: minYear <= maxYear ? minYear : 2015,
       max: minYear <= maxYear ? maxYear : 2024,
@@ -2884,6 +2890,23 @@ function calculateFacets(vehicles: VehicleDomainSummary[]): VehicleFacets {
       max: minPrice <= maxPrice ? maxPrice : 50000,
     },
   };
+}
+
+function calculateSearchFacets(
+  vehicles: VehicleRecord[],
+  query: SearchVehiclesQuery | undefined,
+  context: VehicleQueryContext,
+): VehicleFacets {
+  // Keep the selected make in the result set, but calculate the Make
+  // dropdown from the same scoped/filtered universe without that one
+  // constraint. This keeps sibling makes available for switching.
+  const facetQuery: SearchVehiclesQuery = {
+    ...query,
+    make: undefined,
+    page: undefined,
+    limit: undefined,
+  };
+  return calculateFacets(filterAndSortVehicles(vehicles, facetQuery, context));
 }
 
 function filterAndSortVehicles(
@@ -4746,7 +4769,7 @@ class MemoryStore implements DemoStore {
       reservations: this.reservations,
     };
     const filteredList = filterAndSortVehicles(this.vehicles, query, mergedContext);
-    const facets = calculateFacets(filteredList);
+    const facets = calculateSearchFacets(this.vehicles, query, mergedContext);
 
     const page = Math.max(1, query?.page ? Number(query.page) : 1);
     const limit = Math.max(1, query?.limit ? Number(query.limit) : 12);
@@ -6800,7 +6823,7 @@ class PostgresStore implements DemoStore {
       reservations,
     };
     const filteredList = filterAndSortVehicles(rawRecords, query, mergedContext);
-    const facets = calculateFacets(filteredList);
+    const facets = calculateSearchFacets(rawRecords, query, mergedContext);
 
     const page = Math.max(1, query?.page ? Number(query.page) : 1);
     const limit = Math.max(1, query?.limit ? Number(query.limit) : 12);

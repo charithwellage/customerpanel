@@ -36,6 +36,28 @@ describe('Vehicle Query, Dynamic Filters, Sorting, and Pagination Tests (PUB-04.
     expect(conflictingCategory.items).toHaveLength(0);
   });
 
+  it('keeps sibling makes available after selecting a make', async () => {
+    const clearance = await store.searchVehicles({ collection: 'clearance' });
+    const makes = clearance.facets.makes.map((facet) => facet.name);
+    expect(makes.length).toBeGreaterThan(1);
+
+    const selectedMake = makes[0];
+    const selected = await store.searchVehicles({ collection: 'clearance', make: selectedMake });
+    expect(selected.items.every((item) => item.make === selectedMake)).toBe(true);
+    expect(selected.facets.makes.map((facet) => facet.name)).toEqual(expect.arrayContaining(makes));
+  });
+
+  it('loads transmission and drive train facets from stored vehicle values', async () => {
+    const result = await store.searchVehicles({ collection: 'clearance' });
+
+    expect(result.facets.transmissions.length).toBeGreaterThan(0);
+    expect(result.facets.driveTrains.length).toBeGreaterThan(0);
+    result.facets.transmissions.forEach((facet) => {
+      expect(result.items.every((item) => item.category?.split(',').includes('clearance'))).toBe(true);
+      expect(facet.name).not.toBe('');
+    });
+  });
+
   it('filters by make, bodyStyle, fuelType, transmission, driveTrain', async () => {
     const res = await store.searchVehicles({
       make: 'Toyota',
