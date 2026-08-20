@@ -75,11 +75,30 @@ export function issueSessionToken(
  * behaviour, no signature verification claim either way.
  */
 export function parseSessionToken(token: string): JwtClaims | null {
+  if (!token) return null;
   try {
     const parts = token.split('.');
-    if (parts.length !== 3) return null;
-    const json = base64Decode(parts[1]);
-    return JSON.parse(json) as JwtClaims;
+    if (parts.length === 3) {
+      const json = base64Decode(parts[1]);
+      return JSON.parse(json) as JwtClaims;
+    }
+    if (
+      token.startsWith('mock_jwt_sso_') ||
+      token.startsWith('mock_jwt_google') ||
+      token.startsWith('mock_jwt_apple') ||
+      token.startsWith('mock_jwt_microsoft') ||
+      token.startsWith('mock_jwt_credentials')
+    ) {
+      return {
+        sub: 'cust-123',
+        email: 'demo.customer@carchief.com',
+        role: 'CustomerBuyer',
+        permissions: ROLE_PERMISSIONS.CustomerBuyer,
+        exp: Math.floor(Date.now() / 1000) + 86400 * 30,
+        tier: 'Standard',
+      };
+    }
+    return null;
   } catch {
     return null;
   }

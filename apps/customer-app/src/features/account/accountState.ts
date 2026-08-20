@@ -1,4 +1,4 @@
-import type { CustomerTier, JwtClaims } from '@carchief/domain';
+import { parseSessionToken, type CustomerTier, type JwtClaims } from '@carchief/domain';
 import { AuthService, HttpClient, NormalizedApiError } from '@carchief/api-client';
 import type { LoginResponse, SuccessResponse, PasswordResetAcceptedResponse } from '@carchief/api-client';
 
@@ -37,6 +37,35 @@ export function saveCustomerSession(session: CustomerSession): void {
 export function loadCustomerSession(): CustomerSession | null {
   if (typeof window === 'undefined') return null;
   try {
+    // 1. Check URL query params for single sign-on / cross-app token passing
+    if (typeof window.location !== 'undefined' && window.location.search) {
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const queryToken = urlParams.get('token');
+        const queryEmail = urlParams.get('email') || 'demo.customer@carchief.com';
+        if (queryToken) {
+          const claims = parseSessionToken(queryToken);
+          const session: CustomerSession = {
+            token: queryToken,
+            user: {
+              id: claims?.sub || 'cust-123',
+              name: claims?.email?.split('@')[0] || queryEmail.split('@')[0] || 'Customer',
+              email: claims?.email || queryEmail,
+              role: claims?.role || 'CustomerBuyer',
+              permissions: claims?.permissions || ['read:public', 'read:customer', 'create:inquiry', 'create:reservation', 'create:payment'],
+              tier: claims?.tier || 'Standard',
+            },
+            expiresAt: claims?.exp || Math.floor(Date.now() / 1000) + 86400 * 30,
+            status: 'ACTIVE',
+          };
+          saveCustomerSession(session);
+          return session;
+        }
+      } catch {
+        // ignore url parsing error
+      }
+    }
+
     let stored = sessionStorage.getItem(STORAGE_KEY_SESSION);
     if (!stored) {
       stored = localStorage.getItem(STORAGE_KEY_SESSION);

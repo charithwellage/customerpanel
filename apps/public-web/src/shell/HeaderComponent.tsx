@@ -35,7 +35,7 @@ function HeaderAuthActions({ className = '', onNavigate, onOpenLogin }: HeaderAu
           <span className="header-user-name">{userDisplayName}</span>
         </div>
         <a
-          href={customerAppUrl}
+          href={session.token ? `${customerAppUrl}/?token=${encodeURIComponent(session.token)}` : customerAppUrl}
           className="header-auth-btn header-auth-btn--portal"
           onClick={onNavigate}
           aria-label="Customer Portal"
