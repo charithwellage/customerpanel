@@ -1,4 +1,6 @@
 import { describe, it, expect } from 'vitest';
+import fs from 'fs';
+import path from 'path';
 import { MARKETS } from '../features/home/components/MarketControls.js';
 
 describe('Home Experience & Showroom Integration Tests', () => {
@@ -20,6 +22,18 @@ describe('Home Experience & Showroom Integration Tests', () => {
   it('validates Premium Stock limit constraint (<= 10 items)', () => {
     const limit = 10;
     expect(limit).toBeLessThanOrEqual(10);
+  });
+
+  it('renders showroom stock sections in the intended order', () => {
+    const showroomPath = path.resolve(__dirname, '../features/home/components/HomeShowroom.tsx');
+    const showroomSource = fs.readFileSync(showroomPath, 'utf-8');
+
+    expect(showroomSource.indexOf('title="Discounted & Clearance Stock"')).toBeLessThan(
+      showroomSource.indexOf('title="Latest Arrivals (In Japan)"')
+    );
+    expect(showroomSource.indexOf('title="Latest Arrivals (In Japan)"')).toBeLessThan(
+      showroomSource.indexOf('<PremiumTeaserSection')
+    );
   });
 
   it('includes WhatsApp contact intent link with proper encoding', () => {
