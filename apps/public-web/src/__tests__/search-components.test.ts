@@ -29,7 +29,7 @@ describe('Search Components & Presentation Tests (PUB-04, PUB-07, RULE-09)', () 
     steerings: [{ name: 'Right', count: 4 }],
     stockCountries: [{ name: 'Japan', count: 4 }],
     stockLocations: [{ name: 'In Japan', count: 4 }],
-    features: [{ name: 'airbag', count: 4 }, { name: 'sunRoof', count: 2 }],
+    features: [{ key: 'airbag', label: 'Airbag', count: 4 }, { key: 'sunRoof', label: 'Sun Roof', count: 2 }],
     yearRange: { min: 2018, max: 2023 },
     priceRange: { min: 7500, max: 49000 },
     mileageRange: { min: 1000, max: 90000 },

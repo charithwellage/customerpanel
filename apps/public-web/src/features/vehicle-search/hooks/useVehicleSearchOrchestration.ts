@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback, useTransition } from 'react';
-import { useRouter, useSearchParams, usePathname } from 'next/navigation';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { useSearchParams, usePathname } from 'next/navigation';
 import type { SearchVehiclesQuery, VehicleSearchResult } from '@carchief/domain';
 import { VehicleService, HttpClient } from '@carchief/api-client';
 import {
@@ -39,10 +39,8 @@ export interface UseVehicleSearchOrchestrationReturn {
 export function useVehicleSearchOrchestration(
   options: UseVehicleSearchOrchestrationOptions = {}
 ): UseVehicleSearchOrchestrationReturn {
-  const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [isPending, startTransition] = useTransition();
 
   const [service] = useState<VehicleService>(
     () =>
@@ -62,6 +60,7 @@ export function useVehicleSearchOrchestration(
   const [result, setResult] = useState<VehicleSearchResult | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const requestSequence = useRef(0);
 
   const [naturalPhrase, setNaturalPhrase] = useState<string>(query.searchQuery || '');
   const [understoodTokens, setUnderstoodTokens] = useState<UnderstoodToken[]>([]);
@@ -83,19 +82,36 @@ export function useVehicleSearchOrchestration(
     }
   }, [searchParams]);
 
+  // Native history navigation is handled without remounting the showroom.
+  // This keeps Back/Forward shareable while avoiding a route transition for
+  // every individual filter interaction.
+  useEffect(() => {
+    const handlePopState = () => {
+      const parsed = parseUrlSearchQuery(window.location.search);
+      setQuery(options.lockedCollection ? { ...parsed, collection: options.lockedCollection } : parsed);
+      setNaturalPhrase(parsed.searchQuery || '');
+      setUnderstoodTokens([]);
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [options.lockedCollection]);
+
   // Execute vehicle search request
   const fetchSearchResults = useCallback(
     async (activeQuery: SearchVehiclesQuery) => {
+      const requestId = ++requestSequence.current;
       setIsLoading(true);
       setError(null);
       try {
         const data = await service.searchVehicles(activeQuery);
+        if (requestId !== requestSequence.current) return;
         setResult(data);
       } catch (err: unknown) {
+        if (requestId !== requestSequence.current) return;
         const msg = err instanceof Error ? err.message : 'Failed to search vehicles. Please try again.';
         setError(msg);
       } finally {
-        setIsLoading(false);
+        if (requestId === requestSequence.current) setIsLoading(false);
       }
     },
     [service]
@@ -108,13 +124,14 @@ export function useVehicleSearchOrchestration(
   // Update URL search parameters
   const updateUrl = useCallback(
     (newQuery: SearchVehiclesQuery) => {
-      const serialized = serializeSearchQuery(newQuery, searchParams || undefined);
+      const currentParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : searchParams || undefined;
+      const serialized = serializeSearchQuery(newQuery, currentParams);
       const url = `${pathname || '/allstock'}?${serialized.toString()}`;
-      startTransition(() => {
-        router.push(url);
-      });
+      if (typeof window !== 'undefined' && window.location.href !== `${window.location.origin}${url}`) {
+        window.history.replaceState(window.history.state, '', url);
+      }
     },
-    [router, pathname, searchParams]
+    [pathname, searchParams]
   );
 
   const updateQuery = useCallback(
@@ -191,7 +208,7 @@ export function useVehicleSearchOrchestration(
     query,
     result,
     isLoading,
-    isPending,
+    isPending: false,
     error,
     understoodTokens,
     naturalPhrase,

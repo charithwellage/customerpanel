@@ -2347,6 +2347,15 @@
         },
         "required": ["name", "count"]
       },
+      "FeatureFacet": {
+        "type": "object",
+        "properties": {
+          "key": { "type": "string", "example": "leatherSeat" },
+          "label": { "type": "string", "example": "Leather Seat" },
+          "count": { "type": "integer", "example": 9 }
+        },
+        "required": ["key", "label", "count"]
+      },
       "RangeFacet": {
         "type": "object",
         "properties": {
@@ -2399,7 +2408,7 @@
           "steerings": { "type": "array", "items": { "$ref": "#/components/schemas/FacetCount" } },
           "stockCountries": { "type": "array", "items": { "$ref": "#/components/schemas/FacetCount" } },
           "stockLocations": { "type": "array", "items": { "$ref": "#/components/schemas/FacetCount" } },
-          "features": { "type": "array", "items": { "$ref": "#/components/schemas/FacetCount" } },
+          "features": { "type": "array", "items": { "$ref": "#/components/schemas/FeatureFacet" } },
           "yearRange": { "$ref": "#/components/schemas/RangeFacet" },
           "priceRange": { "$ref": "#/components/schemas/RangeFacet" },
           "mileageRange": { "$ref": "#/components/schemas/RangeFacet" },

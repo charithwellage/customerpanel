@@ -59,6 +59,7 @@ export function SearchShowroom({
               total={result?.total || 0}
               itemCount={result?.items.length || 0}
               query={query}
+              facets={result?.facets}
               onUpdateQuery={updateQuery}
               onForceSync={refetch}
             />

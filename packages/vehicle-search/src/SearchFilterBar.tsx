@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import type { SearchVehiclesQuery, VehicleFacets } from '@carchief/domain';
 import type { UnderstoodToken } from './parser.js';
 
@@ -107,10 +107,17 @@ export function SearchFilterBar({
 }
 
 function RangeInput({ id, label, value, min, max, step = 1, onChange }: { id: string; label: string; value?: number; min?: number; max?: number; step?: number; onChange: (value: number | undefined) => void }) {
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
+  const handleChange = (rawValue: string) => {
+    if (timer.current) clearTimeout(timer.current);
+    const nextValue = rawValue === '' ? undefined : Number(rawValue);
+    timer.current = setTimeout(() => onChange(nextValue), 250);
+  };
   return (
     <div className="cc-filter-field">
       <label htmlFor={id} className="cc-filter-label">{label}</label>
-      <input id={id} className="cc-filter-input" type="number" value={value ?? ''} min={min} max={max} step={step} placeholder={min !== undefined && max !== undefined ? `${min}–${max}` : undefined} onChange={(event) => onChange(event.target.value === '' ? undefined : Number(event.target.value))} />
+      <input id={id} className="cc-filter-input" type="number" value={value ?? ''} min={min} max={max} step={step} placeholder={min !== undefined && max !== undefined ? `${min}–${max}` : undefined} onChange={(event) => handleChange(event.target.value)} />
     </div>
   );
 }
@@ -133,13 +140,13 @@ function FeatureFilters({ facets, query, onUpdateQuery }: { facets?: VehicleFace
   return <fieldset className="cc-filter-features">
     <legend className="cc-filter-label">Equipment</legend>
     <div className="cc-filter-features-grid">
-      {facets.features.map((feature) => <label key={feature.name} className="cc-filter-checkbox">
-        <input type="checkbox" checked={selected.has(feature.name)} onChange={(event) => {
+      {facets.features.map((feature) => <label key={feature.key} className="cc-filter-checkbox">
+        <input type="checkbox" value={feature.key} checked={selected.has(feature.key)} onChange={(event) => {
           const next = new Set(selected);
-          if (event.target.checked) next.add(feature.name); else next.delete(feature.name);
+          if (event.target.checked) next.add(feature.key); else next.delete(feature.key);
           onUpdateQuery({ features: Array.from(next) });
         }} />
-        <span>{feature.name} ({feature.count})</span>
+        <span>{feature.label} ({feature.count})</span>
       </label>)}
     </div>
   </fieldset>;

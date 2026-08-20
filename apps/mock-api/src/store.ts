@@ -5,6 +5,7 @@ import type {
   VehicleStatus,
   VehicleSearchResult,
   VehicleFacets,
+  FeatureFacet,
   SearchVehiclesQuery,
   VehicleDetail,
   VehicleTierPricing,
@@ -157,6 +158,26 @@ export interface VehicleRecord {
   spec?: string;
   logisticsStatus?: string;
 }
+
+interface VehicleFeatureCatalogEntry {
+  key: string;
+  label: string;
+  sortOrder: number;
+  active: boolean;
+}
+
+const vehicleFeatureCatalog: VehicleFeatureCatalogEntry[] = [
+  ['airbag', 'Airbag'], ['airConditioning', 'Air Conditioning'], ['nonSmoker', 'Non-Smoker'],
+  ['powerWindow', 'Power Window'], ['oneOwner', 'One Owner'], ['abs', 'ABS'],
+  ['alloyWheels', 'Alloy Wheels'], ['backCamera', 'Back Camera'], ['navigation', 'Navigation'],
+  ['sunRoof', 'Sun Roof'], ['leatherSeat', 'Leather Seat'], ['turbo', 'Turbo'],
+  ['cdPlayer', 'CD Player'], ['radio', 'Radio'], ['cdChanger', 'CD Changer'],
+  ['dvd', 'DVD'], ['tv', 'TV'], ['powerSeat', 'Power Seat'], ['frontCamera', 'Front Camera'],
+  ['centralLocking', 'Central Locking'], ['keylessEntry', 'Keyless Entry'], ['pushStart', 'Push Start'],
+  ['sideSkirts', 'Side Skirts'], ['grillGuard', 'Grill Guard'], ['rearCamera', 'Rear Camera'],
+  ['esc', 'ESC'], ['spareTire', 'Spare Tire'], ['wheelSpanner', 'Wheel Spanner'], ['bodyKit', 'Body Kit'],
+  ['fogLights', 'Fog Lights'], ['rearSpoiler', 'Rear Spoiler'], ['powerSteering', 'Power Steering'],
+].map(([key, label], index) => ({ key, label, sortOrder: index + 1, active: true }));
 
 export interface PublicConfig {
   siteName: string;
@@ -2863,7 +2884,7 @@ export function findVehicleRecord(vehicles: VehicleRecord[], idOrSlug: string): 
   return undefined;
 }
 
-function calculateFacets(vehicles: VehicleDomainSummary[]): VehicleFacets {
+function calculateFacets(vehicles: VehicleDomainSummary[], catalog: VehicleFeatureCatalogEntry[] = vehicleFeatureCatalog): VehicleFacets {
   const modelCodeMap = new Map<string, number>();
   const modelMap = new Map<string, number>();
   const vehicleTypeMap = new Map<string, number>();
@@ -2915,7 +2936,7 @@ function calculateFacets(vehicles: VehicleDomainSummary[]): VehicleFacets {
     if (v.stockCountry) stockCountryMap.set(v.stockCountry, (stockCountryMap.get(v.stockCountry) || 0) + 1);
     if (v.stockLocation) stockLocationMap.set(v.stockLocation, (stockLocationMap.get(v.stockLocation) || 0) + 1);
     Object.entries(v.features || {}).forEach(([feature, enabled]) => {
-      if (enabled) featureMap.set(feature, (featureMap.get(feature) || 0) + 1);
+      if (enabled && catalog.some((entry) => entry.active && entry.key === feature)) featureMap.set(feature, (featureMap.get(feature) || 0) + 1);
     });
 
     if (v.year) {
@@ -2968,7 +2989,10 @@ function calculateFacets(vehicles: VehicleDomainSummary[]): VehicleFacets {
     steerings: sortFacets(steeringMap),
     stockCountries: sortFacets(stockCountryMap),
     stockLocations: sortFacets(stockLocationMap),
-    features: sortFacets(featureMap),
+    features: catalog
+      .filter((entry) => entry.active && featureMap.has(entry.key))
+      .sort((a, b) => a.sortOrder - b.sortOrder)
+      .map((entry): FeatureFacet => ({ key: entry.key, label: entry.label, count: featureMap.get(entry.key) || 0 })),
     yearRange: {
       min: minYear <= maxYear ? minYear : 2015,
       max: minYear <= maxYear ? maxYear : 2024,
@@ -2994,6 +3018,7 @@ function calculateSearchFacets(
   vehicles: VehicleRecord[],
   query: SearchVehiclesQuery | undefined,
   context: VehicleQueryContext,
+  catalog: VehicleFeatureCatalogEntry[] = vehicleFeatureCatalog,
 ): VehicleFacets {
   // Keep the selected make in the result set, but calculate the Make
   // dropdown from the same scoped/filtered universe without that one
@@ -3007,9 +3032,9 @@ function calculateSearchFacets(
   const without = (...keys: Array<keyof SearchVehiclesQuery>) => {
     const next = { ...facetQuery };
     keys.forEach((key) => { delete next[key]; });
-    return calculateFacets(filterAndSortVehicles(vehicles, next, context));
+    return calculateFacets(filterAndSortVehicles(vehicles, next, context), catalog);
   };
-  const base = calculateFacets(filterAndSortVehicles(vehicles, facetQuery, context));
+  const base = calculateFacets(filterAndSortVehicles(vehicles, facetQuery, context), catalog);
   const makeFacets = without('make');
   const modelFacets = without('model');
   const modelCodeFacets = without('modelCode');
@@ -6208,6 +6233,22 @@ class PostgresStore implements DemoStore {
         ADD COLUMN IF NOT EXISTS request_price boolean;`
     );
     await this.pool.query(
+      `CREATE TABLE IF NOT EXISTS vehicle_feature_catalog (
+        feature_key text PRIMARY KEY,
+        display_name text NOT NULL,
+        sort_order integer NOT NULL,
+        active boolean NOT NULL DEFAULT true
+      );`
+    );
+    for (const feature of vehicleFeatureCatalog) {
+      await this.pool.query(
+        `INSERT INTO vehicle_feature_catalog (feature_key, display_name, sort_order, active)
+         VALUES ($1, $2, $3, $4)
+         ON CONFLICT (feature_key) DO UPDATE SET display_name = EXCLUDED.display_name, sort_order = EXCLUDED.sort_order, active = EXCLUDED.active`,
+        [feature.key, feature.label, feature.sortOrder, feature.active],
+      );
+    }
+    await this.pool.query(
       `CREATE TABLE IF NOT EXISTS enquiries (
         id text PRIMARY KEY,
         dedupe_key text NOT NULL,
@@ -7055,6 +7096,11 @@ class PostgresStore implements DemoStore {
     }));
   }
 
+  private async getFeatureCatalog(): Promise<VehicleFeatureCatalogEntry[]> {
+    const result = await this.pool.query('SELECT feature_key, display_name, sort_order, active FROM vehicle_feature_catalog ORDER BY sort_order ASC');
+    return result.rows.map((row) => ({ key: row.feature_key, label: row.display_name, sortOrder: Number(row.sort_order), active: Boolean(row.active) }));
+  }
+
   private async getRawVehiclesWith(client: PoolClient): Promise<VehicleRecord[]> {
     const result = await client.query(
       'SELECT id, chassis_number, make, model, model_code, year, price_usd, status, category, location_status, created_at, images, featured, stock_type, destination_port, discount_percent, body_style, vehicle_sub_type, engine_cc, fuel_type, transmission, drive_train, overdrive, color, exterior_grade, steering, stock_country, stock_location, seats, load_capacity, features, mileage, etd, eta, request_price FROM vehicles ORDER BY id'
@@ -7115,13 +7161,14 @@ class PostgresStore implements DemoStore {
 
   async searchVehicles(query?: SearchVehiclesQuery, context?: VehicleQueryContext): Promise<VehicleSearchResult> {
     const rawRecords = await this.getRawVehicles();
+    const featureCatalog = await this.getFeatureCatalog();
     const reservations = await this.getRawReservations();
     const mergedContext: VehicleQueryContext = {
       ...context,
       reservations,
     };
     const filteredList = filterAndSortVehicles(rawRecords, query, mergedContext);
-    const facets = calculateSearchFacets(rawRecords, query, mergedContext);
+    const facets = calculateSearchFacets(rawRecords, query, mergedContext, featureCatalog);
 
     const page = Math.max(1, query?.page ? Number(query.page) : 1);
     const limit = Math.max(1, query?.limit ? Number(query.limit) : 12);
@@ -8358,6 +8405,7 @@ class PostgresStore implements DemoStore {
     try {
       await client.query('BEGIN');
       await client.query('DELETE FROM vehicles');
+      await client.query('DELETE FROM vehicle_feature_catalog');
       await client.query('DELETE FROM public_config');
       await client.query('DELETE FROM enquiries');
       await client.query('DELETE FROM reservations');
@@ -8406,6 +8454,12 @@ class PostgresStore implements DemoStore {
         seedConfig.currency,
         seedConfig.contactPhone,
       ]);
+      for (const feature of vehicleFeatureCatalog) {
+        await client.query(
+          'INSERT INTO vehicle_feature_catalog (feature_key, display_name, sort_order, active) VALUES ($1, $2, $3, $4)',
+          [feature.key, feature.label, feature.sortOrder, feature.active],
+        );
+      }
       for (const vehicle of preparedSeedVehicles) {
         await client.query(
           'INSERT INTO vehicles (id, chassis_number, make, model, model_code, year, price_usd, status, category, location_status, created_at, images, featured, stock_type, destination_port, discount_percent, internal_notes, staff_owner_id, body_style, vehicle_sub_type, engine_cc, fuel_type, transmission, drive_train, overdrive, color, exterior_grade, steering, stock_country, stock_location, seats, load_capacity, features, mileage, etd, eta, request_price) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37)',
