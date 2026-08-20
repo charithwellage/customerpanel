@@ -40,6 +40,7 @@ export function parseUrlSearchQuery(source: URLSearchParams | string): SearchVeh
   result.priceMax = getNumber('priceMax');
   result.mileageMin = getNumber('mileageMin');
   result.mileageMax = getNumber('mileageMax');
+  result.discountMin = getNumber('discountMin');
   result.engineCcMin = getNumber('engineCcMin');
   result.engineCcMax = getNumber('engineCcMax');
   result.seatsMin = getNumber('seatsMin');
@@ -102,6 +103,7 @@ export function serializeSearchQuery(query: SearchVehiclesQuery, existingParams?
   setOrDelete('priceMax', query.priceMax);
   setOrDelete('mileageMin', query.mileageMin);
   setOrDelete('mileageMax', query.mileageMax);
+  setOrDelete('discountMin', query.discountMin);
   setOrDelete('engineCcMin', query.engineCcMin);
   setOrDelete('engineCcMax', query.engineCcMax);
   setOrDelete('seatsMin', query.seatsMin);

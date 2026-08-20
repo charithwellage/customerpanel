@@ -93,6 +93,7 @@ import type {
   CustomerPolymorphicInquiry,
   CustomerPolymorphicInquiryListResponse,
   CustomerPairedAccount,
+  BankAccount,
 } from '@carchief/domain';
 import {
   generateVehicleSlug,
@@ -1166,6 +1167,7 @@ export interface DemoStore {
   getFreightDestinations(): Promise<FreightDestination[]>;
   getFreightPorts(): Promise<FreightPort[]>;
   getFreightEstimate(request: FreightEstimateRequest): Promise<FreightEstimateResponse>;
+  getBankAccounts(): Promise<BankAccount[]>;
   createEnquiry(request: EnquiryRequest, customerId?: string): Promise<EnquiryResponse>;
   getLeadById(id: string): Promise<LeadRecord | null>;
   listLeads(): Promise<LeadListResponse>;
@@ -2112,6 +2114,52 @@ const seedOfficeLocations: OfficeLocation[] = [
 // no branch list, staff roster or office address here is asserted as real/approved.
 // Team entries are role-only contact points; no named individual is invented.
 // See REQUIREMENT_GAPS_AND_ASSUMPTIONS.md (D01-ASM-004).
+const seedBankAccounts: BankAccount[] = [
+  {
+    id: 'smbc-usd',
+    bankName: 'SUMITOMO MITSUI BANKING CORPORATION',
+    swiftCode: 'SMBCJPJT',
+    branchName: 'SHINOSAKA BRANCH',
+    branchCode: '506',
+    bankAddress: '4-1-6, MIYAHARA, YODOGAWA-KU, OSAKA-SHI, OSAKA, 532-0003, JAPAN',
+    accountName: 'CAR CHIEF CO.,LTD',
+    accountNo: '2015340',
+    currency: 'USD',
+    type: 'WIRE'
+  },
+  {
+    id: 'smbc-jpy',
+    bankName: 'SUMITOMO MITSUI BANKING CORPORATION',
+    swiftCode: 'SMBCJPJT',
+    branchName: 'SHINOSAKA BRANCH',
+    branchCode: '506',
+    bankAddress: '4-1-6, MIYAHARA, YODOGAWA-KU, OSAKA-SHI, OSAKA, 532-0003, JAPAN',
+    accountName: 'CAR CHIEF CO.,LTD',
+    accountNo: '4714441',
+    currency: 'JPY',
+    type: 'WIRE'
+  },
+  {
+    id: 'mufg-usd',
+    bankName: 'MUFG BANK, LTD',
+    swiftCode: 'BOTKJPJT',
+    branchName: 'OSAKA BRANCH',
+    branchCode: '506',
+    accountName: 'CAR CHIEF CO.,LTD',
+    accountNo: '1234567',
+    currency: 'USD',
+    type: 'WIRE'
+  },
+  {
+    id: 'paypal',
+    bankName: 'PayPal',
+    accountName: 'CAR CHIEF CO.,LTD',
+    accountNo: 'payments@carchief.co.jp',
+    currency: 'USD',
+    type: 'PAYPAL'
+  }
+];
+
 const seedBranches: BranchContent[] = [
   {
     id: 'harare-hub',
@@ -3251,6 +3299,11 @@ function filterAndSortVehicles(
 
   if (query?.mileageMax !== undefined) {
     list = list.filter((v) => v.mileage !== undefined && v.mileage <= Number(query.mileageMax));
+  }
+
+  if (query?.discountMin !== undefined) {
+    const minD = Number(query.discountMin);
+    list = list.filter((v) => (v.discountPercent !== undefined && v.discountPercent >= minD));
   }
 
   if (query?.engineCcMin !== undefined) list = list.filter((v) => v.engineCc !== undefined && v.engineCc >= Number(query.engineCcMin));
@@ -4944,6 +4997,7 @@ function createPaymentRecord(
 }
 
 class MemoryStore implements DemoStore {
+  private bankAccounts = seedBankAccounts.map((b) => ({ ...b }));
   private config = { ...seedConfig };
   private vehicles = preparedSeedVehicles.map((vehicle) => ({ ...vehicle }));
   private enquiries: EnquiryRecord[] = [];
@@ -4979,6 +5033,10 @@ class MemoryStore implements DemoStore {
 
   getConfig(): Promise<PublicConfig> {
     return Promise.resolve({ ...this.config });
+  }
+
+  getBankAccounts(): Promise<BankAccount[]> {
+    return Promise.resolve(seedBankAccounts);
   }
 
   getVehicles(query?: GetVehiclesQuery, context?: VehicleQueryContext): Promise<VehicleDomainSummary[]> {
@@ -7101,6 +7159,10 @@ class PostgresStore implements DemoStore {
     const result = await this.pool.query('SELECT site_name, currency, contact_phone FROM public_config WHERE id = 1');
     const row = result.rows[0];
     return row ? { siteName: row.site_name, currency: row.currency, contactPhone: row.contact_phone } : { ...seedConfig };
+  }
+
+  async getBankAccounts(): Promise<BankAccount[]> {
+    return seedBankAccounts;
   }
 
   async getVehicles(query?: GetVehiclesQuery, context?: VehicleQueryContext): Promise<VehicleDomainSummary[]> {

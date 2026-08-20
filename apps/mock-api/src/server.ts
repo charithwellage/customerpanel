@@ -670,6 +670,15 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
     res.json(req.user);
   });
 
+  app.get('/api/v1/bank-accounts', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) {
+      res.status(401).json({ statusCode: 401, message: 'Unauthenticated access to bank accounts is not allowed', correlationId: 'corr-401' });
+      return;
+    }
+    const accounts = await store.getBankAccounts();
+    res.json(accounts);
+  });
+
   // 4a. Customer dashboard KPI baseline (D02-ASM-001, CUST-04, CUST-05, CUST-06)
   // Non-blocking aggregate: outstanding balance = invoiced total - approved allocations;
   // credit utilisation = outstanding balance ÷ credit limit; vehicle counts use canonical IDs + status.
