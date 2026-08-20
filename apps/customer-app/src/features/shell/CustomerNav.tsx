@@ -44,8 +44,8 @@ const LiveNotificationBadgeWrapper: React.FC<{ fallbackBadge?: string | number }
 function getGroupLabel(item: NavigationItem, t: (key: string, params?: Record<string, string | number>, fallback?: string) => string): string {
   switch (item.id) {
     case 'dashboard': return t('customer.dashboard', undefined, item.label);
-    case 'browse':    return t('customer.browse', undefined, item.label);
-    case 'garage':    return t('customer.myGarage', undefined, item.label);
+    case 'browse':    return t('customer.allInventoryStock', undefined, item.label);
+    case 'garage':    return t('customer.myVehicles', undefined, item.label);
     case 'finances':  return t('customer.finances', undefined, item.label);
     case 'account':   return t('customer.account', undefined, item.label);
     default: return item.label;
