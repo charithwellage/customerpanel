@@ -40,8 +40,12 @@ export class VehicleService {
           fuelTypes: [],
           transmissions: [],
           driveTrains: [],
+          models: [],
+          locationStatuses: [],
+          destinationPorts: [],
           yearRange: { min: 2000, max: 2026 },
           priceRange: { min: 0, max: 0 },
+          mileageRange: { min: 0, max: 0 },
         },
       };
     }
@@ -63,6 +67,8 @@ export class VehicleService {
     if (query?.yearMax !== undefined) params.set('yearMax', String(query.yearMax));
     if (query?.priceMin !== undefined) params.set('priceMin', String(query.priceMin));
     if (query?.priceMax !== undefined) params.set('priceMax', String(query.priceMax));
+    if (query?.mileageMin !== undefined) params.set('mileageMin', String(query.mileageMin));
+    if (query?.mileageMax !== undefined) params.set('mileageMax', String(query.mileageMax));
     if (query?.sortBy) params.set('sortBy', query.sortBy);
     if (query?.page !== undefined) params.set('page', String(query.page));
     if (query?.limit !== undefined) params.set('limit', String(query.limit));

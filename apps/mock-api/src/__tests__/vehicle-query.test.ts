@@ -58,6 +58,34 @@ describe('Vehicle Query, Dynamic Filters, Sorting, and Pagination Tests (PUB-04.
     });
   });
 
+  it('supports model, port, year, price, and mileage filters within clearance stock', async () => {
+    const clearance = await store.searchVehicles({ collection: 'clearance' });
+    const sample = clearance.items[0];
+    expect(sample).toBeDefined();
+
+    const filtered = await store.searchVehicles({
+      collection: 'clearance',
+      model: sample.model,
+      destinationPort: sample.destinationPort,
+      yearMin: sample.year,
+      yearMax: sample.year,
+      priceMin: sample.priceUsd,
+      priceMax: sample.priceUsd,
+      mileageMin: sample.mileage,
+      mileageMax: sample.mileage,
+    });
+
+    expect(filtered.items.length).toBeGreaterThan(0);
+    filtered.items.forEach((item) => {
+      expect(item.category?.split(',')).toContain('clearance');
+      expect(item.model).toContain(sample.model);
+      expect(item.destinationPort).toBe(sample.destinationPort);
+      expect(item.year).toBe(sample.year);
+      expect(item.priceUsd).toBe(sample.priceUsd);
+      expect(item.mileage).toBe(sample.mileage);
+    });
+  });
+
   it('filters by make, bodyStyle, fuelType, transmission, driveTrain', async () => {
     const res = await store.searchVehicles({
       make: 'Toyota',

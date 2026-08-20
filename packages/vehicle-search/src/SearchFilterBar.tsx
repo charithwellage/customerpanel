@@ -67,9 +67,27 @@ export function SearchFilterBar({
           <FilterSelect id="filter-fuel-select" label="Fuel Type" value={query.fuelType} options={facets?.fuelTypes.map((item) => item.name) ?? []} onChange={(value) => onUpdateQuery({ fuelType: value || undefined })} />
           <FilterSelect id="filter-transmission-select" label="Transmission" value={query.transmission} options={facets?.transmissions.map((item) => item.name) ?? []} onChange={(value) => onUpdateQuery({ transmission: value || undefined })} />
           <FilterSelect id="filter-drivetrain-select" label="Drive Train" value={query.driveTrain} options={facets?.driveTrains.map((item) => item.name) ?? []} onChange={(value) => onUpdateQuery({ driveTrain: value || undefined })} />
+          <FilterSelect id="filter-model-select" label="Model" value={query.model} options={facets?.models.map((item) => item.name) ?? []} onChange={(value) => onUpdateQuery({ model: value || undefined })} />
+          <FilterSelect id="filter-location-select" label="Location" value={query.locationStatus} options={facets?.locationStatuses.map((item) => item.name) ?? []} onChange={(value) => onUpdateQuery({ locationStatus: value || undefined })} />
+          <FilterSelect id="filter-destination-port-select" label="Destination Port" value={query.destinationPort} options={facets?.destinationPorts.map((item) => item.name) ?? []} onChange={(value) => onUpdateQuery({ destinationPort: value || undefined })} />
+          <RangeInput id="filter-year-min" label="Year From" value={query.yearMin} min={facets?.yearRange.min} max={facets?.yearRange.max} onChange={(value) => onUpdateQuery({ yearMin: value })} />
+          <RangeInput id="filter-year-max" label="Year To" value={query.yearMax} min={facets?.yearRange.min} max={facets?.yearRange.max} onChange={(value) => onUpdateQuery({ yearMax: value })} />
+          <RangeInput id="filter-price-min" label="Price From (USD)" value={query.priceMin} min={facets?.priceRange.min} max={facets?.priceRange.max} step={100} onChange={(value) => onUpdateQuery({ priceMin: value })} />
+          <RangeInput id="filter-price-max" label="Price To (USD)" value={query.priceMax} min={facets?.priceRange.min} max={facets?.priceRange.max} step={100} onChange={(value) => onUpdateQuery({ priceMax: value })} />
+          <RangeInput id="filter-mileage-min" label="Mileage From" value={query.mileageMin} min={facets?.mileageRange.min} max={facets?.mileageRange.max} onChange={(value) => onUpdateQuery({ mileageMin: value })} />
+          <RangeInput id="filter-mileage-max" label="Mileage To" value={query.mileageMax} min={facets?.mileageRange.min} max={facets?.mileageRange.max} onChange={(value) => onUpdateQuery({ mileageMax: value })} />
         </div>
       )}
     </section>
+  );
+}
+
+function RangeInput({ id, label, value, min, max, step = 1, onChange }: { id: string; label: string; value?: number; min?: number; max?: number; step?: number; onChange: (value: number | undefined) => void }) {
+  return (
+    <div className="cc-filter-field">
+      <label htmlFor={id} className="cc-filter-label">{label}</label>
+      <input id={id} className="cc-filter-input" type="number" value={value ?? ''} min={min} max={max} step={step} placeholder={min !== undefined && max !== undefined ? `${min}–${max}` : undefined} onChange={(event) => onChange(event.target.value === '' ? undefined : Number(event.target.value))} />
+    </div>
   );
 }
 

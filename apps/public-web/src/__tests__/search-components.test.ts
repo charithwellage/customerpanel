@@ -17,8 +17,12 @@ describe('Search Components & Presentation Tests (PUB-04, PUB-07, RULE-09)', () 
     fuelTypes: [{ name: 'Petrol', count: 6 }, { name: 'Hybrid', count: 2 }],
     transmissions: [{ name: 'Automatic', count: 7 }, { name: 'Manual', count: 1 }],
     driveTrains: [{ name: '2WD', count: 5 }, { name: '4WD', count: 3 }],
+    models: [{ name: 'Corolla', count: 4 }],
+    locationStatuses: [{ name: 'In Japan', count: 4 }],
+    destinationPorts: [{ name: 'Mombasa', count: 4 }],
     yearRange: { min: 2018, max: 2023 },
     priceRange: { min: 7500, max: 49000 },
+    mileageRange: { min: 1000, max: 90000 },
   };
 
   it('renders SearchFilterBar with search input and reset button', () => {

@@ -2366,10 +2366,23 @@
             "type": "array",
             "items": { "$ref": "#/components/schemas/FacetCount" }
           },
+          "models": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/FacetCount" }
+          },
+          "locationStatuses": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/FacetCount" }
+          },
+          "destinationPorts": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/FacetCount" }
+          },
           "yearRange": { "$ref": "#/components/schemas/RangeFacet" },
-          "priceRange": { "$ref": "#/components/schemas/RangeFacet" }
+          "priceRange": { "$ref": "#/components/schemas/RangeFacet" },
+          "mileageRange": { "$ref": "#/components/schemas/RangeFacet" }
         },
-        "required": ["makes", "bodyStyles", "fuelTypes", "transmissions", "driveTrains", "yearRange", "priceRange"]
+        "required": ["makes", "bodyStyles", "fuelTypes", "transmissions", "driveTrains", "models", "locationStatuses", "destinationPorts", "yearRange", "priceRange", "mileageRange"]
       },
       "VehicleSearchResult": {
         "type": "object",

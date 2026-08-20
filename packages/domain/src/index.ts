@@ -202,8 +202,12 @@ export interface VehicleFacets {
   fuelTypes: FacetCount[];
   transmissions: FacetCount[];
   driveTrains: FacetCount[];
+  models: FacetCount[];
+  locationStatuses: FacetCount[];
+  destinationPorts: FacetCount[];
   yearRange: RangeFacet<number>;
   priceRange: RangeFacet<number>;
+  mileageRange: RangeFacet<number>;
 }
 
 export interface VehicleSearchResult {
@@ -235,6 +239,8 @@ export interface SearchVehiclesQuery {
   yearMax?: number;
   priceMin?: number;
   priceMax?: number;
+  mileageMin?: number;
+  mileageMax?: number;
   sortBy?: 'newest' | 'price_asc' | 'price_desc' | 'year_desc' | 'year_asc' | 'mileage_asc';
   page?: number;
   limit?: number;

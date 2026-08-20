@@ -29,6 +29,8 @@ export function parseUrlSearchQuery(source: URLSearchParams | string): SearchVeh
   result.yearMax = getNumber('yearMax');
   result.priceMin = getNumber('priceMin');
   result.priceMax = getNumber('priceMax');
+  result.mileageMin = getNumber('mileageMin');
+  result.mileageMax = getNumber('mileageMax');
 
   result.sortBy = (getString('sortBy') || 'newest') as SearchVehiclesQuery['sortBy'];
   result.page = getNumber('page') || 1;
@@ -74,6 +76,8 @@ export function serializeSearchQuery(query: SearchVehiclesQuery, existingParams?
   setOrDelete('yearMax', query.yearMax);
   setOrDelete('priceMin', query.priceMin);
   setOrDelete('priceMax', query.priceMax);
+  setOrDelete('mileageMin', query.mileageMin);
+  setOrDelete('mileageMax', query.mileageMax);
 
   if (query.sortBy && query.sortBy !== 'newest') {
     params.set('sortBy', query.sortBy);

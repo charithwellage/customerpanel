@@ -2841,23 +2841,31 @@ export function findVehicleRecord(vehicles: VehicleRecord[], idOrSlug: string): 
 }
 
 function calculateFacets(vehicles: VehicleDomainSummary[]): VehicleFacets {
+  const modelMap = new Map<string, number>();
   const makeMap = new Map<string, number>();
   const bodyStyleMap = new Map<string, number>();
   const fuelTypeMap = new Map<string, number>();
   const transmissionMap = new Map<string, number>();
   const driveTrainMap = new Map<string, number>();
+  const locationStatusMap = new Map<string, number>();
+  const destinationPortMap = new Map<string, number>();
 
   let minYear = 2026;
   let maxYear = 1970;
   let minPrice = Infinity;
   let maxPrice = -Infinity;
+  let minMileage = Infinity;
+  let maxMileage = -Infinity;
 
   vehicles.forEach((v) => {
     if (v.make) makeMap.set(v.make, (makeMap.get(v.make) || 0) + 1);
+    if (v.model) modelMap.set(v.model, (modelMap.get(v.model) || 0) + 1);
     if (v.bodyStyle) bodyStyleMap.set(v.bodyStyle, (bodyStyleMap.get(v.bodyStyle) || 0) + 1);
     if (v.fuelType) fuelTypeMap.set(v.fuelType, (fuelTypeMap.get(v.fuelType) || 0) + 1);
     if (v.transmission) transmissionMap.set(v.transmission, (transmissionMap.get(v.transmission) || 0) + 1);
     if (v.driveTrain) driveTrainMap.set(v.driveTrain, (driveTrainMap.get(v.driveTrain) || 0) + 1);
+    if (v.locationStatus) locationStatusMap.set(v.locationStatus, (locationStatusMap.get(v.locationStatus) || 0) + 1);
+    if (v.destinationPort) destinationPortMap.set(v.destinationPort, (destinationPortMap.get(v.destinationPort) || 0) + 1);
 
     if (v.year) {
       if (v.year < minYear) minYear = v.year;
@@ -2868,6 +2876,10 @@ function calculateFacets(vehicles: VehicleDomainSummary[]): VehicleFacets {
       if (v.priceUsd < minPrice) minPrice = v.priceUsd;
       if (v.priceUsd > maxPrice) maxPrice = v.priceUsd;
     }
+    if (v.mileage !== undefined && v.mileage !== null) {
+      if (v.mileage < minMileage) minMileage = v.mileage;
+      if (v.mileage > maxMileage) maxMileage = v.mileage;
+    }
   });
 
   const sortFacets = (map: Map<string, number>) =>
@@ -2877,10 +2889,13 @@ function calculateFacets(vehicles: VehicleDomainSummary[]): VehicleFacets {
 
   return {
     makes: sortFacets(makeMap),
+    models: sortFacets(modelMap),
     bodyStyles: sortFacets(bodyStyleMap),
     fuelTypes: sortFacets(fuelTypeMap),
     transmissions: sortFacets(transmissionMap),
     driveTrains: sortFacets(driveTrainMap),
+    locationStatuses: sortFacets(locationStatusMap),
+    destinationPorts: sortFacets(destinationPortMap),
     yearRange: {
       min: minYear <= maxYear ? minYear : 2015,
       max: minYear <= maxYear ? maxYear : 2024,
@@ -2888,6 +2903,10 @@ function calculateFacets(vehicles: VehicleDomainSummary[]): VehicleFacets {
     priceRange: {
       min: minPrice <= maxPrice ? minPrice : 0,
       max: minPrice <= maxPrice ? maxPrice : 50000,
+    },
+    mileageRange: {
+      min: minMileage <= maxMileage ? minMileage : 0,
+      max: minMileage <= maxMileage ? maxMileage : 0,
     },
   };
 }
@@ -2906,7 +2925,37 @@ function calculateSearchFacets(
     page: undefined,
     limit: undefined,
   };
-  return calculateFacets(filterAndSortVehicles(vehicles, facetQuery, context));
+  const without = (...keys: Array<keyof SearchVehiclesQuery>) => {
+    const next = { ...facetQuery };
+    keys.forEach((key) => { delete next[key]; });
+    return calculateFacets(filterAndSortVehicles(vehicles, next, context));
+  };
+  const base = calculateFacets(filterAndSortVehicles(vehicles, facetQuery, context));
+  const makeFacets = without('make');
+  const modelFacets = without('model');
+  const bodyStyleFacets = without('bodyStyle');
+  const fuelTypeFacets = without('fuelType');
+  const transmissionFacets = without('transmission');
+  const driveTrainFacets = without('driveTrain');
+  const locationFacets = without('locationStatus');
+  const portFacets = without('destinationPort');
+  const yearFacets = without('yearMin', 'yearMax');
+  const priceFacets = without('priceMin', 'priceMax');
+  const mileageFacets = without('mileageMin', 'mileageMax');
+  return {
+    ...base,
+    makes: makeFacets.makes,
+    models: modelFacets.models,
+    bodyStyles: bodyStyleFacets.bodyStyles,
+    fuelTypes: fuelTypeFacets.fuelTypes,
+    transmissions: transmissionFacets.transmissions,
+    driveTrains: driveTrainFacets.driveTrains,
+    locationStatuses: locationFacets.locationStatuses,
+    destinationPorts: portFacets.destinationPorts,
+    yearRange: yearFacets.yearRange,
+    priceRange: priceFacets.priceRange,
+    mileageRange: mileageFacets.mileageRange,
+  };
 }
 
 function filterAndSortVehicles(
@@ -3059,6 +3108,18 @@ function filterAndSortVehicles(
   if (query?.priceMax !== undefined) {
     const maxP = Number(query.priceMax);
     list = list.filter((v) => v.requestPrice || v.priceUsd <= maxP);
+  }
+
+  if (query?.destinationPort) {
+    list = list.filter((v) => v.destinationPort === query.destinationPort);
+  }
+
+  if (query?.mileageMin !== undefined) {
+    list = list.filter((v) => v.mileage !== undefined && v.mileage >= Number(query.mileageMin));
+  }
+
+  if (query?.mileageMax !== undefined) {
+    list = list.filter((v) => v.mileage !== undefined && v.mileage <= Number(query.mileageMax));
   }
 
   // Sorting
