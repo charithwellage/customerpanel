@@ -46,6 +46,7 @@ function getGroupLabel(item: NavigationItem, t: (key: string, params?: Record<st
     case 'dashboard': return t('customer.dashboard', undefined, item.label);
     case 'browse':    return t('customer.allInventoryStock', undefined, item.label);
     case 'garage':    return t('customer.myVehicles', undefined, item.label);
+    case 'statement': return t('customer.statement', undefined, item.label);
     case 'finances':  return t('customer.finances', undefined, item.label);
     case 'account':   return t('customer.account', undefined, item.label);
     default: return item.label;

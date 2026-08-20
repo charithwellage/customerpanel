@@ -111,8 +111,14 @@ const DEFAULT_NAV_ITEMS: NavigationItem[] = [
       { id: 'vehicles', label: 'My Vehicles', altLabel: 'My Vehicles', href: '/vehicles', icon: '🚙' },
       { id: 'wishlist', label: 'My Wishlist', altLabel: 'Wishlist', href: '/wishlist', icon: '❤️' },
       { id: 'inquiries', label: 'Inquiries & Quotes', altLabel: 'Inquiries & Quotes', href: '/inquiries', icon: '💬' },
-      { id: 'statement', label: 'My Statement', altLabel: 'Customer Statement', href: '/statement', icon: '📑' },
     ],
+  },
+  {
+    id: 'statement',
+    label: 'My Statement',
+    altLabel: 'Customer Statement',
+    href: '/statement',
+    icon: '📑',
   },
   {
     id: 'finances',

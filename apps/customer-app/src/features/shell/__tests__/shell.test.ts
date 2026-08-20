@@ -67,10 +67,11 @@ describe('Customer App Shell & Navigation Unit Tests', () => {
       )
     );
 
-    // All 5 consolidated group toggles are always visible regardless of route
+    // All 6 consolidated main nav items are always visible regardless of route
     expect(html).toContain('Dashboard');           // customer.dashboard → 'Dashboard' (English i18n)
     expect(html).toContain('All Inventory Stock'); // label fallback
     expect(html).toContain('My Vehicles');         // customer.myVehicles → 'My Vehicles'
+    expect(html).toContain('My Statement');        // customer.statement → 'My Statement'
     expect(html).toContain('Finances');            // label fallback
     expect(html).toContain('Account');             // label fallback
 
@@ -91,7 +92,6 @@ describe('Customer App Shell & Navigation Unit Tests', () => {
     expect(html).toContain('My Vehicles');        // customer.myVehicles → 'My Vehicles'
     expect(html).toContain('My Wishlist');        // customer.wishlist fallback
     expect(html).toContain('Inquiries &amp; Quotes'); // customer.inquiries fallback
-    expect(html).toContain('My Statement');        // customer.statement fallback
     expect(html).toContain('aria-current="page"');
   });
 
