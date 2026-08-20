@@ -109,14 +109,14 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
               <span className="cc-cust-kpi-card__title">RESERVED WITH PI</span>
             </div>
             <div className="cc-cust-kpi-card__count">{withPICount} Units</div>
-            <p className="cc-cust-kpi-card__subtitle">Proforma Invoice issued</p>
+            <p className="cc-cust-kpi-card__subtitle">Advanced Payment issued</p>
           </div>
           <div className="cc-cust-kpi-card__icon-wrap cc-cust-kpi-card__icon-wrap--purple">
             <span className="cc-cust-kpi-card__icon" aria-hidden="true">📄</span>
           </div>
         </div>
 
-        {/* KPI 3: Invoiced Vehicles */}
+        {/* KPI 3: Purchased Vehicles */}
         <div
           role="button"
           tabIndex={0}

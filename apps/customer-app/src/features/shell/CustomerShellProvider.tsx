@@ -12,6 +12,15 @@ export interface CustomerUser {
   tier?: string;
 }
 
+export interface SubNavigationItem {
+  id: string;
+  label: string;
+  href: string;
+  icon?: string;
+  badge?: string;
+  altLabel?: string;
+}
+
 export interface NavigationItem {
   id: string;
   label: string;
@@ -19,6 +28,8 @@ export interface NavigationItem {
   icon?: string;
   badge?: string;
   altLabel?: string;
+  /** Optional child items — when present the parent item acts as a group toggle. */
+  children?: SubNavigationItem[];
 }
 
 export interface PairedAccount {
@@ -76,19 +87,61 @@ const DEFAULT_PAIRED_ACCOUNTS: PairedAccount[] = [
 ];
 
 const DEFAULT_NAV_ITEMS: NavigationItem[] = [
-  { id: 'dashboard', label: 'Overview Desk', altLabel: 'Dashboard', href: '/dashboard', icon: '📊' },
-  { id: 'statement', label: 'My Statement', altLabel: 'Customer Statement', href: '/statement', icon: '📑' },
-  { id: 'inventory', label: 'Sourcing Showroom', altLabel: 'Inventory', href: '/inventory', icon: '🚗' },
-  { id: 'inquiries', label: 'My Inquiries', altLabel: 'My Inquiries', href: '/inquiries', icon: '💬' },
-  { id: 'wishlist', label: 'My Wishlist', altLabel: 'My Wishlist', href: '/wishlist', icon: '❤️' },
-  { id: 'favourites', label: 'Favourites', altLabel: 'Favourites', href: '/favourites', icon: '⭐' },
-  { id: 'vehicles', label: 'Sourced Vehicles', altLabel: 'My Vehicles', href: '/vehicles', icon: '🚙' },
-  { id: 'shipments', label: 'Reserved Vehicles', altLabel: 'Shipments', href: '/shipments', icon: '⏱️' },
-  { id: 'invoices', label: 'Billed Invoices', altLabel: 'Invoices & Ledger', href: '/invoices', icon: '📄' },
-  { id: 'payments', label: 'Wire Remittance', altLabel: 'Payments', href: '/payments', icon: '💲' },
-  { id: 'documents', label: 'Secure Vault', altLabel: 'Documents', href: '/documents', icon: '🛡️' },
-  { id: 'notifications', label: 'Bulletins', altLabel: 'Notifications', href: '/notifications', icon: '🔔' },
-  { id: 'profile', label: 'Client Profile', altLabel: 'Profile & Account', href: '/profile', icon: '👤' },
+  {
+    id: 'dashboard',
+    label: 'Overview',
+    altLabel: 'Dashboard',
+    href: '/dashboard',
+    icon: '📊',
+  },
+  {
+    id: 'browse',
+    label: 'Browse',
+    altLabel: 'Showroom & Wishlist',
+    href: '/inventory',
+    icon: '🚗',
+    children: [
+      { id: 'inventory', label: 'Sourcing Showroom', altLabel: 'Inventory', href: '/inventory', icon: '🚗' },
+      { id: 'inquiries', label: 'My Inquiries', altLabel: 'Inquiries', href: '/inquiries', icon: '💬' },
+      { id: 'wishlist', label: 'My Wishlist', altLabel: 'Wishlist', href: '/wishlist', icon: '❤️' },
+      { id: 'favourites', label: 'Favourites', altLabel: 'Favourites', href: '/favourites', icon: '⭐' },
+    ],
+  },
+  {
+    id: 'garage',
+    label: 'My Garage',
+    altLabel: 'My Vehicles & Orders',
+    href: '/vehicles',
+    icon: '🚙',
+    children: [
+      { id: 'vehicles', label: 'My Vehicles', altLabel: 'My Vehicles', href: '/vehicles', icon: '🚙' },
+      { id: 'shipments', label: 'Hold Vehicles', altLabel: 'Reserved / Hold Vehicles', href: '/shipments', icon: '⏱️' },
+      { id: 'statement', label: 'My Statement', altLabel: 'Customer Statement', href: '/statement', icon: '📑' },
+    ],
+  },
+  {
+    id: 'finances',
+    label: 'Finances',
+    altLabel: 'Invoices, Payments & Docs',
+    href: '/invoices',
+    icon: '💲',
+    children: [
+      { id: 'invoices', label: 'Purchased Vehicles', altLabel: 'Invoices & Ledger', href: '/invoices', icon: '📄' },
+      { id: 'payments', label: 'Wire Remittance', altLabel: 'Payments', href: '/payments', icon: '💲' },
+      { id: 'documents', label: 'Secure Vault', altLabel: 'Documents', href: '/documents', icon: '🛡️' },
+    ],
+  },
+  {
+    id: 'account',
+    label: 'Account',
+    altLabel: 'Profile & Notifications',
+    href: '/profile',
+    icon: '👤',
+    children: [
+      { id: 'profile', label: 'Client Profile', altLabel: 'Profile & Account', href: '/profile', icon: '👤' },
+      { id: 'notifications', label: 'Bulletins', altLabel: 'Notifications', href: '/notifications', icon: '🔔' },
+    ],
+  },
 ];
 
 const CustomerShellContext = createContext<CustomerShellContextValue | undefined>(undefined);

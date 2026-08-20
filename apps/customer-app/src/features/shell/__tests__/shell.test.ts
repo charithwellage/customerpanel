@@ -67,13 +67,30 @@ describe('Customer App Shell & Navigation Unit Tests', () => {
       )
     );
 
-    expect(html).toContain('Dashboard');
-    expect(html).toContain('Inventory');
-    expect(html).toContain('My Vehicles');
-    expect(html).toContain('Invoices &amp; Ledger');
-    expect(html).toContain('Shipments');
-    expect(html).toContain('Documents');
-    expect(html).toContain('Profile &amp; Account');
+    // All 5 consolidated group toggles are always visible regardless of route
+    expect(html).toContain('Dashboard');   // customer.dashboard → 'Dashboard' (English i18n)
+    expect(html).toContain('Browse');      // no i18n key yet, uses label fallback
+    expect(html).toContain('My Garage');   // no i18n key yet, uses label fallback
+    expect(html).toContain('Finances');    // no i18n key yet, uses label fallback
+    expect(html).toContain('Account');     // no i18n key yet, uses label fallback
+
+    // Active route is highlighted
+    expect(html).toContain('aria-current="page"');
+  });
+
+  it('renders My Garage sub-items including new consumer-friendly terminology', () => {
+    const html = renderToStaticMarkup(
+      React.createElement(
+        CustomerShellProvider,
+        { initialRoute: '/vehicles' },
+        React.createElement(CustomerNav)
+      )
+    );
+
+    // My Garage group is active for /vehicles — sub-items should be rendered
+    expect(html).toContain('My Vehicles');        // customer.myVehicles → 'My Vehicles'
+    expect(html).toContain('Hold Vehicles');       // customer.holdVehicles fallback
+    expect(html).toContain('My Statement');        // customer.statement fallback
     expect(html).toContain('aria-current="page"');
   });
 
