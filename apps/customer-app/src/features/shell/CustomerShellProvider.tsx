@@ -121,14 +121,11 @@ const DEFAULT_NAV_ITEMS: NavigationItem[] = [
     icon: '📑',
   },
   {
-    id: 'finances',
-    label: 'Finances',
+    id: 'payments',
+    label: 'Wire Remittance',
     altLabel: 'Payments & Wire Remittances',
     href: '/payments',
     icon: '💲',
-    children: [
-      { id: 'payments', label: 'Wire Remittance', altLabel: 'Payments', href: '/payments', icon: '💲' },
-    ],
   },
   {
     id: 'account',
