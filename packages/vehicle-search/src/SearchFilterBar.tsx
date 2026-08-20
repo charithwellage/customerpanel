@@ -80,8 +80,8 @@ export function SearchFilterBar({
           <RangeInput id="filter-price-max" label="Price To (USD)" value={query.priceMax} min={facets?.priceRange.min} max={facets?.priceRange.max} step={100} onChange={(value) => onUpdateQuery({ priceMax: value })} />
           <RangeInput id="filter-mileage-min" label="Mileage From" value={query.mileageMin} min={facets?.mileageRange.min} max={facets?.mileageRange.max} onChange={(value) => onUpdateQuery({ mileageMin: value })} />
           <RangeInput id="filter-mileage-max" label="Mileage To" value={query.mileageMax} min={facets?.mileageRange.min} max={facets?.mileageRange.max} onChange={(value) => onUpdateQuery({ mileageMax: value })} />
-          <div className="cc-filter-more-toggle"><button type="button" onClick={() => setShowMore((value) => !value)} aria-expanded={showMore}>{showMore ? 'Hide More Filters' : 'More Filters'}</button></div>
-          {showMore && <>
+          {!showMore && <div className="cc-filter-more-toggle"><button type="button" className="cc-search-reset-btn" onClick={() => setShowMore(true)} aria-expanded={false} aria-controls="advanced-filters-section">More Filters</button></div>}
+          {showMore && <div id="advanced-filters-section" className="cc-filter-advanced-fields">
             <FilterSelect id="filter-model-code-select" label="Model Code" value={query.modelCode} options={facets?.modelCodes.map((item) => item.name) ?? []} onChange={(value) => onUpdateQuery({ modelCode: value || undefined })} />
             <FilterSelect id="filter-sub-type-select" label="Sub Type" value={query.vehicleSubType} options={facets?.vehicleSubTypes.map((item) => item.name) ?? []} onChange={(value) => onUpdateQuery({ vehicleSubType: value || undefined })} />
             <FilterSelect id="filter-steering-select" label="Steering" value={query.steering} options={facets?.steerings.map((item) => item.name) ?? []} onChange={(value) => onUpdateQuery({ steering: value || undefined })} />
@@ -99,7 +99,7 @@ export function SearchFilterBar({
             <RangeInput id="filter-load-min" label="Load Capacity From" value={query.loadCapacityMin} min={facets?.loadCapacityRange.min} max={facets?.loadCapacityRange.max} onChange={(value) => onUpdateQuery({ loadCapacityMin: value })} />
             <RangeInput id="filter-load-max" label="Load Capacity To" value={query.loadCapacityMax} min={facets?.loadCapacityRange.min} max={facets?.loadCapacityRange.max} onChange={(value) => onUpdateQuery({ loadCapacityMax: value })} />
             <FeatureFilters facets={facets} query={query} onUpdateQuery={onUpdateQuery} />
-          </>}
+          </div>}
         </div>
       )}
     </section>
@@ -132,13 +132,15 @@ function FeatureFilters({ facets, query, onUpdateQuery }: { facets?: VehicleFace
   if (!facets?.features.length) return null;
   return <fieldset className="cc-filter-features">
     <legend className="cc-filter-label">Equipment</legend>
-    {facets.features.map((feature) => <label key={feature.name} className="cc-filter-checkbox">
-      <input type="checkbox" checked={selected.has(feature.name)} onChange={(event) => {
-        const next = new Set(selected);
-        if (event.target.checked) next.add(feature.name); else next.delete(feature.name);
-        onUpdateQuery({ features: Array.from(next) });
-      }} />
-      <span>{feature.name} ({feature.count})</span>
-    </label>)}
+    <div className="cc-filter-features-grid">
+      {facets.features.map((feature) => <label key={feature.name} className="cc-filter-checkbox">
+        <input type="checkbox" checked={selected.has(feature.name)} onChange={(event) => {
+          const next = new Set(selected);
+          if (event.target.checked) next.add(feature.name); else next.delete(feature.name);
+          onUpdateQuery({ features: Array.from(next) });
+        }} />
+        <span>{feature.name} ({feature.count})</span>
+      </label>)}
+    </div>
   </fieldset>;
 }
