@@ -4244,13 +4244,14 @@ export function buildCustomerVehicleProjections(
         issuedAt: inv.invoicedAt,
       });
     }
-    if (shipment) {
+    if (shipment || inv || status === 'Confirmed' || status === 'In Transit' || status === 'Delivered') {
       docs.push({
         id: `doc-bl-${vId}`,
         type: 'BillOfLading',
         title: 'Bill of Lading BL-789012',
-        status: shipment.status === 'InTransit' || shipment.status === 'Delivered' ? 'Available' : 'Pending',
+        status: 'Available',
         fileUrl: '/documents/bl-789012.pdf',
+        issuedAt: inv?.invoicedAt || '2026-08-10T10:00:00.000Z',
       });
       docs.push({
         id: `doc-ec-${vId}`,
@@ -4258,6 +4259,7 @@ export function buildCustomerVehicleProjections(
         title: 'Japan Export Certificate',
         status: 'Available',
         fileUrl: '/documents/export-cert.pdf',
+        issuedAt: inv?.invoicedAt || '2026-08-10T10:00:00.000Z',
       });
       docs.push({
         id: `doc-ic-${vId}`,
@@ -4265,6 +4267,7 @@ export function buildCustomerVehicleProjections(
         title: 'JEVIC Pre-Shipment Inspection Certificate',
         status: 'Available',
         fileUrl: '/documents/jevic-cert.pdf',
+        issuedAt: inv?.invoicedAt || '2026-08-10T10:00:00.000Z',
       });
     }
 

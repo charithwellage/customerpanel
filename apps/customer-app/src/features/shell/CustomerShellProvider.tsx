@@ -117,13 +117,11 @@ const DEFAULT_NAV_ITEMS: NavigationItem[] = [
   {
     id: 'finances',
     label: 'Finances',
-    altLabel: 'Invoices, Payments & Docs',
-    href: '/invoices',
+    altLabel: 'Payments & Wire Remittances',
+    href: '/payments',
     icon: '💲',
     children: [
-      { id: 'invoices', label: 'Purchased Vehicles', altLabel: 'Invoices & Ledger', href: '/invoices', icon: '📄' },
       { id: 'payments', label: 'Wire Remittance', altLabel: 'Payments', href: '/payments', icon: '💲' },
-      { id: 'documents', label: 'Secure Vault', altLabel: 'Documents', href: '/documents', icon: '🛡️' },
     ],
   },
   {

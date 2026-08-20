@@ -95,6 +95,20 @@ describe('Customer App Shell & Navigation Unit Tests', () => {
     expect(html).toContain('aria-current="page"');
   });
 
+  it('renders Finances sub-items with Wire Remittance and without Purchased Vehicles or Documents', () => {
+    const html = renderToStaticMarkup(
+      React.createElement(
+        CustomerShellProvider,
+        { initialRoute: '/payments' },
+        React.createElement(CustomerNav)
+      )
+    );
+
+    expect(html).toContain('Wire Remittance');
+    expect(html).not.toContain('Purchased Vehicles');
+    expect(html).not.toContain('Secure Vault');
+  });
+
   it('renders mobile menu toggle button with aria-expanded attribute', () => {
     const html = renderToStaticMarkup(
       React.createElement(
