@@ -216,6 +216,35 @@
   gap: 3px;
 }
 
+/* ---------- Language Switcher (D02-P14-T006) ---------- */
+
+.cc-cust-lang-switcher {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: 6px 12px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--spacing-xs);
+}
+
+.cc-cust-lang-switcher__icon {
+  font-size: var(--font-size-sm);
+}
+
+.cc-cust-lang-switcher__select {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--color-text-primary);
+  font-family: var(--font-display);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+}
+
 .cc-cust-sidebar-tool-btn {
   display: flex;
   align-items: center;

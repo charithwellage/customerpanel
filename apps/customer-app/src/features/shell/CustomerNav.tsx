@@ -2,6 +2,7 @@ import React, { useId, useState } from 'react';
 import { useCustomerShell } from './CustomerShellProvider.js';
 import { QueryClientContext } from '@tanstack/react-query';
 import { useCustomerNotifications } from '../notifications/useCustomerNotifications.js';
+import { useTranslation, CustomerLanguageSwitcher } from '../../i18n/index.js';
 import {
   BrandBuildingIcon,
   DashboardGridIcon,
@@ -51,6 +52,7 @@ export const CustomerNav: React.FC = () => {
     toggleThemeMode,
     onSignOut,
   } = useCustomerShell();
+  const { t } = useTranslation();
   const mobileMenuId = useId();
   const [isSyncing, setIsSyncing] = useState(false);
   const publicWebUrl = typeof window !== 'undefined'
@@ -62,6 +64,37 @@ export const CustomerNav: React.FC = () => {
     setTimeout(() => {
       setIsSyncing(false);
     }, 800);
+  };
+
+  const getItemLabel = (item: { id: string; label: string }) => {
+    switch (item.id) {
+      case 'dashboard':
+        return t('customer.dashboard', undefined, item.label);
+      case 'inventory':
+        return t('customer.inventory', undefined, item.label);
+      case 'inquiries':
+        return t('customer.inquiries', undefined, item.label);
+      case 'wishlist':
+        return t('customer.wishlist', undefined, item.label);
+      case 'favourites':
+        return t('customer.favourites', undefined, item.label);
+      case 'vehicles':
+        return t('customer.myVehicles', undefined, item.label);
+      case 'shipments':
+        return t('customer.shipments', undefined, item.label);
+      case 'invoices':
+        return t('customer.invoices', undefined, item.label);
+      case 'payments':
+        return t('customer.payments', undefined, item.label);
+      case 'documents':
+        return t('customer.documents', undefined, item.label);
+      case 'notifications':
+        return t('customer.notifications', undefined, item.label);
+      case 'profile':
+        return t('customer.profile', undefined, item.label);
+      default:
+        return item.label;
+    }
   };
 
   const renderNavIcon = (itemId: string, fallbackIcon?: string) => {
@@ -137,13 +170,14 @@ export const CustomerNav: React.FC = () => {
           <ul className="cc-cust-shell-nav__list">
             {navigationItems.map((item) => {
               const isActive = activeRoute === item.href || (item.href !== '/dashboard' && activeRoute.startsWith(`${item.href}/`));
+              const localizedLabel = getItemLabel(item);
               return (
                 <li key={item.id} className="cc-cust-shell-nav__item">
                   <a
                     href={item.href}
                     className={`cc-cust-shell-nav__link ${isActive ? 'cc-cust-shell-nav__link--active' : ''}`}
                     aria-current={isActive ? 'page' : undefined}
-                    aria-label={`${item.label}${item.altLabel ? ` (${item.altLabel})` : ''}`}
+                    aria-label={`${localizedLabel}${item.altLabel ? ` (${item.altLabel})` : ''}`}
                     onClick={(e) => {
                       e.preventDefault();
                       setActiveRoute(item.href);
@@ -152,7 +186,7 @@ export const CustomerNav: React.FC = () => {
                     <span className="cc-cust-shell-nav__icon" aria-hidden="true">
                       {renderNavIcon(item.id, item.icon)}
                     </span>
-                    <span className="cc-cust-shell-nav__label">{item.label}</span>
+                    <span className="cc-cust-shell-nav__label">{localizedLabel}</span>
                     {item.altLabel && <span className="sr-only">{item.altLabel}</span>}
                     {item.id === 'notifications' ? (
                       <LiveNotificationBadgeWrapper fallbackBadge={item.badge} />
@@ -169,6 +203,9 @@ export const CustomerNav: React.FC = () => {
         {/* Bottom Sidebar Utilities & Logout */}
         <div className="cc-cust-shell-sidebar__footer">
           <div className="cc-cust-shell-sidebar__tools">
+            {/* Customer Language Switcher (D02-P14-T006) */}
+            <CustomerLanguageSwitcher id="desktop-cust-language-switcher" />
+
             <button
               type="button"
               className="cc-cust-sidebar-tool-btn"
@@ -195,7 +232,7 @@ export const CustomerNav: React.FC = () => {
               <span className={`cc-cust-tool-icon ${isSyncing ? 'cc-cust-tool-icon--spin' : ''}`} aria-hidden="true">
                 <SyncArrowsIcon size={16} />
               </span>
-              <span>{isSyncing ? 'Syncing...' : 'Sync Sourcing Data'}</span>
+              <span>{isSyncing ? 'Syncing...' : t('customer.sync', undefined, 'Sync Sourcing Data')}</span>
             </button>
 
             <a
@@ -220,7 +257,7 @@ export const CustomerNav: React.FC = () => {
                   <span className="cc-cust-logout-icon" aria-hidden="true">
                     <SecureLogoutDoorIcon size={16} />
                   </span>
-                  <span>Secure Log Out</span>
+                  <span>{t('customer.logout', undefined, 'Secure Log Out')}</span>
                   <span className="sr-only">Sign out</span>
                 </button>
               ) : null
@@ -236,9 +273,14 @@ export const CustomerNav: React.FC = () => {
       {/* Mobile Drawer Navigation */}
       {isMobileMenuOpen && (
         <nav id={mobileMenuId} className="cc-cust-shell-nav--mobile" aria-label="Customer Mobile Navigation">
+          <div style={{ padding: '8px 12px', borderBottom: '1px solid var(--color-border)' }}>
+            <CustomerLanguageSwitcher id="mobile-cust-language-switcher" />
+          </div>
+
           <ul className="cc-cust-shell-nav__list--mobile">
             {navigationItems.map((item) => {
               const isActive = activeRoute === item.href || (item.href !== '/dashboard' && activeRoute.startsWith(`${item.href}/`));
+              const localizedLabel = getItemLabel(item);
               return (
                 <li key={item.id} className="cc-cust-shell-nav__item--mobile">
                   <a
@@ -254,7 +296,7 @@ export const CustomerNav: React.FC = () => {
                     <span className="cc-cust-shell-nav__icon" aria-hidden="true">
                       {renderNavIcon(item.id, item.icon)}
                     </span>
-                    <span>{item.label}</span>
+                    <span>{localizedLabel}</span>
                     {item.altLabel && <span className="sr-only">{item.altLabel}</span>}
                     {item.id === 'notifications' ? (
                       <LiveNotificationBadgeWrapper fallbackBadge={item.badge} />
@@ -280,7 +322,7 @@ export const CustomerNav: React.FC = () => {
                 <span className="cc-cust-logout-icon" aria-hidden="true">
                   <SecureLogoutDoorIcon size={16} />
                 </span>
-                <span>Secure Log Out</span>
+                <span>{t('customer.logout', undefined, 'Secure Log Out')}</span>
                 <span className="sr-only">Sign out</span>
               </button>
             )}

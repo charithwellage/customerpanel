@@ -1270,4 +1270,5 @@ export * from './freight.js';
 export * from './content.js';
 export * from './countries.js';
 export * from './compliance.js';
+export * from './i18n.js';
 import type { CustomerTier } from './auth.js';

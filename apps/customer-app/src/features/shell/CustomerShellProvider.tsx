@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { ThemeId, resolveThemeId } from '@carchief/theme';
 import { applyCustomerTheme, ThemeMode } from '../../theme.js';
+import { I18nProvider, CustomerGoogleTranslateWidget } from '../../i18n/index.js';
 
 export interface CustomerUser {
   id: string;
@@ -197,26 +198,29 @@ export const CustomerShellProvider: React.FC<CustomerShellProviderProps> = ({
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
 
   return (
-    <CustomerShellContext.Provider
-      value={{
-        user: currentUser,
-        pairedAccounts: DEFAULT_PAIRED_ACCOUNTS,
-        switchAccount,
-        activeRoute,
-        setActiveRoute,
-        isMobileMenuOpen,
-        toggleMobileMenu,
-        closeMobileMenu,
-        themeId: resolvedTheme,
-        themeMode,
-        toggleThemeMode,
-        setThemeMode,
-        navigationItems: navItems,
-        onSignOut,
-      }}
-    >
-      {children}
-    </CustomerShellContext.Provider>
+    <I18nProvider>
+      <CustomerShellContext.Provider
+        value={{
+          user: currentUser,
+          pairedAccounts: DEFAULT_PAIRED_ACCOUNTS,
+          switchAccount,
+          activeRoute,
+          setActiveRoute,
+          isMobileMenuOpen,
+          toggleMobileMenu,
+          closeMobileMenu,
+          themeId: resolvedTheme,
+          themeMode,
+          toggleThemeMode,
+          setThemeMode,
+          navigationItems: navItems,
+          onSignOut,
+        }}
+      >
+        {children}
+        <CustomerGoogleTranslateWidget />
+      </CustomerShellContext.Provider>
+    </I18nProvider>
   );
 };
 

@@ -3,6 +3,7 @@ import type { CSSProperties, ReactNode } from 'react';
 import { getThemeCssVariables, getThemeDefinition, resolveThemeId } from '@carchief/theme';
 import { ThemeSwitcher } from '../theme-switcher';
 import { HeaderComponent, FooterComponent } from '../shell';
+import { I18nProvider, GoogleTranslateWidget } from '../i18n';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -40,10 +41,13 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         />
       </head>
       <body>
-        {isDevelopment ? <ThemeSwitcher initialThemeId={themeId} /> : null}
-        <HeaderComponent />
-        {children}
-        <FooterComponent />
+        <I18nProvider>
+          {isDevelopment ? <ThemeSwitcher initialThemeId={themeId} /> : null}
+          <HeaderComponent />
+          {children}
+          <FooterComponent />
+          <GoogleTranslateWidget />
+        </I18nProvider>
       </body>
     </html>
   );
