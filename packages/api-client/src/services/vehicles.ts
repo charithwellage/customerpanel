@@ -41,11 +41,18 @@ export class VehicleService {
           transmissions: [],
           driveTrains: [],
           models: [],
+          modelCodes: [],
+          vehicleTypes: [],
+          vehicleSubTypes: [],
           locationStatuses: [],
           destinationPorts: [],
+          overdrives: [],
+          colors: [],
+          exteriorGrades: [],
           yearRange: { min: 2000, max: 2026 },
           priceRange: { min: 0, max: 0 },
           mileageRange: { min: 0, max: 0 },
+          engineCcRange: { min: 0, max: 0 },
         },
       };
     }
@@ -54,10 +61,15 @@ export class VehicleService {
     if (query?.searchQuery) params.set('searchQuery', query.searchQuery);
     if (query?.make) params.set('make', query.make);
     if (query?.model) params.set('model', query.model);
+    if (query?.modelCode) params.set('modelCode', query.modelCode);
     if (query?.bodyStyle) params.set('bodyStyle', query.bodyStyle);
     if (query?.fuelType) params.set('fuelType', query.fuelType);
     if (query?.transmission) params.set('transmission', query.transmission);
     if (query?.driveTrain) params.set('driveTrain', query.driveTrain);
+    if (query?.vehicleSubType) params.set('vehicleSubType', query.vehicleSubType);
+    if (query?.overdrive) params.set('overdrive', query.overdrive);
+    if (query?.color) params.set('color', query.color);
+    if (query?.exteriorGrade) params.set('exteriorGrade', query.exteriorGrade);
     if (query?.stockType) params.set('stockType', query.stockType);
     if (query?.locationStatus) params.set('locationStatus', query.locationStatus);
     if (query?.market) params.set('market', query.market);
@@ -69,6 +81,8 @@ export class VehicleService {
     if (query?.priceMax !== undefined) params.set('priceMax', String(query.priceMax));
     if (query?.mileageMin !== undefined) params.set('mileageMin', String(query.mileageMin));
     if (query?.mileageMax !== undefined) params.set('mileageMax', String(query.mileageMax));
+    if (query?.engineCcMin !== undefined) params.set('engineCcMin', String(query.engineCcMin));
+    if (query?.engineCcMax !== undefined) params.set('engineCcMax', String(query.engineCcMax));
     if (query?.sortBy) params.set('sortBy', query.sortBy);
     if (query?.page !== undefined) params.set('page', String(query.page));
     if (query?.limit !== undefined) params.set('limit', String(query.limit));

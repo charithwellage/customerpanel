@@ -18,11 +18,18 @@ describe('Search Components & Presentation Tests (PUB-04, PUB-07, RULE-09)', () 
     transmissions: [{ name: 'Automatic', count: 7 }, { name: 'Manual', count: 1 }],
     driveTrains: [{ name: '2WD', count: 5 }, { name: '4WD', count: 3 }],
     models: [{ name: 'Corolla', count: 4 }],
+    modelCodes: [{ name: 'DBA-NZE141', count: 4 }],
+    vehicleTypes: [{ name: 'Sedan', count: 4 }],
+    vehicleSubTypes: [{ name: 'Saloon', count: 4 }],
     locationStatuses: [{ name: 'In Japan', count: 4 }],
     destinationPorts: [{ name: 'Mombasa', count: 4 }],
+    overdrives: [{ name: 'Yes', count: 4 }],
+    colors: [{ name: 'White', count: 4 }],
+    exteriorGrades: [{ name: '4.5', count: 4 }],
     yearRange: { min: 2018, max: 2023 },
     priceRange: { min: 7500, max: 49000 },
     mileageRange: { min: 1000, max: 90000 },
+    engineCcRange: { min: 1500, max: 2500 },
   };
 
   it('renders SearchFilterBar with search input and reset button', () => {

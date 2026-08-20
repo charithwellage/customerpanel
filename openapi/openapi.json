@@ -2183,6 +2183,7 @@
           "chassisNumber": { "type": "string", "example": "NZE141-1234567" },
           "make": { "type": "string", "example": "Toyota" },
           "model": { "type": "string", "example": "Corolla Axio" },
+          "modelCode": { "type": "string", "example": "DBA-NZE141" },
           "year": { "type": "integer", "example": 2021 },
           "priceUsd": { "type": "number", "example": 8500 },
           "status": { "type": "string", "example": "Available" },
@@ -2198,6 +2199,11 @@
           "destinationPort": { "type": "string", "example": "Mombasa" },
           "discountPercent": { "type": "number", "example": 5 },
           "bodyStyle": { "type": "string", "example": "Sedan" },
+          "vehicleSubType": { "type": "string", "example": "Saloon" },
+          "engineCc": { "type": "integer", "example": 1500 },
+          "overdrive": { "type": "string", "example": "Yes" },
+          "color": { "type": "string", "example": "White" },
+          "exteriorGrade": { "type": "string", "example": "4.5" },
           "fuelType": { "type": "string", "example": "Petrol" },
           "transmission": { "type": "string", "example": "Automatic" },
           "driveTrain": { "type": "string", "example": "2WD" },
@@ -2370,6 +2376,9 @@
             "type": "array",
             "items": { "$ref": "#/components/schemas/FacetCount" }
           },
+          "modelCodes": { "type": "array", "items": { "$ref": "#/components/schemas/FacetCount" } },
+          "vehicleTypes": { "type": "array", "items": { "$ref": "#/components/schemas/FacetCount" } },
+          "vehicleSubTypes": { "type": "array", "items": { "$ref": "#/components/schemas/FacetCount" } },
           "locationStatuses": {
             "type": "array",
             "items": { "$ref": "#/components/schemas/FacetCount" }
@@ -2378,11 +2387,15 @@
             "type": "array",
             "items": { "$ref": "#/components/schemas/FacetCount" }
           },
+          "overdrives": { "type": "array", "items": { "$ref": "#/components/schemas/FacetCount" } },
+          "colors": { "type": "array", "items": { "$ref": "#/components/schemas/FacetCount" } },
+          "exteriorGrades": { "type": "array", "items": { "$ref": "#/components/schemas/FacetCount" } },
           "yearRange": { "$ref": "#/components/schemas/RangeFacet" },
           "priceRange": { "$ref": "#/components/schemas/RangeFacet" },
-          "mileageRange": { "$ref": "#/components/schemas/RangeFacet" }
+          "mileageRange": { "$ref": "#/components/schemas/RangeFacet" },
+          "engineCcRange": { "$ref": "#/components/schemas/RangeFacet" }
         },
-        "required": ["makes", "bodyStyles", "fuelTypes", "transmissions", "driveTrains", "models", "locationStatuses", "destinationPorts", "yearRange", "priceRange", "mileageRange"]
+        "required": ["makes", "bodyStyles", "fuelTypes", "transmissions", "driveTrains", "models", "modelCodes", "vehicleTypes", "vehicleSubTypes", "locationStatuses", "destinationPorts", "overdrives", "colors", "exteriorGrades", "yearRange", "priceRange", "mileageRange", "engineCcRange"]
       },
       "VehicleSearchResult": {
         "type": "object",

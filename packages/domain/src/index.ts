@@ -155,6 +155,7 @@ export interface VehicleDomainSummary {
   slug?: string;
   make: string;
   model: string;
+  modelCode?: string;
   year: number;
   priceUsd: number;
   status: VehicleStatus;
@@ -169,6 +170,11 @@ export interface VehicleDomainSummary {
 
   // Phase 1.3 Extensions
   bodyStyle?: string;
+  vehicleSubType?: string;
+  engineCc?: number;
+  overdrive?: string;
+  color?: string;
+  exteriorGrade?: string;
   fuelType?: string;
   transmission?: string;
   driveTrain?: string;
@@ -203,11 +209,18 @@ export interface VehicleFacets {
   transmissions: FacetCount[];
   driveTrains: FacetCount[];
   models: FacetCount[];
+  modelCodes: FacetCount[];
+  vehicleTypes: FacetCount[];
+  vehicleSubTypes: FacetCount[];
   locationStatuses: FacetCount[];
   destinationPorts: FacetCount[];
+  overdrives: FacetCount[];
+  colors: FacetCount[];
+  exteriorGrades: FacetCount[];
   yearRange: RangeFacet<number>;
   priceRange: RangeFacet<number>;
   mileageRange: RangeFacet<number>;
+  engineCcRange: RangeFacet<number>;
 }
 
 export interface VehicleSearchResult {
@@ -225,10 +238,17 @@ export interface SearchVehiclesQuery {
   searchQuery?: string;
   make?: string;
   model?: string;
+  modelCode?: string;
   bodyStyle?: string;
   fuelType?: string;
   transmission?: string;
   driveTrain?: string;
+  vehicleSubType?: string;
+  engineCcMin?: number;
+  engineCcMax?: number;
+  overdrive?: string;
+  color?: string;
+  exteriorGrade?: string;
   stockType?: string;
   locationStatus?: string;
   market?: string;

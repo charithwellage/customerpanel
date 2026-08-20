@@ -67,7 +67,13 @@ export function SearchFilterBar({
           <FilterSelect id="filter-fuel-select" label="Fuel Type" value={query.fuelType} options={facets?.fuelTypes.map((item) => item.name) ?? []} onChange={(value) => onUpdateQuery({ fuelType: value || undefined })} />
           <FilterSelect id="filter-transmission-select" label="Transmission" value={query.transmission} options={facets?.transmissions.map((item) => item.name) ?? []} onChange={(value) => onUpdateQuery({ transmission: value || undefined })} />
           <FilterSelect id="filter-drivetrain-select" label="Drive Train" value={query.driveTrain} options={facets?.driveTrains.map((item) => item.name) ?? []} onChange={(value) => onUpdateQuery({ driveTrain: value || undefined })} />
+          <FilterSelect id="filter-overdrive-select" label="O Drive" value={query.overdrive} options={facets?.overdrives.map((item) => item.name) ?? []} onChange={(value) => onUpdateQuery({ overdrive: value || undefined })} />
+          <FilterSelect id="filter-color-select" label="Color" value={query.color} options={facets?.colors.map((item) => item.name) ?? []} onChange={(value) => onUpdateQuery({ color: value || undefined })} />
+          <FilterSelect id="filter-exterior-grade-select" label="Ext. Grade" value={query.exteriorGrade} options={facets?.exteriorGrades.map((item) => item.name) ?? []} onChange={(value) => onUpdateQuery({ exteriorGrade: value || undefined })} />
           <FilterSelect id="filter-model-select" label="Model" value={query.model} options={facets?.models.map((item) => item.name) ?? []} onChange={(value) => onUpdateQuery({ model: value || undefined })} />
+          <FilterSelect id="filter-model-code-select" label="Model Code" value={query.modelCode} options={facets?.modelCodes.map((item) => item.name) ?? []} onChange={(value) => onUpdateQuery({ modelCode: value || undefined })} />
+          <FilterSelect id="filter-vehicle-type-select" label="Vehicle Type" value={query.bodyStyle} options={facets?.vehicleTypes.map((item) => item.name) ?? []} onChange={(value) => onUpdateQuery({ bodyStyle: value || undefined })} />
+          <FilterSelect id="filter-sub-type-select" label="Sub Type" value={query.vehicleSubType} options={facets?.vehicleSubTypes.map((item) => item.name) ?? []} onChange={(value) => onUpdateQuery({ vehicleSubType: value || undefined })} />
           <FilterSelect id="filter-location-select" label="Location" value={query.locationStatus} options={facets?.locationStatuses.map((item) => item.name) ?? []} onChange={(value) => onUpdateQuery({ locationStatus: value || undefined })} />
           <FilterSelect id="filter-destination-port-select" label="Destination Port" value={query.destinationPort} options={facets?.destinationPorts.map((item) => item.name) ?? []} onChange={(value) => onUpdateQuery({ destinationPort: value || undefined })} />
           <RangeInput id="filter-year-min" label="Year From" value={query.yearMin} min={facets?.yearRange.min} max={facets?.yearRange.max} onChange={(value) => onUpdateQuery({ yearMin: value })} />
@@ -76,6 +82,8 @@ export function SearchFilterBar({
           <RangeInput id="filter-price-max" label="Price To (USD)" value={query.priceMax} min={facets?.priceRange.min} max={facets?.priceRange.max} step={100} onChange={(value) => onUpdateQuery({ priceMax: value })} />
           <RangeInput id="filter-mileage-min" label="Mileage From" value={query.mileageMin} min={facets?.mileageRange.min} max={facets?.mileageRange.max} onChange={(value) => onUpdateQuery({ mileageMin: value })} />
           <RangeInput id="filter-mileage-max" label="Mileage To" value={query.mileageMax} min={facets?.mileageRange.min} max={facets?.mileageRange.max} onChange={(value) => onUpdateQuery({ mileageMax: value })} />
+          <RangeInput id="filter-engine-min" label="Engine From (CC)" value={query.engineCcMin} min={facets?.engineCcRange.min} max={facets?.engineCcRange.max} step={100} onChange={(value) => onUpdateQuery({ engineCcMin: value })} />
+          <RangeInput id="filter-engine-max" label="Engine To (CC)" value={query.engineCcMax} min={facets?.engineCcRange.min} max={facets?.engineCcRange.max} step={100} onChange={(value) => onUpdateQuery({ engineCcMax: value })} />
         </div>
       )}
     </section>
