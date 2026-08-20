@@ -4,6 +4,7 @@ import { AccountGuard, type CustomerSession, HttpClientProvider } from '../featu
 import { OfflineGuard } from '../features/pwa/index.js';
 import { CustomerShell, useCustomerShell, type CustomerUser } from '../features/shell/index.js';
 import { OverviewPage } from '../features/dashboard/index.js';
+import { CustomerStatementPage } from '../features/statement/index.js';
 import { CustomerInventoryPage, CustomerVehicleDetailPage } from '../features/inventory/index.js';
 import { CustomerFleetPage, CustomerFleetDetailPage } from '../features/vehicles/index.js';
 import { DocumentsPage } from '../features/documents/index.js';
@@ -55,6 +56,10 @@ const AppContent: React.FC<{ session: CustomerSession; apiBaseUrl: string }> = (
 
   if (activeRoute === '/dashboard') {
     return <OverviewPage />;
+  }
+
+  if (activeRoute === '/statement') {
+    return <CustomerStatementPage />;
   }
 
   if (activeRoute === '/inventory') {

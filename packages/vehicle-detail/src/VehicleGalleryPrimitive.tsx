@@ -127,6 +127,22 @@ export function VehicleGalleryPrimitive({
             >
               <span aria-hidden="true">&rsaquo;</span>
             </button>
+            <div className="cc-gallery__dots" role="tablist" aria-label="Slide indicators">
+              {images.map((_, idx) => (
+                <button
+                  key={`slide-dot-${idx}`}
+                  type="button"
+                  role="tab"
+                  className={`cc-gallery__dot${idx === activeIndex ? ' cc-gallery__dot--active' : ''}`}
+                  aria-label={`Slide to image ${idx + 1}`}
+                  aria-selected={idx === activeIndex}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setGalleryIndex(idx);
+                  }}
+                />
+              ))}
+            </div>
           </>
         )}
       </div>

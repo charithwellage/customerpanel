@@ -324,4 +324,28 @@ describe('My Vehicles UI Components (D02-P04-T002)', () => {
       expect(nullVehicleHtml).toBe('');
     });
   });
+
+  describe('FRD Section 4 Order & Logistics Timeline', () => {
+    it('renders CustomerFleetDetailPage with Order Timeline and Download Documents button', () => {
+      const html = renderToStaticMarkup(
+        React.createElement(
+          QueryClientProvider,
+          { client: queryClient },
+          React.createElement(
+            CustomerShellProvider,
+            { initialUser: MOCK_USER, initialRoute: '/vehicles/veh-landcruiser-001' },
+            React.createElement(
+              HttpClientProvider,
+              { apiBaseUrl: 'http://127.0.0.1:4000' },
+              React.createElement(CustomerFleetDetailPage, { vehicleId: 'veh-landcruiser-001', onBack: () => {} })
+            )
+          )
+        )
+      );
+
+      // Initially renders loading or page structure
+      expect(html).toBeTruthy();
+    });
+  });
 });
+

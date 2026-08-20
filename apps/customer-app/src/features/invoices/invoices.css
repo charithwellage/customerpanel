@@ -2416,3 +2416,331 @@
   line-height: 1.3;
 }
 
+/* ==========================================================================
+   EMAIL DOCUMENT MODAL (FRD 4.11 & 4.18)
+   ========================================================================== */
+
+.cc-email-modal-overlay,
+.cc-inv-pay-modal-overlay,
+.cc-courier-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-md);
+}
+
+.cc-email-modal-backdrop,
+.cc-inv-pay-modal-backdrop,
+.cc-courier-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background-color: var(--color-surface-dark);
+  opacity: 0.6;
+}
+
+.cc-email-modal-dialog,
+.cc-inv-pay-modal-dialog,
+.cc-courier-modal-dialog {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  overflow-y: auto;
+}
+
+.cc-email-modal-header,
+.cc-inv-pay-modal-header,
+.cc-courier-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.cc-email-modal-title,
+.cc-inv-pay-modal-title,
+.cc-courier-modal-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--font-size-base);
+  font-weight: 800;
+  color: var(--color-text-primary);
+}
+
+.cc-email-modal-close,
+.cc-inv-pay-modal-close,
+.cc-courier-modal-close {
+  background: transparent;
+  border: none;
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  padding: 4px;
+}
+
+.cc-email-modal-close:hover,
+.cc-inv-pay-modal-close:hover,
+.cc-courier-modal-close:hover {
+  color: var(--color-text-primary);
+}
+
+.cc-email-modal-alert {
+  margin: var(--spacing-sm) var(--spacing-lg) 0;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+}
+
+.cc-email-modal-alert--error {
+  background-color: var(--color-error-surface);
+  color: var(--color-error);
+  border: 1px solid var(--color-error);
+}
+
+.cc-email-modal-alert--success {
+  background-color: var(--color-success-surface);
+  color: var(--color-success);
+  border: 1px solid var(--color-success);
+}
+
+.cc-email-modal-form {
+  padding: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.cc-email-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.cc-email-form-label {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--color-text-secondary);
+}
+
+.cc-email-required {
+  color: var(--color-error);
+}
+
+.cc-email-form-input,
+.cc-email-form-textarea {
+  width: 100%;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  font-size: var(--font-size-xs);
+}
+
+.cc-email-form-input:focus,
+.cc-email-form-textarea:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+}
+
+.cc-email-form-input--locked {
+  background-color: var(--color-neutral-surface);
+  color: var(--color-text-secondary);
+  cursor: not-allowed;
+}
+
+.cc-email-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-sm);
+  padding-top: var(--spacing-sm);
+  border-top: 1px solid var(--color-border);
+}
+
+.cc-email-btn {
+  padding: var(--spacing-xs) var(--spacing-lg);
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--motion-fast);
+}
+
+.cc-email-btn--cancel {
+  background-color: var(--color-neutral-surface);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+}
+
+.cc-email-btn--send {
+  background-color: var(--color-primary);
+  color: var(--color-text-on-primary);
+  border: 1px solid var(--color-primary);
+}
+
+.cc-email-btn--send:hover {
+  background-color: var(--color-primary-hover);
+}
+
+/* ==========================================================================
+   INVOICE PAYMENT DETAILS MODAL (FRD 4.21)
+   ========================================================================== */
+
+.cc-inv-pay-modal-dialog {
+  max-width: 760px;
+}
+
+.cc-inv-pay-modal-body {
+  padding: var(--spacing-md);
+}
+
+.cc-inv-pay-table-wrap {
+  overflow-x: auto;
+}
+
+.cc-inv-pay-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.cc-inv-pay-table th {
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  border-bottom: 2px solid var(--color-border);
+  background-color: var(--color-neutral-surface);
+}
+
+.cc-inv-pay-th--right {
+  text-align: right;
+}
+
+.cc-inv-pay-th--center {
+  text-align: center;
+}
+
+.cc-inv-pay-tr {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.cc-inv-pay-table td {
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-primary);
+}
+
+.cc-inv-pay-td-mono {
+  font-family: var(--font-mono);
+}
+
+.cc-inv-pay-td-bold {
+  font-weight: 700;
+}
+
+.cc-inv-pay-td--right {
+  text-align: right;
+}
+
+.cc-inv-pay-td--center {
+  text-align: center;
+}
+
+.cc-inv-pay-tt-link {
+  background: transparent;
+  border: none;
+  color: var(--color-primary);
+  font-weight: 800;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+}
+
+.cc-inv-pay-download-btn {
+  background-color: var(--color-neutral-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 3px var(--spacing-sm);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  transition: all var(--motion-fast);
+}
+
+.cc-inv-pay-download-btn:hover {
+  background-color: var(--color-primary);
+  color: var(--color-text-on-primary);
+  border-color: var(--color-primary);
+}
+
+/* ==========================================================================
+   COURIER REMARKS MODAL (FRD 4.22)
+   ========================================================================== */
+
+.cc-courier-modal-body {
+  padding: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.cc-courier-meta-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: var(--font-size-xs);
+}
+
+.cc-courier-meta-label {
+  min-width: 120px;
+  color: var(--color-text-secondary);
+  font-family: var(--font-mono);
+}
+
+.cc-courier-meta-val--mono {
+  font-family: var(--font-mono);
+  font-weight: 700;
+}
+
+.cc-courier-remarks-box {
+  background-color: var(--color-neutral-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.cc-courier-remarks-label {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--color-text-secondary);
+}
+
+.cc-courier-remarks-text {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-primary);
+  line-height: 1.5;
+}
+
+

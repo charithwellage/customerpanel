@@ -202,16 +202,51 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
     res.json(lead);
   });
 
-  // 3j. Customer inquiry list (D02-P13-T001, CUST-34): returns only the
-  // signed-in customer's own quote requests, one row per distinct vehicle.
+  // 3j. Customer inquiry list (D02-P13-T001, CUST-34, FRD Section 6): returns
+  // signed-in customer's inquiries (Stock, WhatsApp, Auction, General).
   app.get('/api/v1/customer/inquiries', async (req: AuthenticatedRequest, res: Response) => {
     if (!req.user) {
       res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
       return;
     }
     const customerId = resolveCustomerScope(req.user.sub);
-    const inquiries = await store.listCustomerInquiries(customerId);
+    const inquiries = await store.listCustomerPolymorphicInquiries(customerId);
     res.json(inquiries);
+  });
+
+  // 3k-stmt. Customer statement with running balance (FRD Section 3)
+  app.get('/api/v1/customer/statement', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) {
+      res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+      return;
+    }
+    const customerId = resolveCustomerScope(req.user.sub);
+    const fromDate = typeof req.query.fromDate === 'string' ? req.query.fromDate : undefined;
+    const toDate = typeof req.query.toDate === 'string' ? req.query.toDate : undefined;
+    const statement = await store.getCustomerStatement(customerId, fromDate, toDate);
+    res.json(statement);
+  });
+
+  // 3k-dc. Customer debit, credit, refund transactions (FRD Section 5.9-5.14)
+  app.get('/api/v1/customer/debit-credit', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) {
+      res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+      return;
+    }
+    const customerId = resolveCustomerScope(req.user.sub);
+    const dcRecords = await store.getCustomerDebitCreditRefunds(customerId);
+    res.json(dcRecords);
+  });
+
+  // 3k-pa. Customer paired / linked accounts (FRD Section 1)
+  app.get('/api/v1/customer/paired-accounts', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) {
+      res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+      return;
+    }
+    const customerId = resolveCustomerScope(req.user.sub);
+    const accounts = await store.getCustomerPairedAccounts(customerId);
+    res.json({ items: accounts });
   });
 
   // 3l. Wishlist operations (D02-P13-T002, CUST-36/CUST-37): list, add, remove

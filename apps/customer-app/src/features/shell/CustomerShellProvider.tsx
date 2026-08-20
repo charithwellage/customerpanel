@@ -20,8 +20,19 @@ export interface NavigationItem {
   altLabel?: string;
 }
 
+export interface PairedAccount {
+  id: string;
+  name: string;
+  company: string;
+  email: string;
+  tier?: string;
+  country?: string;
+}
+
 export interface CustomerShellContextValue {
   user: CustomerUser | null;
+  pairedAccounts: PairedAccount[];
+  switchAccount: (accountId: string) => void;
   activeRoute: string;
   setActiveRoute: (route: string) => void;
   isMobileMenuOpen: boolean;
@@ -36,8 +47,36 @@ export interface CustomerShellContextValue {
   onSignOut?: () => void;
 }
 
+const DEFAULT_PAIRED_ACCOUNTS: PairedAccount[] = [
+  {
+    id: 'usr-charith-01',
+    name: 'Charith Wellage',
+    company: 'charith wellage',
+    email: 'charith.wellage@carchief.com',
+    tier: 'PREMIUM DEALER',
+    country: 'Kenya',
+  },
+  {
+    id: 'usr-branch-02',
+    name: 'CarChief Kenya Hub',
+    company: 'CarChief East Africa Ltd',
+    email: 'kenya.hub@carchief.com',
+    tier: 'REGIONAL DISTRIBUTOR',
+    country: 'Kenya',
+  },
+  {
+    id: 'usr-logistics-03',
+    name: 'Wellage Logistics Fleet',
+    company: 'Wellage Commercial Importers',
+    email: 'fleet@wellagelogistics.co.ke',
+    tier: 'WHOLESALE IMPORTER',
+    country: 'Kenya',
+  },
+];
+
 const DEFAULT_NAV_ITEMS: NavigationItem[] = [
   { id: 'dashboard', label: 'Overview Desk', altLabel: 'Dashboard', href: '/dashboard', icon: '📊' },
+  { id: 'statement', label: 'My Statement', altLabel: 'Customer Statement', href: '/statement', icon: '📑' },
   { id: 'inventory', label: 'Sourcing Showroom', altLabel: 'Inventory', href: '/inventory', icon: '🚗' },
   { id: 'inquiries', label: 'My Inquiries', altLabel: 'My Inquiries', href: '/inquiries', icon: '💬' },
   { id: 'wishlist', label: 'My Wishlist', altLabel: 'My Wishlist', href: '/wishlist', icon: '❤️' },
@@ -80,9 +119,22 @@ export const CustomerShellProvider: React.FC<CustomerShellProviderProps> = ({
     return '/dashboard';
   };
 
-  const [user] = useState<CustomerUser | null>(initialUser);
+  const [currentUser, setCurrentUser] = useState<CustomerUser | null>(initialUser ?? null);
   const [activeRoute, setActiveRouteState] = useState<string>(getInitialPath);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
+
+  const switchAccount = (accountId: string) => {
+    const matched = DEFAULT_PAIRED_ACCOUNTS.find((a) => a.id === accountId);
+    if (matched) {
+      setCurrentUser({
+        id: matched.id,
+        name: matched.name,
+        company: matched.company,
+        email: matched.email,
+        tier: matched.tier,
+      });
+    }
+  };
 
   const [themeMode, setThemeModeState] = useState<ThemeMode>(() => {
     if (initialThemeMode) return initialThemeMode;
@@ -147,7 +199,9 @@ export const CustomerShellProvider: React.FC<CustomerShellProviderProps> = ({
   return (
     <CustomerShellContext.Provider
       value={{
-        user,
+        user: currentUser,
+        pairedAccounts: DEFAULT_PAIRED_ACCOUNTS,
+        switchAccount,
         activeRoute,
         setActiveRoute,
         isMobileMenuOpen,

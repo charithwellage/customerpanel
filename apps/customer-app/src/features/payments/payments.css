@@ -525,3 +525,588 @@
     transition: none;
   }
 }
+
+/* ==========================================================================
+   FRD SECTION 5: PAYMENTS TABS, DETAIL MODALS & DEBIT/CREDIT REFUNDS
+   ========================================================================== */
+
+/* Sub-Navigation Tabs */
+.cc-remit-tab-strip {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  border-bottom: 2px solid var(--color-border);
+  padding-bottom: 2px;
+  margin-bottom: var(--spacing-md);
+}
+
+.cc-remit-tab-btn {
+  padding: var(--spacing-xs) var(--spacing-lg);
+  border: none;
+  background: transparent;
+  font-family: var(--font-display);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  transition: all var(--motion-fast);
+}
+
+.cc-remit-tab-btn:hover {
+  color: var(--color-text-primary);
+  background-color: var(--color-neutral-surface);
+}
+
+.cc-remit-tab-btn--active {
+  color: var(--color-primary);
+  border-bottom: 3px solid var(--color-primary);
+  font-weight: 800;
+}
+
+/* Filter Bar */
+.cc-remit-filter-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
+}
+
+.cc-remit-search-box {
+  display: flex;
+  align-items: center;
+  position: relative;
+  flex: 1;
+  min-width: 240px;
+}
+
+.cc-remit-search-icon {
+  position: absolute;
+  left: var(--spacing-sm);
+  color: var(--color-text-secondary);
+  pointer-events: none;
+}
+
+.cc-remit-search-input {
+  width: 100%;
+  padding: var(--spacing-xs) var(--spacing-sm) var(--spacing-xs) 2rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-xs);
+}
+
+.cc-remit-filter-dropdowns {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.cc-remit-filter-select {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-xs);
+}
+
+/* Table Actions & Icon Buttons */
+.cc-remit-action-icons-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.cc-remit-icon-btn {
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 2px 6px;
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  transition: all var(--motion-fast);
+}
+
+.cc-remit-icon-btn:hover {
+  background-color: var(--color-neutral-surface);
+  border-color: var(--color-text-secondary);
+}
+
+/* Payment Modals */
+.cc-pay-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-md);
+}
+
+.cc-pay-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background-color: var(--color-surface-dark);
+  opacity: 0.6;
+}
+
+.cc-pay-modal-dialog {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 650px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  overflow-y: auto;
+}
+
+.cc-pay-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.cc-pay-modal-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--font-size-base);
+  font-weight: 800;
+  color: var(--color-text-primary);
+}
+
+.cc-pay-modal-close {
+  background: transparent;
+  border: none;
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  padding: 4px;
+}
+
+.cc-pay-modal-body {
+  padding: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.cc-pay-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-sm) var(--spacing-lg);
+}
+
+.cc-pay-detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cc-pay-detail-label {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+}
+
+.cc-pay-detail-val {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+.cc-pay-detail-val--mono {
+  font-family: var(--font-mono);
+}
+
+.cc-pay-detail-val--bold {
+  font-weight: 800;
+}
+
+.cc-pay-color-green {
+  color: var(--color-success);
+}
+
+.cc-pay-docs-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  padding-top: var(--spacing-xs);
+  border-top: 1px solid var(--color-border);
+}
+
+.cc-pay-docs-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+}
+
+.cc-pay-doc-download-chip {
+  background-color: var(--color-neutral-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 4px var(--spacing-sm);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: all var(--motion-fast);
+}
+
+.cc-pay-doc-download-chip:hover {
+  background-color: var(--color-primary);
+  color: var(--color-text-on-primary);
+  border-color: var(--color-primary);
+}
+
+.cc-pay-table-wrap {
+  overflow-x: auto;
+}
+
+.cc-pay-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.cc-pay-table th {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  border-bottom: 2px solid var(--color-border);
+  background-color: var(--color-neutral-surface);
+}
+
+.cc-pay-th--right {
+  text-align: right;
+}
+
+.cc-pay-tr {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.cc-pay-table td {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-primary);
+}
+
+.cc-pay-td-mono {
+  font-family: var(--font-mono);
+}
+
+.cc-pay-td-bold {
+  font-weight: 700;
+}
+
+.cc-pay-td--right {
+  text-align: right;
+}
+
+/* ==========================================================================
+   DEBIT / CREDIT / REFUNDS TAB (FRD 5.9-5.14)
+   ========================================================================== */
+
+.cc-debit-credit-tab {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.cc-dc-kpi-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--spacing-md);
+}
+
+.cc-dc-kpi-card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  box-shadow: var(--shadow-sm);
+}
+
+.cc-dc-kpi-label {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+}
+
+.cc-dc-kpi-val {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-lg);
+  font-weight: 800;
+}
+
+.cc-dc-val--debit {
+  color: var(--color-error);
+}
+
+.cc-dc-val--credit {
+  color: var(--color-success);
+}
+
+.cc-dc-val--refund {
+  color: var(--color-primary);
+}
+
+.cc-dc-kpi-subtext {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.cc-dc-filter-section {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.cc-dc-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--spacing-sm);
+}
+
+.cc-dc-filter-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cc-dc-filter-item--checkbox {
+  justify-content: flex-end;
+  padding-bottom: 4px;
+}
+
+.cc-dc-filter-label {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+}
+
+.cc-dc-filter-input,
+.cc-dc-filter-select {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-xs);
+}
+
+.cc-dc-checkbox-label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  cursor: pointer;
+}
+
+.cc-dc-filter-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.cc-dc-reset-btn {
+  background: transparent;
+  border: none;
+  color: var(--color-primary);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+}
+
+.cc-dc-table-section {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.cc-dc-table-wrap {
+  overflow-x: auto;
+}
+
+.cc-dc-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.cc-dc-table th {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  border-bottom: 2px solid var(--color-border);
+  background-color: var(--color-neutral-surface);
+}
+
+.cc-dc-th--right {
+  text-align: right;
+}
+
+.cc-dc-th--center {
+  text-align: center;
+}
+
+.cc-dc-tr {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.cc-dc-table td {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-primary);
+}
+
+.cc-dc-td-mono {
+  font-family: var(--font-mono);
+}
+
+.cc-dc-td-bold {
+  font-weight: 700;
+}
+
+.cc-dc-td--right {
+  text-align: right;
+}
+
+.cc-dc-td--center {
+  text-align: center;
+}
+
+.cc-dc-type-pill {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: var(--radius-pill);
+  text-transform: uppercase;
+}
+
+.cc-dc-type-pill--debit {
+  background-color: var(--color-error-surface);
+  color: var(--color-error);
+  border: 1px solid var(--color-error);
+}
+
+.cc-dc-type-pill--credit {
+  background-color: var(--color-success-surface);
+  color: var(--color-success);
+  border: 1px solid var(--color-success);
+}
+
+.cc-dc-type-pill--refund {
+  background-color: var(--color-info-surface);
+  color: var(--color-info);
+  border: 1px solid var(--color-info);
+}
+
+.cc-dc-notes-btn {
+  background-color: var(--color-neutral-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 2px 6px;
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  transition: all var(--motion-fast);
+}
+
+.cc-dc-notes-btn:hover {
+  background-color: var(--color-primary);
+  color: var(--color-text-on-primary);
+  border-color: var(--color-primary);
+}
+
+/* Customer Notes Modal */
+.cc-dc-notes-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-md);
+}
+
+.cc-dc-notes-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background-color: var(--color-surface-dark);
+  opacity: 0.6;
+}
+
+.cc-dc-notes-modal-dialog {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 500px;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+}
+
+.cc-dc-notes-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-md);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.cc-dc-notes-modal-title {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: 800;
+}
+
+.cc-dc-notes-modal-close {
+  background: transparent;
+  border: none;
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+}
+
+.cc-dc-notes-modal-body {
+  padding: var(--spacing-md);
+}
+
+.cc-dc-notes-text {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-primary);
+  line-height: 1.5;
+}
+

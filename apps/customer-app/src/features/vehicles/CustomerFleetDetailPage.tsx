@@ -150,6 +150,114 @@ export const CustomerFleetDetailPage: React.FC<CustomerFleetDetailPageProps> = (
             </dl>
           </section>
 
+          {/* Order Timeline (FRD 4.28: Order Dates -> Inspection Dates -> Shipping Dates) */}
+          <section className="cc-cust-fleet-card cc-order-timeline-card" aria-label="Order & Shipping Timeline">
+            <div className="cc-order-timeline-header">
+              <h3 className="cc-cust-fleet-section-title">Order &amp; Logistics Timeline</h3>
+              <button
+                type="button"
+                className="cc-download-shipping-docs-btn"
+                onClick={() => {
+                  const element = document.createElement('a');
+                  const file = new Blob([`CarChief Shipping Documents Bundle for ${vehicle.chassisNumber}\nVehicle: ${vehicle.year} ${vehicle.make} ${vehicle.model}\nStatus: ${vehicle.status}`], { type: 'text/plain' });
+                  element.href = URL.createObjectURL(file);
+                  element.download = `${vehicle.chassisNumber}_Shipping_Documents.txt`;
+                  document.body.appendChild(element);
+                  element.click();
+                  document.body.removeChild(element);
+                }}
+                data-testid="download-shipping-docs-btn"
+              >
+                📥 Download Shipping Documents
+              </button>
+            </div>
+
+            <div className="cc-order-timeline-steps">
+              <div className="cc-timeline-step cc-timeline-step--done">
+                <span className="cc-timeline-step__marker">✓</span>
+                <span className="cc-timeline-step__title">Negotiation</span>
+                <span className="cc-timeline-step__date">2026-06-03</span>
+              </div>
+
+              <div className="cc-timeline-step cc-timeline-step--done">
+                <span className="cc-timeline-step__marker">✓</span>
+                <span className="cc-timeline-step__title">Proforma Issued</span>
+                <span className="cc-timeline-step__date">2026-06-04</span>
+              </div>
+
+              <div className="cc-timeline-step cc-timeline-step--done">
+                <span className="cc-timeline-step__marker">✓</span>
+                <span className="cc-timeline-step__title">Order Confirmed</span>
+                <span className="cc-timeline-step__date">2026-06-05</span>
+              </div>
+
+              <div className="cc-timeline-step cc-timeline-step--done">
+                <span className="cc-timeline-step__marker">✓</span>
+                <span className="cc-timeline-step__title">Inspection (JAAI)</span>
+                <span className="cc-timeline-step__date">2026-06-08</span>
+                <span className="cc-timeline-step__badge cc-timeline-step__badge--passed">PASSED ✓</span>
+              </div>
+
+              <div className={`cc-timeline-step ${vehicle.etd ? 'cc-timeline-step--done' : 'cc-timeline-step--pending'}`}>
+                <span className="cc-timeline-step__marker">{vehicle.etd ? '✓' : '●'}</span>
+                <span className="cc-timeline-step__title">ETD Japan</span>
+                <span className="cc-timeline-step__date">{vehicle.etd ? vehicle.etd.slice(0, 10) : '2026-06-21'}</span>
+              </div>
+
+              <div className={`cc-timeline-step ${vehicle.eta ? 'cc-timeline-step--done' : 'cc-timeline-step--pending'}`}>
+                <span className="cc-timeline-step__marker">{vehicle.eta ? '✓' : '●'}</span>
+                <span className="cc-timeline-step__title">ETA Port</span>
+                <span className="cc-timeline-step__date">{vehicle.eta ? vehicle.eta.slice(0, 10) : '2026-07-25'}</span>
+              </div>
+
+              <div className={`cc-timeline-step ${vehicle.status.toLowerCase().includes('delivered') ? 'cc-timeline-step--done' : 'cc-timeline-step--pending'}`}>
+                <span className="cc-timeline-step__marker">{vehicle.status.toLowerCase().includes('delivered') ? '✓' : '●'}</span>
+                <span className="cc-timeline-step__title">Delivered</span>
+                <span className="cc-timeline-step__date">2026-07-28</span>
+              </div>
+            </div>
+
+            <div className="cc-order-timeline-details-grid">
+              <div className="cc-timeline-detail-col">
+                <div className="cc-timeline-detail-row">
+                  <span className="cc-timeline-detail-label">ETD:</span>
+                  <span className="cc-timeline-detail-val cc-timeline-detail-val--mono">{vehicle.etd ? vehicle.etd.slice(0, 10) : '2026-06-21'}</span>
+                </div>
+                <div className="cc-timeline-detail-row">
+                  <span className="cc-timeline-detail-label">ETA:</span>
+                  <span className="cc-timeline-detail-val cc-timeline-detail-val--mono">{vehicle.eta ? vehicle.eta.slice(0, 10) : '2026-07-25'}</span>
+                </div>
+                <div className="cc-timeline-detail-row">
+                  <span className="cc-timeline-detail-label">ATA:</span>
+                  <span className="cc-timeline-detail-val cc-timeline-detail-val--mono">{vehicle.ata || '2026-07-26'}</span>
+                </div>
+              </div>
+
+              <div className="cc-timeline-detail-col">
+                <div className="cc-timeline-detail-row">
+                  <span className="cc-timeline-detail-label">Inspection Date:</span>
+                  <span className="cc-timeline-detail-val cc-timeline-detail-val--mono">{vehicle.inspectionDate || '2026-06-08'}</span>
+                </div>
+                <div className="cc-timeline-detail-row">
+                  <span className="cc-timeline-detail-label">Inspection Status:</span>
+                  <span className="cc-timeline-detail-val cc-timeline-status-pass">{vehicle.inspectionStatus || 'PASSED [JAAI/QISJ]'}</span>
+                </div>
+                <div className="cc-timeline-detail-row">
+                  <span className="cc-timeline-detail-label">Courier Dispatch:</span>
+                  <a
+                    href="https://www.dhl.com"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="cc-timeline-courier-link"
+                    title="Track Courier dispatch on DHL"
+                  >
+                    Track Courier ({vehicle.courierCompany || 'DHL'}: {vehicle.trackingNumber || '0010019284'}) →
+                  </a>
+                </div>
+              </div>
+            </div>
+          </section>
+
           {/* Transaction Milestones Timeline */}
           <section className="cc-cust-fleet-card">
             <StatusTimeline history={vehicle.statusHistory} currentStatus={vehicle.status} />

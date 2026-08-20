@@ -86,6 +86,13 @@ import type {
   MarkNotificationsReadResponse,
   CustomerProfile,
   UpdateCustomerProfileRequest,
+  CustomerStatementEntry,
+  CustomerStatementSummary,
+  CustomerDebitCreditRecord,
+  CustomerDebitCreditListResponse,
+  CustomerPolymorphicInquiry,
+  CustomerPolymorphicInquiryListResponse,
+  CustomerPairedAccount,
 } from '@carchief/domain';
 import {
   generateVehicleSlug,
@@ -173,8 +180,11 @@ const seedVehicles: VehicleRecord[] = [
     category: 'arrival,premium',
     createdAt: '2026-08-09T10:00:00.000Z',
     images: [
-      'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=800&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1590362891991-f776e747a588?w=800&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1590362891991-f776e747a588?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=1000&auto=format&fit=crop',
     ],
     featured: true,
     stockType: 'J',
@@ -200,7 +210,13 @@ const seedVehicles: VehicleRecord[] = [
     status: 'ReservedWithPI',
     category: 'arrival',
     createdAt: '2026-08-08T14:30:00.000Z',
-    images: ['https://images.unsplash.com/photo-1559416523-140ddc3d238c?w=800&auto=format&fit=crop&q=80'],
+    images: [
+      'https://images.unsplash.com/photo-1559416523-140ddc3d238c?w=1000&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1590362891991-f776e747a588?w=1000&auto=format&fit=crop',
+    ],
     featured: true,
     stockType: 'J',
     destinationPort: 'Mombasa',
@@ -223,7 +239,13 @@ const seedVehicles: VehicleRecord[] = [
     status: 'Available',
     category: 'premium',
     createdAt: '2026-07-30T09:00:00.000Z',
-    images: ['https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=800&auto=format&fit=crop'],
+    images: [
+      'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1594502184342-2e12f877aa73?w=1000&auto=format&fit=crop',
+    ],
     featured: true,
     stockType: 'J',
     destinationPort: 'Mombasa',
@@ -255,7 +277,12 @@ const seedVehicles: VehicleRecord[] = [
     transmission: 'Automatic',
     driveTrain: 'AWD',
     mileage: 54000,
-    images: ['https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?w=1000&auto=format&fit=crop'],
+    images: [
+      'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1000&auto=format&fit=crop',
+    ],
     requestPrice: true, // Price on request
   },
   {
@@ -268,7 +295,13 @@ const seedVehicles: VehicleRecord[] = [
     status: 'Available',
     category: 'best_offer',
     createdAt: '2026-08-07T08:00:00.000Z',
-    images: ['https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=1000&auto=format&fit=crop'],
+    images: [
+      'https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1590362891991-f776e747a588?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=1000&auto=format&fit=crop',
+    ],
     discountPercent: 5,
     featured: true,
     stockType: 'J',
@@ -292,7 +325,13 @@ const seedVehicles: VehicleRecord[] = [
     status: 'Available',
     category: 'clearance',
     createdAt: '2026-07-20T10:00:00.000Z',
-    images: ['https://images.unsplash.com/photo-1594502184342-2e12f877aa73?w=1000&auto=format&fit=crop'],
+    images: [
+      'https://images.unsplash.com/photo-1594502184342-2e12f877aa73?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1000&auto=format&fit=crop',
+    ],
     discountPercent: 15,
     featured: false,
     stockType: 'CRFO',
@@ -320,7 +359,13 @@ const seedVehicles: VehicleRecord[] = [
     status: 'Available',
     category: 'premium',
     createdAt: '2026-08-09T16:00:00.000Z',
-    images: ['https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=1000&auto=format&fit=crop'],
+    images: [
+      'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1594502184342-2e12f877aa73?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=1000&auto=format&fit=crop',
+    ],
     featured: true,
     stockType: 'J',
     destinationPort: 'Mombasa',
@@ -345,7 +390,13 @@ const seedVehicles: VehicleRecord[] = [
     status: 'Available',
     category: 'arrival',
     createdAt: '2026-08-06T12:00:00.000Z',
-    images: ['https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=1000&auto=format&fit=crop'],
+    images: [
+      'https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1590362891991-f776e747a588?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=1000&auto=format&fit=crop',
+    ],
     featured: false,
     stockType: 'J',
     destinationPort: 'Mombasa',
@@ -366,7 +417,13 @@ const seedVehicles: VehicleRecord[] = [
     status: 'Available',
     category: 'premium',
     createdAt: '2026-08-08T09:00:00.000Z',
-    images: ['https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=1000&auto=format&fit=crop'],
+    images: [
+      'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1555215695-3004980ad54e?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=1000&auto=format&fit=crop',
+    ],
     featured: true,
     stockType: 'J',
     destinationPort: 'Mombasa',
@@ -388,7 +445,13 @@ const seedVehicles: VehicleRecord[] = [
     status: 'Available',
     category: 'premium',
     createdAt: '2026-08-07T14:00:00.000Z',
-    images: ['https://images.unsplash.com/photo-1555215695-3004980ad54e?w=1000&auto=format&fit=crop'],
+    images: [
+      'https://images.unsplash.com/photo-1555215695-3004980ad54e?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=1000&auto=format&fit=crop',
+    ],
     featured: true,
     stockType: 'J',
     destinationPort: 'Mombasa',
@@ -409,7 +472,13 @@ const seedVehicles: VehicleRecord[] = [
     status: 'Available',
     category: 'best_offer',
     createdAt: '2026-08-05T10:00:00.000Z',
-    images: ['https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?w=1000&auto=format&fit=crop'],
+    images: [
+      'https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1555215695-3004980ad54e?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=1000&auto=format&fit=crop',
+    ],
     featured: false,
     stockType: 'J',
     destinationPort: 'Dar es Salaam',
@@ -430,7 +499,13 @@ const seedVehicles: VehicleRecord[] = [
     status: 'Available',
     category: 'premium',
     createdAt: '2026-08-09T18:00:00.000Z',
-    images: ['https://images.unsplash.com/photo-1563720223185-11003d516935?w=1000&auto=format&fit=crop'],
+    images: [
+      'https://images.unsplash.com/photo-1563720223185-11003d516935?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1594502184342-2e12f877aa73?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1000&auto=format&fit=crop',
+    ],
     featured: true,
     stockType: 'J',
     destinationPort: 'Mombasa',
@@ -451,7 +526,12 @@ const seedVehicles: VehicleRecord[] = [
     status: 'Available',
     category: 'premium',
     createdAt: '2026-08-10T12:00:00.000Z',
-    images: ['https://images.unsplash.com/photo-1594502184342-2e12f877aa73?w=1000&auto=format&fit=crop'],
+    images: [
+      'https://images.unsplash.com/photo-1594502184342-2e12f877aa73?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=1000&auto=format&fit=crop',
+    ],
     featured: true,
     stockType: 'J',
     destinationPort: 'Mombasa',
@@ -472,7 +552,12 @@ const seedVehicles: VehicleRecord[] = [
     status: 'Sold',
     category: 'arrival',
     createdAt: '2026-08-01T10:00:00.000Z',
-    images: ['https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1000&auto=format&fit=crop'],
+    images: [
+      'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1590362891991-f776e747a588?w=1000&auto=format&fit=crop',
+    ],
     featured: false,
     stockType: 'J',
     destinationPort: 'Mombasa',
@@ -538,7 +623,13 @@ const seedVehicles: VehicleRecord[] = [
     color: 'Red',
     mileage: 155391,
     logisticsStatus: 'RESERVED',
-    images: ['https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=800&auto=format&fit=crop'],
+    images: [
+      'https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=1000&auto=format&fit=crop',
+    ],
     bodyStyle: 'Hatchback',
     fuelType: 'Petrol',
     transmission: 'Automatic',
@@ -557,7 +648,13 @@ const seedVehicles: VehicleRecord[] = [
     color: 'Gunmetal',
     mileage: 114289,
     logisticsStatus: 'RESERVED',
-    images: ['https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=800&auto=format&fit=crop'],
+    images: [
+      'https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1590362891991-f776e747a588?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=1000&auto=format&fit=crop',
+    ],
     bodyStyle: 'SUV',
     fuelType: 'Diesel',
     transmission: 'Automatic',
@@ -576,7 +673,13 @@ const seedVehicles: VehicleRecord[] = [
     color: 'Black',
     mileage: 90821,
     logisticsStatus: 'RESERVED',
-    images: ['https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&auto=format&fit=crop'],
+    images: [
+      'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=1000&auto=format&fit=crop',
+    ],
     bodyStyle: 'Wagon',
     fuelType: 'Petrol',
     transmission: 'Automatic',
@@ -595,7 +698,13 @@ const seedVehicles: VehicleRecord[] = [
     color: 'Blue',
     mileage: 85576,
     logisticsStatus: 'RESERVED',
-    images: ['https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=800&auto=format&fit=crop'],
+    images: [
+      'https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=1000&auto=format&fit=crop',
+    ],
     bodyStyle: 'Hatchback',
     fuelType: 'Petrol',
     transmission: 'Automatic',
@@ -614,7 +723,13 @@ const seedVehicles: VehicleRecord[] = [
     color: 'White',
     mileage: 64960,
     logisticsStatus: 'RESERVED',
-    images: ['https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=800&auto=format&fit=crop'],
+    images: [
+      'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1590362891991-f776e747a588?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=1000&auto=format&fit=crop',
+    ],
     bodyStyle: 'Hatchback',
     fuelType: 'Petrol',
     transmission: 'Automatic',
@@ -633,7 +748,13 @@ const seedVehicles: VehicleRecord[] = [
     color: 'Red',
     mileage: 51233,
     logisticsStatus: 'RESERVED',
-    images: ['https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=800&auto=format&fit=crop'],
+    images: [
+      'https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1590362891991-f776e747a588?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=1000&auto=format&fit=crop',
+    ],
     bodyStyle: 'SUV',
     fuelType: 'Diesel',
     transmission: 'Automatic',
@@ -653,7 +774,13 @@ const seedVehicles: VehicleRecord[] = [
     color: 'White',
     mileage: 136683,
     logisticsStatus: 'INSPECTION',
-    images: ['https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=800&auto=format&fit=crop'],
+    images: [
+      'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1590362891991-f776e747a588?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=1000&auto=format&fit=crop',
+    ],
     bodyStyle: 'Wagon',
     fuelType: 'Petrol',
     transmission: 'Automatic',
@@ -672,7 +799,13 @@ const seedVehicles: VehicleRecord[] = [
     color: 'Gray',
     mileage: 95643,
     logisticsStatus: 'INSPECTION',
-    images: ['https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=800&auto=format&fit=crop'],
+    images: [
+      'https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1590362891991-f776e747a588?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=1000&auto=format&fit=crop',
+    ],
     bodyStyle: 'Hatchback',
     fuelType: 'Petrol',
     transmission: 'Automatic',
@@ -691,7 +824,13 @@ const seedVehicles: VehicleRecord[] = [
     color: 'Pearl',
     mileage: 157678,
     logisticsStatus: 'INSPECTION',
-    images: ['https://images.unsplash.com/photo-1590362891991-f776e747a588?w=800&auto=format&fit=crop'],
+    images: [
+      'https://images.unsplash.com/photo-1590362891991-f776e747a588?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=1000&auto=format&fit=crop',
+    ],
     bodyStyle: 'Sedan',
     fuelType: 'Petrol',
     transmission: 'Automatic',
@@ -710,7 +849,13 @@ const seedVehicles: VehicleRecord[] = [
     color: 'White',
     mileage: 124460,
     logisticsStatus: 'INSPECTION',
-    images: ['https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=800&auto=format&fit=crop'],
+    images: [
+      'https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=1000&auto=format&fit=crop',
+    ],
     bodyStyle: 'Hatchback',
     fuelType: 'Petrol',
     transmission: 'Automatic',
@@ -729,7 +874,13 @@ const seedVehicles: VehicleRecord[] = [
     color: 'White',
     mileage: 182929,
     logisticsStatus: 'INSPECTION',
-    images: ['https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=800&auto=format&fit=crop'],
+    images: [
+      'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1590362891991-f776e747a588?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=1000&auto=format&fit=crop',
+    ],
     bodyStyle: 'Hatchback',
     fuelType: 'Petrol',
     transmission: 'Automatic',
@@ -748,7 +899,12 @@ const seedVehicles: VehicleRecord[] = [
     color: 'Green',
     mileage: 88789,
     logisticsStatus: 'INSPECTION',
-    images: ['https://images.unsplash.com/photo-1559416523-140ddc3d238c?w=800&auto=format&fit=crop'],
+    images: [
+      'https://images.unsplash.com/photo-1559416523-140ddc3d238c?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=1000&auto=format&fit=crop',
+    ],
     bodyStyle: 'Van',
     fuelType: 'Petrol',
     transmission: 'Automatic',
@@ -767,7 +923,13 @@ const seedVehicles: VehicleRecord[] = [
     color: 'Blue',
     mileage: 85576,
     logisticsStatus: 'INSPECTION',
-    images: ['https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=800&auto=format&fit=crop'],
+    images: [
+      'https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=1000&auto=format&fit=crop',
+    ],
     bodyStyle: 'Hatchback',
     fuelType: 'Petrol',
     transmission: 'Automatic',
@@ -786,7 +948,13 @@ const seedVehicles: VehicleRecord[] = [
     color: 'Red',
     mileage: 155391,
     logisticsStatus: 'INSPECTION',
-    images: ['https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=800&auto=format&fit=crop'],
+    images: [
+      'https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=1000&auto=format&fit=crop',
+    ],
     bodyStyle: 'Hatchback',
     fuelType: 'Petrol',
     transmission: 'Automatic',
@@ -805,7 +973,13 @@ const seedVehicles: VehicleRecord[] = [
     color: 'White',
     mileage: 156683,
     logisticsStatus: 'INSPECTION',
-    images: ['https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=800&auto=format&fit=crop'],
+    images: [
+      'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1590362891991-f776e747a588?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=1000&auto=format&fit=crop',
+    ],
     bodyStyle: 'Wagon',
     fuelType: 'Petrol',
     transmission: 'Automatic',
@@ -824,7 +998,13 @@ const seedVehicles: VehicleRecord[] = [
     color: 'Red',
     mileage: 105754,
     logisticsStatus: 'INSPECTION',
-    images: ['https://images.unsplash.com/photo-1590362891991-f776e747a588?w=800&auto=format&fit=crop'],
+    images: [
+      'https://images.unsplash.com/photo-1590362891991-f776e747a588?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=1000&auto=format&fit=crop',
+    ],
     bodyStyle: 'Sedan',
     fuelType: 'Petrol',
     transmission: 'Automatic',
@@ -843,7 +1023,13 @@ const seedVehicles: VehicleRecord[] = [
     color: 'Catalunya Red Metallic',
     mileage: 3200,
     logisticsStatus: 'INSPECTION',
-    images: ['https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?w=800&auto=format&fit=crop'],
+    images: [
+      'https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1555215695-3004980ad54e?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=1000&auto=format&fit=crop',
+    ],
     bodyStyle: 'Coupe',
     fuelType: 'Petrol',
     transmission: 'Automatic',
@@ -862,7 +1048,13 @@ const seedVehicles: VehicleRecord[] = [
     color: 'Carrara White Metallic',
     mileage: 150,
     logisticsStatus: 'INSPECTION',
-    images: ['https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&auto=format&fit=crop'],
+    images: [
+      'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=1000&auto=format&fit=crop',
+    ],
     bodyStyle: 'Coupe',
     fuelType: 'Petrol',
     transmission: 'Automatic',
@@ -881,7 +1073,13 @@ const seedVehicles: VehicleRecord[] = [
     color: 'Ultra Red',
     mileage: 8400,
     logisticsStatus: 'INSPECTION',
-    images: ['https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=800&auto=format&fit=crop'],
+    images: [
+      'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1555215695-3004980ad54e?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=1000&auto=format&fit=crop',
+    ],
     bodyStyle: 'Sedan',
     fuelType: 'Electric',
     transmission: 'Automatic',
@@ -900,7 +1098,13 @@ const seedVehicles: VehicleRecord[] = [
     color: 'Firenze Red Metallic',
     mileage: 80,
     logisticsStatus: 'INSPECTION',
-    images: ['https://images.unsplash.com/photo-1563720223185-11003d516935?w=800&auto=format&fit=crop'],
+    images: [
+      'https://images.unsplash.com/photo-1563720223185-11003d516935?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1594502184342-2e12f877aa73?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1000&auto=format&fit=crop',
+    ],
     bodyStyle: 'SUV',
     fuelType: 'Petrol',
     transmission: 'Automatic',
@@ -919,7 +1123,13 @@ const seedVehicles: VehicleRecord[] = [
     color: 'Dark Gray',
     mileage: 75953,
     logisticsStatus: 'INSPECTION',
-    images: ['https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=800&auto=format&fit=crop'],
+    images: [
+      'https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1590362891991-f776e747a588?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=1000&auto=format&fit=crop',
+    ],
     bodyStyle: 'Hatchback',
     fuelType: 'Petrol',
     transmission: 'Automatic',
@@ -1006,6 +1216,11 @@ export interface DemoStore {
   createFavourite(customerId: string, name: string, criteria: FavouriteSearchCriteria, nowISO?: string): Promise<FavouriteSearch>;
   deleteFavourite(customerId: string, id: string): Promise<void>;
   getFavouriteFacets(): Promise<FavouriteSearchFacets>;
+  // FRD Additions: Statement, Debit/Credit/Refunds, Polymorphic Inquiries, Paired Accounts
+  getCustomerStatement(customerId: string, fromDate?: string, toDate?: string): Promise<CustomerStatementSummary>;
+  getCustomerDebitCreditRefunds(customerId: string): Promise<CustomerDebitCreditListResponse>;
+  listCustomerPolymorphicInquiries(customerId: string): Promise<CustomerPolymorphicInquiryListResponse>;
+  getCustomerPairedAccounts(customerId: string): Promise<CustomerPairedAccount[]>;
   reset(): Promise<void>;
   close(): Promise<void>;
 }
@@ -5347,6 +5562,280 @@ class MemoryStore implements DemoStore {
     };
   }
 
+  getCustomerStatement(customerId: string, fromDate?: string, toDate?: string): Promise<CustomerStatementSummary> {
+    const openingBalance = 450.00;
+    const entries: CustomerStatementEntry[] = [
+      {
+        id: 'stmt-0',
+        date: fromDate || '2024-09-01',
+        description: 'Opening Balance (Forward from previous cycle)',
+        debitUsd: 0,
+        creditUsd: 0,
+        runningBalanceUsd: openingBalance,
+        isOpeningBalance: true,
+      },
+      {
+        id: 'stmt-1',
+        date: '2024-09-05',
+        description: 'Invoice P-85492 (2021 TOYOTA COROLLA FIELDER)',
+        referenceNo: 'P-85492',
+        debitUsd: 17360,
+        creditUsd: 0,
+        runningBalanceUsd: 17360 - openingBalance,
+      },
+      {
+        id: 'stmt-2',
+        date: '2024-09-10',
+        description: 'Telegraphic Wire Remittance Deposit (TT2400005)',
+        referenceNo: 'TT2400005',
+        debitUsd: 0,
+        creditUsd: 100000,
+        runningBalanceUsd: -83090,
+      },
+      {
+        id: 'stmt-3',
+        date: '2024-09-15',
+        description: 'Commercial Invoice INV-34503 (2024 TOYOTA LAND CRUISER 250)',
+        referenceNo: 'INV-34503',
+        debitUsd: 45000,
+        creditUsd: 0,
+        runningBalanceUsd: -38090,
+      },
+      {
+        id: 'stmt-4',
+        date: '2024-09-22',
+        description: 'Debit Note DN2400008 (Storage & demurrage adjustment)',
+        referenceNo: 'DN2400008',
+        debitUsd: 1000,
+        creditUsd: 0,
+        runningBalanceUsd: -37090,
+      },
+      {
+        id: 'stmt-5',
+        date: '2024-09-30',
+        description: 'Credit Note CR2400005 (Port handling allowance)',
+        referenceNo: 'CR2400005',
+        debitUsd: 0,
+        creditUsd: 400,
+        runningBalanceUsd: -37490,
+      },
+    ];
+
+    let filtered = entries;
+    if (fromDate) {
+      const fromTime = new Date(fromDate).getTime();
+      filtered = filtered.filter((e) => e.isOpeningBalance || new Date(e.date).getTime() >= fromTime);
+    }
+    if (toDate) {
+      const toTime = new Date(toDate).getTime();
+      filtered = filtered.filter((e) => e.isOpeningBalance || new Date(e.date).getTime() <= toTime);
+    }
+
+    const totalDebitsUsd = filtered.filter((e) => !e.isOpeningBalance).reduce((sum, e) => sum + e.debitUsd, 0);
+    const totalCreditsUsd = filtered.filter((e) => !e.isOpeningBalance).reduce((sum, e) => sum + e.creditUsd, 0);
+    const closingBalanceUsd = totalDebitsUsd - totalCreditsUsd + openingBalance;
+
+    return Promise.resolve({
+      customerId,
+      fromDate: fromDate || '2024-09-01',
+      toDate: toDate || '2024-10-31',
+      openingBalanceUsd: openingBalance,
+      totalDebitsUsd,
+      totalCreditsUsd,
+      closingBalanceUsd,
+      entries: filtered,
+    });
+  }
+
+  getCustomerDebitCreditRefunds(customerId: string): Promise<CustomerDebitCreditListResponse> {
+    const records: CustomerDebitCreditRecord[] = [
+      {
+        id: 'dc-1',
+        customerId,
+        refNumber: 'DN2400008',
+        type: 'Debit',
+        cashInDate: '2024-10-31',
+        stockId: 'J24013263',
+        currency: 'USD',
+        amount: 1000,
+        balanceAmount: 1000,
+        paidInCash: false,
+        approvedDate: '2024-10-31',
+        customerNotes: 'Storage & documentation demurrage adjustment.',
+        notesVisibleToCustomer: true,
+      },
+      {
+        id: 'dc-2',
+        customerId,
+        refNumber: 'RF2400006',
+        type: 'Refund',
+        cashInDate: '2024-10-25',
+        stockId: '-',
+        currency: 'USD',
+        amount: 5000,
+        balanceAmount: 5000,
+        paidInCash: true,
+        approvedDate: '2024-10-25',
+        customerNotes: 'Direct remittance excess wire refund.',
+        notesVisibleToCustomer: true,
+      },
+      {
+        id: 'dc-3',
+        customerId,
+        refNumber: 'CR2400008',
+        type: 'Credit',
+        cashInDate: '2024-10-24',
+        stockId: '-',
+        currency: 'USD',
+        amount: 4500,
+        balanceAmount: 4500,
+        paidInCash: false,
+        approvedDate: '2024-10-24',
+        customerNotes: 'Ocean freight discount rebate credited to ledger.',
+        notesVisibleToCustomer: true,
+      },
+      {
+        id: 'dc-4',
+        customerId,
+        refNumber: 'DN2400001',
+        type: 'Debit',
+        cashInDate: '2024-10-04',
+        stockId: 'NRE161',
+        currency: 'USD',
+        amount: 250,
+        balanceAmount: 250,
+        paidInCash: false,
+        approvedDate: '2024-10-04',
+        customerNotes: 'Inspection expediting fee.',
+        notesVisibleToCustomer: true,
+      },
+      {
+        id: 'dc-5',
+        customerId,
+        refNumber: 'CR2400005',
+        type: 'Credit',
+        cashInDate: '2024-09-30',
+        stockId: 'DE3FS-',
+        currency: 'USD',
+        amount: 400,
+        balanceAmount: 400,
+        paidInCash: false,
+        approvedDate: '2024-09-30',
+        customerNotes: 'Port handling allowance credited.',
+        notesVisibleToCustomer: true,
+      },
+    ];
+
+    const totalDebitsUsd = records.filter((r) => r.type === 'Debit').reduce((sum, r) => sum + r.amount, 0);
+    const totalCreditsUsd = records.filter((r) => r.type === 'Credit').reduce((sum, r) => sum + r.amount, 0);
+    const totalRefundsUsd = records.filter((r) => r.type === 'Refund').reduce((sum, r) => sum + r.amount, 0);
+
+    return Promise.resolve({
+      items: records,
+      total: records.length,
+      totalDebitsUsd,
+      totalCreditsUsd,
+      totalRefundsUsd,
+    });
+  }
+
+  listCustomerPolymorphicInquiries(customerId: string): Promise<CustomerPolymorphicInquiryListResponse> {
+    const items: CustomerPolymorphicInquiry[] = [
+      {
+        id: 'inq-1',
+        customerId,
+        inquiryNumber: 'IN-0003',
+        source: 'Stock',
+        status: 'Pending Reply',
+        inquiryDate: '26th Sep, 2024 13:45:00',
+        make: 'Toyota',
+        model: 'Corolla Fielder 1.5G',
+        yom: '2021',
+        stockNumber: 'J240111111',
+        chassisNumber: 'NRE161-0091995',
+        viewsCount: 12,
+        message: 'Could you please confirm the earliest vessel departure schedule for Mombasa?',
+        fobPriceUsd: 1400,
+        cfPriceUsd: 2400,
+        deliveryLocation: 'Kenya-Mombasa',
+        inquirerCount: 4,
+        imageUrl: 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=600',
+      },
+      {
+        id: 'inq-2',
+        customerId,
+        inquiryNumber: 'IN-0002',
+        source: 'Auction',
+        status: 'Replied',
+        inquiryDate: '26th Sep, 2024 13:45:00',
+        make: 'Toyota',
+        model: 'Raize Z 4WD',
+        yom: '2024',
+        lotNumber: '36071',
+        chassisModel: 'A210A',
+        viewsCount: 8,
+        message: 'Inspection grade request and maximum auction bidding cap confirmation.',
+        replyMessage: 'Grade 5.0 A condition verified. Starting bid placed at JAAI Yokohama.',
+        repliedAt: '26th Sep, 2024 15:30:00',
+        startPriceUsd: 1400,
+        auctionRemaining: '2 hr 45 min',
+        auctionFinished: false,
+        deliveryLocation: 'Kenya',
+        imageUrl: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=600',
+      },
+      {
+        id: 'inq-3',
+        customerId,
+        inquiryNumber: 'IN-0001',
+        source: 'General',
+        status: 'Replied',
+        inquiryDate: '26th Sep, 2024 13:45:00',
+        make: 'Toyota',
+        model: 'Land Cruiser 250 ZX',
+        yom: '2024',
+        message: 'Looking for 2024 Land Cruiser 250 with sunroof, leather interior, and 7 seats.',
+        replyMessage: 'We have reserved 2 units arriving at Yokohama port this week.',
+        repliedAt: '26th Sep, 2024 16:00:00',
+        driveType: 'RHD 4WD',
+        mfgYearRange: '2022 To 2024',
+        minFobUsd: 1400,
+        maxFobUsd: 3400,
+        deliveryLocation: 'Kenya',
+      },
+    ];
+
+    return Promise.resolve({
+      items,
+      total: items.length,
+    });
+  }
+
+  getCustomerPairedAccounts(customerId: string): Promise<CustomerPairedAccount[]> {
+    return Promise.resolve([
+      {
+        id: 'pa-1',
+        name: 'Charith Wellage (Primary)',
+        type: 'PRIMARY',
+        balanceUsd: 450,
+        isCredit: true,
+      },
+      {
+        id: 'pa-2',
+        name: 'CarChief Kenya Hub (Branch)',
+        type: 'BRANCH',
+        balanceUsd: 12500,
+        isCredit: false,
+      },
+      {
+        id: 'pa-3',
+        name: 'Wellage Logistics Fleet (Logistics)',
+        type: 'LOGISTICS',
+        balanceUsd: 0,
+        isCredit: true,
+      },
+    ]);
+  }
+
   reset(): Promise<void> {
     this.config = { ...seedConfig };
     this.vehicles = seedVehicles.map((vehicle) => ({ ...vehicle }));
@@ -7667,6 +8156,26 @@ class PostgresStore implements DemoStore {
     } finally {
       client.release();
     }
+  }
+
+  getCustomerStatement(customerId: string, fromDate?: string, toDate?: string): Promise<CustomerStatementSummary> {
+    const memory = new MemoryStore();
+    return memory.getCustomerStatement(customerId, fromDate, toDate);
+  }
+
+  getCustomerDebitCreditRefunds(customerId: string): Promise<CustomerDebitCreditListResponse> {
+    const memory = new MemoryStore();
+    return memory.getCustomerDebitCreditRefunds(customerId);
+  }
+
+  listCustomerPolymorphicInquiries(customerId: string): Promise<CustomerPolymorphicInquiryListResponse> {
+    const memory = new MemoryStore();
+    return memory.listCustomerPolymorphicInquiries(customerId);
+  }
+
+  getCustomerPairedAccounts(customerId: string): Promise<CustomerPairedAccount[]> {
+    const memory = new MemoryStore();
+    return memory.getCustomerPairedAccounts(customerId);
   }
 
   async close(): Promise<void> {

@@ -26,6 +26,15 @@ export interface CustomerPaymentProofMetadata {
   scanStatus: PaymentProofScanStatus;
 }
 
+export interface CustomerPaymentAllocation {
+  id: string;
+  stockNumber: string;
+  lastAllocationDate: string;
+  ttNumber: string;
+  allocationAmountUsd: number;
+  fileName?: string;
+}
+
 export interface CustomerPayment {
   id: string;
   customerId: string;
@@ -36,6 +45,12 @@ export interface CustomerPayment {
   amountUsd: number;
   allocatedAmountUsd?: number;
   remainingBalanceUsd?: number;
+  depositorName?: string;
+  receivingBank?: string;
+  customerName?: string;
+  approvedDate?: string;
+  allocations?: CustomerPaymentAllocation[];
+  documents?: Array<{ name: string; url: string }>;
   paymentDate: string;
   remarks?: string;
   status: PaymentStatus;
@@ -915,7 +930,20 @@ export interface CustomerVehicleDetail extends CustomerVehicleSummary {
   vesselName?: string;
   etd?: string;
   eta?: string;
+  ata?: string;
+  yardInDate?: string;
+  yardOutDate?: string;
   billOfLadingNo?: string;
+  negotiationDate?: string;
+  proformaDate?: string;
+  orderPlacedDate?: string;
+  inspectionDate?: string;
+  inspectionStatus?: string;
+  reInspectionDate?: string;
+  reInspectionStatus?: string;
+  courierCompany?: string;
+  trackingNumber?: string;
+  courierRemarks?: string;
   statusHistory: CustomerVehicleStatusHistoryItem[];
   documents: CustomerVehicleDocumentReference[];
 }
@@ -1077,8 +1105,100 @@ export function calculateInvoiceBalance(totalAmountUsd: number, paidAmountUsd: n
   };
 }
 
+export interface CustomerStatementEntry {
+  id: string;
+  date: string;
+  description: string;
+  referenceNo?: string;
+  debitUsd: number;
+  creditUsd: number;
+  runningBalanceUsd: number;
+  isOpeningBalance?: boolean;
+}
+
+export interface CustomerStatementSummary {
+  customerId: string;
+  fromDate: string;
+  toDate: string;
+  openingBalanceUsd: number;
+  totalDebitsUsd: number;
+  totalCreditsUsd: number;
+  closingBalanceUsd: number;
+  entries: CustomerStatementEntry[];
+}
+
+export interface CustomerDebitCreditRecord {
+  id: string;
+  customerId?: string;
+  refNumber: string;
+  type: 'Debit' | 'Credit' | 'Refund';
+  cashInDate: string;
+  stockId: string;
+  currency: string;
+  amount: number;
+  balanceAmount: number;
+  paidInCash: boolean;
+  approvedDate: string;
+  customerNotes?: string;
+  notesVisibleToCustomer?: boolean;
+}
+
+export interface CustomerDebitCreditListResponse {
+  items: CustomerDebitCreditRecord[];
+  total: number;
+  totalDebitsUsd: number;
+  totalCreditsUsd: number;
+  totalRefundsUsd: number;
+}
+
+export interface CustomerPolymorphicInquiry {
+  id: string;
+  customerId?: string;
+  inquiryNumber: string;
+  source: 'Stock' | 'WhatsApp' | 'Auction' | 'General';
+  status: 'Pending Reply' | 'Replied';
+  inquiryDate: string;
+  make: string;
+  model: string;
+  yom: string;
+  stockNumber?: string;
+  chassisNumber?: string;
+  lotNumber?: string;
+  chassisModel?: string;
+  viewsCount?: number;
+  message: string;
+  replyMessage?: string;
+  repliedAt?: string;
+  fobPriceUsd?: number;
+  cfPriceUsd?: number;
+  startPriceUsd?: number;
+  minFobUsd?: number;
+  maxFobUsd?: number;
+  driveType?: string;
+  mfgYearRange?: string;
+  deliveryLocation?: string;
+  inquirerCount?: number;
+  auctionRemaining?: string;
+  auctionFinished?: boolean;
+  imageUrl?: string;
+}
+
+export interface CustomerPolymorphicInquiryListResponse {
+  items: CustomerPolymorphicInquiry[];
+  total: number;
+}
+
+export interface CustomerPairedAccount {
+  id: string;
+  name: string;
+  type: 'PRIMARY' | 'BRANCH' | 'LOGISTICS';
+  balanceUsd: number;
+  isCredit: boolean;
+}
+
 export * from './auth.js';
 export * from './freight.js';
 export * from './content.js';
 export * from './countries.js';
 import type { CustomerTier } from './auth.js';
+

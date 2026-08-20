@@ -1,23 +1,51 @@
 import { describe, it, expect } from 'vitest';
+import React from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { CustomerShellProvider } from '../../shell/index.js';
+import { HttpClientProvider } from '../../account/index.js';
+import { CustomerWishlistPage } from '../CustomerWishlistPage.js';
 
-describe('useCustomerWishlist', () => {
-  it('should be tested with integration tests', () => {
-    // Hook integration tests are verified through E2E tests
-    // This is a placeholder for component-level tests
-    expect(true).toBe(true);
-  });
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: { retry: false },
+  },
 });
 
-describe('CustomerWishlistPage', () => {
-  it('should have test suite for component render, empty state, and remove action', () => {
-    // This is a placeholder for component-level tests
-    // In a real scenario, these would test:
-    // 1. Page renders with loading state skeleton
-    // 2. Page renders with error state and retry button
-    // 3. Page renders with empty state when no items exist
-    // 4. Page renders list of wishlist items
-    // 5. Remove button calls removeItem with correct vehicleSlug
-    // 6. View details button navigates to vehicle page
-    expect(true).toBe(true);
+const MOCK_USER = {
+  id: 'cust-123',
+  name: 'Charith Wellage',
+  email: 'charith.wellage@carchief.com',
+  role: 'CUSTOMER' as const,
+};
+
+describe('FRD Section 8: Customer Wishlist UI', () => {
+  it('renders CustomerWishlistPage with Stock List vs Auction tabs, search, count, and action buttons', () => {
+    const html = renderToStaticMarkup(
+      React.createElement(
+        QueryClientProvider,
+        { client: queryClient },
+        React.createElement(
+          CustomerShellProvider,
+          { initialUser: MOCK_USER, initialRoute: '/wishlist' },
+          React.createElement(
+            HttpClientProvider,
+            { apiBaseUrl: 'http://127.0.0.1:4000' },
+            React.createElement(CustomerWishlistPage)
+          )
+        )
+      )
+    );
+
+    expect(html).toContain('data-testid="customer-wishlist-page"');
+    expect(html).toContain('data-testid="tab-stock-wishlist"');
+    expect(html).toContain('data-testid="tab-auction-wishlist"');
+    expect(html).toContain('Found:');
+    expect(html).toContain('Per Page:');
+    expect(html).toContain('data-testid="wishlist-card-J240111111"');
+    expect(html).toContain('data-testid="btn-whatsapp-J240111111"');
+    expect(html).toContain('data-testid="btn-quote-J240111111"');
+    expect(html).toContain('data-testid="btn-remove-J240111111"');
+    expect(html).toContain('4 people are inquiring');
   });
 });

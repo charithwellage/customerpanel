@@ -1,6 +1,6 @@
 import { useQuery, type UseQueryResult } from '@tanstack/react-query';
-import type { CustomerPaymentListResponse, CustomerPaymentNotificationListResponse } from '@carchief/domain';
-import { CustomerPaymentService, type NormalizedApiError } from '@carchief/api-client';
+import type { CustomerPaymentListResponse, CustomerPaymentNotificationListResponse, CustomerDebitCreditListResponse } from '@carchief/domain';
+import { CustomerPaymentService, CustomerDebitCreditService, type CustomerDebitCreditParams, type NormalizedApiError } from '@carchief/api-client';
 import { useHttpClient } from '../account/index.js';
 
 export function useCustomerPayments(): UseQueryResult<CustomerPaymentListResponse, NormalizedApiError> {
@@ -24,6 +24,20 @@ export function useCustomerPaymentNotifications(): UseQueryResult<CustomerPaymen
     queryFn: async () => {
       if (!httpClient) throw new Error('Payment notifications require an authenticated HttpClient');
       return new CustomerPaymentService(httpClient).listCustomerPaymentNotifications();
+    },
+    enabled: Boolean(httpClient),
+    staleTime: 30_000,
+    retry: 1,
+  });
+}
+
+export function useCustomerDebitCredit(params?: CustomerDebitCreditParams): UseQueryResult<CustomerDebitCreditListResponse, NormalizedApiError> {
+  const httpClient = useHttpClient();
+  return useQuery({
+    queryKey: ['customer-debit-credit', params?.type, params?.currency, params?.query],
+    queryFn: async () => {
+      if (!httpClient) throw new Error('Customer debit credit requires an authenticated HttpClient');
+      return new CustomerDebitCreditService(httpClient).listCustomerDebitCredit(params);
     },
     enabled: Boolean(httpClient),
     staleTime: 30_000,
