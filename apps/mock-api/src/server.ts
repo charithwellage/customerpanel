@@ -60,7 +60,7 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
     res.json(await store.getConfig());
   });
 
-  // 3a. Vehicles summary (Public & Customer-projected)
+  // 3. Vehicle inventory with filtering, facets, pagination & sorting (Public & Customer-projected)
   app.get('/api/v1/vehicles', async (req: AuthenticatedRequest, res: Response) => {
     const audience = (req.query.audience as string) || (req.user?.role === 'CustomerBuyer' ? 'customer' : 'public');
     const customerTier = (req.query.tier as any) || req.user?.tier;
@@ -75,22 +75,7 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
     res.json(await store.getVehicles(req.query as Record<string, string>, context));
   });
 
-  // 3b. Vehicle search with facets, pagination & sorting (Public & Customer-projected)
-  app.get('/api/v1/vehicles/search', async (req: AuthenticatedRequest, res: Response) => {
-    const audience = (req.query.audience as string) || (req.user?.role === 'CustomerBuyer' ? 'customer' : 'public');
-    const customerTier = (req.query.tier as any) || req.user?.tier;
-    const destinationCountry = (req.query.destinationCountry as string) || req.user?.country || req.user?.countryCode;
-    const context = {
-      audience: audience as 'public' | 'customer' | 'salesperson',
-      customerId: req.user?.sub,
-      customerTier,
-      customerCountry: req.user?.country || req.user?.countryCode,
-      destinationCountry,
-    };
-    res.json(await store.searchVehicles(req.query as Record<string, string>, context));
-  });
-
-  // 3c. Vehicle detail lookup by ID, chassis, or slug (Public & Customer-projected)
+  // 4. Vehicle detail lookup by ID, chassis, or slug (Public & Customer-projected)
   app.get('/api/v1/vehicles/:idOrSlug', async (req: AuthenticatedRequest, res: Response) => {
     const rawParam = req.params.idOrSlug;
     const idOrSlug = Array.isArray(rawParam) ? rawParam[0] : rawParam;

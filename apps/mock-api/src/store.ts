@@ -200,6 +200,7 @@ export interface GetVehiclesQuery extends SearchVehiclesQuery {
   market?: string;
   category?: string;
   limit?: number;
+  destinationCountry?: string;
 }
 
 const seedConfig: PublicConfig = { siteName: 'CarChief', currency: 'USD', contactPhone: '+256 700 000 000' };
@@ -1188,8 +1189,7 @@ export interface VehicleQueryContext {
 export interface DemoStore {
   ready(): Promise<void>;
   getConfig(): Promise<PublicConfig>;
-  getVehicles(query?: GetVehiclesQuery, context?: VehicleQueryContext): Promise<VehicleDomainSummary[]>;
-  searchVehicles(query?: SearchVehiclesQuery, context?: VehicleQueryContext): Promise<VehicleSearchResult>;
+  getVehicles(query?: GetVehiclesQuery, context?: VehicleQueryContext): Promise<VehicleSearchResult>;
   getVehicleDetail(idOrSlug: string, context?: VehicleQueryContext): Promise<VehicleDetail | null>;
   getFreightDestinations(): Promise<FreightDestination[]>;
   getFreightPorts(): Promise<FreightPort[]>;
@@ -5090,15 +5090,7 @@ class MemoryStore implements DemoStore {
     return Promise.resolve(seedBankAccounts);
   }
 
-  getVehicles(query?: GetVehiclesQuery, context?: VehicleQueryContext): Promise<VehicleDomainSummary[]> {
-    const mergedContext: VehicleQueryContext = {
-      ...context,
-      reservations: this.reservations,
-    };
-    return Promise.resolve(filterAndSortVehicles(this.vehicles, query, mergedContext));
-  }
-
-  searchVehicles(query?: SearchVehiclesQuery, context?: VehicleQueryContext): Promise<VehicleSearchResult> {
+  getVehicles(query?: GetVehiclesQuery, context?: VehicleQueryContext): Promise<VehicleSearchResult> {
     const mergedContext: VehicleQueryContext = {
       ...context,
       reservations: this.reservations,
@@ -7237,17 +7229,7 @@ class PostgresStore implements DemoStore {
     return seedBankAccounts;
   }
 
-  async getVehicles(query?: GetVehiclesQuery, context?: VehicleQueryContext): Promise<VehicleDomainSummary[]> {
-    const rawRecords = await this.getRawVehicles();
-    const reservations = await this.getRawReservations();
-    const mergedContext: VehicleQueryContext = {
-      ...context,
-      reservations,
-    };
-    return filterAndSortVehicles(rawRecords, query, mergedContext);
-  }
-
-  async searchVehicles(query?: SearchVehiclesQuery, context?: VehicleQueryContext): Promise<VehicleSearchResult> {
+  async getVehicles(query?: GetVehiclesQuery, context?: VehicleQueryContext): Promise<VehicleSearchResult> {
     const rawRecords = await this.getRawVehicles();
     const featureCatalog = await this.getFeatureCatalog();
     const reservations = await this.getRawReservations();

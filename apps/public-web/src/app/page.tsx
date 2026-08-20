@@ -26,7 +26,9 @@ async function getInitialVehicles(): Promise<VehicleDomainSummary[]> {
   const baseUrl = process.env.API_BASE_URL || 'http://localhost:4000';
   try {
     const response = await fetch(`${baseUrl}/api/v1/vehicles?collection=browse`, { cache: 'no-store' });
-    return response.ok ? ((await response.json()) as VehicleDomainSummary[]) : [];
+    if (!response.ok) return [];
+    const result = (await response.json()) as { items?: VehicleDomainSummary[] };
+    return result.items || [];
   } catch {
     return [];
   }

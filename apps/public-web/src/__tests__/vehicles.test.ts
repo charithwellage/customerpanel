@@ -43,13 +43,14 @@ async function getVehiclesFromMockHttp(collection?: string): Promise<VehicleDoma
           })
           : publicVehicles;
 
-    return new Response(JSON.stringify(data), { status: 200, headers: { 'content-type': 'application/json' } });
+    return new Response(JSON.stringify({ items: data, total: data.length, page: 1, limit: 12, totalPages: 1, hasNextPage: false, hasPrevPage: false, facets: {} }), { status: 200, headers: { 'content-type': 'application/json' } });
   });
 
   try {
-    return await new VehicleService(new HttpClient({ baseUrl: 'http://mock-api.test' })).getVehicles(
+    const result = await new VehicleService(new HttpClient({ baseUrl: 'http://mock-api.test' })).getVehicles(
       collection ? { collection } : undefined,
     );
+    return result.items;
   } finally {
     fetchMock.mockRestore();
   }

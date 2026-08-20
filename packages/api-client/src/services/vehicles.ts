@@ -1,4 +1,4 @@
-import type { VehicleDomainSummary, VehicleSearchResult, SearchVehiclesQuery, VehicleDetail } from '@carchief/domain';
+import type { VehicleSearchResult, SearchVehiclesQuery, VehicleDetail } from '@carchief/domain';
 import type { HttpClient } from '../http.js';
 
 export interface GetVehiclesOptions extends SearchVehiclesQuery {}
@@ -6,109 +6,15 @@ export interface GetVehiclesOptions extends SearchVehiclesQuery {}
 export class VehicleService {
   constructor(private httpClient?: HttpClient) {}
 
-  public async getVehicles(options?: GetVehiclesOptions): Promise<VehicleDomainSummary[]> {
+  public async getVehicles(options?: GetVehiclesOptions): Promise<VehicleSearchResult> {
     if (!this.httpClient) {
-      return [];
+      return emptyVehicleSearchResult();
     }
 
     const params = new URLSearchParams();
-    if (options?.collection) params.set('collection', options.collection);
-    if (options?.market) params.set('market', options.market);
-    if (options?.category) params.set('category', options.category);
-    if (options?.limit) params.set('limit', String(options.limit));
-    if (options?.audience) params.set('audience', options.audience);
-    if (options?.tier) params.set('tier', options.tier);
-    if (options?.destinationCountry) params.set('destinationCountry', options.destinationCountry);
-    if (options?.complianceOnly !== undefined) params.set('complianceOnly', String(options.complianceOnly));
-
+    appendVehicleQuery(params, options);
     const queryString = params.toString();
     const path = `/api/v1/vehicles${queryString ? `?${queryString}` : ''}`;
-    return this.httpClient.request<VehicleDomainSummary[]>(path);
-  }
-
-  public async searchVehicles(query?: SearchVehiclesQuery): Promise<VehicleSearchResult> {
-    if (!this.httpClient) {
-      return {
-        items: [],
-        total: 0,
-        page: 1,
-        limit: 12,
-        totalPages: 0,
-        hasNextPage: false,
-        hasPrevPage: false,
-        facets: {
-          makes: [],
-          bodyStyles: [],
-          fuelTypes: [],
-          transmissions: [],
-          driveTrains: [],
-          models: [],
-          modelCodes: [],
-          vehicleTypes: [],
-          vehicleSubTypes: [],
-          locationStatuses: [],
-          destinationPorts: [],
-          overdrives: [],
-          colors: [],
-          exteriorGrades: [],
-          steerings: [],
-          stockCountries: [],
-          stockLocations: [],
-          features: [],
-          yearRange: { min: 2000, max: 2026 },
-          priceRange: { min: 0, max: 0 },
-          mileageRange: { min: 0, max: 0 },
-          engineCcRange: { min: 0, max: 0 },
-          seatsRange: { min: 0, max: 0 },
-          loadCapacityRange: { min: 0, max: 0 },
-        },
-      };
-    }
-
-    const params = new URLSearchParams();
-    if (query?.searchQuery) params.set('searchQuery', query.searchQuery);
-    if (query?.make) params.set('make', query.make);
-    if (query?.model) params.set('model', query.model);
-    if (query?.modelCode) params.set('modelCode', query.modelCode);
-    if (query?.bodyStyle) params.set('bodyStyle', query.bodyStyle);
-    if (query?.fuelType) params.set('fuelType', query.fuelType);
-    if (query?.transmission) params.set('transmission', query.transmission);
-    if (query?.driveTrain) params.set('driveTrain', query.driveTrain);
-    if (query?.vehicleSubType) params.set('vehicleSubType', query.vehicleSubType);
-    if (query?.overdrive) params.set('overdrive', query.overdrive);
-    if (query?.color) params.set('color', query.color);
-    if (query?.exteriorGrade) params.set('exteriorGrade', query.exteriorGrade);
-    if (query?.steering) params.set('steering', query.steering);
-    if (query?.stockCountry) params.set('stockCountry', query.stockCountry);
-    if (query?.stockLocation) params.set('stockLocation', query.stockLocation);
-    if (query?.features?.length) params.set('features', query.features.join(','));
-    if (query?.stockType) params.set('stockType', query.stockType);
-    if (query?.locationStatus) params.set('locationStatus', query.locationStatus);
-    if (query?.market) params.set('market', query.market);
-    if (query?.category) params.set('category', query.category);
-    if (query?.collection) params.set('collection', query.collection);
-    if (query?.yearMin !== undefined) params.set('yearMin', String(query.yearMin));
-    if (query?.yearMax !== undefined) params.set('yearMax', String(query.yearMax));
-    if (query?.priceMin !== undefined) params.set('priceMin', String(query.priceMin));
-    if (query?.priceMax !== undefined) params.set('priceMax', String(query.priceMax));
-    if (query?.mileageMin !== undefined) params.set('mileageMin', String(query.mileageMin));
-    if (query?.mileageMax !== undefined) params.set('mileageMax', String(query.mileageMax));
-    if (query?.engineCcMin !== undefined) params.set('engineCcMin', String(query.engineCcMin));
-    if (query?.engineCcMax !== undefined) params.set('engineCcMax', String(query.engineCcMax));
-    if (query?.seatsMin !== undefined) params.set('seatsMin', String(query.seatsMin));
-    if (query?.seatsMax !== undefined) params.set('seatsMax', String(query.seatsMax));
-    if (query?.loadCapacityMin !== undefined) params.set('loadCapacityMin', String(query.loadCapacityMin));
-    if (query?.loadCapacityMax !== undefined) params.set('loadCapacityMax', String(query.loadCapacityMax));
-    if (query?.sortBy) params.set('sortBy', query.sortBy);
-    if (query?.page !== undefined) params.set('page', String(query.page));
-    if (query?.limit !== undefined) params.set('limit', String(query.limit));
-    if (query?.audience) params.set('audience', query.audience);
-    if (query?.tier) params.set('tier', query.tier);
-    if (query?.destinationCountry) params.set('destinationCountry', query.destinationCountry);
-    if (query?.complianceOnly !== undefined) params.set('complianceOnly', String(query.complianceOnly));
-
-    const queryString = params.toString();
-    const path = `/api/v1/vehicles/search${queryString ? `?${queryString}` : ''}`;
     return this.httpClient.request<VehicleSearchResult>(path);
   }
 
@@ -131,4 +37,21 @@ export class VehicleService {
       throw err;
     }
   }
+}
+
+function appendVehicleQuery(params: URLSearchParams, query?: SearchVehiclesQuery): void {
+    if (!query) return;
+    for (const [key, value] of Object.entries(query)) {
+      if (value === undefined || value === null || value === '') continue;
+      params.set(key, Array.isArray(value) ? value.join(',') : String(value));
+    }
+}
+
+function emptyVehicleSearchResult(): VehicleSearchResult {
+  return {
+    items: [], total: 0, page: 1, limit: 12, totalPages: 0, hasNextPage: false, hasPrevPage: false,
+    facets: {
+      makes: [], bodyStyles: [], fuelTypes: [], transmissions: [], driveTrains: [], models: [], modelCodes: [], vehicleTypes: [], vehicleSubTypes: [], locationStatuses: [], destinationPorts: [], overdrives: [], colors: [], exteriorGrades: [], steerings: [], stockCountries: [], stockLocations: [], features: [], yearRange: { min: 2000, max: 2026 }, priceRange: { min: 0, max: 0 }, mileageRange: { min: 0, max: 0 }, engineCcRange: { min: 0, max: 0 }, seatsRange: { min: 0, max: 0 }, loadCapacityRange: { min: 0, max: 0 },
+    },
+  };
 }
