@@ -1,8 +1,7 @@
 'use client';
 
-import React, { useEffect, useId } from 'react';
-import Link from 'next/link';
-import type { JwtClaims } from '@carchief/domain';
+import React, { useEffect, useId, useState } from 'react';
+import { issueSessionToken, parseSessionToken, type JwtClaims } from '@carchief/domain';
 import { writeStoredSession } from '../session-storage';
 import { SESSION_EVENT } from '../hooks/useSession';
 
@@ -19,13 +18,18 @@ export interface EnterpriseLoginModalProps {
 export function EnterpriseLoginModal({
   isOpen,
   onClose,
-  title = 'Enterprise Customer Sign In',
-  subtitle = 'Sign in to access your CarChief Customer Portal, live ocean freight calculations, wishlist, and verified vehicle bookings.',
-  badgeText = '⚡ CARCHIEF SECURED ACCESS',
+  title = 'Sign In to CarChief',
+  subtitle = 'Access your global vehicle fleet, live ocean freight tracking, instant Proforma Invoices, and port clearances.',
+  badgeText = '⚡ ENTERPRISE CUSTOMER PORTAL',
   vehicleSlug,
   onSuccessAuth,
 }: EnterpriseLoginModalProps) {
   const dialogId = useId();
+  const [email, setEmail] = useState('demo.customer@carchief.com');
+  const [password, setPassword] = useState('Password123!');
+  const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // ESC key listener
   useEffect(() => {
@@ -39,32 +43,16 @@ export function EnterpriseLoginModal({
 
   if (!isOpen) return null;
 
-  const handleProviderLogin = (provider: 'google' | 'apple' | 'microsoft' | 'email') => {
+  const performLogin = (userEmail: string, userName: string, provider = 'credentials') => {
     if (typeof window === 'undefined') return;
 
-    const emailMap: Record<string, string> = {
-      google: 'google.buyer@example.com',
-      apple: 'apple.buyer@example.com',
-      microsoft: 'outlook.buyer@example.com',
-      email: 'customer@example.com',
-    };
-    const nameMap: Record<string, string> = {
-      google: 'Google Verified Customer',
-      apple: 'Apple Verified Customer',
-      microsoft: 'Outlook Verified Customer',
-      email: 'Valued Customer',
-    };
-
-    const email = emailMap[provider] || 'customer@example.com';
-    const name = nameMap[provider] || 'Customer';
-    const token = `mock_jwt_${provider}_${Date.now()}`;
-
-    const claims: JwtClaims = {
-      sub: `user_${Date.now()}`,
-      email,
+    const token = issueSessionToken('CustomerBuyer', 'cust-123', userEmail, 'Standard');
+    const claims = parseSessionToken(token) || {
+      sub: 'cust-123',
+      email: userEmail,
       role: 'CustomerBuyer',
       permissions: ['read:public', 'read:customer', 'create:inquiry', 'create:reservation', 'create:payment'],
-      exp: Math.floor(Date.now() / 1000) + 86400 * 30, // 30 days
+      exp: Math.floor(Date.now() / 1000) + 86400 * 30,
     };
 
     writeStoredSession((k, v) => window.localStorage.setItem(k, v), {
@@ -74,13 +62,40 @@ export function EnterpriseLoginModal({
     window.dispatchEvent(new Event(SESSION_EVENT));
 
     if (onSuccessAuth) {
-      onSuccessAuth({ email, name, token });
+      onSuccessAuth({ email: userEmail, name: userName, token });
     }
     onClose();
   };
 
-  const returnTarget = vehicleSlug ? `/allstock/${vehicleSlug}` : '/';
-  const fullPortalHref = `/account?returnTo=${encodeURIComponent(returnTarget)}`;
+  const handleSocialLogin = (provider: 'google' | 'apple' | 'microsoft') => {
+    const emailMap: Record<string, string> = {
+      google: 'google.customer@carchief.com',
+      apple: 'apple.customer@carchief.com',
+      microsoft: 'outlook.customer@carchief.com',
+    };
+    const nameMap: Record<string, string> = {
+      google: 'Google Verified Customer',
+      apple: 'Apple Verified Customer',
+      microsoft: 'Outlook Verified Customer',
+    };
+
+    performLogin(emailMap[provider], nameMap[provider], provider);
+  };
+
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim() || !password) {
+      setErrorMessage('Please enter both your email address and password.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setTimeout(() => {
+      const derivedName = email.split('@')[0] || 'Customer';
+      performLogin(email.trim(), derivedName, 'email');
+      setIsSubmitting(false);
+    }, 200);
+  };
 
   return (
     <div
@@ -105,11 +120,27 @@ export function EnterpriseLoginModal({
           ✕
         </button>
 
-        <div className="cc-auth-modal-header">
-          <div className="cc-auth-brand-badge">
-            <span className="cc-auth-brand-car">CAR</span>
-            <span className="cc-auth-brand-chief">CHIEF</span>
+        {/* Brand Header */}
+        <div className="cc-auth-brand-row">
+          <div className="cc-auth-brand-logo-group">
+            <div className="cc-auth-shield-icon" aria-hidden="true">
+              <svg width="26" height="28" viewBox="0 0 24 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 1L2 5.5V11.5C2 17.65 6.26 23.38 12 25C17.74 23.38 22 17.65 22 11.5V5.5L12 1Z" fill="#DC2626" stroke="#B91C1C" strokeWidth="1.5"/>
+                <text x="12" y="16.5" textAnchor="middle" fill="#FFFFFF" fontSize="13" fontWeight="900" fontFamily="Inter, sans-serif">C</text>
+              </svg>
+            </div>
+            <div className="cc-auth-brand-title">
+              <span className="cc-auth-brand-car">CAR</span>
+              <span className="cc-auth-brand-chief">CHIEF</span>
+              <span className="cc-auth-brand-portal">PORTAL</span>
+            </div>
           </div>
+          <span className="cc-auth-online-pill">
+            <span className="cc-auth-online-dot" /> ONLINE
+          </span>
+        </div>
+
+        <div className="cc-auth-modal-header">
           <div className="cc-auth-custom-badge">{badgeText}</div>
           <h2 id={`${dialogId}-title`} className="cc-auth-modal-title">
             {title}
@@ -117,20 +148,20 @@ export function EnterpriseLoginModal({
           <p className="cc-auth-modal-subtitle">{subtitle}</p>
         </div>
 
-        <div className="cc-auth-benefits-pill">
-          <span>⚡ Live Ocean Freight</span>
-          <span>•</span>
-          <span>📑 Proforma Invoices</span>
-          <span>•</span>
-          <span>🔒 Secured Portal</span>
+        {/* Benefit Chips */}
+        <div className="cc-auth-benefits-chips">
+          <span className="cc-auth-chip">⚡ Live Freight Tracking</span>
+          <span className="cc-auth-chip">📑 Proforma Invoices</span>
+          <span className="cc-auth-chip">🔒 256-Bit SSL Secured</span>
         </div>
 
+        {/* Social SSO Group */}
         <div className="cc-auth-sso-group">
           {/* Google SSO */}
           <button
             type="button"
             className="cc-sso-button cc-sso-button--google"
-            onClick={() => handleProviderLogin('google')}
+            onClick={() => handleSocialLogin('google')}
           >
             <svg className="cc-sso-icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
               <path
@@ -157,7 +188,7 @@ export function EnterpriseLoginModal({
           <button
             type="button"
             className="cc-sso-button cc-sso-button--apple"
-            onClick={() => handleProviderLogin('apple')}
+            onClick={() => handleSocialLogin('apple')}
           >
             <svg className="cc-sso-icon" viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">
               <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.61-.75 1.04-1.8 0.92-2.85-.9.04-2.02.6-2.66 1.35-.57.65-1.06 1.71-.93 2.73 1.01.08 2.05-.51 2.67-1.23z" />
@@ -169,7 +200,7 @@ export function EnterpriseLoginModal({
           <button
             type="button"
             className="cc-sso-button cc-sso-button--ms"
-            onClick={() => handleProviderLogin('microsoft')}
+            onClick={() => handleSocialLogin('microsoft')}
           >
             <svg className="cc-sso-icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
               <rect x="1" y="1" width="10" height="10" fill="#F25022" />
@@ -179,29 +210,77 @@ export function EnterpriseLoginModal({
             </svg>
             <span>Continue with Microsoft / Outlook</span>
           </button>
-
-          {/* Email Quick Login */}
-          <button
-            type="button"
-            className="cc-sso-button cc-sso-button--email"
-            onClick={() => handleProviderLogin('email')}
-          >
-            <svg className="cc-sso-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-              <polyline points="22,6 12,13 2,6" />
-            </svg>
-            <span>Continue with Email Credentials</span>
-          </button>
         </div>
 
+        {/* Divider */}
         <div className="cc-auth-modal-divider">
-          <span>OR</span>
+          <span>OR SIGN IN WITH EMAIL</span>
         </div>
+
+        {errorMessage && (
+          <div className="cc-auth-error-box" role="alert">
+            {errorMessage}
+          </div>
+        )}
+
+        {/* Email & Password Form */}
+        <form className="cc-auth-form" onSubmit={handleFormSubmit}>
+          <div className="cc-auth-field">
+            <label className="cc-auth-label">EMAIL ADDRESS</label>
+            <input
+              type="email"
+              className="cc-auth-input"
+              required
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+
+          <div className="cc-auth-field">
+            <div className="cc-auth-label-row">
+              <label className="cc-auth-label">PASSWORD</label>
+              <button
+                type="button"
+                className="cc-auth-forgot-btn"
+                onClick={() => alert('Password reset link sent to demo outbox.')}
+              >
+                Forgot password?
+              </button>
+            </div>
+            <div className="cc-auth-password-wrap">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                className="cc-auth-input cc-auth-input--password"
+                required
+                placeholder="••••••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              <button
+                type="button"
+                className="cc-auth-pwd-toggle"
+                onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? '👁️' : '👁️‍🗨️'}
+              </button>
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="cc-auth-submit-btn"
+          >
+            {isSubmitting ? 'Signing in…' : 'SIGN IN TO CUSTOMER PORTAL →'}
+          </button>
+        </form>
 
         <div className="cc-auth-modal-footer">
-          <Link href={fullPortalHref} className="cc-auth-portal-link" onClick={onClose}>
-            Sign in via Full Account Portal →
-          </Link>
+          <button type="button" className="cc-auth-return-btn" onClick={onClose}>
+            ← Return to Public Showroom &amp; Inventory
+          </button>
           <p className="cc-auth-security-notice">
             🔒 CarChief Secured Global Gateway · 256-Bit SSL Protected
           </p>

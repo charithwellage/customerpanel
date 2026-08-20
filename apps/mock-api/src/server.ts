@@ -41,7 +41,7 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
   app.use((req: AuthenticatedRequest, _res: Response, next: NextFunction) => {
     const authHeader = req.headers.authorization;
     if (authHeader && authHeader.startsWith('Bearer ')) {
-      const token = authHeader.substring(7);
+      const token = authHeader.substring(7).trim();
       const claims = parseSessionToken(token);
       if (claims && !isJwtExpired(claims)) {
         req.user = claims;
