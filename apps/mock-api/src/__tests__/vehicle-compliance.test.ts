@@ -14,10 +14,10 @@ describe('Vehicle Country Compliance & Localization API (D02-P14-T005)', () => {
     app = createMockApiApp(store);
   });
 
-  describe('GET /api/v1/vehicles/search with destinationCountry', () => {
+  describe('GET /api/v1/vehicles with destinationCountry', () => {
     it('filters out vehicles older than 8 years (e.g. < 2018 in 2026) for Kenya', async () => {
       const res = await request(app)
-        .get('/api/v1/vehicles/search')
+        .get('/api/v1/vehicles')
         .query({ destinationCountry: 'Kenya', limit: 50 });
 
       expect(res.status).toBe(200);
@@ -33,7 +33,7 @@ describe('Vehicle Country Compliance & Localization API (D02-P14-T005)', () => {
 
     it('filters out Left-Hand Drive (LHD) vehicles for Right-Hand Drive countries like Sri Lanka', async () => {
       const res = await request(app)
-        .get('/api/v1/vehicles/search')
+        .get('/api/v1/vehicles')
         .query({ destinationCountry: 'Sri Lanka', limit: 50 });
 
       expect(res.status).toBe(200);
@@ -46,7 +46,7 @@ describe('Vehicle Country Compliance & Localization API (D02-P14-T005)', () => {
 
     it('filters out Right-Hand Drive (RHD) vehicles for UAE / Dubai (LHD only)', async () => {
       const res = await request(app)
-        .get('/api/v1/vehicles/search')
+        .get('/api/v1/vehicles')
         .query({ destinationCountry: 'United Arab Emirates', limit: 50 });
 
       expect(res.status).toBe(200);
@@ -58,7 +58,7 @@ describe('Vehicle Country Compliance & Localization API (D02-P14-T005)', () => {
 
     it('returns non-compliant vehicles with compliance failure metadata when complianceOnly=false', async () => {
       const res = await request(app)
-        .get('/api/v1/vehicles/search')
+        .get('/api/v1/vehicles')
         .query({ destinationCountry: 'Kenya', complianceOnly: 'false', limit: 100 });
 
       expect(res.status).toBe(200);

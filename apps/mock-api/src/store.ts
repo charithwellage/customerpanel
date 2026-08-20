@@ -115,7 +115,6 @@ import {
   isVehicleCompliantForCountry,
   normalizeCountryCode,
 } from '@carchief/domain';
-import { validateEmail } from '@carchief/validation';
 export { FreightRequestError, resolveFreightRateStatus } from '@carchief/domain';
 
 
@@ -200,6 +199,7 @@ export interface GetVehiclesQuery extends SearchVehiclesQuery {
   market?: string;
   category?: string;
   limit?: number;
+  destinationCountry?: string;
 }
 
 const seedConfig: PublicConfig = { siteName: 'CarChief', currency: 'USD', contactPhone: '+256 700 000 000' };
@@ -1188,8 +1188,7 @@ export interface VehicleQueryContext {
 export interface DemoStore {
   ready(): Promise<void>;
   getConfig(): Promise<PublicConfig>;
-  getVehicles(query?: GetVehiclesQuery, context?: VehicleQueryContext): Promise<VehicleDomainSummary[]>;
-  searchVehicles(query?: SearchVehiclesQuery, context?: VehicleQueryContext): Promise<VehicleSearchResult>;
+  getVehicles(query?: GetVehiclesQuery, context?: VehicleQueryContext): Promise<VehicleSearchResult>;
   getVehicleDetail(idOrSlug: string, context?: VehicleQueryContext): Promise<VehicleDetail | null>;
   getFreightDestinations(): Promise<FreightDestination[]>;
   getFreightPorts(): Promise<FreightPort[]>;
@@ -2359,9 +2358,6 @@ export class EnquiryRequestError extends Error {
 export interface EnquiryRecord {
   id: string;
   dedupeKey: string;
-  name: string;
-  email: string;
-  phone: string;
   message: string;
   consent: boolean;
   vehicleSlug?: string;
@@ -2375,7 +2371,10 @@ export interface EnquiryRecord {
   preferredDriveSide?: EnquiryPreferredDriveSide;
   preferredYear?: number;
   targetPriceUsd?: number;
-  customerId?: string;
+  customerId: string;
+  customerName?: string;
+  customerEmail?: string;
+  customerPhone?: string;
 }
 
 /** Wishlist item internal record (D02-P13-T002, CUST-36). */
@@ -2397,9 +2396,6 @@ export interface FavouriteSearchRecord {
 }
 
 interface PreparedEnquiry {
-  name: string;
-  email: string;
-  phone: string;
   message: string;
   consent: boolean;
   vehicleSlug?: string;
@@ -2411,7 +2407,7 @@ interface PreparedEnquiry {
   preferredDriveSide?: EnquiryPreferredDriveSide;
   preferredYear?: number;
   targetPriceUsd?: number;
-  customerId?: string;
+  customerId: string;
 }
 
 function requireNonEmptyString(value: unknown, field: string, label: string): string {
@@ -2435,18 +2431,15 @@ export function prepareEnquiry(
   records: FreightRateRecord[],
   request: EnquiryRequest,
   nowISO: string,
-  customerId?: string
+  customerId: string
 ): PreparedEnquiry {
   if (!request || typeof request !== 'object') {
     throw new EnquiryRequestError(400, 'A request body is required');
   }
-
-  const name = requireNonEmptyString(request.name, 'name', 'Name');
-  const email = requireNonEmptyString(request.email, 'email', 'Email');
-  if (!validateEmail(email)) {
-    throw new EnquiryRequestError(400, 'Enter a valid email address', 'email');
+  if (!customerId) {
+    throw new EnquiryRequestError(401, 'An authenticated customer is required');
   }
-  const phone = requireNonEmptyString(request.phone, 'phone', 'Phone number');
+
   const message = requireNonEmptyString(request.message, 'message', 'Message');
 
   // D01-P06-T002 (PUB-14): consent is validated beyond native browser
@@ -2561,9 +2554,6 @@ export function prepareEnquiry(
   }
 
   return {
-    name,
-    email,
-    phone,
     message,
     consent,
     vehicleSlug,
@@ -2589,7 +2579,7 @@ export function prepareEnquiry(
  */
 export function buildEnquiryDedupeKey(prepared: PreparedEnquiry): string {
   return [
-    prepared.customerId ?? prepared.email.trim().toLowerCase(),
+    prepared.customerId,
     prepared.vehicleSlug ?? '',
     prepared.estimateSnapshot?.destinationCode ?? '',
     prepared.estimateSnapshot?.portCode ?? '',
@@ -2604,7 +2594,8 @@ export function buildEnquiryDedupeKey(prepared: PreparedEnquiry): string {
 }
 
 const ENQUIRY_SELECT_COLUMNS =
-  'SELECT id, dedupe_key, name, email, phone, message, consent, vehicle_slug, destination_code, port_code, rate_status, currency, rate_effective_from, rate_effective_to, estimate_message, received_at, enquiry_type, source, duplicate_resubmission_count, preferred_make, preferred_model, preferred_drive_side, preferred_year, target_price_usd, customer_id';
+  'SELECT e.id, e.dedupe_key, e.message, e.consent, e.vehicle_slug, e.destination_code, e.port_code, e.rate_status, e.currency, e.rate_effective_from, e.rate_effective_to, e.estimate_message, e.received_at, e.enquiry_type, e.source, e.duplicate_resubmission_count, e.preferred_make, e.preferred_model, e.preferred_drive_side, e.preferred_year, e.target_price_usd, e.customer_id, ca.name_with_initials AS customer_name, ca.email AS customer_email, ca.mobile_number AS customer_phone';
+const ENQUIRY_FROM = ' FROM enquiries e JOIN customer_accounts ca ON ca.customer_id = e.customer_id';
 
 function rowToEnquiryRecord(row: Record<string, unknown>): EnquiryRecord {
   const destinationCode = row.destination_code as string | null;
@@ -2612,9 +2603,6 @@ function rowToEnquiryRecord(row: Record<string, unknown>): EnquiryRecord {
   return {
     id: row.id as string,
     dedupeKey: row.dedupe_key as string,
-    name: row.name as string,
-    email: row.email as string,
-    phone: row.phone as string,
     message: row.message as string,
     consent: row.consent === undefined || row.consent === null ? true : Boolean(row.consent),
     vehicleSlug: (row.vehicle_slug as string | null) || undefined,
@@ -2627,7 +2615,10 @@ function rowToEnquiryRecord(row: Record<string, unknown>): EnquiryRecord {
     preferredDriveSide: (row.preferred_drive_side as EnquiryPreferredDriveSide | null) || undefined,
     preferredYear: row.preferred_year !== undefined && row.preferred_year !== null ? Number(row.preferred_year) : undefined,
     targetPriceUsd: row.target_price_usd !== undefined && row.target_price_usd !== null ? Number(row.target_price_usd) : undefined,
-    customerId: (row.customer_id as string | null) || undefined,
+    customerId: row.customer_id as string,
+    customerName: row.customer_name as string,
+    customerEmail: row.customer_email as string,
+    customerPhone: row.customer_phone as string,
     estimateSnapshot:
       destinationCode && portCode
         ? {
@@ -2671,9 +2662,10 @@ function toLeadRecord(record: EnquiryRecord): LeadRecord {
     status: 'New',
     enquiryType: record.enquiryType,
     source: record.source,
-    name: record.name,
-    email: record.email,
-    phone: record.phone,
+    customerId: record.customerId,
+    name: record.customerName || record.customerId,
+    email: record.customerEmail || `${record.customerId}@example.invalid`,
+    phone: record.customerPhone || '',
     message: record.message,
     consent: record.consent,
     vehicleSlug: record.vehicleSlug,
@@ -5090,15 +5082,7 @@ class MemoryStore implements DemoStore {
     return Promise.resolve(seedBankAccounts);
   }
 
-  getVehicles(query?: GetVehiclesQuery, context?: VehicleQueryContext): Promise<VehicleDomainSummary[]> {
-    const mergedContext: VehicleQueryContext = {
-      ...context,
-      reservations: this.reservations,
-    };
-    return Promise.resolve(filterAndSortVehicles(this.vehicles, query, mergedContext));
-  }
-
-  searchVehicles(query?: SearchVehiclesQuery, context?: VehicleQueryContext): Promise<VehicleSearchResult> {
+  getVehicles(query?: GetVehiclesQuery, context?: VehicleQueryContext): Promise<VehicleSearchResult> {
     const mergedContext: VehicleQueryContext = {
       ...context,
       reservations: this.reservations,
@@ -5151,7 +5135,7 @@ class MemoryStore implements DemoStore {
     return buildFreightEstimate(freightDestinations, freightPorts, freightRateRecords, request);
   }
 
-  async createEnquiry(request: EnquiryRequest, customerId?: string): Promise<EnquiryResponse> {
+  async createEnquiry(request: EnquiryRequest, customerId = 'cust-123'): Promise<EnquiryResponse> {
     const prepared = prepareEnquiry(this.vehicles, freightDestinations, freightPorts, freightRateRecords, request, FREIGHT_REFERENCE_DATE, customerId);
     const dedupeKey = buildEnquiryDedupeKey(prepared);
 
@@ -5192,7 +5176,7 @@ class MemoryStore implements DemoStore {
       const enquiry = enquiries.find((e) => e.vehicleSlug === slug)!;
       const vehicle = this.vehicles.find((v) => generateVehicleSlug(v.year, v.make, v.model, v.id) === slug);
       const inquirerCount = this.enquiries.filter((e) => e.vehicleSlug === slug && e.enquiryType === 'price-request').reduce((acc, e) => {
-        const key = e.customerId ?? e.email;
+        const key = e.customerId;
         const seen = new Set(acc.map((x) => x));
         if (!seen.has(key)) {
           seen.add(key);
@@ -5217,7 +5201,7 @@ class MemoryStore implements DemoStore {
     const vehicleSlug = vehicle ? generateVehicleSlug(vehicle.year, vehicle.make, vehicle.model, vehicle.id) : vehicleSlugOrId;
 
     const inquiries = this.enquiries.filter((e) => e.vehicleSlug === vehicleSlug && e.enquiryType === 'price-request');
-    const inquirerKeys = new Set(inquiries.map((e) => e.customerId ?? e.email));
+    const inquirerKeys = new Set(inquiries.map((e) => e.customerId));
 
     return Promise.resolve({
       vehicleSlug,
@@ -6504,6 +6488,38 @@ class PostgresStore implements DemoStore {
     await this.pool.query(
       'CREATE UNIQUE INDEX IF NOT EXISTS customer_accounts_email_lower_idx ON customer_accounts (lower(email));'
     );
+    await this.pool.query(`
+      DO $$ BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'customer_accounts_customer_id_key') THEN
+          ALTER TABLE customer_accounts ADD CONSTRAINT customer_accounts_customer_id_key UNIQUE (customer_id);
+        END IF;
+      END $$
+    `);
+    // Enquiries are customer-owned. Backfill legacy contact-column rows before
+    // removing the duplicated contact data and enforcing the relationship.
+    await this.pool.query(`
+      UPDATE enquiries e
+      SET customer_id = ca.customer_id
+      FROM customer_accounts ca
+      WHERE e.customer_id IS NULL AND lower(e.email) = lower(ca.email)
+    `);
+    await this.pool.query('DELETE FROM enquiries WHERE customer_id IS NULL');
+    await this.pool.query(`
+      ALTER TABLE enquiries
+        DROP COLUMN IF EXISTS name,
+        DROP COLUMN IF EXISTS email,
+        DROP COLUMN IF EXISTS phone,
+        ALTER COLUMN customer_id SET NOT NULL
+    `);
+    await this.pool.query(`
+      DO $$ BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'enquiries_customer_id_fkey') THEN
+          ALTER TABLE enquiries ADD CONSTRAINT enquiries_customer_id_fkey
+            FOREIGN KEY (customer_id) REFERENCES customer_accounts(customer_id);
+        END IF;
+      END $$
+    `);
+    await this.pool.query('CREATE INDEX IF NOT EXISTS enquiries_customer_id_idx ON enquiries (customer_id)');
     await this.pool.query(
       `CREATE TABLE IF NOT EXISTS password_reset_outbox (
         token text PRIMARY KEY,
@@ -7237,17 +7253,7 @@ class PostgresStore implements DemoStore {
     return seedBankAccounts;
   }
 
-  async getVehicles(query?: GetVehiclesQuery, context?: VehicleQueryContext): Promise<VehicleDomainSummary[]> {
-    const rawRecords = await this.getRawVehicles();
-    const reservations = await this.getRawReservations();
-    const mergedContext: VehicleQueryContext = {
-      ...context,
-      reservations,
-    };
-    return filterAndSortVehicles(rawRecords, query, mergedContext);
-  }
-
-  async searchVehicles(query?: SearchVehiclesQuery, context?: VehicleQueryContext): Promise<VehicleSearchResult> {
+  async getVehicles(query?: GetVehiclesQuery, context?: VehicleQueryContext): Promise<VehicleSearchResult> {
     const rawRecords = await this.getRawVehicles();
     const featureCatalog = await this.getFeatureCatalog();
     const reservations = await this.getRawReservations();
@@ -7305,13 +7311,13 @@ class PostgresStore implements DemoStore {
     return buildFreightEstimate(freightDestinations, freightPorts, freightRateRecords, request);
   }
 
-  async createEnquiry(request: EnquiryRequest, customerId?: string): Promise<EnquiryResponse> {
+  async createEnquiry(request: EnquiryRequest, customerId = 'cust-123'): Promise<EnquiryResponse> {
     const rawVehicles = await this.getRawVehicles();
     const prepared = prepareEnquiry(rawVehicles, freightDestinations, freightPorts, freightRateRecords, request, FREIGHT_REFERENCE_DATE, customerId);
     const dedupeKey = buildEnquiryDedupeKey(prepared);
 
     const existingResult = await this.pool.query(
-      `${ENQUIRY_SELECT_COLUMNS} FROM enquiries WHERE dedupe_key = $1 LIMIT 1`,
+      `${ENQUIRY_SELECT_COLUMNS}${ENQUIRY_FROM} WHERE e.dedupe_key = $1 LIMIT 1`,
       [dedupeKey]
     );
 
@@ -7326,13 +7332,10 @@ class PostgresStore implements DemoStore {
     const id = `enq-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     const receivedAt = new Date().toISOString();
     await this.pool.query(
-      'INSERT INTO enquiries (id, dedupe_key, name, email, phone, message, consent, vehicle_slug, destination_code, port_code, rate_status, currency, rate_effective_from, rate_effective_to, estimate_message, received_at, enquiry_type, source, duplicate_resubmission_count, preferred_make, preferred_model, preferred_drive_side, preferred_year, target_price_usd, customer_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25)',
+      'INSERT INTO enquiries (id, dedupe_key, message, consent, vehicle_slug, destination_code, port_code, rate_status, currency, rate_effective_from, rate_effective_to, estimate_message, received_at, enquiry_type, source, duplicate_resubmission_count, preferred_make, preferred_model, preferred_drive_side, preferred_year, target_price_usd, customer_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)',
       [
         id,
         dedupeKey,
-        prepared.name,
-        prepared.email,
-        prepared.phone,
         prepared.message,
         prepared.consent,
         prepared.vehicleSlug || null,
@@ -7352,7 +7355,7 @@ class PostgresStore implements DemoStore {
         prepared.preferredDriveSide || null,
         prepared.preferredYear || null,
         prepared.targetPriceUsd || null,
-        prepared.customerId || null,
+        prepared.customerId,
       ]
     );
 
@@ -7361,20 +7364,20 @@ class PostgresStore implements DemoStore {
   }
 
   async getLeadById(id: string): Promise<LeadRecord | null> {
-    const result = await this.pool.query(`${ENQUIRY_SELECT_COLUMNS} FROM enquiries WHERE id = $1 LIMIT 1`, [id]);
+    const result = await this.pool.query(`${ENQUIRY_SELECT_COLUMNS}${ENQUIRY_FROM} WHERE e.id = $1 LIMIT 1`, [id]);
     const row = result.rows[0];
     return row ? toLeadRecord(rowToEnquiryRecord(row)) : null;
   }
 
   async listLeads(): Promise<LeadListResponse> {
-    const result = await this.pool.query(`${ENQUIRY_SELECT_COLUMNS} FROM enquiries ORDER BY received_at ASC, id ASC`);
+    const result = await this.pool.query(`${ENQUIRY_SELECT_COLUMNS}${ENQUIRY_FROM} ORDER BY e.received_at ASC, e.id ASC`);
     const items = result.rows.map((row) => toLeadRecord(rowToEnquiryRecord(row)));
     return { items, total: items.length };
   }
 
   async listCustomerInquiries(customerId: string): Promise<CustomerInquiryListResponse> {
     const result = await this.pool.query(
-      `${ENQUIRY_SELECT_COLUMNS} FROM enquiries WHERE customer_id = $1 AND enquiry_type = 'price-request' ORDER BY received_at DESC`,
+      `${ENQUIRY_SELECT_COLUMNS}${ENQUIRY_FROM} WHERE e.customer_id = $1 AND e.enquiry_type = 'price-request' ORDER BY e.received_at DESC`,
       [customerId]
     );
 
@@ -7388,7 +7391,7 @@ class PostgresStore implements DemoStore {
       const vehicle = vehicles.find((v) => generateVehicleSlug(v.year, v.make, v.model, v.id) === slug);
 
       const countResult = await this.pool.query(
-        `SELECT COUNT(DISTINCT COALESCE(customer_id, email)) as inquirer_count FROM enquiries WHERE vehicle_slug = $1 AND enquiry_type = 'price-request'`,
+        `SELECT COUNT(DISTINCT customer_id) as inquirer_count FROM enquiries WHERE vehicle_slug = $1 AND enquiry_type = 'price-request'`,
         [slug]
       );
       const inquirerCount = Number(countResult.rows[0].inquirer_count);
@@ -7411,7 +7414,7 @@ class PostgresStore implements DemoStore {
     const vehicleSlug = vehicle ? generateVehicleSlug(vehicle.year, vehicle.make, vehicle.model, vehicle.id) : vehicleSlugOrId;
 
     const countResult = await this.pool.query(
-      `SELECT COUNT(DISTINCT COALESCE(customer_id, email)) as inquirer_count FROM enquiries WHERE vehicle_slug = $1 AND enquiry_type = 'price-request'`,
+      `SELECT COUNT(DISTINCT customer_id) as inquirer_count FROM enquiries WHERE vehicle_slug = $1 AND enquiry_type = 'price-request'`,
       [vehicleSlug]
     );
     const inquirerCount = Number(countResult.rows[0]?.inquirer_count || 0);

@@ -243,9 +243,6 @@ export interface EnquiryEstimateSnapshot {
 }
 
 export interface EnquiryRequest {
-  name: string;
-  email: string;
-  phone: string;
   message: string;
   consent: boolean;
   vehicleSlug?: string;
@@ -265,6 +262,7 @@ export interface EnquiryResponse {
   receivedAt: string;
   status: 'received';
   duplicate: boolean;
+  customerId: string;
   enquiryType: 'general' | 'vehicle' | 'price-request' | 'premium-vehicle';
   source: 'form' | 'whatsapp' | 'email' | 'call';
   vehicleSlug?: string;
@@ -282,6 +280,7 @@ export interface LeadRecord {
   status: 'New' | 'Contacted' | 'InProgress' | 'Sold' | 'Archived';
   enquiryType: 'general' | 'vehicle' | 'price-request' | 'premium-vehicle';
   source: 'form' | 'whatsapp' | 'email' | 'call';
+  customerId: string;
   name: string;
   email: string;
   phone: string;

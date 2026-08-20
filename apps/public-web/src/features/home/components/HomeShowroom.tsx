@@ -42,10 +42,10 @@ export const HomeShowroom: React.FC<HomeShowroomProps> = ({ initialVehicles = []
         service.getVehicles({ collection: 'browse', market: selectedMarket }),
       ]);
 
-      setLatestArrivals(latestRes);
-      setPremiumTeaser(premiumRes);
-      setDiscountedStock(discountedRes);
-      setBrowseStock(browseRes);
+      setLatestArrivals(latestRes.items);
+      setPremiumTeaser(premiumRes.items);
+      setDiscountedStock(discountedRes.items);
+      setBrowseStock(browseRes.items);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to load vehicle collections');
     } finally {

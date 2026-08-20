@@ -88,7 +88,7 @@ export const loadBranchVehicles = cache(
         limit: 4,
       });
 
-      return { latestArrivals, recentlyDiscounted };
+      return { latestArrivals: latestArrivals.items, recentlyDiscounted: recentlyDiscounted.items };
     } catch {
       return { latestArrivals: [], recentlyDiscounted: [] };
     }

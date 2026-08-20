@@ -59,7 +59,7 @@ export function useCustomerInventory({
           audience: 'customer',
         };
 
-        const result: VehicleSearchResult = await vehicleService.searchVehicles(queryWithAudience);
+        const result: VehicleSearchResult = await vehicleService.getVehicles(queryWithAudience);
 
         if (!controller.signal.aborted) {
           setState({
