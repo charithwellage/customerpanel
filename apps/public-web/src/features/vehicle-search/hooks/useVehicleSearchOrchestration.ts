@@ -16,6 +16,7 @@ export interface UseVehicleSearchOrchestrationOptions {
   service?: VehicleService;
   baseUrl?: string;
   initialQuery?: SearchVehiclesQuery;
+  lockedCollection?: string;
 }
 
 export interface UseVehicleSearchOrchestrationReturn {
@@ -51,7 +52,11 @@ export function useVehicleSearchOrchestration(
 
   const [query, setQuery] = useState<SearchVehiclesQuery>(() => {
     const urlQuery = searchParams ? parseUrlSearchQuery(searchParams) : {};
-    return { ...options.initialQuery, ...urlQuery };
+    return {
+      ...options.initialQuery,
+      ...urlQuery,
+      ...(options.lockedCollection ? { collection: options.lockedCollection } : {}),
+    };
   });
 
   const [result, setResult] = useState<VehicleSearchResult | null>(null);
@@ -66,8 +71,11 @@ export function useVehicleSearchOrchestration(
     if (searchParams) {
       const parsed = parseUrlSearchQuery(searchParams);
       setQuery((prev) => {
-        if (JSON.stringify(prev) === JSON.stringify(parsed)) return prev;
-        return parsed;
+        const nextQuery = options.lockedCollection
+          ? { ...parsed, collection: options.lockedCollection }
+          : parsed;
+        if (JSON.stringify(prev) === JSON.stringify(nextQuery)) return prev;
+        return nextQuery;
       });
       if (parsed.searchQuery) {
         setNaturalPhrase(parsed.searchQuery);
@@ -111,7 +119,12 @@ export function useVehicleSearchOrchestration(
 
   const updateQuery = useCallback(
     (updates: Partial<SearchVehiclesQuery>) => {
-      const updated = { ...query, ...updates, page: updates.page ?? 1 };
+      const updated = {
+        ...query,
+        ...updates,
+        ...(options.lockedCollection ? { collection: options.lockedCollection } : {}),
+        page: updates.page ?? 1,
+      };
       setQuery(updated);
       updateUrl(updated);
     },
@@ -128,6 +141,7 @@ export function useVehicleSearchOrchestration(
       const updatedQuery: SearchVehiclesQuery = {
         ...query,
         ...parsed.parsedParams,
+        ...(options.lockedCollection ? { collection: options.lockedCollection } : {}),
         page: 1,
       };
 
@@ -144,6 +158,7 @@ export function useVehicleSearchOrchestration(
     const resetState: SearchVehiclesQuery = {
       market: query.market,
       destinationPort: query.destinationPort,
+      collection: options.lockedCollection || query.collection,
       page: 1,
       limit: 12,
       sortBy: 'newest',
@@ -152,7 +167,7 @@ export function useVehicleSearchOrchestration(
     setUnderstoodTokens([]);
     setQuery(resetState);
     updateUrl(resetState);
-  }, [query.market, query.destinationPort, updateUrl]);
+  }, [options.lockedCollection, query.market, query.destinationPort, query.collection, updateUrl]);
 
   const setPage = useCallback(
     (page: number) => {

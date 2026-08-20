@@ -16,6 +16,29 @@ export function SearchResultsHeader({ total, itemCount, query, onUpdateQuery, on
   if (query.transmission) chips.push({ key: 'transmission', label: `Transmission: ${query.transmission}` });
   if (query.driveTrain) chips.push({ key: 'driveTrain', label: `Drive: ${query.driveTrain}` });
   if (query.locationStatus) chips.push({ key: 'locationStatus', label: `Location: ${query.locationStatus}` });
+  if (query.model) chips.push({ key: 'model', label: `Model: ${query.model}` });
+  if (query.modelCode) chips.push({ key: 'modelCode', label: `Model Code: ${query.modelCode}` });
+  if (query.vehicleSubType) chips.push({ key: 'vehicleSubType', label: `Sub Type: ${query.vehicleSubType}` });
+  if (query.overdrive) chips.push({ key: 'overdrive', label: `O Drive: ${query.overdrive}` });
+  if (query.color) chips.push({ key: 'color', label: `Color: ${query.color}` });
+  if (query.exteriorGrade) chips.push({ key: 'exteriorGrade', label: `Ext. Grade: ${query.exteriorGrade}` });
+  if (query.destinationPort) chips.push({ key: 'destinationPort', label: `Port: ${query.destinationPort}` });
+  if (query.yearMin !== undefined) chips.push({ key: 'yearMin', label: `Year from: ${query.yearMin}` });
+  if (query.yearMax !== undefined) chips.push({ key: 'yearMax', label: `Year to: ${query.yearMax}` });
+  if (query.priceMin !== undefined) chips.push({ key: 'priceMin', label: `Price from: $${query.priceMin.toLocaleString()}` });
+  if (query.priceMax !== undefined) chips.push({ key: 'priceMax', label: `Price to: $${query.priceMax.toLocaleString()}` });
+  if (query.mileageMin !== undefined) chips.push({ key: 'mileageMin', label: `Mileage from: ${query.mileageMin.toLocaleString()}` });
+  if (query.mileageMax !== undefined) chips.push({ key: 'mileageMax', label: `Mileage to: ${query.mileageMax.toLocaleString()}` });
+  if (query.engineCcMin !== undefined) chips.push({ key: 'engineCcMin', label: `Engine from: ${query.engineCcMin.toLocaleString()} cc` });
+  if (query.engineCcMax !== undefined) chips.push({ key: 'engineCcMax', label: `Engine to: ${query.engineCcMax.toLocaleString()} cc` });
+  if (query.steering) chips.push({ key: 'steering', label: `Steering: ${query.steering}` });
+  if (query.stockCountry) chips.push({ key: 'stockCountry', label: `Stock country: ${query.stockCountry}` });
+  if (query.stockLocation) chips.push({ key: 'stockLocation', label: `Stock location: ${query.stockLocation}` });
+  if (query.seatsMin !== undefined) chips.push({ key: 'seatsMin', label: `Seats from: ${query.seatsMin}` });
+  if (query.seatsMax !== undefined) chips.push({ key: 'seatsMax', label: `Seats to: ${query.seatsMax}` });
+  if (query.loadCapacityMin !== undefined) chips.push({ key: 'loadCapacityMin', label: `Load from: ${query.loadCapacityMin}` });
+  if (query.loadCapacityMax !== undefined) chips.push({ key: 'loadCapacityMax', label: `Load to: ${query.loadCapacityMax}` });
+  if (query.features?.length) chips.push({ key: 'features', label: `Equipment: ${query.features.join(', ')}` });
 
   return (
     <div className="cc-results-header">

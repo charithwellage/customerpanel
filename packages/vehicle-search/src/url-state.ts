@@ -18,10 +18,19 @@ export function parseUrlSearchQuery(source: URLSearchParams | string): SearchVeh
   result.searchQuery = getString('searchQuery') || getString('q');
   result.make = getString('make');
   result.model = getString('model');
+  result.modelCode = getString('modelCode');
   result.bodyStyle = getString('bodyStyle');
   result.fuelType = getString('fuelType');
   result.transmission = getString('transmission');
   result.driveTrain = getString('driveTrain');
+  result.vehicleSubType = getString('vehicleSubType');
+  result.overdrive = getString('overdrive');
+  result.color = getString('color');
+  result.exteriorGrade = getString('exteriorGrade');
+  result.steering = getString('steering');
+  result.stockCountry = getString('stockCountry');
+  result.stockLocation = getString('stockLocation');
+  result.features = params.getAll('features').flatMap((value) => value.split(',')).filter(Boolean);
   result.stockType = getString('stockType') as 'J' | 'CRFO' | undefined;
   result.locationStatus = getString('locationStatus') as 'In Japan' | 'In Transit' | 'In Port' | undefined;
 
@@ -29,6 +38,14 @@ export function parseUrlSearchQuery(source: URLSearchParams | string): SearchVeh
   result.yearMax = getNumber('yearMax');
   result.priceMin = getNumber('priceMin');
   result.priceMax = getNumber('priceMax');
+  result.mileageMin = getNumber('mileageMin');
+  result.mileageMax = getNumber('mileageMax');
+  result.engineCcMin = getNumber('engineCcMin');
+  result.engineCcMax = getNumber('engineCcMax');
+  result.seatsMin = getNumber('seatsMin');
+  result.seatsMax = getNumber('seatsMax');
+  result.loadCapacityMin = getNumber('loadCapacityMin');
+  result.loadCapacityMax = getNumber('loadCapacityMax');
 
   result.sortBy = (getString('sortBy') || 'newest') as SearchVehiclesQuery['sortBy'];
   result.page = getNumber('page') || 1;
@@ -61,10 +78,19 @@ export function serializeSearchQuery(query: SearchVehiclesQuery, existingParams?
   setOrDelete('searchQuery', query.searchQuery);
   setOrDelete('make', query.make);
   setOrDelete('model', query.model);
+  setOrDelete('modelCode', query.modelCode);
   setOrDelete('bodyStyle', query.bodyStyle);
   setOrDelete('fuelType', query.fuelType);
   setOrDelete('transmission', query.transmission);
   setOrDelete('driveTrain', query.driveTrain);
+  setOrDelete('vehicleSubType', query.vehicleSubType);
+  setOrDelete('overdrive', query.overdrive);
+  setOrDelete('color', query.color);
+  setOrDelete('exteriorGrade', query.exteriorGrade);
+  setOrDelete('steering', query.steering);
+  setOrDelete('stockCountry', query.stockCountry);
+  setOrDelete('stockLocation', query.stockLocation);
+  setOrDelete('features', query.features?.join(','));
   setOrDelete('stockType', query.stockType);
   setOrDelete('locationStatus', query.locationStatus);
   setOrDelete('category', query.category);
@@ -74,6 +100,14 @@ export function serializeSearchQuery(query: SearchVehiclesQuery, existingParams?
   setOrDelete('yearMax', query.yearMax);
   setOrDelete('priceMin', query.priceMin);
   setOrDelete('priceMax', query.priceMax);
+  setOrDelete('mileageMin', query.mileageMin);
+  setOrDelete('mileageMax', query.mileageMax);
+  setOrDelete('engineCcMin', query.engineCcMin);
+  setOrDelete('engineCcMax', query.engineCcMax);
+  setOrDelete('seatsMin', query.seatsMin);
+  setOrDelete('seatsMax', query.seatsMax);
+  setOrDelete('loadCapacityMin', query.loadCapacityMin);
+  setOrDelete('loadCapacityMax', query.loadCapacityMax);
 
   if (query.sortBy && query.sortBy !== 'newest') {
     params.set('sortBy', query.sortBy);

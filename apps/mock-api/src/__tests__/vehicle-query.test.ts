@@ -21,6 +21,71 @@ describe('Vehicle Query, Dynamic Filters, Sorting, and Pagination Tests (PUB-04.
     expect(res2.items[0].id).toBe('veh-1');
   });
 
+  it('scopes clearance search, filtering, sorting, pagination, and facets to clearance stock', async () => {
+    const result = await store.searchVehicles({ collection: 'clearance', searchQuery: 'Toyota', sortBy: 'price_asc', page: 1, limit: 2 });
+
+    expect(result.total).toBeGreaterThan(0);
+    expect(result.items.length).toBeLessThanOrEqual(2);
+    result.items.forEach((item) => {
+      expect(item.category?.split(',')).toContain('clearance');
+      expect(item.make).toBe('Toyota');
+    });
+    expect(result.facets.makes.find((facet) => facet.name === 'Toyota')?.count).toBe(result.total);
+
+    const conflictingCategory = await store.searchVehicles({ collection: 'clearance', category: 'premium' });
+    expect(conflictingCategory.items).toHaveLength(0);
+  });
+
+  it('keeps sibling makes available after selecting a make', async () => {
+    const clearance = await store.searchVehicles({ collection: 'clearance' });
+    const makes = clearance.facets.makes.map((facet) => facet.name);
+    expect(makes.length).toBeGreaterThan(1);
+
+    const selectedMake = makes[0];
+    const selected = await store.searchVehicles({ collection: 'clearance', make: selectedMake });
+    expect(selected.items.every((item) => item.make === selectedMake)).toBe(true);
+    expect(selected.facets.makes.map((facet) => facet.name)).toEqual(expect.arrayContaining(makes));
+  });
+
+  it('loads transmission and drive train facets from stored vehicle values', async () => {
+    const result = await store.searchVehicles({ collection: 'clearance' });
+
+    expect(result.facets.transmissions.length).toBeGreaterThan(0);
+    expect(result.facets.driveTrains.length).toBeGreaterThan(0);
+    result.facets.transmissions.forEach((facet) => {
+      expect(result.items.every((item) => item.category?.split(',').includes('clearance'))).toBe(true);
+      expect(facet.name).not.toBe('');
+    });
+  });
+
+  it('supports model, port, year, price, and mileage filters within clearance stock', async () => {
+    const clearance = await store.searchVehicles({ collection: 'clearance' });
+    const sample = clearance.items[0];
+    expect(sample).toBeDefined();
+
+    const filtered = await store.searchVehicles({
+      collection: 'clearance',
+      model: sample.model,
+      destinationPort: sample.destinationPort,
+      yearMin: sample.year,
+      yearMax: sample.year,
+      priceMin: sample.priceUsd,
+      priceMax: sample.priceUsd,
+      mileageMin: sample.mileage,
+      mileageMax: sample.mileage,
+    });
+
+    expect(filtered.items.length).toBeGreaterThan(0);
+    filtered.items.forEach((item) => {
+      expect(item.category?.split(',')).toContain('clearance');
+      expect(item.model).toContain(sample.model);
+      expect(item.destinationPort).toBe(sample.destinationPort);
+      expect(item.year).toBe(sample.year);
+      expect(item.priceUsd).toBe(sample.priceUsd);
+      expect(item.mileage).toBe(sample.mileage);
+    });
+  });
+
   it('filters by make, bodyStyle, fuelType, transmission, driveTrain', async () => {
     const res = await store.searchVehicles({
       make: 'Toyota',

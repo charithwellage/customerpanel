@@ -6,6 +6,7 @@ export interface NavItem {
 export const PUBLIC_NAV_ITEMS: NavItem[] = [
   { label: 'SHOWROOM', href: '/' },
   { label: 'ALL STOCK', href: '/allstock' },
+  { label: 'Clearance Stock', href: '/clearance-stock' },
   { label: 'PREMIUM STOCK', href: '/#premium-stock' },
   { label: 'HOW TO BUY', href: '/how-to-buy' },
   { label: 'ABOUT US', href: '/about' },

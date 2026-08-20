@@ -65,6 +65,20 @@ export const HomeShowroom: React.FC<HomeShowroomProps> = ({ initialVehicles = []
 
       <PromotionsCountdown />
 
+      {/* Discounted / Best Offer / Clearance Section */}
+      {discountedStock.length > 0 && (
+        <section className="home-section-compact">
+          <VehicleCollection
+            title="Discounted & Clearance Stock"
+            description="Special pricing and clearance offers."
+            vehicles={discountedStock}
+            isLoading={isLoading}
+            error={error}
+            onRetry={loadData}
+          />
+        </section>
+      )}
+
       {/* Latest Arrivals Section (5-day window, In Japan) */}
       <section className="home-section-compact">
         <VehicleCollection
@@ -81,20 +95,6 @@ export const HomeShowroom: React.FC<HomeShowroomProps> = ({ initialVehicles = []
 
       {/* Premium Stock Teaser Section */}
       <PremiumTeaserSection vehicles={premiumTeaser} isLoading={isLoading} error={error} onRetry={loadData} />
-
-      {/* Discounted / Best Offer / Clearance Section */}
-      {discountedStock.length > 0 && (
-        <section className="home-section-compact">
-          <VehicleCollection
-            title="Discounted & Clearance Stock"
-            description="Special pricing and clearance offers."
-            vehicles={discountedStock}
-            isLoading={isLoading}
-            error={error}
-            onRetry={loadData}
-          />
-        </section>
-      )}
 
       {/* Browse All Stock Section */}
       <section className="home-section-compact">
@@ -167,4 +167,3 @@ export const HomeShowroom: React.FC<HomeShowroomProps> = ({ initialVehicles = []
     </div>
   );
 };
-

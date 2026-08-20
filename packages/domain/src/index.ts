@@ -155,6 +155,7 @@ export interface VehicleDomainSummary {
   slug?: string;
   make: string;
   model: string;
+  modelCode?: string;
   year: number;
   priceUsd: number;
   status: VehicleStatus;
@@ -169,6 +170,17 @@ export interface VehicleDomainSummary {
 
   // Phase 1.3 Extensions
   bodyStyle?: string;
+  vehicleSubType?: string;
+  engineCc?: number;
+  overdrive?: string;
+  color?: string;
+  exteriorGrade?: string;
+  steering?: string;
+  stockCountry?: string;
+  stockLocation?: string;
+  seats?: number;
+  loadCapacity?: number;
+  features?: Record<string, boolean>;
   fuelType?: string;
   transmission?: string;
   driveTrain?: string;
@@ -200,8 +212,27 @@ export interface VehicleFacets {
   makes: FacetCount[];
   bodyStyles: FacetCount[];
   fuelTypes: FacetCount[];
+  transmissions: FacetCount[];
+  driveTrains: FacetCount[];
+  models: FacetCount[];
+  modelCodes: FacetCount[];
+  vehicleTypes: FacetCount[];
+  vehicleSubTypes: FacetCount[];
+  locationStatuses: FacetCount[];
+  destinationPorts: FacetCount[];
+  overdrives: FacetCount[];
+  colors: FacetCount[];
+  exteriorGrades: FacetCount[];
+  steerings: FacetCount[];
+  stockCountries: FacetCount[];
+  stockLocations: FacetCount[];
+  features: FacetCount[];
   yearRange: RangeFacet<number>;
   priceRange: RangeFacet<number>;
+  mileageRange: RangeFacet<number>;
+  engineCcRange: RangeFacet<number>;
+  seatsRange: RangeFacet<number>;
+  loadCapacityRange: RangeFacet<number>;
 }
 
 export interface VehicleSearchResult {
@@ -219,10 +250,25 @@ export interface SearchVehiclesQuery {
   searchQuery?: string;
   make?: string;
   model?: string;
+  modelCode?: string;
   bodyStyle?: string;
   fuelType?: string;
   transmission?: string;
   driveTrain?: string;
+  vehicleSubType?: string;
+  engineCcMin?: number;
+  engineCcMax?: number;
+  overdrive?: string;
+  color?: string;
+  exteriorGrade?: string;
+  steering?: string;
+  stockCountry?: string;
+  stockLocation?: string;
+  seatsMin?: number;
+  seatsMax?: number;
+  loadCapacityMin?: number;
+  loadCapacityMax?: number;
+  features?: string[];
   stockType?: string;
   locationStatus?: string;
   market?: string;
@@ -233,6 +279,8 @@ export interface SearchVehiclesQuery {
   yearMax?: number;
   priceMin?: number;
   priceMax?: number;
+  mileageMin?: number;
+  mileageMax?: number;
   sortBy?: 'newest' | 'price_asc' | 'price_desc' | 'year_desc' | 'year_asc' | 'mileage_asc';
   page?: number;
   limit?: number;
@@ -1201,4 +1249,3 @@ export * from './freight.js';
 export * from './content.js';
 export * from './countries.js';
 import type { CustomerTier } from './auth.js';
-
