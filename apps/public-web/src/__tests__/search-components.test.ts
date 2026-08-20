@@ -78,6 +78,12 @@ describe('Search Components & Presentation Tests (PUB-04, PUB-07, RULE-09)', () 
     expect(styles).toContain('.cc-filter-checkbox input {');
   });
 
+  it('uses the same-origin API proxy for browser vehicle search', () => {
+    const source = fs.readFileSync(path.resolve(__dirname, '../features/vehicle-search/hooks/useVehicleSearchOrchestration.ts'), 'utf8');
+    expect(source).toContain("typeof window !== 'undefined' ? ''");
+    expect(source).not.toContain("options.baseUrl || 'http://127.0.0.1:4000'");
+  });
+
   it('renders SearchResultsHeader with result count and active filter chips', () => {
     const html = renderToStaticMarkup(
       React.createElement(SearchResultsHeader, {

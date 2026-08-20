@@ -45,7 +45,11 @@ export function useVehicleSearchOrchestration(
   const [service] = useState<VehicleService>(
     () =>
       options.service ||
-      new VehicleService(new HttpClient({ baseUrl: options.baseUrl || 'http://127.0.0.1:4000' }))
+      new VehicleService(new HttpClient({
+        // Browser requests must stay same-origin so remote clients use the
+        // public-web /api/v1 proxy instead of resolving 127.0.0.1 locally.
+        baseUrl: options.baseUrl || (typeof window !== 'undefined' ? '' : process.env.API_BASE_URL || 'http://127.0.0.1:4000'),
+      }))
   );
 
   const [query, setQuery] = useState<SearchVehiclesQuery>(() => {
