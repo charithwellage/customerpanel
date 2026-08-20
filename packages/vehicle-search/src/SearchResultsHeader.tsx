@@ -1,14 +1,15 @@
-import type { SearchVehiclesQuery } from '@carchief/domain';
+import type { SearchVehiclesQuery, VehicleFacets } from '@carchief/domain';
 
 export interface SearchResultsHeaderProps {
   total: number;
   itemCount: number;
   query: SearchVehiclesQuery;
+  facets?: VehicleFacets;
   onUpdateQuery: (updates: Partial<SearchVehiclesQuery>) => void;
   onForceSync?: () => void;
 }
 
-export function SearchResultsHeader({ total, itemCount, query, onUpdateQuery, onForceSync }: SearchResultsHeaderProps) {
+export function SearchResultsHeader({ total, itemCount, query, facets, onUpdateQuery, onForceSync }: SearchResultsHeaderProps) {
   const chips: Array<{ key: keyof SearchVehiclesQuery; label: string }> = [];
   if (query.make) chips.push({ key: 'make', label: `Make: ${query.make}` });
   if (query.bodyStyle) chips.push({ key: 'bodyStyle', label: `Body: ${query.bodyStyle}` });
@@ -38,7 +39,10 @@ export function SearchResultsHeader({ total, itemCount, query, onUpdateQuery, on
   if (query.seatsMax !== undefined) chips.push({ key: 'seatsMax', label: `Seats to: ${query.seatsMax}` });
   if (query.loadCapacityMin !== undefined) chips.push({ key: 'loadCapacityMin', label: `Load from: ${query.loadCapacityMin}` });
   if (query.loadCapacityMax !== undefined) chips.push({ key: 'loadCapacityMax', label: `Load to: ${query.loadCapacityMax}` });
-  if (query.features?.length) chips.push({ key: 'features', label: `Equipment: ${query.features.join(', ')}` });
+  if (query.features?.length) {
+    const labels = query.features.map((key) => facets?.features.find((feature) => feature.key === key)?.label || key);
+    chips.push({ key: 'features', label: `Equipment: ${labels.join(', ')}` });
+  }
 
   return (
     <div className="cc-results-header">

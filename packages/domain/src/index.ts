@@ -217,6 +217,12 @@ export interface FacetCount {
   count: number;
 }
 
+export interface FeatureFacet {
+  key: string;
+  label: string;
+  count: number;
+}
+
 export interface RangeFacet<T = number> {
   min: T;
   max: T;
@@ -240,7 +246,7 @@ export interface VehicleFacets {
   steerings: FacetCount[];
   stockCountries: FacetCount[];
   stockLocations: FacetCount[];
-  features: FacetCount[];
+  features: FeatureFacet[];
   yearRange: RangeFacet<number>;
   priceRange: RangeFacet<number>;
   mileageRange: RangeFacet<number>;
