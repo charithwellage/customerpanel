@@ -78,7 +78,7 @@ describe('Customer App Shell & Navigation Unit Tests', () => {
     expect(html).toContain('aria-current="page"');
   });
 
-  it('renders My Vehicles sub-items including wishlist, favourites, and inquiries', () => {
+  it('renders My Vehicles sub-items including wishlist and inquiries', () => {
     const html = renderToStaticMarkup(
       React.createElement(
         CustomerShellProvider,
@@ -90,7 +90,6 @@ describe('Customer App Shell & Navigation Unit Tests', () => {
     // My Vehicles group is active for /vehicles — sub-items should be rendered
     expect(html).toContain('My Vehicles');        // customer.myVehicles → 'My Vehicles'
     expect(html).toContain('My Wishlist');        // customer.wishlist fallback
-    expect(html).toContain('Favourites');         // customer.favourites fallback
     expect(html).toContain('Inquiries &amp; Quotes'); // customer.inquiries fallback
     expect(html).toContain('My Statement');        // customer.statement fallback
     expect(html).toContain('aria-current="page"');

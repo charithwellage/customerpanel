@@ -110,7 +110,6 @@ const DEFAULT_NAV_ITEMS: NavigationItem[] = [
     children: [
       { id: 'vehicles', label: 'My Vehicles', altLabel: 'My Vehicles', href: '/vehicles', icon: '🚙' },
       { id: 'wishlist', label: 'My Wishlist', altLabel: 'Wishlist', href: '/wishlist', icon: '❤️' },
-      { id: 'favourites', label: 'Favourites', altLabel: 'Favourites', href: '/favourites', icon: '⭐' },
       { id: 'inquiries', label: 'Inquiries & Quotes', altLabel: 'Inquiries & Quotes', href: '/inquiries', icon: '💬' },
       { id: 'statement', label: 'My Statement', altLabel: 'Customer Statement', href: '/statement', icon: '📑' },
     ],
