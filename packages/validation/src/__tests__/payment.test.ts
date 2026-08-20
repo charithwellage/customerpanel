@@ -15,9 +15,16 @@ describe('customer TT payment form validation (D02-P06-T003)', () => {
     expect(result.proof).toEqual(expect.objectContaining({ fileType: 'PDF', scanStatus: 'Pending' }));
   });
 
+  it('accepts all supported international currencies (USD, JPY, EUR, GBP, KES, AED, etc.)', () => {
+    expect(customerPaymentFormSchema.parse({ ...valid, currency: 'JPY' }).currency).toBe('JPY');
+    expect(customerPaymentFormSchema.parse({ ...valid, currency: 'EUR' }).currency).toBe('EUR');
+    expect(customerPaymentFormSchema.parse({ ...valid, currency: 'GBP' }).currency).toBe('GBP');
+    expect(customerPaymentFormSchema.parse({ ...valid, currency: 'KES' }).currency).toBe('KES');
+  });
+
   it('rejects invalid references, currencies and oversized proof metadata', () => {
     expect(() => customerPaymentFormSchema.parse({ ...valid, reference: 'x' })).toThrow();
-    expect(() => customerPaymentFormSchema.parse({ ...valid, currency: 'EUR' })).toThrow();
+    expect(() => customerPaymentFormSchema.parse({ ...valid, currency: 'XYZ' })).toThrow();
     expect(() => customerPaymentFormSchema.parse({ ...valid, proof: { ...valid.proof, sizeBytes: MAX_PAYMENT_PROOF_BYTES + 1 } })).toThrow();
   });
 });

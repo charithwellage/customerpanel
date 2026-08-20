@@ -15,6 +15,25 @@ services:
       timeout: 5s
       retries: 10
 
+  pgadmin:
+    image: dpage/pgadmin4:9.8.0
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-admin@carchief.dev}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-carchief_pgadmin_dev_pass}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - carchief-pgadmin-data:/var/lib/pgadmin
+    ports:
+      - "127.0.0.1:${CARCHIEF_PGADMIN_PORT:-5050}:80"
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -qO- http://127.0.0.1/misc/ping >/dev/null" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+
   mock-api:
     build:
       context: .
@@ -59,7 +78,7 @@ services:
       mock-api:
         condition: service_healthy
     ports:
-      - "127.0.0.1:${CARCHIEF_FRONTEND_PORT:-3000}:3000"
+      - "${CARCHIEF_BIND_ADDRESS:-0.0.0.0}:${CARCHIEF_FRONTEND_PORT:-3000}:3000"
     healthcheck:
       test: [ "CMD", "node", "-e", "fetch('http://'+require('os').hostname()+':3000/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))" ]
       interval: 10s
@@ -84,7 +103,7 @@ services:
       mock-api:
         condition: service_healthy
     ports:
-      - "127.0.0.1:${CARCHIEF_CUSTOMER_APP_PORT:-3001}:3001"
+      - "${CARCHIEF_BIND_ADDRESS:-0.0.0.0}:${CARCHIEF_CUSTOMER_APP_PORT:-3001}:3001"
     healthcheck:
       # Unlike public-web/mock-api, this container runs `vite preview`, which
       # rejects requests whose Host header isn't localhost/an IP address (its
@@ -97,3 +116,4 @@ services:
 
 volumes:
   carchief-postgres-data:
+  carchief-pgadmin-data:

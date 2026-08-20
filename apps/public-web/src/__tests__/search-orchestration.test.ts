@@ -80,6 +80,21 @@ describe('Search Orchestration, Deterministic Parser & URL State Tests', () => {
       expect(restored.destinationPort).toBe('Mombasa');
     });
 
+    it('preserves category and collection parameters across URL updates', () => {
+      const originalQuery = {
+        category: 'premium',
+        collection: 'premium_teaser',
+      };
+
+      const params = serializeSearchQuery(originalQuery);
+      expect(params.get('category')).toBe('premium');
+      expect(params.get('collection')).toBe('premium_teaser');
+
+      const restored = parseUrlSearchQuery(params);
+      expect(restored.category).toBe('premium');
+      expect(restored.collection).toBe('premium_teaser');
+    });
+
     it('omits default parameters (page=1, sortBy=newest) from URL to keep URLs clean', () => {
       const params = serializeSearchQuery({
         make: 'Toyota',

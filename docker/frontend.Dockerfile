@@ -23,7 +23,7 @@ RUN pnpm install --frozen-lockfile
 COPY apps ./apps
 COPY packages ./packages
 COPY openapi ./openapi
-RUN pnpm --filter @carchief/public-web build && pnpm --filter @carchief/mock-api build
+RUN pnpm --filter @carchief/public-web... build && pnpm --filter @carchief/mock-api... build
 
 FROM node:22-alpine AS runtime
 WORKDIR /workspace

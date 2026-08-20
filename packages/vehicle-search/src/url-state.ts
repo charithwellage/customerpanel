@@ -37,13 +37,15 @@ export function parseUrlSearchQuery(source: URLSearchParams | string): SearchVeh
   // Market & Destination Port context preservation
   result.market = getString('market');
   result.destinationPort = getString('destinationPort');
+  result.category = getString('category');
+  result.collection = getString('collection');
 
   return result;
 }
 
 /**
  * Serializes SearchVehiclesQuery into URLSearchParams while omitting empty or default values.
- * Preserves additional context parameters (e.g. market, country, destinationPort).
+ * Preserves additional context parameters (e.g. market, country, destinationPort, category, collection).
  */
 export function serializeSearchQuery(query: SearchVehiclesQuery, existingParams?: URLSearchParams): URLSearchParams {
   const params = new URLSearchParams(existingParams ? existingParams.toString() : '');
@@ -65,6 +67,8 @@ export function serializeSearchQuery(query: SearchVehiclesQuery, existingParams?
   setOrDelete('driveTrain', query.driveTrain);
   setOrDelete('stockType', query.stockType);
   setOrDelete('locationStatus', query.locationStatus);
+  setOrDelete('category', query.category);
+  setOrDelete('collection', query.collection);
 
   setOrDelete('yearMin', query.yearMin);
   setOrDelete('yearMax', query.yearMax);

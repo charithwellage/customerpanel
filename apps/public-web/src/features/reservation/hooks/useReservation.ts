@@ -39,7 +39,7 @@ export interface UseReservationReturn {
  * reservation through the service boundary"); on `reserve()`, creates a new
  * hold and surfaces the exact eligibility/conflict/limit/expiry outcome the
  * mock reports. Only ever active while `enabled` (the caller gates this on
- * an `active` demo session and a reservable vehicle status) — `D01-P06-T005`
+ * an `active` session and a reservable vehicle status) — `D01-P06-T005`
  * does not duplicate `useSession`'s sign-in guidance, it composes with it.
  */
 export function useReservation(
@@ -84,7 +84,7 @@ export function useReservation(
       try {
         const fetched = await service.getById(link.reservationId);
         if (cancelled) return;
-        // The Mock API may normalize a demo JWT subject to its customer scope
+        // The Mock API may normalize a JWT subject to its customer scope
         // (for example, `user-123` -> `cust-123`). The authenticated GET has
         // already enforced ownership server-side, so comparing the response
         // scope to the raw JWT subject would incorrectly discard the owner's

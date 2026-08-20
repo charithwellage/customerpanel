@@ -18,10 +18,87 @@ export interface SessionClaims {
   exp: number;
 }
 
-export interface DemoSessionResponse {
+// Phase 2.12: customer self-registration, credential handling and the
+// password-reset contract (CUST-26..30, D02-ASM-005/006/007). No response
+// ever carries a password, hash or salt.
+
+export interface CustomerAccount {
+  id: string;
+  customerId: string;
+  nameWithInitials: string;
+  countryCode: string;
+  dialCode: string;
+  mobileNumber: string;
+  email: string;
+  status: string;
+  verificationState: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface RegisterCustomerRequest {
+  nameWithInitials: string;
+  countryCode: string;
+  mobileNumber: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface LoginResponse {
   token: string;
   claims: SessionClaims;
-  nonProduction: boolean;
+}
+
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+  confirmNewPassword: string;
+}
+
+export interface SuccessResponse {
+  success: boolean;
+}
+
+export interface PasswordResetRequest {
+  email: string;
+}
+
+export interface PasswordResetAcceptedResponse {
+  message: string;
+}
+
+export interface ConfirmPasswordResetRequest {
+  token: string;
+  newPassword: string;
+  confirmNewPassword: string;
+}
+
+export interface PasswordResetOutboxEntry {
+  token: string;
+  email: string;
+  issuedAt: string;
+  expiresAt: string;
+  consumed: boolean;
+}
+
+export interface PasswordResetOutboxListResponse {
+  items: PasswordResetOutboxEntry[];
+}
+
+export interface CountryOption {
+  isoCode: string;
+  name: string;
+  dialCode: string;
+}
+
+export interface CountriesResponse {
+  items: CountryOption[];
 }
 
 export interface VehicleSummary {
@@ -598,6 +675,12 @@ export interface CustomerVehicleDepositInfo {
   isFullyPaid: boolean;
 }
 
+export interface CustomerCommercialBillInfo {
+  soldAmountUsd: number;
+  paidAmountUsd: number;
+  balanceAmountUsd: number;
+}
+
 export interface CustomerVehicleSummary {
   id: string;
   vehicleId: string;
@@ -616,6 +699,14 @@ export interface CustomerVehicleSummary {
   proformaInvoiceId?: string;
   paymentDeadline?: string;
   deposit?: CustomerVehicleDepositInfo;
+  stockNumber?: string;
+  color?: string;
+  colorSpec?: string;
+  mileage?: number;
+  logisticsStatus?: string;
+  piRef?: string;
+  commercialBill?: CustomerCommercialBillInfo;
+  shippingStage?: 'Reserved' | 'Inspection' | 'In Transit' | 'Delivered' | string;
   createdAt: string;
   updatedAt: string;
 }

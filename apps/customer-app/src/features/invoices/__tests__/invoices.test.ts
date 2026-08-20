@@ -10,8 +10,10 @@ import { BankWireInstructionsCard } from '../components/BankWireInstructionsCard
 import { InvoiceLineItemsTable } from '../components/InvoiceLineItemsTable.js';
 import { PaymentAllocationsTable } from '../components/PaymentAllocationsTable.js';
 import { PrintableInvoiceModal } from '../components/PrintableInvoiceModal.js';
+import { InvoiceLedgerModal } from '../components/InvoiceLedgerModal.js';
 import { CustomerInvoicesPage } from '../CustomerInvoicesPage.js';
 import { CustomerInvoiceDetailPage } from '../CustomerInvoiceDetailPage.js';
+import { formatInvoiceDate, formatUsdAmount, getInvoiceStatusBadgeClass } from '../formatters.js';
 import type { CustomerInvoiceSummary } from '@carchief/domain';
 
 const queryClient = new QueryClient({
@@ -71,6 +73,14 @@ const MOCK_COMM_SUMMARY: CustomerInvoiceSummary = {
 };
 
 describe('Customer Invoices UI Components (D02-P05-T002)', () => {
+  it('reuses deterministic invoice presentation formatters', () => {
+    expect(formatUsdAmount(1234.5)).toBe('$1,234.50');
+    expect(formatInvoiceDate()).toBe('—');
+    expect(formatInvoiceDate('not-a-date')).toBe('not-a-date');
+    expect(getInvoiceStatusBadgeClass('Paid')).toBe('cc-invoice-badge--paid');
+    expect(getInvoiceStatusBadgeClass('Unknown')).toBe('cc-invoice-badge--neutral');
+  });
+
   it('keeps invoice styling in CSS rather than static inline styles', async () => {
     const { readFile } = await import('node:fs/promises');
     const source = await readFile(new URL('../invoices.css', import.meta.url), 'utf8');
@@ -245,6 +255,68 @@ describe('Customer Invoices UI Components (D02-P05-T002)', () => {
     });
   });
 
+  describe('InvoiceLedgerModal', () => {
+    it('renders official CarChief accounts department popup with ledger sheet and sourced vehicle line items', () => {
+      const html = renderToStaticMarkup(
+        React.createElement(InvoiceLedgerModal, {
+          isOpen: true,
+          onClose: () => {},
+          ledgerEntry: {
+            id: 'inv-row-1',
+            invoiceNumber: 'P-85492',
+            type: 'PROFORMA',
+            issueDate: '23/07/2026',
+            totalAmountUsd: 12730,
+            paidAmountUsd: 0,
+            outstandingAmountUsd: 12730,
+            dueDate: '2026-07-25',
+          },
+          clientName: 'Charith Wellage',
+          clientCompany: 'charith wellage',
+          clientAddress: 'gampaha, sri lanka, Kenya',
+          clientPhone: '+94715991619',
+          vehicles: [
+            {
+              id: 'veh-1',
+              stockNumber: 'STK: NRE161',
+              chassisNumber: 'CHASSIS: NRE161-0091995',
+              title: '2021 TOYOTA COROLLA FIELDER',
+              engine: 'DBA-NRE161G',
+              vesselVoyage: 'TBD',
+              destinationPort: 'Mombasa',
+              soldAmountUsd: 17360,
+              paidAmountUsd: 0,
+              balanceAmountUsd: 17360,
+              imageUrl: '',
+            },
+          ],
+        })
+      );
+
+      expect(html).toContain('CAR CHIEF ACCOUNTS DEPT');
+      expect(html).toContain('P-85492');
+      expect(html).toContain('PROFORMA INVOICE');
+      expect(html).toContain('Charith Wellage');
+      expect(html).toContain('2026-07-25');
+      expect(html).toContain('2021 TOYOTA COROLLA FIELDER');
+      expect(html).toContain('NRE161-0091995');
+      expect(html).toContain('$17,360.00');
+      expect(html).toContain('data-testid="invoice-ledger-modal"');
+    });
+
+    it('returns null when isOpen is false', () => {
+      const html = renderToStaticMarkup(
+        React.createElement(InvoiceLedgerModal, {
+          isOpen: false,
+          onClose: () => {},
+          ledgerEntry: null,
+        })
+      );
+
+      expect(html).toBe('');
+    });
+  });
+
   describe('CustomerInvoicesPage & CustomerInvoiceDetailPage integration', () => {
     it('renders invoices list page skeleton in test shell provider', () => {
       const html = renderToStaticMarkup(
@@ -290,4 +362,59 @@ describe('Customer Invoices UI Components (D02-P05-T002)', () => {
       expect(html).toContain('data-testid="invoice-detail-loading"');
     });
   });
+
+  describe('FRD Phase 3 Modals (Email, Payments, Courier)', () => {
+    it('renders EmailDocumentModal with locked sender and required receiver field', async () => {
+      const { EmailDocumentModal } = await import('../components/EmailDocumentModal.js');
+      const html = renderToStaticMarkup(
+        React.createElement(EmailDocumentModal, {
+          isOpen: true,
+          onClose: () => {},
+          documentNumber: 'P-85492',
+          documentType: 'PROFORMA',
+          senderEmail: 'charith.wellage@carchief.com',
+        })
+      );
+
+      expect(html).toContain('data-testid="email-document-modal"');
+      expect(html).toContain('charith.wellage@carchief.com');
+      expect(html).toContain('data-testid="email-recipient-input"');
+      expect(html).toContain('data-testid="email-send-button"');
+    });
+
+    it('renders InvoicePaymentDetailsModal with allocations table and TT download link', async () => {
+      const { InvoicePaymentDetailsModal } = await import('../components/InvoicePaymentDetailsModal.js');
+      const html = renderToStaticMarkup(
+        React.createElement(InvoicePaymentDetailsModal, {
+          isOpen: true,
+          onClose: () => {},
+          invoiceNumber: 'INV-85492',
+        })
+      );
+
+      expect(html).toContain('data-testid="invoice-payment-details-modal"');
+      expect(html).toContain('TT10001');
+      expect(html).toContain('$2,300.00 USD');
+      expect(html).toContain('Click to download');
+    });
+
+    it('renders CourierRemarksModal with dispatch notes and tracking number', async () => {
+      const { CourierRemarksModal } = await import('../components/CourierRemarksModal.js');
+      const html = renderToStaticMarkup(
+        React.createElement(CourierRemarksModal, {
+          isOpen: true,
+          onClose: () => {},
+          stockNumber: 'J24012345',
+          courierCompany: 'DHL Express',
+          trackingNumber: '0010019284',
+        })
+      );
+
+      expect(html).toContain('data-testid="courier-remarks-modal"');
+      expect(html).toContain('DHL Express');
+      expect(html).toContain('0010019284');
+      expect(html).toContain('Customs manifest');
+    });
+  });
 });
+

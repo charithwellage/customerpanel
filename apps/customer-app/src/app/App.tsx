@@ -4,6 +4,7 @@ import { AccountGuard, type CustomerSession, HttpClientProvider } from '../featu
 import { OfflineGuard } from '../features/pwa/index.js';
 import { CustomerShell, useCustomerShell, type CustomerUser } from '../features/shell/index.js';
 import { OverviewPage } from '../features/dashboard/index.js';
+import { CustomerStatementPage } from '../features/statement/index.js';
 import { CustomerInventoryPage, CustomerVehicleDetailPage } from '../features/inventory/index.js';
 import { CustomerFleetPage, CustomerFleetDetailPage } from '../features/vehicles/index.js';
 import { DocumentsPage } from '../features/documents/index.js';
@@ -12,6 +13,9 @@ import { PaymentsPage } from '../features/payments/index.js';
 import { NotificationsPage } from '../features/notifications/index.js';
 import { ShipmentPage } from '../features/shipments/index.js';
 import { ProfilePage } from '../features/profile/index.js';
+import { CustomerInquiriesPage } from '../features/inquiries/index.js';
+import { CustomerWishlistPage } from '../features/wishlist/index.js';
+import { CustomerFavouritesPage } from '../features/favourites/index.js';
 import { PortalPlaceholder } from './PortalPlaceholder.js';
 
 const queryClient = new QueryClient();
@@ -28,10 +32,10 @@ export interface AppProps {
 /**
  * Maps the verified session onto the shell's display user.
  *
- * Only fields the demo JWT actually carries are used. `JwtClaims` has no name
- * or company field, so `session.user.name` is whatever
- * `createDemoCustomerSession` derived from the real address and `company` stays
- * undefined rather than being invented.
+ * Only fields the session token actually carries are used. `JwtClaims` has no
+ * name or company field, so `session.user.name` is whatever the sign-in
+ * response derived from the real address and `company` stays undefined
+ * rather than being invented.
  */
 function toShellUser(session: CustomerSession): CustomerUser {
   return {
@@ -52,6 +56,10 @@ const AppContent: React.FC<{ session: CustomerSession; apiBaseUrl: string }> = (
 
   if (activeRoute === '/dashboard') {
     return <OverviewPage />;
+  }
+
+  if (activeRoute === '/statement') {
+    return <CustomerStatementPage />;
   }
 
   if (activeRoute === '/inventory') {
@@ -78,6 +86,18 @@ const AppContent: React.FC<{ session: CustomerSession; apiBaseUrl: string }> = (
         }}
       />
     );
+  }
+
+  if (activeRoute === '/inquiries') {
+    return <CustomerInquiriesPage />;
+  }
+
+  if (activeRoute === '/wishlist') {
+    return <CustomerWishlistPage />;
+  }
+
+  if (activeRoute === '/favourites') {
+    return <CustomerFavouritesPage />;
   }
 
   if (activeRoute === '/vehicles') {
@@ -150,13 +170,19 @@ const AppContent: React.FC<{ session: CustomerSession; apiBaseUrl: string }> = (
 export const App: React.FC<AppProps> = ({ apiBaseUrl = '' }) => (
   <OfflineGuard>
     <AccountGuard apiBaseUrl={apiBaseUrl}>
-      {(session) => (
+      {(session, actions) => (
         <QueryClientProvider client={queryClient}>
           <HttpClientProvider apiBaseUrl={apiBaseUrl}>
             <CustomerShell
               initialUser={toShellUser(session)}
-              pageTitle="Customer Portal"
-              pageSubtitle="Account access and application shell"
+              onSignOut={() => {
+                // The guard clears the session and Service Worker caches;
+                // this app also discards any cached query data so no
+                // authenticated response outlives the session (T005 contract:
+                // "any cached query data is discarded" on sign-out).
+                queryClient.clear();
+                actions.signOut();
+              }}
             >
               <AppContent session={session} apiBaseUrl={apiBaseUrl} />
             </CustomerShell>

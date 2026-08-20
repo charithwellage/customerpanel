@@ -11,14 +11,15 @@ export interface VehicleCardPrimitiveProps {
   showDiscount?: boolean;
 }
 
+const DEFAULT_CAR_FALLBACK = 'https://images.unsplash.com/photo-1617788138017-80ad40651399?w=800&auto=format&fit=crop&q=80';
+
 export const VehicleCardPrimitive: React.FC<VehicleCardPrimitiveProps> = ({
   vehicle,
   onSelect,
   actionHref,
-  actionLabel = 'VIEW DETAILS',
   showDiscount = true,
 }) => {
-  const primaryImage = vehicle.images?.[0];
+  const primaryImage = vehicle.images?.[0] || DEFAULT_CAR_FALLBACK;
   const isRequestPrice = Boolean(vehicle.requestPrice || vehicle.priceState === 'request_price' || !vehicle.priceUsd || vehicle.priceUsd <= 0);
   const tierPricing = vehicle.tierPricing;
   const hasTierDiscount = Boolean(showDiscount && tierPricing && tierPricing.tierDiscountPercent > 0);
@@ -34,7 +35,7 @@ export const VehicleCardPrimitive: React.FC<VehicleCardPrimitiveProps> = ({
 
   const targetHref = actionHref || `/allstock/${vehicle.slug || vehicle.id}`;
 
-  const handleCardClick = (e: React.MouseEvent<HTMLElement>) => {
+  const handleCardClick = () => {
     if (onSelect) {
       onSelect(vehicle);
     }
@@ -56,7 +57,7 @@ export const VehicleCardPrimitive: React.FC<VehicleCardPrimitiveProps> = ({
     }
   };
 
-  const displayStatus = vehicle.reservationEligibility && !vehicle.reservationEligibility.eligible
+  let rawStatus = vehicle.reservationEligibility && !vehicle.reservationEligibility.eligible
     ? vehicle.reservationEligibility.isOwnHold
       ? 'YOUR HOLD'
       : vehicle.reservationEligibility.reason === 'reserved_by_other'
@@ -64,6 +65,12 @@ export const VehicleCardPrimitive: React.FC<VehicleCardPrimitiveProps> = ({
         : vehicle.status.toUpperCase()
     : (vehicle.status || 'Available').toUpperCase();
 
+  if (rawStatus === 'RESERVEDWITHPI') {
+    rawStatus = 'RESERVED';
+  }
+
+  const displayStatus = rawStatus;
+  const isSold = displayStatus === 'SOLD';
   const statusClass = displayStatus.toLowerCase().replace(/\s+/g, '-');
 
   return (
@@ -78,25 +85,25 @@ export const VehicleCardPrimitive: React.FC<VehicleCardPrimitiveProps> = ({
     >
       <a href={targetHref} onClick={handleLinkClick} className="cc-vehicle-card__media-link" aria-label={`View details for ${vehicle.year} ${vehicle.make} ${vehicle.model}`}>
         <div className="cc-vehicle-card__media">
-          {primaryImage ? (
-            <img
-              className="cc-vehicle-card__image"
-              src={primaryImage}
-              alt={`${vehicle.make} ${vehicle.model}`}
-              loading="lazy"
-              decoding="async"
-            />
-          ) : (
-            <div className="cc-vehicle-card__image-fallback">
-              <span className="cc-vehicle-card__fallback-title">{vehicle.make} {vehicle.model}</span>
-            </div>
-          )}
+          <img
+            className="cc-vehicle-card__image"
+            src={primaryImage}
+            alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
+            loading="lazy"
+            decoding="async"
+            onError={(e) => {
+              const target = e.currentTarget;
+              if (target.src !== DEFAULT_CAR_FALLBACK) {
+                target.src = DEFAULT_CAR_FALLBACK;
+              }
+            }}
+          />
           <div className="cc-vehicle-card__status">
             <span className={`cc-status-pill cc-status-pill--${statusClass}`}>
-              <span className="cc-status-pill__dot">●</span> {displayStatus}
+              {!isSold && <span className="cc-status-pill__dot">●</span>}
+              {displayStatus}
             </span>
           </div>
-          {vehicle.locationStatus && <span className="cc-vehicle-card__location">{vehicle.locationStatus}</span>}
         </div>
       </a>
 
@@ -116,8 +123,8 @@ export const VehicleCardPrimitive: React.FC<VehicleCardPrimitiveProps> = ({
         )}
 
         <div className="cc-vehicle-card__footer">
+          <span className="cc-vehicle-card__price-label">RETAIL PRICE</span>
           <div className="cc-vehicle-card__price-wrapper">
-            <span className="cc-vehicle-card__price-label">Price</span>
             {isRequestPrice ? (
               <span className="cc-vehicle-card__price cc-vehicle-card__price--request">Request Price</span>
             ) : hasDiscount ? (
@@ -129,14 +136,6 @@ export const VehicleCardPrimitive: React.FC<VehicleCardPrimitiveProps> = ({
               <span className="cc-vehicle-card__price">${vehicle.priceUsd.toLocaleString()}</span>
             )}
           </div>
-
-          <a href={targetHref} onClick={handleLinkClick} className="cc-vehicle-card__action-btn">
-            <span>{actionLabel}</span>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <line x1="5" y1="12" x2="19" y2="12" />
-              <polyline points="12 5 19 12 12 19" />
-            </svg>
-          </a>
         </div>
       </div>
     </article>

@@ -25,7 +25,7 @@ export const AccountStateBanner: React.FC<AccountStateBannerProps> = ({
     // exist here.
     LOCKED: { title: 'Account Locked', defaultMsg: 'Security lock applied. Account unlocking is handled by AutoPulse identity operations and is not available in this demo build.', badgeClass: 'cc-acc-banner--locked' },
     UNAUTHORIZED: { title: 'Unauthorized Access', defaultMsg: 'You must sign in with a valid customer account to view this resource.', badgeClass: 'cc-acc-banner--unauthorized' },
-    EXPIRED: { title: 'Session Expired', defaultMsg: 'Your demo session has expired. Please sign in again.', badgeClass: 'cc-acc-banner--expired' },
+    EXPIRED: { title: 'Session Expired', defaultMsg: 'Your session has expired. Please sign in again.', badgeClass: 'cc-acc-banner--expired' },
   };
 
   const config = statusConfig[status];

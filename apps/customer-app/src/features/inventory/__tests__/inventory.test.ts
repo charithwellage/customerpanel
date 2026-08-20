@@ -66,4 +66,31 @@ describe('Customer Inventory & Vehicle Detail Components (D02-P03-T003)', () => 
       expect(html).toContain('Loading vehicle details...');
     });
   });
+
+  describe('Quote Request and Wishlist (D02-P13-T005)', () => {
+    it('includes quote request and wishlist button elements in the component structure', async () => {
+      const { readFile } = await import('node:fs/promises');
+      const source = await readFile(new URL('../CustomerVehicleDetailPage.tsx', import.meta.url), 'utf8');
+
+      expect(source).toContain('data-testid="quote-request-btn"');
+      expect(source).toContain('data-testid="wishlist-toggle-btn"');
+      expect(source).toContain('submitQuoteRequest');
+      expect(source).toContain('toggleWishlist');
+      expect(source).toContain('Get Free Quote');
+      expect(source).toContain('Add to Wishlist');
+      expect(source).toContain('Remove from Wishlist');
+    });
+
+    it('renders loading state during initial data fetch', () => {
+      const html = renderToStaticMarkup(
+        React.createElement(
+          CustomerShellProvider,
+          { initialUser: MOCK_PLATINUM_USER, initialRoute: '/inventory/veh-1' },
+          React.createElement(CustomerVehicleDetailPage, { slug: 'veh-1' })
+        )
+      );
+
+      expect(html).toContain('Loading vehicle details...');
+    });
+  });
 });

@@ -27,7 +27,9 @@ export const StatusTimeline: React.FC<StatusTimelineProps> = ({ history }) => {
               key={`${item.status}-${item.timestamp}-${index}`}
               className={`cc-cust-fleet-timeline__item cc-cust-fleet-timeline__item--${statusSlug} ${isLatest ? 'cc-cust-fleet-timeline__item--active' : ''}`}
             >
-              <div className="cc-cust-fleet-timeline__bullet" aria-hidden="true" />
+              <div className="cc-cust-fleet-timeline__step-num" aria-hidden="true">
+                {index + 1}
+              </div>
               <div className="cc-cust-fleet-timeline__content">
                 <div className="cc-cust-fleet-timeline__header">
                   <span className="cc-cust-fleet-timeline__status">{item.status}</span>

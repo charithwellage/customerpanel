@@ -18,8 +18,11 @@ test.describe('Customer theme configuration and parity', () => {
     expect(primary).not.toBe('');
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 
-    await page.getByRole('button', { name: /Request Demo Session/ }).focus();
-    await expect(page.getByRole('button', { name: /Request Demo Session/ })).toBeFocused();
+    // Focus check on the real sign-in control (D02-P12-T007 reopen of
+    // D02-P12-T005's customer-app e2e migration — this file's assertion
+    // still targeted the removed `Request Demo Session` button).
+    await page.getByTestId('cust-login-submit').focus();
+    await expect(page.getByTestId('cust-login-submit')).toBeFocused();
     expect(failedRequests).toEqual([]);
   });
 });

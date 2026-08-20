@@ -3,18 +3,20 @@ import type { CustomerVehicleSummary } from '@carchief/domain';
 import { useCustomerShell } from '../shell/index.js';
 import { useCustomerVehicles } from './useCustomerVehicles.js';
 import { VehicleFleetCard } from './components/VehicleFleetCard.js';
+import { VehicleTrackingModal } from './components/VehicleTrackingModal.js';
 
 export interface CustomerFleetPageProps {
   onSelectVehicle: (vehicle: CustomerVehicleSummary) => void;
 }
 
-type TabKey = 'all' | 'underNegotiation' | 'underNegotiationWithPI' | 'confirmed' | 'inTransit' | 'delivered';
+export type FleetTabKey = 'reserved' | 'withPI' | 'invoiced' | 'all' | 'underNegotiation' | 'underNegotiationWithPI' | 'confirmed' | 'inTransit' | 'delivered';
 
 export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVehicle }) => {
   const { setActiveRoute } = useCustomerShell();
-  const [activeTab, setActiveTab] = useState<TabKey>('all');
+  const [activeTab, setActiveTab] = useState<FleetTabKey>('invoiced');
   const [searchQuery, setSearchQuery] = useState('');
-  const [locationFilter, setLocationFilter] = useState('all');
+  const [shippingStatusFilter, setShippingStatusFilter] = useState('all');
+  const [selectedTrackingVehicle, setSelectedTrackingVehicle] = useState<CustomerVehicleSummary | null>(null);
 
   React.useEffect(() => {
     setActiveRoute('/vehicles');
@@ -22,15 +24,24 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
 
   const queryParams = useMemo(() => {
     let statusParam: string | undefined;
-    if (activeTab === 'underNegotiation') statusParam = 'Under Negotiation';
-    else if (activeTab === 'underNegotiationWithPI') statusParam = 'Under Negotiation With PI';
-    else if (activeTab === 'confirmed') statusParam = 'Confirmed';
-    else if (activeTab === 'inTransit') statusParam = 'In Transit';
-    else if (activeTab === 'delivered') statusParam = 'Delivered';
+    if (activeTab === 'reserved' || activeTab === 'underNegotiation') {
+      statusParam = 'Under Negotiation';
+    } else if (activeTab === 'withPI' || activeTab === 'underNegotiationWithPI') {
+      statusParam = 'Under Negotiation With PI';
+    } else if (activeTab === 'invoiced') {
+      statusParam = 'invoiced';
+    } else if (activeTab === 'confirmed') {
+      statusParam = 'Confirmed';
+    } else if (activeTab === 'inTransit') {
+      statusParam = 'In Transit';
+    } else if (activeTab === 'delivered') {
+      statusParam = 'Delivered';
+    }
 
     return {
       status: statusParam,
       query: searchQuery.trim() || undefined,
+      limit: 100,
     };
   }, [activeTab, searchQuery]);
 
@@ -38,9 +49,13 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
 
   const displayedVehicles = useMemo(() => {
     if (!data?.items) return [];
-    if (locationFilter === 'all') return data.items;
-    return data.items.filter((v) => v.locationStatus === locationFilter);
-  }, [data?.items, locationFilter]);
+    if (shippingStatusFilter === 'all') return data.items;
+    return data.items.filter((v) => {
+      const stage = (v.shippingStage || v.logisticsStatus || v.locationStatus || '').toLowerCase();
+      const filterLower = shippingStatusFilter.toLowerCase();
+      return stage.includes(filterLower);
+    });
+  }, [data?.items, shippingStatusFilter]);
 
   const counts = data?.countsByStatus || {
     all: 0,
@@ -51,98 +66,139 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
     delivered: 0,
   };
 
+  const reservedCount = counts.underNegotiation;
+  const withPICount = counts.underNegotiationWithPI;
+  const invoicedCount = counts.confirmed + counts.inTransit + counts.delivered;
+
   return (
     <div className="cc-cust-fleet" data-testid="customer-fleet-page">
-      <header className="cc-cust-fleet__header">
-        <h1 className="cc-cust-fleet__title">My Vehicles</h1>
-        <p className="cc-cust-fleet__subtitle">
-          Track your vehicle reservations, proforma invoices, shipments, and export documentation
-        </p>
-      </header>
-
-      {/* Tabs / Status Groupings */}
-      <div className="cc-cust-fleet-tabs" role="tablist" aria-label="Vehicle Status Filter" data-testid="fleet-tabs">
-        <button
-          type="button"
-          role="tab"
-          data-testid="tab-all"
-          aria-selected={activeTab === 'all'}
-          className={`cc-cust-fleet-tab ${activeTab === 'all' ? 'cc-cust-fleet-tab--active' : ''}`}
-          onClick={() => setActiveTab('all')}
+      {/* Top 3 KPI Summary Cards */}
+      <section className="cc-cust-kpi-grid" aria-label="Fleet Overview Summary" data-testid="fleet-kpi-summary">
+        {/* KPI 1: Reserved */}
+        <div
+          role="button"
+          tabIndex={0}
+          data-testid="kpi-reserved"
+          className={`cc-cust-kpi-card cc-cust-kpi-card--reserved ${activeTab === 'reserved' || activeTab === 'underNegotiation' ? 'cc-cust-kpi-card--active-amber' : ''}`}
+          onClick={() => setActiveTab('reserved')}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveTab('reserved'); } }}
         >
-          All Vehicles <span className="cc-cust-fleet-tab__count">{counts.all}</span>
-        </button>
+          <div className="cc-cust-kpi-card__content">
+            <div className="cc-cust-kpi-card__header-row">
+              <span className="cc-cust-kpi-card__title">RESERVED VEHICLES</span>
+            </div>
+            <div className="cc-cust-kpi-card__count">{reservedCount} Units</div>
+            <p className="cc-cust-kpi-card__subtitle">Reserved active inventory</p>
+          </div>
+          <div className="cc-cust-kpi-card__icon-wrap cc-cust-kpi-card__icon-wrap--amber">
+            <span className="cc-cust-kpi-card__icon" aria-hidden="true">⏱</span>
+          </div>
+        </div>
 
-        <button
-          type="button"
-          role="tab"
-          data-testid="tab-under-negotiation"
-          aria-selected={activeTab === 'underNegotiation'}
-          className={`cc-cust-fleet-tab ${activeTab === 'underNegotiation' ? 'cc-cust-fleet-tab--active' : ''}`}
-          onClick={() => setActiveTab('underNegotiation')}
+        {/* KPI 2: Reserved With PI */}
+        <div
+          role="button"
+          tabIndex={0}
+          data-testid="kpi-with-pi"
+          className={`cc-cust-kpi-card cc-cust-kpi-card--with-pi ${activeTab === 'withPI' || activeTab === 'underNegotiationWithPI' ? 'cc-cust-kpi-card--active-purple' : ''}`}
+          onClick={() => setActiveTab('withPI')}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveTab('withPI'); } }}
         >
-          Under Negotiation <span className="cc-cust-fleet-tab__count">{counts.underNegotiation}</span>
-        </button>
+          <div className="cc-cust-kpi-card__content">
+            <div className="cc-cust-kpi-card__header-row">
+              <span className="cc-cust-kpi-card__title">RESERVED WITH PI</span>
+            </div>
+            <div className="cc-cust-kpi-card__count">{withPICount} Units</div>
+            <p className="cc-cust-kpi-card__subtitle">Proforma Invoice issued</p>
+          </div>
+          <div className="cc-cust-kpi-card__icon-wrap cc-cust-kpi-card__icon-wrap--purple">
+            <span className="cc-cust-kpi-card__icon" aria-hidden="true">📄</span>
+          </div>
+        </div>
 
-        <button
-          type="button"
-          role="tab"
-          data-testid="tab-pi-issued"
-          aria-selected={activeTab === 'underNegotiationWithPI'}
-          className={`cc-cust-fleet-tab ${activeTab === 'underNegotiationWithPI' ? 'cc-cust-fleet-tab--active' : ''}`}
-          onClick={() => setActiveTab('underNegotiationWithPI')}
+        {/* KPI 3: Invoiced Vehicles */}
+        <div
+          role="button"
+          tabIndex={0}
+          data-testid="kpi-invoiced"
+          className={`cc-cust-kpi-card cc-cust-kpi-card--invoiced ${activeTab === 'invoiced' || activeTab === 'confirmed' || activeTab === 'inTransit' || activeTab === 'delivered' ? 'cc-cust-kpi-card--active-green' : ''}`}
+          onClick={() => setActiveTab('invoiced')}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveTab('invoiced'); } }}
         >
-          PI Issued <span className="cc-cust-fleet-tab__count">{counts.underNegotiationWithPI}</span>
-        </button>
+          <div className="cc-cust-kpi-card__content">
+            <div className="cc-cust-kpi-card__header-row">
+              <span className="cc-cust-kpi-card__title">INVOICED VEHICLE</span>
+            </div>
+            <div className="cc-cust-kpi-card__count">{invoicedCount} Units</div>
+            <p className="cc-cust-kpi-card__subtitle">Fully billed &amp; invoiced fleet</p>
+          </div>
+          <div className="cc-cust-kpi-card__icon-wrap cc-cust-kpi-card__icon-wrap--green">
+            <span className="cc-cust-kpi-card__icon" aria-hidden="true">✓</span>
+          </div>
+        </div>
+      </section>
 
-        <button
-          type="button"
-          role="tab"
-          data-testid="tab-confirmed"
-          aria-selected={activeTab === 'confirmed'}
-          className={`cc-cust-fleet-tab ${activeTab === 'confirmed' ? 'cc-cust-fleet-tab--active' : ''}`}
-          onClick={() => setActiveTab('confirmed')}
-        >
-          In Stock / Confirmed <span className="cc-cust-fleet-tab__count">{counts.confirmed}</span>
-        </button>
+      {/* Filter Bar: Status Pills on left, Search & Shipping Status dropdown on right */}
+      <div className="cc-cust-fleet-filter-bar" data-testid="fleet-tabs">
+        {/* Status filter pills */}
+        <div className="cc-cust-fleet-pills" role="tablist" aria-label="Vehicle Status Filter">
+          <button
+            type="button"
+            role="tab"
+            data-testid="tab-reserved"
+            aria-selected={activeTab === 'reserved' || activeTab === 'underNegotiation'}
+            className={`cc-cust-fleet-pill cc-cust-fleet-pill--amber ${activeTab === 'reserved' || activeTab === 'underNegotiation' ? 'cc-cust-fleet-pill--active' : ''}`}
+            onClick={() => setActiveTab('reserved')}
+          >
+            <span className="cc-cust-fleet-pill__icon" aria-hidden="true">⏱</span> RESERVED ({reservedCount})
+          </button>
 
-        <button
-          type="button"
-          role="tab"
-          data-testid="tab-in-transit"
-          aria-selected={activeTab === 'inTransit'}
-          className={`cc-cust-fleet-tab ${activeTab === 'inTransit' ? 'cc-cust-fleet-tab--active' : ''}`}
-          onClick={() => setActiveTab('inTransit')}
-        >
-          In Transit <span className="cc-cust-fleet-tab__count">{counts.inTransit}</span>
-        </button>
+          <button
+            type="button"
+            role="tab"
+            data-testid="tab-with-pi"
+            aria-selected={activeTab === 'withPI' || activeTab === 'underNegotiationWithPI'}
+            className={`cc-cust-fleet-pill cc-cust-fleet-pill--purple ${activeTab === 'withPI' || activeTab === 'underNegotiationWithPI' ? 'cc-cust-fleet-pill--active' : ''}`}
+            onClick={() => setActiveTab('withPI')}
+          >
+            <span className="cc-cust-fleet-pill__icon" aria-hidden="true">📄</span> WITH PI ({withPICount})
+          </button>
 
-        <button
-          type="button"
-          role="tab"
-          data-testid="tab-delivered"
-          aria-selected={activeTab === 'delivered'}
-          className={`cc-cust-fleet-tab ${activeTab === 'delivered' ? 'cc-cust-fleet-tab--active' : ''}`}
-          onClick={() => setActiveTab('delivered')}
-        >
-          Delivered <span className="cc-cust-fleet-tab__count">{counts.delivered}</span>
-        </button>
-      </div>
+          <button
+            type="button"
+            role="tab"
+            data-testid="tab-invoiced"
+            aria-selected={activeTab === 'invoiced' || activeTab === 'confirmed' || activeTab === 'inTransit' || activeTab === 'delivered'}
+            className={`cc-cust-fleet-pill cc-cust-fleet-pill--green ${activeTab === 'invoiced' || activeTab === 'confirmed' || activeTab === 'inTransit' || activeTab === 'delivered' ? 'cc-cust-fleet-pill--active' : ''}`}
+            onClick={() => setActiveTab('invoiced')}
+          >
+            <span className="cc-cust-fleet-pill__icon" aria-hidden="true">✓</span> INVOICED ({invoicedCount})
+          </button>
 
-      {/* Filter and Search Controls */}
-      <div className="cc-cust-fleet-controls">
-        <div className="cc-cust-fleet-search">
-          <label htmlFor="fleet-search-input" className="cc-cust-fleet-search__label">
-            Search fleet
-          </label>
-          <div className="cc-cust-fleet-search__wrap">
-            <span className="cc-cust-fleet-search__icon" aria-hidden="true">🔍</span>
+          {activeTab === 'all' && (
+            <button
+              type="button"
+              role="tab"
+              data-testid="tab-all"
+              aria-selected={activeTab === 'all'}
+              className="cc-cust-fleet-pill cc-cust-fleet-pill--active"
+              onClick={() => setActiveTab('all')}
+            >
+              ALL ({counts.all})
+            </button>
+          )}
+        </div>
+
+        {/* Search & Shipping Status Dropdown */}
+        <div className="cc-cust-fleet-search-group">
+          <div className="cc-cust-fleet-search-input-wrap">
+            <span className="cc-cust-fleet-search-icon" aria-hidden="true">🔍</span>
             <input
               id="fleet-search-input"
               type="search"
               data-testid="fleet-search-input"
-              className="cc-cust-fleet-search__input"
-              placeholder="Search by make, model, chassis or year..."
+              className="cc-cust-fleet-search-input"
+              placeholder="Search make, model, chassis"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -150,7 +206,7 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
               <button
                 type="button"
                 data-testid="fleet-search-clear"
-                className="cc-cust-fleet-search__clear"
+                className="cc-cust-fleet-search-clear"
                 onClick={() => setSearchQuery('')}
                 aria-label="Clear search query"
               >
@@ -158,24 +214,24 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
               </button>
             )}
           </div>
-        </div>
 
-        <div className="cc-cust-fleet-filter">
-          <label htmlFor="fleet-location-select" className="cc-cust-fleet-filter__label">
-            Shipping Stage
-          </label>
-          <select
-            id="fleet-location-select"
-            data-testid="fleet-location-select"
-            className="cc-cust-fleet-filter__select"
-            value={locationFilter}
-            onChange={(e) => setLocationFilter(e.target.value)}
-          >
-            <option value="all">All Locations</option>
-            <option value="In Japan">In Japan</option>
-            <option value="In Transit">In Transit</option>
-            <option value="In Port">In Port</option>
-          </select>
+          <div className="cc-cust-fleet-select-wrap">
+            <select
+              id="fleet-shipping-status-select"
+              data-testid="fleet-shipping-status-select"
+              className="cc-cust-fleet-select"
+              value={shippingStatusFilter}
+              onChange={(e) => setShippingStatusFilter(e.target.value)}
+              aria-label="Shipping Status"
+            >
+              <option value="all">Shipping Status</option>
+              <option value="Reserved">Reserved</option>
+              <option value="Inspection">Inspection</option>
+              <option value="Ready">Ready</option>
+              <option value="In Transit">In Transit</option>
+              <option value="Delivered">Delivered</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -206,18 +262,17 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
           <div className="cc-cust-fleet-empty__icon" aria-hidden="true">🚗</div>
           <h3 className="cc-cust-fleet-empty__title">No vehicles found</h3>
           <p className="cc-cust-fleet-empty__text">
-            {searchQuery || locationFilter !== 'all' || activeTab !== 'all'
+            {searchQuery || shippingStatusFilter !== 'all'
               ? 'No vehicles match your active search or filter criteria.'
-              : 'You do not have any vehicles under transaction at this time.'}
+              : 'You do not have any vehicles under transaction in this category.'}
           </p>
-          {(searchQuery || locationFilter !== 'all' || activeTab !== 'all') && (
+          {(searchQuery || shippingStatusFilter !== 'all') && (
             <button
               type="button"
               className="cc-cust-fleet-btn cc-cust-fleet-btn--secondary"
               onClick={() => {
-                setActiveTab('all');
                 setSearchQuery('');
-                setLocationFilter('all');
+                setShippingStatusFilter('all');
               }}
             >
               Reset Filters
@@ -226,13 +281,26 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
         </div>
       )}
 
+      {/* Vehicle 5-column Grid */}
       {!isLoading && !error && displayedVehicles.length > 0 && (
-        <div className="cc-cust-fleet-grid">
+        <div className="cc-cust-fleet-grid" data-testid="fleet-vehicles-grid">
           {displayedVehicles.map((v) => (
-            <VehicleFleetCard key={v.id} vehicle={v} onSelect={onSelectVehicle} />
+            <VehicleFleetCard
+              key={v.id}
+              vehicle={v}
+              onSelect={onSelectVehicle}
+              onTrackShipment={(vehicle) => setSelectedTrackingVehicle(vehicle)}
+            />
           ))}
         </div>
       )}
+
+      {/* Vehicle Logistics & Shipment Timeline Tracking Modal */}
+      <VehicleTrackingModal
+        isOpen={Boolean(selectedTrackingVehicle)}
+        vehicle={selectedTrackingVehicle}
+        onClose={() => setSelectedTrackingVehicle(null)}
+      />
     </div>
   );
 };

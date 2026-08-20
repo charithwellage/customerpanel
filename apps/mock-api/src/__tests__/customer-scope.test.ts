@@ -1,12 +1,16 @@
 import { describe, expect, it } from 'vitest';
-import { resolveDemoCustomerScope } from '../auth/customer-scope.js';
+import { resolveCustomerScope } from '../auth/customer-scope.js';
 
-describe('demo customer scope resolution', () => {
-  it('maps the signed demo subject to the canonical seeded customer', () => {
-    expect(resolveDemoCustomerScope('user-123')).toBe('cust-123');
+describe('customer scope resolution', () => {
+  it('maps the legacy seeded fixture subject to the canonical seeded customer', () => {
+    expect(resolveCustomerScope('user-123')).toBe('cust-123');
   });
 
-  it('preserves non-demo subjects for server-side ownership checks', () => {
-    expect(resolveDemoCustomerScope('customer-other')).toBe('customer-other');
+  it('resolves a registered account subject to its own customer id', () => {
+    expect(resolveCustomerScope('cust-9001')).toBe('cust-9001');
+  });
+
+  it('preserves other subjects for server-side ownership checks', () => {
+    expect(resolveCustomerScope('customer-other')).toBe('customer-other');
   });
 });

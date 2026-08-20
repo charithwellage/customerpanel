@@ -74,8 +74,14 @@
     {
       "tag": "a",
       "role": "link",
-      "name": "Access Customer Portal",
-      "href": "/account?returnTo=%2Fallstock"
+      "name": "Login",
+      "href": "http://127.0.0.1:3001"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "Register",
+      "href": "/register"
     },
     {
       "tag": "button",
@@ -116,7 +122,7 @@
     {
       "tag": "button",
       "role": "button",
-      "name": "Force sync inventory"
+      "name": "↻ FORCE SYNC"
     },
     {
       "tag": "article",
@@ -560,5 +566,5 @@
       "level": 4
     }
   ],
-  "text": "Skip to main content C CAR CHIEF ONLINE ☰ FULL INVENTORY CATALOG CARCHIEF INVENTORY SEARCH Search and dynamically filter our entire live container-logistics fleet. Instantly reserve models or calculate customized shipping quotes. Maximize Filters ∨ RESET ALL Showing 12 of 15 Vehicles (15 premium models available) Sort vehicles by Sort: Newest Arrival Sort: Price (Low to High) Sort: Price (High to Low) Sort: Year (Newest First) Sort: Year (Oldest First) Sort: Mileage (Lowest First) FORCE SYNC Lexus LX570 ● AVAILABLE In Japan 2023 LEXUS LX570 PRICE Request Price VIEW DETAILS Land Rover Defender 110 ● AVAILABLE In Japan 2022 LAND ROVER DEFENDER 110 PRICE $49,000 VIEW DETAILS Lexus RX450h ● AVAILABLE In Japan 2023 LEXUS RX450H PRICE $38,000 VIEW DETAILS ● AVAILABLE In Japan 2021 TOYOTA COROLLA AXIO PRICE $8,500 VIEW DETAILS ● RESERVEDWITHPI In Transit 2020 TOYOTA HIACE VAN PRICE $14,200 VIEW DETAILS Mercedes-Benz C200 AMG Line ● AVAILABLE In Japan 2019 MERCEDES-BENZ C200 AMG LINE PRICE $17,800 VIEW DETAILS BMW X3 xDrive20d ● AVAILABLE In Japan 2021 BMW X3 XDRIVE20D PRICE $26,500 VIEW DETAILS Honda Fit Hybrid ● AVAILABLE In Transit 2021 HONDA FIT HYBRID -5% discount PRICE $7,900$7,505 VIEW DETAILS Mazda CX-5 ● AVAILABLE In Japan 2020 MAZDA CX-5 PRICE $13,500 VIEW DETAILS Audi A4 Avant ● AVAILABLE In Japan 2020 AUDI A4 AVANT PRICE $15,900 VIEW DETAILS Mazda CX-5 ● SOLD In Japan 2019 MAZDA CX-5 PRICE $12,000 VIEW DETAILS ● AVAILABLE In Port 2022 NISSAN X-TRAIL PRICE $19,500 VIEW DETAILS Showing items 1–12 of 15 ← Prev12Next → CC CARCHIEF PREMIUM GLOBAL VEHICLE EXPORTERS CarChief is a high-end showcase portal providing direct ocean-cargo logistics, certified pre-owned inspections, and custom spec tracking. LOGISTICS CORE PORTALS Showroom Catalog How to Buy About Us Testimonials FAQ Contact Us SECURE VERIFICATION CarChief utilizes highly secure cloud-replicated server architectures for real-time transaction records and client logs. 🔒 SECURED CLOUD ENVELOPE © 2026 CARCHIEF AUTO GROUP. ALL RIGHTS RESERVED. CLOUDRUN ENVIRONMENT · REGISTRY SECURITY PROTOCOL SHIELD-V2"
+  "text": "Skip to main content C CAR CHIEF ONLINE ☰ FULL INVENTORY CATALOG CARCHIEF INVENTORY SEARCH Search and dynamically filter our entire live container-logistics fleet. Instantly reserve models or calculate customized shipping quotes. ⌕ Maximize Filters ∨ RESET ALL Showing 12 of 15 Vehicles Sort vehicles by Sort: Newest Arrival Sort: Price (Low to High) Sort: Price (High to Low) Sort: Year (Newest First) Sort: Year (Oldest First) Sort: Mileage (Lowest First) ↻ FORCE SYNC Lexus LX570 ● AVAILABLE In Japan 2023 LEXUS LX570 PRICE Request Price VIEW DETAILS Land Rover Defender 110 ● AVAILABLE In Japan 2022 LAND ROVER DEFENDER 110 PRICE $49,000 VIEW DETAILS Lexus RX450h ● AVAILABLE In Japan 2023 LEXUS RX450H PRICE $38,000 VIEW DETAILS ● AVAILABLE In Japan 2021 TOYOTA COROLLA AXIO PRICE $8,500 VIEW DETAILS ● RESERVEDWITHPI In Transit 2020 TOYOTA HIACE VAN PRICE $14,200 VIEW DETAILS Mercedes-Benz C200 AMG Line ● AVAILABLE In Japan 2019 MERCEDES-BENZ C200 AMG LINE PRICE $17,800 VIEW DETAILS BMW X3 xDrive20d ● AVAILABLE In Japan 2021 BMW X3 XDRIVE20D PRICE $26,500 VIEW DETAILS Honda Fit Hybrid ● AVAILABLE In Transit 2021 HONDA FIT HYBRID -5% discount PRICE $7,900$7,505 VIEW DETAILS Mazda CX-5 ● AVAILABLE In Japan 2020 MAZDA CX-5 PRICE $13,500 VIEW DETAILS Audi A4 Avant ● AVAILABLE In Japan 2020 AUDI A4 AVANT PRICE $15,900 VIEW DETAILS Mazda CX-5 ● SOLD In Japan 2019 MAZDA CX-5 PRICE $12,000 VIEW DETAILS ● AVAILABLE In Port 2022 NISSAN X-TRAIL PRICE $19,500 VIEW DETAILS Showing items 1–12 of 15 ← Prev 1 2 Next → CC CARCHIEF PREMIUM GLOBAL VEHICLE EXPORTERS CarChief is a high-end showcase portal providing direct ocean-cargo logistics, certified pre-owned inspections, and custom spec tracking. LOGISTICS CORE PORTALS Showroom Catalog How to Buy About Us Testimonials FAQ Contact Us SECURE VERIFICATION CarChief utilizes highly secure cloud-replicated server architectures for real-time transaction records and client logs. 🔒 SECURED CLOUD ENVELOPE © 2026 CARCHIEF AUTO GROUP. ALL RIGHTS RESERVED. CLOUDRUN ENVIRONMENT · REGISTRY SECURITY PROTOCOL SHIELD-V2"
 }

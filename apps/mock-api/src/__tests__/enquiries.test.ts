@@ -3,7 +3,7 @@ import type { Server } from 'node:http';
 import { createStore } from '../store.js';
 import { createMockApiApp } from '../server.js';
 import type { EnquiryResponse, LeadRecord, LeadListResponse } from '@carchief/domain';
-import { createDemoJwtToken } from '@carchief/domain';
+import { issueSessionToken } from '@carchief/domain';
 
 // PUB-13, PUB-15, D01-P05-T004. The enquiry flow does not depend on
 // DEC-PUB-FREIGHT-MODEL/DEC-PUB-CITY-DELIVERY (D01-ASM-001): a visitor can
@@ -176,6 +176,81 @@ describe('Quotation enquiry submission (PUB-13, PUB-15, D01-ASM-001)', () => {
       const second = await store.createEnquiry({ ...base, message: 'A completely different question.' });
       expect(second.duplicate).toBe(false);
       expect(second.id).not.toBe(first.id);
+    });
+
+    it('persists customerId for authenticated submissions (D02-P13-T001)', async () => {
+      const result = await store.createEnquiry(
+        {
+          name: 'Signed-In Customer',
+          consent: true,
+          email: 'customer@example.com',
+          phone: '+256700999888',
+          message: 'Get a quote please.',
+          vehicleSlug: VALID_VEHICLE_SLUG,
+          enquiryType: 'price-request',
+        },
+        'cust-123'
+      );
+      expect(result.customerId).toBe('cust-123');
+    });
+
+    it('does not persist customerId for anonymous submissions (D02-P13-T001)', async () => {
+      const result = await store.createEnquiry({
+        name: 'Anonymous Visitor',
+        consent: true,
+        email: 'visitor@example.com',
+        phone: '+256700999888',
+        message: 'I am interested.',
+        vehicleSlug: VALID_VEHICLE_SLUG,
+        enquiryType: 'price-request',
+      });
+      expect(result.customerId).toBeUndefined();
+    });
+
+    it('deduplicates authenticated customer submissions by customerId, not email (D02-P13-T001)', async () => {
+      const request1 = {
+        name: 'Customer A',
+        consent: true,
+        email: 'shared@example.com',
+        phone: '+256700111111',
+        message: 'Quote request.',
+        vehicleSlug: VALID_VEHICLE_SLUG,
+        enquiryType: 'price-request',
+      };
+      const request2 = {
+        name: 'Customer B',
+        consent: true,
+        email: 'shared@example.com',
+        phone: '+256700222222',
+        message: 'Quote request.',
+        vehicleSlug: VALID_VEHICLE_SLUG,
+        enquiryType: 'price-request',
+      };
+
+      const first = await store.createEnquiry(request1, 'cust-alice');
+      const second = await store.createEnquiry(request2, 'cust-bob');
+      expect(first.duplicate).toBe(false);
+      expect(second.duplicate).toBe(false);
+      expect(first.id).not.toBe(second.id);
+    });
+
+    it('redeuplicate a resubmission by the same authenticated customer', async () => {
+      const request = {
+        name: 'Signed-In Customer',
+        consent: true,
+        email: 'customer@example.com',
+        phone: '+256700999888',
+        message: 'Quote request.',
+        vehicleSlug: VALID_VEHICLE_SLUG,
+        enquiryType: 'price-request',
+      };
+
+      const first = await store.createEnquiry(request, 'cust-123');
+      expect(first.duplicate).toBe(false);
+
+      const second = await store.createEnquiry(request, 'cust-123');
+      expect(second.duplicate).toBe(true);
+      expect(second.id).toBe(first.id);
     });
   });
 
@@ -586,7 +661,7 @@ describe('Quotation enquiry submission (PUB-13, PUB-15, D01-ASM-001)', () => {
       it('returns 403 for GET /api/v1/enquiries when authenticated as a role without read:leads', async () => {
         const { server, port } = await startServer(store);
         try {
-          const token = createDemoJwtToken('CustomerBuyer');
+          const token = issueSessionToken('CustomerBuyer');
           const res = await fetch(`http://localhost:${port}/api/v1/enquiries`, {
             headers: { Authorization: `Bearer ${token}` },
           });
@@ -611,7 +686,7 @@ describe('Quotation enquiry submission (PUB-13, PUB-15, D01-ASM-001)', () => {
             }),
           });
 
-          const token = createDemoJwtToken('Salesperson');
+          const token = issueSessionToken('Salesperson');
           const res = await fetch(`http://localhost:${port}/api/v1/enquiries`, {
             headers: { Authorization: `Bearer ${token}` },
           });
@@ -641,7 +716,7 @@ describe('Quotation enquiry submission (PUB-13, PUB-15, D01-ASM-001)', () => {
           });
           const created = (await createRes.json()) as EnquiryResponse;
 
-          const token = createDemoJwtToken('Salesperson');
+          const token = issueSessionToken('Salesperson');
           const res = await fetch(`http://localhost:${port}/api/v1/enquiries/${created.id}`, {
             headers: { Authorization: `Bearer ${token}` },
           });
@@ -658,7 +733,7 @@ describe('Quotation enquiry submission (PUB-13, PUB-15, D01-ASM-001)', () => {
       it('returns 404 for GET /api/v1/enquiries/:id with an unknown id', async () => {
         const { server, port } = await startServer(store);
         try {
-          const token = createDemoJwtToken('Salesperson');
+          const token = issueSessionToken('Salesperson');
           const res = await fetch(`http://localhost:${port}/api/v1/enquiries/not-a-real-id`, {
             headers: { Authorization: `Bearer ${token}` },
           });
@@ -686,7 +761,7 @@ describe('Quotation enquiry submission (PUB-13, PUB-15, D01-ASM-001)', () => {
           const resetRes = await fetch(`http://localhost:${port}/api/v1/__reset`, { method: 'POST' });
           expect(resetRes.status).toBe(200);
 
-          const token = createDemoJwtToken('Salesperson');
+          const token = issueSessionToken('Salesperson');
           const res = await fetch(`http://localhost:${port}/api/v1/enquiries`, {
             headers: { Authorization: `Bearer ${token}` },
           });

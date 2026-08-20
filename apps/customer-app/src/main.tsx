@@ -4,7 +4,8 @@ import { App } from './app/App.js';
 import './app/globals.css';
 import { applyCustomerTheme } from './theme.js';
 
-applyCustomerTheme(document.documentElement, import.meta.env.VITE_THEME_ID);
+const savedMode = (typeof localStorage !== 'undefined' && localStorage.getItem('carchief_theme_mode') === 'midnight') ? 'midnight' : 'daylight';
+applyCustomerTheme(document.documentElement, import.meta.env.VITE_THEME_ID, savedMode);
 
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {
   void navigator.serviceWorker.register('/sw.js', { scope: '/' });

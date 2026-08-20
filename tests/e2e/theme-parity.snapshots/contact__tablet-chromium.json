@@ -74,8 +74,14 @@
     {
       "tag": "a",
       "role": "link",
-      "name": "Access Customer Portal",
-      "href": "/account?returnTo=%2Fcontact"
+      "name": "Login",
+      "href": "http://127.0.0.1:3001"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "Register",
+      "href": "/register"
     },
     {
       "tag": "button",

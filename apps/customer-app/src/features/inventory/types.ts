@@ -1,4 +1,4 @@
-import type { VehicleDomainSummary, VehicleDetail, VehicleFacets, SearchVehiclesQuery, CustomerTier } from '@carchief/domain';
+import type { VehicleDomainSummary, VehicleDetail, VehicleFacets, SearchVehiclesQuery } from '@carchief/domain';
 
 export interface CustomerInventoryState {
   items: VehicleDomainSummary[];
@@ -24,6 +24,12 @@ export interface CustomerVehicleDetailState {
   inquirySuccess: boolean;
   inquiryError: string | null;
   inquiryId?: string;
+  wishlistLoading: boolean;
+  wishlistError: string | null;
+  isWishlisted: boolean;
+  quoteSubmitting: boolean;
+  quoteSubmitError: string | null;
+  quoteSubmitSuccess: boolean;
 }
 
 export interface CustomerInventoryFilterState extends SearchVehiclesQuery {

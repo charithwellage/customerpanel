@@ -5,7 +5,9 @@ import path from 'path';
 describe('Home Components Style Ownership & Static Inline Style Source Guard', () => {
   const namedHomeComponents = [
     'BuyingProcessPreview.tsx',
+    'CorporateTrustShowcase.tsx',
     'FaqPreview.tsx',
+    'GlobalLogisticsSection.tsx',
     'HomeShowroom.tsx',
     'MarketControls.tsx',
     'PremiumTeaserSection.tsx',

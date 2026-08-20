@@ -31,8 +31,8 @@ export function ReservationSignInGuidance({ status, signInHref, vehicleLabel }: 
           You&rsquo;re signed in
         </h3>
         <p className="cc-reservation-guidance__message">
-          You&rsquo;re signed in with a demo account, so reserving {subject} can continue from here once reservation requests
-          open on this page.
+          You&rsquo;re signed in, so reserving {subject} can continue from here once reservation requests open on this
+          page.
         </p>
       </div>
     );
@@ -41,18 +41,26 @@ export function ReservationSignInGuidance({ status, signInHref, vehicleLabel }: 
   const heading = status === 'expired' ? 'Sign in again to reserve this vehicle' : 'Sign in to reserve this vehicle';
   const message =
     status === 'expired'
-      ? `Your demo session has expired. Sign in again to continue reserving ${subject} — nothing has been reserved yet.`
+      ? `Your session has expired. Sign in again to continue reserving ${subject} — nothing has been reserved yet.`
       : `You need to sign in or create an account before reserving ${subject}. Nothing has been reserved yet.`;
 
   return (
     <div className="cc-reservation-guidance" role="status" aria-live="polite" aria-labelledby={headingId}>
-      <h3 id={headingId} className="cc-reservation-guidance__heading">
-        {heading}
-      </h3>
+      <div className="cc-reservation-guidance__header">
+        <span className="cc-reservation-guidance__badge">🔒 AUTHENTICATED BUYER PORTAL</span>
+        <h3 id={headingId} className="cc-reservation-guidance__heading">
+          {heading}
+        </h3>
+      </div>
       <p className="cc-reservation-guidance__message">{message}</p>
-      <a href={signInHref} className="cc-btn cc-btn--primary">
-        Sign In to Reserve
+      <a href={signInHref} className="cc-reservation-guidance__btn cc-btn cc-btn--primary">
+        <span>Sign In to Reserve</span>
+        <span className="cc-reservation-btn-arrow" aria-hidden="true">→</span>
       </a>
+      <div className="cc-reservation-guidance__trust">
+        <span className="cc-trust-icon" aria-hidden="true">ⓘ</span>
+        <span>Instant temporary inventory hold upon verified customer sign-in.</span>
+      </div>
     </div>
   );
 }

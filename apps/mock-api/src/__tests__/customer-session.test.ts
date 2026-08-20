@@ -2,11 +2,16 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import type { Server } from 'node:http';
 import { createStore } from '../store.js';
 import { createMockApiApp } from '../server.js';
-import type { DemoSessionResponse, JwtClaims } from '@carchief/domain';
+import type { JwtClaims } from '@carchief/domain';
 
-// CUST-01, CUST-02, CUST-03, CUST-25, RULE-10, DEC-CUST-IDENTITY-RECOVERY
-// Verifies customer session authentication, JWT claims minting, authorization headers,
-// expired/invalid token responses and identity boundary.
+// CUST-01, CUST-02, CUST-03, CUST-25, CUST-27, RULE-10,
+// DEC-CUST-IDENTITY-RECOVERY, D02-P12-T001. Verifies customer session
+// authentication through the real credential login contract, JWT claims
+// minting, authorization headers, expired/invalid token responses and
+// identity boundary. Replaces the removed no-input demo-session mint.
+
+const SEED_EMAIL = 'demo.customer@carchief.com';
+const SEED_PASSWORD = 'CarChief#Fixture2026';
 
 async function startServer(store: ReturnType<typeof createStore>) {
   const app = createMockApiApp(store);
@@ -17,7 +22,15 @@ async function startServer(store: ReturnType<typeof createStore>) {
   return { server, port };
 }
 
-describe('Customer Session & Identity Integration (POST /api/v1/auth/demo-session, GET /api/v1/auth/me)', () => {
+async function login(port: number) {
+  return fetch(`http://localhost:${port}/api/v1/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: SEED_EMAIL, password: SEED_PASSWORD }),
+  });
+}
+
+describe('Customer Session & Identity Integration (POST /api/v1/auth/login, GET /api/v1/auth/me)', () => {
   let store: ReturnType<typeof createStore>;
 
   beforeEach(async () => {
@@ -25,13 +38,12 @@ describe('Customer Session & Identity Integration (POST /api/v1/auth/demo-sessio
     await store.reset();
   });
 
-  it('mints a valid stand-in CustomerBuyer demo session', async () => {
+  it('signs in the seeded registered credential to a valid CustomerBuyer session', async () => {
     const { server, port } = await startServer(store);
     try {
-      const res = await fetch(`http://localhost:${port}/api/v1/auth/demo-session`, { method: 'POST' });
-      expect(res.status).toBe(201);
-      const body = (await res.json()) as DemoSessionResponse;
-      expect(body.nonProduction).toBe(true);
+      const res = await login(port);
+      expect(res.status).toBe(200);
+      const body = (await res.json()) as { token: string; claims: JwtClaims };
       expect(body.claims.role).toBe('CustomerBuyer');
       expect(body.token).toBeTruthy();
       expect(body.claims.exp).toBeGreaterThan(Math.floor(Date.now() / 1000));
@@ -43,8 +55,8 @@ describe('Customer Session & Identity Integration (POST /api/v1/auth/demo-sessio
   it('returns 200 and claims for valid Bearer token on /api/v1/auth/me', async () => {
     const { server, port } = await startServer(store);
     try {
-      const mintRes = await fetch(`http://localhost:${port}/api/v1/auth/demo-session`, { method: 'POST' });
-      const { token, claims } = (await mintRes.json()) as DemoSessionResponse;
+      const loginRes = await login(port);
+      const { token, claims } = (await loginRes.json()) as { token: string; claims: JwtClaims };
 
       const meRes = await fetch(`http://localhost:${port}/api/v1/auth/me`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -68,6 +80,20 @@ describe('Customer Session & Identity Integration (POST /api/v1/auth/demo-sessio
         headers: { Authorization: 'Bearer invalid_bogus_token' },
       });
       expect(invalidTokenRes.status).toBe(401);
+    } finally {
+      await new Promise((resolve) => server.close(resolve));
+    }
+  });
+
+  it('returns 401 for a wrong password against a registered account', async () => {
+    const { server, port } = await startServer(store);
+    try {
+      const res = await fetch(`http://localhost:${port}/api/v1/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: SEED_EMAIL, password: 'wrong-password-value-1' }),
+      });
+      expect(res.status).toBe(401);
     } finally {
       await new Promise((resolve) => server.close(resolve));
     }

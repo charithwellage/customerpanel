@@ -10,6 +10,8 @@ import { PromotionsCountdown } from './PromotionsCountdown';
 import { BuyingProcessPreview } from './BuyingProcessPreview';
 import { TestimonialsPreview } from './TestimonialsPreview';
 import { FaqPreview } from './FaqPreview';
+import { GlobalLogisticsSection } from './GlobalLogisticsSection';
+import { CorporateTrustShowcase } from './CorporateTrustShowcase';
 
 export interface HomeShowroomProps {
   initialVehicles?: VehicleDomainSummary[];
@@ -104,7 +106,60 @@ export const HomeShowroom: React.FC<HomeShowroomProps> = ({ initialVehicles = []
           error={error}
           onRetry={loadData}
         />
+
+        {!isLoading && !error && browseStock.length > 0 && (
+          <div className="cc-browse-all-container">
+            <a
+              href="/allstock"
+              className="cc-load-more-pill-btn"
+              id="home-browse-all-stock-btn"
+              aria-label="Browse all vehicles in stock"
+            >
+              <svg
+                className="cc-pill-car-icon"
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2" />
+                <circle cx="7" cy="17" r="2" />
+                <path d="M9 17h6" />
+                <circle cx="17" cy="17" r="2" />
+              </svg>
+              <span className="cc-pill-btn-label">LOAD MORE VEHICLES (33 REMAINING)</span>
+              <svg
+                className="cc-pill-chevron-icon"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </a>
+            <div className="cc-browse-all-subtext">
+              Showing {browseStock.length > 0 ? browseStock.length : 12} of 45 total models
+            </div>
+          </div>
+        )}
       </section>
+
+      {/* Global Logistics Pipeline & Tailored Export Solutions */}
+      <GlobalLogisticsSection />
+
+      {/* Ultimate Sourcing Trust & Corporate Statement */}
+      <CorporateTrustShowcase />
 
       <BuyingProcessPreview />
       <TestimonialsPreview />
@@ -112,3 +167,4 @@ export const HomeShowroom: React.FC<HomeShowroomProps> = ({ initialVehicles = []
     </div>
   );
 };
+

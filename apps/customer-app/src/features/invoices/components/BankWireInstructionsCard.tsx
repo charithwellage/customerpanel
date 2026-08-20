@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import type { CustomerInvoiceBankDetails } from '@carchief/domain';
+import { formatUsdAmount } from '../formatters.js';
 
 export interface BankWireInstructionsCardProps {
   bankDetails?: CustomerInvoiceBankDetails;
   referenceFallback?: string;
   depositRequiredUsd?: number;
-  outstandingAmountUsd?: number;
   isProforma?: boolean;
 }
 
@@ -13,7 +13,6 @@ export const BankWireInstructionsCard: React.FC<BankWireInstructionsCardProps> =
   bankDetails,
   referenceFallback,
   depositRequiredUsd,
-  outstandingAmountUsd,
   isProforma,
 }) => {
   const [copied, setCopied] = useState(false);
@@ -29,7 +28,7 @@ export const BankWireInstructionsCard: React.FC<BankWireInstructionsCardProps> =
           <span className="cc-bank-wire-card__badge">Pending Finance confirmation</span>
         </div>
         <p className="cc-bank-wire-card__unavailable" role="status">
-          Bank instructions are unavailable pending Finance confirmation. No payment account details are published for this demo record.
+          Bank instructions are unavailable pending Finance confirmation. No payment account details have been published for this invoice yet.
         </p>
       </div>
     );
@@ -84,7 +83,7 @@ export const BankWireInstructionsCard: React.FC<BankWireInstructionsCardProps> =
           <div>
             <strong>50% Minimum Deposit Required: </strong>
             <span>
-              ${depositRequiredUsd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD must be received within 72 hours to confirm vehicle reservation.
+              {formatUsdAmount(depositRequiredUsd)} USD must be received within 72 hours to confirm vehicle reservation.
             </span>
           </div>
         </div>

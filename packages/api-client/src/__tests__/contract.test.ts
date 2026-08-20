@@ -708,36 +708,10 @@ describe('API Client & Contract Boundary Tests', () => {
   });
 
   describe('SessionService (PUB-22, DEC-PUB-AUTH-BOUNDARY, D01-P06-T003)', () => {
-    it('mints a demo session via SessionService.startDemoSession, always labelled non-production', async () => {
-      let capturedUrl: string | undefined;
-      let capturedMethod: string | undefined;
-      const mockFetch = vi.fn().mockImplementation(async (url, options) => {
-        capturedUrl = url;
-        capturedMethod = options?.method;
-        return {
-          ok: true,
-          status: 201,
-          headers: new Headers({ 'content-type': 'application/json' }),
-          json: async () => ({
-            token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.demo.demo-signature',
-            claims: { sub: 'user-123', email: 'user@carchief.com', role: 'CustomerBuyer', permissions: ['read:public'], exp: 9999999999 },
-            nonProduction: true,
-          }),
-        };
-      });
-      global.fetch = mockFetch;
-
-      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
-      const { SessionService } = await import('../services/session.js');
-      const service = new SessionService(client);
-
-      const session = await service.startDemoSession();
-      expect(capturedUrl).toContain('/api/v1/auth/demo-session');
-      expect(capturedMethod).toBe('POST');
-      expect(session.nonProduction).toBe(true);
-      expect(session.claims.role).toBe('CustomerBuyer');
-    });
-
+    // `startDemoSession` was removed (D02-P12-T002, CUST-30): the Mock API
+    // no longer mints a no-input demo session. Real registration/sign-in
+    // coverage lives in the `AuthService`/`CountryService` describe blocks
+    // below.
     it('returns the current claims via SessionService.getCurrentSession when authenticated', async () => {
       const mockFetch = vi.fn().mockResolvedValue({
         ok: true,
@@ -1563,6 +1537,497 @@ describe('API Client & Contract Boundary Tests', () => {
 
       const doc = await service.getCustomerInvoiceDocument('non-existent');
       expect(doc).toBeNull();
+    });
+  });
+
+  describe('AuthService (CUST-26..29, D02-P12-T001/T002)', () => {
+    it('submits registration and returns the created CustomerAccount, never carrying a password', async () => {
+      let capturedUrl: string | undefined;
+      let capturedBody: string | undefined;
+      const mockFetch = vi.fn().mockImplementation(async (url, options) => {
+        capturedUrl = url;
+        capturedBody = options?.body;
+        return {
+          ok: true,
+          status: 201,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: async () => ({
+            id: 'acct-1',
+            customerId: 'cust-new-1',
+            nameWithInitials: 'J. Doe',
+            countryCode: 'UG',
+            dialCode: '+256',
+            mobileNumber: '700000000',
+            email: 'j.doe@example.com',
+            status: 'Active',
+            verificationState: 'unverified',
+            createdAt: '2026-01-01T00:00:00.000Z',
+            updatedAt: '2026-01-01T00:00:00.000Z',
+          }),
+        };
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { AuthService } = await import('../services/auth.js');
+      const service = new AuthService(client);
+
+      const account = await service.register({
+        nameWithInitials: 'J. Doe',
+        countryCode: 'UG',
+        mobileNumber: '700000000',
+        email: 'j.doe@example.com',
+        password: 'a-strong-password1',
+        confirmPassword: 'a-strong-password1',
+      });
+
+      expect(capturedUrl).toBe('http://localhost:4000/api/v1/auth/register');
+      expect(capturedBody).toContain('"email":"j.doe@example.com"');
+      expect(account.customerId).toBe('cust-new-1');
+      expect(JSON.stringify(account)).not.toMatch(/password|hash|salt/i);
+    });
+
+    it('passes a field-bearing 400 through intact so a form can attach the error to that input', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 400,
+        statusText: 'Bad Request',
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => ({
+          statusCode: 400,
+          message: 'A valid email address is required',
+          correlationId: 'corr-400-1',
+          field: 'email',
+        }),
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { AuthService } = await import('../services/auth.js');
+      const service = new AuthService(client);
+
+      try {
+        await service.register({
+          nameWithInitials: 'J. Doe',
+          countryCode: 'UG',
+          mobileNumber: '700000000',
+          email: 'not-an-email',
+          password: 'a-strong-password1',
+          confirmPassword: 'a-strong-password1',
+        });
+        expect.fail('Should have thrown NormalizedApiError');
+      } catch (err: unknown) {
+        expect(err).toBeInstanceOf(NormalizedApiError);
+        const apiErr = err as NormalizedApiError;
+        expect(apiErr.statusCode).toBe(400);
+        expect((apiErr.rawError as { field?: string })?.field).toBe('email');
+      }
+    });
+
+    it('returns a normalized 401 error from login, never null, on invalid credentials', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 401,
+        statusText: 'Unauthorized',
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => ({
+          statusCode: 401,
+          message: 'Invalid email or password',
+          correlationId: 'corr-401-1',
+        }),
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { AuthService } = await import('../services/auth.js');
+      const service = new AuthService(client);
+
+      await expect(service.login({ email: 'nobody@example.com', password: 'wrong-password1' })).rejects.toBeInstanceOf(
+        NormalizedApiError
+      );
+    });
+
+    it('mints a CustomerBuyer session via login on valid credentials', async () => {
+      let capturedUrl: string | undefined;
+      const mockFetch = vi.fn().mockImplementation(async (url) => {
+        capturedUrl = url;
+        return {
+          ok: true,
+          status: 200,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: async () => ({
+            token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.demo.demo-signature',
+            claims: { sub: 'cust-1', email: 'j.doe@example.com', role: 'CustomerBuyer', permissions: ['read:customer'], exp: 9999999999 },
+          }),
+        };
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { AuthService } = await import('../services/auth.js');
+      const service = new AuthService(client);
+
+      const result = await service.login({ email: 'j.doe@example.com', password: 'a-strong-password1' });
+      expect(capturedUrl).toBe('http://localhost:4000/api/v1/auth/login');
+      expect(result.claims.role).toBe('CustomerBuyer');
+    });
+
+    it('submits change-password and requests/confirms a password reset', async () => {
+      const mockFetch = vi.fn().mockImplementation(async (url) => {
+        if (String(url).endsWith('/auth/change-password')) {
+          return {
+            ok: true,
+            status: 200,
+            headers: new Headers({ 'content-type': 'application/json' }),
+            json: async () => ({ success: true }),
+          };
+        }
+        if (String(url).endsWith('/auth/password-reset')) {
+          return {
+            ok: true,
+            status: 202,
+            headers: new Headers({ 'content-type': 'application/json' }),
+            json: async () => ({ message: 'If an account exists for that email, a password reset token has been issued to the mock outbox.' }),
+          };
+        }
+        return {
+          ok: true,
+          status: 200,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: async () => ({ success: true }),
+        };
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000', getAuthToken: () => 'session-token' });
+      const { AuthService } = await import('../services/auth.js');
+      const service = new AuthService(client);
+
+      const changed = await service.changePassword({
+        currentPassword: 'old-password1',
+        newPassword: 'new-strong-password1',
+        confirmNewPassword: 'new-strong-password1',
+      });
+      expect(changed.success).toBe(true);
+
+      const reset = await service.requestPasswordReset({ email: 'j.doe@example.com' });
+      expect(reset.message).toContain('mock outbox');
+
+      const confirmed = await service.confirmPasswordReset({
+        token: 'reset-token-1',
+        newPassword: 'new-strong-password1',
+        confirmNewPassword: 'new-strong-password1',
+      });
+      expect(confirmed.success).toBe(true);
+    });
+  });
+
+  describe('CountryService (CUST-26, D02-P12-T002)', () => {
+    it('fetches the shared ISO/dial-code country catalog', async () => {
+      let capturedUrl: string | undefined;
+      const mockFetch = vi.fn().mockImplementation(async (url) => {
+        capturedUrl = url;
+        return {
+          ok: true,
+          status: 200,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: async () => ({ items: [{ isoCode: 'UG', name: 'Uganda', dialCode: '+256' }] }),
+        };
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { CountryService } = await import('../services/country.js');
+      const service = new CountryService(client);
+
+      const result = await service.getCountries();
+      expect(capturedUrl).toBe('http://localhost:4000/api/v1/config/countries');
+      expect(result.items[0]).toEqual({ isoCode: 'UG', name: 'Uganda', dialCode: '+256' });
+    });
+  });
+
+  describe('CustomerInquiryService (D02-P13-T001, CUST-34/CUST-35)', () => {
+    it('lists the signed-in customer\'s quote-request inquiries', async () => {
+      let capturedUrl: string | undefined;
+      const mockFetch = vi.fn().mockImplementation(async (url) => {
+        capturedUrl = url;
+        return {
+          ok: true,
+          status: 200,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: async () => ({
+            items: [
+              {
+                vehicleSlug: 'toyota-corolla-2020',
+                vehicleId: 'veh-1',
+                vehicleTitle: '2020 Toyota Corolla',
+                requestedAt: '2026-08-17T10:00:00.000Z',
+                inquirerCount: 2,
+              },
+            ],
+          }),
+        };
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000', getAuthToken: () => 'auth-token' });
+      const { CustomerInquiryService } = await import('../services/customerInquiries.js');
+      const service = new CustomerInquiryService(client);
+
+      const result = await service.list();
+      expect(capturedUrl).toBe('http://localhost:4000/api/v1/customer/inquiries');
+      expect(result.items[0].vehicleSlug).toBe('toyota-corolla-2020');
+      expect(result.items[0].inquirerCount).toBe(2);
+    });
+
+    it('gets the aggregate inquirer count for a vehicle', async () => {
+      let capturedUrl: string | undefined;
+      const mockFetch = vi.fn().mockImplementation(async (url) => {
+        capturedUrl = url;
+        return {
+          ok: true,
+          status: 200,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: async () => ({
+            vehicleSlug: 'toyota-corolla-2020',
+            inquirerCount: 5,
+          }),
+        };
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000', getAuthToken: () => 'auth-token' });
+      const { CustomerInquiryService } = await import('../services/customerInquiries.js');
+      const service = new CustomerInquiryService(client);
+
+      const result = await service.getVehicleInquiryCount('toyota-corolla-2020');
+      expect(capturedUrl).toContain('/api/v1/vehicles/toyota-corolla-2020/inquiry-count');
+      expect(result.inquirerCount).toBe(5);
+    });
+  });
+
+  describe('WishlistService (D02-P13-T002, CUST-36/CUST-37)', () => {
+    it('lists wishlisted vehicles for the signed-in customer', async () => {
+      let capturedUrl: string | undefined;
+      const mockFetch = vi.fn().mockImplementation(async (url) => {
+        capturedUrl = url;
+        return {
+          ok: true,
+          status: 200,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: async () => ({
+            items: [
+              {
+                id: 'wish-1',
+                customerId: 'cust-1',
+                vehicleId: 'veh-1',
+                vehicleSlug: 'toyota-corolla-2020',
+                createdAt: '2026-08-17T10:00:00.000Z',
+              },
+            ],
+          }),
+        };
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000', getAuthToken: () => 'auth-token' });
+      const { WishlistService } = await import('../services/wishlist.js');
+      const service = new WishlistService(client);
+
+      const result = await service.list();
+      expect(capturedUrl).toBe('http://localhost:4000/api/v1/customer/wishlist');
+      expect(result.items[0].vehicleSlug).toBe('toyota-corolla-2020');
+    });
+
+    it('adds a vehicle to the wishlist', async () => {
+      let capturedUrl: string | undefined;
+      let capturedBody: string | undefined;
+      const mockFetch = vi.fn().mockImplementation(async (url, options) => {
+        capturedUrl = url;
+        capturedBody = options.body;
+        return {
+          ok: true,
+          status: 200,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: async () => ({
+            wishlisted: true,
+            item: {
+              id: 'wish-1',
+              customerId: 'cust-1',
+              vehicleId: 'veh-1',
+              vehicleSlug: 'toyota-corolla-2020',
+              createdAt: '2026-08-17T10:00:00.000Z',
+            },
+          }),
+        };
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000', getAuthToken: () => 'auth-token' });
+      const { WishlistService } = await import('../services/wishlist.js');
+      const service = new WishlistService(client);
+
+      const result = await service.add('toyota-corolla-2020');
+      expect(capturedUrl).toBe('http://localhost:4000/api/v1/customer/wishlist');
+      expect(capturedBody).toContain('toyota-corolla-2020');
+      expect(result.wishlisted).toBe(true);
+    });
+
+    it('removes a vehicle from the wishlist', async () => {
+      let capturedUrl: string | undefined;
+      const mockFetch = vi.fn().mockImplementation(async (url) => {
+        capturedUrl = url;
+        return {
+          ok: true,
+          status: 200,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: async () => ({
+            wishlisted: false,
+          }),
+        };
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000', getAuthToken: () => 'auth-token' });
+      const { WishlistService } = await import('../services/wishlist.js');
+      const service = new WishlistService(client);
+
+      const result = await service.remove('toyota-corolla-2020');
+      expect(capturedUrl).toContain('/api/v1/customer/wishlist/toyota-corolla-2020');
+      expect(result.wishlisted).toBe(false);
+    });
+  });
+
+  describe('FavouritesService (D02-P13-T002, CUST-38/CUST-39/CUST-40)', () => {
+    it('lists saved search-criteria profiles for the signed-in customer', async () => {
+      let capturedUrl: string | undefined;
+      const mockFetch = vi.fn().mockImplementation(async (url) => {
+        capturedUrl = url;
+        return {
+          ok: true,
+          status: 200,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: async () => ({
+            items: [
+              {
+                id: 'fav-1',
+                customerId: 'cust-1',
+                name: 'My Toyota Search',
+                criteria: { make: 'Toyota', yearFrom: 2015 },
+                createdAt: '2026-08-17T10:00:00.000Z',
+              },
+            ],
+            limit: 25,
+          }),
+        };
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000', getAuthToken: () => 'auth-token' });
+      const { FavouritesService } = await import('../services/favourites.js');
+      const service = new FavouritesService(client);
+
+      const result = await service.list();
+      expect(capturedUrl).toBe('http://localhost:4000/api/v1/customer/favourites');
+      expect(result.items[0].name).toBe('My Toyota Search');
+      expect(result.limit).toBe(25);
+    });
+
+    it('creates a new saved search-criteria profile', async () => {
+      let capturedUrl: string | undefined;
+      let capturedBody: string | undefined;
+      const mockFetch = vi.fn().mockImplementation(async (url, options) => {
+        capturedUrl = url;
+        capturedBody = options.body;
+        return {
+          ok: true,
+          status: 201,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: async () => ({
+            id: 'fav-2',
+            customerId: 'cust-1',
+            name: 'Honda Accord 2015+',
+            criteria: { make: 'Honda', model: 'Accord', yearFrom: 2015 },
+            createdAt: '2026-08-17T10:00:00.000Z',
+          }),
+        };
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000', getAuthToken: () => 'auth-token' });
+      const { FavouritesService } = await import('../services/favourites.js');
+      const service = new FavouritesService(client);
+
+      const result = await service.create('Honda Accord 2015+', { make: 'Honda', model: 'Accord', yearFrom: 2015 });
+      expect(capturedUrl).toBe('http://localhost:4000/api/v1/customer/favourites');
+      expect(capturedBody).toContain('Honda Accord 2015+');
+      expect(result.name).toBe('Honda Accord 2015+');
+    });
+
+    it('removes a saved search-criteria profile by ID', async () => {
+      let capturedUrl: string | undefined;
+      let methodUsed: string | undefined;
+      const mockFetch = vi.fn().mockImplementation(async (url, options) => {
+        capturedUrl = url;
+        methodUsed = options.method;
+        return {
+          ok: true,
+          status: 200,
+          statusText: 'OK',
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: async () => ({}),
+        };
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000', getAuthToken: () => 'auth-token' });
+      const { FavouritesService } = await import('../services/favourites.js');
+      const service = new FavouritesService(client);
+
+      await service.remove('fav-1');
+      expect(capturedUrl).toContain('/api/v1/customer/favourites/fav-1');
+      expect(methodUsed).toBe('DELETE');
+    });
+
+    it('gets distinct values available for each favourite search field', async () => {
+      let capturedUrl: string | undefined;
+      const mockFetch = vi.fn().mockImplementation(async (url) => {
+        capturedUrl = url;
+        return {
+          ok: true,
+          status: 200,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: async () => ({
+            makes: [
+              { name: 'Toyota', count: 50 },
+              { name: 'Honda', count: 30 },
+            ],
+            models: [{ name: 'Corolla', count: 20 }],
+            fuelTypes: [{ name: 'Petrol', count: 60 }],
+            driveTrains: [{ name: 'FWD', count: 40 }],
+            transmissions: [{ name: 'Automatic', count: 45 }],
+            yearRange: { min: 2000, max: 2024 },
+            priceRange: { min: 5000, max: 100000 },
+            mileageRange: { min: 0, max: 200000 },
+            modelCodes: [], // D02-ASM-008: no backing column
+            engineCcOptions: [], // D02-ASM-008: no backing column
+            colors: [], // D02-ASM-008: no backing column
+            steeringOptions: [], // D02-ASM-008: no backing column
+          }),
+        };
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000', getAuthToken: () => 'auth-token' });
+      const { FavouritesService } = await import('../services/favourites.js');
+      const service = new FavouritesService(client);
+
+      const result = await service.getFacets();
+      expect(capturedUrl).toBe('http://localhost:4000/api/v1/customer/favourites/facets');
+      expect(result.makes[0].name).toBe('Toyota');
+      expect(result.yearRange.min).toBe(2000);
+      expect(result.modelCodes).toEqual([]); // D02-ASM-008
+      expect(result.engineCcOptions).toEqual([]); // D02-ASM-008
     });
   });
 });

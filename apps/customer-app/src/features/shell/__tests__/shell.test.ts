@@ -19,7 +19,8 @@ describe('Customer App Shell & Navigation Unit Tests', () => {
     expect(html).toContain('Overview of operations');
     expect(html).toContain('Dashboard Content');
     expect(html).toContain('cc-cust-shell-footer');
-    expect(html).toContain('Demo session — not a production identity');
+    expect(html).toContain('Mock API Enabled');
+    expect(html).not.toMatch(/demo session/i);
   });
 
   // Regression guard for D02-P01-CODE_REVIEW finding 4: no surface may claim an
@@ -38,8 +39,11 @@ describe('Customer App Shell & Navigation Unit Tests', () => {
     expect(html).not.toMatch(/Keycloak/i);
   });
 
-  // Regression guard for D02-P01-CODE_REVIEW finding 3.
-  it('uses a generic non-fabricated placeholder identity when rendered without a session', () => {
+  // Regression guard for D02-P12-T005 (CUST-30): no placeholder or demo
+  // identity is invented when the shell is rendered without a session — the
+  // running application never reaches this state (AccountGuard blocks it),
+  // so the nav renders a static, non-interactive "not signed in" indicator.
+  it('renders no fabricated placeholder identity when rendered without a session', () => {
     const html = renderToStaticMarkup(
       React.createElement(
         CustomerShellProvider,
@@ -48,8 +52,10 @@ describe('Customer App Shell & Navigation Unit Tests', () => {
       )
     );
 
-    expect(html).toContain('Demo Customer');
+    expect(html).not.toMatch(/demo customer/i);
     expect(html).not.toMatch(/sterling/i);
+    expect(html).toContain('Not signed in');
+    expect(html).not.toContain('href="/login"');
   });
 
   it('renders all required customer navigation items with active route highlighting', () => {
@@ -105,6 +111,36 @@ describe('Customer App Shell & Navigation Unit Tests', () => {
     expect(ids).toHaveLength(2);
     expect(new Set(ids).size).toBe(2);
     expect(html).not.toContain('customer-mobile-menu');
+  });
+
+  // Regression guard for D02-P12-T005: the shell exposes a real sign-out
+  // action once a session exists, and never renders one when the caller
+  // supplies no `onSignOut` (for example an isolated component test).
+  it('renders a sign-out control only when a session and onSignOut are both present', () => {
+    const withHandler = renderToStaticMarkup(
+      React.createElement(
+        CustomerShellProvider,
+        {
+          initialRoute: '/dashboard',
+          initialUser: { id: 'cust-1', name: 'J. Access', email: 'j@example.com', role: 'CUSTOMER' },
+          onSignOut: () => {},
+        },
+        React.createElement(CustomerNav)
+      )
+    );
+    expect(withHandler).toContain('Sign out');
+
+    const withoutHandler = renderToStaticMarkup(
+      React.createElement(
+        CustomerShellProvider,
+        {
+          initialRoute: '/dashboard',
+          initialUser: { id: 'cust-1', name: 'J. Access', email: 'j@example.com', role: 'CUSTOMER' },
+        },
+        React.createElement(CustomerNav)
+      )
+    );
+    expect(withoutHandler).not.toContain('Sign out');
   });
 
   it('renders loading surface when loading prop is true', () => {

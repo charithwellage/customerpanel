@@ -74,8 +74,14 @@
     {
       "tag": "a",
       "role": "link",
-      "name": "Access Customer Portal",
-      "href": "/account?returnTo=%2Fbranches"
+      "name": "LOGIN",
+      "href": "http://127.0.0.1:3001"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "REGISTER",
+      "href": "/register"
     },
     {
       "tag": "button",
@@ -188,5 +194,5 @@
       "level": 4
     }
   ],
-  "text": "Skip to main content C CAR CHIEF ONLINE SHOWROOM ALL STOCK PREMIUM STOCK HOW TO BUY ABOUT US TESTIMONIALS FAQ CONTACT CUSTOMER PORTAL Global Network Regional Branch Directory Explore our international regional hubs, sales offices, and customs dispatch centers. Owner: LogisticsTeam Updated: Aug 10, 2026 Status: Approved Tokyo (Tokyo Head Office (demo)) Japan Tokyo, Japan — exact office address pending approval VIEW REGIONAL BRANCH HUB → Durban (Durban Regional Hub (demo)) South Africa Durban, South Africa — exact office address pending approval VIEW REGIONAL BRANCH HUB → Harare (Harare Representative Office (demo)) Zimbabwe Harare, Zimbabwe — exact office address pending approval VIEW REGIONAL BRANCH HUB → CC CARCHIEF PREMIUM GLOBAL VEHICLE EXPORTERS CarChief is a high-end showcase portal providing direct ocean-cargo logistics, certified pre-owned inspections, and custom spec tracking. LOGISTICS CORE PORTALS Showroom Catalog How to Buy About Us Testimonials FAQ Contact Us SECURE VERIFICATION CarChief utilizes highly secure cloud-replicated server architectures for real-time transaction records and client logs. 🔒 SECURED CLOUD ENVELOPE © 2026 CARCHIEF AUTO GROUP. ALL RIGHTS RESERVED. CLOUDRUN ENVIRONMENT · REGISTRY SECURITY PROTOCOL SHIELD-V2"
+  "text": "Skip to main content C CAR CHIEF ONLINE SHOWROOM ALL STOCK PREMIUM STOCK HOW TO BUY ABOUT US TESTIMONIALS FAQ CONTACT LOGIN REGISTER Global Network Regional Branch Directory Explore our international regional hubs, sales offices, and customs dispatch centers. Owner: LogisticsTeam Updated: Aug 10, 2026 Status: Approved Tokyo (Tokyo Head Office (demo)) Japan Tokyo, Japan — exact office address pending approval VIEW REGIONAL BRANCH HUB → Durban (Durban Regional Hub (demo)) South Africa Durban, South Africa — exact office address pending approval VIEW REGIONAL BRANCH HUB → Harare (Harare Representative Office (demo)) Zimbabwe Harare, Zimbabwe — exact office address pending approval VIEW REGIONAL BRANCH HUB → CC CARCHIEF PREMIUM GLOBAL VEHICLE EXPORTERS CarChief is a high-end showcase portal providing direct ocean-cargo logistics, certified pre-owned inspections, and custom spec tracking. LOGISTICS CORE PORTALS Showroom Catalog How to Buy About Us Testimonials FAQ Contact Us SECURE VERIFICATION CarChief utilizes highly secure cloud-replicated server architectures for real-time transaction records and client logs. 🔒 SECURED CLOUD ENVELOPE © 2026 CARCHIEF AUTO GROUP. ALL RIGHTS RESERVED. CLOUDRUN ENVIRONMENT · REGISTRY SECURITY PROTOCOL SHIELD-V2"
 }

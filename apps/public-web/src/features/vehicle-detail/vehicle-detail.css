@@ -1,20 +1,3 @@
-/*
- * vehicle-detail.css
- * Feature-level styles for the public vehicle detail page composition.
- * Owned path: apps/public-web/src/features/vehicle-detail/
- *
- * Gallery styles live with the shared primitive in
- * packages/vehicle-detail/src/vehicle-detail.css — do not re-declare them here.
- *
- * Every value uses a semantic token emitted by packages/theme/src/provider.ts.
- * No literal colours, no fallback palettes: a fallback would silently pin the
- * default `carchief` palette and mask a mistyped token name, so a missing token
- * must fail visibly instead.
- */
-
-/* ==========================================================================
-   Screen-reader utility (shared with globals but redeclared for portability)
-   ========================================================================== */
 .sr-only {
   position: absolute;
   width: 1px;
@@ -24,476 +7,831 @@
   overflow: hidden;
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
-  border: 0;
+  border-width: 0;
 }
 
-/* ==========================================================================
-   Loading State
-   ========================================================================== */
-.cc-vehicle-detail__loading {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 40vh;
-  padding: var(--spacing-2xl) var(--spacing-md);
-}
-
-.cc-spinner {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--spacing-sm);
-}
-
-.cc-spinner__ring {
-  display: block;
-  width: 2.5rem;
-  height: 2.5rem;
-  border: 3px solid var(--color-border);
-  border-top-color: var(--color-primary);
-  border-radius: 50%;
-  animation: cc-spin 700ms linear infinite;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .cc-spinner__ring {
-    animation-duration: 0.01ms;
-  }
-}
-
-@keyframes cc-spin {
-  to { transform: rotate(360deg); }
-}
-
-/* ==========================================================================
-   Not-Found State
-   ========================================================================== */
-.cc-vehicle-detail__not-found {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--spacing-md);
-  padding: var(--spacing-2xl) var(--spacing-md);
-  text-align: center;
-  min-height: 40vh;
-  justify-content: center;
-}
-
-.cc-vehicle-detail__not-found-text {
-  font-family: var(--font-body);
-  font-size: var(--font-size-lg);
-  color: var(--color-text-primary);
-  margin: 0;
-}
-
-.cc-vehicle-detail__back-link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: var(--min-touch-target);
-  padding: 0.6rem 1.25rem;
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: var(--font-size-sm);
-  text-decoration: none;
-  color: var(--color-primary);
-  border: 2px solid var(--color-primary);
-  border-radius: var(--radius-md);
-  transition: background-color var(--motion-fast) ease,
-              color var(--motion-fast) ease;
-}
-
-.cc-vehicle-detail__back-link:hover {
-  background: var(--color-primary);
-  color: var(--color-text-on-primary);
-}
-
-/* ==========================================================================
-   Article Container
-   ========================================================================== */
-.cc-vehicle-detail {
-  max-width: 1280px;
+.cc-vehicle-detail-wrapper {
+  max-width: 1400px;
   margin: 0 auto;
-  padding: var(--spacing-lg) var(--spacing-md) var(--spacing-2xl);
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--spacing-lg);
-}
-
-@media (min-width: 1024px) {
-  .cc-vehicle-detail {
-    grid-template-columns: minmax(0, 1fr) 380px;
-    grid-template-areas:
-      "header  header"
-      "gallery sidebar"
-      "specs   sidebar";
-    align-items: start;
-  }
-
-  .cc-vehicle-detail__header  { grid-area: header; }
-  .cc-vehicle-detail__gallery { grid-area: gallery; }
-  .cc-vehicle-detail__specs   { grid-area: specs; }
-  .cc-vehicle-detail__cta     { grid-area: sidebar; }
-
-  /* Not part of the named template — spans the full row below it. */
-  .cc-vehicle-detail__freight { grid-column: 1 / -1; }
+  padding: 1.5rem 1.5rem 4rem;
+  font-family: var(--font-body, 'Inter', sans-serif);
 }
 
 /* ==========================================================================
-   Header (Title + Badges + Utility Bar)
+   Top Header Bar
    ========================================================================== */
-.cc-vehicle-detail__header {
-  border-bottom: 1px solid var(--color-border);
-  padding-bottom: var(--spacing-lg);
+.cc-detail-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 1.25rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
 }
 
-.cc-vehicle-detail__title {
-  font-family: var(--font-display);
-  font-size: clamp(1.5rem, 4vw, 2.5rem);
+.cc-detail-back-link {
+  font-family: var(--font-display, 'Barlow', 'Plus Jakarta Sans', sans-serif);
+  font-size: 0.82rem;
   font-weight: 800;
-  letter-spacing: -0.02em;
-  line-height: 1.1;
-  color: var(--color-text-primary);
-  margin: 0 0 var(--spacing-sm) 0;
+  color: #111827;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
   text-transform: uppercase;
-}
-
-.cc-vehicle-detail__badge-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-sm);
-  margin-top: var(--spacing-sm);
-}
-
-/* Share & Print Utility Bar */
-.cc-vehicle-detail__utility-bar {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: var(--spacing-sm);
-  margin-top: var(--spacing-md);
-}
-
-.cc-toast {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.4rem 0.85rem;
-  border-radius: var(--radius-pill);
-  background: var(--color-success-surface);
-  color: var(--color-success);
-  font-family: var(--font-body);
-  font-size: var(--font-size-xs);
-  font-weight: 600;
-  animation: cc-fade-in var(--motion-fast) ease;
-}
-
-@keyframes cc-fade-in {
-  from { opacity: 0; transform: translateY(-4px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* ==========================================================================
-   Badge component (extends globals.css .cc-badge)
-   ========================================================================== */
-.cc-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.25rem 0.65rem;
-  border-radius: var(--radius-pill);
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
-  font-weight: 700;
   letter-spacing: 0.04em;
-  text-transform: uppercase;
+  transition: color 150ms ease;
+}
+
+.cc-detail-back-link:hover {
+  color: #dc2626;
+}
+
+.cc-detail-back-arrow {
+  font-size: 1.1rem;
   line-height: 1;
 }
 
-.cc-badge--success {
-  background: var(--color-success-surface);
-  color: var(--color-success);
-}
-
-.cc-badge--warning {
-  background: var(--color-warning-surface);
-  color: var(--color-warning);
-}
-
-.cc-badge--error {
-  background: var(--color-error-surface);
-  color: var(--color-error);
-}
-
-.cc-badge--info {
-  background: var(--color-info-surface);
-  color: var(--color-info);
-}
-
-/* ==========================================================================
-   Gallery container (the gallery itself is the shared primitive)
-   ========================================================================== */
-.cc-vehicle-detail__gallery {
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  background: var(--color-surface-dark);
-}
-
-/* ==========================================================================
-   Price Request CTA (sidebar on desktop)
-   ========================================================================== */
-.cc-vehicle-detail__cta {
-  background: var(--color-surface-dark);
-  border-radius: var(--radius-lg);
-  padding: var(--spacing-lg);
+.cc-detail-topbar__actions {
   display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
-  color: var(--color-text-on-dark);
+  align-items: center;
+  gap: 0.85rem;
+  position: relative;
 }
 
-.cc-vehicle-detail__cta-text {
-  font-family: var(--font-body);
-  font-size: var(--font-size-sm);
-  color: color-mix(in srgb, var(--color-text-on-dark) 75%, transparent);
-  margin: 0;
-  line-height: 1.6;
-}
-
-.cc-btn {
+.cc-detail-icon-btn {
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  width: 36px;
+  height: 36px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: var(--min-touch-target);
-  padding: 0.75rem 1.5rem;
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: var(--font-size-sm);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  text-decoration: none;
-  border-radius: var(--radius-md);
+  color: #4b5563;
   cursor: pointer;
-  transition: background-color var(--motion-fast) ease,
-              transform var(--motion-fast) ease,
-              box-shadow var(--motion-fast) ease;
-  border: 0;
+  transition: all 150ms ease;
+}
+
+.cc-detail-icon-btn:hover {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+.cc-detail-brand-logo {
+  font-family: var(--font-display, 'Barlow', 'Plus Jakarta Sans', sans-serif);
+  font-weight: 900;
+  font-size: 1.15rem;
+  letter-spacing: 0.04em;
+  color: #111827;
+  margin-left: 0.5rem;
+  text-transform: uppercase;
+}
+
+.cc-text-red {
+  color: #dc2626;
+}
+
+.cc-toast {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 0.5rem;
+  background: #111827;
+  color: #ffffff;
+  font-size: 0.75rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 10;
+}
+
+/* ==========================================================================
+   Two-Column Grid Layout
+   ========================================================================== */
+.cc-detail-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 480px;
+  gap: 2rem;
+  align-items: start;
+}
+
+@media (max-width: 1080px) {
+  .cc-detail-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.cc-detail-col-main,
+.cc-detail-col-side {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.cc-detail-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.025);
+}
+
+.cc-detail-gallery-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.025);
+}
+
+/* ==========================================================================
+   Condition Assessment & Overview
+   ========================================================================== */
+.cc-detail-card__dot-header {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+}
+
+.cc-dot-bullet {
+  color: #9ca3af;
+  font-size: 0.65rem;
+}
+
+.cc-detail-overview-text {
+  font-size: 0.95rem;
+  line-height: 1.65;
+  color: #374151;
+  margin: 0 0 1.25rem;
+  font-weight: 500;
+}
+
+.cc-detail-guarantee-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: #475569;
+}
+
+.cc-detail-guarantee-icon {
+  font-size: 1rem;
+  color: #3b82f6;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+.cc-detail-guarantee-content strong {
+  color: #1e293b;
+}
+
+/* ==========================================================================
+   Specifications
+   ========================================================================== */
+.cc-detail-section-heading {
+  font-family: var(--font-display, 'Barlow', 'Plus Jakarta Sans', sans-serif);
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: #dc2626;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  padding-bottom: 0.4rem;
+  border-bottom: 3px solid #dc2626;
+  display: inline-block;
+  margin: 0 0 1.25rem;
+}
+
+.cc-detail-quick-specs {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 1.15rem 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (max-width: 640px) {
+  .cc-detail-quick-specs {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.85rem;
+  }
+}
+
+.cc-quick-spec-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.55rem;
+  padding: 0.25rem 0.5rem;
+  border-right: 1px solid #e5e7eb;
+}
+
+.cc-quick-spec-item:last-child {
+  border-right: none;
+}
+
+.cc-quick-spec-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #374151;
+  width: 28px;
+  height: 28px;
+}
+
+.cc-quick-spec-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.cc-quick-spec-val {
+  font-family: var(--font-display, 'Barlow', 'Plus Jakarta Sans', sans-serif);
+  font-size: 0.74rem;
+  font-weight: 800;
+  color: #111827;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  line-height: 1.25;
+}
+
+.cc-specs-grid-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+  font-size: 0.82rem;
+}
+
+.cc-specs-grid-table th {
+  background: #f9fafb;
+  color: #4b5563;
+  font-weight: 600;
+  text-align: left;
+  padding: 0.75rem 1rem;
+  width: 22%;
+  border: 1px solid #e5e7eb;
+  font-size: 0.8rem;
+}
+
+.cc-specs-grid-table td {
+  background: #ffffff;
+  color: #111827;
+  font-weight: 700;
+  text-align: left;
+  padding: 0.75rem 1rem;
+  width: 28%;
+  border: 1px solid #e5e7eb;
+  font-family: var(--font-display, 'Barlow', 'Plus Jakarta Sans', sans-serif);
+  font-size: 0.82rem;
+}
+
+@media (max-width: 640px) {
+  .cc-specs-grid-table th,
+  .cc-specs-grid-table td {
+    padding: 0.5rem 0.6rem;
+    font-size: 0.75rem;
+  }
+}
+
+/* ==========================================================================
+   Right Column - Hero & FOB Pricing
+   ========================================================================== */
+.cc-detail-hero-card {
+  padding: 1.5rem;
+}
+
+.cc-detail-eyebrow {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  display: block;
+  margin-bottom: 0.35rem;
+}
+
+.cc-detail-vehicle-title {
+  font-family: var(--font-display, 'Barlow', 'Plus Jakarta Sans', sans-serif);
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: #0f172a;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  margin: 0 0 0.85rem;
+}
+
+.cc-detail-tag-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.cc-detail-pill-tag {
+  background: #f3f4f6;
+  color: #374151;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.25rem 0.65rem;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.cc-detail-fob-box {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 1.15rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.85rem;
+}
+
+.cc-fob-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.cc-fob-label {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.2rem;
+}
+
+.cc-fob-val {
+  font-family: var(--font-display, 'Barlow', 'Plus Jakarta Sans', sans-serif);
+  font-size: 1.45rem;
+  font-weight: 900;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+}
+
+.cc-fob-val--deposit {
+  font-size: 1.1rem;
+  color: #111827;
+  font-weight: 800;
+}
+
+.cc-detail-database-ref {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.72rem;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.cc-detail-database-ref span {
+  color: #4b5563;
+  font-weight: 700;
+}
+
+/* ==========================================================================
+   Ocean Freight Estimator / CIF Calculator
+   ========================================================================== */
+.cc-cif-header {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  margin-bottom: 1.25rem;
+}
+
+.cc-cif-header-icon {
+  font-size: 1.35rem;
+  color: #dc2626;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.cc-cif-header-title {
+  font-family: var(--font-display, 'Barlow', 'Plus Jakarta Sans', sans-serif);
+  font-size: 0.95rem;
+  font-weight: 900;
+  color: #0f172a;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin: 0 0 0.25rem;
+}
+
+.cc-cif-header-sub {
+  font-size: 0.8rem;
+  color: #6b7280;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.cc-cif-body {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 1.25rem;
+}
+
+.cc-cif-calculator-heading {
+  font-family: var(--font-display, 'Barlow', 'Plus Jakarta Sans', sans-serif);
+  font-size: 1.2rem;
+  font-weight: 900;
+  color: #dc2626;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  padding-bottom: 0.4rem;
+  border-bottom: 3px solid #dc2626;
+  display: inline-block;
+  margin: 0 0 1.25rem;
+}
+
+.cc-cif-field {
+  margin-bottom: 1rem;
+}
+
+.cc-cif-label {
+  font-family: var(--font-display, 'Barlow', 'Plus Jakarta Sans', sans-serif);
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #111827;
+  display: block;
+  margin-bottom: 0.4rem;
+}
+
+.cc-red-star {
+  color: #dc2626;
+}
+
+.cc-cif-select {
+  width: 100%;
+  height: 42px;
+  border: 1.5px solid #111827;
+  border-radius: 6px;
+  padding: 0 0.85rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  background: #ffffff;
+  color: #111827;
+  outline: none;
+  cursor: pointer;
+}
+
+.cc-cif-prompt-text {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #dc2626;
+  margin: 0.5rem 0 0;
+}
+
+.cc-cif-m3-label {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.82rem;
+  color: #374151;
+  margin-bottom: 0.85rem;
+}
+
+.cc-cif-ports-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 1.25rem;
+  font-size: 0.78rem;
+}
+
+.cc-cif-ports-table th {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  padding: 0.65rem 0.6rem;
+  font-weight: 800;
+  font-size: 0.7rem;
+  color: #0f172a;
+  text-transform: uppercase;
+  font-family: var(--font-display, 'Barlow', 'Plus Jakarta Sans', sans-serif);
+}
+
+.cc-cif-ports-table td {
+  border: 1px solid #e2e8f0;
+  padding: 0.65rem 0.6rem;
+  vertical-align: middle;
+}
+
+.cc-cif-port-row {
+  cursor: pointer;
+  transition: background 150ms ease;
+}
+
+.cc-cif-port-row:hover {
+  background: #f8fafc;
+}
+
+.cc-cif-port-row--selected {
+  background: #fef2f2 !important;
+}
+
+.cc-port-radio-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 700;
+  color: #111827;
+  cursor: pointer;
+}
+
+.cc-city-delivery-badge {
+  display: inline-block;
+  background: #fee2e2;
+  color: #dc2626;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.62rem;
+  font-weight: 800;
+  padding: 0.15rem 0.35rem;
+  border-radius: 3px;
+  margin-left: 0.35rem;
+  text-transform: uppercase;
+}
+
+.cc-port-duration-cell {
+  color: #374151;
+  font-weight: 600;
   text-align: center;
 }
 
-.cc-btn--sm {
-  min-height: 2.25rem;
-  padding: 0.4rem 0.9rem;
-  font-size: var(--font-size-xs);
+.cc-port-price-cell {
+  text-align: right;
 }
 
-.cc-btn--primary {
-  background: var(--color-primary);
-  color: var(--color-text-on-primary);
-  box-shadow: var(--shadow-md);
+.cc-port-price-num {
+  color: #dc2626;
+  font-weight: 900;
+  font-size: 0.85rem;
+  font-family: var(--font-display, 'Barlow', 'Plus Jakarta Sans', sans-serif);
 }
 
-.cc-btn--primary:hover {
-  background: var(--color-primary-hover);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-lg);
+.cc-port-price-total {
+  color: #6b7280;
+  font-size: 0.68rem;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
 }
 
-.cc-btn--primary:active {
-  transform: translateY(0);
+.cc-cif-options-group {
+  margin-bottom: 1.25rem;
 }
 
-.cc-btn--secondary {
-  background: var(--color-surface);
-  color: var(--color-text-primary);
-  border: 1px solid var(--color-border);
+.cc-cif-options-title {
+  font-family: var(--font-display, 'Barlow', 'Plus Jakarta Sans', sans-serif);
+  font-size: 0.78rem;
+  font-weight: 900;
+  color: #dc2626;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 0.4rem;
 }
 
-.cc-btn--secondary:hover {
-  background: var(--color-neutral-surface);
-  border-color: var(--color-text-primary);
+.cc-cif-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #111827;
+  cursor: pointer;
+}
+
+.cc-cif-footer-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.cc-paypal-action-btn {
+  background: #dc2626;
+  color: #ffffff;
+  font-family: var(--font-display, 'Barlow', 'Plus Jakarta Sans', sans-serif);
+  font-weight: 900;
+  font-size: 0.85rem;
+  padding: 0.75rem 1.4rem;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  transition: background 150ms ease;
+}
+
+.cc-paypal-action-btn:hover {
+  background: #b91c1c;
+}
+
+.cc-cif-total-display {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+}
+
+.cc-cf-label {
+  font-family: var(--font-display, 'Barlow', 'Plus Jakarta Sans', sans-serif);
+  font-weight: 900;
+  font-size: 0.95rem;
+  color: #0f172a;
+}
+
+.cc-cf-amount {
+  font-family: var(--font-display, 'Barlow', 'Plus Jakarta Sans', sans-serif);
+  font-weight: 900;
+  font-size: 1.45rem;
+  color: #dc2626;
+  letter-spacing: -0.02em;
+}
+
+/* ==========================================================================
+   Specs Inquiry & Booking Form
+   ========================================================================== */
+.cc-inquiry-header {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  margin-bottom: 1.25rem;
+}
+
+.cc-inquiry-icon {
+  font-size: 1.35rem;
+  color: #dc2626;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.cc-inquiry-title {
+  font-family: var(--font-display, 'Barlow', 'Plus Jakarta Sans', sans-serif);
+  font-size: 0.95rem;
+  font-weight: 900;
+  color: #0f172a;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin: 0 0 0.25rem;
+}
+
+.cc-inquiry-sub {
+  font-size: 0.8rem;
+  color: #6b7280;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.cc-inquiry-form-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.cc-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  flex: 1;
+}
+
+.cc-form-row {
+  display: flex;
+  gap: 0.75rem;
+}
+
+@media (max-width: 640px) {
+  .cc-form-row {
+    flex-direction: column;
+  }
+}
+
+.cc-form-label {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.cc-form-input,
+.cc-form-textarea {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 0.65rem 0.85rem;
+  font-size: 0.85rem;
+  color: #111827;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 150ms ease;
+}
+
+.cc-form-input:focus,
+.cc-form-textarea:focus {
+  background: #ffffff;
+  border-color: #dc2626;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+.cc-inquiry-submit-button {
+  background: #dc2626;
+  color: #ffffff;
+  font-family: var(--font-display, 'Barlow', 'Plus Jakarta Sans', sans-serif);
+  font-weight: 900;
+  font-size: 0.88rem;
+  padding: 0.85rem 1.5rem;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-top: 0.5rem;
+  width: 100%;
+  transition: background 150ms ease;
+}
+
+.cc-inquiry-submit-button:hover {
+  background: #b91c1c;
+}
+
+.cc-inquiry-success-banner {
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #065f46;
+  padding: 0.85rem 1rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1.4;
 }
 
 .cc-vehicle-detail__actions {
   display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
+  gap: 0.5rem;
+  margin-top: 1rem;
+  flex-wrap: wrap;
 }
 
-/* ==========================================================================
-   Specifications table
-   ========================================================================== */
-.cc-vehicle-detail__specs {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  box-shadow: var(--shadow-sm);
+.cc-vehicle-detail__actions .cc-btn {
+  font-size: 0.75rem;
+  padding: 0.45rem 0.85rem;
+  border-radius: 6px;
+  font-weight: 700;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 150ms ease;
 }
 
-.cc-vehicle-detail__section-heading {
-  font-family: var(--font-display);
-  font-size: var(--font-size-sm);
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--color-primary);
-  margin: 0;
-  padding: var(--spacing-md) var(--spacing-lg);
-  border-bottom: 2px solid var(--color-primary);
+.cc-vehicle-detail__actions .cc-btn--primary {
+  background: #111827;
+  color: #ffffff;
+  border: 1px solid #111827;
 }
 
-.cc-specs-list {
-  margin: 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+.cc-vehicle-detail__actions .cc-btn--primary:hover {
+  background: #000000;
 }
 
-.cc-specs-list__item {
-  display: contents;
+.cc-vehicle-detail__actions .cc-btn--secondary {
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #e5e7eb;
 }
 
-.cc-specs-list__item dt,
-.cc-specs-list__item dd {
-  padding: 0.65rem var(--spacing-lg);
-  margin: 0;
-  font-size: var(--font-size-sm);
-  border-bottom: 1px solid var(--color-border);
+.cc-vehicle-detail__actions .cc-btn--secondary:hover {
+  background: #e5e7eb;
+  color: #111827;
 }
 
-.cc-specs-list__item:last-child dt,
-.cc-specs-list__item:last-child dd {
-  border-bottom: none;
+.cc-detail-reservation-box {
+  margin-top: 1rem;
 }
 
-.cc-specs-list__label {
-  font-family: var(--font-mono);
-  font-weight: 600;
-  color: var(--color-text-secondary);
-  background: var(--color-neutral-surface);
-  border-right: 1px solid var(--color-border);
+.cc-detail-quote-request-box {
+  margin-top: 1rem;
 }
 
-.cc-specs-list__value {
-  font-family: var(--font-mono);
-  font-weight: 500;
-  color: var(--color-text-primary);
-  text-transform: uppercase;
-  background: var(--color-surface);
-}
-
-/* Mobile: stack spec table to single column */
-@media (max-width: 600px) {
-  .cc-specs-list {
-    grid-template-columns: 1fr;
-  }
-
-  .cc-specs-list__item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0;
-  }
-
-  .cc-specs-list__label,
-  .cc-specs-list__value {
-    flex: 1;
-    padding: 0.6rem var(--spacing-md);
-  }
-
-  .cc-specs-list__value {
-    text-align: right;
-    background: var(--color-surface);
-  }
-}
-
-/* ==========================================================================
-   Responsive layout adjustments
-   ========================================================================== */
-@media (max-width: 767px) {
-  .cc-vehicle-detail {
-    padding: var(--spacing-md) var(--spacing-sm) var(--spacing-xl);
-  }
-
-  .cc-vehicle-detail__title {
-    font-size: var(--font-size-2xl);
-  }
-}
-
-@media (min-width: 768px) and (max-width: 1023px) {
-  .cc-vehicle-detail {
-    padding: var(--spacing-lg) var(--spacing-md) var(--spacing-2xl);
-  }
-}
-
-/* ==========================================================================
-   Reduced motion overrides
-   ========================================================================== */
-@media (prefers-reduced-motion: reduce) {
-  .cc-btn,
-  .cc-toast {
-    transition-duration: 0.01ms;
-    animation-duration: 0.01ms;
-  }
-}
-
-/* ==========================================================================
-   Print Stylesheet
-
-   Print colours are physical-medium constants (paper and ink), not theme
-   colours: the sheet must stay legible regardless of the active theme, and no
-   theme token describes "paper". They are declared once here as named custom
-   properties rather than repeated as inline literals.
-   ========================================================================== */
-@media print {
-  :root {
-    --print-paper: #ffffff;
-    --print-ink: #000000;
-    --print-rule: #cccccc;
-  }
-
-  #site-header,
-  #site-footer,
-  .skip-link,
-  .cc-theme-switcher,
-  .cc-vehicle-detail__utility-bar,
-  .cc-vehicle-detail__cta,
-  .cc-vehicle-detail__freight,
-  .cc-toast {
-    display: none !important;
-  }
-
-  body {
-    background: var(--print-paper) !important;
-    color: var(--print-ink) !important;
-  }
-
-  .cc-vehicle-detail {
-    display: block !important;
-    max-width: 100% !important;
-    padding: 0 !important;
-    margin: 0 !important;
-  }
-
-  .cc-vehicle-detail__header {
-    border-bottom: 2px solid var(--print-ink) !important;
-    padding-bottom: var(--spacing-md) !important;
-    margin-bottom: var(--spacing-lg) !important;
-  }
-
-  .cc-vehicle-detail__title {
-    color: var(--print-ink) !important;
-    font-size: var(--font-size-2xl) !important;
-  }
-
-  .cc-specs-list {
-    grid-template-columns: 1fr 1fr !important;
-    page-break-inside: avoid;
-  }
-
-  .cc-specs-list__item dt,
-  .cc-specs-list__item dd {
-    border-bottom: 1px solid var(--print-rule) !important;
-    color: var(--print-ink) !important;
-    background: transparent !important;
-  }
-}

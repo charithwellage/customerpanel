@@ -6,6 +6,9 @@ import { CUSTOMER_APP_BASE_URL } from './customerAppBase.js';
  * Verifies the dashboard loads with KPI cards and supports all UI states.
  * Tests authentication, state transitions, and responsive behavior.
  */
+const FIXTURE_EMAIL = 'demo.customer@carchief.com';
+const FIXTURE_PASSWORD = 'CarChief#Fixture2026';
+
 test.describe('Customer Dashboard Overview E2E', () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to the customer app (lands on /dashboard)
@@ -13,11 +16,15 @@ test.describe('Customer Dashboard Overview E2E', () => {
     // Wait for sign-in form to appear
     await expect(page.getByRole('heading', { name: 'Sign In to CarChief' })).toBeVisible();
 
-    // Sign in with demo session
+    // Sign in with the seeded fixture credential (D02-P12-T001) — the
+    // removed demo-session endpoint's replacement (D02-P12-T007 reopen of
+    // D02-P12-T005's customer-app e2e migration).
     const sessionCall = page.waitForResponse(
-      (response) => response.url().includes('/api/v1/auth/demo-session') && response.request().method() === 'POST',
+      (response) => response.url().includes('/api/v1/auth/login') && response.request().method() === 'POST',
     );
-    await page.getByRole('button', { name: /Request Demo Session/ }).click();
+    await page.getByTestId('cust-login-email').fill(FIXTURE_EMAIL);
+    await page.getByTestId('cust-login-password').fill(FIXTURE_PASSWORD);
+    await page.getByTestId('cust-login-submit').click();
     await sessionCall;
 
     // Wait for dashboard to load

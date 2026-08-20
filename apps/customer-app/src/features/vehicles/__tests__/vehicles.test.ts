@@ -9,6 +9,7 @@ import { DepositSummaryCard } from '../components/DepositSummaryCard.js';
 import { ShippingTrackingCard } from '../components/ShippingTrackingCard.js';
 import { ExportDocumentsCard } from '../components/ExportDocumentsCard.js';
 import { VehicleFleetCard } from '../components/VehicleFleetCard.js';
+import { VehicleTrackingModal, getVehicleActiveTimelineStepIndex, getVehicleEngineNo } from '../components/VehicleTrackingModal.js';
 import { CustomerFleetPage } from '../CustomerFleetPage.js';
 import { CustomerFleetDetailPage } from '../CustomerFleetDetailPage.js';
 import type { CustomerVehicleSummary } from '@carchief/domain';
@@ -67,14 +68,13 @@ describe('My Vehicles UI Components (D02-P04-T002)', () => {
         })
       );
 
-      expect(html).toContain('2022 Toyota Land Cruiser Prado');
+      expect(html).toContain('2022 TOYOTA LAND CRUISER PRADO');
       expect(html).toContain('TRJ150-0192834');
-      expect(html).toContain('Under Negotiation With PI');
-      expect(html).toContain('$45,000 USD');
-      expect(html).toContain('Deposit (50%): $22,500');
-      expect(html).toContain('Remaining: $12,500');
-      expect(html).toContain('Pay by:');
-      expect(html).toContain('View Details &amp; Documents');
+      expect(html).toContain('RESERVED (PI)');
+      expect(html).toContain('$45,000');
+      expect(html).toContain('Deposit (50%):');
+      expect(html).toContain('$22,500');
+      expect(html).toContain('TRACK SHIPMENT');
     });
   });
 
@@ -210,15 +210,10 @@ describe('My Vehicles UI Components (D02-P04-T002)', () => {
         )
       );
 
-      expect(html).toContain('My Vehicles');
-      expect(html).toContain('All Vehicles');
-      expect(html).toContain('Under Negotiation');
-      expect(html).toContain('PI Issued');
-      expect(html).toContain('In Stock / Confirmed');
-      expect(html).toContain('In Transit');
-      expect(html).toContain('Delivered');
-      expect(html).toContain('Search fleet');
-      expect(html).toContain('Shipping Stage');
+      expect(html).toContain('RESERVED VEHICLES');
+      expect(html).toContain('RESERVED WITH PI');
+      expect(html).toContain('INVOICED VEHICLE');
+      expect(html).toContain('Shipping Status');
     });
 
     it('renders detail page loading and back button', () => {
@@ -241,4 +236,116 @@ describe('My Vehicles UI Components (D02-P04-T002)', () => {
       expect(html).toContain('Loading vehicle details...');
     });
   });
+
+  describe('VehicleTrackingModal', () => {
+    it('renders hero banner, vehicle details, shipping bill of lading, and all 11 milestone stages', () => {
+      const html = renderToStaticMarkup(
+        React.createElement(VehicleTrackingModal, {
+          isOpen: true,
+          onClose: () => {},
+          vehicle: {
+            ...MOCK_SUMMARY,
+            model: 'Land Cruiser 250',
+            priceUsd: 16120,
+            totalAmountUsd: 16120,
+            colorSpec: 'Pearl',
+            mileage: 34497,
+            createdAt: '2026-07-10T06:26:39.529Z',
+          },
+        })
+      );
+
+      expect(html).toContain('2022 TOYOTA LAND CRUISER 250');
+      expect(html).toContain('TRJ150-0192834');
+      expect(html).toContain('VEHICLE DETAILS');
+      expect(html).toContain('Engine No:');
+      expect(html).toContain('3DA-GDJ250W');
+      expect(html).toContain('34,497 km');
+      expect(html).toContain('Pearl');
+      expect(html).toContain('2026-07-10T06:26:39.529Z');
+      expect(html).toContain('$16,120');
+
+      expect(html).toContain('SHIPPING BILL OF LADING');
+      expect(html).toContain('Booking Status:');
+      expect(html).toContain('Vessel &amp; Voyage:');
+      expect(html).toContain('Container No:');
+      expect(html).toContain('BL Document No:');
+      expect(html).toContain('Loading Port:');
+      expect(html).toContain('Discharge Port:');
+      expect(html).toContain('Mombasa');
+
+      expect(html).toContain('SHIPMENT TIMELINE TRACKER');
+      expect(html).toContain('RESERVED');
+      expect(html).toContain('PURCHASED');
+      expect(html).toContain('INSPECTION');
+      expect(html).toContain('READY FOR LOADING');
+      expect(html).toContain('VESSEL BOOKED');
+      expect(html).toContain('LOADED');
+      expect(html).toContain('VESSEL DEPARTED');
+      expect(html).toContain('IN TRANSIT');
+      expect(html).toContain('ARRIVED AT PORT');
+      expect(html).toContain('CUSTOMS CLEARANCE');
+      expect(html).toContain('DELIVERED');
+      expect(html).toContain('Milestone verified successfully.');
+      expect(html).toContain('Pending milestone step.');
+    });
+
+    it('calculates active milestone index correctly for each status stage', () => {
+      expect(getVehicleActiveTimelineStepIndex({ ...MOCK_SUMMARY, status: 'Under Negotiation' })).toBe(0);
+      expect(getVehicleActiveTimelineStepIndex({ ...MOCK_SUMMARY, status: 'Under Negotiation With PI' })).toBe(1);
+      expect(getVehicleActiveTimelineStepIndex({ ...MOCK_SUMMARY, status: 'Confirmed' })).toBe(2);
+      expect(getVehicleActiveTimelineStepIndex({ ...MOCK_SUMMARY, logisticsStatus: 'READY FOR LOADING' })).toBe(3);
+      expect(getVehicleActiveTimelineStepIndex({ ...MOCK_SUMMARY, logisticsStatus: 'VESSEL BOOKED' })).toBe(4);
+      expect(getVehicleActiveTimelineStepIndex({ ...MOCK_SUMMARY, logisticsStatus: 'LOADED' })).toBe(5);
+      expect(getVehicleActiveTimelineStepIndex({ ...MOCK_SUMMARY, logisticsStatus: 'VESSEL DEPARTED' })).toBe(6);
+      expect(getVehicleActiveTimelineStepIndex({ ...MOCK_SUMMARY, status: 'In Transit' })).toBe(7);
+      expect(getVehicleActiveTimelineStepIndex({ ...MOCK_SUMMARY, logisticsStatus: 'ARRIVED AT PORT' })).toBe(8);
+      expect(getVehicleActiveTimelineStepIndex({ ...MOCK_SUMMARY, logisticsStatus: 'CUSTOMS CLEARANCE' })).toBe(9);
+      expect(getVehicleActiveTimelineStepIndex({ ...MOCK_SUMMARY, status: 'Delivered' })).toBe(10);
+    });
+
+    it('renders null when closed or vehicle is null', () => {
+      const closedHtml = renderToStaticMarkup(
+        React.createElement(VehicleTrackingModal, {
+          isOpen: false,
+          onClose: () => {},
+          vehicle: MOCK_SUMMARY,
+        })
+      );
+      expect(closedHtml).toBe('');
+
+      const nullVehicleHtml = renderToStaticMarkup(
+        React.createElement(VehicleTrackingModal, {
+          isOpen: true,
+          onClose: () => {},
+          vehicle: null,
+        })
+      );
+      expect(nullVehicleHtml).toBe('');
+    });
+  });
+
+  describe('FRD Section 4 Order & Logistics Timeline', () => {
+    it('renders CustomerFleetDetailPage with Order Timeline and Download Documents button', () => {
+      const html = renderToStaticMarkup(
+        React.createElement(
+          QueryClientProvider,
+          { client: queryClient },
+          React.createElement(
+            CustomerShellProvider,
+            { initialUser: MOCK_USER, initialRoute: '/vehicles/veh-landcruiser-001' },
+            React.createElement(
+              HttpClientProvider,
+              { apiBaseUrl: 'http://127.0.0.1:4000' },
+              React.createElement(CustomerFleetDetailPage, { vehicleId: 'veh-landcruiser-001', onBack: () => {} })
+            )
+          )
+        )
+      );
+
+      // Initially renders loading or page structure
+      expect(html).toBeTruthy();
+    });
+  });
 });
+

@@ -26,6 +26,15 @@ export interface CustomerPaymentProofMetadata {
   scanStatus: PaymentProofScanStatus;
 }
 
+export interface CustomerPaymentAllocation {
+  id: string;
+  stockNumber: string;
+  lastAllocationDate: string;
+  ttNumber: string;
+  allocationAmountUsd: number;
+  fileName?: string;
+}
+
 export interface CustomerPayment {
   id: string;
   customerId: string;
@@ -36,6 +45,12 @@ export interface CustomerPayment {
   amountUsd: number;
   allocatedAmountUsd?: number;
   remainingBalanceUsd?: number;
+  depositorName?: string;
+  receivingBank?: string;
+  customerName?: string;
+  approvedDate?: string;
+  allocations?: CustomerPaymentAllocation[];
+  documents?: Array<{ name: string; url: string }>;
   paymentDate: string;
   remarks?: string;
   status: PaymentStatus;
@@ -90,7 +105,6 @@ export interface CustomerPaymentNotificationListResponse {
   total: number;
 }
 export type ShipmentStatus = 'Purchased' | 'Inspection' | 'Ready' | 'InTransit' | 'Delivered';
-export type CustomerTier = 'Platinum' | 'Gold' | 'Silver' | 'Standard';
 export type VehicleLocationStatus = 'In Japan' | 'In Transit' | 'In Port';
 export type PublicVehicleCategory = 'arrival' | 'premium' | 'clearance' | 'best_offer';
 
@@ -434,6 +448,7 @@ export interface EnquiryRequest {
   preferredDriveSide?: EnquiryPreferredDriveSide;
   preferredYear?: number;
   targetPriceUsd?: number;
+  customerId?: string; // server-populated only, never client-supplied
 }
 
 /**
@@ -454,6 +469,7 @@ export interface EnquiryResponse {
   source: EnquirySource;
   vehicleSlug?: string;
   estimateSnapshot?: EnquiryEstimateSnapshot;
+  customerId?: string; // set only for authenticated submissions
 }
 
 /**
@@ -492,6 +508,110 @@ export interface LeadRecord {
 export interface LeadListResponse {
   items: LeadRecord[];
   total: number;
+}
+
+/** Customer's own quote request summary (D02-P13-T001, CUST-34). */
+export interface CustomerInquirySummary {
+  vehicleSlug: string;
+  vehicleId: string;
+  vehicleTitle: string;
+  requestedAt: string;
+  inquirerCount: number;
+}
+
+/** Signed-in customer's inquiry list (D02-P13-T001, CUST-34). */
+export interface CustomerInquiryListResponse {
+  items: CustomerInquirySummary[];
+}
+
+/** Aggregate of distinct inquirers for a vehicle (D02-P13-T001, CUST-35). */
+export interface VehicleInquiryAggregate {
+  vehicleSlug: string;
+  inquirerCount: number;
+}
+
+// --- Phase 2.13: Wishlist and Favourites (D02-P13-T002, CUST-36 through CUST-40) ---
+//
+// A wishlist item saves a specific vehicle for a customer. A favourite saves
+// reusable search-criteria profiles; up to 25 per customer, with an at-cap 409
+// rejection (CUST-40). Favourites fields without backing VehicleRecord columns
+// today (Model Code, Engine CC, Color, Steering per D02-ASM-008) return empty
+// arrays from the facets endpoint, never fabricated option lists.
+
+/** A customer's saved vehicle (D02-P13-T002, CUST-36). */
+export interface WishlistItem {
+  id: string;
+  customerId: string;
+  vehicleId: string;
+  vehicleSlug: string;
+  createdAt: string;
+}
+
+/** Wishlist list response (D02-P13-T002, CUST-36/CUST-37). */
+export interface WishlistListResponse {
+  items: WishlistItem[];
+}
+
+/** Wishlist add/remove request (D02-P13-T002, CUST-36). */
+export interface WishlistToggleRequest {
+  vehicleSlug: string;
+}
+
+/** Wishlist add/remove response (D02-P13-T002, CUST-36). */
+export interface WishlistToggleResponse {
+  wishlisted: boolean;
+  item?: WishlistItem;
+}
+
+/** Search criteria for a favourite (D02-P13-T002, CUST-38/CUST-39, D02-ASM-008/010). */
+export interface FavouriteSearchCriteria {
+  make?: string;
+  model?: string;
+  modelCode?: string; // D02-ASM-008: no backing column today
+  yearFrom?: number;
+  yearTo?: number;
+  priceFromUsd?: number;
+  priceToUsd?: number;
+  mileageMin?: number;
+  mileageMax?: number;
+  engineCc?: string; // D02-ASM-008: no backing column today
+  fuelType?: string;
+  color?: string; // D02-ASM-008: no backing column today
+  steering?: string; // D02-ASM-008: no backing column today
+  driveTrain?: string;
+  transmission?: string;
+}
+
+/** A customer's saved search criteria (D02-P13-T002, CUST-38/CUST-39). */
+export interface FavouriteSearch {
+  id: string;
+  customerId: string;
+  name: string;
+  criteria: FavouriteSearchCriteria;
+  createdAt: string;
+}
+
+/** Favourite list response (D02-P13-T002, CUST-38/CUST-39, CUST-40). */
+export interface FavouriteSearchListResponse {
+  items: FavouriteSearch[];
+  limit: number;
+}
+
+/** Distinct values available for each favourite field (D02-P13-T002, CUST-39, D02-ASM-008). */
+export interface FavouriteSearchFacets {
+  makes: Array<{ name: string; count: number }>;
+  models: Array<{ name: string; count: number }>;
+  fuelTypes: Array<{ name: string; count: number }>;
+  driveTrains: Array<{ name: string; count: number }>;
+  transmissions: Array<{ name: string; count: number }>;
+  yearRange: { min: number; max: number };
+  priceRange: { min: number; max: number };
+  mileageRange: { min: number; max: number };
+  // D02-ASM-008: these four fields have no backing columns today; return empty.
+  modelCodes: string[];
+  engineCcOptions: string[];
+  colors: string[];
+  steeringOptions: string[];
 }
 
 // --- Phase 1.6: transactional reservation eligibility and hold (PUB-23,
@@ -762,6 +882,12 @@ export function calculateVehicleDeposit(totalAmountUsd: number, paidAmountUsd = 
   };
 }
 
+export interface CustomerCommercialBillInfo {
+  soldAmountUsd: number;
+  paidAmountUsd: number;
+  balanceAmountUsd: number;
+}
+
 export interface CustomerVehicleSummary {
   id: string;
   vehicleId: string;
@@ -780,6 +906,14 @@ export interface CustomerVehicleSummary {
   proformaInvoiceId?: string;
   paymentDeadline?: string;
   deposit?: CustomerVehicleDepositInfo;
+  stockNumber?: string;
+  color?: string;
+  colorSpec?: string;
+  mileage?: number;
+  logisticsStatus?: string;
+  piRef?: string;
+  commercialBill?: CustomerCommercialBillInfo;
+  shippingStage?: 'Reserved' | 'Inspection' | 'In Transit' | 'Delivered' | string;
   createdAt: string;
   updatedAt: string;
 }
@@ -796,7 +930,20 @@ export interface CustomerVehicleDetail extends CustomerVehicleSummary {
   vesselName?: string;
   etd?: string;
   eta?: string;
+  ata?: string;
+  yardInDate?: string;
+  yardOutDate?: string;
   billOfLadingNo?: string;
+  negotiationDate?: string;
+  proformaDate?: string;
+  orderPlacedDate?: string;
+  inspectionDate?: string;
+  inspectionStatus?: string;
+  reInspectionDate?: string;
+  reInspectionStatus?: string;
+  courierCompany?: string;
+  trackingNumber?: string;
+  courierRemarks?: string;
   statusHistory: CustomerVehicleStatusHistoryItem[];
   documents: CustomerVehicleDocumentReference[];
 }
@@ -958,6 +1105,100 @@ export function calculateInvoiceBalance(totalAmountUsd: number, paidAmountUsd: n
   };
 }
 
+export interface CustomerStatementEntry {
+  id: string;
+  date: string;
+  description: string;
+  referenceNo?: string;
+  debitUsd: number;
+  creditUsd: number;
+  runningBalanceUsd: number;
+  isOpeningBalance?: boolean;
+}
+
+export interface CustomerStatementSummary {
+  customerId: string;
+  fromDate: string;
+  toDate: string;
+  openingBalanceUsd: number;
+  totalDebitsUsd: number;
+  totalCreditsUsd: number;
+  closingBalanceUsd: number;
+  entries: CustomerStatementEntry[];
+}
+
+export interface CustomerDebitCreditRecord {
+  id: string;
+  customerId?: string;
+  refNumber: string;
+  type: 'Debit' | 'Credit' | 'Refund';
+  cashInDate: string;
+  stockId: string;
+  currency: string;
+  amount: number;
+  balanceAmount: number;
+  paidInCash: boolean;
+  approvedDate: string;
+  customerNotes?: string;
+  notesVisibleToCustomer?: boolean;
+}
+
+export interface CustomerDebitCreditListResponse {
+  items: CustomerDebitCreditRecord[];
+  total: number;
+  totalDebitsUsd: number;
+  totalCreditsUsd: number;
+  totalRefundsUsd: number;
+}
+
+export interface CustomerPolymorphicInquiry {
+  id: string;
+  customerId?: string;
+  inquiryNumber: string;
+  source: 'Stock' | 'WhatsApp' | 'Auction' | 'General';
+  status: 'Pending Reply' | 'Replied';
+  inquiryDate: string;
+  make: string;
+  model: string;
+  yom: string;
+  stockNumber?: string;
+  chassisNumber?: string;
+  lotNumber?: string;
+  chassisModel?: string;
+  viewsCount?: number;
+  message: string;
+  replyMessage?: string;
+  repliedAt?: string;
+  fobPriceUsd?: number;
+  cfPriceUsd?: number;
+  startPriceUsd?: number;
+  minFobUsd?: number;
+  maxFobUsd?: number;
+  driveType?: string;
+  mfgYearRange?: string;
+  deliveryLocation?: string;
+  inquirerCount?: number;
+  auctionRemaining?: string;
+  auctionFinished?: boolean;
+  imageUrl?: string;
+}
+
+export interface CustomerPolymorphicInquiryListResponse {
+  items: CustomerPolymorphicInquiry[];
+  total: number;
+}
+
+export interface CustomerPairedAccount {
+  id: string;
+  name: string;
+  type: 'PRIMARY' | 'BRANCH' | 'LOGISTICS';
+  balanceUsd: number;
+  isCredit: boolean;
+}
+
 export * from './auth.js';
 export * from './freight.js';
 export * from './content.js';
+export * from './countries.js';
+import type { CustomerTier } from './auth.js';
+

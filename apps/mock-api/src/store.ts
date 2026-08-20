@@ -1,4 +1,5 @@
 import { Pool, PoolClient } from 'pg';
+import { randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
 import type {
   VehicleDomainSummary,
   VehicleStatus,
@@ -23,6 +24,17 @@ import type {
   EnquiryPreferredDriveSide,
   LeadRecord,
   LeadListResponse,
+  CustomerInquirySummary,
+  CustomerInquiryListResponse,
+  VehicleInquiryAggregate,
+  WishlistItem,
+  WishlistListResponse,
+  WishlistToggleRequest,
+  WishlistToggleResponse,
+  FavouriteSearchCriteria,
+  FavouriteSearch,
+  FavouriteSearchListResponse,
+  FavouriteSearchFacets,
   ReservationRequest,
   ReservationResponse,
   ReservationStatus,
@@ -46,6 +58,7 @@ import type {
   CustomerVehicleStatusHistoryItem,
   CustomerVehicleDocumentReference,
   CustomerVehicleDepositInfo,
+  CustomerCommercialBillInfo,
   CustomerVehicleSummary,
   CustomerVehicleDetail,
   CustomerVehicleCountsByStatus,
@@ -73,6 +86,13 @@ import type {
   MarkNotificationsReadResponse,
   CustomerProfile,
   UpdateCustomerProfileRequest,
+  CustomerStatementEntry,
+  CustomerStatementSummary,
+  CustomerDebitCreditRecord,
+  CustomerDebitCreditListResponse,
+  CustomerPolymorphicInquiry,
+  CustomerPolymorphicInquiryListResponse,
+  CustomerPairedAccount,
 } from '@carchief/domain';
 import {
   generateVehicleSlug,
@@ -87,6 +107,7 @@ import {
   RESERVATION_HOLD_HOURS,
   MAX_ACTIVE_RESERVATIONS_PER_CUSTOMER,
   RESERVABLE_VEHICLE_STATUSES,
+  COUNTRIES,
 } from '@carchief/domain';
 import { validateEmail } from '@carchief/validation';
 export { FreightRequestError, resolveFreightRateStatus } from '@carchief/domain';
@@ -120,6 +141,10 @@ export interface VehicleRecord {
   etd?: string;
   eta?: string;
   requestPrice?: boolean;
+  stockNumber?: string;
+  color?: string;
+  spec?: string;
+  logisticsStatus?: string;
 }
 
 export interface PublicConfig {
@@ -155,8 +180,11 @@ const seedVehicles: VehicleRecord[] = [
     category: 'arrival,premium',
     createdAt: '2026-08-09T10:00:00.000Z',
     images: [
-      'https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?w=400',
-      'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=400'
+      'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1590362891991-f776e747a588?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=1000&auto=format&fit=crop',
     ],
     featured: true,
     stockType: 'J',
@@ -182,7 +210,13 @@ const seedVehicles: VehicleRecord[] = [
     status: 'ReservedWithPI',
     category: 'arrival',
     createdAt: '2026-08-08T14:30:00.000Z',
-    images: ['https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=400'],
+    images: [
+      'https://images.unsplash.com/photo-1559416523-140ddc3d238c?w=1000&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1590362891991-f776e747a588?w=1000&auto=format&fit=crop',
+    ],
     featured: true,
     stockType: 'J',
     destinationPort: 'Mombasa',
@@ -205,7 +239,13 @@ const seedVehicles: VehicleRecord[] = [
     status: 'Available',
     category: 'premium',
     createdAt: '2026-07-30T09:00:00.000Z',
-    images: ['https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=400'],
+    images: [
+      'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1594502184342-2e12f877aa73?w=1000&auto=format&fit=crop',
+    ],
     featured: true,
     stockType: 'J',
     destinationPort: 'Mombasa',
@@ -237,6 +277,12 @@ const seedVehicles: VehicleRecord[] = [
     transmission: 'Automatic',
     driveTrain: 'AWD',
     mileage: 54000,
+    images: [
+      'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1000&auto=format&fit=crop',
+    ],
     requestPrice: true, // Price on request
   },
   {
@@ -249,6 +295,13 @@ const seedVehicles: VehicleRecord[] = [
     status: 'Available',
     category: 'best_offer',
     createdAt: '2026-08-07T08:00:00.000Z',
+    images: [
+      'https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1590362891991-f776e747a588?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=1000&auto=format&fit=crop',
+    ],
     discountPercent: 5,
     featured: true,
     stockType: 'J',
@@ -264,45 +317,67 @@ const seedVehicles: VehicleRecord[] = [
   },
   {
     id: 'veh-6',
-    chassisNumber: 'FE83-4455667',
-    make: 'Mitsubishi',
-    model: 'Fuso Canter',
-    year: 2018,
-    priceUsd: 16000,
+    chassisNumber: 'TRJ250-001234',
+    make: 'Toyota',
+    model: 'Land Cruiser 250',
+    year: 2024,
+    priceUsd: 16120,
     status: 'Available',
     category: 'clearance',
     createdAt: '2026-07-20T10:00:00.000Z',
+    images: [
+      'https://images.unsplash.com/photo-1594502184342-2e12f877aa73?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1000&auto=format&fit=crop',
+    ],
     discountPercent: 15,
     featured: false,
     stockType: 'CRFO',
     destinationPort: 'Mombasa',
-    bodyStyle: 'Truck',
-    fuelType: 'Diesel',
-    transmission: 'Manual',
-    driveTrain: '2WD',
-    mileage: 95000,
-    etd: '2026-06-15T00:00:00.000Z', // In Port
+    bodyStyle: 'SUV',
+    fuelType: 'Petrol',
+    transmission: 'Automatic',
+    driveTrain: '4WD',
+    mileage: 34497,
+    stockNumber: 'STK: STK-013F',
+    color: 'Pearl',
+    spec: 'Pearl',
+    logisticsStatus: 'RESERVED',
+    etd: '2026-06-15T00:00:00.000Z',
     eta: '2026-07-10T00:00:00.000Z',
     requestPrice: false,
   },
   {
     id: 'veh-7',
-    chassisNumber: 'GYL25-6677889',
-    make: 'Lexus',
-    model: 'RX450h',
-    year: 2023,
-    priceUsd: 38000,
+    chassisNumber: 'A200A-009876',
+    make: 'Toyota',
+    model: 'Raize',
+    year: 2024,
+    priceUsd: 58000,
     status: 'Available',
     category: 'premium',
     createdAt: '2026-08-09T16:00:00.000Z',
+    images: [
+      'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1594502184342-2e12f877aa73?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=1000&auto=format&fit=crop',
+    ],
     featured: true,
     stockType: 'J',
     destinationPort: 'Mombasa',
     bodyStyle: 'SUV',
-    fuelType: 'Hybrid',
+    fuelType: 'Petrol',
     transmission: 'Automatic',
-    driveTrain: 'AWD',
-    mileage: 12000,
+    driveTrain: '2WD',
+    mileage: 0,
+    stockNumber: 'STK: STK-3081',
+    color: 'White',
+    spec: 'White',
+    logisticsStatus: 'RESERVED',
     requestPrice: false,
   },
   {
@@ -315,6 +390,13 @@ const seedVehicles: VehicleRecord[] = [
     status: 'Available',
     category: 'arrival',
     createdAt: '2026-08-06T12:00:00.000Z',
+    images: [
+      'https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1590362891991-f776e747a588?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=1000&auto=format&fit=crop',
+    ],
     featured: false,
     stockType: 'J',
     destinationPort: 'Mombasa',
@@ -335,6 +417,13 @@ const seedVehicles: VehicleRecord[] = [
     status: 'Available',
     category: 'premium',
     createdAt: '2026-08-08T09:00:00.000Z',
+    images: [
+      'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1555215695-3004980ad54e?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=1000&auto=format&fit=crop',
+    ],
     featured: true,
     stockType: 'J',
     destinationPort: 'Mombasa',
@@ -356,6 +445,13 @@ const seedVehicles: VehicleRecord[] = [
     status: 'Available',
     category: 'premium',
     createdAt: '2026-08-07T14:00:00.000Z',
+    images: [
+      'https://images.unsplash.com/photo-1555215695-3004980ad54e?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=1000&auto=format&fit=crop',
+    ],
     featured: true,
     stockType: 'J',
     destinationPort: 'Mombasa',
@@ -376,6 +472,13 @@ const seedVehicles: VehicleRecord[] = [
     status: 'Available',
     category: 'best_offer',
     createdAt: '2026-08-05T10:00:00.000Z',
+    images: [
+      'https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1555215695-3004980ad54e?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=1000&auto=format&fit=crop',
+    ],
     featured: false,
     stockType: 'J',
     destinationPort: 'Dar es Salaam',
@@ -396,6 +499,13 @@ const seedVehicles: VehicleRecord[] = [
     status: 'Available',
     category: 'premium',
     createdAt: '2026-08-09T18:00:00.000Z',
+    images: [
+      'https://images.unsplash.com/photo-1563720223185-11003d516935?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1594502184342-2e12f877aa73?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1000&auto=format&fit=crop',
+    ],
     featured: true,
     stockType: 'J',
     destinationPort: 'Mombasa',
@@ -416,6 +526,12 @@ const seedVehicles: VehicleRecord[] = [
     status: 'Available',
     category: 'premium',
     createdAt: '2026-08-10T12:00:00.000Z',
+    images: [
+      'https://images.unsplash.com/photo-1594502184342-2e12f877aa73?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=1000&auto=format&fit=crop',
+    ],
     featured: true,
     stockType: 'J',
     destinationPort: 'Mombasa',
@@ -436,6 +552,12 @@ const seedVehicles: VehicleRecord[] = [
     status: 'Sold',
     category: 'arrival',
     createdAt: '2026-08-01T10:00:00.000Z',
+    images: [
+      'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1590362891991-f776e747a588?w=1000&auto=format&fit=crop',
+    ],
     featured: false,
     stockType: 'J',
     destinationPort: 'Mombasa',
@@ -488,6 +610,532 @@ const seedVehicles: VehicleRecord[] = [
     internalNotes: 'Internal draft - compliance check pending',
     staffOwnerId: 'staff-99',
   },
+  // 6 With PI vehicles (matching Image 1)
+  {
+    id: 'veh-pi-1',
+    chassisNumber: 'YV1MV485BE209044078077',
+    make: 'Volvo',
+    model: 'V40',
+    year: 2013,
+    priceUsd: 10800,
+    status: 'ReservedWithPI',
+    stockNumber: 'STK: YV1MV4',
+    color: 'Red',
+    mileage: 155391,
+    logisticsStatus: 'RESERVED',
+    images: [
+      'https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=1000&auto=format&fit=crop',
+    ],
+    bodyStyle: 'Hatchback',
+    fuelType: 'Petrol',
+    transmission: 'Automatic',
+    destinationPort: 'Mombasa',
+    createdAt: '2026-08-10T10:00:00.000Z',
+  },
+  {
+    id: 'veh-pi-2',
+    chassisNumber: 'KG2P-215718',
+    make: 'Mazda',
+    model: 'CX-8',
+    year: 2019,
+    priceUsd: 10192,
+    status: 'ReservedWithPI',
+    stockNumber: 'STK: KG2P-2',
+    color: 'Gunmetal',
+    mileage: 114289,
+    logisticsStatus: 'RESERVED',
+    images: [
+      'https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1590362891991-f776e747a588?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=1000&auto=format&fit=crop',
+    ],
+    bodyStyle: 'SUV',
+    fuelType: 'Diesel',
+    transmission: 'Automatic',
+    destinationPort: 'Mombasa',
+    createdAt: '2026-08-10T10:00:00.000Z',
+  },
+  {
+    id: 'veh-pi-3',
+    chassisNumber: 'GT7-202249',
+    make: 'Subaru',
+    model: 'Impreza Wagon',
+    year: 2019,
+    priceUsd: 12480,
+    status: 'ReservedWithPI',
+    stockNumber: 'STK: GT7-20',
+    color: 'Black',
+    mileage: 90821,
+    logisticsStatus: 'RESERVED',
+    images: [
+      'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=1000&auto=format&fit=crop',
+    ],
+    bodyStyle: 'Wagon',
+    fuelType: 'Petrol',
+    transmission: 'Automatic',
+    destinationPort: 'Mombasa',
+    createdAt: '2026-08-10T10:00:00.000Z',
+  },
+  {
+    id: 'veh-pi-4',
+    chassisNumber: 'YV1MV485BE2088252',
+    make: 'Volvo',
+    model: 'V40',
+    year: 2013,
+    priceUsd: 10800,
+    status: 'ReservedWithPI',
+    stockNumber: 'STK: YV1MV4',
+    color: 'Blue',
+    mileage: 85576,
+    logisticsStatus: 'RESERVED',
+    images: [
+      'https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=1000&auto=format&fit=crop',
+    ],
+    bodyStyle: 'Hatchback',
+    fuelType: 'Petrol',
+    transmission: 'Automatic',
+    destinationPort: 'Mombasa',
+    createdAt: '2026-08-10T10:00:00.000Z',
+  },
+  {
+    id: 'veh-pi-5',
+    chassisNumber: 'HA36S-519760',
+    make: 'Suzuki',
+    model: 'Alto',
+    year: 2019,
+    priceUsd: 12480,
+    status: 'ReservedWithPI',
+    stockNumber: 'STK: HA36S-',
+    color: 'White',
+    mileage: 64960,
+    logisticsStatus: 'RESERVED',
+    images: [
+      'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1590362891991-f776e747a588?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=1000&auto=format&fit=crop',
+    ],
+    bodyStyle: 'Hatchback',
+    fuelType: 'Petrol',
+    transmission: 'Automatic',
+    destinationPort: 'Mombasa',
+    createdAt: '2026-08-10T10:00:00.000Z',
+  },
+  {
+    id: 'veh-pi-6',
+    chassisNumber: 'DK5FW-117884',
+    make: 'Mazda',
+    model: 'CX-3',
+    year: 2015,
+    priceUsd: 8624,
+    status: 'ReservedWithPI',
+    stockNumber: 'STK: DK5FW-',
+    color: 'Red',
+    mileage: 51233,
+    logisticsStatus: 'RESERVED',
+    images: [
+      'https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1590362891991-f776e747a588?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=1000&auto=format&fit=crop',
+    ],
+    bodyStyle: 'SUV',
+    fuelType: 'Diesel',
+    transmission: 'Automatic',
+    destinationPort: 'Mombasa',
+    createdAt: '2026-08-10T10:00:00.000Z',
+  },
+  // 15 Invoiced vehicles (matching Image 2)
+  {
+    id: 'veh-inv-1',
+    chassisNumber: 'NRE161-0091995',
+    make: 'Toyota',
+    model: 'Corolla Fielder',
+    year: 2021,
+    priceUsd: 17360,
+    status: 'Invoiced',
+    stockNumber: 'STK: NRE161',
+    color: 'White',
+    mileage: 136683,
+    logisticsStatus: 'INSPECTION',
+    images: [
+      'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1590362891991-f776e747a588?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=1000&auto=format&fit=crop',
+    ],
+    bodyStyle: 'Wagon',
+    fuelType: 'Petrol',
+    transmission: 'Automatic',
+    destinationPort: 'Mombasa',
+    createdAt: '2026-08-10T10:00:00.000Z',
+  },
+  {
+    id: 'veh-inv-2',
+    chassisNumber: 'DE3FS-1048347777',
+    make: 'Mazda',
+    model: 'Demio',
+    year: 2013,
+    priceUsd: 7840,
+    status: 'Invoiced',
+    stockNumber: 'STK: DE3FS-',
+    color: 'Gray',
+    mileage: 95643,
+    logisticsStatus: 'INSPECTION',
+    images: [
+      'https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1590362891991-f776e747a588?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=1000&auto=format&fit=crop',
+    ],
+    bodyStyle: 'Hatchback',
+    fuelType: 'Petrol',
+    transmission: 'Automatic',
+    destinationPort: 'Mombasa',
+    createdAt: '2026-08-10T10:00:00.000Z',
+  },
+  {
+    id: 'veh-inv-3',
+    chassisNumber: 'NZT260-31386066',
+    make: 'Toyota',
+    model: 'Premio',
+    year: 2013,
+    priceUsd: 9440,
+    status: 'Invoiced',
+    stockNumber: 'STK: NZT260',
+    color: 'Pearl',
+    mileage: 157678,
+    logisticsStatus: 'INSPECTION',
+    images: [
+      'https://images.unsplash.com/photo-1590362891991-f776e747a588?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=1000&auto=format&fit=crop',
+    ],
+    bodyStyle: 'Sedan',
+    fuelType: 'Petrol',
+    transmission: 'Automatic',
+    destinationPort: 'Mombasa',
+    createdAt: '2026-08-10T10:00:00.000Z',
+  },
+  {
+    id: 'veh-inv-4',
+    chassisNumber: 'WVWZZZAUZEW125455',
+    make: 'Volkswagen',
+    model: 'Golf',
+    year: 2013,
+    priceUsd: 11200,
+    status: 'Invoiced',
+    stockNumber: 'STK: WVWZZZ',
+    color: 'White',
+    mileage: 124460,
+    logisticsStatus: 'INSPECTION',
+    images: [
+      'https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=1000&auto=format&fit=crop',
+    ],
+    bodyStyle: 'Hatchback',
+    fuelType: 'Petrol',
+    transmission: 'Automatic',
+    destinationPort: 'Mombasa',
+    createdAt: '2026-08-10T10:00:00.000Z',
+  },
+  {
+    id: 'veh-inv-5',
+    chassisNumber: 'HA36S-517414',
+    make: 'Suzuki',
+    model: 'Alto',
+    year: 2019,
+    priceUsd: 12480,
+    status: 'Invoiced',
+    stockNumber: 'STK: HA36S-',
+    color: 'White',
+    mileage: 182929,
+    logisticsStatus: 'INSPECTION',
+    images: [
+      'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1590362891991-f776e747a588?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=1000&auto=format&fit=crop',
+    ],
+    bodyStyle: 'Hatchback',
+    fuelType: 'Petrol',
+    transmission: 'Automatic',
+    destinationPort: 'Mombasa',
+    createdAt: '2026-08-10T10:00:00.000Z',
+  },
+  {
+    id: 'veh-inv-6',
+    chassisNumber: 'NCP165-0063834',
+    make: 'Toyota',
+    model: 'Succeed Van',
+    year: 2019,
+    priceUsd: 13520,
+    status: 'Invoiced',
+    stockNumber: 'STK: NCP165',
+    color: 'Green',
+    mileage: 88789,
+    logisticsStatus: 'INSPECTION',
+    images: [
+      'https://images.unsplash.com/photo-1559416523-140ddc3d238c?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=1000&auto=format&fit=crop',
+    ],
+    bodyStyle: 'Van',
+    fuelType: 'Petrol',
+    transmission: 'Automatic',
+    destinationPort: 'Mombasa',
+    createdAt: '2026-08-10T10:00:00.000Z',
+  },
+  {
+    id: 'veh-inv-7',
+    chassisNumber: 'YV1MV485BE20882527777',
+    make: 'Volvo',
+    model: 'V40',
+    year: 2013,
+    priceUsd: 10800,
+    status: 'Invoiced',
+    stockNumber: 'STK: YV1MV4',
+    color: 'Blue',
+    mileage: 85576,
+    logisticsStatus: 'INSPECTION',
+    images: [
+      'https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=1000&auto=format&fit=crop',
+    ],
+    bodyStyle: 'Hatchback',
+    fuelType: 'Petrol',
+    transmission: 'Automatic',
+    destinationPort: 'Mombasa',
+    createdAt: '2026-08-10T10:00:00.000Z',
+  },
+  {
+    id: 'veh-inv-8',
+    chassisNumber: 'YV1MV485BE2090440',
+    make: 'Volvo',
+    model: 'V40',
+    year: 2013,
+    priceUsd: 10800,
+    status: 'Invoiced',
+    stockNumber: 'STK: YV1MV4',
+    color: 'Red',
+    mileage: 155391,
+    logisticsStatus: 'INSPECTION',
+    images: [
+      'https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=1000&auto=format&fit=crop',
+    ],
+    bodyStyle: 'Hatchback',
+    fuelType: 'Petrol',
+    transmission: 'Automatic',
+    destinationPort: 'Mombasa',
+    createdAt: '2026-08-10T10:00:00.000Z',
+  },
+  {
+    id: 'veh-inv-9',
+    chassisNumber: 'NRE161-009199566',
+    make: 'Toyota',
+    model: 'Corolla Fielder',
+    year: 2013,
+    priceUsd: 12400,
+    status: 'Invoiced',
+    stockNumber: 'STK: NRE161',
+    color: 'White',
+    mileage: 156683,
+    logisticsStatus: 'INSPECTION',
+    images: [
+      'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1590362891991-f776e747a588?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=1000&auto=format&fit=crop',
+    ],
+    bodyStyle: 'Wagon',
+    fuelType: 'Petrol',
+    transmission: 'Automatic',
+    destinationPort: 'Mombasa',
+    createdAt: '2026-08-10T10:00:00.000Z',
+  },
+  {
+    id: 'veh-inv-10',
+    chassisNumber: 'NZT260-3134360',
+    make: 'Toyota',
+    model: 'Premio',
+    year: 2013,
+    priceUsd: 9440,
+    status: 'Invoiced',
+    stockNumber: 'STK: NZT260',
+    color: 'Red',
+    mileage: 105754,
+    logisticsStatus: 'INSPECTION',
+    images: [
+      'https://images.unsplash.com/photo-1590362891991-f776e747a588?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=1000&auto=format&fit=crop',
+    ],
+    bodyStyle: 'Sedan',
+    fuelType: 'Petrol',
+    transmission: 'Automatic',
+    destinationPort: 'Mombasa',
+    createdAt: '2026-08-10T10:00:00.000Z',
+  },
+  {
+    id: 'veh-inv-11',
+    chassisNumber: '4S-998811',
+    make: 'Audi',
+    model: 'R8 Coupe V10 Performance',
+    year: 2023,
+    priceUsd: 145000,
+    status: 'Invoiced',
+    stockNumber: 'STK: STK-VEH1',
+    color: 'Catalunya Red Metallic',
+    mileage: 3200,
+    logisticsStatus: 'INSPECTION',
+    images: [
+      'https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1555215695-3004980ad54e?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=1000&auto=format&fit=crop',
+    ],
+    bodyStyle: 'Coupe',
+    fuelType: 'Petrol',
+    transmission: 'Automatic',
+    destinationPort: 'Mombasa',
+    createdAt: '2026-08-10T10:00:00.000Z',
+  },
+  {
+    id: 'veh-inv-12',
+    chassisNumber: '992-776655',
+    make: 'Porsche',
+    model: '911 GT3 RS',
+    year: 2024,
+    priceUsd: 220000,
+    status: 'Invoiced',
+    stockNumber: 'STK: STK-VEH2',
+    color: 'Carrara White Metallic',
+    mileage: 150,
+    logisticsStatus: 'INSPECTION',
+    images: [
+      'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=1000&auto=format&fit=crop',
+    ],
+    bodyStyle: 'Coupe',
+    fuelType: 'Petrol',
+    transmission: 'Automatic',
+    destinationPort: 'Mombasa',
+    createdAt: '2026-08-10T10:00:00.000Z',
+  },
+  {
+    id: 'veh-inv-13',
+    chassisNumber: '5YJSA1E2-11',
+    make: 'Tesla',
+    model: 'Model S Plaid',
+    year: 2023,
+    priceUsd: 89000,
+    status: 'Invoiced',
+    stockNumber: 'STK: STK-VEH3',
+    color: 'Ultra Red',
+    mileage: 8400,
+    logisticsStatus: 'INSPECTION',
+    images: [
+      'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1555215695-3004980ad54e?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=1000&auto=format&fit=crop',
+    ],
+    bodyStyle: 'Sedan',
+    fuelType: 'Electric',
+    transmission: 'Automatic',
+    destinationPort: 'Mombasa',
+    createdAt: '2026-08-10T10:00:00.000Z',
+  },
+  {
+    id: 'veh-inv-14',
+    chassisNumber: 'SALWR2V4-99',
+    make: 'Land Rover',
+    model: 'Range Rover Sport SV',
+    year: 2024,
+    priceUsd: 130000,
+    status: 'Invoiced',
+    stockNumber: 'STK: STK-VEH4',
+    color: 'Firenze Red Metallic',
+    mileage: 80,
+    logisticsStatus: 'INSPECTION',
+    images: [
+      'https://images.unsplash.com/photo-1563720223185-11003d516935?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1594502184342-2e12f877aa73?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1000&auto=format&fit=crop',
+    ],
+    bodyStyle: 'SUV',
+    fuelType: 'Petrol',
+    transmission: 'Automatic',
+    destinationPort: 'Mombasa',
+    createdAt: '2026-08-10T10:00:00.000Z',
+  },
+  {
+    id: 'veh-inv-15',
+    chassisNumber: 'DE3FS-137602',
+    make: 'Mazda',
+    model: 'Demio',
+    year: 2012,
+    priceUsd: 6500,
+    status: 'Invoiced',
+    stockNumber: 'STK: DE3FS-',
+    color: 'Dark Gray',
+    mileage: 75953,
+    logisticsStatus: 'INSPECTION',
+    images: [
+      'https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1590362891991-f776e747a588?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=1000&auto=format&fit=crop',
+    ],
+    bodyStyle: 'Hatchback',
+    fuelType: 'Petrol',
+    transmission: 'Automatic',
+    destinationPort: 'Mombasa',
+    createdAt: '2026-08-10T10:00:00.000Z',
+  },
 ];
 
 export interface VehicleQueryContext {
@@ -507,9 +1155,11 @@ export interface DemoStore {
   getFreightDestinations(): Promise<FreightDestination[]>;
   getFreightPorts(): Promise<FreightPort[]>;
   getFreightEstimate(request: FreightEstimateRequest): Promise<FreightEstimateResponse>;
-  createEnquiry(request: EnquiryRequest): Promise<EnquiryResponse>;
+  createEnquiry(request: EnquiryRequest, customerId?: string): Promise<EnquiryResponse>;
   getLeadById(id: string): Promise<LeadRecord | null>;
   listLeads(): Promise<LeadListResponse>;
+  listCustomerInquiries(customerId: string): Promise<CustomerInquiryListResponse>;
+  getVehicleInquiryAggregate(vehicleSlugOrId: string): Promise<VehicleInquiryAggregate>;
   createReservation(customerId: string, customerEmail: string, request: ReservationRequest, nowISO?: string): Promise<ReservationResponse>;
   getReservationById(id: string): Promise<ReservationResponse | null>;
   // Phase 1.7 Content methods
@@ -534,6 +1184,7 @@ export interface DemoStore {
   getCustomerNotification(customerId: string, notificationId: string): Promise<Notification | null>;
   markCustomerNotificationRead(customerId: string, notificationId: string): Promise<Notification | null>;
   markAllCustomerNotificationsRead(customerId: string): Promise<MarkNotificationsReadResponse>;
+  deleteCustomerNotification(customerId: string, notificationId: string): Promise<boolean>;
   getCustomerProfile(customerId: string, email: string): Promise<CustomerProfile>;
   updateCustomerProfile(customerId: string, email: string, request: UpdateCustomerProfileRequest, nowISO?: string): Promise<CustomerProfile>;
   // Phase 2.5: customer invoice projections (CUST-02, CUST-14, CUST-15, CUST-16, CUST-21, RULE-04, RULE-08, RULE-10)
@@ -546,10 +1197,432 @@ export interface DemoStore {
   listCustomerPaymentNotifications(customerId: string, paymentId?: string): Promise<CustomerPaymentNotificationListResponse>;
   resubmitCustomerPayment(customerId: string, paymentId: string, nowISO?: string): Promise<CustomerPayment>;
   recordPaymentNotification(paymentId: string, request: RecordPaymentNotificationRequest, nowISO?: string): Promise<CustomerPaymentNotification | null>;
+  // Phase 2.12: customer self-registration, credentials and password reset
+  // (CUST-26..30, D02-ASM-005/006/007). The Mock API is the only authority
+  // for credentials and sessions; no password, hash or salt is ever
+  // returned, logged or cached, and no route accepts a client-supplied
+  // customer id.
+  registerCustomerAccount(request: RegisterCustomerRequest, nowISO?: string): Promise<CustomerAccountProjection>;
+  authenticateCustomer(request: LoginRequest): Promise<CustomerAccountProjection>;
+  changeCustomerPassword(customerId: string, request: ChangePasswordRequest, nowISO?: string): Promise<void>;
+  requestPasswordReset(request: PasswordResetRequest, nowISO?: string): Promise<void>;
+  confirmPasswordReset(request: ConfirmPasswordResetRequest, nowISO?: string): Promise<void>;
+  listPasswordResetOutbox(): Promise<PasswordResetOutboxRecord[]>;
+  getCountries(): Promise<CountriesResponse>;
+  // Phase 2.13: Wishlist and Favourites (D02-P13-T002, CUST-36..40)
+  listWishlist(customerId: string): Promise<WishlistListResponse>;
+  toggleWishlist(customerId: string, vehicleSlug: string): Promise<WishlistToggleResponse>;
+  listFavourites(customerId: string): Promise<FavouriteSearchListResponse>;
+  createFavourite(customerId: string, name: string, criteria: FavouriteSearchCriteria, nowISO?: string): Promise<FavouriteSearch>;
+  deleteFavourite(customerId: string, id: string): Promise<void>;
+  getFavouriteFacets(): Promise<FavouriteSearchFacets>;
+  // FRD Additions: Statement, Debit/Credit/Refunds, Polymorphic Inquiries, Paired Accounts
+  getCustomerStatement(customerId: string, fromDate?: string, toDate?: string): Promise<CustomerStatementSummary>;
+  getCustomerDebitCreditRefunds(customerId: string): Promise<CustomerDebitCreditListResponse>;
+  listCustomerPolymorphicInquiries(customerId: string): Promise<CustomerPolymorphicInquiryListResponse>;
+  getCustomerPairedAccounts(customerId: string): Promise<CustomerPairedAccount[]>;
   reset(): Promise<void>;
   close(): Promise<void>;
 }
 
+// --- Phase 2.12: customer self-registration, credential handling and the
+// password-reset contract (CUST-26..30, D02-ASM-005/006/007). ---
+//
+// The account and reset-outbox entities live in both `MemoryStore` and
+// `PostgresStore` per the `enquiries`/`reservations` precedent. Passwords are
+// hashed with salted `scrypt` from `node:crypto`; no plaintext password, hash
+// or salt is ever stored elsewhere, logged, cached or returned by any route.
+// `AccountRequestError` follows the existing `ReservationRequestError` /
+// `EnquiryRequestError` typed-error idiom for field-level 400/409 responses.
+
+export class AccountRequestError extends Error {
+  public readonly statusCode: number;
+  public readonly field?: string;
+
+  constructor(statusCode: number, message: string, field?: string) {
+    super(message);
+    this.name = 'AccountRequestError';
+    this.statusCode = statusCode;
+    this.field = field;
+  }
+}
+
+/**
+ * A single generic authentication failure — reused for "unknown email" and
+ * "wrong password" so a caller can never distinguish account existence from
+ * a login response (CUST-27, account-enumeration boundary).
+ */
+export class AuthenticationError extends Error {
+  readonly statusCode = 401;
+
+  constructor(message = 'Invalid email or password') {
+    super(message);
+    this.name = 'AuthenticationError';
+  }
+}
+
+export interface CustomerAccountRecord {
+  id: string;
+  customerId: string;
+  nameWithInitials: string;
+  countryCode: string;
+  dialCode: string;
+  mobileNumber: string;
+  email: string;
+  passwordHash: string;
+  passwordSalt: string;
+  status: 'active';
+  verificationState: 'unverified';
+  createdAt: string;
+  updatedAt: string;
+  passwordUpdatedAt: string;
+}
+
+export interface PasswordResetOutboxRecord {
+  token: string;
+  email: string;
+  issuedAt: string;
+  expiresAt: string;
+  consumed: boolean;
+}
+
+export interface CustomerAccountProjection {
+  id: string;
+  customerId: string;
+  nameWithInitials: string;
+  countryCode: string;
+  dialCode: string;
+  mobileNumber: string;
+  email: string;
+  status: string;
+  verificationState: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface RegisterCustomerRequest {
+  nameWithInitials: string;
+  countryCode: string;
+  mobileNumber: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+  confirmNewPassword: string;
+}
+
+export interface PasswordResetRequest {
+  email: string;
+}
+
+export interface ConfirmPasswordResetRequest {
+  token: string;
+  newPassword: string;
+  confirmNewPassword: string;
+}
+
+export interface CountryOption {
+  isoCode: string;
+  name: string;
+  dialCode: string;
+}
+
+export interface CountriesResponse {
+  items: CountryOption[];
+}
+
+const SCRYPT_KEY_LENGTH = 64;
+
+/** Salted `scrypt` derivation (`node:crypto`), server-side only. */
+function hashPassword(password: string): { hash: string; salt: string } {
+  const salt = randomBytes(16).toString('hex');
+  const hash = scryptSync(password, salt, SCRYPT_KEY_LENGTH).toString('hex');
+  return { hash, salt };
+}
+
+/** Constant-length comparison against the stored derivation. */
+function verifyPassword(password: string, hash: string, salt: string): boolean {
+  const candidate = scryptSync(password, salt, SCRYPT_KEY_LENGTH);
+  const stored = Buffer.from(hash, 'hex');
+  if (candidate.length !== stored.length) return false;
+  return timingSafeEqual(candidate, stored);
+}
+
+// A fixed dummy derivation, computed once at module load, so an unknown
+// email still performs a `scrypt` comparison before the login route
+// responds — the same generic 401 either way, with no obviously-faster path
+// for an unregistered address (CUST-27 account-enumeration boundary).
+const DUMMY_PASSWORD_DERIVATION = hashPassword('unknown-account-timing-parity');
+
+/**
+ * D02-ASM-005: minimum 12 characters, no maximum below 128, at least one
+ * letter and one digit, no forced rotation and no further composition rule.
+ * Declared once here and enforced authoritatively by the Mock API; the
+ * shared `packages/validation` copy is Phase 2.12 T002's responsibility.
+ */
+function validatePasswordPolicy(password: string): string | null {
+  if (typeof password !== 'string' || password.length < 12) {
+    return 'Password must be at least 12 characters long';
+  }
+  if (password.length > 128) {
+    return 'Password must be no more than 128 characters long';
+  }
+  if (!/[A-Za-z]/.test(password)) {
+    return 'Password must contain at least one letter';
+  }
+  if (!/[0-9]/.test(password)) {
+    return 'Password must contain at least one digit';
+  }
+  return null;
+}
+
+function normalizeEmail(email: unknown): string {
+  return typeof email === 'string' ? email.trim().toLowerCase() : '';
+}
+
+interface ValidatedRegistration {
+  nameWithInitials: string;
+  countryCode: string;
+  dialCode: string;
+  mobileNumber: string;
+  email: string;
+  password: string;
+}
+
+function validateRegisterCustomerRequest(request: RegisterCustomerRequest, countries: readonly CountryOption[]): ValidatedRegistration {
+  const nameWithInitials = typeof request?.nameWithInitials === 'string' ? request.nameWithInitials.trim() : '';
+  if (!nameWithInitials) {
+    throw new AccountRequestError(400, 'Name with initials is required', 'nameWithInitials');
+  }
+
+  const countryCode = typeof request?.countryCode === 'string' ? request.countryCode.trim().toUpperCase() : '';
+  const country = countries.find((c) => c.isoCode === countryCode);
+  if (!country) {
+    throw new AccountRequestError(400, 'A valid country is required', 'countryCode');
+  }
+
+  const mobileNumber = typeof request?.mobileNumber === 'string' ? request.mobileNumber.trim() : '';
+  if (!mobileNumber || !/^[0-9]{4,15}$/.test(mobileNumber)) {
+    throw new AccountRequestError(400, 'A valid mobile number is required', 'mobileNumber');
+  }
+
+  const rawEmail = typeof request?.email === 'string' ? request.email.trim() : '';
+  if (!rawEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rawEmail)) {
+    throw new AccountRequestError(400, 'A valid email address is required', 'email');
+  }
+
+  const password = typeof request?.password === 'string' ? request.password : '';
+  const policyError = validatePasswordPolicy(password);
+  if (policyError) {
+    throw new AccountRequestError(400, policyError, 'password');
+  }
+
+  const confirmPassword = typeof request?.confirmPassword === 'string' ? request.confirmPassword : '';
+  if (password !== confirmPassword) {
+    throw new AccountRequestError(400, 'Passwords do not match', 'confirmPassword');
+  }
+
+  return {
+    nameWithInitials,
+    countryCode,
+    dialCode: country.dialCode,
+    mobileNumber,
+    email: normalizeEmail(rawEmail),
+    password,
+  };
+}
+
+function toCustomerAccountProjection(record: CustomerAccountRecord): CustomerAccountProjection {
+  return {
+    id: record.id,
+    customerId: record.customerId,
+    nameWithInitials: record.nameWithInitials,
+    countryCode: record.countryCode,
+    dialCode: record.dialCode,
+    mobileNumber: record.mobileNumber,
+    email: record.email,
+    status: record.status,
+    verificationState: record.verificationState,
+    createdAt: record.createdAt,
+    updatedAt: record.updatedAt,
+  };
+}
+
+function generateAccountId(): string {
+  return `acct-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function generateCustomerId(): string {
+  return `cust-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function performRegisterCustomerAccount(
+  accounts: CustomerAccountRecord[],
+  request: RegisterCustomerRequest,
+  nowISO: string
+): CustomerAccountRecord {
+  const validated = validateRegisterCustomerRequest(request, COUNTRIES);
+  const existing = accounts.find((a) => a.email === validated.email);
+  if (existing) {
+    throw new AccountRequestError(409, 'An account with this email already exists', 'email');
+  }
+  const { hash, salt } = hashPassword(validated.password);
+  return {
+    id: generateAccountId(),
+    customerId: generateCustomerId(),
+    nameWithInitials: validated.nameWithInitials,
+    countryCode: validated.countryCode,
+    dialCode: validated.dialCode,
+    mobileNumber: validated.mobileNumber,
+    email: validated.email,
+    passwordHash: hash,
+    passwordSalt: salt,
+    status: 'active',
+    verificationState: 'unverified',
+    createdAt: nowISO,
+    updatedAt: nowISO,
+    passwordUpdatedAt: nowISO,
+  };
+}
+
+function performAuthenticateCustomer(accounts: CustomerAccountRecord[], request: LoginRequest): CustomerAccountRecord {
+  const email = normalizeEmail(request?.email);
+  const password = typeof request?.password === 'string' ? request.password : '';
+  const account = accounts.find((a) => a.email === email);
+  if (!account) {
+    verifyPassword(password, DUMMY_PASSWORD_DERIVATION.hash, DUMMY_PASSWORD_DERIVATION.salt);
+    throw new AuthenticationError();
+  }
+  if (!verifyPassword(password, account.passwordHash, account.passwordSalt)) {
+    throw new AuthenticationError();
+  }
+  return account;
+}
+
+function performChangeCustomerPassword(
+  accounts: CustomerAccountRecord[],
+  customerId: string,
+  request: ChangePasswordRequest,
+  nowISO: string
+): void {
+  const account = accounts.find((a) => a.customerId === customerId);
+  if (!account) {
+    throw new AuthenticationError('Current password is incorrect');
+  }
+  const currentPassword = typeof request?.currentPassword === 'string' ? request.currentPassword : '';
+  if (!verifyPassword(currentPassword, account.passwordHash, account.passwordSalt)) {
+    throw new AuthenticationError('Current password is incorrect');
+  }
+  const newPassword = typeof request?.newPassword === 'string' ? request.newPassword : '';
+  const policyError = validatePasswordPolicy(newPassword);
+  if (policyError) {
+    throw new AccountRequestError(400, policyError, 'newPassword');
+  }
+  const confirmNewPassword = typeof request?.confirmNewPassword === 'string' ? request.confirmNewPassword : '';
+  if (newPassword !== confirmNewPassword) {
+    throw new AccountRequestError(400, 'Passwords do not match', 'confirmNewPassword');
+  }
+  const { hash, salt } = hashPassword(newPassword);
+  account.passwordHash = hash;
+  account.passwordSalt = salt;
+  account.passwordUpdatedAt = nowISO;
+  account.updatedAt = nowISO;
+}
+
+const PASSWORD_RESET_TOKEN_TTL_MINUTES = 30;
+
+function performRequestPasswordReset(
+  accounts: CustomerAccountRecord[],
+  outbox: PasswordResetOutboxRecord[],
+  request: PasswordResetRequest,
+  nowISO: string
+): void {
+  const email = normalizeEmail(request?.email);
+  const account = accounts.find((a) => a.email === email);
+  // Always a silent no-op for an unknown email — the caller always responds
+  // 202 regardless (D02-ASM-007 account-enumeration boundary).
+  if (!account) return;
+  const token = randomBytes(24).toString('hex');
+  const expiresAt = new Date(new Date(nowISO).getTime() + PASSWORD_RESET_TOKEN_TTL_MINUTES * 60 * 1000).toISOString();
+  outbox.push({ token, email, issuedAt: nowISO, expiresAt, consumed: false });
+}
+
+function performConfirmPasswordReset(
+  accounts: CustomerAccountRecord[],
+  outbox: PasswordResetOutboxRecord[],
+  request: ConfirmPasswordResetRequest,
+  nowISO: string
+): void {
+  const token = typeof request?.token === 'string' ? request.token : '';
+  const entry = outbox.find((o) => o.token === token);
+  if (!entry) {
+    throw new AccountRequestError(400, 'Invalid or expired reset token', 'token');
+  }
+  if (entry.consumed) {
+    throw new AccountRequestError(400, 'Reset token has already been used', 'token');
+  }
+  if (new Date(entry.expiresAt).getTime() <= new Date(nowISO).getTime()) {
+    throw new AccountRequestError(400, 'Reset token has expired', 'token');
+  }
+
+  const newPassword = typeof request?.newPassword === 'string' ? request.newPassword : '';
+  const policyError = validatePasswordPolicy(newPassword);
+  if (policyError) {
+    throw new AccountRequestError(400, policyError, 'newPassword');
+  }
+  const confirmNewPassword = typeof request?.confirmNewPassword === 'string' ? request.confirmNewPassword : '';
+  if (newPassword !== confirmNewPassword) {
+    throw new AccountRequestError(400, 'Passwords do not match', 'confirmNewPassword');
+  }
+
+  const account = accounts.find((a) => a.email === entry.email);
+  if (!account) {
+    throw new AccountRequestError(400, 'Invalid or expired reset token', 'token');
+  }
+
+  const { hash, salt } = hashPassword(newPassword);
+  account.passwordHash = hash;
+  account.passwordSalt = salt;
+  account.passwordUpdatedAt = nowISO;
+  account.updatedAt = nowISO;
+  entry.consumed = true;
+}
+
+const SEED_CUSTOMER_ACCOUNT_EMAIL = 'demo.customer@carchief.com';
+// Fixture-only credential bound to the seeded `cust-123` identity so every
+// existing Delivery 02 customer suite keeps a working sign-in. Never a
+// production secret — mock/dev-only, and only ever stored as its scrypt hash.
+const SEED_CUSTOMER_ACCOUNT_PASSWORD = 'CarChief#Fixture2026';
+
+function buildSeedCustomerAccount(): CustomerAccountRecord {
+  const { hash, salt } = hashPassword(SEED_CUSTOMER_ACCOUNT_PASSWORD);
+  const seedTimestamp = '2026-01-01T00:00:00.000Z';
+  return {
+    id: 'acct-cust-123',
+    customerId: 'cust-123',
+    nameWithInitials: 'J. K. Demo',
+    countryCode: 'UG',
+    dialCode: '+256',
+    mobileNumber: '700000000',
+    email: SEED_CUSTOMER_ACCOUNT_EMAIL,
+    passwordHash: hash,
+    passwordSalt: salt,
+    status: 'active',
+    verificationState: 'unverified',
+    createdAt: seedTimestamp,
+    updatedAt: seedTimestamp,
+    passwordUpdatedAt: seedTimestamp,
+  };
+}
 
 // --- Phase 1.5: freight destination, port and rate lookup (D01-ASM-001) ---
 //
@@ -1216,6 +2289,25 @@ export interface EnquiryRecord {
   preferredDriveSide?: EnquiryPreferredDriveSide;
   preferredYear?: number;
   targetPriceUsd?: number;
+  customerId?: string;
+}
+
+/** Wishlist item internal record (D02-P13-T002, CUST-36). */
+export interface WishlistItemRecord {
+  id: string;
+  customerId: string;
+  vehicleId: string;
+  vehicleSlug: string;
+  createdAt: string;
+}
+
+/** Favourite search internal record (D02-P13-T002, CUST-38/CUST-39). */
+export interface FavouriteSearchRecord {
+  id: string;
+  customerId: string;
+  name: string;
+  criteriaJson: string; // Stored as JSON string for easy DB persistence
+  createdAt: string;
 }
 
 interface PreparedEnquiry {
@@ -1233,6 +2325,7 @@ interface PreparedEnquiry {
   preferredDriveSide?: EnquiryPreferredDriveSide;
   preferredYear?: number;
   targetPriceUsd?: number;
+  customerId?: string;
 }
 
 function requireNonEmptyString(value: unknown, field: string, label: string): string {
@@ -1246,7 +2339,8 @@ function requireNonEmptyString(value: unknown, field: string, label: string): st
  * Validates and normalizes an enquiry request, resolving an optional vehicle
  * link and an optional server-side freight rate-lookup snapshot. Throws a
  * field-associated `EnquiryRequestError` (400) for anything invalid — never
- * silently drops or substitutes a value.
+ * silently drops or substitutes a value. `customerId` is accepted as a
+ * trusted parameter from the route handler (never from the request body).
  */
 export function prepareEnquiry(
   vehicles: VehicleRecord[],
@@ -1254,7 +2348,8 @@ export function prepareEnquiry(
   ports: FreightPort[],
   records: FreightRateRecord[],
   request: EnquiryRequest,
-  nowISO: string
+  nowISO: string,
+  customerId?: string
 ): PreparedEnquiry {
   if (!request || typeof request !== 'object') {
     throw new EnquiryRequestError(400, 'A request body is required');
@@ -1394,18 +2489,21 @@ export function prepareEnquiry(
     preferredDriveSide,
     preferredYear,
     targetPriceUsd,
+    customerId,
   };
 }
 
 /**
  * A resubmission is the same enquiry, not a new lead: identical contact
- * email, vehicle, destination/port and message text collapse to one stored
- * record (RULE-08) rather than creating unlimited duplicates from a
- * double-click or retry.
+ * identifier (customerId for authenticated submitters, email for anonymous),
+ * vehicle, destination/port and message text collapse to one stored record
+ * (RULE-08) rather than creating unlimited duplicates from a double-click or
+ * retry. This keying prevents two different customers sharing an email from
+ * being incorrectly collapsed into one row.
  */
 export function buildEnquiryDedupeKey(prepared: PreparedEnquiry): string {
   return [
-    prepared.email.trim().toLowerCase(),
+    prepared.customerId ?? prepared.email.trim().toLowerCase(),
     prepared.vehicleSlug ?? '',
     prepared.estimateSnapshot?.destinationCode ?? '',
     prepared.estimateSnapshot?.portCode ?? '',
@@ -1420,7 +2518,7 @@ export function buildEnquiryDedupeKey(prepared: PreparedEnquiry): string {
 }
 
 const ENQUIRY_SELECT_COLUMNS =
-  'SELECT id, dedupe_key, name, email, phone, message, consent, vehicle_slug, destination_code, port_code, rate_status, currency, rate_effective_from, rate_effective_to, estimate_message, received_at, enquiry_type, source, duplicate_resubmission_count, preferred_make, preferred_model, preferred_drive_side, preferred_year, target_price_usd';
+  'SELECT id, dedupe_key, name, email, phone, message, consent, vehicle_slug, destination_code, port_code, rate_status, currency, rate_effective_from, rate_effective_to, estimate_message, received_at, enquiry_type, source, duplicate_resubmission_count, preferred_make, preferred_model, preferred_drive_side, preferred_year, target_price_usd, customer_id';
 
 function rowToEnquiryRecord(row: Record<string, unknown>): EnquiryRecord {
   const destinationCode = row.destination_code as string | null;
@@ -1443,6 +2541,7 @@ function rowToEnquiryRecord(row: Record<string, unknown>): EnquiryRecord {
     preferredDriveSide: (row.preferred_drive_side as EnquiryPreferredDriveSide | null) || undefined,
     preferredYear: row.preferred_year !== undefined && row.preferred_year !== null ? Number(row.preferred_year) : undefined,
     targetPriceUsd: row.target_price_usd !== undefined && row.target_price_usd !== null ? Number(row.target_price_usd) : undefined,
+    customerId: (row.customer_id as string | null) || undefined,
     estimateSnapshot:
       destinationCode && portCode
         ? {
@@ -1468,6 +2567,7 @@ function toEnquiryResponse(record: EnquiryRecord, duplicate: boolean): EnquiryRe
     source: record.source,
     vehicleSlug: record.vehicleSlug,
     estimateSnapshot: record.estimateSnapshot,
+    customerId: record.customerId,
   };
 }
 
@@ -2039,7 +3139,17 @@ export const seedReservations: ReservationRecord[] = [
   {
     id: 'res-seed-active-cust-1',
     vehicleId: 'veh-6',
-    vehicleSlug: '2018-mitsubishi-fuso-canter-veh-6',
+    vehicleSlug: '2024-toyota-land-cruiser-250-veh-6',
+    customerId: 'cust-123',
+    customerEmail: 'customer@example.com',
+    createdAt: '2026-08-10T08:00:00.000Z',
+    expiresAt: '2026-08-12T08:00:00.000Z', // Active relative to 2026-08-10 reference date (48-hour hold)
+    holdHours: 48,
+  },
+  {
+    id: 'res-seed-active-cust-2',
+    vehicleId: 'veh-7',
+    vehicleSlug: '2024-toyota-raize-veh-7',
     customerId: 'cust-123',
     customerEmail: 'customer@example.com',
     createdAt: '2026-08-10T08:00:00.000Z',
@@ -2213,43 +3323,23 @@ export interface PaymentNotificationRecord {
 }
 
 const seedInvoices: InvoiceRecord[] = [
-  // Active customer (cust-123): 3 invoices
-  {
-    id: 'inv-001',
-    customerId: 'cust-123',
-    vehicleId: 'veh-1',
-    vehicleSlug: '2021-toyota-corolla-axio-veh-1',
-    make: 'Toyota',
-    model: 'Corolla Axio',
-    year: 2021,
-    totalAmountUsd: 8500.00,
-    invoicedAt: '2026-08-10T10:00:00.000Z',
-    status: 'Issued',
-  },
-  {
-    id: 'inv-002',
-    customerId: 'cust-123',
-    vehicleId: 'veh-2',
-    vehicleSlug: '2020-toyota-hiace-van-veh-2',
-    make: 'Toyota',
-    model: 'HiAce Van',
-    year: 2020,
-    totalAmountUsd: 14200.00,
-    invoicedAt: '2026-08-09T14:30:00.000Z',
-    status: 'Issued',
-  },
-  {
-    id: 'inv-003',
-    customerId: 'cust-123',
-    vehicleId: 'veh-3',
-    vehicleSlug: '2022-nissan-x-trail-veh-3',
-    make: 'Nissan',
-    model: 'X-Trail',
-    year: 2022,
-    totalAmountUsd: 19500.00,
-    invoicedAt: '2026-08-11T09:00:00.000Z',
-    status: 'Issued',
-  },
+  // 16 Invoiced vehicles for cust-123 (matching Image 2)
+  { id: 'inv-001', customerId: 'cust-123', vehicleId: 'veh-inv-1', vehicleSlug: '2021-toyota-corolla-fielder-veh-inv-1', make: 'Toyota', model: 'Corolla Fielder', year: 2021, totalAmountUsd: 17360.00, invoicedAt: '2026-08-10T10:00:00.000Z', status: 'Issued' },
+  { id: 'inv-002', customerId: 'cust-123', vehicleId: 'veh-inv-2', vehicleSlug: '2013-mazda-demio-veh-inv-2', make: 'Mazda', model: 'Demio', year: 2013, totalAmountUsd: 7840.00, invoicedAt: '2026-08-10T10:00:00.000Z', status: 'Issued' },
+  { id: 'inv-003', customerId: 'cust-123', vehicleId: 'veh-inv-3', vehicleSlug: '2013-toyota-premio-veh-inv-3', make: 'Toyota', model: 'Premio', year: 2013, totalAmountUsd: 9690.00, invoicedAt: '2026-08-10T10:00:00.000Z', status: 'Issued' },
+  { id: 'inv-005', customerId: 'cust-123', vehicleId: 'veh-inv-5', vehicleSlug: '2019-suzuki-alto-veh-inv-5', make: 'Suzuki', model: 'Alto', year: 2019, totalAmountUsd: 12780.00, invoicedAt: '2026-08-10T10:00:00.000Z', status: 'Issued' },
+  { id: 'inv-006', customerId: 'cust-123', vehicleId: 'veh-inv-6', vehicleSlug: '2019-toyota-succeed-van-veh-inv-6', make: 'Toyota', model: 'Succeed Van', year: 2019, totalAmountUsd: 13770.00, invoicedAt: '2026-08-10T10:00:00.000Z', status: 'Issued' },
+  { id: 'inv-007', customerId: 'cust-123', vehicleId: 'veh-inv-7', vehicleSlug: '2013-volvo-v40-veh-inv-7', make: 'Volvo', model: 'V40', year: 2013, totalAmountUsd: 10800.00, invoicedAt: '2026-08-10T10:00:00.000Z', status: 'Issued' },
+  { id: 'inv-008', customerId: 'cust-123', vehicleId: 'veh-inv-8', vehicleSlug: '2013-volvo-v40-veh-inv-8', make: 'Volvo', model: 'V40', year: 2013, totalAmountUsd: 10800.00, invoicedAt: '2026-08-10T10:00:00.000Z', status: 'Issued' },
+  { id: 'inv-009', customerId: 'cust-123', vehicleId: 'veh-inv-9', vehicleSlug: '2013-toyota-corolla-fielder-veh-inv-9', make: 'Toyota', model: 'Corolla Fielder', year: 2013, totalAmountUsd: 12400.00, invoicedAt: '2026-08-10T10:00:00.000Z', status: 'Issued' },
+  { id: 'inv-010', customerId: 'cust-123', vehicleId: 'veh-inv-10', vehicleSlug: '2013-toyota-premio-veh-inv-10', make: 'Toyota', model: 'Premio', year: 2013, totalAmountUsd: 9690.00, invoicedAt: '2026-08-10T10:00:00.000Z', status: 'Issued' },
+  { id: 'inv-011', customerId: 'cust-123', vehicleId: 'veh-inv-11', vehicleSlug: '2023-audi-r8-coupe-v10-performance-veh-inv-11', make: 'Audi', model: 'R8 Coupe V10 Performance', year: 2023, totalAmountUsd: 145000.00, invoicedAt: '2026-08-10T10:00:00.000Z', status: 'Issued' },
+  { id: 'inv-012', customerId: 'cust-123', vehicleId: 'veh-inv-12', vehicleSlug: '2024-porsche-911-gt3-rs-veh-inv-12', make: 'Porsche', model: '911 GT3 RS', year: 2024, totalAmountUsd: 220000.00, invoicedAt: '2026-08-10T10:00:00.000Z', status: 'Issued' },
+  { id: 'inv-013', customerId: 'cust-123', vehicleId: 'veh-inv-13', vehicleSlug: '2023-tesla-model-s-plaid-veh-inv-13', make: 'Tesla', model: 'Model S Plaid', year: 2023, totalAmountUsd: 89000.00, invoicedAt: '2026-08-10T10:00:00.000Z', status: 'Issued' },
+  { id: 'inv-014', customerId: 'cust-123', vehicleId: 'veh-inv-14', vehicleSlug: '2024-land-rover-range-rover-sport-sv-veh-inv-14', make: 'Land Rover', model: 'Range Rover Sport SV', year: 2024, totalAmountUsd: 130000.00, invoicedAt: '2026-08-10T10:00:00.000Z', status: 'Issued' },
+  { id: 'inv-015', customerId: 'cust-123', vehicleId: 'veh-inv-15', vehicleSlug: '2012-mazda-demio-veh-inv-15', make: 'Mazda', model: 'Demio', year: 2012, totalAmountUsd: 6500.00, invoicedAt: '2026-08-10T10:00:00.000Z', status: 'Issued' },
+  { id: 'inv-016', customerId: 'cust-123', vehicleId: 'veh-2', vehicleSlug: '2020-toyota-hiace-van-veh-2', make: 'Toyota', model: 'HiAce Van', year: 2020, totalAmountUsd: 14200.00, invoicedAt: '2026-08-09T14:30:00.000Z', status: 'Issued' },
+  { id: 'inv-017', customerId: 'cust-123', vehicleId: 'veh-inv-4', vehicleSlug: '2013-volkswagen-golf-veh-inv-4', make: 'Volkswagen', model: 'Golf', year: 2013, totalAmountUsd: 11200.00, invoicedAt: '2026-08-10T10:00:00.000Z', status: 'Issued' },
   // Exception customer (cust-exception-001): 1 invoice
   {
     id: 'inv-004',
@@ -2290,6 +3380,24 @@ const seedAllocations: AllocationRecord[] = [
     paymentId: 'pay-003',
     invoiceId: 'inv-002',
     amountUsd: 7000.00,
+    allocatedAt: '2026-08-12T14:00:00.000Z',
+    status: 'Approved',
+  },
+  {
+    id: 'alloc-004',
+    customerId: 'cust-123',
+    paymentId: 'pay-006',
+    invoiceId: 'inv-005',
+    amountUsd: 12780.00,
+    allocatedAt: '2026-08-12T14:00:00.000Z',
+    status: 'Approved',
+  },
+  {
+    id: 'alloc-005',
+    customerId: 'cust-123',
+    paymentId: 'pay-007',
+    invoiceId: 'inv-016',
+    amountUsd: 7100.00,
     allocatedAt: '2026-08-12T14:00:00.000Z',
     status: 'Approved',
   },
@@ -2360,7 +3468,7 @@ const seedShipments: ShipmentRecord[] = [
   {
     id: 'ship-001',
     customerId: 'cust-123',
-    vehicleId: 'veh-1',
+    vehicleId: 'veh-inv-1',
     status: 'Ready',
     shippedAt: '2026-08-10T10:00:00.000Z',
     eta: '2026-08-20T10:00:00.000Z',
@@ -2384,7 +3492,7 @@ const seedShipments: ShipmentRecord[] = [
   {
     id: 'ship-003',
     customerId: 'cust-123',
-    vehicleId: 'veh-3',
+    vehicleId: 'veh-inv-2',
     status: 'Delivered',
     shippedAt: '2026-08-11T09:00:00.000Z',
     deliveredAt: '2026-08-14T08:00:00.000Z',
@@ -2557,14 +3665,79 @@ const seedProformaInvoices: ProformaInvoiceRecord[] = [
   {
     id: 'pi-001',
     customerId: 'cust-123',
-    vehicleId: 'veh-5',
-    vehicleSlug: '2021-honda-fit-hybrid-veh-5',
-    make: 'Honda',
-    model: 'Fit Hybrid',
-    year: 2021,
-    totalAmountUsd: 7900.00,
+    vehicleId: 'veh-pi-1',
+    vehicleSlug: '2013-volvo-v40-veh-pi-1',
+    make: 'Volvo',
+    model: 'V40',
+    year: 2013,
+    totalAmountUsd: 10800.00,
     issuedAt: '2026-08-10T10:00:00.000Z',
-    paymentDeadline: '2026-08-13T10:00:00.000Z',
+    paymentDeadline: '2026-08-15T10:00:00.000Z',
+    status: 'Issued',
+  },
+  {
+    id: 'pi-002',
+    customerId: 'cust-123',
+    vehicleId: 'veh-pi-2',
+    vehicleSlug: '2019-mazda-cx-8-veh-pi-2',
+    make: 'Mazda',
+    model: 'CX-8',
+    year: 2019,
+    totalAmountUsd: 10192.00,
+    issuedAt: '2026-08-10T10:00:00.000Z',
+    paymentDeadline: '2026-08-15T10:00:00.000Z',
+    status: 'Issued',
+  },
+  {
+    id: 'pi-003',
+    customerId: 'cust-123',
+    vehicleId: 'veh-pi-3',
+    vehicleSlug: '2019-subaru-impreza-wagon-veh-pi-3',
+    make: 'Subaru',
+    model: 'Impreza Wagon',
+    year: 2019,
+    totalAmountUsd: 12480.00,
+    issuedAt: '2026-08-10T10:00:00.000Z',
+    paymentDeadline: '2026-08-15T10:00:00.000Z',
+    status: 'Issued',
+  },
+  {
+    id: 'pi-004',
+    customerId: 'cust-123',
+    vehicleId: 'veh-pi-4',
+    vehicleSlug: '2013-volvo-v40-veh-pi-4',
+    make: 'Volvo',
+    model: 'V40',
+    year: 2013,
+    totalAmountUsd: 10800.00,
+    issuedAt: '2026-08-10T10:00:00.000Z',
+    paymentDeadline: '2026-08-15T10:00:00.000Z',
+    status: 'Issued',
+  },
+  {
+    id: 'pi-005',
+    customerId: 'cust-123',
+    vehicleId: 'veh-pi-5',
+    vehicleSlug: '2019-suzuki-alto-veh-pi-5',
+    make: 'Suzuki',
+    model: 'Alto',
+    year: 2019,
+    totalAmountUsd: 12480.00,
+    issuedAt: '2026-08-10T10:00:00.000Z',
+    paymentDeadline: '2026-08-15T10:00:00.000Z',
+    status: 'Issued',
+  },
+  {
+    id: 'pi-006',
+    customerId: 'cust-123',
+    vehicleId: 'veh-pi-6',
+    vehicleSlug: '2015-mazda-cx-3-veh-pi-6',
+    make: 'Mazda',
+    model: 'CX-3',
+    year: 2015,
+    totalAmountUsd: 8624.00,
+    issuedAt: '2026-08-10T10:00:00.000Z',
+    paymentDeadline: '2026-08-15T10:00:00.000Z',
     status: 'Issued',
   },
 ];
@@ -2588,7 +3761,7 @@ export function buildCustomerVehicleProjections(
   allocations: AllocationRecord[],
   shipments: ShipmentRecord[],
   documents: DocumentRecord[],
-  nowISO: string = new Date().toISOString()
+  nowISO: string = '2026-08-10T10:00:00.000Z'
 ): CustomerVehicleDetail[] {
   const relevantVehicleIds = new Set<string>();
 
@@ -2742,6 +3915,26 @@ export function buildCustomerVehicleProjections(
       });
     }
 
+    // Commercial bill calculation for invoiced vehicles
+    let commercialBill: CustomerCommercialBillInfo | undefined;
+    if (inv || status === 'Confirmed' || status === 'In Transit' || status === 'Delivered') {
+      const soldAmountUsd = totalAmountUsd;
+      const balanceAmountUsd = Math.max(0, soldAmountUsd - paidAmountUsd);
+      commercialBill = {
+        soldAmountUsd,
+        paidAmountUsd,
+        balanceAmountUsd,
+      };
+    }
+
+    const stockNumber = vehicle.stockNumber || `STK: ${vehicle.chassisNumber.slice(0, 6)}`;
+    const color = vehicle.color || 'White';
+    const colorSpec = vehicle.spec || vehicle.color || 'White';
+    const mileage = vehicle.mileage || 50000;
+    const logisticsStatus = vehicle.logisticsStatus || (status === 'Delivered' ? 'DELIVERED' : status === 'In Transit' ? 'IN TRANSIT' : status === 'Confirmed' ? 'INSPECTION' : 'RESERVED');
+    const piRef = pi ? `PI-${stockNumber.replace(/^STK:\s*/, '')}` : (status === 'Under Negotiation With PI' ? `PI-${stockNumber.replace(/^STK:\s*/, '')}` : undefined);
+    const shippingStage = status === 'Delivered' ? 'Delivered' : status === 'In Transit' ? 'In Transit' : status === 'Confirmed' ? 'Inspection' : 'Reserved';
+
     const detail: CustomerVehicleDetail = {
       id: vId,
       vehicleId: vId,
@@ -2765,13 +3958,20 @@ export function buildCustomerVehicleProjections(
       fuelType: vehicle.fuelType,
       transmission: vehicle.transmission,
       driveTrain: vehicle.driveTrain,
-      mileage: vehicle.mileage,
+      mileage,
       invoiceId: inv?.id,
       shipmentId: shipment?.id,
       vesselName: shipment ? 'Global Highway' : undefined,
       etd: vehicle.etd,
       eta: vehicle.eta,
       billOfLadingNo: shipment ? 'BL-789012' : undefined,
+      stockNumber,
+      color,
+      colorSpec,
+      logisticsStatus,
+      piRef,
+      commercialBill,
+      shippingStage,
       statusHistory,
       documents: docs,
       createdAt: vehicle.createdAt || '2026-08-09T10:00:00.000Z',
@@ -2801,7 +4001,15 @@ export function queryCustomerVehicles(
 
   if (query?.status) {
     const s = query.status.trim().toLowerCase();
-    filtered = filtered.filter((v) => v.status.toLowerCase() === s);
+    if (s === 'reserved' || s === 'under negotiation' || s === 'undernegotiation') {
+      filtered = filtered.filter((v) => v.status === 'Under Negotiation');
+    } else if (s === 'with pi' || s === 'reserved with pi' || s === 'withpi' || s === 'under negotiation with pi' || s === 'undernegotiationwithpi') {
+      filtered = filtered.filter((v) => v.status === 'Under Negotiation With PI');
+    } else if (s === 'invoiced') {
+      filtered = filtered.filter((v) => v.status === 'Confirmed' || v.status === 'In Transit' || v.status === 'Delivered');
+    } else {
+      filtered = filtered.filter((v) => v.status.toLowerCase() === s);
+    }
   }
 
   if (query?.query) {
@@ -2810,12 +4018,14 @@ export function queryCustomerVehicles(
       v.make.toLowerCase().includes(q) ||
       v.model.toLowerCase().includes(q) ||
       v.chassisNumber.toLowerCase().includes(q) ||
+      (v.stockNumber && v.stockNumber.toLowerCase().includes(q)) ||
+      (v.color && v.color.toLowerCase().includes(q)) ||
       String(v.year).includes(q)
     );
   }
 
   const page = Math.max(1, query?.page || 1);
-  const limit = Math.max(1, Math.min(100, query?.limit || 20));
+  const limit = Math.max(1, Math.min(100, query?.limit || 100));
   const startIndex = (page - 1) * limit;
   const paginated = filtered.slice(startIndex, startIndex + limit);
 
@@ -2837,6 +4047,14 @@ export function queryCustomerVehicles(
     proformaInvoiceId: d.proformaInvoiceId,
     paymentDeadline: d.paymentDeadline,
     deposit: d.deposit,
+    stockNumber: d.stockNumber,
+    color: d.color,
+    colorSpec: d.colorSpec,
+    mileage: d.mileage,
+    logisticsStatus: d.logisticsStatus,
+    piRef: d.piRef,
+    commercialBill: d.commercialBill,
+    shippingStage: d.shippingStage,
     createdAt: d.createdAt,
     updatedAt: d.updatedAt,
   }));
@@ -2859,7 +4077,7 @@ export function buildCustomerInvoiceProjections(
   allocations: AllocationRecord[],
   vehicles: VehicleRecord[],
   documents: DocumentRecord[],
-  nowISO: string = new Date().toISOString()
+  nowISO: string = '2026-08-10T10:00:00.000Z'
 ): CustomerInvoiceDetail[] {
   const result: CustomerInvoiceDetail[] = [];
 
@@ -3418,8 +4636,21 @@ function applyPaymentNotification(
   return record;
 }
 
+const SUPPORTED_PAYMENT_CURRENCIES_SET = new Set([
+  'USD',
+  'JPY',
+  'EUR',
+  'GBP',
+  'KES',
+  'AED',
+  'AUD',
+  'CAD',
+  'NZD',
+  'SGD',
+]);
+
 function validatePaymentRequest(request: CreateCustomerPaymentRequest): void {
-  if (!request || !request.invoiceId || !request.reference || !request.bankName || request.currency !== 'USD') throw new Error('Invalid payment or invoice reference');
+  if (!request || !request.invoiceId || !request.reference || !request.bankName || !SUPPORTED_PAYMENT_CURRENCIES_SET.has(request.currency)) throw new Error('Invalid payment or invoice reference');
   if (!Number.isFinite(request.amountUsd) || request.amountUsd <= 0) throw new Error('amountUsd must be greater than zero');
   if (!request.idempotencyKey) throw new Error('idempotencyKey is required');
   if (!request.proof || !['PDF', 'JPG', 'PNG'].includes(request.proof.fileType)) throw new Error('Proof must be PDF, JPG or PNG metadata');
@@ -3434,14 +4665,19 @@ function createPaymentRecord(
   invoices: InvoiceRecord[],
 ): PaymentRecord {
   validatePaymentRequest(request);
-  const invoice = invoices.find((candidate) => candidate.id === request.invoiceId);
-  if (!invoice || invoice.customerId !== customerId) throw new Error('Invoice not found or not owned by customer');
+  let invoice = invoices.find((candidate) => candidate.id === request.invoiceId);
+  if (!invoice && (request.invoiceId === 'INV-GENERAL' || request.invoiceId === 'GENERAL')) {
+    invoice = invoices.find((candidate) => candidate.customerId === customerId);
+  }
+  if (!invoice || invoice.customerId !== customerId) {
+    throw new Error('Invoice not found or not owned by customer');
+  }
   const duplicate = existing.find((payment) => payment.customerId === customerId && payment.idempotencyKey === request.idempotencyKey);
   if (duplicate) return duplicate;
   const record: PaymentRecord = {
     id: `pay-${Date.now()}-${existing.length + 1}`,
     customerId,
-    invoiceId: request.invoiceId,
+    invoiceId: invoice.id,
     amountUsd: request.amountUsd,
     paidAt: request.paymentDate,
     paymentDate: request.paymentDate,
@@ -3481,6 +4717,12 @@ class MemoryStore implements DemoStore {
   private publicPages = seedPublicContentPages.map((p) => ({ ...p }));
   private offices = seedOfficeLocations.map((o) => ({ ...o }));
   private branches = seedBranches.map((b) => ({ ...b }));
+  private customerAccounts: CustomerAccountRecord[] = [buildSeedCustomerAccount()];
+  private passwordResetOutbox: PasswordResetOutboxRecord[] = [];
+  private wishlistItems: WishlistItemRecord[] = [];
+  private wishlistSeq = 0;
+  private favourites: FavouriteSearchRecord[] = [];
+  private favouriteSeq = 0;
 
   ready(): Promise<void> {
     return Promise.resolve();
@@ -3551,8 +4793,8 @@ class MemoryStore implements DemoStore {
     return buildFreightEstimate(freightDestinations, freightPorts, freightRateRecords, request);
   }
 
-  async createEnquiry(request: EnquiryRequest): Promise<EnquiryResponse> {
-    const prepared = prepareEnquiry(this.vehicles, freightDestinations, freightPorts, freightRateRecords, request, FREIGHT_REFERENCE_DATE);
+  async createEnquiry(request: EnquiryRequest, customerId?: string): Promise<EnquiryResponse> {
+    const prepared = prepareEnquiry(this.vehicles, freightDestinations, freightPorts, freightRateRecords, request, FREIGHT_REFERENCE_DATE, customerId);
     const dedupeKey = buildEnquiryDedupeKey(prepared);
 
     const existing = this.enquiries.find((e) => e.dedupeKey === dedupeKey);
@@ -3581,6 +4823,47 @@ class MemoryStore implements DemoStore {
     return Promise.resolve({
       items: this.enquiries.map(toLeadRecord),
       total: this.enquiries.length,
+    });
+  }
+
+  listCustomerInquiries(customerId: string): Promise<CustomerInquiryListResponse> {
+    const enquiries = this.enquiries.filter((e) => e.customerId === customerId && e.enquiryType === 'price-request');
+    const vehicleSlugs = [...new Set(enquiries.map((e) => e.vehicleSlug).filter(Boolean))];
+
+    const items: CustomerInquirySummary[] = vehicleSlugs.map((slug) => {
+      const enquiry = enquiries.find((e) => e.vehicleSlug === slug)!;
+      const vehicle = this.vehicles.find((v) => generateVehicleSlug(v.year, v.make, v.model, v.id) === slug);
+      const inquirerCount = this.enquiries.filter((e) => e.vehicleSlug === slug && e.enquiryType === 'price-request').reduce((acc, e) => {
+        const key = e.customerId ?? e.email;
+        const seen = new Set(acc.map((x) => x));
+        if (!seen.has(key)) {
+          seen.add(key);
+        }
+        return Array.from(seen);
+      }, [] as string[]).length;
+
+      return {
+        vehicleSlug: slug!,
+        vehicleId: vehicle?.id || '',
+        vehicleTitle: vehicle ? `${vehicle.year} ${vehicle.make} ${vehicle.model}` : 'Unknown Vehicle',
+        requestedAt: enquiry.receivedAt,
+        inquirerCount,
+      };
+    });
+
+    return Promise.resolve({ items });
+  }
+
+  getVehicleInquiryAggregate(vehicleSlugOrId: string): Promise<VehicleInquiryAggregate> {
+    const vehicle = findVehicleRecord(this.vehicles, vehicleSlugOrId);
+    const vehicleSlug = vehicle ? generateVehicleSlug(vehicle.year, vehicle.make, vehicle.model, vehicle.id) : vehicleSlugOrId;
+
+    const inquiries = this.enquiries.filter((e) => e.vehicleSlug === vehicleSlug && e.enquiryType === 'price-request');
+    const inquirerKeys = new Set(inquiries.map((e) => e.customerId ?? e.email));
+
+    return Promise.resolve({
+      vehicleSlug,
+      inquirerCount: inquirerKeys.size,
     });
   }
 
@@ -3676,6 +4959,7 @@ class MemoryStore implements DemoStore {
   }
 
   getCustomerDashboard(customerId: string, customerEmail: string): Promise<CustomerDashboard> {
+    this.ensureCustomerFleetInMemory(customerId);
     // Outstanding balance = sum of issued invoices - sum of approved allocations (D02-ASM-001)
     const customerInvoices = this.invoices.filter((i) => i.customerId === customerId && i.status === 'Issued');
     const totalIssuedAmount = customerInvoices.reduce((sum, inv) => sum + inv.totalAmountUsd, 0);
@@ -3768,7 +5052,123 @@ class MemoryStore implements DemoStore {
     });
   }
 
+  private ensureCustomerFleetInMemory(customerId: string): void {
+    if (customerId.startsWith('cust-exception')) return;
+    const isRegistered = this.customerAccounts.some((a) => a.customerId === customerId) || customerId === 'cust-123';
+    if (!isRegistered) return;
+    const hasInvoices = this.invoices.some((i) => i.customerId === customerId);
+    const hasPIs = this.proformaInvoices.some((p) => p.customerId === customerId);
+    const hasReservations = this.reservations.some((r) => r.customerId === customerId);
+
+    if (!hasPIs) {
+      for (const pi of seedProformaInvoices) {
+        this.proformaInvoices.push({
+          ...pi,
+          id: `pi-${customerId}-${pi.id.replace(/^pi-/, '')}`,
+          customerId,
+          paymentDeadline: '2029-01-01T00:00:00.000Z',
+        });
+      }
+    }
+    if (!hasInvoices) {
+      for (const inv of seedInvoices) {
+        if (inv.customerId === 'cust-123') {
+          this.invoices.push({
+            ...inv,
+            id: `inv-${customerId}-${inv.id.replace(/^inv-/, '')}`,
+            customerId,
+          });
+        }
+      }
+      for (const a of seedAllocations) {
+        if (a.customerId === 'cust-123') {
+          this.allocations.push({
+            ...a,
+            id: `alloc-${customerId}-${a.id.replace(/^alloc-/, '')}`,
+            customerId,
+            invoiceId: `inv-${customerId}-${a.invoiceId.replace(/^inv-/, '')}`,
+            paymentId: `pay-${customerId}-${a.paymentId.replace(/^pay-/, '')}`,
+          });
+        }
+      }
+      for (const s of seedShipments) {
+        if (s.customerId === 'cust-123') {
+          this.shipments.push({
+            ...s,
+            id: `ship-${customerId}-${s.id.replace(/^ship-/, '')}`,
+            customerId,
+          });
+        }
+      }
+      for (const d of seedDocuments) {
+        if (d.customerId === 'cust-123') {
+          this.documents.push({
+            ...d,
+            id: `doc-${customerId}-${d.id.replace(/^doc-/, '')}`,
+            customerId,
+            shipmentId: d.shipmentId ? `ship-${customerId}-${d.shipmentId.replace(/^ship-/, '')}` : undefined,
+          });
+        }
+      }
+    }
+    if (!hasReservations) {
+      this.reservations.push(
+        {
+          id: `res-${customerId}-1`,
+          vehicleId: 'veh-1',
+          vehicleSlug: '2021-toyota-corolla-axio-veh-1',
+          customerId,
+          customerEmail: `${customerId}@example.com`,
+          createdAt: '2026-08-10T10:00:00.000Z',
+          expiresAt: '2029-01-01T00:00:00.000Z',
+          holdHours: 48,
+        },
+        {
+          id: `res-${customerId}-2`,
+          vehicleId: 'veh-5',
+          vehicleSlug: '2021-honda-fit-hybrid-veh-5',
+          customerId,
+          customerEmail: `${customerId}@example.com`,
+          createdAt: '2026-08-10T10:00:00.000Z',
+          expiresAt: '2029-01-01T00:00:00.000Z',
+          holdHours: 48,
+        },
+        {
+          id: `res-${customerId}-3`,
+          vehicleId: 'veh-7',
+          vehicleSlug: '2023-lexus-rx450h-veh-7',
+          customerId,
+          customerEmail: `${customerId}@example.com`,
+          createdAt: '2026-08-10T10:00:00.000Z',
+          expiresAt: '2029-01-01T00:00:00.000Z',
+          holdHours: 48,
+        },
+        {
+          id: `res-${customerId}-4`,
+          vehicleId: 'veh-9',
+          vehicleSlug: '2019-mercedes-benz-c200-amg-line-veh-9',
+          customerId,
+          customerEmail: `${customerId}@example.com`,
+          createdAt: '2026-08-10T10:00:00.000Z',
+          expiresAt: '2029-01-01T00:00:00.000Z',
+          holdHours: 48,
+        },
+        {
+          id: `res-${customerId}-5`,
+          vehicleId: 'veh-10',
+          vehicleSlug: '2021-bmw-x3-xdrive20d-veh-10',
+          customerId,
+          customerEmail: `${customerId}@example.com`,
+          createdAt: '2026-08-10T10:00:00.000Z',
+          expiresAt: '2029-01-01T00:00:00.000Z',
+          holdHours: 48,
+        }
+      );
+    }
+  }
+
   getCustomerVehicles(customerId: string, query?: ListCustomerVehiclesQuery, nowISO?: string): Promise<CustomerVehicleListResponse> {
+    this.ensureCustomerFleetInMemory(customerId);
     const all = buildCustomerVehicleProjections(
       customerId,
       this.vehicles,
@@ -3778,7 +5178,7 @@ class MemoryStore implements DemoStore {
       this.allocations,
       this.shipments,
       this.documents,
-      nowISO || new Date().toISOString()
+      nowISO
     );
     return Promise.resolve(queryCustomerVehicles(all, query));
   }
@@ -3793,7 +5193,7 @@ class MemoryStore implements DemoStore {
       this.allocations,
       this.shipments,
       this.documents,
-      nowISO || new Date().toISOString()
+      nowISO
     );
     const target = all.find((v) => v.id === idOrSlug || v.vehicleId === idOrSlug || v.slug === idOrSlug);
     return Promise.resolve(target || null);
@@ -3849,6 +5249,15 @@ class MemoryStore implements DemoStore {
     return Promise.resolve({ updatedCount, unreadCount: 0 });
   }
 
+  deleteCustomerNotification(customerId: string, notificationId: string): Promise<boolean> {
+    const index = this.notifications.findIndex((candidate) => candidate.customerId === customerId && candidate.id === notificationId);
+    if (index !== -1) {
+      this.notifications.splice(index, 1);
+      return Promise.resolve(true);
+    }
+    return Promise.resolve(false);
+  }
+
   getCustomerProfile(customerId: string, email: string): Promise<CustomerProfile> {
     const profile = this.customerProfiles.find((candidate) => candidate.customerId === customerId);
     if (!profile) throw new Error('Customer profile not found');
@@ -3876,7 +5285,7 @@ class MemoryStore implements DemoStore {
       this.allocations,
       this.vehicles,
       this.documents,
-      nowISO || new Date().toISOString()
+      nowISO
     );
     return Promise.resolve(queryCustomerInvoices(all, query));
   }
@@ -3889,7 +5298,7 @@ class MemoryStore implements DemoStore {
       this.allocations,
       this.vehicles,
       this.documents,
-      nowISO || new Date().toISOString()
+      nowISO
     );
     const target = all.find((i) => i.id === id || i.invoiceNumber.toLowerCase() === id.toLowerCase());
     return Promise.resolve(target || null);
@@ -3903,7 +5312,7 @@ class MemoryStore implements DemoStore {
       this.allocations,
       this.vehicles,
       this.documents,
-      nowISO || new Date().toISOString()
+      nowISO
     );
     const target = all.find((i) => i.id === id || i.invoiceNumber.toLowerCase() === id.toLowerCase());
     if (!target) return Promise.resolve(null);
@@ -3944,6 +5353,489 @@ class MemoryStore implements DemoStore {
     return Promise.resolve(toCustomerPaymentNotification(applyPaymentNotification(payment, request, this.paymentNotifications, this.allocations, nowISO)));
   }
 
+  async registerCustomerAccount(request: RegisterCustomerRequest, nowISO: string = new Date().toISOString()): Promise<CustomerAccountProjection> {
+    const record = performRegisterCustomerAccount(this.customerAccounts, request, nowISO);
+    this.customerAccounts.push(record);
+    this.customerProfiles.push({
+      customerId: record.customerId,
+      companyName: '',
+      phone: '',
+      deliveryAddress: '',
+      version: 1,
+      updatedAt: nowISO,
+    });
+    return toCustomerAccountProjection(record);
+  }
+
+  async authenticateCustomer(request: LoginRequest): Promise<CustomerAccountProjection> {
+    const account = performAuthenticateCustomer(this.customerAccounts, request);
+    return toCustomerAccountProjection(account);
+  }
+
+  async changeCustomerPassword(customerId: string, request: ChangePasswordRequest, nowISO: string = new Date().toISOString()): Promise<void> {
+    performChangeCustomerPassword(this.customerAccounts, customerId, request, nowISO);
+  }
+
+  async requestPasswordReset(request: PasswordResetRequest, nowISO: string = new Date().toISOString()): Promise<void> {
+    performRequestPasswordReset(this.customerAccounts, this.passwordResetOutbox, request, nowISO);
+  }
+
+  async confirmPasswordReset(request: ConfirmPasswordResetRequest, nowISO: string = new Date().toISOString()): Promise<void> {
+    performConfirmPasswordReset(this.customerAccounts, this.passwordResetOutbox, request, nowISO);
+  }
+
+  async listPasswordResetOutbox(): Promise<PasswordResetOutboxRecord[]> {
+    return this.passwordResetOutbox.map((o) => ({ ...o }));
+  }
+
+  async getCountries(): Promise<CountriesResponse> {
+    return { items: COUNTRIES.map((c) => ({ ...c })) };
+  }
+
+  // --- Phase 2.13: Wishlist and Favourites (D02-P13-T002) ---
+
+  async listWishlist(customerId: string): Promise<WishlistListResponse> {
+    const items = this.wishlistItems
+      .filter((w) => w.customerId === customerId)
+      .map((w) => ({ ...w }));
+    return { items };
+  }
+
+  async toggleWishlist(customerId: string, vehicleSlug: string): Promise<WishlistToggleResponse> {
+    // Find the vehicle to ensure it exists and get its ID
+    const vehicle = findVehicleRecord(this.vehicles, vehicleSlug);
+    if (!vehicle) {
+      throw { statusCode: 404, message: `Vehicle '${vehicleSlug}' not found` };
+    }
+
+    // Check if already in wishlist
+    const existing = this.wishlistItems.find(
+      (w) => w.customerId === customerId && w.vehicleSlug === vehicleSlug
+    );
+
+    if (existing) {
+      // Remove from wishlist
+      const index = this.wishlistItems.indexOf(existing);
+      this.wishlistItems.splice(index, 1);
+      return { wishlisted: false };
+    } else {
+      // Add to wishlist
+      const id = `wish-${Date.now()}-${this.wishlistSeq++}`;
+      const item: WishlistItemRecord = {
+        id,
+        customerId,
+        vehicleId: vehicle.id,
+        vehicleSlug,
+        createdAt: new Date().toISOString(),
+      };
+      this.wishlistItems.push(item);
+      return { wishlisted: true, item };
+    }
+  }
+
+  async listFavourites(customerId: string): Promise<FavouriteSearchListResponse> {
+    const items = this.favourites
+      .filter((f) => f.customerId === customerId)
+      .map((f) => ({
+        id: f.id,
+        customerId: f.customerId,
+        name: f.name,
+        criteria: JSON.parse(f.criteriaJson),
+        createdAt: f.createdAt,
+      }));
+    return { items, limit: 25 };
+  }
+
+  async createFavourite(
+    customerId: string,
+    name: string,
+    criteria: FavouriteSearchCriteria,
+    nowISO?: string
+  ): Promise<FavouriteSearch> {
+    // Validate: at least one non-empty criteria field (D02-ASM-010)
+    const hasAtLeastOne = Object.values(criteria).some((v) => v != null && v !== '' && v !== 0 && v !== false);
+    if (!hasAtLeastOne) {
+      throw { statusCode: 400, message: 'At least one criteria field is required' };
+    }
+
+    // Check 25-favourite cap (CUST-40)
+    const count = this.favourites.filter((f) => f.customerId === customerId).length;
+    if (count >= 25) {
+      throw { statusCode: 409, message: 'Favourite limit exceeded', reason: 'limit_exceeded' };
+    }
+
+    const id = `fav-${Date.now()}-${this.favouriteSeq++}`;
+    const createdAt = nowISO || new Date().toISOString();
+    const record: FavouriteSearchRecord = {
+      id,
+      customerId,
+      name,
+      criteriaJson: JSON.stringify(criteria),
+      createdAt,
+    };
+    this.favourites.push(record);
+
+    return {
+      id,
+      customerId,
+      name,
+      criteria,
+      createdAt,
+    };
+  }
+
+  async deleteFavourite(customerId: string, id: string): Promise<void> {
+    const index = this.favourites.findIndex((f) => f.id === id && f.customerId === customerId);
+    if (index === -1) {
+      throw { statusCode: 404, message: 'Favourite not found' };
+    }
+    this.favourites.splice(index, 1);
+  }
+
+  async getFavouriteFacets(): Promise<FavouriteSearchFacets> {
+    const vehicles = this.vehicles.filter((v) => v.status !== 'Draft');
+
+    const makeMap = new Map<string, number>();
+    const modelMap = new Map<string, number>();
+    const fuelTypeMap = new Map<string, number>();
+    const driveTrainMap = new Map<string, number>();
+    const transmissionMap = new Map<string, number>();
+
+    let minYear = 2026;
+    let maxYear = 1970;
+    let minPrice = Infinity;
+    let maxPrice = -Infinity;
+    let minMileage = Infinity;
+    let maxMileage = -Infinity;
+
+    vehicles.forEach((v) => {
+      if (v.make) makeMap.set(v.make, (makeMap.get(v.make) || 0) + 1);
+      if (v.model) modelMap.set(v.model, (modelMap.get(v.model) || 0) + 1);
+      if (v.fuelType) fuelTypeMap.set(v.fuelType, (fuelTypeMap.get(v.fuelType) || 0) + 1);
+      if (v.driveTrain) driveTrainMap.set(v.driveTrain, (driveTrainMap.get(v.driveTrain) || 0) + 1);
+      if (v.transmission) transmissionMap.set(v.transmission, (transmissionMap.get(v.transmission) || 0) + 1);
+
+      if (v.year) {
+        if (v.year < minYear) minYear = v.year;
+        if (v.year > maxYear) maxYear = v.year;
+      }
+
+      if (v.priceUsd && !v.requestPrice) {
+        if (v.priceUsd < minPrice) minPrice = v.priceUsd;
+        if (v.priceUsd > maxPrice) maxPrice = v.priceUsd;
+      }
+
+      if (v.mileage !== undefined && v.mileage !== null) {
+        if (v.mileage < minMileage) minMileage = v.mileage;
+        if (v.mileage > maxMileage) maxMileage = v.mileage;
+      }
+    });
+
+    const sortFacets = (map: Map<string, number>) =>
+      Array.from(map.entries())
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+
+    return {
+      makes: sortFacets(makeMap),
+      models: sortFacets(modelMap),
+      fuelTypes: sortFacets(fuelTypeMap),
+      driveTrains: sortFacets(driveTrainMap),
+      transmissions: sortFacets(transmissionMap),
+      yearRange: {
+        min: minYear <= maxYear ? minYear : 2015,
+        max: minYear <= maxYear ? maxYear : 2024,
+      },
+      priceRange: {
+        min: minPrice <= maxPrice ? minPrice : 0,
+        max: minPrice <= maxPrice ? maxPrice : 50000,
+      },
+      mileageRange: {
+        min: minMileage <= maxMileage ? minMileage : 0,
+        max: minMileage <= maxMileage ? maxMileage : 100000,
+      },
+      // D02-ASM-008: these four fields have no backing columns today
+      modelCodes: [],
+      engineCcOptions: [],
+      colors: [],
+      steeringOptions: [],
+    };
+  }
+
+  getCustomerStatement(customerId: string, fromDate?: string, toDate?: string): Promise<CustomerStatementSummary> {
+    const openingBalance = 450.00;
+    const entries: CustomerStatementEntry[] = [
+      {
+        id: 'stmt-0',
+        date: fromDate || '2024-09-01',
+        description: 'Opening Balance (Forward from previous cycle)',
+        debitUsd: 0,
+        creditUsd: 0,
+        runningBalanceUsd: openingBalance,
+        isOpeningBalance: true,
+      },
+      {
+        id: 'stmt-1',
+        date: '2024-09-05',
+        description: 'Invoice P-85492 (2021 TOYOTA COROLLA FIELDER)',
+        referenceNo: 'P-85492',
+        debitUsd: 17360,
+        creditUsd: 0,
+        runningBalanceUsd: 17360 - openingBalance,
+      },
+      {
+        id: 'stmt-2',
+        date: '2024-09-10',
+        description: 'Telegraphic Wire Remittance Deposit (TT2400005)',
+        referenceNo: 'TT2400005',
+        debitUsd: 0,
+        creditUsd: 100000,
+        runningBalanceUsd: -83090,
+      },
+      {
+        id: 'stmt-3',
+        date: '2024-09-15',
+        description: 'Commercial Invoice INV-34503 (2024 TOYOTA LAND CRUISER 250)',
+        referenceNo: 'INV-34503',
+        debitUsd: 45000,
+        creditUsd: 0,
+        runningBalanceUsd: -38090,
+      },
+      {
+        id: 'stmt-4',
+        date: '2024-09-22',
+        description: 'Debit Note DN2400008 (Storage & demurrage adjustment)',
+        referenceNo: 'DN2400008',
+        debitUsd: 1000,
+        creditUsd: 0,
+        runningBalanceUsd: -37090,
+      },
+      {
+        id: 'stmt-5',
+        date: '2024-09-30',
+        description: 'Credit Note CR2400005 (Port handling allowance)',
+        referenceNo: 'CR2400005',
+        debitUsd: 0,
+        creditUsd: 400,
+        runningBalanceUsd: -37490,
+      },
+    ];
+
+    let filtered = entries;
+    if (fromDate) {
+      const fromTime = new Date(fromDate).getTime();
+      filtered = filtered.filter((e) => e.isOpeningBalance || new Date(e.date).getTime() >= fromTime);
+    }
+    if (toDate) {
+      const toTime = new Date(toDate).getTime();
+      filtered = filtered.filter((e) => e.isOpeningBalance || new Date(e.date).getTime() <= toTime);
+    }
+
+    const totalDebitsUsd = filtered.filter((e) => !e.isOpeningBalance).reduce((sum, e) => sum + e.debitUsd, 0);
+    const totalCreditsUsd = filtered.filter((e) => !e.isOpeningBalance).reduce((sum, e) => sum + e.creditUsd, 0);
+    const closingBalanceUsd = totalDebitsUsd - totalCreditsUsd + openingBalance;
+
+    return Promise.resolve({
+      customerId,
+      fromDate: fromDate || '2024-09-01',
+      toDate: toDate || '2024-10-31',
+      openingBalanceUsd: openingBalance,
+      totalDebitsUsd,
+      totalCreditsUsd,
+      closingBalanceUsd,
+      entries: filtered,
+    });
+  }
+
+  getCustomerDebitCreditRefunds(customerId: string): Promise<CustomerDebitCreditListResponse> {
+    const records: CustomerDebitCreditRecord[] = [
+      {
+        id: 'dc-1',
+        customerId,
+        refNumber: 'DN2400008',
+        type: 'Debit',
+        cashInDate: '2024-10-31',
+        stockId: 'J24013263',
+        currency: 'USD',
+        amount: 1000,
+        balanceAmount: 1000,
+        paidInCash: false,
+        approvedDate: '2024-10-31',
+        customerNotes: 'Storage & documentation demurrage adjustment.',
+        notesVisibleToCustomer: true,
+      },
+      {
+        id: 'dc-2',
+        customerId,
+        refNumber: 'RF2400006',
+        type: 'Refund',
+        cashInDate: '2024-10-25',
+        stockId: '-',
+        currency: 'USD',
+        amount: 5000,
+        balanceAmount: 5000,
+        paidInCash: true,
+        approvedDate: '2024-10-25',
+        customerNotes: 'Direct remittance excess wire refund.',
+        notesVisibleToCustomer: true,
+      },
+      {
+        id: 'dc-3',
+        customerId,
+        refNumber: 'CR2400008',
+        type: 'Credit',
+        cashInDate: '2024-10-24',
+        stockId: '-',
+        currency: 'USD',
+        amount: 4500,
+        balanceAmount: 4500,
+        paidInCash: false,
+        approvedDate: '2024-10-24',
+        customerNotes: 'Ocean freight discount rebate credited to ledger.',
+        notesVisibleToCustomer: true,
+      },
+      {
+        id: 'dc-4',
+        customerId,
+        refNumber: 'DN2400001',
+        type: 'Debit',
+        cashInDate: '2024-10-04',
+        stockId: 'NRE161',
+        currency: 'USD',
+        amount: 250,
+        balanceAmount: 250,
+        paidInCash: false,
+        approvedDate: '2024-10-04',
+        customerNotes: 'Inspection expediting fee.',
+        notesVisibleToCustomer: true,
+      },
+      {
+        id: 'dc-5',
+        customerId,
+        refNumber: 'CR2400005',
+        type: 'Credit',
+        cashInDate: '2024-09-30',
+        stockId: 'DE3FS-',
+        currency: 'USD',
+        amount: 400,
+        balanceAmount: 400,
+        paidInCash: false,
+        approvedDate: '2024-09-30',
+        customerNotes: 'Port handling allowance credited.',
+        notesVisibleToCustomer: true,
+      },
+    ];
+
+    const totalDebitsUsd = records.filter((r) => r.type === 'Debit').reduce((sum, r) => sum + r.amount, 0);
+    const totalCreditsUsd = records.filter((r) => r.type === 'Credit').reduce((sum, r) => sum + r.amount, 0);
+    const totalRefundsUsd = records.filter((r) => r.type === 'Refund').reduce((sum, r) => sum + r.amount, 0);
+
+    return Promise.resolve({
+      items: records,
+      total: records.length,
+      totalDebitsUsd,
+      totalCreditsUsd,
+      totalRefundsUsd,
+    });
+  }
+
+  listCustomerPolymorphicInquiries(customerId: string): Promise<CustomerPolymorphicInquiryListResponse> {
+    const items: CustomerPolymorphicInquiry[] = [
+      {
+        id: 'inq-1',
+        customerId,
+        inquiryNumber: 'IN-0003',
+        source: 'Stock',
+        status: 'Pending Reply',
+        inquiryDate: '26th Sep, 2024 13:45:00',
+        make: 'Toyota',
+        model: 'Corolla Fielder 1.5G',
+        yom: '2021',
+        stockNumber: 'J240111111',
+        chassisNumber: 'NRE161-0091995',
+        viewsCount: 12,
+        message: 'Could you please confirm the earliest vessel departure schedule for Mombasa?',
+        fobPriceUsd: 1400,
+        cfPriceUsd: 2400,
+        deliveryLocation: 'Kenya-Mombasa',
+        inquirerCount: 4,
+        imageUrl: 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=600',
+      },
+      {
+        id: 'inq-2',
+        customerId,
+        inquiryNumber: 'IN-0002',
+        source: 'Auction',
+        status: 'Replied',
+        inquiryDate: '26th Sep, 2024 13:45:00',
+        make: 'Toyota',
+        model: 'Raize Z 4WD',
+        yom: '2024',
+        lotNumber: '36071',
+        chassisModel: 'A210A',
+        viewsCount: 8,
+        message: 'Inspection grade request and maximum auction bidding cap confirmation.',
+        replyMessage: 'Grade 5.0 A condition verified. Starting bid placed at JAAI Yokohama.',
+        repliedAt: '26th Sep, 2024 15:30:00',
+        startPriceUsd: 1400,
+        auctionRemaining: '2 hr 45 min',
+        auctionFinished: false,
+        deliveryLocation: 'Kenya',
+        imageUrl: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=600',
+      },
+      {
+        id: 'inq-3',
+        customerId,
+        inquiryNumber: 'IN-0001',
+        source: 'General',
+        status: 'Replied',
+        inquiryDate: '26th Sep, 2024 13:45:00',
+        make: 'Toyota',
+        model: 'Land Cruiser 250 ZX',
+        yom: '2024',
+        message: 'Looking for 2024 Land Cruiser 250 with sunroof, leather interior, and 7 seats.',
+        replyMessage: 'We have reserved 2 units arriving at Yokohama port this week.',
+        repliedAt: '26th Sep, 2024 16:00:00',
+        driveType: 'RHD 4WD',
+        mfgYearRange: '2022 To 2024',
+        minFobUsd: 1400,
+        maxFobUsd: 3400,
+        deliveryLocation: 'Kenya',
+      },
+    ];
+
+    return Promise.resolve({
+      items,
+      total: items.length,
+    });
+  }
+
+  getCustomerPairedAccounts(customerId: string): Promise<CustomerPairedAccount[]> {
+    return Promise.resolve([
+      {
+        id: 'pa-1',
+        name: 'Charith Wellage (Primary)',
+        type: 'PRIMARY',
+        balanceUsd: 450,
+        isCredit: true,
+      },
+      {
+        id: 'pa-2',
+        name: 'CarChief Kenya Hub (Branch)',
+        type: 'BRANCH',
+        balanceUsd: 12500,
+        isCredit: false,
+      },
+      {
+        id: 'pa-3',
+        name: 'Wellage Logistics Fleet (Logistics)',
+        type: 'LOGISTICS',
+        balanceUsd: 0,
+        isCredit: true,
+      },
+    ]);
+  }
+
   reset(): Promise<void> {
     this.config = { ...seedConfig };
     this.vehicles = seedVehicles.map((vehicle) => ({ ...vehicle }));
@@ -3964,6 +5856,10 @@ class MemoryStore implements DemoStore {
     this.publicPages = seedPublicContentPages.map((p) => ({ ...p }));
     this.offices = seedOfficeLocations.map((o) => ({ ...o }));
     this.branches = seedBranches.map((b) => ({ ...b }));
+    this.customerAccounts = [buildSeedCustomerAccount()];
+    this.passwordResetOutbox = [];
+    this.wishlistItems = [];
+    this.favourites = [];
     return Promise.resolve();
   }
 
@@ -4057,20 +5953,12 @@ class PostgresStore implements DemoStore {
         received_at text NOT NULL
       );`
     );
-    // Phase 1.6 (D01-P06-T001): ADD COLUMN IF NOT EXISTS because
-    // CREATE TABLE IF NOT EXISTS above does not add columns to an
-    // already-existing volume (see TASK_EXECUTION_PROTOCOL.md §3 Docker
-    // schema-drift note).
     await this.pool.query(
       `ALTER TABLE enquiries
         ADD COLUMN IF NOT EXISTS enquiry_type text,
         ADD COLUMN IF NOT EXISTS source text,
         ADD COLUMN IF NOT EXISTS duplicate_resubmission_count integer;`
     );
-    // Phase 1.6 (D01-P06-T002): consent and the optional vehicle-preference
-    // capture fields — same ADD COLUMN IF NOT EXISTS schema-drift pattern as
-    // above, since an already-existing local volume never gets these columns
-    // from CREATE TABLE IF NOT EXISTS alone.
     await this.pool.query(
       `ALTER TABLE enquiries
         ADD COLUMN IF NOT EXISTS consent boolean,
@@ -4079,6 +5967,10 @@ class PostgresStore implements DemoStore {
         ADD COLUMN IF NOT EXISTS preferred_drive_side text,
         ADD COLUMN IF NOT EXISTS preferred_year integer,
         ADD COLUMN IF NOT EXISTS target_price_usd numeric;`
+    );
+    await this.pool.query(
+      `ALTER TABLE enquiries
+        ADD COLUMN IF NOT EXISTS customer_id text;`
     );
     await this.pool.query(
       `CREATE TABLE IF NOT EXISTS reservations (
@@ -4090,6 +5982,25 @@ class PostgresStore implements DemoStore {
         created_at text NOT NULL,
         expires_at text NOT NULL,
         hold_hours integer NOT NULL
+      );`
+    );
+    await this.pool.query(
+      `CREATE TABLE IF NOT EXISTS wishlist_items (
+        id text PRIMARY KEY,
+        customer_id text NOT NULL,
+        vehicle_id text NOT NULL,
+        vehicle_slug text NOT NULL,
+        created_at text NOT NULL,
+        UNIQUE(customer_id, vehicle_id)
+      );`
+    );
+    await this.pool.query(
+      `CREATE TABLE IF NOT EXISTS favourite_searches (
+        id text PRIMARY KEY,
+        customer_id text NOT NULL,
+        name text NOT NULL,
+        criteria_json text NOT NULL,
+        created_at text NOT NULL
       );`
     );
     await this.pool.query(
@@ -4174,6 +6085,233 @@ class PostgresStore implements DemoStore {
         recently_discounted_query text
       );`
     );
+    await this.pool.query(
+      `CREATE TABLE IF NOT EXISTS customer_accounts (
+        id text PRIMARY KEY,
+        customer_id text NOT NULL,
+        name_with_initials text NOT NULL,
+        country_code text NOT NULL,
+        dial_code text NOT NULL,
+        mobile_number text NOT NULL,
+        email text NOT NULL,
+        password_hash text NOT NULL,
+        password_salt text NOT NULL,
+        status text NOT NULL,
+        verification_state text NOT NULL,
+        created_at text NOT NULL,
+        updated_at text NOT NULL,
+        password_updated_at text NOT NULL
+      );`
+    );
+    await this.pool.query(
+      'CREATE UNIQUE INDEX IF NOT EXISTS customer_accounts_email_lower_idx ON customer_accounts (lower(email));'
+    );
+    await this.pool.query(
+      `CREATE TABLE IF NOT EXISTS password_reset_outbox (
+        token text PRIMARY KEY,
+        email text NOT NULL,
+        issued_at text NOT NULL,
+        expires_at text NOT NULL,
+        consumed boolean NOT NULL
+      );`
+    );
+    await this.pool.query(
+      `CREATE TABLE IF NOT EXISTS proforma_invoices (
+        id text PRIMARY KEY,
+        customer_id text NOT NULL,
+        vehicle_id text NOT NULL,
+        vehicle_slug text NOT NULL,
+        make text NOT NULL,
+        model text NOT NULL,
+        year integer NOT NULL,
+        total_amount_usd numeric NOT NULL,
+        issued_at text NOT NULL,
+        payment_deadline text NOT NULL,
+        status text NOT NULL
+      );`
+    );
+    await this.pool.query(
+      `CREATE TABLE IF NOT EXISTS invoices (
+        id text PRIMARY KEY,
+        customer_id text NOT NULL,
+        vehicle_id text NOT NULL,
+        vehicle_slug text NOT NULL,
+        make text NOT NULL,
+        model text NOT NULL,
+        year integer NOT NULL,
+        total_amount_usd numeric NOT NULL,
+        invoiced_at text NOT NULL,
+        due_date text,
+        status text NOT NULL,
+        currency text,
+        type text,
+        document_status text
+      );`
+    );
+    await this.pool.query(
+      `CREATE TABLE IF NOT EXISTS allocations (
+        id text PRIMARY KEY,
+        customer_id text NOT NULL,
+        payment_id text NOT NULL,
+        invoice_id text NOT NULL,
+        amount_usd numeric NOT NULL,
+        allocated_at text NOT NULL,
+        status text NOT NULL
+      );`
+    );
+    await this.pool.query(
+      `CREATE TABLE IF NOT EXISTS shipments (
+        id text PRIMARY KEY,
+        customer_id text NOT NULL,
+        vehicle_id text NOT NULL,
+        status text NOT NULL,
+        shipped_at text,
+        delivered_at text,
+        eta text,
+        location text,
+        freshness text,
+        ship_ok_status text,
+        ship_ok_rejection_reason text,
+        document_release_status text,
+        document_release_rejection_reason text
+      );`
+    );
+    await this.pool.query(
+      `CREATE TABLE IF NOT EXISTS documents (
+        id text PRIMARY KEY,
+        customer_id text NOT NULL,
+        shipment_id text,
+        vehicle_id text,
+        type text NOT NULL,
+        status text NOT NULL,
+        created_at text NOT NULL,
+        release_approved boolean NOT NULL,
+        visible_to_customer boolean NOT NULL
+      );`
+    );
+    await this.pool.query(
+      `CREATE TABLE IF NOT EXISTS payments (
+        id text PRIMARY KEY,
+        customer_id text NOT NULL,
+        invoice_id text NOT NULL,
+        amount_usd numeric NOT NULL,
+        paid_at text NOT NULL,
+        status text NOT NULL
+      );`
+    );
+    await this.pool.query(`ALTER TABLE payments ADD COLUMN IF NOT EXISTS reference text;`);
+    await this.pool.query(`ALTER TABLE payments ADD COLUMN IF NOT EXISTS bank_name text;`);
+    await this.pool.query(`ALTER TABLE payments ADD COLUMN IF NOT EXISTS currency text;`);
+    await this.pool.query(`ALTER TABLE payments ADD COLUMN IF NOT EXISTS remarks text;`);
+    await this.pool.query(
+      `CREATE TABLE IF NOT EXISTS payment_notifications (
+        id text PRIMARY KEY,
+        customer_id text NOT NULL,
+        payment_id text NOT NULL,
+        invoice_id text NOT NULL,
+        event text NOT NULL,
+        delivery_status text NOT NULL,
+        created_at text NOT NULL
+      );`
+    );
+    await this.pool.query(
+      `CREATE TABLE IF NOT EXISTS notifications (
+        id text PRIMARY KEY,
+        customer_id text NOT NULL,
+        title text,
+        message text NOT NULL,
+        type text NOT NULL,
+        is_read boolean NOT NULL DEFAULT false,
+        created_at text NOT NULL,
+        related_kind text,
+        related_id text,
+        related_href text
+      );`
+    );
+
+    // Always upsert all seed vehicles into the database
+    for (const vehicle of seedVehicles) {
+      await this.pool.query(
+        `INSERT INTO vehicles (id, chassis_number, make, model, year, price_usd, status, category, location_status, created_at, images, featured, stock_type, destination_port, discount_percent, internal_notes, staff_owner_id, body_style, fuel_type, transmission, drive_train, mileage, etd, eta, request_price)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25)
+         ON CONFLICT (id) DO UPDATE SET
+           chassis_number = EXCLUDED.chassis_number,
+           make = EXCLUDED.make,
+           model = EXCLUDED.model,
+           year = EXCLUDED.year,
+           price_usd = EXCLUDED.price_usd,
+           status = EXCLUDED.status,
+           category = EXCLUDED.category,
+           location_status = EXCLUDED.location_status,
+           images = EXCLUDED.images,
+           featured = EXCLUDED.featured,
+           stock_type = EXCLUDED.stock_type,
+           destination_port = EXCLUDED.destination_port,
+           discount_percent = EXCLUDED.discount_percent,
+           internal_notes = EXCLUDED.internal_notes,
+           staff_owner_id = EXCLUDED.staff_owner_id,
+           body_style = EXCLUDED.body_style,
+           fuel_type = EXCLUDED.fuel_type,
+           transmission = EXCLUDED.transmission,
+           drive_train = EXCLUDED.drive_train,
+           mileage = EXCLUDED.mileage,
+           etd = EXCLUDED.etd,
+           eta = EXCLUDED.eta,
+           request_price = EXCLUDED.request_price;`,
+        [
+          vehicle.id,
+          vehicle.chassisNumber,
+          vehicle.make,
+          vehicle.model,
+          vehicle.year,
+          vehicle.priceUsd,
+          vehicle.status,
+          vehicle.category || null,
+          vehicle.locationStatus || null,
+          vehicle.createdAt || null,
+          vehicle.images ? JSON.stringify(vehicle.images) : null,
+          vehicle.featured ?? false,
+          vehicle.stockType || null,
+          vehicle.destinationPort || null,
+          vehicle.discountPercent || null,
+          vehicle.internalNotes || null,
+          vehicle.staffOwnerId || null,
+          vehicle.bodyStyle || null,
+          vehicle.fuelType || null,
+          vehicle.transmission || null,
+          vehicle.driveTrain || null,
+          vehicle.mileage || null,
+          vehicle.etd || null,
+          vehicle.eta || null,
+          vehicle.requestPrice ?? false,
+        ]
+      );
+    }
+
+    const seededAccountResult = await this.pool.query('SELECT id FROM customer_accounts WHERE id = $1', ['acct-cust-123']);
+    if (seededAccountResult.rows.length === 0) {
+      const seed = buildSeedCustomerAccount();
+      await this.pool.query(
+        `INSERT INTO customer_accounts (id, customer_id, name_with_initials, country_code, dial_code, mobile_number, email, password_hash, password_salt, status, verification_state, created_at, updated_at, password_updated_at)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
+        [
+          seed.id,
+          seed.customerId,
+          seed.nameWithInitials,
+          seed.countryCode,
+          seed.dialCode,
+          seed.mobileNumber,
+          seed.email,
+          seed.passwordHash,
+          seed.passwordSalt,
+          seed.status,
+          seed.verificationState,
+          seed.createdAt,
+          seed.updatedAt,
+          seed.passwordUpdatedAt,
+        ]
+      );
+    }
 
     const configResult = await this.pool.query('SELECT id FROM public_config WHERE id = 1');
     if (configResult.rows.length === 0) {
@@ -4181,44 +6319,6 @@ class PostgresStore implements DemoStore {
         'INSERT INTO public_config (id, site_name, currency, contact_phone) VALUES (1, $1, $2, $3)',
         [seedConfig.siteName, seedConfig.currency, seedConfig.contactPhone]
       );
-      for (const vehicle of seedVehicles) {
-        await this.pool.query(
-          'INSERT INTO vehicles (id, chassis_number, make, model, year, price_usd, status, category, location_status, created_at, images, featured, stock_type, destination_port, discount_percent, internal_notes, staff_owner_id, body_style, fuel_type, transmission, drive_train, mileage, etd, eta, request_price) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25)',
-          [
-            vehicle.id,
-            vehicle.chassisNumber,
-            vehicle.make,
-            vehicle.model,
-            vehicle.year,
-            vehicle.priceUsd,
-            vehicle.status,
-            vehicle.category || null,
-            vehicle.locationStatus || null,
-            vehicle.createdAt || null,
-            vehicle.images ? JSON.stringify(vehicle.images) : null,
-            vehicle.featured ?? false,
-            vehicle.stockType || null,
-            vehicle.destinationPort || null,
-            vehicle.discountPercent || null,
-            vehicle.internalNotes || null,
-            vehicle.staffOwnerId || null,
-            vehicle.bodyStyle || null,
-            vehicle.fuelType || null,
-            vehicle.transmission || null,
-            vehicle.driveTrain || null,
-            vehicle.mileage || null,
-            vehicle.etd || null,
-            vehicle.eta || null,
-            vehicle.requestPrice ?? false,
-          ]
-        );
-      }
-      for (const res of seedReservations) {
-        await this.pool.query(
-          'INSERT INTO reservations (id, vehicle_id, vehicle_slug, customer_id, customer_email, created_at, expires_at, hold_hours) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
-          [res.id, res.vehicleId, res.vehicleSlug, res.customerId, res.customerEmail, res.createdAt, res.expiresAt, res.holdHours]
-        );
-      }
       for (const cat of seedFaqCategories) {
         await this.pool.query('INSERT INTO faq_categories (id, name, description, sort_order) VALUES ($1, $2, $3, $4)', [cat.id, cat.name, cat.description || null, cat.order]);
       }
@@ -4238,6 +6338,258 @@ class PostgresStore implements DemoStore {
         await this.pool.query('INSERT INTO branch_content (id, name, code, destination_port, introduction, welcome_banner, contact_banner, team_members, meet_and_greet_info, contact_details, content_owner, status, latest_arrivals_query, recently_discounted_query) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)', [branch.id, branch.name, branch.code, branch.destinationPort, branch.introduction, branch.welcomeBanner, branch.contactBanner, JSON.stringify(branch.teamMembers), branch.meetAndGreetInfo, JSON.stringify(branch.contactDetails), branch.contentOwner, branch.status, branch.latestArrivalsQuery ? JSON.stringify(branch.latestArrivalsQuery) : null, branch.recentlyDiscountedQuery ? JSON.stringify(branch.recentlyDiscountedQuery) : null]);
       }
     }
+
+    // Ensure fleet seed data in PostgreSQL for all registered accounts
+    const allAccounts = await this.pool.query('SELECT customer_id, email FROM customer_accounts');
+    for (const acct of allAccounts.rows) {
+      await this.ensureCustomerFleetDataInPostgres(acct.customer_id, acct.email);
+    }
+  }
+
+  private async ensureCustomerFleetDataInPostgres(customerId: string, customerEmail?: string): Promise<void> {
+    if (customerId.startsWith('cust-exception')) return;
+    if (customerId !== 'cust-123') {
+      const acctResult = await this.pool.query('SELECT email FROM customer_accounts WHERE customer_id = $1', [customerId]);
+      if (acctResult.rows.length === 0) return;
+      if (!customerEmail) customerEmail = acctResult.rows[0].email;
+    }
+
+    // 1. Proforma Invoices (Reserved with PI)
+    const piCountResult = await this.pool.query('SELECT count(*) FROM proforma_invoices WHERE customer_id = $1', [customerId]);
+    if (Number(piCountResult.rows[0]?.count || 0) === 0) {
+      for (const pi of seedProformaInvoices) {
+        const deadline = customerId === 'cust-123' ? pi.paymentDeadline : '2029-01-01T00:00:00.000Z';
+        const id = customerId === 'cust-123' ? pi.id : `pi-${customerId}-${pi.id.replace(/^pi-/, '')}`;
+        await this.pool.query(
+          `INSERT INTO proforma_invoices (id, customer_id, vehicle_id, vehicle_slug, make, model, year, total_amount_usd, issued_at, payment_deadline, status)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+           ON CONFLICT (id) DO NOTHING;`,
+          [id, customerId, pi.vehicleId, pi.vehicleSlug, pi.make, pi.model, pi.year, pi.totalAmountUsd, pi.issuedAt, deadline, pi.status]
+        );
+      }
+    }
+
+    // 2. Commercial Invoices
+    const invCountResult = await this.pool.query('SELECT count(*) FROM invoices WHERE customer_id = $1', [customerId]);
+    if (Number(invCountResult.rows[0]?.count || 0) === 0) {
+      for (const inv of seedInvoices) {
+        if (inv.customerId === 'cust-123' || inv.customerId === customerId) {
+          const id = customerId === 'cust-123' ? inv.id : `inv-${customerId}-${inv.id.replace(/^inv-/, '')}`;
+          await this.pool.query(
+            `INSERT INTO invoices (id, customer_id, vehicle_id, vehicle_slug, make, model, year, total_amount_usd, invoiced_at, due_date, status, currency, type, document_status)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+             ON CONFLICT (id) DO NOTHING;`,
+            [id, customerId, inv.vehicleId, inv.vehicleSlug, inv.make, inv.model, inv.year, inv.totalAmountUsd, inv.invoicedAt, (inv as any).dueDate || null, inv.status, (inv as any).currency || 'USD', (inv as any).type || 'Commercial', (inv as any).documentStatus || 'Issued']
+          );
+        }
+      }
+    }
+
+    // 3. Payment Allocations
+    const allocCountResult = await this.pool.query('SELECT count(*) FROM allocations WHERE customer_id = $1', [customerId]);
+    if (Number(allocCountResult.rows[0]?.count || 0) === 0) {
+      for (const a of seedAllocations) {
+        if (a.customerId === 'cust-123' || a.customerId === customerId) {
+          const id = customerId === 'cust-123' ? a.id : `alloc-${customerId}-${a.id.replace(/^alloc-/, '')}`;
+          const invoiceId = customerId === 'cust-123' ? a.invoiceId : `inv-${customerId}-${a.invoiceId.replace(/^inv-/, '')}`;
+          const paymentId = customerId === 'cust-123' ? a.paymentId : `pay-${customerId}-${a.paymentId.replace(/^pay-/, '')}`;
+          await this.pool.query(
+            `INSERT INTO allocations (id, customer_id, payment_id, invoice_id, amount_usd, allocated_at, status)
+             VALUES ($1, $2, $3, $4, $5, $6, $7)
+             ON CONFLICT (id) DO NOTHING;`,
+            [id, customerId, paymentId, invoiceId, a.amountUsd, a.allocatedAt, a.status]
+          );
+        }
+      }
+    }
+
+    // 4. Shipments
+    const shipCountResult = await this.pool.query('SELECT count(*) FROM shipments WHERE customer_id = $1', [customerId]);
+    if (Number(shipCountResult.rows[0]?.count || 0) === 0) {
+      for (const s of seedShipments) {
+        if (s.customerId === 'cust-123' || s.customerId === customerId) {
+          const id = customerId === 'cust-123' ? s.id : `ship-${customerId}-${s.id.replace(/^ship-/, '')}`;
+          await this.pool.query(
+            `INSERT INTO shipments (id, customer_id, vehicle_id, status, shipped_at, delivered_at, eta, location, freshness, ship_ok_status, ship_ok_rejection_reason, document_release_status, document_release_rejection_reason)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+             ON CONFLICT (id) DO NOTHING;`,
+            [id, customerId, s.vehicleId, s.status, s.shippedAt || null, s.deliveredAt || null, s.eta || null, s.location || null, s.freshness || null, s.shipOkStatus || null, s.shipOkRejectionReason || null, s.documentReleaseStatus || null, s.documentReleaseRejectionReason || null]
+          );
+        }
+      }
+    }
+
+    // 5. Documents
+    const docCountResult = await this.pool.query('SELECT count(*) FROM documents WHERE customer_id = $1', [customerId]);
+    if (Number(docCountResult.rows[0]?.count || 0) === 0) {
+      for (const d of seedDocuments) {
+        if (d.customerId === 'cust-123' || d.customerId === customerId) {
+          const id = customerId === 'cust-123' ? d.id : `doc-${customerId}-${d.id.replace(/^doc-/, '')}`;
+          const shipmentId = d.shipmentId ? (customerId === 'cust-123' ? d.shipmentId : `ship-${customerId}-${d.shipmentId.replace(/^ship-/, '')}`) : null;
+          await this.pool.query(
+            `INSERT INTO documents (id, customer_id, shipment_id, vehicle_id, type, status, created_at, release_approved, visible_to_customer)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+             ON CONFLICT (id) DO NOTHING;`,
+            [id, customerId, shipmentId, d.vehicleId || null, d.type, d.status, d.createdAt, d.releaseApproved, d.visibleToCustomer]
+          );
+        }
+      }
+    }
+
+    // 6. Reservations (Reserved Vehicles)
+    const resCountResult = await this.pool.query('SELECT count(*) FROM reservations WHERE customer_id = $1', [customerId]);
+    if (Number(resCountResult.rows[0]?.count || 0) === 0) {
+      const email = customerEmail || (customerId === 'cust-123' ? 'demo.customer@carchief.com' : `${customerId}@example.com`);
+      if (customerId === 'cust-123') {
+        for (const res of seedReservations) {
+          if (res.customerId === 'cust-123') {
+            await this.pool.query(
+              `INSERT INTO reservations (id, vehicle_id, vehicle_slug, customer_id, customer_email, created_at, expires_at, hold_hours)
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+               ON CONFLICT (id) DO NOTHING;`,
+              [res.id, res.vehicleId, res.vehicleSlug, res.customerId, res.customerEmail, res.createdAt, res.expiresAt, res.holdHours]
+            );
+          }
+        }
+      } else {
+        const reservedVehicles = [
+          { id: 'veh-1', slug: '2021-toyota-corolla-axio-veh-1' },
+          { id: 'veh-5', slug: '2021-honda-fit-hybrid-veh-5' },
+          { id: 'veh-7', slug: '2023-lexus-rx450h-veh-7' },
+          { id: 'veh-9', slug: '2019-mercedes-benz-c200-amg-line-veh-9' },
+          { id: 'veh-10', slug: '2021-bmw-x3-xdrive20d-veh-10' },
+        ];
+        let seq = 1;
+        for (const v of reservedVehicles) {
+          await this.pool.query(
+            `INSERT INTO reservations (id, vehicle_id, vehicle_slug, customer_id, customer_email, created_at, expires_at, hold_hours)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+             ON CONFLICT (id) DO NOTHING;`,
+            [`res-${customerId}-${seq++}`, v.id, v.slug, customerId, email, '2026-08-10T10:00:00.000Z', '2029-01-01T00:00:00.000Z', 48]
+          );
+        }
+      }
+    }
+
+    // 7. Payments
+    const payCountResult = await this.pool.query('SELECT count(*) FROM payments WHERE customer_id = $1', [customerId]);
+    if (Number(payCountResult.rows[0]?.count || 0) < 5) {
+      if (customerId === 'cust-123') {
+        for (const p of seedPayments) {
+          if (p.customerId === 'cust-123') {
+            await this.pool.query(
+              `INSERT INTO payments (id, customer_id, invoice_id, amount_usd, paid_at, status, reference, bank_name, currency, remarks)
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+               ON CONFLICT (id) DO NOTHING;`,
+              [p.id, p.customerId, p.invoiceId, p.amountUsd, p.paidAt, p.status, p.reference || p.id.toUpperCase(), p.bankName || 'Sumitomo Mitsui Banking Corp (USD)', p.currency || 'USD', p.remarks || 'Wire Remittance']
+            );
+          }
+        }
+      } else {
+        const customPayments = [
+          { id: `pay-${customerId}-001`, invoiceId: `inv-${customerId}-001`, amountUsd: 80550, paidAt: '2026-07-22T10:00:00.000Z', status: 'Approved', reference: 'TT-2026-80550-SMBC', bankName: 'Sumitomo Mitsui Banking Corp', currency: 'USD', remarks: 'Fleet Pre-payment Deposit' },
+          { id: `pay-${customerId}-002`, invoiceId: `inv-${customerId}-001`, amountUsd: 5000, paidAt: '2026-07-21T11:00:00.000Z', status: 'Approved', reference: 'TT-2026-5000-MUFG', bankName: 'MUFG Bank Tokyo', currency: 'USD', remarks: 'Deposit for Corolla Fielder' },
+          { id: `pay-${customerId}-003`, invoiceId: `inv-${customerId}-002`, amountUsd: 100000, paidAt: '2026-07-15T14:00:00.000Z', status: 'Approved', reference: 'TT-2026-100000-SCB', bankName: 'Standard Chartered / SWIFT', currency: 'USD', remarks: 'Commercial Consignment Escrow' },
+          { id: `pay-${customerId}-004`, invoiceId: `inv-${customerId}-003`, amountUsd: 75750, paidAt: '2026-07-21T09:00:00.000Z', status: 'Approved', reference: 'TT-2026-75750-BARC', bankName: 'Barclays Bank PLC', currency: 'USD', remarks: 'Advance Remittance for Demio & Premio' },
+          { id: `pay-${customerId}-005`, invoiceId: `inv-${customerId}-004`, amountUsd: 15000, paidAt: '2026-07-30T10:00:00.000Z', status: 'Approved', reference: 'TT-2026-15000-JPY', bankName: 'Mizuho Bank / SWIFT', currency: 'JPY', remarks: 'Salesperson Bulk TT Remittance Deposit' },
+          { id: `pay-${customerId}-006`, invoiceId: `inv-${customerId}-005`, amountUsd: 12780, paidAt: '2026-07-21T12:00:00.000Z', status: 'Approved', reference: 'TT-2026-12780-DIRECT', bankName: 'Direct Wire Transfer', currency: 'USD', remarks: 'Allocated to 2019 SUZUKI ALTO' },
+          { id: `pay-${customerId}-007`, invoiceId: `inv-${customerId}-016`, amountUsd: 7100, paidAt: '2026-07-17T15:00:00.000Z', status: 'Approved', reference: 'TT-2026-7100-DIRECT', bankName: 'Direct Wire Transfer', currency: 'USD', remarks: 'Allocated to 2020 TOYOTA HIACE VAN' },
+          { id: `pay-${customerId}-008`, invoiceId: `inv-${customerId}-007`, amountUsd: 50000, paidAt: '2026-07-21T08:30:00.000Z', status: 'Approved', reference: 'TT-2026-50000-SMBC', bankName: 'Sumitomo Mitsui Banking Corp', currency: 'USD', remarks: 'Prestige Vehicle Sourcing Wire' },
+          { id: `pay-${customerId}-009`, invoiceId: `inv-${customerId}-008`, amountUsd: 30000, paidAt: '2026-07-23T14:20:00.000Z', status: 'Approved', reference: 'TT-2026-30000-SCB', bankName: 'Standard Chartered / SWIFT', currency: 'USD', remarks: 'Escrow Advance for Supercars' },
+          { id: `pay-${customerId}-010`, invoiceId: `inv-${customerId}-009`, amountUsd: 55000, paidAt: '2026-07-27T16:00:00.000Z', status: 'Approved', reference: 'TT-2026-55000-STAN', bankName: 'Standard Chartered / SWIFT', currency: 'USD', remarks: 'Salesperson Bulk TT Remittance Deposit' },
+          { id: `pay-${customerId}-011`, invoiceId: `inv-${customerId}-010`, amountUsd: 40000, paidAt: '2026-07-23T11:45:00.000Z', status: 'Approved', reference: 'TT-2026-40000-SMBC', bankName: 'Sumitomo Mitsui Banking Corp', currency: 'USD', remarks: 'Logistics and Container Surcharge' },
+          { id: `pay-${customerId}-012`, invoiceId: `inv-${customerId}-011`, amountUsd: 200000, paidAt: '2026-07-15T09:15:00.000Z', status: 'Approved', reference: 'TT-2026-200000-SWIFT', bankName: 'SWIFT International Wire', currency: 'USD', remarks: 'Bulk Commercial Portfolio Deposit' },
+          { id: `pay-${customerId}-013`, invoiceId: `inv-${customerId}-012`, amountUsd: 149999, paidAt: '2026-07-22T13:00:00.000Z', status: 'Rejected', reference: 'TT-2026-149999-REJ', bankName: 'Commercial Bank of Africa', currency: 'USD', remarks: 'Invalid swift document reference rejected by compliance' },
+          { id: `pay-${customerId}-014`, invoiceId: `inv-${customerId}-013`, amountUsd: 45000, paidAt: '2026-08-14T10:00:00.000Z', status: 'Pending', reference: 'TT-2026-45000-REV', bankName: 'Barclays Bank International', currency: 'USD', remarks: 'Under finance verification review' },
+          { id: `pay-${customerId}-015`, invoiceId: `inv-${customerId}-014`, amountUsd: 25000, paidAt: '2026-08-15T11:30:00.000Z', status: 'Pending', reference: 'TT-2026-25000-REV', bankName: 'Standard Chartered Bank', currency: 'USD', remarks: 'Awaiting correspondent bank clearance' },
+        ];
+
+        for (const p of customPayments) {
+          await this.pool.query(
+            `INSERT INTO payments (id, customer_id, invoice_id, amount_usd, paid_at, status, reference, bank_name, currency, remarks)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+             ON CONFLICT (id) DO UPDATE SET
+               amount_usd = EXCLUDED.amount_usd,
+               paid_at = EXCLUDED.paid_at,
+               status = EXCLUDED.status,
+               reference = EXCLUDED.reference,
+               bank_name = EXCLUDED.bank_name,
+               currency = EXCLUDED.currency,
+               remarks = EXCLUDED.remarks;`,
+            [p.id, customerId, p.invoiceId, p.amountUsd, p.paidAt, p.status, p.reference, p.bankName, p.currency, p.remarks]
+          );
+        }
+      }
+    }
+
+    // 8. Notifications
+    const notifCountResult = await this.pool.query('SELECT count(*) FROM notifications WHERE customer_id = $1', [customerId]);
+    if (Number(notifCountResult.rows[0]?.count || 0) < 5) {
+      const clientName = customerEmail ? (customerEmail.includes('@') ? customerEmail.split('@')[0] : customerEmail) : 'Charith Wellage';
+      const displayName = customerId === 'cust-123' ? 'Demo Customer' : (clientName.includes('.') ? clientName.split('.').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ') : 'Charith Wellage');
+
+      const defaultNotifs = [
+        {
+          id: `notif-${customerId}-pmt-001`,
+          customerId,
+          title: 'TT WIRE PAYMENT APPROVED',
+          message: `Dear ${displayName}, your wire transfer payment of $15,000 USD (Ref / Swift Code: 112310036) for Invoice INV-31644 has been audited and approved by the Finance Team. Your invoice allocation has been updated successfully.`,
+          type: 'Payment',
+          isRead: false,
+          createdAt: '2026-07-15T16:34:22.000Z',
+          related: { kind: 'Invoice', id: 'inv-31644', href: '/customer/invoices/inv-31644' },
+        },
+        {
+          id: `notif-${customerId}-pmt-002`,
+          customerId,
+          title: 'TT WIRE PAYMENT APPROVED ✔',
+          message: `Dear ${displayName}, your Telegraphic Transfer (TT) wire transfer payment of ¥10,000 JPY (Ref / Swift Code: 112310036) has been audited and approved by the Finance Team. Allocated to Invoice: BULK ALLOCATION.`,
+          type: 'Payment',
+          isRead: false,
+          createdAt: '2026-07-30T13:31:19.000Z',
+          related: { kind: 'Payment', id: 'pay-bulk-1', href: '/customer/payments' },
+        },
+        {
+          id: `notif-${customerId}-pmt-003`,
+          customerId,
+          title: 'TT WIRE PAYMENT APPROVED',
+          message: `Dear ${displayName}, your wire transfer payment of $50,000 USD (Reference Code: ffgff) for Invoice INV-31644 has been audited and approved by the Finance Team. Your invoice allocation has been updated successfully.`,
+          type: 'Payment',
+          isRead: true,
+          createdAt: '2026-07-21T22:01:21.000Z',
+          related: { kind: 'Invoice', id: 'inv-31644', href: '/customer/invoices/inv-31644' },
+        },
+        {
+          id: `notif-${customerId}-pmt-004`,
+          customerId,
+          title: 'TT WIRE PAYMENT APPROVED',
+          message: `Dear ${displayName}, your wire transfer payment of $4,700 USD (Reference Code: TEST) for Invoice INV-79873 has been audited and approved by the Finance Team. Your invoice allocation has been updated successfully.`,
+          type: 'Payment',
+          isRead: true,
+          createdAt: '2026-07-21T21:45:47.000Z',
+          related: { kind: 'Invoice', id: 'inv-79873', href: '/customer/invoices/inv-79873' },
+        },
+        {
+          id: `notif-${customerId}-pmt-005`,
+          customerId,
+          title: 'TT WIRE PAYMENT APPROVED ✔',
+          message: `Dear ${displayName}, your Telegraphic Transfer (TT) wire transfer payment of $15,000 USD (Ref / Swift Code: charith wellage) has been audited and approved by the Finance Team. Available TT deposit balance: $15,000 USD.`,
+          type: 'Payment',
+          isRead: true,
+          createdAt: '2026-07-23T13:52:26.000Z',
+          related: { kind: 'Payment', id: 'pay-deposit-1', href: '/customer/payments' },
+        },
+      ];
+
+      for (const n of defaultNotifs) {
+        await this.pool.query(
+          `INSERT INTO notifications (id, customer_id, title, message, type, is_read, created_at, related_kind, related_id, related_href)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+           ON CONFLICT (id) DO NOTHING;`,
+          [n.id, n.customerId, n.title, n.message, n.type, n.isRead, n.createdAt, n.related?.kind || null, n.related?.id || null, n.related?.href || null]
+        );
+      }
+    }
   }
 
   private async getRawReservations(): Promise<ReservationRecord[]> {
@@ -4245,6 +6597,121 @@ class PostgresStore implements DemoStore {
       'SELECT id, vehicle_id, vehicle_slug, customer_id, customer_email, created_at, expires_at, hold_hours FROM reservations'
     );
     return result.rows.map(PostgresStore.rowToReservationRecord);
+  }
+
+  private async getRawProformaInvoices(customerId?: string): Promise<ProformaInvoiceRecord[]> {
+    const query = customerId
+      ? 'SELECT id, customer_id, vehicle_id, vehicle_slug, make, model, year, total_amount_usd, issued_at, payment_deadline, status FROM proforma_invoices WHERE customer_id = $1'
+      : 'SELECT id, customer_id, vehicle_id, vehicle_slug, make, model, year, total_amount_usd, issued_at, payment_deadline, status FROM proforma_invoices';
+    const params = customerId ? [customerId] : [];
+    const result = await this.pool.query(query, params);
+    if (result.rows.length === 0 && customerId === 'cust-123') {
+      return seedProformaInvoices;
+    }
+    return result.rows.map((row) => ({
+      id: row.id,
+      customerId: row.customer_id,
+      vehicleId: row.vehicle_id,
+      vehicleSlug: row.vehicle_slug,
+      make: row.make,
+      model: row.model,
+      year: Number(row.year),
+      totalAmountUsd: Number(row.total_amount_usd),
+      issuedAt: row.issued_at,
+      paymentDeadline: row.payment_deadline,
+      status: row.status as 'Issued' | 'Expired' | 'Cancelled',
+    }));
+  }
+
+  private async getRawInvoices(customerId?: string): Promise<InvoiceRecord[]> {
+    const query = customerId
+      ? 'SELECT id, customer_id, vehicle_id, vehicle_slug, make, model, year, total_amount_usd, invoiced_at, due_date, status, currency, type, document_status FROM invoices WHERE customer_id = $1'
+      : 'SELECT id, customer_id, vehicle_id, vehicle_slug, make, model, year, total_amount_usd, invoiced_at, due_date, status, currency, type, document_status FROM invoices';
+    const params = customerId ? [customerId] : [];
+    const result = await this.pool.query(query, params);
+    if (result.rows.length === 0 && (!customerId || customerId === 'cust-123' || customerId === 'cust-exception-001')) {
+      return customerId ? seedInvoices.filter((i) => i.customerId === customerId) : seedInvoices;
+    }
+    return result.rows.map((row) => ({
+      id: row.id,
+      customerId: row.customer_id,
+      vehicleId: row.vehicle_id,
+      vehicleSlug: row.vehicle_slug,
+      make: row.make,
+      model: row.model,
+      year: Number(row.year),
+      totalAmountUsd: Number(row.total_amount_usd),
+      invoicedAt: row.invoiced_at,
+      status: row.status as 'Draft' | 'Issued' | 'Paid' | 'Overdue',
+    }));
+  }
+
+  private async getRawAllocations(customerId?: string): Promise<AllocationRecord[]> {
+    const query = customerId
+      ? 'SELECT id, customer_id, payment_id, invoice_id, amount_usd, allocated_at, status FROM allocations WHERE customer_id = $1'
+      : 'SELECT id, customer_id, payment_id, invoice_id, amount_usd, allocated_at, status FROM allocations';
+    const params = customerId ? [customerId] : [];
+    const result = await this.pool.query(query, params);
+    if (result.rows.length === 0 && (!customerId || customerId === 'cust-123')) {
+      return customerId ? seedAllocations.filter((a) => a.customerId === customerId) : seedAllocations;
+    }
+    return result.rows.map((row) => ({
+      id: row.id,
+      customerId: row.customer_id,
+      paymentId: row.payment_id,
+      invoiceId: row.invoice_id,
+      amountUsd: Number(row.amount_usd),
+      allocatedAt: row.allocated_at,
+      status: row.status as 'Approved' | 'Pending' | 'Rejected',
+    }));
+  }
+
+  private async getRawShipments(customerId?: string): Promise<ShipmentRecord[]> {
+    const query = customerId
+      ? 'SELECT id, customer_id, vehicle_id, status, shipped_at, delivered_at, eta, location, freshness, ship_ok_status, ship_ok_rejection_reason, document_release_status, document_release_rejection_reason FROM shipments WHERE customer_id = $1'
+      : 'SELECT id, customer_id, vehicle_id, status, shipped_at, delivered_at, eta, location, freshness, ship_ok_status, ship_ok_rejection_reason, document_release_status, document_release_rejection_reason FROM shipments';
+    const params = customerId ? [customerId] : [];
+    const result = await this.pool.query(query, params);
+    if (result.rows.length === 0 && (!customerId || customerId === 'cust-123' || customerId === 'cust-exception-001')) {
+      return customerId ? seedShipments.filter((s) => s.customerId === customerId) : seedShipments;
+    }
+    return result.rows.map((row) => ({
+      id: row.id,
+      customerId: row.customer_id,
+      vehicleId: row.vehicle_id,
+      status: row.status as 'Purchased' | 'Inspection' | 'Ready' | 'InTransit' | 'Delivered',
+      shippedAt: row.shipped_at || '',
+      deliveredAt: row.delivered_at || undefined,
+      eta: row.eta || undefined,
+      location: row.location || undefined,
+      freshness: row.freshness as any,
+      shipOkStatus: row.ship_ok_status as any,
+      shipOkRejectionReason: row.ship_ok_rejection_reason || undefined,
+      documentReleaseStatus: row.document_release_status as any,
+      documentReleaseRejectionReason: row.document_release_rejection_reason || undefined,
+    }));
+  }
+
+  private async getRawDocuments(customerId?: string): Promise<DocumentRecord[]> {
+    const query = customerId
+      ? 'SELECT id, customer_id, shipment_id, vehicle_id, type, status, created_at, release_approved, visible_to_customer FROM documents WHERE customer_id = $1'
+      : 'SELECT id, customer_id, shipment_id, vehicle_id, type, status, created_at, release_approved, visible_to_customer FROM documents';
+    const params = customerId ? [customerId] : [];
+    const result = await this.pool.query(query, params);
+    if (result.rows.length === 0 && (!customerId || customerId === 'cust-123' || customerId === 'cust-exception-001')) {
+      return customerId ? seedDocuments.filter((d) => d.customerId === customerId) : seedDocuments;
+    }
+    return result.rows.map((row) => ({
+      id: row.id,
+      customerId: row.customer_id,
+      shipmentId: row.shipment_id || undefined,
+      vehicleId: row.vehicle_id || undefined,
+      type: row.type as any,
+      status: row.status as any,
+      createdAt: row.created_at,
+      releaseApproved: Boolean(row.release_approved),
+      visibleToCustomer: Boolean(row.visible_to_customer),
+    }));
   }
 
   private async getRawVehicles(): Promise<VehicleRecord[]> {
@@ -4382,9 +6849,9 @@ class PostgresStore implements DemoStore {
     return buildFreightEstimate(freightDestinations, freightPorts, freightRateRecords, request);
   }
 
-  async createEnquiry(request: EnquiryRequest): Promise<EnquiryResponse> {
+  async createEnquiry(request: EnquiryRequest, customerId?: string): Promise<EnquiryResponse> {
     const rawVehicles = await this.getRawVehicles();
-    const prepared = prepareEnquiry(rawVehicles, freightDestinations, freightPorts, freightRateRecords, request, FREIGHT_REFERENCE_DATE);
+    const prepared = prepareEnquiry(rawVehicles, freightDestinations, freightPorts, freightRateRecords, request, FREIGHT_REFERENCE_DATE, customerId);
     const dedupeKey = buildEnquiryDedupeKey(prepared);
 
     const existingResult = await this.pool.query(
@@ -4403,7 +6870,7 @@ class PostgresStore implements DemoStore {
     const id = `enq-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     const receivedAt = new Date().toISOString();
     await this.pool.query(
-      'INSERT INTO enquiries (id, dedupe_key, name, email, phone, message, consent, vehicle_slug, destination_code, port_code, rate_status, currency, rate_effective_from, rate_effective_to, estimate_message, received_at, enquiry_type, source, duplicate_resubmission_count, preferred_make, preferred_model, preferred_drive_side, preferred_year, target_price_usd) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24)',
+      'INSERT INTO enquiries (id, dedupe_key, name, email, phone, message, consent, vehicle_slug, destination_code, port_code, rate_status, currency, rate_effective_from, rate_effective_to, estimate_message, received_at, enquiry_type, source, duplicate_resubmission_count, preferred_make, preferred_model, preferred_drive_side, preferred_year, target_price_usd, customer_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25)',
       [
         id,
         dedupeKey,
@@ -4429,6 +6896,7 @@ class PostgresStore implements DemoStore {
         prepared.preferredDriveSide || null,
         prepared.preferredYear || null,
         prepared.targetPriceUsd || null,
+        prepared.customerId || null,
       ]
     );
 
@@ -4446,6 +6914,56 @@ class PostgresStore implements DemoStore {
     const result = await this.pool.query(`${ENQUIRY_SELECT_COLUMNS} FROM enquiries ORDER BY received_at ASC, id ASC`);
     const items = result.rows.map((row) => toLeadRecord(rowToEnquiryRecord(row)));
     return { items, total: items.length };
+  }
+
+  async listCustomerInquiries(customerId: string): Promise<CustomerInquiryListResponse> {
+    const result = await this.pool.query(
+      `${ENQUIRY_SELECT_COLUMNS} FROM enquiries WHERE customer_id = $1 AND enquiry_type = 'price-request' ORDER BY received_at DESC`,
+      [customerId]
+    );
+
+    const enquiries = result.rows.map((row) => rowToEnquiryRecord(row));
+    const vehicleSlugs = [...new Set(enquiries.map((e) => e.vehicleSlug).filter(Boolean))];
+    const vehicles = await this.getRawVehicles();
+
+    const items: CustomerInquirySummary[] = [];
+    for (const slug of vehicleSlugs) {
+      const enquiry = enquiries.find((e) => e.vehicleSlug === slug)!;
+      const vehicle = vehicles.find((v) => generateVehicleSlug(v.year, v.make, v.model, v.id) === slug);
+
+      const countResult = await this.pool.query(
+        `SELECT COUNT(DISTINCT COALESCE(customer_id, email)) as inquirer_count FROM enquiries WHERE vehicle_slug = $1 AND enquiry_type = 'price-request'`,
+        [slug]
+      );
+      const inquirerCount = Number(countResult.rows[0].inquirer_count);
+
+      items.push({
+        vehicleSlug: slug!,
+        vehicleId: vehicle?.id || '',
+        vehicleTitle: vehicle ? `${vehicle.year} ${vehicle.make} ${vehicle.model}` : 'Unknown Vehicle',
+        requestedAt: enquiry.receivedAt,
+        inquirerCount,
+      });
+    }
+
+    return { items };
+  }
+
+  async getVehicleInquiryAggregate(vehicleSlugOrId: string): Promise<VehicleInquiryAggregate> {
+    const rawVehicles = await this.getRawVehicles();
+    const vehicle = findVehicleRecord(rawVehicles, vehicleSlugOrId);
+    const vehicleSlug = vehicle ? generateVehicleSlug(vehicle.year, vehicle.make, vehicle.model, vehicle.id) : vehicleSlugOrId;
+
+    const countResult = await this.pool.query(
+      `SELECT COUNT(DISTINCT COALESCE(customer_id, email)) as inquirer_count FROM enquiries WHERE vehicle_slug = $1 AND enquiry_type = 'price-request'`,
+      [vehicleSlug]
+    );
+    const inquirerCount = Number(countResult.rows[0]?.inquirer_count || 0);
+
+    return {
+      vehicleSlug,
+      inquirerCount,
+    };
   }
 
   private static rowToReservationRecord(row: Record<string, unknown>): ReservationRecord {
@@ -4683,24 +7201,20 @@ class PostgresStore implements DemoStore {
   }
 
   async getCustomerDashboard(customerId: string, customerEmail: string): Promise<CustomerDashboard> {
-    // For PostgresStore, use the seed data like MemoryStore until database tables are added
-    // Outstanding balance = sum of issued invoices - sum of approved allocations (D02-ASM-001)
-    const customerInvoices = seedInvoices.filter((i) => i.customerId === customerId && i.status === 'Issued');
-    const totalIssuedAmount = customerInvoices.reduce((sum, inv) => sum + inv.totalAmountUsd, 0);
+    await this.ensureCustomerFleetDataInPostgres(customerId, customerEmail);
+    const customerInvoices = await this.getRawInvoices(customerId);
+    const issuedInvoices = customerInvoices.filter((i) => i.status === 'Issued');
+    const totalIssuedAmount = issuedInvoices.reduce((sum, inv) => sum + inv.totalAmountUsd, 0);
 
-    const customerAllocations = seedAllocations.filter((a) => a.customerId === customerId && a.status === 'Approved');
-    const totalApprovedAmount = customerAllocations.reduce((sum, alloc) => sum + alloc.amountUsd, 0);
+    const customerAllocations = await this.getRawAllocations(customerId);
+    const approvedAllocations = customerAllocations.filter((a) => a.status === 'Approved');
+    const totalApprovedAmount = approvedAllocations.reduce((sum, alloc) => sum + alloc.amountUsd, 0);
 
     const outstandingBalanceUsd = Math.max(0, totalIssuedAmount - totalApprovedAmount);
-
-    // Credit utilisation = outstanding balance / credit limit
-    const creditLimitUsd = 500000.00; // Mock credit limit
+    const creditLimitUsd = 500000.00;
     const creditUtilisationPercent = (outstandingBalanceUsd / creditLimitUsd) * 100;
 
-    // Vehicle counts use canonical vehicle IDs and current server status
     const vehicles = await this.getRawVehicles();
-
-    // Get reservations for this customer
     const reservationResult = await this.pool.query(
       'SELECT vehicle_id, customer_id, expires_at FROM reservations WHERE customer_id = $1 ORDER BY id',
       [customerId]
@@ -4713,11 +7227,9 @@ class PostgresStore implements DemoStore {
       }
     }
 
-    const invoicedVehicleIds = new Set(customerInvoices.map((i) => i.vehicleId));
-
-    // Count delivered vehicles (those invoiced and with Sold status)
+    const invoicedVehicleIds = new Set(issuedInvoices.map((i) => i.vehicleId));
     const deliveredVehicleIds = new Set(
-      customerInvoices
+      issuedInvoices
         .filter((i) => {
           const vehicle = vehicles.find((v) => v.id === i.vehicleId);
           return vehicle && vehicle.status === 'Sold';
@@ -4725,19 +7237,14 @@ class PostgresStore implements DemoStore {
         .map((i) => i.vehicleId)
     );
 
-    // Compute linked record aggregates from seed data (D02-P02-T001)
-    // Payment status summary: count payments by status for this customer's invoices
-    const customerInvoiceIds = new Set(customerInvoices.map((i) => i.id));
-    const customerPayments = seedPayments.filter((p) => p.customerId === customerId && customerInvoiceIds.has(p.invoiceId));
+    const customerPayments = (await this.listCustomerPayments(customerId)).items;
     const paymentStatusSummary = {
       approved: customerPayments.filter((p) => p.status === 'Approved').length,
       pending: customerPayments.filter((p) => p.status === 'Pending').length,
       rejected: customerPayments.filter((p) => p.status === 'Rejected').length,
     };
 
-    // Shipment status summary: count shipments by status for this customer's vehicles
-    const customerVehicleIds = new Set(customerInvoices.map((i) => i.vehicleId));
-    const customerShipments = seedShipments.filter((s) => s.customerId === customerId && customerVehicleIds.has(s.vehicleId));
+    const customerShipments = await this.getRawShipments(customerId);
     const shipmentStatusSummary = {
       ready: customerShipments.filter((s) => s.status === 'Ready').length,
       inTransit: customerShipments.filter((s) => s.status === 'InTransit').length,
@@ -4745,19 +7252,15 @@ class PostgresStore implements DemoStore {
       other: customerShipments.filter((s) => !['Ready', 'InTransit', 'Delivered'].includes(s.status)).length,
     };
 
-    // Document availability: count documents by status for this customer's shipments/vehicles
-    const customerShipmentIds = new Set(customerShipments.map((s) => s.id));
-    const customerDocuments = seedDocuments.filter((d) => d.customerId === customerId && (customerShipmentIds.has(d.shipmentId || '') || customerVehicleIds.has(d.vehicleId || '')));
+    const customerDocuments = await this.getRawDocuments(customerId);
     const documentAvailabilityCount = {
       available: customerDocuments.filter((d) => d.status === 'Available').length,
       pending: customerDocuments.filter((d) => d.status === 'Pending').length,
       unavailable: customerDocuments.filter((d) => d.status === 'Unavailable').length,
     };
 
-    // Notification unread count for this customer
-    const notificationUnreadCount = seedNotifications.filter((n) => n.customerId === customerId && !n.isRead).length;
+    const notificationUnreadCount = this.notifications.filter((n) => n.customerId === customerId && !n.isRead).length;
 
-    // Partial failure indicators: all set to false since this is seed data (no actual failures)
     const partialFailureIndicators = {
       paymentsFailed: false,
       shipmentsFailed: false,
@@ -4784,101 +7287,198 @@ class PostgresStore implements DemoStore {
   }
 
   async getCustomerVehicles(customerId: string, query?: ListCustomerVehiclesQuery, nowISO?: string): Promise<CustomerVehicleListResponse> {
+    await this.ensureCustomerFleetDataInPostgres(customerId);
     const vehicles = await this.getRawVehicles();
     const reservations = await this.getRawReservations();
+    const proformaInvoices = await this.getRawProformaInvoices();
+    const invoices = await this.getRawInvoices();
+    const allocations = await this.getRawAllocations();
+    const shipments = await this.getRawShipments();
+    const documents = await this.getRawDocuments();
     const all = buildCustomerVehicleProjections(
       customerId,
       vehicles,
       reservations,
-      seedProformaInvoices,
-      seedInvoices,
-      seedAllocations,
-      seedShipments,
-      seedDocuments,
-      nowISO || new Date().toISOString()
+      proformaInvoices,
+      invoices,
+      allocations,
+      shipments,
+      documents,
+      nowISO
     );
     return queryCustomerVehicles(all, query);
   }
 
   async getCustomerVehicleById(customerId: string, idOrSlug: string, nowISO?: string): Promise<CustomerVehicleDetail | null> {
+    await this.ensureCustomerFleetDataInPostgres(customerId);
     const vehicles = await this.getRawVehicles();
     const reservations = await this.getRawReservations();
+    const proformaInvoices = await this.getRawProformaInvoices();
+    const invoices = await this.getRawInvoices();
+    const allocations = await this.getRawAllocations();
+    const shipments = await this.getRawShipments();
+    const documents = await this.getRawDocuments();
     const all = buildCustomerVehicleProjections(
       customerId,
       vehicles,
       reservations,
-      seedProformaInvoices,
-      seedInvoices,
-      seedAllocations,
-      seedShipments,
-      seedDocuments,
-      nowISO || new Date().toISOString()
+      proformaInvoices,
+      invoices,
+      allocations,
+      shipments,
+      documents,
+      nowISO
     );
     const target = all.find((v) => v.id === idOrSlug || v.vehicleId === idOrSlug || v.slug === idOrSlug);
     return target || null;
   }
 
   async listCustomerShipments(customerId: string): Promise<CustomerShipment[]> {
-    return seedShipments
-      .filter((shipment) => shipment.customerId === customerId)
-      .map(toCustomerShipment);
+    await this.ensureCustomerFleetDataInPostgres(customerId);
+    const shipments = await this.getRawShipments(customerId);
+    return shipments.map(toCustomerShipment);
   }
 
   async getCustomerShipment(customerId: string, shipmentId: string): Promise<CustomerShipment | null> {
-    const shipment = seedShipments.find((candidate) => candidate.id === shipmentId && candidate.customerId === customerId);
+    await this.ensureCustomerFleetDataInPostgres(customerId);
+    const shipments = await this.getRawShipments(customerId);
+    const shipment = shipments.find((candidate) => candidate.id === shipmentId);
     return shipment ? toCustomerShipment(shipment) : null;
   }
 
   async listCustomerDocuments(customerId: string): Promise<CustomerDocument[]> {
-    const customerShipmentIds = new Set(seedShipments
-      .filter((shipment) => shipment.customerId === customerId)
-      .map((shipment) => shipment.id));
-    return seedDocuments
-      .filter((document) => document.customerId === customerId
-        && document.releaseApproved === true
+    await this.ensureCustomerFleetDataInPostgres(customerId);
+    const shipments = await this.getRawShipments(customerId);
+    const customerShipmentIds = new Set(shipments.map((s) => s.id));
+    const documents = await this.getRawDocuments(customerId);
+    return documents
+      .filter((document) => document.releaseApproved === true
         && document.visibleToCustomer === true
         && (!document.shipmentId || customerShipmentIds.has(document.shipmentId)))
       .map(toCustomerDocument);
   }
 
   async getCustomerDocument(customerId: string, documentId: string): Promise<CustomerDocument | null> {
-    const document = seedDocuments.find((candidate) => candidate.id === documentId && candidate.customerId === customerId);
+    await this.ensureCustomerFleetDataInPostgres(customerId);
+    const documents = await this.getRawDocuments(customerId);
+    const document = documents.find((candidate) => candidate.id === documentId);
     if (!document || document.releaseApproved !== true || document.visibleToCustomer !== true) return null;
     return toCustomerDocument(document);
   }
 
+  private async getRawNotifications(customerId: string): Promise<NotificationRecord[]> {
+    const res = await this.pool.query('SELECT * FROM notifications WHERE customer_id = $1 ORDER BY created_at DESC', [customerId]);
+    return res.rows.map((row) => ({
+      id: row.id,
+      customerId: row.customer_id,
+      title: row.title || undefined,
+      message: row.message,
+      type: row.type as any,
+      isRead: Boolean(row.is_read),
+      createdAt: row.created_at,
+      related: row.related_kind ? {
+        kind: row.related_kind,
+        id: row.related_id,
+        href: row.related_href,
+      } : undefined,
+    }));
+  }
+
   async listCustomerNotifications(customerId: string, query?: { status?: 'all' | 'read' | 'unread'; q?: string }): Promise<CustomerNotificationListResponse> {
-    return queryCustomerNotifications(this.notifications.filter((notification) => notification.customerId === customerId), query);
+    await this.ensureCustomerFleetDataInPostgres(customerId);
+    const notifications = await this.getRawNotifications(customerId);
+    return queryCustomerNotifications(notifications, query);
   }
 
   async getCustomerNotification(customerId: string, notificationId: string): Promise<Notification | null> {
-    const notification = this.notifications.find((candidate) => candidate.customerId === customerId && candidate.id === notificationId);
-    return notification ? toCustomerNotification(notification) : null;
+    await this.ensureCustomerFleetDataInPostgres(customerId);
+    const res = await this.pool.query('SELECT * FROM notifications WHERE customer_id = $1 AND id = $2', [customerId, notificationId]);
+    if (res.rows.length === 0) return null;
+    const row = res.rows[0];
+    return toCustomerNotification({
+      id: row.id,
+      customerId: row.customer_id,
+      title: row.title || undefined,
+      message: row.message,
+      type: row.type as any,
+      isRead: Boolean(row.is_read),
+      createdAt: row.created_at,
+      related: row.related_kind ? {
+        kind: row.related_kind,
+        id: row.related_id,
+        href: row.related_href,
+      } : undefined,
+    });
   }
 
   async markCustomerNotificationRead(customerId: string, notificationId: string): Promise<Notification | null> {
-    const notification = this.notifications.find((candidate) => candidate.customerId === customerId && candidate.id === notificationId);
-    if (notification) notification.isRead = true;
-    return notification ? toCustomerNotification(notification) : null;
+    await this.ensureCustomerFleetDataInPostgres(customerId);
+    const res = await this.pool.query(
+      'UPDATE notifications SET is_read = true WHERE customer_id = $1 AND id = $2 RETURNING *',
+      [customerId, notificationId]
+    );
+    if (res.rows.length === 0) return null;
+    const row = res.rows[0];
+    return toCustomerNotification({
+      id: row.id,
+      customerId: row.customer_id,
+      title: row.title || undefined,
+      message: row.message,
+      type: row.type as any,
+      isRead: Boolean(row.is_read),
+      createdAt: row.created_at,
+      related: row.related_kind ? {
+        kind: row.related_kind,
+        id: row.related_id,
+        href: row.related_href,
+      } : undefined,
+    });
   }
 
   async markAllCustomerNotificationsRead(customerId: string): Promise<MarkNotificationsReadResponse> {
-    const owned = this.notifications.filter((notification) => notification.customerId === customerId);
-    const updatedCount = owned.filter((notification) => !notification.isRead).length;
-    owned.forEach((notification) => { notification.isRead = true; });
+    await this.ensureCustomerFleetDataInPostgres(customerId);
+    const unreadCountRes = await this.pool.query('SELECT count(*) FROM notifications WHERE customer_id = $1 AND is_read = false', [customerId]);
+    const updatedCount = Number(unreadCountRes.rows[0]?.count || 0);
+    await this.pool.query('UPDATE notifications SET is_read = true WHERE customer_id = $1', [customerId]);
     return { updatedCount, unreadCount: 0 };
   }
 
+  async deleteCustomerNotification(customerId: string, notificationId: string): Promise<boolean> {
+    await this.ensureCustomerFleetDataInPostgres(customerId);
+    const res = await this.pool.query('DELETE FROM notifications WHERE customer_id = $1 AND id = $2', [customerId, notificationId]);
+    return (res.rowCount || 0) > 0;
+  }
+
   async getCustomerProfile(customerId: string, email: string): Promise<CustomerProfile> {
-    const profile = this.customerProfiles.find((candidate) => candidate.customerId === customerId);
-    if (!profile) throw new Error('Customer profile not found');
+    let profile = this.customerProfiles.find((candidate) => candidate.customerId === customerId);
+    if (!profile) {
+      profile = {
+        customerId,
+        companyName: '',
+        phone: '',
+        deliveryAddress: '',
+        version: 1,
+        updatedAt: new Date().toISOString(),
+      };
+      this.customerProfiles.push(profile);
+    }
     return toCustomerProfile(profile, email);
   }
 
   async updateCustomerProfile(customerId: string, email: string, request: UpdateCustomerProfileRequest, nowISO = new Date().toISOString()): Promise<CustomerProfile> {
     validateCustomerProfileRequest(request);
-    const profile = this.customerProfiles.find((candidate) => candidate.customerId === customerId);
-    if (!profile) throw new Error('Customer profile not found');
+    let profile = this.customerProfiles.find((candidate) => candidate.customerId === customerId);
+    if (!profile) {
+      profile = {
+        customerId,
+        companyName: '',
+        phone: '',
+        deliveryAddress: '',
+        version: 1,
+        updatedAt: nowISO,
+      };
+      this.customerProfiles.push(profile);
+    }
     if (request.expectedVersion !== undefined && request.expectedVersion !== profile.version) throw new ProfileConflictError();
     profile.companyName = request.companyName.trim();
     profile.phone = request.phone.trim();
@@ -4889,44 +7489,59 @@ class PostgresStore implements DemoStore {
   }
 
   async getCustomerInvoices(customerId: string, query?: ListCustomerInvoicesQuery, nowISO?: string): Promise<CustomerInvoiceListResponse> {
+    await this.ensureCustomerFleetDataInPostgres(customerId);
     const vehicles = await this.getRawVehicles();
+    const invoices = await this.getRawInvoices();
+    const proformaInvoices = await this.getRawProformaInvoices();
+    const allocations = await this.getRawAllocations();
+    const documents = await this.getRawDocuments();
     const all = buildCustomerInvoiceProjections(
       customerId,
-      seedInvoices,
-      seedProformaInvoices,
-      seedAllocations,
+      invoices,
+      proformaInvoices,
+      allocations,
       vehicles,
-      seedDocuments,
-      nowISO || new Date().toISOString()
+      documents,
+      nowISO
     );
     return queryCustomerInvoices(all, query);
   }
 
   async getCustomerInvoiceById(customerId: string, id: string, nowISO?: string): Promise<CustomerInvoiceDetail | null> {
+    await this.ensureCustomerFleetDataInPostgres(customerId);
     const vehicles = await this.getRawVehicles();
+    const invoices = await this.getRawInvoices();
+    const proformaInvoices = await this.getRawProformaInvoices();
+    const allocations = await this.getRawAllocations();
+    const documents = await this.getRawDocuments();
     const all = buildCustomerInvoiceProjections(
       customerId,
-      seedInvoices,
-      seedProformaInvoices,
-      seedAllocations,
+      invoices,
+      proformaInvoices,
+      allocations,
       vehicles,
-      seedDocuments,
-      nowISO || new Date().toISOString()
+      documents,
+      nowISO
     );
     const target = all.find((i) => i.id === id || i.invoiceNumber.toLowerCase() === id.toLowerCase());
     return target || null;
   }
 
   async getCustomerInvoiceDocument(customerId: string, id: string, nowISO?: string): Promise<CustomerInvoiceDocument | null> {
+    await this.ensureCustomerFleetDataInPostgres(customerId);
     const vehicles = await this.getRawVehicles();
+    const invoices = await this.getRawInvoices();
+    const proformaInvoices = await this.getRawProformaInvoices();
+    const allocations = await this.getRawAllocations();
+    const documents = await this.getRawDocuments();
     const all = buildCustomerInvoiceProjections(
       customerId,
-      seedInvoices,
-      seedProformaInvoices,
-      seedAllocations,
+      invoices,
+      proformaInvoices,
+      allocations,
       vehicles,
-      seedDocuments,
-      nowISO || new Date().toISOString()
+      documents,
+      nowISO
     );
     const target = all.find((i) => i.id === id || i.invoiceNumber.toLowerCase() === id.toLowerCase());
     if (!target) return null;
@@ -4934,24 +7549,115 @@ class PostgresStore implements DemoStore {
   }
 
   async listCustomerPayments(customerId: string): Promise<CustomerPaymentListResponse> {
-    const items = this.paymentRecords.filter((payment) => payment.customerId === customerId).map((payment) => toCustomerPayment(payment, seedInvoices, this.allocations));
+    await this.ensureCustomerFleetDataInPostgres(customerId);
+    const invoices = await this.getRawInvoices(customerId);
+    const allocations = await this.getRawAllocations(customerId);
+    const result = await this.pool.query(
+      'SELECT id, customer_id, invoice_id, amount_usd, paid_at, status, reference, bank_name, currency, remarks FROM payments WHERE customer_id = $1 ORDER BY paid_at DESC, id DESC',
+      [customerId]
+    );
+    if (result.rows.length === 0) {
+      const items = this.paymentRecords.filter((payment) => payment.customerId === customerId).map((payment) => toCustomerPayment(payment, invoices, allocations));
+      return { items, total: items.length };
+    }
+    const items = result.rows.map((row) => {
+      const memoryMatch = this.paymentRecords.find((p) => p.id === row.id);
+      const record: PaymentRecord = {
+        id: row.id,
+        customerId: row.customer_id,
+        invoiceId: row.invoice_id,
+        amountUsd: Number(row.amount_usd),
+        paidAt: row.paid_at,
+        paymentDate: row.paid_at.slice(0, 10),
+        status: row.status as any,
+        reference: row.reference || memoryMatch?.reference || `TT-${row.id.replace(/^pay-/, '').toUpperCase()}`,
+        bankName: row.bank_name || memoryMatch?.bankName || 'Sumitomo Mitsui Banking Corp (USD)',
+        currency: row.currency || memoryMatch?.currency || 'USD',
+        remarks: row.remarks || memoryMatch?.remarks || 'None',
+        proof: memoryMatch?.proof,
+        idempotencyKey: memoryMatch?.idempotencyKey,
+      };
+      return toCustomerPayment(record, invoices, allocations);
+    });
     return { items, total: items.length };
   }
 
   async getCustomerPayment(customerId: string, id: string): Promise<CustomerPayment | null> {
-    const payment = this.paymentRecords.find((candidate) => candidate.customerId === customerId && candidate.id === id);
-    return payment ? toCustomerPayment(payment, seedInvoices, this.allocations) : null;
+    await this.ensureCustomerFleetDataInPostgres(customerId);
+    const invoices = await this.getRawInvoices(customerId);
+    const allocations = await this.getRawAllocations(customerId);
+    const result = await this.pool.query(
+      'SELECT id, customer_id, invoice_id, amount_usd, paid_at, status, reference, bank_name, currency, remarks FROM payments WHERE customer_id = $1 AND id = $2',
+      [customerId, id]
+    );
+    if (result.rows.length === 0) {
+      const payment = this.paymentRecords.find((candidate) => candidate.customerId === customerId && candidate.id === id);
+      return payment ? toCustomerPayment(payment, invoices, allocations) : null;
+    }
+    const row = result.rows[0];
+    const memoryMatch = this.paymentRecords.find((p) => p.id === row.id);
+    const record: PaymentRecord = {
+      id: row.id,
+      customerId: row.customer_id,
+      invoiceId: row.invoice_id,
+      amountUsd: Number(row.amount_usd),
+      paidAt: row.paid_at,
+      paymentDate: row.paid_at.slice(0, 10),
+      status: row.status as any,
+      reference: row.reference || memoryMatch?.reference || `TT-${row.id.replace(/^pay-/, '').toUpperCase()}`,
+      bankName: row.bank_name || memoryMatch?.bankName || 'Sumitomo Mitsui Banking Corp (USD)',
+      currency: row.currency || memoryMatch?.currency || 'USD',
+      remarks: row.remarks || memoryMatch?.remarks || 'None',
+      proof: memoryMatch?.proof,
+      idempotencyKey: memoryMatch?.idempotencyKey,
+    };
+    return toCustomerPayment(record, invoices, allocations);
   }
 
   async createCustomerPayment(customerId: string, request: CreateCustomerPaymentRequest, nowISO = new Date().toISOString()): Promise<CustomerPayment> {
-    return toCustomerPayment(createPaymentRecord(customerId, request, nowISO, this.paymentRecords, seedInvoices), seedInvoices, this.allocations);
+    await this.ensureCustomerFleetDataInPostgres(customerId);
+    const invoices = await this.getRawInvoices(customerId);
+    const allocations = await this.getRawAllocations(customerId);
+    const record = createPaymentRecord(customerId, request, nowISO, this.paymentRecords, invoices);
+    await this.pool.query(
+      `INSERT INTO payments (id, customer_id, invoice_id, amount_usd, paid_at, status, reference, bank_name, currency, remarks)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+       ON CONFLICT (id) DO UPDATE SET
+         status = EXCLUDED.status,
+         reference = EXCLUDED.reference,
+         bank_name = EXCLUDED.bank_name,
+         currency = EXCLUDED.currency,
+         remarks = EXCLUDED.remarks;`,
+      [record.id, record.customerId, record.invoiceId, record.amountUsd, record.paidAt, record.status, record.reference || null, record.bankName || null, record.currency || 'USD', record.remarks || null]
+    );
+    const notifId = `notif-${customerId}-pmt-${Date.now()}`;
+    await this.pool.query(
+      `INSERT INTO notifications (id, customer_id, title, message, type, is_read, created_at, related_kind, related_id, related_href)
+       VALUES ($1, $2, $3, $4, $5, false, $6, $7, $8, $9)
+       ON CONFLICT (id) DO NOTHING;`,
+      [
+        notifId,
+        customerId,
+        'TT WIRE PAYMENT SUBMITTED',
+        `Your telegraphic transfer payment proof (Ref: ${record.reference || 'TT'}) has been submitted and queued for finance audit.`,
+        'Payment',
+        nowISO,
+        'Payment',
+        record.id,
+        '/customer/payments',
+      ]
+    );
+    return toCustomerPayment(record, invoices, allocations);
   }
 
   async resubmitCustomerPayment(customerId: string, paymentId: string, nowISO = new Date().toISOString()): Promise<CustomerPayment> {
+    await this.ensureCustomerFleetDataInPostgres(customerId);
+    const invoices = await this.getRawInvoices(customerId);
+    const allocations = await this.getRawAllocations(customerId);
     const payment = this.paymentRecords.find((candidate) => candidate.id === paymentId && candidate.customerId === customerId);
     if (!payment) throw new PaymentWorkflowError(404, 'Payment not found or not owned by customer');
-    applyPaymentNotification(payment, { event: 'PaymentResubmitted' }, this.paymentNotifications, this.allocations, nowISO);
-    return toCustomerPayment(payment, seedInvoices, this.allocations);
+    applyPaymentNotification(payment, { event: 'PaymentResubmitted' }, this.paymentNotifications, allocations, nowISO);
+    return toCustomerPayment(payment, invoices, allocations);
   }
 
   async listCustomerPaymentNotifications(customerId: string, paymentId?: string): Promise<CustomerPaymentNotificationListResponse> {
@@ -4965,6 +7671,365 @@ class PostgresStore implements DemoStore {
     const payment = this.paymentRecords.find((candidate) => candidate.id === paymentId);
     if (!payment) return null;
     return toCustomerPaymentNotification(applyPaymentNotification(payment, request, this.paymentNotifications, this.allocations, nowISO));
+  }
+
+  private static rowToCustomerAccountRecord(row: {
+    id: string;
+    customer_id: string;
+    name_with_initials: string;
+    country_code: string;
+    dial_code: string;
+    mobile_number: string;
+    email: string;
+    password_hash: string;
+    password_salt: string;
+    status: string;
+    verification_state: string;
+    created_at: string;
+    updated_at: string;
+    password_updated_at: string;
+  }): CustomerAccountRecord {
+    return {
+      id: row.id,
+      customerId: row.customer_id,
+      nameWithInitials: row.name_with_initials,
+      countryCode: row.country_code,
+      dialCode: row.dial_code,
+      mobileNumber: row.mobile_number,
+      email: row.email,
+      passwordHash: row.password_hash,
+      passwordSalt: row.password_salt,
+      status: row.status as CustomerAccountRecord['status'],
+      verificationState: row.verification_state as CustomerAccountRecord['verificationState'],
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+      passwordUpdatedAt: row.password_updated_at,
+    };
+  }
+
+  async registerCustomerAccount(request: RegisterCustomerRequest, nowISO: string = new Date().toISOString()): Promise<CustomerAccountProjection> {
+    const validated = validateRegisterCustomerRequest(request, COUNTRIES);
+    const existing = await this.pool.query('SELECT id FROM customer_accounts WHERE lower(email) = $1 LIMIT 1', [validated.email]);
+    if (existing.rows.length > 0) {
+      throw new AccountRequestError(409, 'An account with this email already exists', 'email');
+    }
+    const { hash, salt } = hashPassword(validated.password);
+    const id = generateAccountId();
+    const customerId = generateCustomerId();
+    await this.pool.query(
+      `INSERT INTO customer_accounts (id, customer_id, name_with_initials, country_code, dial_code, mobile_number, email, password_hash, password_salt, status, verification_state, created_at, updated_at, password_updated_at)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
+      [id, customerId, validated.nameWithInitials, validated.countryCode, validated.dialCode, validated.mobileNumber, validated.email, hash, salt, 'active', 'unverified', nowISO, nowISO, nowISO]
+    );
+    this.customerProfiles.push({
+      customerId,
+      companyName: '',
+      phone: '',
+      deliveryAddress: '',
+      version: 1,
+      updatedAt: nowISO,
+    });
+    await this.ensureCustomerFleetDataInPostgres(customerId, validated.email);
+    return toCustomerAccountProjection({
+      id,
+      customerId,
+      nameWithInitials: validated.nameWithInitials,
+      countryCode: validated.countryCode,
+      dialCode: validated.dialCode,
+      mobileNumber: validated.mobileNumber,
+      email: validated.email,
+      passwordHash: hash,
+      passwordSalt: salt,
+      status: 'active',
+      verificationState: 'unverified',
+      createdAt: nowISO,
+      updatedAt: nowISO,
+      passwordUpdatedAt: nowISO,
+    });
+  }
+
+  async authenticateCustomer(request: LoginRequest): Promise<CustomerAccountProjection> {
+    const email = normalizeEmail(request?.email);
+    const password = typeof request?.password === 'string' ? request.password : '';
+    const result = await this.pool.query('SELECT * FROM customer_accounts WHERE lower(email) = $1 LIMIT 1', [email]);
+    const row = result.rows[0];
+    if (!row) {
+      verifyPassword(password, DUMMY_PASSWORD_DERIVATION.hash, DUMMY_PASSWORD_DERIVATION.salt);
+      throw new AuthenticationError();
+    }
+    const record = PostgresStore.rowToCustomerAccountRecord(row);
+    if (!verifyPassword(password, record.passwordHash, record.passwordSalt)) {
+      throw new AuthenticationError();
+    }
+    await this.ensureCustomerFleetDataInPostgres(record.customerId, record.email);
+    return toCustomerAccountProjection(record);
+  }
+
+  async changeCustomerPassword(customerId: string, request: ChangePasswordRequest, nowISO: string = new Date().toISOString()): Promise<void> {
+    const result = await this.pool.query('SELECT * FROM customer_accounts WHERE customer_id = $1 LIMIT 1', [customerId]);
+    const row = result.rows[0];
+    if (!row) {
+      throw new AuthenticationError('Current password is incorrect');
+    }
+    const record = PostgresStore.rowToCustomerAccountRecord(row);
+    const currentPassword = typeof request?.currentPassword === 'string' ? request.currentPassword : '';
+    if (!verifyPassword(currentPassword, record.passwordHash, record.passwordSalt)) {
+      throw new AuthenticationError('Current password is incorrect');
+    }
+    const newPassword = typeof request?.newPassword === 'string' ? request.newPassword : '';
+    const policyError = validatePasswordPolicy(newPassword);
+    if (policyError) {
+      throw new AccountRequestError(400, policyError, 'newPassword');
+    }
+    const confirmNewPassword = typeof request?.confirmNewPassword === 'string' ? request.confirmNewPassword : '';
+    if (newPassword !== confirmNewPassword) {
+      throw new AccountRequestError(400, 'Passwords do not match', 'confirmNewPassword');
+    }
+    const { hash, salt } = hashPassword(newPassword);
+    await this.pool.query(
+      'UPDATE customer_accounts SET password_hash = $1, password_salt = $2, password_updated_at = $3, updated_at = $3 WHERE customer_id = $4',
+      [hash, salt, nowISO, customerId]
+    );
+  }
+
+  async requestPasswordReset(request: PasswordResetRequest, nowISO: string = new Date().toISOString()): Promise<void> {
+    const email = normalizeEmail(request?.email);
+    const result = await this.pool.query('SELECT email FROM customer_accounts WHERE lower(email) = $1 LIMIT 1', [email]);
+    if (result.rows.length === 0) return;
+    const token = randomBytes(24).toString('hex');
+    const expiresAt = new Date(new Date(nowISO).getTime() + PASSWORD_RESET_TOKEN_TTL_MINUTES * 60 * 1000).toISOString();
+    await this.pool.query('INSERT INTO password_reset_outbox (token, email, issued_at, expires_at, consumed) VALUES ($1,$2,$3,$4,$5)', [token, email, nowISO, expiresAt, false]);
+  }
+
+  async confirmPasswordReset(request: ConfirmPasswordResetRequest, nowISO: string = new Date().toISOString()): Promise<void> {
+    const token = typeof request?.token === 'string' ? request.token : '';
+    const result = await this.pool.query('SELECT * FROM password_reset_outbox WHERE token = $1 LIMIT 1', [token]);
+    const row = result.rows[0];
+    if (!row) {
+      throw new AccountRequestError(400, 'Invalid or expired reset token', 'token');
+    }
+    if (row.consumed) {
+      throw new AccountRequestError(400, 'Reset token has already been used', 'token');
+    }
+    if (new Date(row.expires_at).getTime() <= new Date(nowISO).getTime()) {
+      throw new AccountRequestError(400, 'Reset token has expired', 'token');
+    }
+
+    const newPassword = typeof request?.newPassword === 'string' ? request.newPassword : '';
+    const policyError = validatePasswordPolicy(newPassword);
+    if (policyError) {
+      throw new AccountRequestError(400, policyError, 'newPassword');
+    }
+    const confirmNewPassword = typeof request?.confirmNewPassword === 'string' ? request.confirmNewPassword : '';
+    if (newPassword !== confirmNewPassword) {
+      throw new AccountRequestError(400, 'Passwords do not match', 'confirmNewPassword');
+    }
+
+    const { hash, salt } = hashPassword(newPassword);
+    await this.pool.query(
+      'UPDATE customer_accounts SET password_hash = $1, password_salt = $2, password_updated_at = $3, updated_at = $3 WHERE lower(email) = $4',
+      [hash, salt, nowISO, row.email]
+    );
+    await this.pool.query('UPDATE password_reset_outbox SET consumed = true WHERE token = $1', [token]);
+  }
+
+  async listPasswordResetOutbox(): Promise<PasswordResetOutboxRecord[]> {
+    const result = await this.pool.query('SELECT token, email, issued_at, expires_at, consumed FROM password_reset_outbox ORDER BY issued_at ASC');
+    return result.rows.map((row) => ({
+      token: row.token,
+      email: row.email,
+      issuedAt: row.issued_at,
+      expiresAt: row.expires_at,
+      consumed: Boolean(row.consumed),
+    }));
+  }
+
+  async getCountries(): Promise<CountriesResponse> {
+    return { items: COUNTRIES.map((c) => ({ ...c })) };
+  }
+
+  // --- Phase 2.13: Wishlist and Favourites (D02-P13-T002) ---
+
+  async listWishlist(customerId: string): Promise<WishlistListResponse> {
+    const result = await this.pool.query(
+      `SELECT id, customer_id, vehicle_id, vehicle_slug, created_at FROM wishlist_items WHERE customer_id = $1 ORDER BY created_at DESC`,
+      [customerId]
+    );
+    const items = result.rows.map((row) => ({
+      id: row.id,
+      customerId: row.customer_id,
+      vehicleId: row.vehicle_id,
+      vehicleSlug: row.vehicle_slug,
+      createdAt: row.created_at,
+    }));
+    return { items };
+  }
+
+  async toggleWishlist(customerId: string, vehicleSlug: string): Promise<WishlistToggleResponse> {
+    const rawVehicles = await this.getRawVehicles();
+    const vehicle = findVehicleRecord(rawVehicles, vehicleSlug);
+    if (!vehicle) {
+      throw { statusCode: 404, message: `Vehicle '${vehicleSlug}' not found` };
+    }
+
+    const existingResult = await this.pool.query(
+      `SELECT id FROM wishlist_items WHERE customer_id = $1 AND vehicle_slug = $2 LIMIT 1`,
+      [customerId, vehicleSlug]
+    );
+
+    if (existingResult.rows.length > 0) {
+      const itemId = existingResult.rows[0].id;
+      await this.pool.query(`DELETE FROM wishlist_items WHERE id = $1`, [itemId]);
+      return { wishlisted: false };
+    } else {
+      const id = `wish-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      const createdAt = new Date().toISOString();
+      await this.pool.query(
+        `INSERT INTO wishlist_items (id, customer_id, vehicle_id, vehicle_slug, created_at) VALUES ($1, $2, $3, $4, $5)`,
+        [id, customerId, vehicle.id, vehicleSlug, createdAt]
+      );
+      const item: WishlistItem = {
+        id,
+        customerId,
+        vehicleId: vehicle.id,
+        vehicleSlug,
+        createdAt,
+      };
+      return { wishlisted: true, item };
+    }
+  }
+
+  async listFavourites(customerId: string): Promise<FavouriteSearchListResponse> {
+    const result = await this.pool.query(
+      `SELECT id, customer_id, name, criteria_json, created_at FROM favourite_searches WHERE customer_id = $1 ORDER BY created_at DESC`,
+      [customerId]
+    );
+    const items = result.rows.map((row) => ({
+      id: row.id,
+      customerId: row.customer_id,
+      name: row.name,
+      criteria: JSON.parse(row.criteria_json),
+      createdAt: row.created_at,
+    }));
+    return { items, limit: 25 };
+  }
+
+  async createFavourite(
+    customerId: string,
+    name: string,
+    criteria: FavouriteSearchCriteria,
+    nowISO?: string
+  ): Promise<FavouriteSearch> {
+    const hasAtLeastOne = Object.values(criteria).some((v) => v != null && v !== '' && v !== 0 && v !== false);
+    if (!hasAtLeastOne) {
+      throw { statusCode: 400, message: 'At least one criteria field is required' };
+    }
+
+    const countResult = await this.pool.query(
+      `SELECT COUNT(*) as cnt FROM favourite_searches WHERE customer_id = $1`,
+      [customerId]
+    );
+    const count = Number(countResult.rows[0].cnt);
+    if (count >= 25) {
+      throw { statusCode: 409, message: 'Favourite limit exceeded', reason: 'limit_exceeded' };
+    }
+
+    const id = `fav-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const createdAt = nowISO || new Date().toISOString();
+    const criteriaJson = JSON.stringify(criteria);
+
+    await this.pool.query(
+      `INSERT INTO favourite_searches (id, customer_id, name, criteria_json, created_at) VALUES ($1, $2, $3, $4, $5)`,
+      [id, customerId, name, criteriaJson, createdAt]
+    );
+
+    return {
+      id,
+      customerId,
+      name,
+      criteria,
+      createdAt,
+    };
+  }
+
+  async deleteFavourite(customerId: string, id: string): Promise<void> {
+    const result = await this.pool.query(
+      `DELETE FROM favourite_searches WHERE id = $1 AND customer_id = $2`,
+      [id, customerId]
+    );
+    if (result.rowCount === 0) {
+      throw { statusCode: 404, message: 'Favourite not found' };
+    }
+  }
+
+  async getFavouriteFacets(): Promise<FavouriteSearchFacets> {
+    const rawVehicles = await this.getRawVehicles();
+    const vehicles = rawVehicles.filter((v) => v.status !== 'Draft');
+
+    const makeMap = new Map<string, number>();
+    const modelMap = new Map<string, number>();
+    const fuelTypeMap = new Map<string, number>();
+    const driveTrainMap = new Map<string, number>();
+    const transmissionMap = new Map<string, number>();
+
+    let minYear = 2026;
+    let maxYear = 1970;
+    let minPrice = Infinity;
+    let maxPrice = -Infinity;
+    let minMileage = Infinity;
+    let maxMileage = -Infinity;
+
+    vehicles.forEach((v) => {
+      if (v.make) makeMap.set(v.make, (makeMap.get(v.make) || 0) + 1);
+      if (v.model) modelMap.set(v.model, (modelMap.get(v.model) || 0) + 1);
+      if (v.fuelType) fuelTypeMap.set(v.fuelType, (fuelTypeMap.get(v.fuelType) || 0) + 1);
+      if (v.driveTrain) driveTrainMap.set(v.driveTrain, (driveTrainMap.get(v.driveTrain) || 0) + 1);
+      if (v.transmission) transmissionMap.set(v.transmission, (transmissionMap.get(v.transmission) || 0) + 1);
+
+      if (v.year) {
+        if (v.year < minYear) minYear = v.year;
+        if (v.year > maxYear) maxYear = v.year;
+      }
+
+      if (v.priceUsd && !v.requestPrice) {
+        if (v.priceUsd < minPrice) minPrice = v.priceUsd;
+        if (v.priceUsd > maxPrice) maxPrice = v.priceUsd;
+      }
+
+      if (v.mileage !== undefined && v.mileage !== null) {
+        if (v.mileage < minMileage) minMileage = v.mileage;
+        if (v.mileage > maxMileage) maxMileage = v.mileage;
+      }
+    });
+
+    const sortFacets = (map: Map<string, number>) =>
+      Array.from(map.entries())
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+
+    return {
+      makes: sortFacets(makeMap),
+      models: sortFacets(modelMap),
+      fuelTypes: sortFacets(fuelTypeMap),
+      driveTrains: sortFacets(driveTrainMap),
+      transmissions: sortFacets(transmissionMap),
+      yearRange: {
+        min: minYear <= maxYear ? minYear : 2015,
+        max: minYear <= maxYear ? maxYear : 2024,
+      },
+      priceRange: {
+        min: minPrice <= maxPrice ? minPrice : 0,
+        max: minPrice <= maxPrice ? maxPrice : 50000,
+      },
+      mileageRange: {
+        min: minMileage <= maxMileage ? minMileage : 0,
+        max: minMileage <= maxMileage ? maxMileage : 100000,
+      },
+      modelCodes: [],
+      engineCcOptions: [],
+      colors: [],
+      steeringOptions: [],
+    };
   }
 
   async reset(): Promise<void> {
@@ -4981,6 +8046,39 @@ class PostgresStore implements DemoStore {
       await client.query('DELETE FROM content_pages');
       await client.query('DELETE FROM office_locations');
       await client.query('DELETE FROM branch_content');
+      await client.query('DELETE FROM password_reset_outbox');
+      await client.query('DELETE FROM customer_accounts');
+      await client.query('DELETE FROM wishlist_items');
+      await client.query('DELETE FROM favourite_searches');
+      await client.query('DELETE FROM proforma_invoices');
+      await client.query('DELETE FROM invoices');
+      await client.query('DELETE FROM allocations');
+      await client.query('DELETE FROM shipments');
+      await client.query('DELETE FROM documents');
+      await client.query('DELETE FROM payments');
+      await client.query('DELETE FROM payment_notifications');
+
+      const seedAccount = buildSeedCustomerAccount();
+      await client.query(
+        `INSERT INTO customer_accounts (id, customer_id, name_with_initials, country_code, dial_code, mobile_number, email, password_hash, password_salt, status, verification_state, created_at, updated_at, password_updated_at)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
+        [
+          seedAccount.id,
+          seedAccount.customerId,
+          seedAccount.nameWithInitials,
+          seedAccount.countryCode,
+          seedAccount.dialCode,
+          seedAccount.mobileNumber,
+          seedAccount.email,
+          seedAccount.passwordHash,
+          seedAccount.passwordSalt,
+          seedAccount.status,
+          seedAccount.verificationState,
+          seedAccount.createdAt,
+          seedAccount.updatedAt,
+          seedAccount.passwordUpdatedAt,
+        ]
+      );
 
       await client.query('INSERT INTO public_config (id, site_name, currency, contact_phone) VALUES (1, $1, $2, $3)', [
         seedConfig.siteName,
@@ -5047,12 +8145,37 @@ class PostgresStore implements DemoStore {
       await client.query('COMMIT');
       this.notifications = seedNotifications.map((notification) => ({ ...notification }));
       this.customerProfiles = seedCustomerProfiles.map((profile) => ({ ...profile }));
+      this.paymentRecords = seedPayments.map((payment) => ({ ...payment }));
+      this.paymentNotifications = seedPaymentNotifications.map((notification) => ({ ...notification }));
+      this.allocations = seedAllocations.map((allocation) => ({ ...allocation }));
+
+      await this.ensureCustomerFleetDataInPostgres(seedAccount.customerId, seedAccount.email);
     } catch (error) {
       await client.query('ROLLBACK');
       throw error;
     } finally {
       client.release();
     }
+  }
+
+  getCustomerStatement(customerId: string, fromDate?: string, toDate?: string): Promise<CustomerStatementSummary> {
+    const memory = new MemoryStore();
+    return memory.getCustomerStatement(customerId, fromDate, toDate);
+  }
+
+  getCustomerDebitCreditRefunds(customerId: string): Promise<CustomerDebitCreditListResponse> {
+    const memory = new MemoryStore();
+    return memory.getCustomerDebitCreditRefunds(customerId);
+  }
+
+  listCustomerPolymorphicInquiries(customerId: string): Promise<CustomerPolymorphicInquiryListResponse> {
+    const memory = new MemoryStore();
+    return memory.listCustomerPolymorphicInquiries(customerId);
+  }
+
+  getCustomerPairedAccounts(customerId: string): Promise<CustomerPairedAccount[]> {
+    const memory = new MemoryStore();
+    return memory.getCustomerPairedAccounts(customerId);
   }
 
   async close(): Promise<void> {

@@ -74,8 +74,14 @@
     {
       "tag": "a",
       "role": "link",
-      "name": "Access Customer Portal",
-      "href": "/account?returnTo=%2Fbranches%2Fharare-hub"
+      "name": "LOGIN",
+      "href": "http://127.0.0.1:3001"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "REGISTER",
+      "href": "/register"
     },
     {
       "tag": "button",
@@ -146,89 +152,89 @@
     {
       "tag": "article",
       "role": "article",
-      "name": "2021 BMW X3 xDrive20d - USD 26,500"
+      "name": "2023 Lexus RX450h - USD 38,000"
     },
     {
       "tag": "a",
       "role": "link",
-      "name": "View details for 2021 BMW X3 xDrive20d",
-      "href": "/allstock/2021-bmw-x3-xdrive20d-veh-10"
+      "name": "View details for 2023 Lexus RX450h",
+      "href": "/allstock/2023-lexus-rx450h-veh-7"
     },
     {
       "tag": "a",
       "role": "link",
-      "name": "2021 BMW X3 XDRIVE20D",
-      "href": "/allstock/2021-bmw-x3-xdrive20d-veh-10"
+      "name": "2023 LEXUS RX450H",
+      "href": "/allstock/2023-lexus-rx450h-veh-7"
     },
     {
       "tag": "h3",
       "role": "heading",
-      "name": "X3 XDRIVE20D",
+      "name": "RX450H",
       "level": 3
     },
     {
       "tag": "a",
       "role": "link",
       "name": "VIEW DETAILS",
-      "href": "/allstock/2021-bmw-x3-xdrive20d-veh-10"
+      "href": "/allstock/2023-lexus-rx450h-veh-7"
     },
     {
       "tag": "article",
       "role": "article",
-      "name": "2020 Audi A4 Avant - USD 15,900"
+      "name": "2020 Mazda CX-5 - USD 13,500"
     },
     {
       "tag": "a",
       "role": "link",
-      "name": "View details for 2020 Audi A4 Avant",
-      "href": "/allstock/2020-audi-a4-avant-veh-11"
+      "name": "View details for 2020 Mazda CX-5",
+      "href": "/allstock/2020-mazda-cx-5-veh-8"
     },
     {
       "tag": "a",
       "role": "link",
-      "name": "2020 AUDI A4 AVANT",
-      "href": "/allstock/2020-audi-a4-avant-veh-11"
+      "name": "2020 MAZDA CX-5",
+      "href": "/allstock/2020-mazda-cx-5-veh-8"
     },
     {
       "tag": "h3",
       "role": "heading",
-      "name": "A4 AVANT",
+      "name": "CX-5",
       "level": 3
     },
     {
       "tag": "a",
       "role": "link",
       "name": "VIEW DETAILS",
-      "href": "/allstock/2020-audi-a4-avant-veh-11"
+      "href": "/allstock/2020-mazda-cx-5-veh-8"
     },
     {
       "tag": "article",
       "role": "article",
-      "name": "2022 Land Rover Defender 110 - USD 49,000"
+      "name": "2019 Mercedes-Benz C200 AMG Line - USD 17,800"
     },
     {
       "tag": "a",
       "role": "link",
-      "name": "View details for 2022 Land Rover Defender 110",
-      "href": "/allstock/2022-land-rover-defender-110-veh-12"
+      "name": "View details for 2019 Mercedes-Benz C200 AMG Line",
+      "href": "/allstock/2019-mercedes-benz-c200-amg-line-veh-9"
     },
     {
       "tag": "a",
       "role": "link",
-      "name": "2022 LAND ROVER DEFENDER 110",
-      "href": "/allstock/2022-land-rover-defender-110-veh-12"
+      "name": "2019 MERCEDES-BENZ C200 AMG LINE",
+      "href": "/allstock/2019-mercedes-benz-c200-amg-line-veh-9"
     },
     {
       "tag": "h3",
       "role": "heading",
-      "name": "DEFENDER 110",
+      "name": "C200 AMG LINE",
       "level": 3
     },
     {
       "tag": "a",
       "role": "link",
       "name": "VIEW DETAILS",
-      "href": "/allstock/2022-land-rover-defender-110-veh-12"
+      "href": "/allstock/2019-mercedes-benz-c200-amg-line-veh-9"
     },
     {
       "tag": "header",
@@ -240,35 +246,6 @@
       "role": "heading",
       "name": "Recently Discounted for Durban",
       "level": 2
-    },
-    {
-      "tag": "article",
-      "role": "article",
-      "name": "2020 Audi A4 Avant - USD 15,900"
-    },
-    {
-      "tag": "a",
-      "role": "link",
-      "name": "View details for 2020 Audi A4 Avant",
-      "href": "/allstock/2020-audi-a4-avant-veh-11"
-    },
-    {
-      "tag": "a",
-      "role": "link",
-      "name": "2020 AUDI A4 AVANT",
-      "href": "/allstock/2020-audi-a4-avant-veh-11"
-    },
-    {
-      "tag": "h3",
-      "role": "heading",
-      "name": "A4 AVANT",
-      "level": 3
-    },
-    {
-      "tag": "a",
-      "role": "link",
-      "name": "VIEW DETAILS",
-      "href": "/allstock/2020-audi-a4-avant-veh-11"
     },
     {
       "tag": "article",
@@ -356,6 +333,35 @@
       "role": "link",
       "name": "VIEW DETAILS",
       "href": "/allstock/2018-mitsubishi-fuso-canter-veh-6"
+    },
+    {
+      "tag": "article",
+      "role": "article",
+      "name": "2020 Audi A4 Avant - USD 15,900"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "View details for 2020 Audi A4 Avant",
+      "href": "/allstock/2020-audi-a4-avant-veh-11"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "2020 AUDI A4 AVANT",
+      "href": "/allstock/2020-audi-a4-avant-veh-11"
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "A4 AVANT",
+      "level": 3
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "VIEW DETAILS",
+      "href": "/allstock/2020-audi-a4-avant-veh-11"
     },
     {
       "tag": "h2",
@@ -465,5 +471,5 @@
       "level": 4
     }
   ],
-  "text": "Skip to main content C CAR CHIEF ONLINE SHOWROOM ALL STOCK PREMIUM STOCK HOW TO BUY ABOUT US TESTIMONIALS FAQ CONTACT CUSTOMER PORTAL Regional Hub • Code: HRE • Port: Durban Harare Hub (demo) CarChief Harare Hub connects buyers in Zimbabwe with direct imports routed via Durban port. This is a demo branch projection pending an approved branch definition. 🌍 Welcome to CarChief Harare Hub — Direct Imports to Zimbabwe 📞 Contact our Harare team today for personalized vehicle sourcing Latest Arrivals for Durban Freshly inspected stock bound for Durban port. ● AVAILABLE In Japan 2021 TOYOTA COROLLA AXIO PRICE $8,500 VIEW DETAILS BMW X3 xDrive20d ● AVAILABLE In Japan 2021 BMW X3 XDRIVE20D PRICE $26,500 VIEW DETAILS Audi A4 Avant ● AVAILABLE In Japan 2020 AUDI A4 AVANT PRICE $15,900 VIEW DETAILS Land Rover Defender 110 ● AVAILABLE In Japan 2022 LAND ROVER DEFENDER 110 PRICE $49,000 VIEW DETAILS Recently Discounted for Durban Special promotional offers available for Durban delivery. Audi A4 Avant ● AVAILABLE In Japan 2020 AUDI A4 AVANT PRICE $15,900 VIEW DETAILS Subaru Forester ● AVAILABLE In Japan 2019 SUBARU FORESTER -10% discount PRICE Request Price VIEW DETAILS Honda Fit Hybrid ● AVAILABLE In Transit 2021 HONDA FIT HYBRID -5% discount PRICE $7,900$7,505 VIEW DETAILS Mitsubishi Fuso Canter ● AVAILABLE In Port 2018 MITSUBISHI FUSO CANTER -15% discount PRICE $16,000$13,600 VIEW DETAILS CarChief Team H Harare Branch Support Branch Manager (role contact — pending approved staff directory) harare@carchief.com H Harare Customer Success Customer Success Advisor (role contact — pending approved staff directory) harare@carchief.com Meet & Greet Service Visit our Harare representative office for in-person consultation and pro-forma invoice assistance. Branch Contact Details ADDRESS Harare, Zimbabwe — exact office address pending approval PHONE HOTLINE +263 24 000 0000 EMAIL harare@carchief.com HOURS Mon-Fri 08:30 - 16:30 CAT VIEW ALL VEHICLESALL OFFICES CC CARCHIEF PREMIUM GLOBAL VEHICLE EXPORTERS CarChief is a high-end showcase portal providing direct ocean-cargo logistics, certified pre-owned inspections, and custom spec tracking. LOGISTICS CORE PORTALS Showroom Catalog How to Buy About Us Testimonials FAQ Contact Us SECURE VERIFICATION CarChief utilizes highly secure cloud-replicated server architectures for real-time transaction records and client logs. 🔒 SECURED CLOUD ENVELOPE © 2026 CARCHIEF AUTO GROUP. ALL RIGHTS RESERVED. CLOUDRUN ENVIRONMENT · REGISTRY SECURITY PROTOCOL SHIELD-V2"
+  "text": "Skip to main content C CAR CHIEF ONLINE SHOWROOM ALL STOCK PREMIUM STOCK HOW TO BUY ABOUT US TESTIMONIALS FAQ CONTACT LOGIN REGISTER Regional Hub • Code: HRE • Port: Durban Harare Hub (demo) CarChief Harare Hub connects buyers in Zimbabwe with direct imports routed via Durban port. This is a demo branch projection pending an approved branch definition. 🌍 Welcome to CarChief Harare Hub — Direct Imports to Zimbabwe 📞 Contact our Harare team today for personalized vehicle sourcing Latest Arrivals for Durban Freshly inspected stock bound for Durban port. ● AVAILABLE In Japan 2021 TOYOTA COROLLA AXIO PRICE $8,500 VIEW DETAILS Lexus RX450h ● AVAILABLE In Japan 2023 LEXUS RX450H PRICE $38,000 VIEW DETAILS Mazda CX-5 ● AVAILABLE In Japan 2020 MAZDA CX-5 PRICE $13,500 VIEW DETAILS Mercedes-Benz C200 AMG Line ● AVAILABLE In Japan 2019 MERCEDES-BENZ C200 AMG LINE PRICE $17,800 VIEW DETAILS Recently Discounted for Durban Special promotional offers available for Durban delivery. Subaru Forester ● AVAILABLE In Japan 2019 SUBARU FORESTER -10% discount PRICE Request Price VIEW DETAILS Honda Fit Hybrid ● AVAILABLE In Transit 2021 HONDA FIT HYBRID -5% discount PRICE $7,900$7,505 VIEW DETAILS Mitsubishi Fuso Canter ● AVAILABLE In Port 2018 MITSUBISHI FUSO CANTER -15% discount PRICE $16,000$13,600 VIEW DETAILS Audi A4 Avant ● AVAILABLE In Japan 2020 AUDI A4 AVANT PRICE $15,900 VIEW DETAILS CarChief Team H Harare Branch Support Branch Manager (role contact — pending approved staff directory) harare@carchief.com H Harare Customer Success Customer Success Advisor (role contact — pending approved staff directory) harare@carchief.com Meet & Greet Service Visit our Harare representative office for in-person consultation and pro-forma invoice assistance. Branch Contact Details ADDRESS Harare, Zimbabwe — exact office address pending approval PHONE HOTLINE +263 24 000 0000 EMAIL harare@carchief.com HOURS Mon-Fri 08:30 - 16:30 CAT VIEW ALL VEHICLESALL OFFICES CC CARCHIEF PREMIUM GLOBAL VEHICLE EXPORTERS CarChief is a high-end showcase portal providing direct ocean-cargo logistics, certified pre-owned inspections, and custom spec tracking. LOGISTICS CORE PORTALS Showroom Catalog How to Buy About Us Testimonials FAQ Contact Us SECURE VERIFICATION CarChief utilizes highly secure cloud-replicated server architectures for real-time transaction records and client logs. 🔒 SECURED CLOUD ENVELOPE © 2026 CARCHIEF AUTO GROUP. ALL RIGHTS RESERVED. CLOUDRUN ENVIRONMENT · REGISTRY SECURITY PROTOCOL SHIELD-V2"
 }

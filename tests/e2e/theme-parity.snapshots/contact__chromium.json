@@ -74,8 +74,14 @@
     {
       "tag": "a",
       "role": "link",
-      "name": "Access Customer Portal",
-      "href": "/account?returnTo=%2Fcontact"
+      "name": "LOGIN",
+      "href": "http://127.0.0.1:3001"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "REGISTER",
+      "href": "/register"
     },
     {
       "tag": "button",
@@ -295,5 +301,5 @@
       "level": 4
     }
   ],
-  "text": "Skip to main content C CAR CHIEF ONLINE SHOWROOM ALL STOCK PREMIUM STOCK HOW TO BUY ABOUT US TESTIMONIALS FAQ CONTACT CUSTOMER PORTAL GLOBAL COMMUNICATIONS CONNECT WITH OUR OPERATIONS AGENTS Have questions regarding deep-sea shipping, custom container locks, currency conversions, or certified pre-sealing? Submit an inquiry below. CONTACT DIRECTORY INTERNATIONAL OFFICES Direct communication links to our regional hubs. Visited strictly by pre-scheduled custom consultations. MUNICH HEADQUARTERS 📍 📍 Maximilianstraße 45, 80539 München, Germany 📞 +49 89 2424 990 ✉ munich@carchief.com ROTTERDAM LOGISTICS GATE 📍 📍 Boompjes 40, 3011 XB Rotterdam, Netherlands 📞 +31 10 440 2201 ✉ rotterdam@carchief.com ⏰ OPERATING HOURS Monday – Friday 08:00 – 18:00 CET Saturday 09:00 – 14:00 CET Sunday PORT OPERATIONS CLOSED DIRECT LEAD SUBMISSION Submitting this form dispatches a real operational record straight to our logistics backend ledger. Contact Us YOUR FULL NAME / NAME * 👤 WORK EMAIL ADDRESS / EMAIL * ✉ MOBILE PHONE NUMBER / PHONE NUMBER * 📞 DETAILED MESSAGE / SPECIFICATIONS SOUGHT / MESSAGE * I agree to be contacted by CarChief about this enquiry. * 🛡️ SECURE INTEGRATED PIPELINE SEND INQUIRY 🚀 ❓ Have standard logistics questions? Read our full FAQ portal CC CARCHIEF PREMIUM GLOBAL VEHICLE EXPORTERS CarChief is a high-end showcase portal providing direct ocean-cargo logistics, certified pre-owned inspections, and custom spec tracking. LOGISTICS CORE PORTALS Showroom Catalog How to Buy About Us Testimonials FAQ Contact Us SECURE VERIFICATION CarChief utilizes highly secure cloud-replicated server architectures for real-time transaction records and client logs. 🔒 SECURED CLOUD ENVELOPE © 2026 CARCHIEF AUTO GROUP. ALL RIGHTS RESERVED. CLOUDRUN ENVIRONMENT · REGISTRY SECURITY PROTOCOL SHIELD-V2"
+  "text": "Skip to main content C CAR CHIEF ONLINE SHOWROOM ALL STOCK PREMIUM STOCK HOW TO BUY ABOUT US TESTIMONIALS FAQ CONTACT LOGIN REGISTER GLOBAL COMMUNICATIONS CONNECT WITH OUR OPERATIONS AGENTS Have questions regarding deep-sea shipping, custom container locks, currency conversions, or certified pre-sealing? Submit an inquiry below. CONTACT DIRECTORY INTERNATIONAL OFFICES Direct communication links to our regional hubs. Visited strictly by pre-scheduled custom consultations. MUNICH HEADQUARTERS 📍 📍 Maximilianstraße 45, 80539 München, Germany 📞 +49 89 2424 990 ✉ munich@carchief.com ROTTERDAM LOGISTICS GATE 📍 📍 Boompjes 40, 3011 XB Rotterdam, Netherlands 📞 +31 10 440 2201 ✉ rotterdam@carchief.com ⏰ OPERATING HOURS Monday – Friday 08:00 – 18:00 CET Saturday 09:00 – 14:00 CET Sunday PORT OPERATIONS CLOSED DIRECT LEAD SUBMISSION Submitting this form dispatches a real operational record straight to our logistics backend ledger. Contact Us YOUR FULL NAME / NAME * 👤 WORK EMAIL ADDRESS / EMAIL * ✉ MOBILE PHONE NUMBER / PHONE NUMBER * 📞 DETAILED MESSAGE / SPECIFICATIONS SOUGHT / MESSAGE * I agree to be contacted by CarChief about this enquiry. * 🛡️ SECURE INTEGRATED PIPELINE SEND INQUIRY 🚀 ❓ Have standard logistics questions? Read our full FAQ portal CC CARCHIEF PREMIUM GLOBAL VEHICLE EXPORTERS CarChief is a high-end showcase portal providing direct ocean-cargo logistics, certified pre-owned inspections, and custom spec tracking. LOGISTICS CORE PORTALS Showroom Catalog How to Buy About Us Testimonials FAQ Contact Us SECURE VERIFICATION CarChief utilizes highly secure cloud-replicated server architectures for real-time transaction records and client logs. 🔒 SECURED CLOUD ENVELOPE © 2026 CARCHIEF AUTO GROUP. ALL RIGHTS RESERVED. CLOUDRUN ENVIRONMENT · REGISTRY SECURITY PROTOCOL SHIELD-V2"
 }

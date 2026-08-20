@@ -3,12 +3,20 @@ import { CUSTOMER_APP_BASE_URL } from './customerAppBase.js';
 
 test.describe.configure({ mode: 'serial' });
 
+const FIXTURE_EMAIL = 'demo.customer@carchief.com';
+const FIXTURE_PASSWORD = 'CarChief#Fixture2026';
+
 test.describe('Customer notifications and linked navigation @serial-reset', () => {
   test.beforeEach(async ({ page }) => {
     await page.request.post(`${CUSTOMER_APP_BASE_URL}/api/v1/__reset`);
     await page.goto(CUSTOMER_APP_BASE_URL);
     await expect(page.getByRole('heading', { name: 'Sign In to CarChief' })).toBeVisible();
-    await page.getByRole('button', { name: /Request Demo Session/ }).click();
+    // Sign in with the seeded fixture credential (D02-P12-T001) — the
+    // removed demo-session endpoint's replacement (D02-P12-T007 reopen of
+    // D02-P12-T005's customer-app e2e migration).
+    await page.getByTestId('cust-login-email').fill(FIXTURE_EMAIL);
+    await page.getByTestId('cust-login-password').fill(FIXTURE_PASSWORD);
+    await page.getByTestId('cust-login-submit').click();
     await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
     await page.goto(`${CUSTOMER_APP_BASE_URL}/notifications`);
     await expect(page.getByRole('heading', { name: 'Notifications' })).toBeVisible();

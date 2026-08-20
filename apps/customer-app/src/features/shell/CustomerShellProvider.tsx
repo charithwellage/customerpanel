@@ -1,14 +1,14 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { ThemeId, resolveThemeId } from '@carchief/theme';
-import type { CustomerTier } from '@carchief/domain';
+import { applyCustomerTheme, ThemeMode } from '../../theme.js';
 
 export interface CustomerUser {
   id: string;
   name: string;
   email: string;
   company?: string;
-  role: 'CUSTOMER';
-  tier?: CustomerTier;
+  role?: string;
+  tier?: string;
 }
 
 export interface NavigationItem {
@@ -16,30 +16,78 @@ export interface NavigationItem {
   label: string;
   href: string;
   icon?: string;
-  badge?: string | number;
+  badge?: string;
+  altLabel?: string;
+}
+
+export interface PairedAccount {
+  id: string;
+  name: string;
+  company: string;
+  email: string;
+  tier?: string;
+  country?: string;
 }
 
 export interface CustomerShellContextValue {
   user: CustomerUser | null;
+  pairedAccounts: PairedAccount[];
+  switchAccount: (accountId: string) => void;
   activeRoute: string;
   setActiveRoute: (route: string) => void;
   isMobileMenuOpen: boolean;
   toggleMobileMenu: () => void;
   closeMobileMenu: () => void;
   themeId: ThemeId;
+  themeMode: ThemeMode;
+  toggleThemeMode: () => void;
+  setThemeMode: (mode: ThemeMode) => void;
   navigationItems: NavigationItem[];
+  /** Signs the customer out. Absent when the shell is rendered without a live session (for example an isolated component test). */
+  onSignOut?: () => void;
 }
 
+const DEFAULT_PAIRED_ACCOUNTS: PairedAccount[] = [
+  {
+    id: 'usr-charith-01',
+    name: 'Charith Wellage',
+    company: 'charith wellage',
+    email: 'charith.wellage@carchief.com',
+    tier: 'PREMIUM DEALER',
+    country: 'Kenya',
+  },
+  {
+    id: 'usr-branch-02',
+    name: 'CarChief Kenya Hub',
+    company: 'CarChief East Africa Ltd',
+    email: 'kenya.hub@carchief.com',
+    tier: 'REGIONAL DISTRIBUTOR',
+    country: 'Kenya',
+  },
+  {
+    id: 'usr-logistics-03',
+    name: 'Wellage Logistics Fleet',
+    company: 'Wellage Commercial Importers',
+    email: 'fleet@wellagelogistics.co.ke',
+    tier: 'WHOLESALE IMPORTER',
+    country: 'Kenya',
+  },
+];
+
 const DEFAULT_NAV_ITEMS: NavigationItem[] = [
-  { id: 'dashboard', label: 'Dashboard', href: '/dashboard', icon: '📊' },
-  { id: 'inventory', label: 'Inventory', href: '/inventory', icon: '🚗' },
-  { id: 'vehicles', label: 'My Vehicles', href: '/vehicles', icon: '🔑' },
-  { id: 'invoices', label: 'Invoices & Ledger', href: '/invoices', icon: '📄' },
-  { id: 'payments', label: 'Payments', href: '/payments', icon: '💳' },
-  { id: 'shipments', label: 'Shipments', href: '/shipments', icon: '🚢' },
-  { id: 'documents', label: 'Documents', href: '/documents', icon: '📁' },
-  { id: 'notifications', label: 'Notifications', href: '/notifications', icon: '🔔' },
-  { id: 'profile', label: 'Profile & Account', href: '/profile', icon: '👤' },
+  { id: 'dashboard', label: 'Overview Desk', altLabel: 'Dashboard', href: '/dashboard', icon: '📊' },
+  { id: 'statement', label: 'My Statement', altLabel: 'Customer Statement', href: '/statement', icon: '📑' },
+  { id: 'inventory', label: 'Sourcing Showroom', altLabel: 'Inventory', href: '/inventory', icon: '🚗' },
+  { id: 'inquiries', label: 'My Inquiries', altLabel: 'My Inquiries', href: '/inquiries', icon: '💬' },
+  { id: 'wishlist', label: 'My Wishlist', altLabel: 'My Wishlist', href: '/wishlist', icon: '❤️' },
+  { id: 'favourites', label: 'Favourites', altLabel: 'Favourites', href: '/favourites', icon: '⭐' },
+  { id: 'vehicles', label: 'Sourced Vehicles', altLabel: 'My Vehicles', href: '/vehicles', icon: '🚙' },
+  { id: 'shipments', label: 'Reserved Vehicles', altLabel: 'Shipments', href: '/shipments', icon: '⏱️' },
+  { id: 'invoices', label: 'Billed Invoices', altLabel: 'Invoices & Ledger', href: '/invoices', icon: '📄' },
+  { id: 'payments', label: 'Wire Remittance', altLabel: 'Payments', href: '/payments', icon: '💲' },
+  { id: 'documents', label: 'Secure Vault', altLabel: 'Documents', href: '/documents', icon: '🛡️' },
+  { id: 'notifications', label: 'Bulletins', altLabel: 'Notifications', href: '/notifications', icon: '🔔' },
+  { id: 'profile', label: 'Client Profile', altLabel: 'Profile & Account', href: '/profile', icon: '👤' },
 ];
 
 const CustomerShellContext = createContext<CustomerShellContextValue | undefined>(undefined);
@@ -49,29 +97,19 @@ export interface CustomerShellProviderProps {
   initialUser?: CustomerUser | null;
   initialRoute?: string;
   themeId?: string;
+  initialThemeMode?: ThemeMode;
   navItems?: NavigationItem[];
+  onSignOut?: () => void;
 }
-
-/**
- * Stand-in used only when the shell is rendered outside a verified session (for
- * example an isolated component test). It is a deliberately generic label with
- * a reserved-for-testing address (RFC 2606) and no company, so nothing here can
- * be mistaken for a real person or organisation. The running application passes
- * the identity from the actual session instead — see `src/app/App.tsx`.
- */
-export const PLACEHOLDER_CUSTOMER_USER: CustomerUser = {
-  id: 'demo-customer',
-  name: 'Demo Customer',
-  email: 'demo.customer@example.invalid',
-  role: 'CUSTOMER',
-};
 
 export const CustomerShellProvider: React.FC<CustomerShellProviderProps> = ({
   children,
-  initialUser = PLACEHOLDER_CUSTOMER_USER,
+  initialUser = null,
   initialRoute,
   themeId,
+  initialThemeMode,
   navItems = DEFAULT_NAV_ITEMS,
+  onSignOut,
 }) => {
   const getInitialPath = () => {
     if (initialRoute) return initialRoute;
@@ -81,9 +119,63 @@ export const CustomerShellProvider: React.FC<CustomerShellProviderProps> = ({
     return '/dashboard';
   };
 
-  const [user] = useState<CustomerUser | null>(initialUser);
+  const [currentUser, setCurrentUser] = useState<CustomerUser | null>(initialUser ?? null);
   const [activeRoute, setActiveRouteState] = useState<string>(getInitialPath);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
+
+  const switchAccount = (accountId: string) => {
+    const matched = DEFAULT_PAIRED_ACCOUNTS.find((a) => a.id === accountId);
+    if (matched) {
+      setCurrentUser({
+        id: matched.id,
+        name: matched.name,
+        company: matched.company,
+        email: matched.email,
+        tier: matched.tier,
+      });
+    }
+  };
+
+  const [themeMode, setThemeModeState] = useState<ThemeMode>(() => {
+    if (initialThemeMode) return initialThemeMode;
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('carchief_theme_mode');
+        if (saved === 'midnight' || saved === 'daylight') return saved;
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+          return 'midnight';
+        }
+      } catch {
+        // Ignore storage exceptions
+      }
+    }
+    return 'daylight';
+  });
+
+  const resolvedTheme = resolveThemeId(themeId);
+
+  const setThemeMode = (mode: ThemeMode) => {
+    setThemeModeState(mode);
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('carchief_theme_mode', mode);
+      } catch {
+        // Ignore storage exceptions
+      }
+      applyCustomerTheme(document.documentElement, resolvedTheme, mode);
+    }
+  };
+
+  const toggleThemeMode = () => {
+    const nextMode: ThemeMode = themeMode === 'midnight' ? 'daylight' : 'midnight';
+    setThemeMode(nextMode);
+  };
+
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      applyCustomerTheme(document.documentElement, resolvedTheme, themeMode);
+    }
+  }, [resolvedTheme, themeMode]);
 
   const setActiveRoute = (route: string) => {
     setActiveRouteState(route);
@@ -104,19 +196,23 @@ export const CustomerShellProvider: React.FC<CustomerShellProviderProps> = ({
   const toggleMobileMenu = () => setIsMobileMenuOpen((prev) => !prev);
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
 
-  const resolvedTheme = resolveThemeId(themeId);
-
   return (
     <CustomerShellContext.Provider
       value={{
-        user,
+        user: currentUser,
+        pairedAccounts: DEFAULT_PAIRED_ACCOUNTS,
+        switchAccount,
         activeRoute,
         setActiveRoute,
         isMobileMenuOpen,
         toggleMobileMenu,
         closeMobileMenu,
         themeId: resolvedTheme,
+        themeMode,
+        toggleThemeMode,
+        setThemeMode,
         navigationItems: navItems,
+        onSignOut,
       }}
     >
       {children}

@@ -9,5 +9,6 @@ export * from './components/BankWireInstructionsCard.js';
 export * from './components/InvoiceLineItemsTable.js';
 export * from './components/PaymentAllocationsTable.js';
 export * from './components/PrintableInvoiceModal.js';
+export * from './components/InvoiceLedgerModal.js';
 export * from './CustomerInvoicesPage.js';
 export * from './CustomerInvoiceDetailPage.js';

@@ -1,4 +1,3 @@
-import React from 'react';
 import type { SearchVehiclesQuery } from '@carchief/domain';
 
 export interface SearchResultsHeaderProps {

@@ -35,12 +35,12 @@ async function openMobileMenuIfNeeded(page: Page): Promise<void> {
 }
 
 /**
- * Crafts a token in the mock's own unsigned demo-JWT format
- * (`packages/domain/src/auth.ts`'s `createDemoJwtToken`) without importing
+ * Crafts a token in the mock's own unsigned session-token format
+ * (`packages/domain/src/auth.ts`'s `issueSessionToken`) without importing
  * server-side code into this Node-side test script. This is the only way an
  * automated test can exercise a `Salesperson`/other-customer identity: the
- * public `POST /api/v1/auth/demo-session` endpoint deliberately mints a
- * `CustomerBuyer` identity only and never a caller-supplied role
+ * customer sign-in path deliberately mints a `CustomerBuyer` identity only
+ * for its own registered account and never a caller-supplied role
  * (`D01-P06-T003`, so the public UI itself can never self-elevate). No
  * product code takes this path — it only exercises the already-implemented,
  * server-authoritative `hasPermission` gate from outside.
@@ -51,13 +51,50 @@ function craftDemoToken(role: string, sub: string, email: string): string {
   return `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.${payload}.demo-signature`;
 }
 
-async function signInViaUi(page: Page, returnToSlug?: string): Promise<void> {
-  const returnTo = returnToSlug ? `?returnTo=${encodeURIComponent(`/allstock/${returnToSlug}`)}` : '';
-  await page.goto(`/account${returnTo}`);
-  await Promise.all([
-    returnToSlug ? page.waitForURL(new RegExp(`/allstock/${returnToSlug}$`)) : page.waitForURL((url) => url.pathname === '/'),
-    page.getByRole('button', { name: 'Continue with Demo Customer Account' }).click(),
-  ]);
+function uniqueEmail(prefix: string): string {
+  return `${prefix}.${Date.now()}.${Math.floor(Math.random() * 100000)}@example.com`;
+}
+
+/**
+ * Registers a brand-new real account and signs in through the real Mock API
+ * HTTP contract (never a locally-minted token), then writes the resulting
+ * session into public-web's own localStorage under its real, non-demo
+ * storage key (`features/account-entry/session-storage.ts`'s
+ * `carchief.session.v1`). There is no public-web UI sign-in form (CUST-30,
+ * `DEC-CUST-IDENTITY-RECOVERY` — sign-in only happens in the Customer
+ * application), so an automated test exercising the signed-in public-web
+ * reservation experience seeds the session this way, exactly mirroring how a
+ * real cross-application hand-off would leave public-web's storage
+ * populated. A fresh account per call (rather than the single shared
+ * `cust-123` fixture) keeps this describe block's per-customer reservation
+ * ceiling/hold state independent across the three viewport projects, which
+ * run concurrently against the one shared Mock API instance (Profile A).
+ */
+async function signInAsFreshCustomer(page: Page, request: import('@playwright/test').APIRequestContext, baseURL: string, tag: string): Promise<void> {
+  const email = uniqueEmail(tag);
+  const registerResponse = await request.post(`${baseURL}/api/v1/auth/register`, {
+    data: {
+      nameWithInitials: 'E2E Tester',
+      countryCode: 'KE',
+      mobileNumber: '712345678',
+      email,
+      password: 'Sup3rSecretPass1',
+      confirmPassword: 'Sup3rSecretPass1',
+    },
+  });
+  expect(registerResponse.status()).toBe(201);
+
+  const loginResponse = await request.post(`${baseURL}/api/v1/auth/login`, {
+    data: { email, password: 'Sup3rSecretPass1' },
+  });
+  expect(loginResponse.status()).toBe(200);
+  const session = await loginResponse.json();
+  await page.addInitScript(
+    ({ key, value }) => {
+      window.localStorage.setItem(key, value);
+    },
+    { key: 'carchief.session.v1', value: JSON.stringify(session) }
+  );
 }
 
 test.describe('Contact and vehicle enquiry journeys', () => {
@@ -154,8 +191,11 @@ test.describe('Signed-in reservation eligibility, success, expiry and conflict f
 
   test('a signed-in visitor can reserve an available vehicle, and the hold persists after a reload through the service boundary', async ({
     page,
+    request,
+    baseURL,
   }) => {
-    await signInViaUi(page, AVAILABLE_VEHICLE.slug);
+    await signInAsFreshCustomer(page, request, baseURL!, 'reserve-available');
+    await page.goto(`/allstock/${AVAILABLE_VEHICLE.slug}`);
 
     const [response] = await Promise.all([
       page.waitForResponse((res) => res.url().includes('/api/v1/reservations') && res.request().method() === 'POST'),
@@ -190,7 +230,8 @@ test.describe('Signed-in reservation eligibility, success, expiry and conflict f
     });
     expect(holdResponse.status()).toBe(201);
 
-    await signInViaUi(page, CONFLICT_VEHICLE.slug);
+    await signInAsFreshCustomer(page, request, baseURL!, 'reserve-conflict');
+    await page.goto(`/allstock/${CONFLICT_VEHICLE.slug}`);
     await page.getByRole('button', { name: 'Reserve This Vehicle' }).click();
 
     await expect(
@@ -201,8 +242,11 @@ test.describe('Signed-in reservation eligibility, success, expiry and conflict f
 
   test('attempting to reserve the same vehicle a second time (no local record of the first) surfaces a duplicate message', async ({
     page,
+    request,
+    baseURL,
   }) => {
-    await signInViaUi(page, AVAILABLE_VEHICLE.slug);
+    await signInAsFreshCustomer(page, request, baseURL!, 'reserve-duplicate');
+    await page.goto(`/allstock/${AVAILABLE_VEHICLE.slug}`);
     await Promise.all([
       page.waitForResponse((res) => res.url().includes('/api/v1/reservations') && res.request().method() === 'POST'),
       page.getByRole('button', { name: 'Reserve This Vehicle' }).click(),
@@ -224,8 +268,23 @@ test.describe('Signed-in reservation eligibility, success, expiry and conflict f
     request,
     baseURL,
   }) => {
-    const demoResponse = await request.post(`${baseURL}/api/v1/auth/demo-session`);
-    const { token } = await demoResponse.json();
+    const email = uniqueEmail('reserve-limit');
+    const registerResponse = await request.post(`${baseURL}/api/v1/auth/register`, {
+      data: {
+        nameWithInitials: 'E2E Tester',
+        countryCode: 'KE',
+        mobileNumber: '712345678',
+        email,
+        password: 'Sup3rSecretPass1',
+        confirmPassword: 'Sup3rSecretPass1',
+      },
+    });
+    expect(registerResponse.status()).toBe(201);
+    const loginResponse = await request.post(`${baseURL}/api/v1/auth/login`, {
+      data: { email, password: 'Sup3rSecretPass1' },
+    });
+    expect(loginResponse.status()).toBe(200);
+    const { token, ...session } = await loginResponse.json();
     for (const vehicleSlug of LIMIT_TEST_VEHICLES) {
       const holdResponse = await request.post(`${baseURL}/api/v1/reservations`, {
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
@@ -234,7 +293,13 @@ test.describe('Signed-in reservation eligibility, success, expiry and conflict f
       expect(holdResponse.status()).toBe(201);
     }
 
-    await signInViaUi(page, LIMIT_TEST_ATTEMPT_VEHICLE);
+    await page.addInitScript(
+      ({ key, value }) => {
+        window.localStorage.setItem(key, value);
+      },
+      { key: 'carchief.session.v1', value: JSON.stringify({ token, ...session }) }
+    );
+    await page.goto(`/allstock/${LIMIT_TEST_ATTEMPT_VEHICLE}`);
     await page.getByRole('button', { name: 'Reserve This Vehicle' }).click();
 
     await expect(page.getByRole('alert').filter({ hasText: 'the maximum allowed at once' })).toBeVisible();
