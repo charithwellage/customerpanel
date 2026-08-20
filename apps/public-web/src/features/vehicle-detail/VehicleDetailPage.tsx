@@ -670,7 +670,7 @@ export default function VehicleDetailPage({ vehicle }: VehicleDetailPageProps) {
             </div>
 
             <div className="cc-detail-quote-request-box">
-              <QuoteRequestSection vehicleSlug={vehicle.slug} vehicleLabel={title} />
+              <QuoteRequestSection vehicleSlug={vehicle.slug} vehicleLabel={title} vehicle={vehicle} />
             </div>
           </div>
         </div>

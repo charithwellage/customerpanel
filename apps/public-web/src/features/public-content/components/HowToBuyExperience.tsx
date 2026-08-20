@@ -1,6 +1,14 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import type { BankAccount } from '@carchief/domain';
+import { HttpClient, ConfigService } from '@carchief/api-client';
+import { useSession } from '../../account-entry/hooks/useSession';
+
+// helper to resolve mock-api URL
+function resolveBaseUrl(): string {
+  return typeof window !== 'undefined' ? '' : process.env.API_BASE_URL || 'http://127.0.0.1:4000';
+}
 
 export interface BuyingStep {
   id: number;
@@ -62,6 +70,29 @@ export const BUYING_STEPS: BuyingStep[] = [
 export const HowToBuyExperience: React.FC = () => {
   const [activeStepIndex, setActiveStepIndex] = useState<number>(0);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
+  const [bankAccountsLoading, setBankAccountsLoading] = useState<boolean>(false);
+
+  const session = useSession();
+  
+  const configService = useMemo(() => {
+    return new ConfigService(
+      new HttpClient({
+        baseUrl: resolveBaseUrl(),
+        getAuthToken: () => session.token || null,
+      })
+    );
+  }, [session.token]);
+
+  useEffect(() => {
+    if (session.status === 'active' && activeStepIndex === 2) {
+      setBankAccountsLoading(true);
+      configService.getBankAccounts()
+        .then(setBankAccounts)
+        .catch((err) => console.error('Failed to fetch bank accounts:', err))
+        .finally(() => setBankAccountsLoading(false));
+    }
+  }, [session.status, activeStepIndex, configService]);
 
   useEffect(() => {
     if (!isPlaying) return;
@@ -198,6 +229,38 @@ export const HowToBuyExperience: React.FC = () => {
                 {currentStep.stepNumber}
               </div>
               <p className="htb-step-description">{currentStep.description}</p>
+              
+              {currentStep.id === 3 && (
+                <div className="htb-secure-bank-info" style={{ marginTop: '20px' }}>
+                  {session.status === 'active' ? (
+                    bankAccountsLoading ? (
+                      <p>Loading secure bank details...</p>
+                    ) : bankAccounts.length > 0 ? (
+                      <div className="htb-bank-accounts">
+                        <h4 style={{ color: '#0052cc', marginBottom: '10px' }}>Official Bank Accounts</h4>
+                        <div style={{ display: 'grid', gap: '15px' }}>
+                          {bankAccounts.map((account) => (
+                            <div key={account.accountNo} style={{ padding: '15px', border: '1px solid #e1e4e8', borderRadius: '6px', backgroundColor: '#f6f8fa' }}>
+                              <p><strong>Bank:</strong> {account.bankName}</p>
+                              <p><strong>Branch:</strong> {account.branchName}</p>
+                              <p><strong>Account Name:</strong> {account.accountName}</p>
+                              <p><strong>Account No:</strong> <span style={{ fontFamily: 'monospace', fontSize: '1.1em' }}>{account.accountNo}</span></p>
+                              <p><strong>SWIFT:</strong> {account.swiftCode}</p>
+                              <p><strong>Currency:</strong> {account.currency}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <p>No bank details found.</p>
+                    )
+                  ) : (
+                    <div style={{ padding: '15px', border: '1px solid #ffe58f', borderRadius: '6px', backgroundColor: '#fffbe6', color: '#d48806' }}>
+                      <p>🔒 <strong>Secure Information:</strong> Please <a href="/register" style={{ color: '#1890ff', textDecoration: 'underline' }}>login or register</a> to view our official bank details.</p>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="htb-step-card-footer">
