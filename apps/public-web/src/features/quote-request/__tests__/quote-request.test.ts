@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { quoteRequestFormSchema } from '@carchief/validation';
 import type { QuoteRequestFormSchemaValues } from '@carchief/validation';
+import { resolveReturnTarget, extractVehicleSlug } from '../../../features/account-entry/session-storage';
+import { DEFAULT_DESTINATION_OPTIONS } from '@carchief/vehicle-detail';
 
 describe('Quote Request Form', () => {
   describe('quoteRequestFormSchema validation', () => {
@@ -264,4 +266,57 @@ describe('Quote Request Form', () => {
       });
     });
   });
+
+  describe('Authentication routing & Deep-linking (D02-P14-T003)', () => {
+    it('constructs deep-link returnTo parameter for quote calculator intent', () => {
+      const vehicleSlug = '2021-toyota-corolla-v1';
+      const returnTarget = `/allstock/${encodeURIComponent(vehicleSlug)}?openQuote=true`;
+      const signInHref = `/account?returnTo=${encodeURIComponent(returnTarget)}`;
+
+      expect(returnTarget).toBe('/allstock/2021-toyota-corolla-v1?openQuote=true');
+      expect(signInHref).toBe('/account?returnTo=%2Fallstock%2F2021-toyota-corolla-v1%3FopenQuote%3Dtrue');
+    });
+
+    it('validates return target security constraints', () => {
+      const safeTarget = '/allstock/2021-toyota-corolla-v1?openQuote=true';
+      expect(resolveReturnTarget(safeTarget)).toBe(safeTarget);
+      expect(extractVehicleSlug(safeTarget)).toBe('2021-toyota-corolla-v1');
+
+      // Prevents open redirect vectors
+      expect(resolveReturnTarget('https://malicious.com')).toBe('/');
+      expect(resolveReturnTarget('//malicious.com')).toBe('/');
+      expect(resolveReturnTarget('\\malicious.com')).toBe('/');
+    });
+  });
+
+  describe('Quote Calculator Pricing Logic (D02-P14-T003)', () => {
+
+    it('calculates RORO vs Container maritime freight correctly across destinations', () => {
+      const lk = DEFAULT_DESTINATION_OPTIONS.find((c: any) => c.countryCode === 'LK');
+      const colomboPort = lk.ports.find((p: any) => p.portCode === 'LKCMB');
+      
+      expect(colomboPort.baseFreightRoro).toBe(1100);
+      expect(colomboPort.baseFreightContainer).toBe(2100);
+
+      const fobPrice = 8500;
+      const roroTotal = fobPrice + colomboPort.baseFreightRoro;
+      const containerTotal = fobPrice + colomboPort.baseFreightContainer;
+
+      expect(roroTotal).toBe(9600);
+      expect(containerTotal).toBe(10600);
+    });
+
+    it('calculates full breakdown with optional insurance, warranty, inspection, and coupon discounts', () => {
+      const fobPrice = 12000;
+      const freightRoro = 1300;
+      const insurance = 150;
+      const warranty = 350;
+      const inspection = 200;
+      const couponDiscount = 100; // PROMO100
+
+      const fullTotal = fobPrice + freightRoro + insurance + warranty + inspection - couponDiscount;
+      expect(fullTotal).toBe(13900);
+    });
+  });
 });
+

@@ -387,6 +387,24 @@
             "schema": { "type": "number", "example": 25000 }
           },
           {
+            "name": "mileageMin",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "number", "example": 10000 }
+          },
+          {
+            "name": "mileageMax",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "number", "example": 80000 }
+          },
+          {
+            "name": "discountMin",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "number", "example": 5 }
+          },
+          {
             "name": "sortBy",
             "in": "query",
             "required": false,
@@ -535,6 +553,24 @@
             "in": "query",
             "required": false,
             "schema": { "type": "number", "example": 25000 }
+          },
+          {
+            "name": "mileageMin",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "number", "example": 10000 }
+          },
+          {
+            "name": "mileageMax",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "number", "example": 80000 }
+          },
+          {
+            "name": "discountMin",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "number", "example": 5 }
           },
           {
             "name": "sortBy",
@@ -1994,6 +2030,35 @@
         }
       }
     },
+    "/api/v1/bank-accounts": {
+      "get": {
+        "summary": "Get secure bank account information for authenticated users",
+        "operationId": "getBankAccounts",
+        "responses": {
+          "200": {
+            "description": "List of bank accounts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BankAccount"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated access not allowed",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/__reset": {
       "post": {
         "summary": "Deterministic non-production data reset",
@@ -2020,6 +2085,23 @@
   },
   "components": {
     "schemas": {
+      "BankAccount": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "example": "smbc-usd" },
+          "bankName": { "type": "string", "example": "SUMITOMO MITSUI BANKING CORPORATION" },
+          "swiftCode": { "type": "string", "example": "SMBCJPJT" },
+          "branchName": { "type": "string", "example": "SHINOSAKA BRANCH" },
+          "branchCode": { "type": "string", "example": "506" },
+          "bankAddress": { "type": "string", "example": "4-1-6, MIYAHARA, YODOGAWA-KU, OSAKA-SHI, OSAKA, 532-0003, JAPAN" },
+          "accountName": { "type": "string", "example": "CAR CHIEF CO.,LTD" },
+          "accountNo": { "type": "string", "example": "2015340" },
+          "currency": { "type": "string", "example": "USD" },
+          "logoUrl": { "type": "string", "example": "/images/banks/smbc.png" },
+          "type": { "type": "string", "enum": ["WIRE", "PAYPAL"] }
+        },
+        "required": ["id", "bankName", "accountName", "accountNo", "currency", "type"]
+      },
       "PublicConfig": {
         "type": "object",
         "properties": {
@@ -2347,6 +2429,15 @@
         },
         "required": ["name", "count"]
       },
+      "FeatureFacet": {
+        "type": "object",
+        "properties": {
+          "key": { "type": "string", "example": "leatherSeat" },
+          "label": { "type": "string", "example": "Leather Seat" },
+          "count": { "type": "integer", "example": 9 }
+        },
+        "required": ["key", "label", "count"]
+      },
       "RangeFacet": {
         "type": "object",
         "properties": {
@@ -2399,7 +2490,7 @@
           "steerings": { "type": "array", "items": { "$ref": "#/components/schemas/FacetCount" } },
           "stockCountries": { "type": "array", "items": { "$ref": "#/components/schemas/FacetCount" } },
           "stockLocations": { "type": "array", "items": { "$ref": "#/components/schemas/FacetCount" } },
-          "features": { "type": "array", "items": { "$ref": "#/components/schemas/FacetCount" } },
+          "features": { "type": "array", "items": { "$ref": "#/components/schemas/FeatureFacet" } },
           "yearRange": { "$ref": "#/components/schemas/RangeFacet" },
           "priceRange": { "$ref": "#/components/schemas/RangeFacet" },
           "mileageRange": { "$ref": "#/components/schemas/RangeFacet" },

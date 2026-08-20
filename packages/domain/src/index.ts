@@ -19,6 +19,20 @@ export type PaymentStatus = 'Pending' | 'Held' | 'Resubmitted' | 'Approved' | 'R
 export type PaymentProofFileType = 'PDF' | 'JPG' | 'PNG';
 export type PaymentProofScanStatus = 'Pending' | 'Passed' | 'Rejected';
 
+export interface BankAccount {
+  id: string;
+  bankName: string;
+  swiftCode?: string;
+  branchName?: string;
+  branchCode?: string;
+  bankAddress?: string;
+  accountName: string;
+  accountNo: string;
+  currency: string;
+  logoUrl?: string;
+  type: 'WIRE' | 'PAYPAL';
+}
+
 export interface CustomerPaymentProofMetadata {
   fileName: string;
   fileType: PaymentProofFileType;
@@ -203,6 +217,12 @@ export interface FacetCount {
   count: number;
 }
 
+export interface FeatureFacet {
+  key: string;
+  label: string;
+  count: number;
+}
+
 export interface RangeFacet<T = number> {
   min: T;
   max: T;
@@ -226,7 +246,7 @@ export interface VehicleFacets {
   steerings: FacetCount[];
   stockCountries: FacetCount[];
   stockLocations: FacetCount[];
-  features: FacetCount[];
+  features: FeatureFacet[];
   yearRange: RangeFacet<number>;
   priceRange: RangeFacet<number>;
   mileageRange: RangeFacet<number>;
@@ -281,6 +301,7 @@ export interface SearchVehiclesQuery {
   priceMax?: number;
   mileageMin?: number;
   mileageMax?: number;
+  discountMin?: number;
   sortBy?: 'newest' | 'price_asc' | 'price_desc' | 'year_desc' | 'year_asc' | 'mileage_asc';
   page?: number;
   limit?: number;

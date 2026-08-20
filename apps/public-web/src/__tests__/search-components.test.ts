@@ -26,10 +26,16 @@ describe('Search Components & Presentation Tests (PUB-04, PUB-07, RULE-09)', () 
     overdrives: [{ name: 'Yes', count: 4 }],
     colors: [{ name: 'White', count: 4 }],
     exteriorGrades: [{ name: '4.5', count: 4 }],
+    steerings: [{ name: 'Right', count: 4 }],
+    stockCountries: [{ name: 'Japan', count: 4 }],
+    stockLocations: [{ name: 'In Japan', count: 4 }],
+    features: [{ key: 'airbag', label: 'Airbag', count: 4 }, { key: 'sunRoof', label: 'Sun Roof', count: 2 }],
     yearRange: { min: 2018, max: 2023 },
     priceRange: { min: 7500, max: 49000 },
     mileageRange: { min: 1000, max: 90000 },
     engineCcRange: { min: 1500, max: 2500 },
+    seatsRange: { min: 5, max: 7 },
+    loadCapacityRange: { min: 500, max: 1250 },
   };
 
   it('renders SearchFilterBar with search input and reset button', () => {
@@ -58,6 +64,24 @@ describe('Search Components & Presentation Tests (PUB-04, PUB-07, RULE-09)', () 
     expect(source).toContain('facets?.driveTrains.map((item) => item.name)');
     expect(source).not.toContain("options={['Automatic', 'Manual']}");
     expect(source).not.toContain("options={['2WD', '4WD', 'AWD']}");
+  });
+
+  it('uses progressive filter layout and themed equipment hooks', () => {
+    const source = fs.readFileSync(path.resolve(__dirname, '../../../../packages/vehicle-search/src/SearchFilterBar.tsx'), 'utf8');
+    const styles = fs.readFileSync(path.resolve(__dirname, '../../../../packages/vehicle-search/src/vehicle-search.css'), 'utf8');
+    expect(source).toContain('!showMore && <div className="cc-filter-more-toggle"');
+    expect(source).toContain('className="cc-search-reset-btn" onClick={() => setShowMore(true)}');
+    expect(source).toContain('className="cc-filter-features"');
+    expect(source).toContain('className="cc-filter-features-grid"');
+    expect(styles).toContain('.cc-filter-more-toggle {');
+    expect(styles).toContain('.cc-filter-features {');
+    expect(styles).toContain('.cc-filter-checkbox input {');
+  });
+
+  it('uses the same-origin API proxy for browser vehicle search', () => {
+    const source = fs.readFileSync(path.resolve(__dirname, '../features/vehicle-search/hooks/useVehicleSearchOrchestration.ts'), 'utf8');
+    expect(source).toContain("typeof window !== 'undefined' ? ''");
+    expect(source).not.toContain("options.baseUrl || 'http://127.0.0.1:4000'");
   });
 
   it('renders SearchResultsHeader with result count and active filter chips', () => {

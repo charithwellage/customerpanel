@@ -1,7 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect, useId, Suspense } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import type { VehicleDetail } from '@carchief/domain';
 import {
   VehicleGalleryPrimitive,
@@ -10,9 +11,11 @@ import {
   getVisibleGalleryImages,
   isVehicleAvailable,
   serializeJsonLd,
+  QuoteCalculatorModal,
 } from '@carchief/vehicle-detail';
 import { ReservationSection } from '../reservation';
 import { QuoteRequestSection } from '../quote-request';
+import { useSession, EnterpriseLoginModal } from '../account-entry';
 
 const TOAST_DISMISS_MS = 3000;
 
@@ -101,23 +104,38 @@ export interface VehicleDetailPageProps {
   vehicle: VehicleDetail;
 }
 
-export default function VehicleDetailPage({ vehicle }: VehicleDetailPageProps) {
-  const [copiedToast, setCopiedToast] = React.useState(false);
-  const [selectedCountry, setSelectedCountry] = React.useState<string>('Kenya');
-  const [selectedPortIndex, setSelectedPortIndex] = React.useState<number>(0);
-  const [includeInsurance, setIncludeInsurance] = React.useState<boolean>(false);
+type AuthActionType = 'quote' | 'wishlist' | 'inquiry' | null;
+
+function VehicleDetailPageInner({ vehicle }: VehicleDetailPageProps) {
+  const searchParams = useSearchParams();
+  const session = useSession();
+  const isSignedIn = session.status === 'active';
+
+  const [copiedToast, setCopiedToast] = useState(false);
+  const [selectedCountry, setSelectedCountry] = useState<string>('Kenya');
+  const [selectedPortIndex, setSelectedPortIndex] = useState<number>(0);
+  const [includeInsurance, setIncludeInsurance] = useState<boolean>(false);
+
+  // Quote & Auth Modal States
+  const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authActionType, setAuthActionType] = useState<AuthActionType>(null);
+
+  // Wishlist State
+  const [isWishlisted, setIsWishlisted] = useState(false);
+  const [wishlistToast, setWishlistToast] = useState<string | null>(null);
 
   // Inquiry form states
-  const [inquiryName, setInquiryName] = React.useState('');
-  const [inquiryEmail, setInquiryEmail] = React.useState('');
-  const [inquiryPhone, setInquiryPhone] = React.useState('');
-  const [inquiryMessage, setInquiryMessage] = React.useState(
+  const [inquiryName, setInquiryName] = useState('');
+  const [inquiryEmail, setInquiryEmail] = useState('');
+  const [inquiryPhone, setInquiryPhone] = useState('');
+  const [inquiryMessage, setInquiryMessage] = useState(
     `Hello, I am interested in purchasing the ${vehicle.year} ${vehicle.make} ${vehicle.model}. Please let me know its availability and the next steps.`
   );
-  const [inquirySubmitted, setInquirySubmitted] = React.useState(false);
+  const [inquirySubmitted, setInquirySubmitted] = useState(false);
 
-  const titleId = React.useId();
-  const countrySelectId = React.useId();
+  const titleId = useId();
+  const countrySelectId = useId();
 
   const title = formatVehicleTitle(vehicle);
   const { priceText, isRequestPrice } = getEffectivePrice(vehicle);
@@ -142,6 +160,34 @@ export default function VehicleDetailPage({ vehicle }: VehicleDetailPageProps) {
 
   const overviewText = `The highest luxury paired with ultimate performance. The ${vehicle.model} offers ${vehicle.color || 'Firenze Red metallic'} exterior with black gloss highlights, 23-inch carbon fibre wheels, custom sports seats with body-and-soul sensors, and a supreme ${vehicle.engineSize || '635-horsepower mild hybrid'} powertrain.`;
 
+  // Pre-fill user claims on session update
+  useEffect(() => {
+    if (session.claims?.email && !inquiryEmail) {
+      setInquiryEmail(session.claims.email);
+    }
+  }, [session.claims, inquiryEmail]);
+
+  // Check wishlist status on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = JSON.parse(localStorage.getItem('carchief_wishlist') || '[]');
+        if (Array.isArray(stored) && stored.includes(vehicle.slug)) {
+          setIsWishlisted(true);
+        }
+      } catch {
+        // Ignore localStorage error
+      }
+    }
+  }, [vehicle.slug]);
+
+  // Auto-open Quote Modal if returning from auth with ?openQuote=true
+  useEffect(() => {
+    if (searchParams?.get('openQuote') === 'true' && isSignedIn) {
+      setIsQuoteModalOpen(true);
+    }
+  }, [searchParams, isSignedIn]);
+
   async function handleShare() {
     const url = typeof window !== 'undefined' ? window.location.href : '';
     if (typeof navigator !== 'undefined' && navigator.share) {
@@ -165,11 +211,103 @@ export default function VehicleDetailPage({ vehicle }: VehicleDetailPageProps) {
 
   function handleInquirySubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!isSignedIn) {
+      setAuthActionType('inquiry');
+      setIsAuthModalOpen(true);
+      return;
+    }
     setInquirySubmitted(true);
   }
 
+  const handleGetFreeQuoteClick = () => {
+    if (isSignedIn) {
+      setIsQuoteModalOpen(true);
+    } else {
+      setAuthActionType('quote');
+      setIsAuthModalOpen(true);
+    }
+  };
+
+  const handleWishlistToggle = () => {
+    if (!isSignedIn) {
+      setAuthActionType('wishlist');
+      setIsAuthModalOpen(true);
+      return;
+    }
+
+    setIsWishlisted((prev) => {
+      const next = !prev;
+      if (typeof window !== 'undefined') {
+        try {
+          const stored: string[] = JSON.parse(localStorage.getItem('carchief_wishlist') || '[]');
+          if (next) {
+            if (!stored.includes(vehicle.slug)) stored.push(vehicle.slug);
+          } else {
+            const idx = stored.indexOf(vehicle.slug);
+            if (idx > -1) stored.splice(idx, 1);
+          }
+          localStorage.setItem('carchief_wishlist', JSON.stringify(stored));
+        } catch {
+          // Ignore localStorage error
+        }
+      }
+      setWishlistToast(next ? 'Vehicle added to your Wishlist!' : 'Vehicle removed from your Wishlist');
+      setTimeout(() => setWishlistToast(null), TOAST_DISMISS_MS);
+      return next;
+    });
+  };
+
+  const handleAuthSuccess = (user: { email: string; name: string; token: string }) => {
+    setIsAuthModalOpen(false);
+
+    if (authActionType === 'quote') {
+      setIsQuoteModalOpen(true);
+    } else if (authActionType === 'wishlist') {
+      setIsWishlisted(true);
+      if (typeof window !== 'undefined') {
+        try {
+          const stored: string[] = JSON.parse(localStorage.getItem('carchief_wishlist') || '[]');
+          if (!stored.includes(vehicle.slug)) stored.push(vehicle.slug);
+          localStorage.setItem('carchief_wishlist', JSON.stringify(stored));
+        } catch {
+          // Ignore
+        }
+      }
+      setWishlistToast('Vehicle added to your Wishlist!');
+      setTimeout(() => setWishlistToast(null), TOAST_DISMISS_MS);
+    } else if (authActionType === 'inquiry') {
+      if (!inquiryName && user.name) setInquiryName(user.name);
+      if (!inquiryEmail && user.email) setInquiryEmail(user.email);
+      setInquirySubmitted(true);
+    }
+
+    setAuthActionType(null);
+  };
+
+  const getModalConfig = () => {
+    if (authActionType === 'wishlist') {
+      return {
+        title: 'Sign In to Add to Wishlist',
+        subtitle: `Sign in with your preferred account to save this ${vehicle.year} ${vehicle.make} ${vehicle.model} to your secured customer wishlist.`,
+        badgeText: '❤️ CUSTOMER WISHLIST LOCK',
+      };
+    }
+    if (authActionType === 'inquiry') {
+      return {
+        title: 'Sign In to Submit Vehicle Inquiry',
+        subtitle: `Sign in to submit your official sales inquiry & booking spec file for the ${vehicle.year} ${vehicle.make} ${vehicle.model}.`,
+        badgeText: '✉️ VERIFIED SALES INQUIRY',
+      };
+    }
+    return {
+      title: 'Sign In to Get Your Free Quote',
+      subtitle: `Instant C&F ocean freight calculations, port clearance rates, and official export Proforma Invoices for ${title}.`,
+      badgeText: '⚡ INSTANT EXPORT INVOICING',
+    };
+  };
+
+  const modalConfig = getModalConfig();
   const availabilityLabel = isSold ? 'Sold' : available ? 'Available' : vehicle.status;
-  const availabilityVariant = isSold ? 'cc-badge--error' : available ? 'cc-badge--success' : 'cc-badge--warning';
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -191,6 +329,18 @@ export default function VehicleDetailPage({ vehicle }: VehicleDetailPageProps) {
       availability: available ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
       itemCondition: 'https://schema.org/UsedCondition',
     },
+  };
+
+  const modalVehicle = {
+    id: vehicle.id,
+    slug: vehicle.slug,
+    make: vehicle.make,
+    model: vehicle.model,
+    year: vehicle.year,
+    priceUsd: vehicle.priceUsd,
+    discountedPriceUsd: vehicle.discountedPriceUsd,
+    stockNumber: `STK${vehicle.id.replace(/\D/g, '') || '611773'}`,
+    chassisNumber: vehicle.chassisNumber,
   };
 
   return (
@@ -245,6 +395,69 @@ export default function VehicleDetailPage({ vehicle }: VehicleDetailPageProps) {
             />
           </section>
 
+          {/* Customer Actions & Get Free Quote Card (Car View Section) */}
+          <div className="cc-detail-card cc-detail-customer-actions-card">
+            <div className="cc-actions-card-top">
+              <div className="cc-actions-badge-wrapper">
+                <span className="cc-actions-badge">⚡ INSTANT EXPORT INVOICING</span>
+                <span className="cc-actions-stock-tag">STOCK ID: {vehicle.slug}</span>
+              </div>
+              <h3 className="cc-actions-title">Customer Actions &amp; Free Quotation</h3>
+              <p className="cc-actions-subtitle">
+                Calculate direct C&amp;F ocean freight to your destination port, add insurance &amp; warranties, and receive a binding export Proforma Invoice instantly.
+              </p>
+            </div>
+
+            <div className="cc-customer-actions-btn-group">
+              <button
+                type="button"
+                className="cc-action-btn cc-action-btn-quote"
+                onClick={handleGetFreeQuoteClick}
+                data-testid="get-free-quote-btn"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                  <line x1="16" y1="13" x2="8" y2="13" />
+                  <line x1="16" y1="17" x2="8" y2="17" />
+                  <polyline points="10 9 9 9 8 9" />
+                </svg>
+                <span>GET FREE QUOTE</span>
+              </button>
+
+              <button
+                type="button"
+                className={`cc-action-btn cc-action-btn-wishlist ${isWishlisted ? 'cc-action-btn-wishlist--active' : ''}`}
+                onClick={handleWishlistToggle}
+                data-testid="add-to-wishlist-btn"
+                aria-label={isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill={isWishlisted ? '#dc2626' : 'none'} stroke={isWishlisted ? '#dc2626' : 'currentColor'} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                </svg>
+                <span>{isWishlisted ? 'IN WISHLIST' : 'ADD TO WISHLIST'}</span>
+              </button>
+            </div>
+
+            {wishlistToast && (
+              <div className="cc-action-toast-banner" role="status">
+                ✓ {wishlistToast}
+              </div>
+            )}
+
+            <div className="cc-actions-features-row">
+              <div className="cc-action-feature-item">
+                <span className="cc-feature-check">✓</span> Real-Time Ocean Freight Rates
+              </div>
+              <div className="cc-action-feature-item">
+                <span className="cc-feature-check">✓</span> Instant Proforma Invoices (PDF)
+              </div>
+              <div className="cc-action-feature-item">
+                <span className="cc-feature-check">✓</span> 100% Free &amp; Zero Obligation
+              </div>
+            </div>
+          </div>
+
           {/* Condition Assessment & Overview */}
           <div className="cc-detail-card cc-detail-overview-card">
             <div className="cc-detail-card__dot-header">
@@ -261,7 +474,7 @@ export default function VehicleDetailPage({ vehicle }: VehicleDetailPageProps) {
             </div>
           </div>
 
-          {/* Specifications */}
+          {/* Specifications Card */}
           <div className="cc-detail-card cc-detail-specs-card">
             <h2 className="cc-detail-section-heading">
               SPECIFICATIONS
@@ -427,6 +640,16 @@ export default function VehicleDetailPage({ vehicle }: VehicleDetailPageProps) {
                 </div>
               )}
             </div>
+
+            {/* Quick Hero Quotation Button */}
+            <button
+              type="button"
+              className="cc-hero-quote-btn"
+              onClick={handleGetFreeQuoteClick}
+              data-testid="hero-get-quote-btn"
+            >
+              REQUEST PRICE QUOTATION &amp; FREE CIF QUOTE →
+            </button>
 
             {isRequestPrice && (
               <p className="cc-detail-request-price-text">
@@ -626,6 +849,15 @@ export default function VehicleDetailPage({ vehicle }: VehicleDetailPageProps) {
                 />
               </div>
 
+              {!isSignedIn && !inquirySubmitted && (
+                <div className="cc-inquiry-auth-prompt">
+                  <span className="cc-inquiry-auth-icon">🔒</span>
+                  <span>
+                    Verified customer account required: Submitting will prompt instant 1-click Sign In.
+                  </span>
+                </div>
+              )}
+
               {inquirySubmitted ? (
                 <div className="cc-inquiry-success-banner">
                   ✓ Thank you! Your inquiry regarding the {vehicle.year} {vehicle.make} {vehicle.model} has been submitted. Our sales specialist will contact you shortly.
@@ -670,11 +902,43 @@ export default function VehicleDetailPage({ vehicle }: VehicleDetailPageProps) {
             </div>
 
             <div className="cc-detail-quote-request-box">
-              <QuoteRequestSection vehicleSlug={vehicle.slug} vehicleLabel={title} />
+              <QuoteRequestSection vehicleSlug={vehicle.slug} vehicleLabel={title} vehicle={vehicle} />
             </div>
           </div>
         </div>
       </div>
+
+      {/* Enterprise Login Modal for Gated Actions (Quote, Wishlist, Inquiry) */}
+      <EnterpriseLoginModal
+        isOpen={isAuthModalOpen}
+        onClose={() => {
+          setIsAuthModalOpen(false);
+          setAuthActionType(null);
+        }}
+        vehicleSlug={vehicle.slug}
+        title={modalConfig.title}
+        subtitle={modalConfig.subtitle}
+        badgeText={modalConfig.badgeText}
+        onSuccessAuth={handleAuthSuccess}
+      />
+
+      {/* C&F / CIF Quote Calculator Popup Modal */}
+      <QuoteCalculatorModal
+        isOpen={isQuoteModalOpen}
+        onClose={() => setIsQuoteModalOpen(false)}
+        vehicle={modalVehicle}
+        onSubmitQuote={async (quote) => {
+          console.info('Quote submitted successfully', quote);
+        }}
+      />
     </article>
+  );
+}
+
+export default function VehicleDetailPage(props: VehicleDetailPageProps) {
+  return (
+    <Suspense fallback={null}>
+      <VehicleDetailPageInner {...props} />
+    </Suspense>
   );
 }

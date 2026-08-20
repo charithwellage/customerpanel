@@ -1,4 +1,4 @@
-import type { PublicConfig } from '@carchief/domain';
+import type { PublicConfig, BankAccount } from '@carchief/domain';
 import type { HttpClient } from '../http.js';
 
 /**
@@ -15,5 +15,12 @@ export class ConfigService {
       throw new Error('ConfigService.getPublicConfig requires an HttpClient');
     }
     return this.httpClient.request<PublicConfig>('/api/v1/config/public');
+  }
+
+  public async getBankAccounts(): Promise<BankAccount[]> {
+    if (!this.httpClient) {
+      throw new Error('ConfigService.getBankAccounts requires an HttpClient');
+    }
+    return this.httpClient.request<BankAccount[]>('/api/v1/bank-accounts');
   }
 }

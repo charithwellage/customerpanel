@@ -137,9 +137,155 @@
   }
 }
 
+/* Auth Guidance & Routing (D02-P14-T003) */
+.cc-quote-request-unauth-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.cc-quote-auth-prompt {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  background: color-mix(in srgb, var(--color-surface) 92%, var(--color-primary) 8%);
+  border: 1px solid color-mix(in srgb, var(--color-border) 80%, var(--color-primary) 20%);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+}
+
+.cc-quote-auth-badge {
+  display: inline-block;
+  align-self: flex-start;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 25%, transparent);
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius-sm);
+}
+
+.cc-quote-auth-title {
+  font-family: var(--font-display);
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.cc-quote-auth-text {
+  font-family: var(--font-body);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin: 0;
+  line-height: 1.6;
+}
+
+.cc-quote-signin-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  align-self: flex-start;
+  margin-top: var(--spacing-xs);
+  font-weight: 700;
+}
+
+.cc-quote-sso-options {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-xs);
+  flex-wrap: wrap;
+}
+
+.cc-quote-sso-label {
+  font-family: var(--font-body);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  font-weight: 600;
+}
+
+.cc-quote-sso-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.65rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 150ms ease;
+}
+
+.cc-quote-sso-pill:hover {
+  background: color-mix(in srgb, var(--color-surface) 90%, var(--color-primary) 10%);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.cc-quote-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: var(--color-text-secondary);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  margin: var(--spacing-xs) 0;
+}
+
+.cc-quote-divider::before,
+.cc-quote-divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.cc-quote-divider span {
+  padding: 0 var(--spacing-md);
+}
+
+.cc-quote-quick-form-heading {
+  font-family: var(--font-display);
+  font-size: var(--font-size-md);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+/* Authenticated Quote Action Card */
+.cc-quote-request-action--auth {
+  background: color-mix(in srgb, var(--color-surface) 94%, var(--color-primary) 6%);
+  border: 1px solid color-mix(in srgb, var(--color-border) 80%, var(--color-primary) 20%);
+}
+
+.cc-quote-auth-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.cc-quote-calculator-trigger-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  align-self: flex-start;
+  margin-top: var(--spacing-xs);
+  font-weight: 700;
+}
+
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
-  .cc-quote-request-form__input {
+  .cc-quote-request-form__input,
+  .cc-quote-sso-pill {
     transition: none;
   }
 }
+
