@@ -117,17 +117,17 @@ export const VehicleFleetCard: React.FC<VehicleFleetCardProps> = ({
         <div className="cc-cust-fleet-card__badges-row">
           {isPI && (
             <span className="cc-cust-fleet-badge cc-cust-fleet-badge--pi">
-              <span className="cc-cust-fleet-badge__dot cc-cust-fleet-badge__dot--pulse" aria-hidden="true">●</span> RESERVED (PI)
+              <span className="cc-cust-fleet-badge__dot cc-cust-fleet-badge__dot--pulse" aria-hidden="true">●</span> ADVANCED PAID (PI)
             </span>
           )}
           {isInvoiced && (
             <span className="cc-cust-fleet-badge cc-cust-fleet-badge--invoiced">
-              <span className="cc-cust-fleet-badge__dot" aria-hidden="true">✓</span> INVOICED
+              <span className="cc-cust-fleet-badge__dot" aria-hidden="true">✓</span> PURCHASED
             </span>
           )}
           {isReserved && (
             <span className="cc-cust-fleet-badge cc-cust-fleet-badge--reserved">
-              <span className="cc-cust-fleet-badge__dot cc-cust-fleet-badge__dot--pulse" aria-hidden="true">●</span> ONLINE RESERVED
+              <span className="cc-cust-fleet-badge__dot cc-cust-fleet-badge__dot--pulse" aria-hidden="true">●</span> HOLD VEHICLE
             </span>
           )}
 
@@ -200,11 +200,11 @@ export const VehicleFleetCard: React.FC<VehicleFleetCardProps> = ({
                 <circle cx="12" cy="12" r="10" />
                 <polyline points="12 6 12 12 16 14" />
               </svg>
-              ONLINE RESERVATION
+              HOLD RESERVATION
             </div>
             <div className="cc-cust-fleet-card__bill-row">
               <span className="cc-cust-fleet-card__bill-label">Status:</span>
-              <span className="cc-cust-fleet-card__bill-val cc-cust-fleet-card__bill-val--danger">ONLINE RESERVED</span>
+              <span className="cc-cust-fleet-card__bill-val cc-cust-fleet-card__bill-val--danger">ON HOLD</span>
             </div>
             <div className="cc-cust-fleet-card__bill-divider" />
             <div className="cc-cust-fleet-card__bill-row">
@@ -223,7 +223,7 @@ export const VehicleFleetCard: React.FC<VehicleFleetCardProps> = ({
                 <line x1="16" y1="13" x2="8" y2="13" />
                 <line x1="16" y1="17" x2="8" y2="17" />
               </svg>
-              PROFORMA INVOICE
+              ADVANCE PAYMENT (PI)
             </div>
             <div className="cc-cust-fleet-card__bill-row">
               <span className="cc-cust-fleet-card__bill-label">PI Ref:</span>
@@ -244,7 +244,7 @@ export const VehicleFleetCard: React.FC<VehicleFleetCardProps> = ({
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                 <polyline points="9 12 11 14 15 10" />
               </svg>
-              COMMERCIAL BILL
+              PURCHASED COMMERCIAL BILL
             </div>
             <div className="cc-cust-fleet-card__bill-row">
               <span className="cc-cust-fleet-card__bill-label">Sold:</span>

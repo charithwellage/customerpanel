@@ -71,8 +71,8 @@ describe('My Vehicles UI Components (D02-P04-T002 & D02-P14-T008)', () => {
       );
 
       expect(html).toContain('cc-status-tracker');
-      expect(html).toContain('Reserved &amp; Sourced');
-      expect(html).toContain('Reserved');
+      expect(html).toContain('Hold &amp; Sourced');
+      expect(html).toContain('Hold');
       expect(html).toContain('Inspection');
       expect(html).toContain('Port/Loading');
       expect(html).toContain('In Transit');
@@ -86,7 +86,7 @@ describe('My Vehicles UI Components (D02-P04-T002 & D02-P14-T008)', () => {
       const reserved = calculateVehiclePipeline('Under Negotiation');
       expect(reserved.activeStepIndex).toBe(0);
       expect(reserved.statusTone).toBe('amber');
-      expect(reserved.currentStage.shortLabel).toBe('Reserved');
+      expect(reserved.currentStage.shortLabel).toBe('Hold');
       expect(reserved.progressPercent).toBe(20);
 
       // Step 1: With PI
@@ -157,7 +157,7 @@ describe('My Vehicles UI Components (D02-P04-T002 & D02-P14-T008)', () => {
 
       expect(html).toContain('2022 TOYOTA LAND CRUISER PRADO');
       expect(html).toContain('TRJ150-0192834');
-      expect(html).toContain('RESERVED (PI)');
+      expect(html).toContain('ADVANCED PAID (PI)');
       expect(html).toContain('$45,000');
       expect(html).toContain('Deposit (50%):');
       expect(html).toContain('$22,500');
@@ -329,9 +329,9 @@ describe('My Vehicles UI Components (D02-P04-T002 & D02-P14-T008)', () => {
         )
       );
 
-      expect(html).toContain('RESERVED VEHICLES');
-      expect(html).toContain('RESERVED WITH PI');
-      expect(html).toContain('INVOICED VEHICLE');
+      expect(html).toContain('HOLD VEHICLES');
+      expect(html).toContain('ADVANCED PAID VEHICLES');
+      expect(html).toContain('PURCHASED VEHICLES');
       expect(html).toContain('Shipping Status');
     });
 

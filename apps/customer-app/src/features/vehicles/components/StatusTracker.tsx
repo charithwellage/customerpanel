@@ -14,9 +14,9 @@ export interface PipelineStageInfo {
 export const PIPELINE_STAGES: readonly PipelineStageInfo[] = [
   {
     id: 'reserved',
-    label: 'Reserved & Sourced',
-    shortLabel: 'Reserved',
-    description: 'Vehicle sourced and reserved under contract',
+    label: 'Hold & Sourced',
+    shortLabel: 'Hold',
+    description: 'Vehicle sourced and placed on hold under reservation',
     icon: '⏱',
   },
   {
