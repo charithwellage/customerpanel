@@ -21,6 +21,21 @@ describe('Vehicle Query, Dynamic Filters, Sorting, and Pagination Tests (PUB-04.
     expect(res2.items[0].id).toBe('veh-1');
   });
 
+  it('scopes clearance search, filtering, sorting, pagination, and facets to clearance stock', async () => {
+    const result = await store.searchVehicles({ collection: 'clearance', searchQuery: 'Toyota', sortBy: 'price_asc', page: 1, limit: 2 });
+
+    expect(result.total).toBeGreaterThan(0);
+    expect(result.items.length).toBeLessThanOrEqual(2);
+    result.items.forEach((item) => {
+      expect(item.category?.split(',')).toContain('clearance');
+      expect(item.make).toBe('Toyota');
+    });
+    expect(result.facets.makes.find((facet) => facet.name === 'Toyota')?.count).toBe(result.total);
+
+    const conflictingCategory = await store.searchVehicles({ collection: 'clearance', category: 'premium' });
+    expect(conflictingCategory.items).toHaveLength(0);
+  });
+
   it('filters by make, bodyStyle, fuelType, transmission, driveTrain', async () => {
     const res = await store.searchVehicles({
       make: 'Toyota',
