@@ -1042,16 +1042,67 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
   <meta charset="UTF-8">
   <title>CarChief Mock API - Swagger UI</title>
   <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css" />
+  <style>
+    #swagger-ui .parameters-container input::placeholder,
+    #swagger-ui .parameters-container textarea::placeholder {
+      color: #6b7280;
+      opacity: 1;
+    }
+    #swagger-ui .parameters-container input:focus::placeholder,
+    #swagger-ui .parameters-container textarea:focus::placeholder {
+      color: transparent;
+    }
+  </style>
 </head>
 <body>
   <div id="swagger-ui"></div>
   <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
   <script>
-    window.onload = () => {
+    // x-placeholder is deliberately outside OpenAPI's example/default fields.
+    // Swagger UI therefore has no value to put into the request state. This
+    // observer only adds presentation metadata and never touches input.value.
+    const buildPlaceholderMap = (spec) => {
+      const map = new Map();
+      Object.entries(spec.paths || {}).forEach(([path, pathItem]) => {
+        const operation = pathItem.get;
+        if (!operation) return;
+        (operation.parameters || []).forEach((parameter) => {
+          const source = parameter.schema || parameter;
+          const placeholder = source['x-placeholder'] ?? parameter['x-placeholder'];
+          if (placeholder !== undefined) {
+            map.set('get ' + path + ' ' + parameter.name, String(placeholder));
+          }
+        });
+      });
+      return map;
+    };
+
+    const applySwaggerPlaceholders = (placeholderMap) => {
+      document.querySelectorAll('#swagger-ui .opblock').forEach((operationBlock) => {
+        const method = operationBlock.querySelector('.opblock-summary-method')?.textContent?.trim().toLowerCase();
+        const path = operationBlock.querySelector('.opblock-summary-path')?.textContent?.trim();
+        if (method !== 'get' || !path) return;
+        operationBlock.querySelectorAll('.parameters-container tr').forEach((row) => {
+          const name = row.querySelector('.parameter__name')?.textContent?.trim();
+          const field = row.querySelector('input, textarea');
+          if (!name || !field) return;
+          const placeholder = placeholderMap.get(method + ' ' + path + ' ' + name);
+          if (placeholder !== undefined) field.setAttribute('placeholder', placeholder);
+        });
+      });
+    };
+
+    window.onload = async () => {
+      const spec = await fetch('/openapi.json').then((response) => response.json());
+      const placeholderMap = buildPlaceholderMap(spec);
       SwaggerUIBundle({
         url: '/openapi.json',
         dom_id: '#swagger-ui',
+        onComplete: () => applySwaggerPlaceholders(placeholderMap),
       });
+
+      const observer = new MutationObserver(() => applySwaggerPlaceholders(placeholderMap));
+      observer.observe(document.getElementById('swagger-ui'), { childList: true, subtree: true });
     };
   </script>
 </body>

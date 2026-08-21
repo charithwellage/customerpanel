@@ -1713,6 +1713,27 @@ function buildSeedCustomerAccount(): CustomerAccountRecord {
   };
 }
 
+function buildSeedOtherCustomerAccount(): CustomerAccountRecord {
+  const { hash, salt } = hashPassword(SEED_CUSTOMER_ACCOUNT_PASSWORD);
+  const seedTimestamp = '2026-01-01T00:00:00.000Z';
+  return {
+    id: 'acct-user-other-456',
+    customerId: 'user-other-456',
+    nameWithInitials: 'O. Customer',
+    countryCode: 'KE',
+    dialCode: '+254',
+    mobileNumber: '700000001',
+    email: 'other@example.com',
+    passwordHash: hash,
+    passwordSalt: salt,
+    status: 'active',
+    verificationState: 'unverified',
+    createdAt: seedTimestamp,
+    updatedAt: seedTimestamp,
+    passwordUpdatedAt: seedTimestamp,
+  };
+}
+
 // --- Phase 1.5: freight destination, port and rate lookup (D01-ASM-001) ---
 //
 // This reference data is Finance/logistics-owned catalog and rate data, not
@@ -6362,7 +6383,7 @@ class PostgresStore implements DemoStore {
     }
     await this.pool.query('CREATE UNIQUE INDEX IF NOT EXISTS vehicles_chassis_number_lower_idx ON vehicles (lower(trim(chassis_number)))');
     await this.pool.query(`ALTER TABLE vehicles
-      ADD CONSTRAINT vehicles_status_valid CHECK (status IN ('Available', 'Sold', 'Draft')),
+      ADD CONSTRAINT vehicles_status_valid CHECK (status IN ('Available', 'Sold', 'Draft', 'Invoiced', 'ReservedWithPI')),
       ADD CONSTRAINT vehicles_location_status_valid CHECK (location_status IS NULL OR location_status IN ('In Japan', 'In Transit', 'In Port')),
       ADD CONSTRAINT vehicles_stock_type_valid CHECK (stock_type IS NULL OR stock_type IN ('J', 'CRFO')),
       ADD CONSTRAINT vehicles_price_nonnegative CHECK (price_usd >= 0),
@@ -6759,11 +6780,18 @@ class PostgresStore implements DemoStore {
     `);
     // Enquiries are customer-owned. Backfill legacy contact-column rows before
     // removing the duplicated contact data and enforcing the relationship.
+    // Older databases still have the duplicated email column and can be
+    // backfilled. Databases already migrated to customer ownership do not;
+    // avoid parsing a reference to the removed column in that case.
     await this.pool.query(`
-      UPDATE enquiries e
-      SET customer_id = ca.customer_id
-      FROM customer_accounts ca
-      WHERE e.customer_id IS NULL AND lower(e.email) = lower(ca.email)
+      DO $$ BEGIN
+        IF EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_schema = 'public' AND table_name = 'enquiries' AND column_name = 'email'
+        ) THEN
+          EXECUTE 'UPDATE enquiries e SET customer_id = ca.customer_id FROM customer_accounts ca WHERE e.customer_id IS NULL AND lower(e.email) = lower(ca.email)';
+        END IF;
+      END $$;
     `);
     await this.pool.query('DELETE FROM enquiries WHERE customer_id IS NULL');
     await this.pool.query(`
@@ -7012,6 +7040,7 @@ class PostgresStore implements DemoStore {
         ]
       );
     }
+    await this.ensureSeedCustomerAccountsInPostgres();
 
     const configResult = await this.pool.query('SELECT id FROM public_config WHERE id = 1');
     if (configResult.rows.length === 0) {
@@ -7045,7 +7074,37 @@ class PostgresStore implements DemoStore {
       await this.ensureCustomerFleetDataInPostgres(acct.customer_id, acct.email);
     }
     await this.backfillVehicleReferences();
+    await this.ensureMockRelationalFixtures();
     await this.addRelationalConstraints();
+  }
+
+  private async ensureSeedCustomerAccountsInPostgres(): Promise<void> {
+    const account = buildSeedOtherCustomerAccount();
+    await this.pool.query(
+      `INSERT INTO customer_accounts (id, customer_id, name_with_initials, country_code, dial_code, mobile_number, email, password_hash, password_salt, status, verification_state, created_at, updated_at, password_updated_at)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
+       ON CONFLICT (customer_id) DO NOTHING`,
+      [account.id, account.customerId, account.nameWithInitials, account.countryCode, account.dialCode, account.mobileNumber,
+        account.email, account.passwordHash, account.passwordSalt, account.status, account.verificationState, account.createdAt,
+        account.updatedAt, account.passwordUpdatedAt],
+    );
+  }
+
+  private async ensureMockRelationalFixtures(): Promise<void> {
+    // Complete deterministic fixture rows before validating the new
+    // relational constraints on an upgraded database.
+    await this.pool.query(
+      `INSERT INTO payments (id, customer_id, invoice_id, amount_usd, paid_at, status, reference, bank_name, currency, remarks)
+       VALUES
+         ('pay-006', 'cust-123', 'inv-005', 12780, '2026-08-12T14:00:00.000Z', 'Approved', 'TT-2026-12780-DIRECT', 'Direct Wire Transfer', 'USD', 'Allocated to 2019 SUZUKI ALTO'),
+         ('pay-007', 'cust-123', 'inv-016', 7100, '2026-08-12T14:00:00.000Z', 'Approved', 'TT-2026-7100-DIRECT', 'Direct Wire Transfer', 'USD', 'Allocated to 2020 TOYOTA HIACE VAN')
+       ON CONFLICT (id) DO NOTHING`,
+    );
+    await this.pool.query(
+      `INSERT INTO invoices (id, customer_id, vehicle_id, vehicle_slug, make, model, year, total_amount_usd, invoiced_at, due_date, status, currency, type, document_status)
+       VALUES ('inv-user-other-456-004', 'user-other-456', 'veh-4', '2021-honda-civic-veh-4', 'Honda', 'Civic', 2021, 9500, '2026-08-12T10:00:00.000Z', NULL, 'Issued', 'USD', 'Commercial', 'Issued')
+       ON CONFLICT (id) DO NOTHING`,
+    );
   }
 
   private async ensureCustomerFleetDataInPostgres(customerId: string, customerEmail?: string): Promise<void> {
@@ -8857,6 +8916,15 @@ class PostgresStore implements DemoStore {
           seedAccount.passwordUpdatedAt,
         ]
       );
+      const otherSeedAccount = buildSeedOtherCustomerAccount();
+      await client.query(
+        `INSERT INTO customer_accounts (id, customer_id, name_with_initials, country_code, dial_code, mobile_number, email, password_hash, password_salt, status, verification_state, created_at, updated_at, password_updated_at)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
+        [otherSeedAccount.id, otherSeedAccount.customerId, otherSeedAccount.nameWithInitials, otherSeedAccount.countryCode,
+          otherSeedAccount.dialCode, otherSeedAccount.mobileNumber, otherSeedAccount.email, otherSeedAccount.passwordHash,
+          otherSeedAccount.passwordSalt, otherSeedAccount.status, otherSeedAccount.verificationState, otherSeedAccount.createdAt,
+          otherSeedAccount.updatedAt, otherSeedAccount.passwordUpdatedAt],
+      );
 
       await client.query('INSERT INTO public_config (id, site_name, currency, contact_phone) VALUES (1, $1, $2, $3)', [
         seedConfig.siteName,
@@ -8946,6 +9014,8 @@ class PostgresStore implements DemoStore {
       this.allocations = seedAllocations.map((allocation) => ({ ...allocation }));
 
       await this.ensureCustomerFleetDataInPostgres(seedAccount.customerId, seedAccount.email);
+      await this.ensureCustomerFleetDataInPostgres('user-other-456', 'other@example.com');
+      await this.ensureMockRelationalFixtures();
       await this.backfillVehicleReferences();
     } catch (error) {
       await client.query('ROLLBACK');
