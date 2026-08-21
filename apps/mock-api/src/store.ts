@@ -163,6 +163,56 @@ export interface VehicleRecord {
   logisticsStatus?: string;
 }
 
+/** Reference values are canonicalized once at the persistence boundary. */
+function normalizeReferenceKey(value: string): string {
+  return value.trim().replace(/\s+/g, ' ').toLocaleLowerCase();
+}
+
+function canonicalReferenceValue(value: string | undefined): string | undefined {
+  if (!value) return value;
+  return value.trim().replace(/\s+/g, ' ');
+}
+
+const vehicleReferenceTables = {
+  make: 'vehicle_makes',
+  model: 'vehicle_models',
+  bodyStyle: 'vehicle_body_styles',
+  vehicleSubType: 'vehicle_sub_types',
+  fuelType: 'vehicle_fuel_types',
+  transmission: 'vehicle_transmissions',
+  driveTrain: 'vehicle_drive_trains',
+  overdrive: 'vehicle_overdrives',
+  color: 'vehicle_colors',
+  exteriorGrade: 'vehicle_exterior_grades',
+  steering: 'vehicle_steering_types',
+  stockCountry: 'vehicle_stock_countries',
+  stockLocation: 'vehicle_stock_locations',
+  destinationPort: 'vehicle_destination_ports',
+} as const;
+
+type VehicleReferenceKind = keyof typeof vehicleReferenceTables;
+
+function canonicalizeVehicle(vehicle: VehicleRecord): VehicleRecord {
+  return {
+    ...vehicle,
+    make: canonicalReferenceValue(vehicle.make) || vehicle.make,
+    model: canonicalReferenceValue(vehicle.model) || vehicle.model,
+    bodyStyle: canonicalReferenceValue(vehicle.bodyStyle),
+    vehicleSubType: canonicalReferenceValue(vehicle.vehicleSubType),
+    fuelType: canonicalReferenceValue(vehicle.fuelType),
+    transmission: canonicalReferenceValue(vehicle.transmission),
+    driveTrain: canonicalReferenceValue(vehicle.driveTrain),
+    overdrive: canonicalReferenceValue(vehicle.overdrive),
+    color: canonicalReferenceValue(vehicle.color),
+    exteriorGrade: canonicalReferenceValue(vehicle.exteriorGrade),
+    steering: canonicalReferenceValue(vehicle.steering),
+    stockCountry: canonicalReferenceValue(vehicle.stockCountry),
+    stockLocation: canonicalReferenceValue(vehicle.stockLocation),
+    destinationPort: canonicalReferenceValue(vehicle.destinationPort),
+    category: vehicle.category?.split(',').map((value) => canonicalReferenceValue(value) || '').filter(Boolean).join(','),
+  };
+}
+
 interface VehicleFeatureCatalogEntry {
   key: string;
   label: string;
@@ -3088,7 +3138,11 @@ function calculateSearchFacets(
   };
   const base = calculateFacets(filterAndSortVehicles(vehicles, facetQuery, context), catalog);
   const makeFacets = without('make');
-  const modelFacets = without('model');
+  // Model values are dependent on the selected make. Keep that constraint
+  // while calculating models, otherwise the UI offers models from unrelated
+  // makes in the same filter panel.
+  const modelQuery: SearchVehiclesQuery = { ...query, model: undefined, page: undefined, limit: undefined };
+  const modelFacets = calculateFacets(filterAndSortVehicles(vehicles, modelQuery, context), catalog);
   const modelCodeFacets = without('modelCode');
   const vehicleTypeFacets = without('bodyStyle');
   const vehicleSubTypeFacets = without('vehicleSubType');
@@ -3163,7 +3217,8 @@ function filterAndSortVehicles(
   const FIVE_DAYS_MS = 5 * 24 * 60 * 60 * 1000;
 
   if (query?.category) {
-    list = list.filter((v) => v.category?.split(',').includes(query.category!));
+    const category = normalizeReferenceKey(query.category);
+    list = list.filter((v) => v.category?.split(',').some((value) => normalizeReferenceKey(value) === category));
   }
 
   if (query?.collection) {
@@ -3243,44 +3298,44 @@ function filterAndSortVehicles(
 
   // Faceted query filters
   if (query?.make) {
-    const makeVal = query.make.toLowerCase();
-    list = list.filter((v) => v.make.toLowerCase() === makeVal);
+    const makeVal = normalizeReferenceKey(query.make);
+    list = list.filter((v) => normalizeReferenceKey(v.make) === makeVal);
   }
 
   if (query?.model) {
-    const modelVal = query.model.toLowerCase();
-    list = list.filter((v) => v.model.toLowerCase().includes(modelVal));
+    const modelVal = normalizeReferenceKey(query.model);
+    list = list.filter((v) => normalizeReferenceKey(v.model).includes(modelVal));
   }
 
-  if (query?.modelCode) list = list.filter((v) => v.modelCode?.toLowerCase() === query.modelCode!.toLowerCase());
+  if (query?.modelCode) list = list.filter((v) => v.modelCode?.toLowerCase() === query.modelCode!.trim().toLowerCase());
 
   if (query?.bodyStyle) {
-    const bodyVal = query.bodyStyle.toLowerCase();
-    list = list.filter((v) => v.bodyStyle && v.bodyStyle.toLowerCase() === bodyVal);
+    const bodyVal = normalizeReferenceKey(query.bodyStyle);
+    list = list.filter((v) => v.bodyStyle && normalizeReferenceKey(v.bodyStyle) === bodyVal);
   }
 
   if (query?.fuelType) {
-    const fuelVal = query.fuelType.toLowerCase();
-    list = list.filter((v) => v.fuelType && v.fuelType.toLowerCase() === fuelVal);
+    const fuelVal = normalizeReferenceKey(query.fuelType);
+    list = list.filter((v) => v.fuelType && normalizeReferenceKey(v.fuelType) === fuelVal);
   }
 
   if (query?.transmission) {
-    const transVal = query.transmission.toLowerCase();
-    list = list.filter((v) => v.transmission && v.transmission.toLowerCase() === transVal);
+    const transVal = normalizeReferenceKey(query.transmission);
+    list = list.filter((v) => v.transmission && normalizeReferenceKey(v.transmission) === transVal);
   }
 
   if (query?.driveTrain) {
-    const dtVal = query.driveTrain.toLowerCase();
-    list = list.filter((v) => v.driveTrain && v.driveTrain.toLowerCase() === dtVal);
+    const dtVal = normalizeReferenceKey(query.driveTrain);
+    list = list.filter((v) => v.driveTrain && normalizeReferenceKey(v.driveTrain) === dtVal);
   }
 
-  if (query?.vehicleSubType) list = list.filter((v) => v.vehicleSubType?.toLowerCase() === query.vehicleSubType!.toLowerCase());
-  if (query?.overdrive) list = list.filter((v) => v.overdrive === query.overdrive);
-  if (query?.color) list = list.filter((v) => v.color?.toLowerCase() === query.color!.toLowerCase());
-  if (query?.exteriorGrade) list = list.filter((v) => v.exteriorGrade === query.exteriorGrade);
-  if (query?.steering) list = list.filter((v) => v.steering?.toLowerCase() === query.steering!.toLowerCase());
-  if (query?.stockCountry) list = list.filter((v) => v.stockCountry?.toLowerCase() === query.stockCountry!.toLowerCase());
-  if (query?.stockLocation) list = list.filter((v) => v.stockLocation?.toLowerCase() === query.stockLocation!.toLowerCase());
+  if (query?.vehicleSubType) list = list.filter((v) => v.vehicleSubType && normalizeReferenceKey(v.vehicleSubType) === normalizeReferenceKey(query.vehicleSubType!));
+  if (query?.overdrive) list = list.filter((v) => v.overdrive && normalizeReferenceKey(v.overdrive) === normalizeReferenceKey(query.overdrive!));
+  if (query?.color) list = list.filter((v) => v.color && normalizeReferenceKey(v.color) === normalizeReferenceKey(query.color!));
+  if (query?.exteriorGrade) list = list.filter((v) => v.exteriorGrade && normalizeReferenceKey(v.exteriorGrade) === normalizeReferenceKey(query.exteriorGrade!));
+  if (query?.steering) list = list.filter((v) => v.steering && normalizeReferenceKey(v.steering) === normalizeReferenceKey(query.steering!));
+  if (query?.stockCountry) list = list.filter((v) => v.stockCountry && normalizeReferenceKey(v.stockCountry) === normalizeReferenceKey(query.stockCountry!));
+  if (query?.stockLocation) list = list.filter((v) => v.stockLocation && normalizeReferenceKey(v.stockLocation) === normalizeReferenceKey(query.stockLocation!));
   if (query?.seatsMin !== undefined) list = list.filter((v) => v.seats !== undefined && v.seats >= Number(query.seatsMin));
   if (query?.seatsMax !== undefined) list = list.filter((v) => v.seats !== undefined && v.seats <= Number(query.seatsMax));
   if (query?.loadCapacityMin !== undefined) list = list.filter((v) => v.loadCapacity !== undefined && v.loadCapacity >= Number(query.loadCapacityMin));
@@ -3319,7 +3374,7 @@ function filterAndSortVehicles(
   }
 
   if (query?.destinationPort) {
-    list = list.filter((v) => v.destinationPort === query.destinationPort);
+    list = list.filter((v) => v.destinationPort && normalizeReferenceKey(v.destinationPort) === normalizeReferenceKey(query.destinationPort!));
   }
 
   if (query?.mileageMin !== undefined) {
@@ -5042,7 +5097,7 @@ function createPaymentRecord(
 class MemoryStore implements DemoStore {
   private bankAccounts = seedBankAccounts.map((b) => ({ ...b }));
   private config = { ...seedConfig };
-  private vehicles = preparedSeedVehicles.map((vehicle) => ({ ...vehicle }));
+  private vehicles = preparedSeedVehicles.map((vehicle) => canonicalizeVehicle({ ...vehicle }));
   private enquiries: EnquiryRecord[] = [];
   private enquirySeq = 0;
   private reservations: ReservationRecord[] = seedReservations.map((r) => ({ ...r }));
@@ -6180,7 +6235,7 @@ class MemoryStore implements DemoStore {
 
   reset(): Promise<void> {
     this.config = { ...seedConfig };
-    this.vehicles = preparedSeedVehicles.map((vehicle) => ({ ...vehicle }));
+    this.vehicles = preparedSeedVehicles.map((vehicle) => canonicalizeVehicle({ ...vehicle }));
     this.enquiries = [];
     this.reservations = seedReservations.map((r) => ({ ...r }));
     this.invoices = seedInvoices.map((i) => ({ ...i }));
@@ -6220,6 +6275,138 @@ class PostgresStore implements DemoStore {
 
   constructor(connectionString: string) {
     this.pool = new Pool({ connectionString });
+  }
+
+  private referenceId(table: string, normalizedKey: string): string {
+    return `${table}-${Buffer.from(normalizedKey).toString('base64url')}`;
+  }
+
+  private async ensureVehicleReference(table: string, value: string): Promise<string> {
+    const displayName = canonicalReferenceValue(value);
+    if (!displayName) throw new Error(`Cannot create an empty vehicle reference in ${table}`);
+    const normalizedKey = normalizeReferenceKey(displayName);
+    const id = this.referenceId(table, normalizedKey);
+    await this.pool.query(
+      `INSERT INTO ${table} (id, display_name, normalized_key) VALUES ($1, $2, $3)
+       ON CONFLICT (normalized_key) DO UPDATE SET display_name = ${table}.display_name`,
+      [id, displayName, normalizedKey],
+    );
+    const result = await this.pool.query(`SELECT id FROM ${table} WHERE normalized_key = $1`, [normalizedKey]);
+    return result.rows[0].id as string;
+  }
+
+  private async ensureVehicleModel(makeId: string, value: string): Promise<string> {
+    const displayName = canonicalReferenceValue(value);
+    if (!displayName) throw new Error('Cannot create an empty vehicle model');
+    const normalizedKey = normalizeReferenceKey(displayName);
+    const id = this.referenceId(vehicleReferenceTables.model, `${makeId}:${normalizedKey}`);
+    await this.pool.query(
+      `INSERT INTO vehicle_models (id, make_id, display_name, normalized_key) VALUES ($1, $2, $3, $4)
+       ON CONFLICT (make_id, normalized_key) DO UPDATE SET display_name = vehicle_models.display_name`,
+      [id, makeId, displayName, normalizedKey],
+    );
+    const result = await this.pool.query('SELECT id FROM vehicle_models WHERE make_id = $1 AND normalized_key = $2', [makeId, normalizedKey]);
+    return result.rows[0].id as string;
+  }
+
+  private async backfillVehicleReferences(): Promise<void> {
+    const result = await this.pool.query('SELECT * FROM vehicles ORDER BY id');
+    for (const row of result.rows) {
+      const makeId = await this.ensureVehicleReference(vehicleReferenceTables.make, row.make);
+      const modelId = await this.ensureVehicleModel(makeId, row.model);
+      const ids: Record<string, string | null> = { make_id: makeId, model_id: modelId };
+      const fields: Array<[VehicleReferenceKind, string]> = [
+        ['bodyStyle', 'body_style'], ['vehicleSubType', 'vehicle_sub_type'], ['fuelType', 'fuel_type'],
+        ['transmission', 'transmission'], ['driveTrain', 'drive_train'], ['overdrive', 'overdrive'],
+        ['color', 'color'], ['exteriorGrade', 'exterior_grade'], ['steering', 'steering'],
+        ['stockCountry', 'stock_country'], ['stockLocation', 'stock_location'], ['destinationPort', 'destination_port'],
+      ];
+      for (const [kind, column] of fields) {
+        if (row[column]) ids[`${column === 'steering' ? 'steering_type' : column}_id`] = await this.ensureVehicleReference(vehicleReferenceTables[kind], row[column]);
+      }
+      await this.pool.query(
+        `UPDATE vehicles SET make_id=$1, model_id=$2, body_style_id=$3, vehicle_sub_type_id=$4,
+          fuel_type_id=$5, transmission_id=$6, drive_train_id=$7, overdrive_id=$8, color_id=$9,
+          exterior_grade_id=$10, steering_type_id=$11, stock_country_id=$12, stock_location_id=$13,
+          destination_port_id=$14 WHERE id=$15`,
+        [ids.make_id, ids.model_id, ids.body_style_id || null, ids.vehicle_sub_type_id || null, ids.fuel_type_id || null,
+          ids.transmission_id || null, ids.drive_train_id || null, ids.overdrive_id || null, ids.color_id || null,
+          ids.exterior_grade_id || null, ids.steering_type_id || null, ids.stock_country_id || null,
+          ids.stock_location_id || null, ids.destination_port_id || null, row.id],
+      );
+
+      await this.pool.query('DELETE FROM vehicle_category_assignments WHERE vehicle_id = $1', [row.id]);
+      for (const rawCategory of String(row.category || '').split(',').map((v) => v.trim()).filter(Boolean)) {
+        const categoryId = await this.ensureVehicleReference('vehicle_categories', rawCategory);
+        await this.pool.query('INSERT INTO vehicle_category_assignments (vehicle_id, category_id) VALUES ($1, $2) ON CONFLICT DO NOTHING', [row.id, categoryId]);
+      }
+      await this.pool.query('DELETE FROM vehicle_feature_assignments WHERE vehicle_id = $1', [row.id]);
+      const features = row.features ? JSON.parse(row.features) as Record<string, boolean> : {};
+      for (const [featureKey, enabled] of Object.entries(features)) {
+        if (!enabled) continue;
+        const known = await this.pool.query('SELECT 1 FROM vehicle_feature_catalog WHERE feature_key = $1', [featureKey]);
+        if (known.rowCount !== 1) throw new Error(`Unknown vehicle feature: ${featureKey}`);
+        await this.pool.query('INSERT INTO vehicle_feature_assignments (vehicle_id, feature_key) VALUES ($1, $2) ON CONFLICT DO NOTHING', [row.id, featureKey]);
+      }
+    }
+    const fkColumns: Array<[string, string]> = [
+      ['make_id', 'vehicle_makes'], ['model_id', 'vehicle_models'], ['body_style_id', 'vehicle_body_styles'],
+      ['vehicle_sub_type_id', 'vehicle_sub_types'], ['fuel_type_id', 'vehicle_fuel_types'], ['transmission_id', 'vehicle_transmissions'],
+      ['drive_train_id', 'vehicle_drive_trains'], ['overdrive_id', 'vehicle_overdrives'], ['color_id', 'vehicle_colors'],
+      ['exterior_grade_id', 'vehicle_exterior_grades'], ['steering_type_id', 'vehicle_steering_types'],
+      ['stock_country_id', 'vehicle_stock_countries'], ['stock_location_id', 'vehicle_stock_locations'], ['destination_port_id', 'vehicle_destination_ports'],
+    ];
+    for (const [column, table] of fkColumns) {
+      await this.pool.query(`CREATE INDEX IF NOT EXISTS vehicles_${column}_idx ON vehicles(${column})`);
+      await this.pool.query(`DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'vehicles_${column}_fkey') THEN ALTER TABLE vehicles ADD CONSTRAINT vehicles_${column}_fkey FOREIGN KEY (${column}) REFERENCES ${table}(id); END IF; END $$`);
+    }
+    await this.pool.query('CREATE UNIQUE INDEX IF NOT EXISTS vehicles_chassis_number_lower_idx ON vehicles (lower(trim(chassis_number)))');
+    await this.pool.query(`ALTER TABLE vehicles
+      ADD CONSTRAINT vehicles_status_valid CHECK (status IN ('Available', 'Sold', 'Draft')),
+      ADD CONSTRAINT vehicles_location_status_valid CHECK (location_status IS NULL OR location_status IN ('In Japan', 'In Transit', 'In Port')),
+      ADD CONSTRAINT vehicles_stock_type_valid CHECK (stock_type IS NULL OR stock_type IN ('J', 'CRFO')),
+      ADD CONSTRAINT vehicles_price_nonnegative CHECK (price_usd >= 0),
+      ADD CONSTRAINT vehicles_discount_valid CHECK (discount_percent IS NULL OR discount_percent BETWEEN 0 AND 100),
+      ADD CONSTRAINT vehicles_mileage_nonnegative CHECK (mileage IS NULL OR mileage >= 0),
+      ADD CONSTRAINT vehicles_engine_cc_nonnegative CHECK (engine_cc IS NULL OR engine_cc >= 0),
+      ADD CONSTRAINT vehicles_seats_nonnegative CHECK (seats IS NULL OR seats >= 0),
+      ADD CONSTRAINT vehicles_load_capacity_nonnegative CHECK (load_capacity IS NULL OR load_capacity >= 0),
+      ADD CONSTRAINT vehicles_year_valid CHECK (year BETWEEN 1886 AND 2200)
+    `).catch((error: any) => { if (error?.code !== '42710') throw error; });
+  }
+
+  private async addRelationalConstraints(): Promise<void> {
+    const relations: Array<[string, string, string, string]> = [
+      ['reservations', 'customer_id', 'customer_accounts', 'customer_id'],
+      ['reservations', 'vehicle_id', 'vehicles', 'id'],
+      ['wishlist_items', 'customer_id', 'customer_accounts', 'customer_id'],
+      ['wishlist_items', 'vehicle_id', 'vehicles', 'id'],
+      ['favourite_searches', 'customer_id', 'customer_accounts', 'customer_id'],
+      ['proforma_invoices', 'customer_id', 'customer_accounts', 'customer_id'],
+      ['proforma_invoices', 'vehicle_id', 'vehicles', 'id'],
+      ['invoices', 'customer_id', 'customer_accounts', 'customer_id'],
+      ['invoices', 'vehicle_id', 'vehicles', 'id'],
+      ['allocations', 'customer_id', 'customer_accounts', 'customer_id'],
+      ['allocations', 'payment_id', 'payments', 'id'],
+      ['allocations', 'invoice_id', 'invoices', 'id'],
+      ['shipments', 'customer_id', 'customer_accounts', 'customer_id'],
+      ['shipments', 'vehicle_id', 'vehicles', 'id'],
+      ['documents', 'customer_id', 'customer_accounts', 'customer_id'],
+      ['documents', 'shipment_id', 'shipments', 'id'],
+      ['documents', 'vehicle_id', 'vehicles', 'id'],
+      ['payments', 'customer_id', 'customer_accounts', 'customer_id'],
+      ['payments', 'invoice_id', 'invoices', 'id'],
+      ['payment_notifications', 'customer_id', 'customer_accounts', 'customer_id'],
+      ['payment_notifications', 'payment_id', 'payments', 'id'],
+      ['payment_notifications', 'invoice_id', 'invoices', 'id'],
+      ['notifications', 'customer_id', 'customer_accounts', 'customer_id'],
+      ['faq_items', 'category_id', 'faq_categories', 'id'],
+    ];
+    for (const [table, column, target, targetColumn] of relations) {
+      const constraint = `${table}_${column}_fkey`;
+      await this.pool.query(`CREATE INDEX IF NOT EXISTS ${table}_${column}_idx ON ${table}(${column})`);
+      await this.pool.query(`DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = '${constraint}') THEN ALTER TABLE ${table} ADD CONSTRAINT ${constraint} FOREIGN KEY (${column}) REFERENCES ${target}(${targetColumn}); END IF; END $$`);
+    }
   }
 
   async ready(): Promise<void> {
@@ -6300,6 +6487,55 @@ class PostgresStore implements DemoStore {
         ADD COLUMN IF NOT EXISTS eta text,
         ADD COLUMN IF NOT EXISTS request_price boolean;`
     );
+    // Vehicle filters are persisted as controlled references. The legacy text
+    // columns remain during the one-time backfill so existing databases can be
+    // upgraded safely; reads use the normalized IDs below.
+    for (const table of Object.values(vehicleReferenceTables).filter((table) => table !== vehicleReferenceTables.model)) {
+      await this.pool.query(`CREATE TABLE IF NOT EXISTS ${table} (
+        id text PRIMARY KEY,
+        display_name text NOT NULL,
+        normalized_key text NOT NULL UNIQUE
+      );`);
+    }
+    await this.pool.query(`
+      CREATE TABLE IF NOT EXISTS vehicle_models (
+        id text PRIMARY KEY,
+        make_id text NOT NULL REFERENCES vehicle_makes(id),
+        display_name text NOT NULL,
+        normalized_key text NOT NULL,
+        UNIQUE (make_id, normalized_key)
+      );
+    `);
+    await this.pool.query(`ALTER TABLE vehicles
+      ADD COLUMN IF NOT EXISTS make_id text,
+      ADD COLUMN IF NOT EXISTS model_id text,
+      ADD COLUMN IF NOT EXISTS body_style_id text,
+      ADD COLUMN IF NOT EXISTS vehicle_sub_type_id text,
+      ADD COLUMN IF NOT EXISTS fuel_type_id text,
+      ADD COLUMN IF NOT EXISTS transmission_id text,
+      ADD COLUMN IF NOT EXISTS drive_train_id text,
+      ADD COLUMN IF NOT EXISTS overdrive_id text,
+      ADD COLUMN IF NOT EXISTS color_id text,
+      ADD COLUMN IF NOT EXISTS exterior_grade_id text,
+      ADD COLUMN IF NOT EXISTS steering_type_id text,
+      ADD COLUMN IF NOT EXISTS stock_country_id text,
+      ADD COLUMN IF NOT EXISTS stock_location_id text,
+      ADD COLUMN IF NOT EXISTS destination_port_id text;
+    `);
+    await this.pool.query(`
+      CREATE TABLE IF NOT EXISTS vehicle_categories (
+        id text PRIMARY KEY,
+        display_name text NOT NULL,
+        normalized_key text NOT NULL UNIQUE
+      );
+      CREATE TABLE IF NOT EXISTS vehicle_category_assignments (
+        vehicle_id text NOT NULL REFERENCES vehicles(id) ON DELETE CASCADE,
+        category_id text NOT NULL REFERENCES vehicle_categories(id),
+        PRIMARY KEY (vehicle_id, category_id)
+      );
+      CREATE INDEX IF NOT EXISTS vehicle_category_assignments_category_idx
+        ON vehicle_category_assignments(category_id);
+    `);
     await this.pool.query(
       `CREATE TABLE IF NOT EXISTS vehicle_feature_catalog (
         feature_key text PRIMARY KEY,
@@ -6316,6 +6552,15 @@ class PostgresStore implements DemoStore {
         [feature.key, feature.label, feature.sortOrder, feature.active],
       );
     }
+    await this.pool.query(`
+      CREATE TABLE IF NOT EXISTS vehicle_feature_assignments (
+        vehicle_id text NOT NULL REFERENCES vehicles(id) ON DELETE CASCADE,
+        feature_key text NOT NULL REFERENCES vehicle_feature_catalog(feature_key),
+        PRIMARY KEY (vehicle_id, feature_key)
+      );
+      CREATE INDEX IF NOT EXISTS vehicle_feature_assignments_feature_idx
+        ON vehicle_feature_assignments(feature_key);
+    `);
     await this.pool.query(
       `CREATE TABLE IF NOT EXISTS enquiries (
         id text PRIMARY KEY,
@@ -6422,6 +6667,23 @@ class PostgresStore implements DemoStore {
         consent boolean NOT NULL
       );`
     );
+    await this.pool.query('ALTER TABLE faq_categories ADD COLUMN IF NOT EXISTS normalized_name text');
+    const faqCategoryRows = await this.pool.query('SELECT id, name FROM faq_categories ORDER BY id');
+    const faqCategoryIds = new Map<string, string>();
+    for (const category of faqCategoryRows.rows) {
+      const normalized = normalizeReferenceKey(category.name);
+      const existing = faqCategoryIds.get(normalized);
+      if (existing && existing !== category.id) {
+        await this.pool.query('UPDATE faq_items SET category_id = $1 WHERE category_id = $2', [existing, category.id]);
+        await this.pool.query('DELETE FROM faq_categories WHERE id = $1', [category.id]);
+      } else {
+        faqCategoryIds.set(normalized, category.id);
+        await this.pool.query('UPDATE faq_categories SET name = $1, normalized_name = $2 WHERE id = $3', [canonicalReferenceValue(category.name), normalized, category.id]);
+      }
+    }
+    await this.pool.query('CREATE UNIQUE INDEX IF NOT EXISTS faq_categories_normalized_name_idx ON faq_categories(normalized_name)');
+    await this.pool.query('ALTER TABLE faq_items DROP COLUMN IF EXISTS category_name');
+    await this.pool.query('CREATE UNIQUE INDEX IF NOT EXISTS faq_items_slug_idx ON faq_items(slug)');
     await this.pool.query(
       `CREATE TABLE IF NOT EXISTS content_pages (
         slug text PRIMARY KEY,
@@ -6761,7 +7023,7 @@ class PostgresStore implements DemoStore {
         await this.pool.query('INSERT INTO faq_categories (id, name, description, sort_order) VALUES ($1, $2, $3, $4)', [cat.id, cat.name, cat.description || null, cat.order]);
       }
       for (const item of seedFaqItems) {
-        await this.pool.query('INSERT INTO faq_items (id, category_id, category_name, question, answer, slug, featured, sort_order, owner, status, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)', [item.id, item.categoryId, item.categoryName, item.question, item.answer, item.slug, item.featured ?? false, item.order || 1, item.owner, item.status, item.updatedAt]);
+        await this.pool.query('INSERT INTO faq_items (id, category_id, question, answer, slug, featured, sort_order, owner, status, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)', [item.id, item.categoryId, item.question, item.answer, item.slug, item.featured ?? false, item.order || 1, item.owner, item.status, item.updatedAt]);
       }
       for (const testim of seedTestimonials) {
         await this.pool.query('INSERT INTO testimonials (id, author_name, author_location, avatar_url, vehicle_purchased, rating, content, submitted_at, status, consent) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)', [testim.id, testim.authorName, testim.authorLocation, testim.avatarUrl || null, testim.vehiclePurchased || null, testim.rating, testim.content, testim.submittedAt, testim.status, testim.consent]);
@@ -6782,6 +7044,8 @@ class PostgresStore implements DemoStore {
     for (const acct of allAccounts.rows) {
       await this.ensureCustomerFleetDataInPostgres(acct.customer_id, acct.email);
     }
+    await this.backfillVehicleReferences();
+    await this.addRelationalConstraints();
   }
 
   private async ensureCustomerFleetDataInPostgres(customerId: string, customerEmail?: string): Promise<void> {
@@ -7155,7 +7419,23 @@ class PostgresStore implements DemoStore {
 
   private async getRawVehicles(): Promise<VehicleRecord[]> {
     const result = await this.pool.query(
-      'SELECT id, chassis_number, make, model, model_code, year, price_usd, status, category, location_status, created_at, images, featured, stock_type, destination_port, discount_percent, body_style, vehicle_sub_type, engine_cc, fuel_type, transmission, drive_train, overdrive, color, exterior_grade, steering, stock_country, stock_location, seats, load_capacity, features, mileage, etd, eta, request_price FROM vehicles ORDER BY id'
+      `SELECT v.id, v.chassis_number, m.display_name AS make, mo.display_name AS model, v.model_code, v.year, v.price_usd, v.status,
+        (SELECT string_agg(c.display_name, ',' ORDER BY c.display_name) FROM vehicle_category_assignments a JOIN vehicle_categories c ON c.id=a.category_id WHERE a.vehicle_id=v.id) AS category,
+        v.location_status, v.created_at, v.images, v.featured, v.stock_type, dp.display_name AS destination_port, v.discount_percent,
+        bs.display_name AS body_style, st.display_name AS vehicle_sub_type, v.engine_cc, ft.display_name AS fuel_type,
+        tr.display_name AS transmission, dt.display_name AS drive_train, od.display_name AS overdrive, co.display_name AS color,
+        eg.display_name AS exterior_grade, steer.display_name AS steering, sc.display_name AS stock_country, sl.display_name AS stock_location,
+        v.seats, v.load_capacity,
+        (SELECT COALESCE(jsonb_object_agg(f.feature_key, true), '{}'::jsonb)::text FROM vehicle_feature_assignments f WHERE f.vehicle_id=v.id) AS features,
+        v.mileage, v.etd, v.eta, v.request_price
+       FROM vehicles v JOIN vehicle_makes m ON m.id=v.make_id JOIN vehicle_models mo ON mo.id=v.model_id
+       LEFT JOIN vehicle_body_styles bs ON bs.id=v.body_style_id LEFT JOIN vehicle_sub_types st ON st.id=v.vehicle_sub_type_id
+       LEFT JOIN vehicle_fuel_types ft ON ft.id=v.fuel_type_id LEFT JOIN vehicle_transmissions tr ON tr.id=v.transmission_id
+       LEFT JOIN vehicle_drive_trains dt ON dt.id=v.drive_train_id LEFT JOIN vehicle_overdrives od ON od.id=v.overdrive_id
+       LEFT JOIN vehicle_colors co ON co.id=v.color_id LEFT JOIN vehicle_exterior_grades eg ON eg.id=v.exterior_grade_id
+       LEFT JOIN vehicle_steering_types steer ON steer.id=v.steering_type_id LEFT JOIN vehicle_stock_countries sc ON sc.id=v.stock_country_id
+       LEFT JOIN vehicle_stock_locations sl ON sl.id=v.stock_location_id LEFT JOIN vehicle_destination_ports dp ON dp.id=v.destination_port_id
+       ORDER BY v.id`
     );
     return result.rows.map((row) => ({
       id: row.id,
@@ -7203,7 +7483,23 @@ class PostgresStore implements DemoStore {
 
   private async getRawVehiclesWith(client: PoolClient): Promise<VehicleRecord[]> {
     const result = await client.query(
-      'SELECT id, chassis_number, make, model, model_code, year, price_usd, status, category, location_status, created_at, images, featured, stock_type, destination_port, discount_percent, body_style, vehicle_sub_type, engine_cc, fuel_type, transmission, drive_train, overdrive, color, exterior_grade, steering, stock_country, stock_location, seats, load_capacity, features, mileage, etd, eta, request_price FROM vehicles ORDER BY id'
+      `SELECT v.id, v.chassis_number, m.display_name AS make, mo.display_name AS model, v.model_code, v.year, v.price_usd, v.status,
+        (SELECT string_agg(c.display_name, ',' ORDER BY c.display_name) FROM vehicle_category_assignments a JOIN vehicle_categories c ON c.id=a.category_id WHERE a.vehicle_id=v.id) AS category,
+        v.location_status, v.created_at, v.images, v.featured, v.stock_type, dp.display_name AS destination_port, v.discount_percent,
+        bs.display_name AS body_style, st.display_name AS vehicle_sub_type, v.engine_cc, ft.display_name AS fuel_type,
+        tr.display_name AS transmission, dt.display_name AS drive_train, od.display_name AS overdrive, co.display_name AS color,
+        eg.display_name AS exterior_grade, steer.display_name AS steering, sc.display_name AS stock_country, sl.display_name AS stock_location,
+        v.seats, v.load_capacity,
+        (SELECT COALESCE(jsonb_object_agg(f.feature_key, true), '{}'::jsonb)::text FROM vehicle_feature_assignments f WHERE f.vehicle_id=v.id) AS features,
+        v.mileage, v.etd, v.eta, v.request_price
+       FROM vehicles v JOIN vehicle_makes m ON m.id=v.make_id JOIN vehicle_models mo ON mo.id=v.model_id
+       LEFT JOIN vehicle_body_styles bs ON bs.id=v.body_style_id LEFT JOIN vehicle_sub_types st ON st.id=v.vehicle_sub_type_id
+       LEFT JOIN vehicle_fuel_types ft ON ft.id=v.fuel_type_id LEFT JOIN vehicle_transmissions tr ON tr.id=v.transmission_id
+       LEFT JOIN vehicle_drive_trains dt ON dt.id=v.drive_train_id LEFT JOIN vehicle_overdrives od ON od.id=v.overdrive_id
+       LEFT JOIN vehicle_colors co ON co.id=v.color_id LEFT JOIN vehicle_exterior_grades eg ON eg.id=v.exterior_grade_id
+       LEFT JOIN vehicle_steering_types steer ON steer.id=v.steering_type_id LEFT JOIN vehicle_stock_countries sc ON sc.id=v.stock_country_id
+       LEFT JOIN vehicle_stock_locations sl ON sl.id=v.stock_location_id LEFT JOIN vehicle_destination_ports dp ON dp.id=v.destination_port_id
+       ORDER BY v.id`
     );
     return result.rows.map((row) => ({
       id: row.id,
@@ -7497,7 +7793,7 @@ class PostgresStore implements DemoStore {
   // Phase 1.7 Content methods for PostgresStore
   async getFaqs(query?: { category?: string; q?: string }): Promise<FaqQueryResponse> {
     const catResult = await this.pool.query('SELECT id, name, description, sort_order FROM faq_categories ORDER BY sort_order ASC');
-    const itemResult = await this.pool.query('SELECT id, category_id, category_name, question, answer, slug, featured, sort_order, owner, status, updated_at FROM faq_items WHERE status = $1 ORDER BY sort_order ASC', ['approved']);
+    const itemResult = await this.pool.query('SELECT f.id, f.category_id, c.name AS category_name, f.question, f.answer, f.slug, f.featured, f.sort_order, f.owner, f.status, f.updated_at FROM faq_items f JOIN faq_categories c ON c.id=f.category_id WHERE f.status = $1 ORDER BY f.sort_order ASC', ['approved']);
 
     const categories: FaqCategory[] = catResult.rows.map((row) => ({
       id: row.id,
@@ -8495,7 +8791,28 @@ class PostgresStore implements DemoStore {
     const client = await this.pool.connect();
     try {
       await client.query('BEGIN');
+      // Clear dependent rows first now that the normalization migration has
+      // added foreign keys to the vehicle and FAQ reference rows.
+      await client.query('DELETE FROM faq_items');
+      await client.query('DELETE FROM reservations');
+      await client.query('DELETE FROM wishlist_items');
+      await client.query('DELETE FROM favourite_searches');
+      await client.query('DELETE FROM allocations');
+      await client.query('DELETE FROM payment_notifications');
+      await client.query('DELETE FROM payments');
+      await client.query('DELETE FROM documents');
+      await client.query('DELETE FROM shipments');
+      await client.query('DELETE FROM proforma_invoices');
+      await client.query('DELETE FROM invoices');
+      await client.query('DELETE FROM vehicle_feature_assignments');
+      await client.query('DELETE FROM vehicle_category_assignments');
       await client.query('DELETE FROM vehicles');
+      await client.query('DELETE FROM vehicle_categories');
+      await client.query('DELETE FROM vehicle_models');
+      await client.query('DELETE FROM vehicle_makes');
+      for (const table of Object.values(vehicleReferenceTables).filter((table) => table !== vehicleReferenceTables.make && table !== vehicleReferenceTables.model)) {
+        await client.query(`DELETE FROM ${table}`);
+      }
       await client.query('DELETE FROM vehicle_feature_catalog');
       await client.query('DELETE FROM public_config');
       await client.query('DELETE FROM enquiries');
@@ -8507,6 +8824,7 @@ class PostgresStore implements DemoStore {
       await client.query('DELETE FROM office_locations');
       await client.query('DELETE FROM branch_content');
       await client.query('DELETE FROM password_reset_outbox');
+      await client.query('DELETE FROM notifications');
       await client.query('DELETE FROM customer_accounts');
       await client.query('DELETE FROM wishlist_items');
       await client.query('DELETE FROM favourite_searches');
@@ -8605,7 +8923,7 @@ class PostgresStore implements DemoStore {
         await client.query('INSERT INTO faq_categories (id, name, description, sort_order) VALUES ($1, $2, $3, $4)', [cat.id, cat.name, cat.description || null, cat.order]);
       }
       for (const item of seedFaqItems) {
-        await client.query('INSERT INTO faq_items (id, category_id, category_name, question, answer, slug, featured, sort_order, owner, status, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)', [item.id, item.categoryId, item.categoryName, item.question, item.answer, item.slug, item.featured ?? false, item.order || 1, item.owner, item.status, item.updatedAt]);
+        await client.query('INSERT INTO faq_items (id, category_id, question, answer, slug, featured, sort_order, owner, status, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)', [item.id, item.categoryId, item.question, item.answer, item.slug, item.featured ?? false, item.order || 1, item.owner, item.status, item.updatedAt]);
       }
       for (const testim of seedTestimonials) {
         await client.query('INSERT INTO testimonials (id, author_name, author_location, avatar_url, vehicle_purchased, rating, content, submitted_at, status, consent) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)', [testim.id, testim.authorName, testim.authorLocation, testim.avatarUrl || null, testim.vehiclePurchased || null, testim.rating, testim.content, testim.submittedAt, testim.status, testim.consent]);
@@ -8628,6 +8946,7 @@ class PostgresStore implements DemoStore {
       this.allocations = seedAllocations.map((allocation) => ({ ...allocation }));
 
       await this.ensureCustomerFleetDataInPostgres(seedAccount.customerId, seedAccount.email);
+      await this.backfillVehicleReferences();
     } catch (error) {
       await client.query('ROLLBACK');
       throw error;
