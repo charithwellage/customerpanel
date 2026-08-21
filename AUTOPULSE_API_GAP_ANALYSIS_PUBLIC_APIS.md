@@ -34,7 +34,7 @@ The live responses remove the earlier uncertainty caused by undocumented Swagger
 | Site configuration and account/auction entry | `GET /api/v1/config/public` | `GET /api/portal/branding` + `GET /api/portal/storefront-config` + `GET /api/portal/public/fx-rates` | Partial Match | Three calls are required instead of one. | Branding: `name`, `logo`, `strap`; storefront: `flags`, `content`; FX: `baseCurrency`, `rates`, `currencies`. | `contactPhone`, `liveAuctionUrl`. | Map `branding.name -> siteName` and `fx-rates.baseCurrency -> currency`; merge the three responses in the production adapter. | Add `contactPhone` and approved `liveAuctionUrl` to storefront configuration, or expose one typed public configuration response. | P1 |
 | Registration country/dial-code selector | `GET /api/v1/config/countries` | None | Missing API | No anonymous country catalogue operation exists. | None. | Entire `items[{isoCode,name,dialCode}]` response. | None until an endpoint exists. | Add an anonymous supported-country and dial-code catalogue. | P1 |
 | How-to-buy bank-transfer instructions | `GET /api/v1/bank-accounts` | None. Schema-only evidence exists for `BankAccountDto` and the `BankAccount` entity. | Missing API | No public operation exposes active payment accounts. | No runtime response. The schema catalogue contains bank/account/currency/SWIFT-related fields but does not prove an endpoint exists. | Public response and, relative to the current UI, a reliable branch name. | When an endpoint exists, map `accountNumber -> accountNo` and `swiftBic -> swiftCode`. | Add a safe anonymous projection of active accounts; do not expose tenant, audit, deletion, or pending-change fields. | P1 |
-| Home vehicle collections, All Stock, Clearance Stock, search showroom, and branch collections | `GET /api/v1/vehicles` | `GET /api/portal/public/catalog` and `GET /api/portal/public/inventory` | Partial Match | Catalog supports `search`, `make`, `bodyType`, `sort`, `skip`, `take`. Inventory adds model/fuel/transmission/drive/year/price filters but has no `skip`. Both omit named collections, market/category, many advanced filters, destination/compliance controls, audience/tier projection, and complete page navigation. | Catalog: `items`, `total`, `makes`, `bodyTypes`. Inventory: `items`, `total`. Together they expose core identity, price, vehicle specification, stock, and partial facet data. | Canonical pagination metadata; most facets; collection semantics; several card fields; compliance, pricing-state, discount, reservation, media, and logistics values. See section 3.1. | Rename equivalent fields and normalize numeric strings. Choose one AutoPulse endpoint as the canonical source rather than merging two independently paged lists in the browser. | Extend one canonical public inventory endpoint with all required filters, collections, facets, paging, and response fields. | P0 |
+| Home vehicle collections, All Stock, Clearance Stock, search showroom, and branch collections | `GET /api/v1/vehicles` | `GET /api/portal/public/catalog` and `GET /api/portal/public/inventory` | Partial Match | Catalog supports `search`, `make`, `bodyType`, `sort`, `skip`, `take`. Inventory adds model/fuel/transmission/drive/year/price filters but has no `skip`. Both omit named collections, market/category, many advanced filters, destination/compliance controls, audience/tier projection, and complete page navigation. | Catalog: `items`, `total`, `makes`, `bodyTypes`. Inventory: `items`, `total`. Together they expose core identity, price, vehicle specification, stock, and partial facet data. | Pagination metadata; most facets; collection semantics; several card fields; compliance, pricing-state, discount, reservation, media, and logistics values. See section 3.1. | AutoPulse should choose either `public/catalog` or `public/inventory` as the single public vehicle-list/search endpoint. The frontend should use that one endpoint and should not merge two separately paged responses. Rename equivalent fields and normalize numeric strings in the adapter. | Extend the chosen endpoint with all required filters, collections, facets, paging, and response fields. The other endpoint may remain for other uses, but it should not be a second source for the same public browse experience. | P0 |
 | Public vehicle detail | `GET /api/v1/vehicles/{idOrSlug}` | `GET /api/portal/public/catalog/{id}`; supplemental `GET /api/portal/public/catalog/{id}/price-guard` and `/reviews` | Partial Match | AutoPulse accepts an ID only; current public URLs and loader support ID or slug. Audience/tier/destination projection is absent. | `id`, `name`, `make`, `model`, `year`, `mileage`, `bodyType`, `transmission`, `fuel`, `engine`, `color`, `grade`, `location`, `listPrice`, `exterior`, `interior`, `viewers`. | Stable slug or documented ID-only routing; chassis/stock identity; availability and price state; complete media; discount, destination/logistics, dimensions, model metadata, and eligibility values. See section 3.2. | Map `fuel -> fuelType`, `engine -> engineSize`, `listPrice -> priceUsd` only after currency is guaranteed, and `exterior`/`interior` into `media` when their item format is documented. | Return a typed, public-safe detail projection and support a stable route identifier. | P0 |
 | Freight destination and port selectors | `GET /api/v1/freight/destinations`; `GET /api/v1/freight/ports` | Nearest operation: `GET /api/portal/public/freight?dest&method` | Missing API | AutoPulse requires a destination before returning freight availability; there is no operation to discover supported destinations or ports. | With a destination, runtime fields were `available`, `dest`, and `message`. Omitting `dest` returned `400` validation details. | Destination `code/name/country` items and port `code/name/country` items. | The adapter can rename `dest` only after selector catalogues and a canonical destination code are defined. | Add destination and destination-scoped port catalogue endpoints. Document freight methods and destination/port code semantics. | P1 |
 | FAQ browser and search | `GET /api/v1/content/faq?category&q` | Nearest operation: `GET /api/portal/knowledge?query` | Missing API | The nearest operation returned `401` anonymously and has no category filter. It is therefore not a public FAQ source. | No public success response was observed. | Categories, ordered FAQ items, total, grounded-no-answer state, and message. | `q -> query` would be a safe rename only if AutoPulse makes the operation public and returns grounded FAQ records. | Add a typed anonymous FAQ endpoint, or expose a public mode of `knowledge` with category filtering and the required response. | P2 |
@@ -48,7 +48,7 @@ The live responses remove the earlier uncertainty caused by undocumented Swagger
 
 ### 3.1 Vehicle collection
 
-AutoPulse currently splits useful information between `public/catalog` and `public/inventory`. The following comparison treats both as candidates but does not recommend joining their independently paged results in the browser.
+AutoPulse currently splits useful information between `public/catalog` and `public/inventory`. AutoPulse should select one of these as the single public vehicle-list/search endpoint for the website, extend it to provide the complete browse contract, and have the frontend use that endpoint consistently. The frontend should not join or merge independently paged results from both endpoints.
 
 #### Collection envelope and facets
 
@@ -93,7 +93,7 @@ AutoPulse currently splits useful information between `public/catalog` and `publ
 
 | Requirement | AutoPulse support | Gap/action |
 |---|---|---|
-| Search, make, model, body style, fuel, transmission, drivetrain, year, price, sort | Split across catalog and inventory | Consolidate in one canonical endpoint. Map `searchQuery -> search`, `bodyStyle -> bodyType`, `driveTrain -> driveType`, min/max names, `sortBy -> sort`. |
+| Search, make, model, body style, fuel, transmission, drivetrain, year, price, sort | Split across catalog and inventory | Put these capabilities into the one selected public vehicle-list/search endpoint. Map `searchQuery -> search`, `bodyStyle -> bodyType`, `driveTrain -> driveType`, min/max names, `sortBy -> sort`. |
 | Mileage filtering | Not exposed | Add `mileageMin` and `mileageMax`. |
 | Model code, subtype, engine, overdrive, color, grade, steering | Not exposed | Add the currently rendered advanced filters. |
 | Stock country/location/type/status and destination port | Not exposed | Add stock/logistics filters. |
@@ -143,17 +143,17 @@ AutoPulse currently splits useful information between `public/catalog` and `publ
 
 ## 4. Missing AutoPulse public GET APIs
 
-| Required capability | Minimum response | Why it is needed |
-|---|---|---|
-| Supported countries | `items[{isoCode,name,dialCode}]` | Populates registration country and phone-prefix selectors with server-approved values. |
-| Public bank accounts | Active safe projections containing ID, bank/account names and number, currency, SWIFT, and branch details | Renders reviewed bank-transfer instructions on How to Buy. |
-| Freight destinations | `[{code,name,country}]` | Populates the destination selector before an estimate/enquiry can be formed. |
-| Freight ports | `[{code,name,country}]`, preferably filterable by destination | Populates the port selector and provides canonical codes. |
-| Public FAQ | Categories, ordered items, total, and grounded no-answer response | Powers FAQ category browsing and keyword search without authentication. |
-| Global testimonials/reviews | Approved global items plus total | Powers the testimonials page and homepage preview without choosing a vehicle first. |
-| Offices | Office contact/location/hours items plus total | Powers Contact and branch-directory experiences. |
-| Branch list and detail | Typed branch content and contacts | Powers branch-specific pages and supplies destination-port context for stock collections. |
-| Authenticated reservation lookup | Owner-scoped reservation and hold metadata | Restores a customer's existing hold after a vehicle-page reload. |
+| Required capability | Mock API | Minimum response | Why it is needed |
+|---|---|---|---|
+| Supported countries | `GET /api/v1/config/countries` | `items[{isoCode,name,dialCode}]` | Populates registration country and phone-prefix selectors with server-approved values. |
+| Public bank accounts | `GET /api/v1/bank-accounts` | Active safe projections containing ID, bank/account names and number, currency, SWIFT, and branch details | Renders reviewed bank-transfer instructions on How to Buy. |
+| Freight destinations | `GET /api/v1/freight/destinations` | `[{code,name,country}]` | Populates the destination selector before an estimate/enquiry can be formed. |
+| Freight ports | `GET /api/v1/freight/ports` | `[{code,name,country}]`, preferably filterable by destination | Populates the port selector and provides canonical codes. |
+| Public FAQ | `GET /api/v1/content/faq` | Categories, ordered items, total, and grounded no-answer response | Powers FAQ category browsing and keyword search without authentication. |
+| Global testimonials/reviews | `GET /api/v1/content/testimonials` | Approved global items plus total | Powers the testimonials page and homepage preview without choosing a vehicle first. |
+| Offices | `GET /api/v1/content/offices` | Office contact/location/hours items plus total | Powers Contact and branch-directory experiences. |
+| Branch list and detail | `GET /api/v1/content/branches` and `GET /api/v1/content/branches/{id}` | Typed branch content and contacts | Powers branch-specific pages and supplies destination-port context for stock collections. |
+| Authenticated reservation lookup | `GET /api/v1/reservations/{id}` | Owner-scoped reservation and hold metadata | Restores a customer's existing hold after a vehicle-page reload. |
 
 Freight destinations and ports are counted as one capability in the executive summary. Branch list/detail and reservation lookup are listed here separately by endpoint implementation need.
 
@@ -161,7 +161,7 @@ Freight destinations and ports are counted as one capability in the executive su
 
 | AutoPulse API | Required extension |
 |---|---|
-| `GET /api/portal/public/inventory` or `GET /api/portal/public/catalog` | Select one canonical collection operation; add the missing filters, named collections, stable pagination, full facets, normalized vehicle fields, media, pricing state, and server-owned compliance/eligibility where applicable. |
+| `GET /api/portal/public/inventory` or `GET /api/portal/public/catalog` | Choose either endpoint as the single public vehicle-list/search API for the website, then add the missing filters, named collections, stable pagination, full facets, normalized vehicle fields, media, pricing state, and server-owned compliance/eligibility where applicable. The frontend should call only the chosen endpoint for public vehicle browsing. |
 | `GET /api/portal/public/catalog/{id}` | Add current status, stable route identity, explicit currency/USD price, pricing state, stock/chassis identity, complete specifications, logistics, populated typed media, and optional server-derived eligibility. |
 | `GET /api/portal/branding` / `storefront-config` | Add contact details and approved auction URL, or expose a single merged public configuration projection. |
 | `GET /api/portal/public/freight` | Document destination/method enums and return a typed estimate/rate response when available. This does not replace the missing selector catalogues. |
@@ -198,7 +198,7 @@ These changes are safe in a future AutoPulse integration layer and do not requir
 ### Pagination and filtering
 
 - Catalog supports `skip/take`; inventory exposes only `take`. The frontend needs repeatable navigation through all results.
-- A canonical endpoint must define stable sorting, maximum page size, out-of-range behavior, and whether facet counts are calculated before pagination.
+- The selected public vehicle-list/search endpoint must define stable sorting, maximum page size, out-of-range behavior, and whether facet counts are calculated before pagination.
 - AutoPulse should reject invalid enum/range values with a documented validation response rather than silently ignoring them.
 
 ### Identifiers
@@ -234,7 +234,7 @@ The following live GET operations do not replace a currently required mock GET A
 
 ## 9. Recommended implementation sequence
 
-1. **P0 — Canonical vehicle browse contract:** extend one public inventory endpoint with complete paging, filters, collections, facets, and card fields.
+1. **P0 — Single public vehicle browse contract:** choose either `public/inventory` or `public/catalog` as the one endpoint used by the website for vehicle lists and search, then extend it with complete paging, filters, collections, facets, and card fields. Do not require the frontend to combine both endpoints.
 2. **P0 — Vehicle detail contract:** return typed pricing, state, identity, specification, logistics, and media data with an agreed ID/slug strategy.
 3. **P1 — Selector/reference APIs:** add countries, freight destinations/ports, offices, branches, and safe public bank accounts.
 4. **P1 — Content contract:** version and document page-builder responses or provide normalized pages; add publication metadata.
