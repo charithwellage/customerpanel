@@ -361,7 +361,11 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
     }
   });
 
-  app.get('/api/v1/customer/favourites/facets', async (req: Request, res: Response) => {
+  app.get('/api/v1/customer/favourites/facets', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) {
+      res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+      return;
+    }
     const facets = await store.getFavouriteFacets();
     res.json(facets);
   });
@@ -643,11 +647,7 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
     res.json(req.user);
   });
 
-  app.get('/api/v1/bank-accounts', async (req: AuthenticatedRequest, res: Response) => {
-    if (!req.user) {
-      res.status(401).json({ statusCode: 401, message: 'Unauthenticated access to bank accounts is not allowed', correlationId: 'corr-401' });
-      return;
-    }
+  app.get('/api/v1/bank-accounts', async (_req: Request, res: Response) => {
     const accounts = await store.getBankAccounts();
     res.json(accounts);
   });

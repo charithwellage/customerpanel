@@ -5,11 +5,27 @@
     "version": "1.0.0",
     "description": "CarChief OpenAPI Specification and Contract Surface"
   },
+  "tags": [
+    {
+      "name": "Public APIs",
+      "description": "Operations that can be called without authorization. Some vehicle responses may accept an optional bearer token for customer projections."
+    },
+    {
+      "name": "Customer APIs",
+      "description": "Operations that require a valid authenticated customer bearer token and enforce customer ownership."
+    },
+    {
+      "name": "Internal/Development APIs",
+      "description": "Staff, finance, health, reset, and development-only operations that are not intended for public frontend consumption."
+    }
+  ],
   "paths": {
     "/healthz": {
       "get": {
         "summary": "Health check",
         "operationId": "getHealth",
+        "tags": ["Public APIs"],
+        "security": [],
         "responses": {
           "200": {
             "description": "Health status response",
@@ -33,6 +49,8 @@
       "get": {
         "summary": "Get public configuration and branding summary",
         "operationId": "getPublicConfig",
+        "tags": ["Public APIs"],
+        "security": [],
         "responses": {
           "200": {
             "description": "Public branding and site configuration",
@@ -51,6 +69,8 @@
       "get": {
         "summary": "Inspect the authenticated identity's session claims",
         "operationId": "getCurrentSession",
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "responses": {
           "200": {
             "description": "Session claims for the authenticated identity",
@@ -75,6 +95,8 @@
       "post": {
         "summary": "Register a new CarChief customer account (CUST-26, D02-ASM-005/006)",
         "operationId": "registerCustomerAccount",
+        "tags": ["Public APIs"],
+        "security": [],
         "requestBody": {
           "required": true,
           "content": {
@@ -115,6 +137,8 @@
       "post": {
         "summary": "Sign in with a registered email and password (CUST-27)",
         "operationId": "loginCustomer",
+        "tags": ["Public APIs"],
+        "security": [],
         "requestBody": {
           "required": true,
           "content": {
@@ -147,6 +171,8 @@
       "post": {
         "summary": "Change the authenticated customer's password (CUST-28)",
         "operationId": "changeCustomerPassword",
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "requestBody": {
           "required": true,
           "content": {
@@ -187,6 +213,8 @@
       "post": {
         "summary": "Request a password reset token via the deterministic mock outbox (CUST-29, D02-ASM-007)",
         "operationId": "requestPasswordReset",
+        "tags": ["Public APIs"],
+        "security": [],
         "requestBody": {
           "required": true,
           "content": {
@@ -211,6 +239,8 @@
       "post": {
         "summary": "Consume a single-use reset token and apply a new password (CUST-29, D02-ASM-007)",
         "operationId": "confirmPasswordReset",
+        "tags": ["Public APIs"],
+        "security": [],
         "requestBody": {
           "required": true,
           "content": {
@@ -243,6 +273,8 @@
       "get": {
         "summary": "Read the deterministic password-reset outbox (non-production only, D02-ASM-007)",
         "operationId": "getPasswordResetOutbox",
+        "tags": ["Internal/Development APIs"],
+        "security": [],
         "responses": {
           "200": {
             "description": "Every issued reset-token outbox entry",
@@ -267,6 +299,8 @@
       "get": {
         "summary": "Country, ISO code and E.164 dial-code catalog (CUST-26)",
         "operationId": "getCountries",
+        "tags": ["Public APIs"],
+        "security": [],
         "responses": {
           "200": {
             "description": "The supported country list",
@@ -283,6 +317,8 @@
       "get": {
         "summary": "List and search vehicle inventory with dynamic facets, sorting and pagination",
         "operationId": "getVehicles",
+        "tags": ["Public APIs"],
+        "security": [],
         "parameters": [
           {
             "name": "collection",
@@ -564,6 +600,8 @@
       "get": {
         "summary": "Get vehicle detail by ID, chassis number, or stable slug",
         "operationId": "getVehicleDetail",
+        "tags": ["Public APIs"],
+        "security": [],
         "parameters": [
           {
             "name": "idOrSlug",
@@ -612,6 +650,8 @@
       "get": {
         "summary": "Get supported freight destinations catalog (D01-ASM-001)",
         "operationId": "getFreightDestinations",
+        "tags": ["Public APIs"],
+        "security": [],
         "responses": {
           "200": {
             "description": "List of supported freight destinations",
@@ -631,6 +671,8 @@
       "get": {
         "summary": "Get supported freight arrival ports catalog (D01-ASM-001)",
         "operationId": "getFreightPorts",
+        "tags": ["Public APIs"],
+        "security": [],
         "responses": {
           "200": {
             "description": "List of supported freight arrival ports",
@@ -650,6 +692,8 @@
       "post": {
         "summary": "Request a freight estimate lookup (D01-ASM-001 — no formula, no computed total)",
         "operationId": "postFreightEstimate",
+        "tags": ["Public APIs"],
+        "security": [],
         "requestBody": {
           "required": true,
           "content": {
@@ -682,7 +726,8 @@
       "post": {
         "summary": "Submit a general, vehicle, price-request or Premium Vehicle enquiry (PUB-13, PUB-14, PUB-15, PUB-28, PUB-34, D01-P05-T004, D01-P06-T001) — independent of DEC-PUB-FREIGHT-MODEL",
         "operationId": "postEnquiry",
-        "security": [{ "bearerAuth": [] }],
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "requestBody": {
           "required": true,
           "content": {
@@ -729,6 +774,8 @@
       "get": {
         "summary": "Staff-facing lead list proof operation (PUB-16, D01-P06-T001) — the regression fix proving a submitted enquiry is retrievable through the Salesperson service boundary, not only writable",
         "operationId": "listLeads",
+        "tags": ["Internal/Development APIs"],
+        "security": [{"BearerAuth":[]}],
         "responses": {
           "200": {
             "description": "All persisted leads, most-recently-received last",
@@ -761,6 +808,8 @@
       "get": {
         "summary": "Staff-facing lead read-by-ID proof operation (PUB-16, D01-P06-T001)",
         "operationId": "getLeadById",
+        "tags": ["Internal/Development APIs"],
+        "security": [{"BearerAuth":[]}],
         "parameters": [
           {
             "name": "id",
@@ -810,7 +859,8 @@
       "get": {
         "summary": "List the signed-in customer's quote requests, one row per distinct vehicle (D02-P13-T001, CUST-34)",
         "operationId": "listCustomerInquiries",
-        "security": [{ "bearerAuth": [] }],
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "responses": {
           "200": {
             "description": "The customer's inquiry list",
@@ -835,7 +885,8 @@
       "get": {
         "summary": "List the signed-in customer's wishlisted vehicles (D02-P13-T002, CUST-36/CUST-37)",
         "operationId": "listCustomerWishlist",
-        "security": [{ "bearerAuth": [] }],
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "responses": {
           "200": {
             "description": "The customer's wishlist",
@@ -858,7 +909,8 @@
       "post": {
         "summary": "Add or remove a vehicle from the signed-in customer's wishlist (idempotent) (D02-P13-T002, CUST-36)",
         "operationId": "toggleCustomerWishlist",
-        "security": [{ "bearerAuth": [] }],
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "requestBody": {
           "required": true,
           "content": {
@@ -907,7 +959,8 @@
       "delete": {
         "summary": "Remove a vehicle from the signed-in customer's wishlist (idempotent) (D02-P13-T002, CUST-36)",
         "operationId": "deleteCustomerWishlistItem",
-        "security": [{ "bearerAuth": [] }],
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "parameters": [
           {
             "name": "vehicleSlug",
@@ -941,7 +994,8 @@
       "get": {
         "summary": "List the signed-in customer's saved search-criteria profiles (D02-P13-T002, CUST-38/CUST-39)",
         "operationId": "listCustomerFavourites",
-        "security": [{ "bearerAuth": [] }],
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "responses": {
           "200": {
             "description": "The customer's favourites list",
@@ -964,7 +1018,8 @@
       "post": {
         "summary": "Create a new saved search-criteria profile for the signed-in customer (D02-P13-T002, CUST-38/CUST-39/CUST-40)",
         "operationId": "createCustomerFavourite",
-        "security": [{ "bearerAuth": [] }],
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "requestBody": {
           "required": true,
           "content": {
@@ -1020,7 +1075,8 @@
       "delete": {
         "summary": "Delete a saved search-criteria profile (D02-P13-T002, CUST-38/CUST-39)",
         "operationId": "deleteCustomerFavourite",
-        "security": [{ "bearerAuth": [] }],
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "parameters": [
           {
             "name": "id",
@@ -1057,6 +1113,8 @@
       "get": {
         "summary": "Get distinct values for each favourite field from real vehicle data (D02-P13-T002, CUST-39, D02-ASM-008)",
         "operationId": "getFavouriteFacets",
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "responses": {
           "200": {
             "description": "Available facet values",
@@ -1069,10 +1127,45 @@
         }
       }
     },
+    "/api/v1/customer/statement": {
+      "get": {
+        "summary": "Get the authenticated customer's account statement",
+        "operationId": "getCustomerStatement",
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
+        "parameters": [
+          { "name": "fromDate", "in": "query", "required": false, "schema": { "type": "string", "format": "date" } },
+          { "name": "toDate", "in": "query", "required": false, "schema": { "type": "string", "format": "date" } }
+        ],
+        "responses": {
+          "200": { "description": "Customer-scoped statement with running balances", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CustomerStatementSummary" } } } },
+          "401": { "description": "Unauthenticated", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
+        }
+      }
+    },
+    "/api/v1/customer/debit-credit": {
+      "get": {
+        "summary": "List the authenticated customer's debit, credit, and refund records",
+        "operationId": "listCustomerDebitCredit",
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
+        "parameters": [
+          { "name": "type", "in": "query", "required": false, "schema": { "type": "string" } },
+          { "name": "currency", "in": "query", "required": false, "schema": { "type": "string" } },
+          { "name": "query", "in": "query", "required": false, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Customer-scoped debit, credit, and refund records", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CustomerDebitCreditListResponse" } } } },
+          "401": { "description": "Unauthenticated", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
+        }
+      }
+    },
     "/api/v1/reservations": {
       "post": {
         "summary": "Create a transactional 48-hour reservation hold on a vehicle for the authenticated demo customer (PUB-23, RULE-05, RULE-08, RULE-10, D01-P06-T004)",
         "operationId": "createReservation",
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "requestBody": {
           "required": true,
           "content": {
@@ -1137,6 +1230,8 @@
       "get": {
         "summary": "Read a reservation by id (D01-P06-T004) — the owning customer or a staff identity with 'read:leads'",
         "operationId": "getReservationById",
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "parameters": [
           {
             "name": "id",
@@ -1186,6 +1281,8 @@
       "get": {
         "summary": "Browse Frequently Asked Questions organized into 12 categories, with optional grounded keyword search (PUB-20, DEC-PUB-FAQ-AI)",
         "operationId": "getFaqs",
+        "tags": ["Public APIs"],
+        "security": [],
         "parameters": [
           {
             "name": "category",
@@ -1216,6 +1313,8 @@
       "get": {
         "summary": "Fetch approved customer testimonials for public display (PUB-19)",
         "operationId": "getTestimonials",
+        "tags": ["Public APIs"],
+        "security": [],
         "responses": {
           "200": {
             "description": "List of approved testimonials",
@@ -1230,6 +1329,8 @@
       "post": {
         "summary": "Submit a new customer testimonial (PUB-19) — persisted as pending with consent",
         "operationId": "submitTestimonial",
+        "tags": ["Public APIs"],
+        "security": [],
         "requestBody": {
           "required": true,
           "content": {
@@ -1262,6 +1363,8 @@
       "get": {
         "summary": "List all approved public content pages (PUB-30)",
         "operationId": "getContentPages",
+        "tags": ["Public APIs"],
+        "security": [],
         "responses": {
           "200": {
             "description": "List of approved public content pages",
@@ -1281,6 +1384,8 @@
       "get": {
         "summary": "Fetch a specific public content page by slug (PUB-17, PUB-18, PUB-21, PUB-27, PUB-29, PUB-30, PUB-31)",
         "operationId": "getContentPageBySlug",
+        "tags": ["Public APIs"],
+        "security": [],
         "parameters": [
           {
             "name": "slug",
@@ -1314,6 +1419,8 @@
       "get": {
         "summary": "Fetch office locations and operating hours (PUB-21)",
         "operationId": "getOffices",
+        "tags": ["Public APIs"],
+        "security": [],
         "responses": {
           "200": {
             "description": "List of office locations",
@@ -1330,6 +1437,8 @@
       "get": {
         "summary": "List approved branch content projections (PUB-35, DEC-PUB-BRANCH-PAGE)",
         "operationId": "getBranches",
+        "tags": ["Public APIs"],
+        "security": [],
         "responses": {
           "200": {
             "description": "List of approved branch content projections",
@@ -1346,6 +1455,8 @@
       "get": {
         "summary": "Fetch a specific branch content projection by ID or code (PUB-35)",
         "operationId": "getBranchById",
+        "tags": ["Public APIs"],
+        "security": [],
         "parameters": [
           {
             "name": "id",
@@ -1380,9 +1491,8 @@
         "summary": "Customer dashboard KPI baseline aggregate (D02-ASM-001, CUST-04, CUST-05, CUST-06)",
         "description": "Non-blocking customer dashboard KPI baseline derived from linked mock records: outstanding balance = issued invoice total minus approved allocations; credit utilisation = outstanding balance ÷ mock credit limit; vehicle counts use canonical vehicle IDs and current server status. Server-authoritative; no browser calculation or fabrication. Requires authentication.",
         "operationId": "getCustomerDashboard",
-        "security": [
-          { "BearerAuth": [] }
-        ],
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "responses": {
           "200": {
             "description": "Customer dashboard aggregate with KPI values",
@@ -1416,9 +1526,8 @@
         "summary": "List customer transaction fleet vehicles (CUST-02, CUST-10, RULE-04, RULE-08)",
         "description": "Returns list of vehicles associated with the authenticated customer across all transaction lifecycle stages (Under Negotiation, Under Negotiation With PI, Confirmed, In Transit, Delivered). Strict customer scoping; vehicles appear once with server-authoritative status and linked document references. Requires authentication.",
         "operationId": "listCustomerVehicles",
-        "security": [
-          { "BearerAuth": [] }
-        ],
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "parameters": [
           {
             "name": "status",
@@ -1492,9 +1601,8 @@
         "summary": "Get customer vehicle detail and full transaction timeline (CUST-11, CUST-12, CUST-13, RULE-04)",
         "description": "Returns full customer detail for a specific transaction vehicle, including technical specifications, status timeline history, deposit requirement (50% under RULE-07), invoice, shipment progress, and linked export documents. Scoped strictly to authenticated customer. Requires authentication.",
         "operationId": "getCustomerVehicleDetail",
-        "security": [
-          { "BearerAuth": [] }
-        ],
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "parameters": [
           {
             "name": "id",
@@ -1546,7 +1654,8 @@
       "get": {
         "summary": "Get the authenticated customer profile",
         "operationId": "getCustomerProfile",
-        "security": [{ "BearerAuth": [] }],
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "responses": {
           "200": { "description": "Customer profile with fixed identity and editable contact fields", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CustomerProfile" } } } },
           "401": { "description": "Unauthenticated", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
@@ -1556,7 +1665,8 @@
       "put": {
         "summary": "Update authenticated customer contact details",
         "operationId": "updateCustomerProfile",
-        "security": [{ "BearerAuth": [] }],
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/UpdateCustomerProfileRequest" } } } },
         "responses": {
           "200": { "description": "Updated customer profile", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CustomerProfile" } } } },
@@ -1571,7 +1681,8 @@
       "get": {
         "summary": "List customer notifications",
         "operationId": "listCustomerNotifications",
-        "security": [{ "BearerAuth": [] }],
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "parameters": [
           { "name": "status", "in": "query", "required": false, "schema": { "type": "string", "enum": ["all", "read", "unread"], "x-placeholder": "all" } },
           { "name": "q", "in": "query", "required": false, "schema": { "type": "string" } }
@@ -1587,7 +1698,8 @@
       "post": {
         "summary": "Mark one customer notification as read",
         "operationId": "markCustomerNotificationRead",
-        "security": [{ "BearerAuth": [] }],
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
         "responses": {
           "200": { "description": "Updated customer notification", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Notification" } } } },
@@ -1601,7 +1713,8 @@
       "post": {
         "summary": "Mark all customer notifications as read",
         "operationId": "markAllCustomerNotificationsRead",
-        "security": [{ "BearerAuth": [] }],
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "responses": {
           "200": { "description": "Read-all result", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/MarkNotificationsReadResponse" } } } },
           "401": { "description": "Unauthenticated", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
@@ -1609,11 +1722,27 @@
         }
       }
     },
+    "/api/v1/customer/notifications/{id}": {
+      "delete": {
+        "summary": "Delete one customer-owned notification",
+        "operationId": "deleteCustomerNotification",
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "204": { "description": "Notification deleted" },
+          "401": { "description": "Unauthenticated", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "403": { "description": "Forbidden", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "404": { "description": "Notification not found", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
+        }
+      }
+    },
     "/api/v1/customer/shipments": {
       "get": {
         "summary": "List shipments visible to the authenticated customer",
         "operationId": "listCustomerShipments",
-        "security": [{ "BearerAuth": [] }],
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "responses": {
           "200": { "description": "Customer shipment timeline projections", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CustomerShipmentList" } } } },
           "401": { "description": "Unauthenticated", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
@@ -1625,7 +1754,8 @@
       "get": {
         "summary": "Get one customer-owned shipment timeline",
         "operationId": "getCustomerShipment",
-        "security": [{ "BearerAuth": [] }],
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
         "responses": {
           "200": { "description": "Shipment timeline", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CustomerShipment" } } } },
@@ -1639,7 +1769,8 @@
       "get": {
         "summary": "List released documents visible to the authenticated customer",
         "operationId": "listCustomerDocuments",
-        "security": [{ "BearerAuth": [] }],
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "responses": {
           "200": { "description": "Customer document metadata", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CustomerDocumentList" } } } },
           "401": { "description": "Unauthenticated", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
@@ -1651,7 +1782,8 @@
       "get": {
         "summary": "Get one released customer-visible document metadata record",
         "operationId": "getCustomerDocument",
-        "security": [{ "BearerAuth": [] }],
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
         "responses": {
           "200": { "description": "Customer document metadata", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CustomerDocument" } } } },
@@ -1666,9 +1798,8 @@
         "summary": "List customer invoices and proforma invoices (CUST-02, CUST-14, CUST-15, RULE-04, RULE-08, RULE-10)",
         "description": "Returns list of issued Proforma Invoices (PI) and approved Commercial Invoices belonging to the authenticated customer. Strictly scoped by customer identity with server-calculated paid/outstanding totals, 72h payment deadlines for PIs, and linked document availability. Requires authentication.",
         "operationId": "listCustomerInvoices",
-        "security": [
-          { "BearerAuth": [] }
-        ],
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "parameters": [
           {
             "name": "type",
@@ -1751,9 +1882,8 @@
         "summary": "Get customer invoice or proforma invoice detail (CUST-14, CUST-15, CUST-16, CUST-21, RULE-04, RULE-07)",
         "description": "Returns full details for a specific customer invoice or proforma invoice, including line items, vehicle specifications, approved payment allocations, official bank account details for wire transfer, and document availability. Scoped strictly to authenticated customer. Requires authentication.",
         "operationId": "getCustomerInvoiceDetail",
-        "security": [
-          { "BearerAuth": [] }
-        ],
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "parameters": [
           {
             "name": "id",
@@ -1806,9 +1936,8 @@
         "summary": "Get authorized printable/downloadable document projection for customer invoice (CUST-16, RULE-04)",
         "description": "Returns structured printable/downloadable document projection with official CarChief header, invoice items, and banking details. Scoped strictly to authenticated customer. Requires authentication.",
         "operationId": "getCustomerInvoiceDocument",
-        "security": [
-          { "BearerAuth": [] }
-        ],
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "parameters": [
           {
             "name": "id",
@@ -1859,7 +1988,8 @@
     "/api/v1/customer/payments": {
       "get": {
         "operationId": "listCustomerPayments",
-        "security": [{ "BearerAuth": [] }],
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "responses": {
           "200": { "description": "Customer payment journal", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CustomerPaymentListResponse" } } } },
           "401": { "description": "Unauthenticated", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
@@ -1868,7 +1998,8 @@
       },
       "post": {
         "operationId": "createCustomerPayment",
-        "security": [{ "BearerAuth": [] }],
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CreateCustomerPaymentRequest" } } } },
         "responses": {
           "201": { "description": "Payment journal entry created", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CustomerPayment" } } } },
@@ -1881,7 +2012,8 @@
     "/api/v1/customer/payments/{id}/resubmit": {
       "post": {
         "operationId": "resubmitCustomerPayment",
-        "security": [{ "BearerAuth": [] }],
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
         "responses": {
           "200": { "description": "Resubmitted customer payment", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CustomerPayment" } } } },
@@ -1895,7 +2027,8 @@
     "/api/v1/customer/payment-notifications": {
       "get": {
         "operationId": "listCustomerPaymentNotifications",
-        "security": [{ "BearerAuth": [] }],
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "parameters": [{ "name": "paymentId", "in": "query", "required": false, "schema": { "type": "string" } }],
         "responses": {
           "200": { "description": "Customer-scoped deterministic payment notification outbox projection", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CustomerPaymentNotificationListResponse" } } } },
@@ -1907,7 +2040,8 @@
     "/api/v1/finance/customer-payments/{id}/notifications": {
       "post": {
         "operationId": "recordPaymentNotification",
-        "security": [{ "BearerAuth": [] }],
+        "tags": ["Internal/Development APIs"],
+        "security": [{"BearerAuth":[]}],
         "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
         "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/RecordPaymentNotificationRequest" } } } },
         "responses": {
@@ -1923,6 +2057,8 @@
       "get": {
         "summary": "Get secure bank account information for authenticated users",
         "operationId": "getBankAccounts",
+        "tags": ["Public APIs"],
+        "security": [],
         "responses": {
           "200": {
             "description": "List of bank accounts",
@@ -1952,6 +2088,8 @@
       "post": {
         "summary": "Deterministic non-production data reset",
         "operationId": "resetData",
+        "tags": ["Internal/Development APIs"],
+        "security": [],
         "responses": {
           "200": {
             "description": "Reset operation result",
@@ -1973,6 +2111,14 @@
     }
   },
   "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Customer or staff JWT returned by the authentication endpoint."
+      }
+    },
     "schemas": {
       "BankAccount": {
         "type": "object",
@@ -3416,6 +3562,64 @@
             "required": ["vehicle", "lineItems", "allocations"]
           }
         ]
+      },
+      "CustomerStatementEntry": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "date": { "type": "string", "format": "date-time" },
+          "description": { "type": "string" },
+          "referenceNo": { "type": "string" },
+          "debitUsd": { "type": "number" },
+          "creditUsd": { "type": "number" },
+          "runningBalanceUsd": { "type": "number" },
+          "isOpeningBalance": { "type": "boolean" }
+        },
+        "required": ["id", "date", "description", "debitUsd", "creditUsd", "runningBalanceUsd"]
+      },
+      "CustomerStatementSummary": {
+        "type": "object",
+        "properties": {
+          "customerId": { "type": "string" },
+          "fromDate": { "type": "string", "format": "date" },
+          "toDate": { "type": "string", "format": "date" },
+          "openingBalanceUsd": { "type": "number" },
+          "totalDebitsUsd": { "type": "number" },
+          "totalCreditsUsd": { "type": "number" },
+          "closingBalanceUsd": { "type": "number" },
+          "entries": { "type": "array", "items": { "$ref": "#/components/schemas/CustomerStatementEntry" } }
+        },
+        "required": ["customerId", "fromDate", "toDate", "openingBalanceUsd", "totalDebitsUsd", "totalCreditsUsd", "closingBalanceUsd", "entries"]
+      },
+      "CustomerDebitCreditRecord": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "customerId": { "type": "string" },
+          "refNumber": { "type": "string" },
+          "type": { "type": "string", "enum": ["Debit", "Credit", "Refund"] },
+          "cashInDate": { "type": "string", "format": "date-time" },
+          "stockId": { "type": "string" },
+          "currency": { "type": "string" },
+          "amount": { "type": "number" },
+          "balanceAmount": { "type": "number" },
+          "paidInCash": { "type": "boolean" },
+          "approvedDate": { "type": "string", "format": "date-time" },
+          "customerNotes": { "type": "string" },
+          "notesVisibleToCustomer": { "type": "boolean" }
+        },
+        "required": ["id", "refNumber", "type", "cashInDate", "stockId", "currency", "amount", "balanceAmount", "paidInCash", "approvedDate"]
+      },
+      "CustomerDebitCreditListResponse": {
+        "type": "object",
+        "properties": {
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/CustomerDebitCreditRecord" } },
+          "total": { "type": "integer" },
+          "totalDebitsUsd": { "type": "number" },
+          "totalCreditsUsd": { "type": "number" },
+          "totalRefundsUsd": { "type": "number" }
+        },
+        "required": ["items", "total", "totalDebitsUsd", "totalCreditsUsd", "totalRefundsUsd"]
       },
       "CustomerInvoiceTotals": {
         "type": "object",
