@@ -1,10 +1,10 @@
-import type { CustomerInquiryListResponse, CustomerPolymorphicInquiryListResponse, VehicleInquiryAggregate } from '@carchief/domain';
+import type { CustomerInquiryListResponse } from '@carchief/domain';
 import type { HttpClient } from '../http.js';
 
 /**
  * Customer's own quote-request inquiries (D02-P13-T001, CUST-34/CUST-35).
  * Lists the signed-in customer's own quote requests and exposes per-vehicle inquirer-count aggregates.
- * `list` and `getVehicleInquiryCount` require an authenticated customer identity;
+ * `list` requires an authenticated customer identity;
  * the mock enforces this server-side, not this client (`HttpClient`'s `getAuthToken` hook
  * supplies the bearer token when configured).
  */
@@ -22,26 +22,4 @@ export class CustomerInquiryService {
     return this.httpClient.request<CustomerInquiryListResponse>('/api/v1/customer/inquiries');
   }
 
-  /**
-   * List polymorphic inquiries (Stock, WhatsApp, Auction, General) for the signed-in customer (FRD Section 6).
-   */
-  public async listPolymorphic(): Promise<CustomerPolymorphicInquiryListResponse> {
-    if (!this.httpClient) {
-      throw new Error('CustomerInquiryService.listPolymorphic requires an HttpClient');
-    }
-    return this.httpClient.request<CustomerPolymorphicInquiryListResponse>('/api/v1/customer/inquiries');
-  }
-
-  /**
-   * Get the aggregate inquirer count for a specific vehicle (CUST-35).
-   * Returns how many distinct customers have requested a quote for the vehicle.
-   */
-  public async getVehicleInquiryCount(vehicleSlug: string): Promise<VehicleInquiryAggregate> {
-    if (!this.httpClient) {
-      throw new Error('CustomerInquiryService.getVehicleInquiryCount requires an HttpClient');
-    }
-    return this.httpClient.request<VehicleInquiryAggregate>(
-      `/api/v1/vehicles/${encodeURIComponent(vehicleSlug)}/inquiry-count`,
-    );
-  }
 }

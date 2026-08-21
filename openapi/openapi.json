@@ -5,11 +5,27 @@
     "version": "1.0.0",
     "description": "CarChief OpenAPI Specification and Contract Surface"
   },
+  "tags": [
+    {
+      "name": "Public APIs",
+      "description": "Operations that can be called without authorization. Some vehicle responses may accept an optional bearer token for customer projections."
+    },
+    {
+      "name": "Customer APIs",
+      "description": "Operations that require a valid authenticated customer bearer token and enforce customer ownership."
+    },
+    {
+      "name": "Internal/Development APIs",
+      "description": "Staff, finance, health, reset, and development-only operations that are not intended for public frontend consumption."
+    }
+  ],
   "paths": {
     "/healthz": {
       "get": {
         "summary": "Health check",
         "operationId": "getHealth",
+        "tags": ["Public APIs"],
+        "security": [],
         "responses": {
           "200": {
             "description": "Health status response",
@@ -33,6 +49,8 @@
       "get": {
         "summary": "Get public configuration and branding summary",
         "operationId": "getPublicConfig",
+        "tags": ["Public APIs"],
+        "security": [],
         "responses": {
           "200": {
             "description": "Public branding and site configuration",
@@ -51,6 +69,8 @@
       "get": {
         "summary": "Inspect the authenticated identity's session claims",
         "operationId": "getCurrentSession",
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "responses": {
           "200": {
             "description": "Session claims for the authenticated identity",
@@ -75,6 +95,8 @@
       "post": {
         "summary": "Register a new CarChief customer account (CUST-26, D02-ASM-005/006)",
         "operationId": "registerCustomerAccount",
+        "tags": ["Public APIs"],
+        "security": [],
         "requestBody": {
           "required": true,
           "content": {
@@ -115,6 +137,8 @@
       "post": {
         "summary": "Sign in with a registered email and password (CUST-27)",
         "operationId": "loginCustomer",
+        "tags": ["Public APIs"],
+        "security": [],
         "requestBody": {
           "required": true,
           "content": {
@@ -147,6 +171,8 @@
       "post": {
         "summary": "Change the authenticated customer's password (CUST-28)",
         "operationId": "changeCustomerPassword",
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "requestBody": {
           "required": true,
           "content": {
@@ -187,6 +213,8 @@
       "post": {
         "summary": "Request a password reset token via the deterministic mock outbox (CUST-29, D02-ASM-007)",
         "operationId": "requestPasswordReset",
+        "tags": ["Public APIs"],
+        "security": [],
         "requestBody": {
           "required": true,
           "content": {
@@ -211,6 +239,8 @@
       "post": {
         "summary": "Consume a single-use reset token and apply a new password (CUST-29, D02-ASM-007)",
         "operationId": "confirmPasswordReset",
+        "tags": ["Public APIs"],
+        "security": [],
         "requestBody": {
           "required": true,
           "content": {
@@ -243,6 +273,8 @@
       "get": {
         "summary": "Read the deterministic password-reset outbox (non-production only, D02-ASM-007)",
         "operationId": "getPasswordResetOutbox",
+        "tags": ["Internal/Development APIs"],
+        "security": [],
         "responses": {
           "200": {
             "description": "Every issued reset-token outbox entry",
@@ -267,6 +299,8 @@
       "get": {
         "summary": "Country, ISO code and E.164 dial-code catalog (CUST-26)",
         "operationId": "getCountries",
+        "tags": ["Public APIs"],
+        "security": [],
         "responses": {
           "200": {
             "description": "The supported country list",
@@ -283,6 +317,8 @@
       "get": {
         "summary": "List and search vehicle inventory with dynamic facets, sorting and pagination",
         "operationId": "getVehicles",
+        "tags": ["Public APIs"],
+        "security": [],
         "parameters": [
           {
             "name": "collection",
@@ -297,7 +333,7 @@
             "name": "market",
             "in": "query",
             "required": false,
-            "schema": { "type": "string", "example": "UG" }
+            "schema": { "type": "string", "x-placeholder": "UG" }
           },
           {
             "name": "category",
@@ -312,193 +348,193 @@
             "name": "searchQuery",
             "in": "query",
             "required": false,
-            "schema": { "type": "string", "example": "Toyota" }
+            "schema": { "type": "string", "x-placeholder": "Toyota" }
           },
           {
             "name": "make",
             "in": "query",
             "required": false,
-            "schema": { "type": "string", "example": "Toyota" }
+            "schema": { "type": "string", "x-placeholder": "Toyota" }
           },
           {
             "name": "model",
             "in": "query",
             "required": false,
-            "schema": { "type": "string", "example": "Corolla" }
+            "schema": { "type": "string", "x-placeholder": "Corolla" }
           },
           {
             "name": "bodyStyle",
             "in": "query",
             "required": false,
-            "schema": { "type": "string", "example": "SUV" }
+            "schema": { "type": "string", "x-placeholder": "SUV" }
           },
           {
             "name": "fuelType",
             "in": "query",
             "required": false,
-            "schema": { "type": "string", "example": "Hybrid" }
+            "schema": { "type": "string", "x-placeholder": "Hybrid" }
           },
           {
             "name": "transmission",
             "in": "query",
             "required": false,
-            "schema": { "type": "string", "example": "Automatic" }
+            "schema": { "type": "string", "x-placeholder": "Automatic" }
           },
           {
             "name": "driveTrain",
             "in": "query",
             "required": false,
-            "schema": { "type": "string", "example": "4WD" }
+            "schema": { "type": "string", "x-placeholder": "4WD" }
           },
           {
             "name": "modelCode",
             "in": "query",
             "required": false,
-            "schema": { "type": "string", "example": "NZE141" }
+            "schema": { "type": "string", "x-placeholder": "NZE141" }
           },
           {
             "name": "vehicleSubType",
             "in": "query",
             "required": false,
-            "schema": { "type": "string", "example": "Hybrid" }
+            "schema": { "type": "string", "x-placeholder": "Hybrid" }
           },
           {
             "name": "overdrive",
             "in": "query",
             "required": false,
-            "schema": { "type": "string", "example": "OD" }
+            "schema": { "type": "string", "x-placeholder": "OD" }
           },
           {
             "name": "color",
             "in": "query",
             "required": false,
-            "schema": { "type": "string", "example": "White" }
+            "schema": { "type": "string", "x-placeholder": "White" }
           },
           {
             "name": "exteriorGrade",
             "in": "query",
             "required": false,
-            "schema": { "type": "string", "example": "4.5" }
+            "schema": { "type": "string", "x-placeholder": "4.5" }
           },
           {
             "name": "steering",
             "in": "query",
             "required": false,
-            "schema": { "type": "string", "example": "RHD" }
+            "schema": { "type": "string", "x-placeholder": "RHD" }
           },
           {
             "name": "stockCountry",
             "in": "query",
             "required": false,
-            "schema": { "type": "string", "example": "Japan" }
+            "schema": { "type": "string", "x-placeholder": "Japan" }
           },
           {
             "name": "stockLocation",
             "in": "query",
             "required": false,
-            "schema": { "type": "string", "example": "Yokohama" }
+            "schema": { "type": "string", "x-placeholder": "Yokohama" }
           },
           {
             "name": "destinationPort",
             "in": "query",
             "required": false,
-            "schema": { "type": "string", "example": "Mombasa" }
+            "schema": { "type": "string", "x-placeholder": "Mombasa" }
           },
           {
             "name": "features",
             "in": "query",
             "required": false,
-            "schema": { "type": "string", "example": "Sunroof,Leather" }
+            "schema": { "type": "string", "x-placeholder": "Sunroof,Leather" }
           },
           {
             "name": "engineCcMin",
             "in": "query",
             "required": false,
-            "schema": { "type": "number", "example": 1000 }
+            "schema": { "type": "number", "x-placeholder": 1000 }
           },
           {
             "name": "engineCcMax",
             "in": "query",
             "required": false,
-            "schema": { "type": "number", "example": 3000 }
+            "schema": { "type": "number", "x-placeholder": 3000 }
           },
           {
             "name": "seatsMin",
             "in": "query",
             "required": false,
-            "schema": { "type": "number", "example": 4 }
+            "schema": { "type": "number", "x-placeholder": 4 }
           },
           {
             "name": "seatsMax",
             "in": "query",
             "required": false,
-            "schema": { "type": "number", "example": 8 }
+            "schema": { "type": "number", "x-placeholder": 8 }
           },
           {
             "name": "loadCapacityMin",
             "in": "query",
             "required": false,
-            "schema": { "type": "number", "example": 500 }
+            "schema": { "type": "number", "x-placeholder": 500 }
           },
           {
             "name": "loadCapacityMax",
             "in": "query",
             "required": false,
-            "schema": { "type": "number", "example": 2000 }
+            "schema": { "type": "number", "x-placeholder": 2000 }
           },
           {
             "name": "stockType",
             "in": "query",
             "required": false,
-            "schema": { "type": "string", "example": "J" }
+            "schema": { "type": "string", "x-placeholder": "J" }
           },
           {
             "name": "locationStatus",
             "in": "query",
             "required": false,
-            "schema": { "type": "string", "example": "In Japan" }
+            "schema": { "type": "string", "x-placeholder": "In Japan" }
           },
           {
             "name": "yearMin",
             "in": "query",
             "required": false,
-            "schema": { "type": "integer", "example": 2018 }
+            "schema": { "type": "integer", "x-placeholder": 2018 }
           },
           {
             "name": "yearMax",
             "in": "query",
             "required": false,
-            "schema": { "type": "integer", "example": 2024 }
+            "schema": { "type": "integer", "x-placeholder": 2024 }
           },
           {
             "name": "priceMin",
             "in": "query",
             "required": false,
-            "schema": { "type": "number", "example": 5000 }
+            "schema": { "type": "number", "x-placeholder": 5000 }
           },
           {
             "name": "priceMax",
             "in": "query",
             "required": false,
-            "schema": { "type": "number", "example": 25000 }
+            "schema": { "type": "number", "x-placeholder": 25000 }
           },
           {
             "name": "mileageMin",
             "in": "query",
             "required": false,
-            "schema": { "type": "number", "example": 10000 }
+            "schema": { "type": "number", "x-placeholder": 10000 }
           },
           {
             "name": "mileageMax",
             "in": "query",
             "required": false,
-            "schema": { "type": "number", "example": 80000 }
+            "schema": { "type": "number", "x-placeholder": 80000 }
           },
           {
             "name": "discountMin",
             "in": "query",
             "required": false,
-            "schema": { "type": "number", "example": 5 }
+            "schema": { "type": "number", "x-placeholder": 5 }
           },
           {
             "name": "sortBy",
@@ -513,37 +549,37 @@
             "name": "page",
             "in": "query",
             "required": false,
-            "schema": { "type": "integer", "example": 1 }
+            "schema": { "type": "integer", "x-placeholder": 1 }
           },
           {
             "name": "limit",
             "in": "query",
             "required": false,
-            "schema": { "type": "integer", "example": 12 }
+            "schema": { "type": "integer", "x-placeholder": 12 }
           },
           {
             "name": "audience",
             "in": "query",
             "required": false,
-            "schema": { "type": "string", "enum": ["public", "customer", "salesperson"], "example": "customer" }
+            "schema": { "type": "string", "enum": ["public", "customer", "salesperson"], "x-placeholder": "customer" }
           },
           {
             "name": "tier",
             "in": "query",
             "required": false,
-            "schema": { "type": "string", "enum": ["Platinum", "Gold", "Silver", "Standard"], "example": "Platinum" }
+            "schema": { "type": "string", "enum": ["Platinum", "Gold", "Silver", "Standard"], "x-placeholder": "Platinum" }
           },
           {
             "name": "destinationCountry",
             "in": "query",
             "required": false,
-            "schema": { "type": "string", "example": "Kenya" }
+            "schema": { "type": "string", "x-placeholder": "Kenya" }
           },
           {
             "name": "complianceOnly",
             "in": "query",
             "required": false,
-            "schema": { "type": "boolean", "example": true }
+            "schema": { "type": "boolean", "x-placeholder": true }
           }
         ],
         "responses": {
@@ -564,24 +600,26 @@
       "get": {
         "summary": "Get vehicle detail by ID, chassis number, or stable slug",
         "operationId": "getVehicleDetail",
+        "tags": ["Public APIs"],
+        "security": [],
         "parameters": [
           {
             "name": "idOrSlug",
             "in": "path",
             "required": true,
-            "schema": { "type": "string", "example": "veh-1" }
+            "schema": { "type": "string", "x-placeholder": "veh-1" }
           },
           {
             "name": "audience",
             "in": "query",
             "required": false,
-            "schema": { "type": "string", "enum": ["public", "customer", "salesperson"], "example": "customer" }
+            "schema": { "type": "string", "enum": ["public", "customer", "salesperson"], "x-placeholder": "customer" }
           },
           {
             "name": "tier",
             "in": "query",
             "required": false,
-            "schema": { "type": "string", "enum": ["Platinum", "Gold", "Silver", "Standard"], "example": "Platinum" }
+            "schema": { "type": "string", "enum": ["Platinum", "Gold", "Silver", "Standard"], "x-placeholder": "Platinum" }
           }
         ],
         "responses": {
@@ -612,6 +650,8 @@
       "get": {
         "summary": "Get supported freight destinations catalog (D01-ASM-001)",
         "operationId": "getFreightDestinations",
+        "tags": ["Public APIs"],
+        "security": [],
         "responses": {
           "200": {
             "description": "List of supported freight destinations",
@@ -631,6 +671,8 @@
       "get": {
         "summary": "Get supported freight arrival ports catalog (D01-ASM-001)",
         "operationId": "getFreightPorts",
+        "tags": ["Public APIs"],
+        "security": [],
         "responses": {
           "200": {
             "description": "List of supported freight arrival ports",
@@ -650,6 +692,8 @@
       "post": {
         "summary": "Request a freight estimate lookup (D01-ASM-001 — no formula, no computed total)",
         "operationId": "postFreightEstimate",
+        "tags": ["Public APIs"],
+        "security": [],
         "requestBody": {
           "required": true,
           "content": {
@@ -682,7 +726,8 @@
       "post": {
         "summary": "Submit a general, vehicle, price-request or Premium Vehicle enquiry (PUB-13, PUB-14, PUB-15, PUB-28, PUB-34, D01-P05-T004, D01-P06-T001) — independent of DEC-PUB-FREIGHT-MODEL",
         "operationId": "postEnquiry",
-        "security": [{ "bearerAuth": [] }],
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "requestBody": {
           "required": true,
           "content": {
@@ -729,6 +774,8 @@
       "get": {
         "summary": "Staff-facing lead list proof operation (PUB-16, D01-P06-T001) — the regression fix proving a submitted enquiry is retrievable through the Salesperson service boundary, not only writable",
         "operationId": "listLeads",
+        "tags": ["Internal/Development APIs"],
+        "security": [{"BearerAuth":[]}],
         "responses": {
           "200": {
             "description": "All persisted leads, most-recently-received last",
@@ -761,13 +808,15 @@
       "get": {
         "summary": "Staff-facing lead read-by-ID proof operation (PUB-16, D01-P06-T001)",
         "operationId": "getLeadById",
+        "tags": ["Internal/Development APIs"],
+        "security": [{"BearerAuth":[]}],
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
             "schema": { "type": "string" },
-            "example": "enq-1723368000000-0"
+            "x-placeholder": "enq-1723368000000-0"
           }
         ],
         "responses": {
@@ -810,7 +859,8 @@
       "get": {
         "summary": "List the signed-in customer's quote requests, one row per distinct vehicle (D02-P13-T001, CUST-34)",
         "operationId": "listCustomerInquiries",
-        "security": [{ "bearerAuth": [] }],
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "responses": {
           "200": {
             "description": "The customer's inquiry list",
@@ -835,7 +885,8 @@
       "get": {
         "summary": "List the signed-in customer's wishlisted vehicles (D02-P13-T002, CUST-36/CUST-37)",
         "operationId": "listCustomerWishlist",
-        "security": [{ "bearerAuth": [] }],
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "responses": {
           "200": {
             "description": "The customer's wishlist",
@@ -858,7 +909,8 @@
       "post": {
         "summary": "Add or remove a vehicle from the signed-in customer's wishlist (idempotent) (D02-P13-T002, CUST-36)",
         "operationId": "toggleCustomerWishlist",
-        "security": [{ "bearerAuth": [] }],
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "requestBody": {
           "required": true,
           "content": {
@@ -907,7 +959,8 @@
       "delete": {
         "summary": "Remove a vehicle from the signed-in customer's wishlist (idempotent) (D02-P13-T002, CUST-36)",
         "operationId": "deleteCustomerWishlistItem",
-        "security": [{ "bearerAuth": [] }],
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "parameters": [
           {
             "name": "vehicleSlug",
@@ -941,7 +994,8 @@
       "get": {
         "summary": "List the signed-in customer's saved search-criteria profiles (D02-P13-T002, CUST-38/CUST-39)",
         "operationId": "listCustomerFavourites",
-        "security": [{ "bearerAuth": [] }],
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "responses": {
           "200": {
             "description": "The customer's favourites list",
@@ -964,7 +1018,8 @@
       "post": {
         "summary": "Create a new saved search-criteria profile for the signed-in customer (D02-P13-T002, CUST-38/CUST-39/CUST-40)",
         "operationId": "createCustomerFavourite",
-        "security": [{ "bearerAuth": [] }],
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "requestBody": {
           "required": true,
           "content": {
@@ -1020,7 +1075,8 @@
       "delete": {
         "summary": "Delete a saved search-criteria profile (D02-P13-T002, CUST-38/CUST-39)",
         "operationId": "deleteCustomerFavourite",
-        "security": [{ "bearerAuth": [] }],
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "parameters": [
           {
             "name": "id",
@@ -1057,6 +1113,8 @@
       "get": {
         "summary": "Get distinct values for each favourite field from real vehicle data (D02-P13-T002, CUST-39, D02-ASM-008)",
         "operationId": "getFavouriteFacets",
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "responses": {
           "200": {
             "description": "Available facet values",
@@ -1069,36 +1127,36 @@
         }
       }
     },
-    "/api/v1/vehicles/{idOrSlug}/inquiry-count": {
+    "/api/v1/customer/statement": {
       "get": {
-        "summary": "Get the aggregate count of distinct inquirers for a vehicle (D02-P13-T001, CUST-35)",
-        "operationId": "getVehicleInquiryAggregate",
+        "summary": "Get the authenticated customer's account statement",
+        "operationId": "getCustomerStatement",
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "parameters": [
-          {
-            "name": "idOrSlug",
-            "in": "path",
-            "required": true,
-            "schema": { "type": "string" },
-            "example": "2021-toyota-corolla-axio-veh-1"
-          }
+          { "name": "fromDate", "in": "query", "required": false, "schema": { "type": "string", "format": "date" } },
+          { "name": "toDate", "in": "query", "required": false, "schema": { "type": "string", "format": "date" } }
         ],
         "responses": {
-          "200": {
-            "description": "The vehicle inquiry aggregate",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/VehicleInquiryAggregate" }
-              }
-            }
-          },
-          "404": {
-            "description": "No vehicle exists with this id or slug",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
-              }
-            }
-          }
+          "200": { "description": "Customer-scoped statement with running balances", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CustomerStatementSummary" } } } },
+          "401": { "description": "Unauthenticated", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
+        }
+      }
+    },
+    "/api/v1/customer/debit-credit": {
+      "get": {
+        "summary": "List the authenticated customer's debit, credit, and refund records",
+        "operationId": "listCustomerDebitCredit",
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
+        "parameters": [
+          { "name": "type", "in": "query", "required": false, "schema": { "type": "string" } },
+          { "name": "currency", "in": "query", "required": false, "schema": { "type": "string" } },
+          { "name": "query", "in": "query", "required": false, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Customer-scoped debit, credit, and refund records", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CustomerDebitCreditListResponse" } } } },
+          "401": { "description": "Unauthenticated", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
         }
       }
     },
@@ -1106,6 +1164,8 @@
       "post": {
         "summary": "Create a transactional 48-hour reservation hold on a vehicle for the authenticated demo customer (PUB-23, RULE-05, RULE-08, RULE-10, D01-P06-T004)",
         "operationId": "createReservation",
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "requestBody": {
           "required": true,
           "content": {
@@ -1170,13 +1230,15 @@
       "get": {
         "summary": "Read a reservation by id (D01-P06-T004) — the owning customer or a staff identity with 'read:leads'",
         "operationId": "getReservationById",
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
             "schema": { "type": "string" },
-            "example": "res-1723368000000-0"
+            "x-placeholder": "res-1723368000000-0"
           }
         ],
         "responses": {
@@ -1219,18 +1281,20 @@
       "get": {
         "summary": "Browse Frequently Asked Questions organized into 12 categories, with optional grounded keyword search (PUB-20, DEC-PUB-FAQ-AI)",
         "operationId": "getFaqs",
+        "tags": ["Public APIs"],
+        "security": [],
         "parameters": [
           {
             "name": "category",
             "in": "query",
             "required": false,
-            "schema": { "type": "string", "example": "buying-process" }
+            "schema": { "type": "string", "x-placeholder": "buying-process" }
           },
           {
             "name": "q",
             "in": "query",
             "required": false,
-            "schema": { "type": "string", "example": "shipping" }
+            "schema": { "type": "string", "x-placeholder": "shipping" }
           }
         ],
         "responses": {
@@ -1249,6 +1313,8 @@
       "get": {
         "summary": "Fetch approved customer testimonials for public display (PUB-19)",
         "operationId": "getTestimonials",
+        "tags": ["Public APIs"],
+        "security": [],
         "responses": {
           "200": {
             "description": "List of approved testimonials",
@@ -1263,6 +1329,8 @@
       "post": {
         "summary": "Submit a new customer testimonial (PUB-19) — persisted as pending with consent",
         "operationId": "submitTestimonial",
+        "tags": ["Public APIs"],
+        "security": [],
         "requestBody": {
           "required": true,
           "content": {
@@ -1295,6 +1363,8 @@
       "get": {
         "summary": "List all approved public content pages (PUB-30)",
         "operationId": "getContentPages",
+        "tags": ["Public APIs"],
+        "security": [],
         "responses": {
           "200": {
             "description": "List of approved public content pages",
@@ -1314,13 +1384,15 @@
       "get": {
         "summary": "Fetch a specific public content page by slug (PUB-17, PUB-18, PUB-21, PUB-27, PUB-29, PUB-30, PUB-31)",
         "operationId": "getContentPageBySlug",
+        "tags": ["Public APIs"],
+        "security": [],
         "parameters": [
           {
             "name": "slug",
             "in": "path",
             "required": true,
             "schema": { "type": "string" },
-            "example": "about-us"
+            "x-placeholder": "about-us"
           }
         ],
         "responses": {
@@ -1347,6 +1419,8 @@
       "get": {
         "summary": "Fetch office locations and operating hours (PUB-21)",
         "operationId": "getOffices",
+        "tags": ["Public APIs"],
+        "security": [],
         "responses": {
           "200": {
             "description": "List of office locations",
@@ -1363,6 +1437,8 @@
       "get": {
         "summary": "List approved branch content projections (PUB-35, DEC-PUB-BRANCH-PAGE)",
         "operationId": "getBranches",
+        "tags": ["Public APIs"],
+        "security": [],
         "responses": {
           "200": {
             "description": "List of approved branch content projections",
@@ -1379,13 +1455,15 @@
       "get": {
         "summary": "Fetch a specific branch content projection by ID or code (PUB-35)",
         "operationId": "getBranchById",
+        "tags": ["Public APIs"],
+        "security": [],
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
             "schema": { "type": "string" },
-            "example": "harare-hub"
+            "x-placeholder": "harare-hub"
           }
         ],
         "responses": {
@@ -1413,9 +1491,8 @@
         "summary": "Customer dashboard KPI baseline aggregate (D02-ASM-001, CUST-04, CUST-05, CUST-06)",
         "description": "Non-blocking customer dashboard KPI baseline derived from linked mock records: outstanding balance = issued invoice total minus approved allocations; credit utilisation = outstanding balance ÷ mock credit limit; vehicle counts use canonical vehicle IDs and current server status. Server-authoritative; no browser calculation or fabrication. Requires authentication.",
         "operationId": "getCustomerDashboard",
-        "security": [
-          { "BearerAuth": [] }
-        ],
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "responses": {
           "200": {
             "description": "Customer dashboard aggregate with KPI values",
@@ -1449,9 +1526,8 @@
         "summary": "List customer transaction fleet vehicles (CUST-02, CUST-10, RULE-04, RULE-08)",
         "description": "Returns list of vehicles associated with the authenticated customer across all transaction lifecycle stages (Under Negotiation, Under Negotiation With PI, Confirmed, In Transit, Delivered). Strict customer scoping; vehicles appear once with server-authoritative status and linked document references. Requires authentication.",
         "operationId": "listCustomerVehicles",
-        "security": [
-          { "BearerAuth": [] }
-        ],
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "parameters": [
           {
             "name": "status",
@@ -1478,7 +1554,7 @@
             "description": "Page number (1-based)",
             "schema": {
               "type": "integer",
-              "default": 1
+              "x-placeholder": 1
             }
           },
           {
@@ -1488,7 +1564,7 @@
             "description": "Page size limit",
             "schema": {
               "type": "integer",
-              "default": 20
+              "x-placeholder": 20
             }
           }
         ],
@@ -1525,9 +1601,8 @@
         "summary": "Get customer vehicle detail and full transaction timeline (CUST-11, CUST-12, CUST-13, RULE-04)",
         "description": "Returns full customer detail for a specific transaction vehicle, including technical specifications, status timeline history, deposit requirement (50% under RULE-07), invoice, shipment progress, and linked export documents. Scoped strictly to authenticated customer. Requires authentication.",
         "operationId": "getCustomerVehicleDetail",
-        "security": [
-          { "BearerAuth": [] }
-        ],
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "parameters": [
           {
             "name": "id",
@@ -1579,7 +1654,8 @@
       "get": {
         "summary": "Get the authenticated customer profile",
         "operationId": "getCustomerProfile",
-        "security": [{ "BearerAuth": [] }],
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "responses": {
           "200": { "description": "Customer profile with fixed identity and editable contact fields", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CustomerProfile" } } } },
           "401": { "description": "Unauthenticated", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
@@ -1589,7 +1665,8 @@
       "put": {
         "summary": "Update authenticated customer contact details",
         "operationId": "updateCustomerProfile",
-        "security": [{ "BearerAuth": [] }],
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/UpdateCustomerProfileRequest" } } } },
         "responses": {
           "200": { "description": "Updated customer profile", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CustomerProfile" } } } },
@@ -1604,9 +1681,10 @@
       "get": {
         "summary": "List customer notifications",
         "operationId": "listCustomerNotifications",
-        "security": [{ "BearerAuth": [] }],
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "parameters": [
-          { "name": "status", "in": "query", "required": false, "schema": { "type": "string", "enum": ["all", "read", "unread"], "default": "all" } },
+          { "name": "status", "in": "query", "required": false, "schema": { "type": "string", "enum": ["all", "read", "unread"], "x-placeholder": "all" } },
           { "name": "q", "in": "query", "required": false, "schema": { "type": "string" } }
         ],
         "responses": {
@@ -1616,25 +1694,12 @@
         }
       }
     },
-    "/api/v1/customer/notifications/{id}": {
-      "get": {
-        "summary": "Get one customer notification",
-        "operationId": "getCustomerNotification",
-        "security": [{ "BearerAuth": [] }],
-        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
-        "responses": {
-          "200": { "description": "Customer notification", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Notification" } } } },
-          "401": { "description": "Unauthenticated", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
-          "403": { "description": "Forbidden", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
-          "404": { "description": "Notification not found", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
-        }
-      }
-    },
     "/api/v1/customer/notifications/{id}/read": {
       "post": {
         "summary": "Mark one customer notification as read",
         "operationId": "markCustomerNotificationRead",
-        "security": [{ "BearerAuth": [] }],
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
         "responses": {
           "200": { "description": "Updated customer notification", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Notification" } } } },
@@ -1648,7 +1713,8 @@
       "post": {
         "summary": "Mark all customer notifications as read",
         "operationId": "markAllCustomerNotificationsRead",
-        "security": [{ "BearerAuth": [] }],
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "responses": {
           "200": { "description": "Read-all result", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/MarkNotificationsReadResponse" } } } },
           "401": { "description": "Unauthenticated", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
@@ -1656,11 +1722,27 @@
         }
       }
     },
+    "/api/v1/customer/notifications/{id}": {
+      "delete": {
+        "summary": "Delete one customer-owned notification",
+        "operationId": "deleteCustomerNotification",
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "204": { "description": "Notification deleted" },
+          "401": { "description": "Unauthenticated", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "403": { "description": "Forbidden", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "404": { "description": "Notification not found", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
+        }
+      }
+    },
     "/api/v1/customer/shipments": {
       "get": {
         "summary": "List shipments visible to the authenticated customer",
         "operationId": "listCustomerShipments",
-        "security": [{ "BearerAuth": [] }],
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "responses": {
           "200": { "description": "Customer shipment timeline projections", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CustomerShipmentList" } } } },
           "401": { "description": "Unauthenticated", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
@@ -1672,7 +1754,8 @@
       "get": {
         "summary": "Get one customer-owned shipment timeline",
         "operationId": "getCustomerShipment",
-        "security": [{ "BearerAuth": [] }],
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
         "responses": {
           "200": { "description": "Shipment timeline", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CustomerShipment" } } } },
@@ -1686,7 +1769,8 @@
       "get": {
         "summary": "List released documents visible to the authenticated customer",
         "operationId": "listCustomerDocuments",
-        "security": [{ "BearerAuth": [] }],
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "responses": {
           "200": { "description": "Customer document metadata", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CustomerDocumentList" } } } },
           "401": { "description": "Unauthenticated", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
@@ -1698,7 +1782,8 @@
       "get": {
         "summary": "Get one released customer-visible document metadata record",
         "operationId": "getCustomerDocument",
-        "security": [{ "BearerAuth": [] }],
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
         "responses": {
           "200": { "description": "Customer document metadata", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CustomerDocument" } } } },
@@ -1713,9 +1798,8 @@
         "summary": "List customer invoices and proforma invoices (CUST-02, CUST-14, CUST-15, RULE-04, RULE-08, RULE-10)",
         "description": "Returns list of issued Proforma Invoices (PI) and approved Commercial Invoices belonging to the authenticated customer. Strictly scoped by customer identity with server-calculated paid/outstanding totals, 72h payment deadlines for PIs, and linked document availability. Requires authentication.",
         "operationId": "listCustomerInvoices",
-        "security": [
-          { "BearerAuth": [] }
-        ],
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "parameters": [
           {
             "name": "type",
@@ -1751,7 +1835,7 @@
             "description": "Page number (1-based)",
             "schema": {
               "type": "integer",
-              "default": 1
+              "x-placeholder": 1
             }
           },
           {
@@ -1761,7 +1845,7 @@
             "description": "Page size limit",
             "schema": {
               "type": "integer",
-              "default": 20
+              "x-placeholder": 20
             }
           }
         ],
@@ -1798,9 +1882,8 @@
         "summary": "Get customer invoice or proforma invoice detail (CUST-14, CUST-15, CUST-16, CUST-21, RULE-04, RULE-07)",
         "description": "Returns full details for a specific customer invoice or proforma invoice, including line items, vehicle specifications, approved payment allocations, official bank account details for wire transfer, and document availability. Scoped strictly to authenticated customer. Requires authentication.",
         "operationId": "getCustomerInvoiceDetail",
-        "security": [
-          { "BearerAuth": [] }
-        ],
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "parameters": [
           {
             "name": "id",
@@ -1853,9 +1936,8 @@
         "summary": "Get authorized printable/downloadable document projection for customer invoice (CUST-16, RULE-04)",
         "description": "Returns structured printable/downloadable document projection with official CarChief header, invoice items, and banking details. Scoped strictly to authenticated customer. Requires authentication.",
         "operationId": "getCustomerInvoiceDocument",
-        "security": [
-          { "BearerAuth": [] }
-        ],
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "parameters": [
           {
             "name": "id",
@@ -1906,7 +1988,8 @@
     "/api/v1/customer/payments": {
       "get": {
         "operationId": "listCustomerPayments",
-        "security": [{ "BearerAuth": [] }],
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "responses": {
           "200": { "description": "Customer payment journal", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CustomerPaymentListResponse" } } } },
           "401": { "description": "Unauthenticated", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
@@ -1915,7 +1998,8 @@
       },
       "post": {
         "operationId": "createCustomerPayment",
-        "security": [{ "BearerAuth": [] }],
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CreateCustomerPaymentRequest" } } } },
         "responses": {
           "201": { "description": "Payment journal entry created", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CustomerPayment" } } } },
@@ -1925,23 +2009,11 @@
         }
       }
     },
-    "/api/v1/customer/payments/{id}": {
-      "get": {
-        "operationId": "getCustomerPayment",
-        "security": [{ "BearerAuth": [] }],
-        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
-        "responses": {
-          "200": { "description": "Customer payment journal entry", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CustomerPayment" } } } },
-          "401": { "description": "Unauthenticated", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
-          "403": { "description": "Forbidden", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
-          "404": { "description": "Payment not found", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
-        }
-      }
-    },
     "/api/v1/customer/payments/{id}/resubmit": {
       "post": {
         "operationId": "resubmitCustomerPayment",
-        "security": [{ "BearerAuth": [] }],
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
         "responses": {
           "200": { "description": "Resubmitted customer payment", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CustomerPayment" } } } },
@@ -1955,7 +2027,8 @@
     "/api/v1/customer/payment-notifications": {
       "get": {
         "operationId": "listCustomerPaymentNotifications",
-        "security": [{ "BearerAuth": [] }],
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
         "parameters": [{ "name": "paymentId", "in": "query", "required": false, "schema": { "type": "string" } }],
         "responses": {
           "200": { "description": "Customer-scoped deterministic payment notification outbox projection", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CustomerPaymentNotificationListResponse" } } } },
@@ -1967,7 +2040,8 @@
     "/api/v1/finance/customer-payments/{id}/notifications": {
       "post": {
         "operationId": "recordPaymentNotification",
-        "security": [{ "BearerAuth": [] }],
+        "tags": ["Internal/Development APIs"],
+        "security": [{"BearerAuth":[]}],
         "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
         "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/RecordPaymentNotificationRequest" } } } },
         "responses": {
@@ -1983,6 +2057,8 @@
       "get": {
         "summary": "Get secure bank account information for authenticated users",
         "operationId": "getBankAccounts",
+        "tags": ["Public APIs"],
+        "security": [],
         "responses": {
           "200": {
             "description": "List of bank accounts",
@@ -2012,6 +2088,8 @@
       "post": {
         "summary": "Deterministic non-production data reset",
         "operationId": "resetData",
+        "tags": ["Internal/Development APIs"],
+        "security": [],
         "responses": {
           "200": {
             "description": "Reset operation result",
@@ -2033,6 +2111,14 @@
     }
   },
   "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Customer or staff JWT returned by the authentication endpoint."
+      }
+    },
     "schemas": {
       "BankAccount": {
         "type": "object",
@@ -2251,10 +2337,6 @@
           "active": { "type": "boolean", "example": true },
           "nowOnSale": { "type": "boolean", "example": true },
           "priceState": { "type": "string", "enum": ["priced", "request_price"], "example": "priced" },
-          "countryEligibility": {
-            "type": "array",
-            "items": { "type": "string" }
-          },
           "tierPricing": { "$ref": "#/components/schemas/VehicleTierPricing" },
           "reservationEligibility": { "$ref": "#/components/schemas/VehicleReservationEligibility" }
         },
@@ -2297,10 +2379,6 @@
             "type": "array",
             "items": { "type": "string" }
           },
-          "auctionSheet": {
-            "type": "array",
-            "items": { "type": "string" }
-          },
           "japanPictures": {
             "type": "array",
             "items": { "type": "string" }
@@ -2311,10 +2389,9 @@
           },
           "showAuctionPictures": { "type": "boolean", "example": false },
           "showJapanPictures": { "type": "boolean", "example": true },
-          "showDurbanPictures": { "type": "boolean", "example": false },
-          "totalPicturesCount": { "type": "integer", "example": 5 }
+          "showDurbanPictures": { "type": "boolean", "example": false }
         },
-        "required": ["gallery", "totalPicturesCount"]
+        "required": ["gallery"]
       },
       "VehicleDetail": {
         "type": "object",
@@ -2358,10 +2435,6 @@
           "etd": { "type": "string", "example": "2026-08-20T00:00:00.000Z" },
           "eta": { "type": "string", "example": "2026-09-10T00:00:00.000Z" },
           "featured": { "type": "boolean", "example": true },
-          "countryEligibility": {
-            "type": "array",
-            "items": { "type": "string" }
-          },
           "media": { "$ref": "#/components/schemas/CategorizedPublicMedia" },
           "active": { "type": "boolean", "example": true },
           "nowOnSale": { "type": "boolean", "example": true },
@@ -2934,11 +3007,10 @@
           "categories": { "type": "array", "items": { "$ref": "#/components/schemas/FaqCategory" } },
           "items": { "type": "array", "items": { "$ref": "#/components/schemas/FaqItem" } },
           "total": { "type": "integer", "example": 12 },
-          "matchedCount": { "type": "integer", "example": 12 },
           "groundedNoAnswer": { "type": "boolean", "example": false },
           "message": { "type": "string", "example": "No grounded answer found matching your query." }
         },
-        "required": ["categories", "items", "total", "matchedCount", "groundedNoAnswer"]
+        "required": ["categories", "items", "total", "groundedNoAnswer"]
       },
       "TestimonialItem": {
         "type": "object",
@@ -3034,10 +3106,9 @@
           "welcomeBanner": { "type": "string", "example": "Welcome to CarChief Harare Hub" },
           "contactBanner": { "type": "string", "example": "Contact our Harare import specialists" },
           "meetAndGreetInfo": { "type": "string", "example": "Visit our representative office..." },
-          "contentOwner": { "type": "string", "example": "BranchTeam" },
           "status": { "type": "string", "enum": ["approved", "pending", "draft", "unavailable", "rejected"], "example": "approved" }
         },
-        "required": ["id", "name", "code", "destinationPort", "introduction", "welcomeBanner", "contactBanner", "meetAndGreetInfo", "contentOwner", "status"]
+        "required": ["id", "name", "code", "destinationPort", "introduction", "welcomeBanner", "contactBanner", "meetAndGreetInfo", "status"]
       },
       "BranchListResponse": {
         "type": "object",
@@ -3092,15 +3163,9 @@
           "shipOkStatus": { "type": "string", "enum": ["Pending", "Approved", "Rejected"] },
           "shipOkRejectionReason": { "type": "string" },
           "documentReleaseStatus": { "type": "string", "enum": ["Pending", "Approved", "Rejected"] },
-          "documentReleaseRejectionReason": { "type": "string" },
-          "timeline": { "type": "array", "items": { "$ref": "#/components/schemas/ShipmentTimelineEvent" } }
+          "documentReleaseRejectionReason": { "type": "string" }
         },
-        "required": ["id", "vehicleId", "stage", "shippedAt", "freshness", "shipOkStatus", "documentReleaseStatus", "timeline"]
-      },
-      "ShipmentTimelineEvent": {
-        "type": "object",
-        "properties": { "stage": { "type": "string" }, "occurredAt": { "type": "string" }, "current": { "type": "boolean" } },
-        "required": ["stage", "current"]
+        "required": ["id", "vehicleId", "stage", "shippedAt", "freshness", "shipOkStatus", "documentReleaseStatus"]
       },
       "CustomerShipmentList": {
         "type": "object",
@@ -3136,7 +3201,6 @@
           "vehicleCountReserved": { "type": "integer", "example": 2 },
           "vehicleCountInvoiced": { "type": "integer", "example": 1 },
           "vehicleCountDelivered": { "type": "integer", "example": 0 },
-          "lastUpdated": { "type": "string", "example": "2026-08-14T10:00:00.000Z" },
           "paymentStatusSummary": {
             "type": "object",
             "description": "Count of payments linked to customer invoices by status",
@@ -3172,20 +3236,9 @@
             "type": "integer",
             "description": "Count of unread notifications for this customer",
             "example": 2
-          },
-          "partialFailureIndicators": {
-            "type": "object",
-            "description": "Flags indicating if any linked-record query failed; missing/empty lists are not failures",
-            "properties": {
-              "paymentsFailed": { "type": "boolean", "example": false },
-              "shipmentsFailed": { "type": "boolean", "example": false },
-              "documentsFailed": { "type": "boolean", "example": false },
-              "notificationsFailed": { "type": "boolean", "example": false }
-            },
-            "required": ["paymentsFailed", "shipmentsFailed", "documentsFailed", "notificationsFailed"]
           }
         },
-        "required": ["customerId", "customerEmail", "creditLimitUsd", "outstandingBalanceUsd", "creditUtilisationPercent", "vehicleCountReserved", "vehicleCountInvoiced", "vehicleCountDelivered", "lastUpdated", "paymentStatusSummary", "shipmentStatusSummary", "documentAvailabilityCount", "notificationUnreadCount", "partialFailureIndicators"]
+        "required": ["customerId", "customerEmail", "creditLimitUsd", "outstandingBalanceUsd", "creditUtilisationPercent", "vehicleCountReserved", "vehicleCountInvoiced", "vehicleCountDelivered", "paymentStatusSummary", "shipmentStatusSummary", "documentAvailabilityCount", "notificationUnreadCount"]
       },
       "CustomerVehicleStatus": {
         "type": "string",
@@ -3208,7 +3261,6 @@
           "type": { "type": "string", "example": "ProformaInvoice" },
           "title": { "type": "string", "example": "Proforma Invoice PI-2026-001" },
           "status": { "type": "string", "enum": ["Available", "Pending", "Draft"], "example": "Available" },
-          "fileUrl": { "type": "string", "example": "/documents/pi-001.pdf" },
           "issuedAt": { "type": "string", "example": "2026-08-10T10:00:00.000Z" }
         },
         "required": ["id", "type", "title", "status"]
@@ -3220,10 +3272,9 @@
           "requiredPercent": { "type": "number", "example": 50 },
           "requiredAmountUsd": { "type": "number", "example": 4250.00 },
           "paidAmountUsd": { "type": "number", "example": 2000.00 },
-          "remainingAmountUsd": { "type": "number", "example": 2250.00 },
-          "isFullyPaid": { "type": "boolean", "example": false }
+          "remainingAmountUsd": { "type": "number", "example": 2250.00 }
         },
-        "required": ["requiredPercent", "requiredAmountUsd", "paidAmountUsd", "remainingAmountUsd", "isFullyPaid"]
+        "required": ["requiredPercent", "requiredAmountUsd", "paidAmountUsd", "remainingAmountUsd"]
       },
       "CustomerVehicleSummary": {
         "type": "object",
@@ -3394,9 +3445,9 @@
         "properties": {
           "id": { "type": "string" }, "customerId": { "type": "string" }, "paymentId": { "type": "string" }, "invoiceId": { "type": "string" },
           "event": { "type": "string", "enum": ["FinanceReviewRequested", "PaymentHeld", "PaymentResubmitted", "PaymentApproved", "PaymentAllocated"] },
-          "deliveryStatus": { "type": "string", "enum": ["Queued"] }, "createdAt": { "type": "string" }
+          "createdAt": { "type": "string" }
         },
-        "required": ["id", "customerId", "paymentId", "invoiceId", "event", "deliveryStatus", "createdAt"]
+        "required": ["id", "customerId", "paymentId", "invoiceId", "event", "createdAt"]
       },
       "CustomerPaymentNotificationListResponse": {
         "type": "object",
@@ -3469,15 +3520,13 @@
           "paidAmountUsd": { "type": "number", "example": 5500.00 },
           "outstandingAmountUsd": { "type": "number", "example": 3000.00 },
           "depositRequiredUsd": { "type": "number", "example": 4250.00 },
-          "depositPaidUsd": { "type": "number", "example": 2000.00 },
           "status": { "$ref": "#/components/schemas/CustomerInvoiceStatus" },
           "issuedAt": { "type": "string", "example": "2026-08-10T10:00:00.000Z" },
           "dueDate": { "type": "string", "example": "2026-08-17T10:00:00.000Z" },
           "paymentDeadline": { "type": "string", "example": "2026-08-13T10:00:00.000Z" },
-          "documentStatus": { "type": "string", "enum": ["Available", "Pending", "Unavailable"], "example": "Available" },
           "currency": { "type": "string", "example": "USD" }
         },
-        "required": ["id", "invoiceNumber", "type", "customerId", "vehicleId", "vehicleSlug", "make", "model", "year", "totalAmountUsd", "paidAmountUsd", "outstandingAmountUsd", "status", "issuedAt", "dueDate", "documentStatus", "currency"]
+        "required": ["id", "invoiceNumber", "type", "customerId", "vehicleId", "vehicleSlug", "make", "model", "year", "totalAmountUsd", "paidAmountUsd", "outstandingAmountUsd", "status", "issuedAt", "dueDate", "currency"]
       },
       "CustomerInvoiceDetail": {
         "allOf": [
@@ -3507,11 +3556,6 @@
                 "items": { "$ref": "#/components/schemas/CustomerInvoiceAllocationItem" }
               },
               "bankDetails": { "$ref": "#/components/schemas/CustomerInvoiceBankDetails" },
-              "documentUrl": { "type": "string", "example": "/documents/inv-001.pdf" },
-              "termsAndConditions": {
-                "type": "array",
-                "items": { "type": "string" }
-              },
               "isExpired": { "type": "boolean", "example": false },
               "notes": { "type": "string", "example": "Proforma invoice issued with 50% deposit requirement" }
             },
@@ -3519,14 +3563,63 @@
           }
         ]
       },
-      "CustomerInvoiceCountsByType": {
+      "CustomerStatementEntry": {
         "type": "object",
         "properties": {
-          "all": { "type": "integer", "example": 4 },
-          "proforma": { "type": "integer", "example": 1 },
-          "commercial": { "type": "integer", "example": 3 }
+          "id": { "type": "string" },
+          "date": { "type": "string", "format": "date-time" },
+          "description": { "type": "string" },
+          "referenceNo": { "type": "string" },
+          "debitUsd": { "type": "number" },
+          "creditUsd": { "type": "number" },
+          "runningBalanceUsd": { "type": "number" },
+          "isOpeningBalance": { "type": "boolean" }
         },
-        "required": ["all", "proforma", "commercial"]
+        "required": ["id", "date", "description", "debitUsd", "creditUsd", "runningBalanceUsd"]
+      },
+      "CustomerStatementSummary": {
+        "type": "object",
+        "properties": {
+          "customerId": { "type": "string" },
+          "fromDate": { "type": "string", "format": "date" },
+          "toDate": { "type": "string", "format": "date" },
+          "openingBalanceUsd": { "type": "number" },
+          "totalDebitsUsd": { "type": "number" },
+          "totalCreditsUsd": { "type": "number" },
+          "closingBalanceUsd": { "type": "number" },
+          "entries": { "type": "array", "items": { "$ref": "#/components/schemas/CustomerStatementEntry" } }
+        },
+        "required": ["customerId", "fromDate", "toDate", "openingBalanceUsd", "totalDebitsUsd", "totalCreditsUsd", "closingBalanceUsd", "entries"]
+      },
+      "CustomerDebitCreditRecord": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "customerId": { "type": "string" },
+          "refNumber": { "type": "string" },
+          "type": { "type": "string", "enum": ["Debit", "Credit", "Refund"] },
+          "cashInDate": { "type": "string", "format": "date-time" },
+          "stockId": { "type": "string" },
+          "currency": { "type": "string" },
+          "amount": { "type": "number" },
+          "balanceAmount": { "type": "number" },
+          "paidInCash": { "type": "boolean" },
+          "approvedDate": { "type": "string", "format": "date-time" },
+          "customerNotes": { "type": "string" },
+          "notesVisibleToCustomer": { "type": "boolean" }
+        },
+        "required": ["id", "refNumber", "type", "cashInDate", "stockId", "currency", "amount", "balanceAmount", "paidInCash", "approvedDate"]
+      },
+      "CustomerDebitCreditListResponse": {
+        "type": "object",
+        "properties": {
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/CustomerDebitCreditRecord" } },
+          "total": { "type": "integer" },
+          "totalDebitsUsd": { "type": "number" },
+          "totalCreditsUsd": { "type": "number" },
+          "totalRefundsUsd": { "type": "number" }
+        },
+        "required": ["items", "total", "totalDebitsUsd", "totalCreditsUsd", "totalRefundsUsd"]
       },
       "CustomerInvoiceTotals": {
         "type": "object",
@@ -3547,24 +3640,21 @@
           "total": { "type": "integer", "example": 4 },
           "page": { "type": "integer", "example": 1 },
           "limit": { "type": "integer", "example": 20 },
-          "countsByType": { "$ref": "#/components/schemas/CustomerInvoiceCountsByType" },
           "totals": { "$ref": "#/components/schemas/CustomerInvoiceTotals" }
         },
-        "required": ["items", "total", "page", "limit", "countsByType", "totals"]
+        "required": ["items", "total", "page", "limit", "totals"]
       },
       "CustomerInvoiceDocument": {
         "type": "object",
         "properties": {
-          "documentId": { "type": "string", "example": "doc-inv-001" },
           "invoiceId": { "type": "string", "example": "inv-001" },
           "invoiceNumber": { "type": "string", "example": "INV-2026-001" },
           "type": { "$ref": "#/components/schemas/CustomerInvoiceType" },
           "title": { "type": "string", "example": "Commercial Invoice INV-2026-001" },
           "contentHtml": { "type": "string", "example": "<div class=\"invoice-doc\">...</div>" },
-          "status": { "type": "string", "enum": ["Available", "Unavailable"], "example": "Available" },
-          "generatedAt": { "type": "string", "example": "2026-08-10T10:00:00.000Z" }
+          "status": { "type": "string", "enum": ["Available", "Unavailable"], "example": "Available" }
         },
-        "required": ["documentId", "invoiceId", "invoiceNumber", "type", "title", "contentHtml", "status", "generatedAt"]
+        "required": ["invoiceId", "invoiceNumber", "type", "title", "contentHtml", "status"]
       }
     }
   }

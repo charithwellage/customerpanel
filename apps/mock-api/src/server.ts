@@ -236,17 +236,6 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
     res.json(dcRecords);
   });
 
-  // 3k-pa. Customer paired / linked accounts (FRD Section 1)
-  app.get('/api/v1/customer/paired-accounts', async (req: AuthenticatedRequest, res: Response) => {
-    if (!req.user) {
-      res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
-      return;
-    }
-    const customerId = resolveCustomerScope(req.user.sub);
-    const accounts = await store.getCustomerPairedAccounts(customerId);
-    res.json({ items: accounts });
-  });
-
   // 3l. Wishlist operations (D02-P13-T002, CUST-36/CUST-37): list, add, remove
   // wishlist items for the signed-in customer.
   app.get('/api/v1/customer/wishlist', async (req: AuthenticatedRequest, res: Response) => {
@@ -372,23 +361,13 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
     }
   });
 
-  app.get('/api/v1/customer/favourites/facets', async (req: Request, res: Response) => {
-    const facets = await store.getFavouriteFacets();
-    res.json(facets);
-  });
-
-  // 3k. Vehicle inquiry aggregate (D02-P13-T001, CUST-35): returns the count
-  // of distinct people who have requested a quote for a given vehicle.
-  app.get('/api/v1/vehicles/:idOrSlug/inquiry-count', async (req: Request, res: Response) => {
-    const rawParam = req.params.idOrSlug;
-    const idOrSlug = Array.isArray(rawParam) ? rawParam[0] : rawParam;
-    const vehicle = await store.getVehicleDetail(idOrSlug);
-    if (!vehicle) {
-      res.status(404).json({ statusCode: 404, message: `Vehicle '${idOrSlug}' not found`, correlationId: `corr-404-${Date.now()}` });
+  app.get('/api/v1/customer/favourites/facets', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) {
+      res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
       return;
     }
-    const aggregate = await store.getVehicleInquiryAggregate(idOrSlug);
-    res.json(aggregate);
+    const facets = await store.getFavouriteFacets();
+    res.json(facets);
   });
 
   // 3i-r. Transactional reservation eligibility and hold (PUB-23, RULE-05,
@@ -668,11 +647,7 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
     res.json(req.user);
   });
 
-  app.get('/api/v1/bank-accounts', async (req: AuthenticatedRequest, res: Response) => {
-    if (!req.user) {
-      res.status(401).json({ statusCode: 401, message: 'Unauthenticated access to bank accounts is not allowed', correlationId: 'corr-401' });
-      return;
-    }
+  app.get('/api/v1/bank-accounts', async (_req: Request, res: Response) => {
     const accounts = await store.getBankAccounts();
     res.json(accounts);
   });
@@ -789,14 +764,6 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
     const status = ['all', 'read', 'unread'].includes(rawStatus) ? rawStatus as 'all' | 'read' | 'unread' : 'all';
     const q = typeof req.query.q === 'string' ? req.query.q : undefined;
     res.json(await store.listCustomerNotifications(resolveCustomerScope(req.user.sub), { status, q }));
-  });
-
-  app.get('/api/v1/customer/notifications/:id', async (req: AuthenticatedRequest, res: Response) => {
-    if (!req.user) return void res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
-    if (!hasPermission(req.user.role, 'read:customer')) return void res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
-    const notification = await store.getCustomerNotification(resolveCustomerScope(req.user.sub), req.params.id as string);
-    if (!notification) return void res.status(404).json({ statusCode: 404, message: 'Notification not found', correlationId: `corr-404-${Date.now()}` });
-    res.json(notification);
   });
 
   app.post('/api/v1/customer/notifications/:id/read', async (req: AuthenticatedRequest, res: Response) => {
@@ -935,14 +902,6 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
     res.json(await store.listCustomerPayments(resolveCustomerScope(req.user.sub)));
   });
 
-  app.get('/api/v1/customer/payments/:id', async (req: AuthenticatedRequest, res: Response) => {
-    if (!req.user) return void res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
-    if (!hasPermission(req.user.role, 'read:customer')) return void res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
-    const payment = await store.getCustomerPayment(resolveCustomerScope(req.user.sub), req.params.id as string);
-    if (!payment) return void res.status(404).json({ statusCode: 404, message: 'Payment not found or not owned by customer', correlationId: `corr-404-${Date.now()}` });
-    res.json(payment);
-  });
-
   app.post('/api/v1/customer/payments/:id/resubmit', async (req: AuthenticatedRequest, res: Response) => {
     if (!req.user) return void res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
     if (!hasPermission(req.user.role, 'create:payment')) return void res.status(403).json({ statusCode: 403, message: 'Forbidden: payment resubmission requires customer payment permission', correlationId: 'corr-403' });
@@ -1042,16 +1001,67 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
   <meta charset="UTF-8">
   <title>CarChief Mock API - Swagger UI</title>
   <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css" />
+  <style>
+    #swagger-ui .parameters-container input::placeholder,
+    #swagger-ui .parameters-container textarea::placeholder {
+      color: #6b7280;
+      opacity: 1;
+    }
+    #swagger-ui .parameters-container input:focus::placeholder,
+    #swagger-ui .parameters-container textarea:focus::placeholder {
+      color: transparent;
+    }
+  </style>
 </head>
 <body>
   <div id="swagger-ui"></div>
   <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
   <script>
-    window.onload = () => {
+    // x-placeholder is deliberately outside OpenAPI's example/default fields.
+    // Swagger UI therefore has no value to put into the request state. This
+    // observer only adds presentation metadata and never touches input.value.
+    const buildPlaceholderMap = (spec) => {
+      const map = new Map();
+      Object.entries(spec.paths || {}).forEach(([path, pathItem]) => {
+        const operation = pathItem.get;
+        if (!operation) return;
+        (operation.parameters || []).forEach((parameter) => {
+          const source = parameter.schema || parameter;
+          const placeholder = source['x-placeholder'] ?? parameter['x-placeholder'];
+          if (placeholder !== undefined) {
+            map.set('get ' + path + ' ' + parameter.name, String(placeholder));
+          }
+        });
+      });
+      return map;
+    };
+
+    const applySwaggerPlaceholders = (placeholderMap) => {
+      document.querySelectorAll('#swagger-ui .opblock').forEach((operationBlock) => {
+        const method = operationBlock.querySelector('.opblock-summary-method')?.textContent?.trim().toLowerCase();
+        const path = operationBlock.querySelector('.opblock-summary-path')?.textContent?.trim();
+        if (method !== 'get' || !path) return;
+        operationBlock.querySelectorAll('.parameters-container tr').forEach((row) => {
+          const name = row.querySelector('.parameter__name')?.textContent?.trim();
+          const field = row.querySelector('input, textarea');
+          if (!name || !field) return;
+          const placeholder = placeholderMap.get(method + ' ' + path + ' ' + name);
+          if (placeholder !== undefined) field.setAttribute('placeholder', placeholder);
+        });
+      });
+    };
+
+    window.onload = async () => {
+      const spec = await fetch('/openapi.json').then((response) => response.json());
+      const placeholderMap = buildPlaceholderMap(spec);
       SwaggerUIBundle({
         url: '/openapi.json',
         dom_id: '#swagger-ui',
+        onComplete: () => applySwaggerPlaceholders(placeholderMap),
       });
+
+      const observer = new MutationObserver(() => applySwaggerPlaceholders(placeholderMap));
+      observer.observe(document.getElementById('swagger-ui'), { childList: true, subtree: true });
     };
   </script>
 </body>

@@ -27,7 +27,6 @@ import VehicleDetailPage from '../features/vehicle-detail/VehicleDetailPage';
 
 const makeMedia = (gallery: string[] = []): CategorizedPublicMedia => ({
   gallery,
-  totalPicturesCount: gallery.length,
 });
 
 const basePricedVehicle: VehicleDetail = {
@@ -197,7 +196,6 @@ describe('CategorizedPublicMedia gallery array', () => {
   it('returns empty gallery array for no-media vehicle', () => {
     const gallery = noMediaVehicle.media.gallery;
     expect(gallery).toEqual([]);
-    expect(noMediaVehicle.media.totalPicturesCount).toBe(0);
   });
 
   it('sold vehicle has empty gallery in no-media scenario', () => {
@@ -415,7 +413,7 @@ describe('VehicleDetailPage Component Presentation & Integration', () => {
 
     const noMedia: VehicleDetail = {
       ...basePricedVehicle,
-      media: { gallery: [], totalPicturesCount: 0 },
+      media: { gallery: [] },
     };
 
     const html = renderToStaticMarkup(React.createElement(VehicleDetailPage, { vehicle: noMedia }));

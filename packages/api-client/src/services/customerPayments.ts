@@ -9,15 +9,6 @@ export class CustomerPaymentService {
     return this.httpClient.request<CustomerPaymentListResponse>('/customer/payments');
   }
 
-  async getCustomerPayment(id: string): Promise<CustomerPayment | null> {
-    if (!this.httpClient) throw new Error('CustomerPaymentService requires an HttpClient');
-    try { return await this.httpClient.request<CustomerPayment>(`/customer/payments/${encodeURIComponent(id)}`); }
-    catch (error: unknown) {
-      if (error && typeof error === 'object' && 'statusCode' in error && (error as { statusCode: number }).statusCode === 404) return null;
-      throw error;
-    }
-  }
-
   async resubmitCustomerPayment(id: string): Promise<CustomerPayment> {
     if (!this.httpClient) throw new Error('CustomerPaymentService requires an HttpClient');
     return this.httpClient.request<CustomerPayment>(`/customer/payments/${encodeURIComponent(id)}/resubmit`, { method: 'POST' });

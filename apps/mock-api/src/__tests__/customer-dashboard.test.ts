@@ -65,16 +65,6 @@ describe('Customer Dashboard (D02-ASM-001, D02-P02-T001)', () => {
       expect(dashboard.vehicleCountDelivered).toBe(0);
     });
 
-    it('includes lastUpdated timestamp', async () => {
-      const beforeCall = new Date().toISOString();
-      const dashboard = await store.getCustomerDashboard('cust-123', 'customer@example.com');
-      const afterCall = new Date().toISOString();
-
-      expect(dashboard.lastUpdated).toBeDefined();
-      expect(new Date(dashboard.lastUpdated).getTime()).toBeGreaterThanOrEqual(new Date(beforeCall).getTime());
-      expect(new Date(dashboard.lastUpdated).getTime()).toBeLessThanOrEqual(new Date(afterCall).getTime());
-    });
-
     it('prohibits browser-side calculation: returns reconciled server values', async () => {
       const dashboard = await store.getCustomerDashboard('cust-123', 'customer@example.com');
 
@@ -209,14 +199,5 @@ describe('Customer Dashboard (D02-ASM-001, D02-P02-T001)', () => {
       expect(newDash.customerId).toBe('cust-new-001');
     });
 
-    it('includes partial failure indicators (all false for seed data)', async () => {
-      const dashboard = await store.getCustomerDashboard('cust-123', 'customer@example.com');
-
-      expect(dashboard.partialFailureIndicators).toBeDefined();
-      expect(dashboard.partialFailureIndicators?.paymentsFailed).toBe(false);
-      expect(dashboard.partialFailureIndicators?.shipmentsFailed).toBe(false);
-      expect(dashboard.partialFailureIndicators?.documentsFailed).toBe(false);
-      expect(dashboard.partialFailureIndicators?.notificationsFailed).toBe(false);
-    });
   });
 });

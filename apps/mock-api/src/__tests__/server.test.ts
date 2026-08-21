@@ -23,10 +23,11 @@ describe('Mock API Server Integration Tests with Auth Enforcement', () => {
   });
 
   describe('GET /api/v1/bank-accounts', () => {
-    it('returns 401 for anonymous users', async () => {
+    it('returns the public bank-account instructions for anonymous users', async () => {
       const response = await request(app).get('/api/v1/bank-accounts');
-      expect(response.status).toBe(401);
-      expect(response.body.message).toMatch(/Unauthenticated/);
+      expect(response.status).toBe(200);
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.length).toBeGreaterThan(0);
     });
 
     it('returns 200 and the list of bank accounts for authenticated users', async () => {

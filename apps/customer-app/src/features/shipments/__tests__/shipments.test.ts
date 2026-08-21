@@ -9,17 +9,9 @@ describe('Customer shipment tracking (D02-P07-T002)', () => {
       stage: 'Ready',
       shippedAt: '2026-08-10T10:00:00.000Z',
       freshness: 'fresh',
-      timeline: [
-        { stage: 'Purchased', current: false },
-        { stage: 'Inspection', current: false },
-        { stage: 'Ready', current: true },
-        { stage: 'In Transit', current: false },
-        { stage: 'Delivered', current: false },
-      ],
       shipOkStatus: 'Approved',
       documentReleaseStatus: 'Pending',
     };
-    expect(shipment.timeline.find((step) => step.current)?.stage).toBe(shipment.stage);
     expect(['fresh', 'stale', 'unknown']).toContain(shipment.freshness);
     expect(['Pending', 'Approved', 'Rejected']).toContain(shipment.shipOkStatus);
     expect(['Pending', 'Approved', 'Rejected']).toContain(shipment.documentReleaseStatus);

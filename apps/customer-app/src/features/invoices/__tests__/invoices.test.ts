@@ -48,7 +48,6 @@ const MOCK_PI_SUMMARY: CustomerInvoiceSummary = {
   paymentDeadline: '2026-08-13T10:00:00.000Z',
   depositRequiredUsd: 22500,
   isExpired: false,
-  documentStatus: 'Available',
   currency: 'USD',
 };
 
@@ -68,7 +67,6 @@ const MOCK_COMM_SUMMARY: CustomerInvoiceSummary = {
   status: 'PartiallyPaid',
   issuedAt: '2026-08-10T10:00:00.000Z',
   dueDate: '2026-08-17T10:00:00.000Z',
-  documentStatus: 'Available',
   currency: 'USD',
 };
 
@@ -235,14 +233,12 @@ describe('Customer Invoices UI Components (D02-P05-T002)', () => {
           isOpen: true,
           isLoading: false,
           document: {
-            documentId: 'doc-inv-001',
             invoiceId: 'inv-001',
             invoiceNumber: 'INV-0001',
             type: 'Commercial',
             title: 'Commercial Invoice INV-0001',
             contentHtml: '<div class="carchief-doc"><h1>CarChief Commercial Invoice</h1></div>',
             status: 'Available',
-            generatedAt: '2026-08-10T10:00:00.000Z',
           },
           onClose: () => {},
         })
@@ -417,4 +413,3 @@ describe('Customer Invoices UI Components (D02-P05-T002)', () => {
     });
   });
 });
-

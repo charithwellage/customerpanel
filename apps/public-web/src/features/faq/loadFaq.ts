@@ -22,7 +22,6 @@ export const loadFaq = cache(
         categories: [],
         items: [],
         total: 0,
-        matchedCount: 0,
         groundedNoAnswer: true,
         message: 'FAQ service currently unavailable. Please contact customer support.',
       };
