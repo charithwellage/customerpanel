@@ -339,7 +339,7 @@ select:focus {
   background: #ffffff;
 }
 
-.cc-search-input {
+.cc-search-input-wrap .cc-search-input {
   width: 100% !important;
   height: 100% !important;
   min-height: unset !important;
@@ -353,7 +353,7 @@ select:focus {
   border-radius: 0 !important;
 }
 
-.cc-search-input::placeholder {
+.cc-search-input-wrap .cc-search-input::placeholder {
   color: #94a3b8;
 }
 
@@ -456,24 +456,24 @@ select:focus {
   background: rgba(255, 255, 255, 0.1);
 }
 
-.cc-filter-grid {
+.cc-advanced-search-panel .cc-filter-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 0.85rem;
   margin-bottom: 1rem;
 }
 
-.cc-filter-field {
+.cc-advanced-search-panel .cc-filter-field {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
 }
 
-.cc-filter-field--range {
+.cc-advanced-search-panel .cc-filter-field--range {
   grid-column: span 2;
 }
 
-.cc-filter-label {
+.cc-advanced-search-panel .cc-filter-label {
   font-size: 0.75rem;
   font-weight: 700;
   color: #cbd5e1;
@@ -481,8 +481,8 @@ select:focus {
   letter-spacing: 0.03em;
 }
 
-.cc-filter-select,
-.cc-filter-input {
+.cc-advanced-search-panel .cc-filter-select,
+.cc-advanced-search-panel .cc-filter-input {
   background: #27272a !important;
   border: 1px solid #3f3f46 !important;
   color: #f4f4f5 !important;
@@ -493,25 +493,25 @@ select:focus {
   min-height: unset !important;
 }
 
-.cc-filter-select:focus,
-.cc-filter-input:focus {
+.cc-advanced-search-panel .cc-filter-select:focus,
+.cc-advanced-search-panel .cc-filter-input:focus {
   border-color: #ef4444 !important;
   box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2) !important;
 }
 
-.cc-range-inputs {
+.cc-advanced-search-panel .cc-range-inputs {
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
-.cc-range-separator {
+.cc-advanced-search-panel .cc-range-separator {
   color: #94a3b8;
   font-size: 0.8rem;
   font-weight: 600;
 }
 
-.cc-filter-footer {
+.cc-advanced-search-panel .cc-filter-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -520,7 +520,7 @@ select:focus {
   gap: 1rem;
 }
 
-.cc-deals-group {
+.cc-advanced-search-panel .cc-deals-group {
   display: flex;
   align-items: center;
   gap: 0.6rem;
@@ -860,7 +860,7 @@ select:focus {
   background: radial-gradient(circle at 30% 20%, color-mix(in srgb, var(--color-primary) 25%, transparent) 0%, transparent 65%),
               linear-gradient(180deg, color-mix(in srgb, var(--color-primary) 9%, var(--color-surface-dark)) 0%, var(--color-surface-dark) 100%);
   color: var(--color-text-on-dark);
-  padding: 4.5rem 1.25rem 3.5rem;
+  padding: 2.75rem 1.25rem 2.5rem;
   position: relative;
   overflow: hidden;
   border-bottom: 1px solid color-mix(in srgb, var(--color-text-on-dark) 8%, transparent);
@@ -888,7 +888,7 @@ select:focus {
 
 .hero-title {
   font-family: var(--font-display);
-  font-size: clamp(2.2rem, 5vw, 3.8rem);
+  font-size: clamp(2rem, 4vw, 3.2rem);
   font-weight: 800;
   line-height: 1.08;
   letter-spacing: -0.02em;
@@ -908,14 +908,14 @@ select:focus {
   line-height: 1.6;
   color: color-mix(in srgb, var(--color-text-on-dark) 83%, transparent);
   max-width: 720px;
-  margin: 0 0 2rem 0;
+  margin: 0 0 1.5rem 0;
 }
 
 .hero-actions {
   display: flex;
   gap: 1rem;
   flex-wrap: wrap;
-  margin-bottom: 3.5rem;
+  margin-bottom: 0;
 }
 
 .button {
@@ -1249,10 +1249,10 @@ select:focus-visible,
   .mobile-menu-toggle {
     display: block;
   }
-  .cc-filter-grid {
+  .cc-advanced-search-panel .cc-filter-grid {
     grid-template-columns: 1fr;
   }
-  .cc-filter-field--range {
+  .cc-advanced-search-panel .cc-filter-field--range {
     grid-column: span 1;
   }
   .cc-advanced-search-panel {
@@ -1261,7 +1261,7 @@ select:focus-visible,
     min-width: unset;
     box-shadow: none;
   }
-  .cc-filter-footer {
+  .cc-advanced-search-panel .cc-filter-footer {
     flex-direction: column;
     align-items: stretch;
   }

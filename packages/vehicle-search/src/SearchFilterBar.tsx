@@ -11,6 +11,7 @@ export interface SearchFilterBarProps {
   onApplyNaturalSearch: () => void;
   onUpdateQuery: (updates: Partial<SearchVehiclesQuery>) => void;
   onResetFilters: () => void;
+  layout?: 'top' | 'sidebar';
 }
 
 export function SearchFilterBar({
@@ -22,8 +23,9 @@ export function SearchFilterBar({
   onApplyNaturalSearch,
   onUpdateQuery,
   onResetFilters,
+  layout = 'top',
 }: SearchFilterBarProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(layout === 'sidebar');
   const [showMore, setShowMore] = useState(false);
   const toggleExpanded = () => {
     setIsExpanded((value) => {
@@ -39,7 +41,7 @@ export function SearchFilterBar({
   };
 
   return (
-    <section className="cc-search-filter-panel" aria-label="Vehicle search and filters">
+    <section className={`cc-search-filter-panel${layout === 'sidebar' ? ' cc-search-filter-panel--sidebar' : ''}`} aria-label="Vehicle search and filters">
       <div className="cc-search-input-group">
         <div className="cc-search-input-wrapper">
           <span className="cc-search-input-icon" aria-hidden="true">⌕</span>

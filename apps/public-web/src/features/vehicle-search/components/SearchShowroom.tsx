@@ -36,60 +36,59 @@ export function SearchShowroom({
       {/* Dark Hero Header Banner */}
       <VehicleSearchHero title={title} description={description} />
 
-      <div className="cc-search-container">
-        {/* Floating Filter Controls Bar */}
-        <SearchFilterBar
-          query={query}
-          facets={result?.facets}
-          naturalPhrase={naturalPhrase}
-          understoodTokens={understoodTokens}
-          onNaturalPhraseChange={setNaturalPhrase}
-          onApplyNaturalSearch={() => applyNaturalSearch()}
-          onUpdateQuery={updateQuery}
-          onResetFilters={resetFilters}
-        />
+      <div className="cc-search-container cc-search-layout">
+        <aside className="cc-search-sidebar">
+          <SearchFilterBar
+            layout="sidebar"
+            query={query}
+            facets={result?.facets}
+            naturalPhrase={naturalPhrase}
+            understoodTokens={understoodTokens}
+            onNaturalPhraseChange={setNaturalPhrase}
+            onApplyNaturalSearch={() => applyNaturalSearch()}
+            onUpdateQuery={updateQuery}
+            onResetFilters={resetFilters}
+          />
+        </aside>
 
-        {/* Error Feedback State */}
-        {error && <SearchErrorState error={error} onRetry={refetch} />}
+        <main className="cc-search-results-column" aria-label="Vehicle search results">
+          {error && <SearchErrorState error={error} onRetry={refetch} />}
 
-        {/* Search Results Content */}
-        {!error && (
-          <>
-            <SearchResultsHeader
-              total={result?.total || 0}
-              itemCount={result?.items.length || 0}
-              query={query}
-              facets={result?.facets}
-              onUpdateQuery={updateQuery}
-              onForceSync={refetch}
-            />
-
-            {/* Loading / Empty / Success Grid */}
-            {!isLoading && result?.items.length === 0 ? (
-              <SearchEmptyState onResetFilters={resetFilters} />
-            ) : (
-              <VehicleCollectionPrimitive
-                vehicles={result?.items || []}
-                isLoading={isLoading}
-                error={null}
-                onSelectVehicle={onSelectVehicle ? (v) => onSelectVehicle(v.id) : undefined}
+          {!error && (
+            <>
+              <SearchResultsHeader
+                total={result?.total || 0}
+                itemCount={result?.items.length || 0}
+                query={query}
+                facets={result?.facets}
+                onUpdateQuery={updateQuery}
               />
-            )}
 
-            {/* Pagination Controls */}
-            {result && (
-              <SearchPagination
-                page={result.page}
-                totalPages={result.totalPages}
-                total={result.total}
-                limit={result.limit}
-                hasNextPage={result.hasNextPage}
-                hasPrevPage={result.hasPrevPage}
-                onPageChange={setPage}
-              />
-            )}
-          </>
-        )}
+              {!isLoading && result?.items.length === 0 ? (
+                <SearchEmptyState onResetFilters={resetFilters} />
+              ) : (
+                <VehicleCollectionPrimitive
+                  vehicles={result?.items || []}
+                  isLoading={isLoading}
+                  error={null}
+                  onSelectVehicle={onSelectVehicle ? (v) => onSelectVehicle(v.id) : undefined}
+                />
+              )}
+
+              {result && (
+                <SearchPagination
+                  page={result.page}
+                  totalPages={result.totalPages}
+                  total={result.total}
+                  limit={result.limit}
+                  hasNextPage={result.hasNextPage}
+                  hasPrevPage={result.hasPrevPage}
+                  onPageChange={setPage}
+                />
+              )}
+            </>
+          )}
+        </main>
       </div>
     </div>
   );

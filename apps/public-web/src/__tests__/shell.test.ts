@@ -18,6 +18,8 @@ describe('Public Web Shell Layout & Navigation Tests', () => {
     expect(labels).toContain('ALL STOCK');
     expect(labels).toContain('Clearance Stock');
     expect(PUBLIC_NAV_ITEMS.find((item) => item.label === 'Clearance Stock')?.href).toBe('/clearance-stock');
+    expect(labels).toContain('PREMIUM STOCK');
+    expect(PUBLIC_NAV_ITEMS.find((item) => item.label === 'PREMIUM STOCK')?.href).toBe('/premium-stock');
     expect(labels).toContain('SERVICES');
     expect(PUBLIC_NAV_ITEMS.find((item) => item.label === 'SERVICES')?.href).toBe('/services');
     expect(labels).toContain('HOW TO BUY');

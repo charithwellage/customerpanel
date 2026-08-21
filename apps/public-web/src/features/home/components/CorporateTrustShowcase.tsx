@@ -18,7 +18,7 @@ export const CorporateTrustShowcase: React.FC = () => {
               vehicles. Sourced directly from elite Japanese networks and meticulously pre-vetted.
             </p>
             <div className="cc-trust-banner-cta">
-              <a href="/allstock?category=premium" className="cc-btn-trust-primary">
+              <a href="/premium-stock" className="cc-btn-trust-primary">
                 BROWSE PREMIUM STOCK
               </a>
             </div>

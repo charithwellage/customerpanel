@@ -221,9 +221,6 @@ export const HeaderComponent: React.FC<HeaderComponentProps> = ({ activePath: pr
             </span>
             <span className="brand-subtitle">www.carchief.com</span>
           </div>
-          <span className="online-badge">
-            <span className="online-dot" /> {t('header.online', undefined, 'ONLINE')}
-          </span>
         </a>
 
         {/* Global Search Bar */}
