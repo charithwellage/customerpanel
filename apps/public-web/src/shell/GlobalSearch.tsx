@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { serializeSearchQuery, parseUrlSearchQuery } from '@carchief/vehicle-search';
 import type { SearchVehiclesQuery } from '@carchief/domain';
+import { useTranslation } from '../i18n';
 
 export interface GlobalSearchProps {
   isMobile?: boolean;
@@ -62,6 +63,7 @@ const DISCOUNT_OPTIONS = [
 function GlobalSearchInner({ isMobile = false, onSearchComplete }: GlobalSearchProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { t } = useTranslation();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const [isOpen, setIsOpen] = useState(false);
@@ -95,17 +97,17 @@ function GlobalSearchInner({ isMobile = false, onSearchComplete }: GlobalSearchP
     }
   }, [searchParams]);
 
-  // Handle outside click to dismiss advanced filter dropdown
+  // Click outside listener to auto-close panel on desktop
   useEffect(() => {
-    if (!isOpen) return;
-    const handleClickOutside = (e: MouseEvent) => {
+    if (isMobile) return;
+    const handleOutsideClick = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setIsOpen(false);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isOpen]);
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
+  }, [isMobile]);
 
   const executeSearch = (overrideQuery?: Partial<SearchVehiclesQuery>) => {
     const query: SearchVehiclesQuery = {
@@ -124,9 +126,9 @@ function GlobalSearchInner({ isMobile = false, onSearchComplete }: GlobalSearchP
 
     const params = serializeSearchQuery(query);
     const targetUrl = `/allstock?${params.toString()}`;
-    router.push(targetUrl);
     setIsOpen(false);
     onSearchComplete?.();
+    router.push(targetUrl);
   };
 
   const handleQuickSubmit = (e: React.FormEvent) => {
@@ -161,7 +163,7 @@ function GlobalSearchInner({ isMobile = false, onSearchComplete }: GlobalSearchP
           aria-label="Toggle advanced vehicle filters"
         >
           <span className="cc-filter-trigger-label">
-            {selectedMake ? selectedMake : 'All Filters'}
+            {selectedMake ? selectedMake : t('header.allCategories', undefined, 'All Makes')}
           </span>
           <svg className={`cc-filter-trigger-icon ${isOpen ? 'cc-filter-trigger-icon--open' : ''}`} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="6 9 12 15 18 9" />
@@ -173,7 +175,7 @@ function GlobalSearchInner({ isMobile = false, onSearchComplete }: GlobalSearchP
           <input
             type="text"
             className="cc-search-input"
-            placeholder="Search by Make, Model, Chassis or Keyword..."
+            placeholder={t('header.searchPlaceholder', undefined, 'Search by Make, Model, Chassis or Keyword...')}
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
             onFocus={() => {
@@ -199,7 +201,7 @@ function GlobalSearchInner({ isMobile = false, onSearchComplete }: GlobalSearchP
             <circle cx="11" cy="11" r="8" />
             <line x1="21" y1="21" x2="16.65" y2="16.65" />
           </svg>
-          <span className="cc-search-submit-text">Search</span>
+          <span className="cc-search-submit-text">{t('header.searchButton', undefined, 'Search')}</span>
         </button>
       </form>
 

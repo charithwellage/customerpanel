@@ -323,35 +323,36 @@ describe('Account entry DOM id hygiene', () => {
    scanned rather than rendered, proving the removal/addition directly
    against what ships.
    -------------------------------------------------------------------------- */
-describe('HeaderComponent source (Customer Portal removal, Login + Register actions)', () => {
+describe('HeaderComponent source (Enterprise Login + Customer Portal dynamic actions)', () => {
   const headerSource = fs.readFileSync(
     path.resolve(__dirname, '../shell/HeaderComponent.tsx'),
     'utf-8'
   );
 
-  it('no longer references the removed AccountEntryTrigger / demo Customer Portal entry point', () => {
+  it('no longer references the removed AccountEntryTrigger / demo account entry point', () => {
     expect(headerSource).not.toMatch(/AccountEntryTrigger/);
-    expect(headerSource).not.toMatch(/CUSTOMER PORTAL/);
     expect(headerSource).not.toMatch(/DEMO ACCOUNT/);
     expect(headerSource).not.toMatch(/customer-portal-btn/);
   });
 
-  it('renders a Login action before a Register action in both the desktop header-actions and the mobile drawer, Login first (industry-standard rightmost-CTA placement)', () => {
+  it('renders Login and Register actions in both desktop header-actions and mobile drawer with Enterprise Login modal', () => {
     expect(headerSource).toContain('Login');
     expect(headerSource).toContain('Register');
     expect(headerSource).toContain('header-auth-btn--login');
     expect(headerSource).toContain('header-auth-btn--register');
+    expect(headerSource).toContain('header-auth-btn--portal');
     // Login precedes Register in source order inside the shared action group.
     const loginIndex = headerSource.indexOf('header-auth-btn--login');
     const registerIndex = headerSource.indexOf('header-auth-btn--register');
     expect(loginIndex).toBeGreaterThan(-1);
     expect(registerIndex).toBeGreaterThan(loginIndex);
-    // Both `.header-actions` (desktop) and `.mobile-nav-drawer` (mobile) render the same action group.
-    expect(headerSource).toContain('<HeaderAuthActions />');
+    // Both `.header-actions` (desktop) and `.mobile-nav-drawer` (mobile) render the auth action group.
+    expect(headerSource).toContain('<HeaderAuthActions');
     expect(headerSource).toContain('mobile-header-auth-actions');
+    expect(headerSource).toContain('EnterpriseLoginModal');
   });
 
-  it('Register links to /register and Login is resolved from configuration, never a hard-coded host', () => {
+  it('Register links to /register and Customer Portal is resolved from configuration, never a hard-coded host', () => {
     expect(headerSource).toContain("href=\"/register\"");
     expect(headerSource).toContain('resolveCustomerAppUrl');
     expect(headerSource).not.toMatch(/href=\{`https?:\/\//);

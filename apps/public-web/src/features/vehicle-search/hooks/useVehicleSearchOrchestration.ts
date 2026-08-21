@@ -107,7 +107,7 @@ export function useVehicleSearchOrchestration(
       setIsLoading(true);
       setError(null);
       try {
-        const data = await service.searchVehicles(activeQuery);
+        const data = await service.getVehicles(activeQuery);
         if (requestId !== requestSequence.current) return;
         setResult(data);
       } catch (err: unknown) {

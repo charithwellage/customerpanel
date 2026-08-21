@@ -44,8 +44,8 @@ describe('Customer Inventory Projection & Tier Pricing Contract (D02-P03-T001)',
 
   describe('1. Customer Tier Pricing (CUST-05, RULE-06)', () => {
     it('keeps the customer-visible inventory set aligned with public All Stock while projecting customer fields', async () => {
-      const publicResult = await store.searchVehicles({ audience: 'public', page: 1, limit: 100 });
-      const customerResult = await store.searchVehicles({ audience: 'customer', page: 1, limit: 100 });
+      const publicResult = await store.getVehicles({ audience: 'public', page: 1, limit: 100 });
+      const customerResult = await store.getVehicles({ audience: 'customer', page: 1, limit: 100 });
 
       expect(customerResult.items.map((vehicle) => vehicle.id)).toEqual(publicResult.items.map((vehicle) => vehicle.id));
       expect(customerResult.items.some((vehicle) => vehicle.status === 'Draft')).toBe(false);
@@ -102,8 +102,8 @@ describe('Customer Inventory Projection & Tier Pricing Contract (D02-P03-T001)',
       expect(veh1?.tierPricing?.originalPriceUsd).toBe(8500);
     });
 
-    it('projects customer tier pricing on /api/v1/vehicles/search with query param tier=Gold', async () => {
-      const res = await fetch(`${baseUrl}/api/v1/vehicles/search?tier=Gold&audience=customer`);
+    it('projects customer tier pricing on /api/v1/vehicles with query param tier=Gold', async () => {
+      const res = await fetch(`${baseUrl}/api/v1/vehicles?tier=Gold&audience=customer`);
       expect(res.status).toBe(200);
       const data = await res.json();
       const veh1 = data.items.find((v: VehicleDomainSummary) => v.id === 'veh-1');
@@ -217,7 +217,7 @@ describe('Customer Inventory Projection & Tier Pricing Contract (D02-P03-T001)',
   describe('4. Privacy, Field Isolation and Draft Exclusions (CUST-02)', () => {
     it('never returns Draft vehicles in customer inventory queries', async () => {
       const token = issueSessionToken('CustomerBuyer', 'cust-user-1', 'u1@example.com');
-      const res = await fetch(`${baseUrl}/api/v1/vehicles/search?searchQuery=Civic`, {
+      const res = await fetch(`${baseUrl}/api/v1/vehicles?searchQuery=Civic`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       expect(res.status).toBe(200);

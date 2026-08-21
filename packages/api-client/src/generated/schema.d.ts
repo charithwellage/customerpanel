@@ -122,13 +122,11 @@ export interface VehicleSummary {
 export interface CategorizedPublicMedia {
   gallery: string[];
   auctionPictures?: string[];
-  auctionSheet?: string[];
   japanPictures?: string[];
   durbanPictures?: string[];
   showAuctionPictures?: boolean;
   showJapanPictures?: boolean;
   showDurbanPictures?: boolean;
-  totalPicturesCount: number;
 }
 
 export interface VehicleDetail {
@@ -168,7 +166,6 @@ export interface VehicleDetail {
   etd?: string;
   eta?: string;
   featured?: boolean;
-  countryEligibility?: string[];
   media: CategorizedPublicMedia;
 }
 
@@ -243,9 +240,6 @@ export interface EnquiryEstimateSnapshot {
 }
 
 export interface EnquiryRequest {
-  name: string;
-  email: string;
-  phone: string;
   message: string;
   consent: boolean;
   vehicleSlug?: string;
@@ -265,6 +259,7 @@ export interface EnquiryResponse {
   receivedAt: string;
   status: 'received';
   duplicate: boolean;
+  customerId: string;
   enquiryType: 'general' | 'vehicle' | 'price-request' | 'premium-vehicle';
   source: 'form' | 'whatsapp' | 'email' | 'call';
   vehicleSlug?: string;
@@ -282,6 +277,7 @@ export interface LeadRecord {
   status: 'New' | 'Contacted' | 'InProgress' | 'Sold' | 'Archived';
   enquiryType: 'general' | 'vehicle' | 'price-request' | 'premium-vehicle';
   source: 'form' | 'whatsapp' | 'email' | 'call';
+  customerId: string;
   name: string;
   email: string;
   phone: string;
@@ -352,7 +348,6 @@ export interface FaqQueryResponse {
   categories: FaqCategory[];
   items: FaqItem[];
   total: number;
-  matchedCount: number;
   groundedNoAnswer: boolean;
   message?: string;
 }
@@ -430,7 +425,6 @@ export interface OfficeListResponse {
 export interface BranchTeamMember {
   name: string;
   role: string;
-  photoUrl?: string;
   contactEmail?: string;
 }
 
@@ -452,10 +446,7 @@ export interface BranchContent {
   teamMembers: BranchTeamMember[];
   meetAndGreetInfo: string;
   contactDetails: BranchContactDetails;
-  contentOwner: string;
   status: ContentApprovalStatus;
-  latestArrivalsQuery?: { destinationPort?: string; limit?: number };
-  recentlyDiscountedQuery?: { destinationPort?: string; limit?: number };
 }
 
 export interface BranchListResponse {
@@ -531,7 +522,6 @@ export interface CustomerShipment {
   shipOkRejectionReason?: string;
   documentReleaseStatus: 'Pending' | 'Approved' | 'Rejected';
   documentReleaseRejectionReason?: string;
-  timeline: Array<{ stage: CustomerShipment['stage']; occurredAt?: string; current: boolean }>;
 }
 
 export interface CustomerShipmentList {
@@ -583,7 +573,6 @@ export interface CustomerPaymentNotification {
   paymentId: string;
   invoiceId: string;
   event: CustomerPaymentNotificationEvent;
-  deliveryStatus: 'Queued';
   createdAt: string;
 }
 export interface CustomerPaymentNotificationListResponse { items: CustomerPaymentNotification[]; total: number; }
@@ -635,12 +624,10 @@ export interface CustomerDashboard {
   vehicleCountReserved: number;
   vehicleCountInvoiced: number;
   vehicleCountDelivered: number;
-  lastUpdated: string;
   paymentStatusSummary: PaymentStatusSummary;
   shipmentStatusSummary: ShipmentStatusSummary;
   documentAvailabilityCount: DocumentAvailabilityCount;
   notificationUnreadCount: number;
-  partialFailureIndicators: PartialFailureIndicators;
 }
 
 export type CustomerVehicleStatus =
@@ -663,7 +650,6 @@ export interface CustomerVehicleDocumentReference {
   type: string;
   title: string;
   status: 'Available' | 'Pending' | 'Draft';
-  fileUrl?: string;
   issuedAt?: string;
 }
 
@@ -672,7 +658,6 @@ export interface CustomerVehicleDepositInfo {
   requiredAmountUsd: number;
   paidAmountUsd: number;
   remainingAmountUsd: number;
-  isFullyPaid: boolean;
 }
 
 export interface CustomerCommercialBillInfo {
@@ -794,12 +779,10 @@ export interface CustomerInvoiceSummary {
   paidAmountUsd: number;
   outstandingAmountUsd: number;
   depositRequiredUsd?: number;
-  depositPaidUsd?: number;
   status: CustomerInvoiceStatus;
   issuedAt: string;
   dueDate: string;
   paymentDeadline?: string;
-  documentStatus: 'Available' | 'Pending' | 'Unavailable';
   currency: string;
 }
 
@@ -818,16 +801,8 @@ export interface CustomerInvoiceDetail extends CustomerInvoiceSummary {
   lineItems: CustomerInvoiceLineItem[];
   allocations: CustomerInvoiceAllocationItem[];
   bankDetails?: CustomerInvoiceBankDetails;
-  documentUrl?: string;
-  termsAndConditions?: string[];
   isExpired?: boolean;
   notes?: string;
-}
-
-export interface CustomerInvoiceCountsByType {
-  all: number;
-  proforma: number;
-  commercial: number;
 }
 
 export interface CustomerInvoiceTotals {
@@ -841,17 +816,14 @@ export interface CustomerInvoiceListResponse {
   total: number;
   page: number;
   limit: number;
-  countsByType: CustomerInvoiceCountsByType;
   totals: CustomerInvoiceTotals;
 }
 
 export interface CustomerInvoiceDocument {
-  documentId: string;
   invoiceId: string;
   invoiceNumber: string;
   type: CustomerInvoiceType;
   title: string;
   contentHtml: string;
   status: 'Available' | 'Unavailable';
-  generatedAt: string;
 }

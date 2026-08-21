@@ -203,8 +203,10 @@ describe('Favourites API (D02-P13-T002, CUST-38/CUST-39/CUST-40)', () => {
   });
 
   it('should return distinct facet values from real vehicle data', async () => {
+    const token = issueSessionToken('CustomerBuyer', 'cust-facets', 'facets@test.com');
     const res = await fetch(`${baseUrl}/api/v1/customer/favourites/facets`, {
       method: 'GET',
+      headers: { Authorization: `Bearer ${token}` },
     });
     expect(res.status).toBe(200);
     const body = await res.json();
@@ -238,8 +240,10 @@ describe('Favourites API (D02-P13-T002, CUST-38/CUST-39/CUST-40)', () => {
   });
 
   it('should return empty arrays for unbacked fields per D02-ASM-008', async () => {
+    const token = issueSessionToken('CustomerBuyer', 'cust-facets-empty', 'facets-empty@test.com');
     const res = await fetch(`${baseUrl}/api/v1/customer/favourites/facets`, {
       method: 'GET',
+      headers: { Authorization: `Bearer ${token}` },
     });
     expect(res.status).toBe(200);
     const body = await res.json();
@@ -249,6 +253,11 @@ describe('Favourites API (D02-P13-T002, CUST-38/CUST-39/CUST-40)', () => {
     expect(body.engineCcOptions).toEqual([]);
     expect(body.colors).toEqual([]);
     expect(body.steeringOptions).toEqual([]);
+  });
+
+  it('rejects anonymous access to favourite facets', async () => {
+    const res = await fetch(`${baseUrl}/api/v1/customer/favourites/facets`, { method: 'GET' });
+    expect(res.status).toBe(401);
   });
 
   it('should isolate favourites across customers', async () => {

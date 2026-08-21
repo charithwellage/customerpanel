@@ -17,10 +17,6 @@ export class CustomerNotificationService {
     return this.requireClient().request<CustomerNotificationListResponse>(`/customer/notifications${suffix}`);
   }
 
-  get(id: string): Promise<Notification> {
-    return this.requireClient().request<Notification>(`/customer/notifications/${encodeURIComponent(id)}`);
-  }
-
   markRead(id: string): Promise<Notification> {
     return this.requireClient().request<Notification>(`/customer/notifications/${encodeURIComponent(id)}/read`, { method: 'POST' });
   }

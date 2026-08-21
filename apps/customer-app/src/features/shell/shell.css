@@ -199,6 +199,90 @@
   color: var(--color-primary);
 }
 
+/* ---------- Collapsible Nav Groups (D02-P14-T007) ---------- */
+
+.cc-cust-nav-group {
+  width: 100%;
+}
+
+.cc-cust-nav-group__toggle {
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.cc-cust-nav-group__toggle .cc-cust-shell-nav__label {
+  flex: 1 1 auto;
+}
+
+.cc-cust-nav-chevron {
+  flex-shrink: 0;
+  margin-left: auto;
+  color: currentColor;
+  opacity: 0.6;
+  transition: transform var(--motion-fast) ease;
+}
+
+.cc-cust-nav-chevron--open {
+  transform: rotate(180deg);
+}
+
+.cc-cust-nav-group__sub-list {
+  list-style: none;
+  margin: 4px 0 4px 28px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-left: 2px solid var(--color-border);
+  padding-left: 8px;
+  animation: cc-subnav-reveal var(--motion-fast) ease;
+}
+
+@keyframes cc-subnav-reveal {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.cc-cust-nav-group__sub-item {
+  width: 100%;
+}
+
+.cc-cust-nav-group__sub-link {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-weight: 500;
+  transition: all var(--motion-fast) ease;
+}
+
+.cc-cust-nav-group__sub-link:hover {
+  background: var(--color-neutral-surface);
+  color: var(--color-text-primary);
+}
+
+.cc-cust-nav-group__sub-link--active {
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  color: var(--color-primary);
+  font-weight: 700;
+  border-left: 2px solid var(--color-primary);
+  margin-left: -10px;
+  padding-left: 20px;
+}
+
+.cc-cust-nav-group__sub-icon {
+  font-size: 0.9rem;
+  opacity: 0.7;
+}
+
 /* ---------- Sidebar Footer Utilities & Auth ---------- */
 
 .cc-cust-shell-sidebar__footer {
@@ -214,6 +298,35 @@
   display: flex;
   flex-direction: column;
   gap: 3px;
+}
+
+/* ---------- Language Switcher (D02-P14-T006) ---------- */
+
+.cc-cust-lang-switcher {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: 6px 12px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--spacing-xs);
+}
+
+.cc-cust-lang-switcher__icon {
+  font-size: var(--font-size-sm);
+}
+
+.cc-cust-lang-switcher__select {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--color-text-primary);
+  font-family: var(--font-display);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
 }
 
 .cc-cust-sidebar-tool-btn {

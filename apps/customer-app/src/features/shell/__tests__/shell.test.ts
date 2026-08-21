@@ -67,14 +67,49 @@ describe('Customer App Shell & Navigation Unit Tests', () => {
       )
     );
 
-    expect(html).toContain('Dashboard');
-    expect(html).toContain('Inventory');
-    expect(html).toContain('My Vehicles');
-    expect(html).toContain('Invoices &amp; Ledger');
-    expect(html).toContain('Shipments');
-    expect(html).toContain('Documents');
-    expect(html).toContain('Profile &amp; Account');
+    // All 6 consolidated main nav items are always visible regardless of route
+    expect(html).toContain('Dashboard');           // customer.dashboard → 'Dashboard' (English i18n)
+    expect(html).toContain('All Inventory Stock'); // label fallback
+    expect(html).toContain('My Vehicles');         // customer.myVehicles → 'My Vehicles'
+    expect(html).toContain('My Statement');        // customer.statement → 'My Statement'
+    expect(html).toContain('Wire Remittance');     // customer.wireRemittance → 'Wire Remittance'
+    expect(html).toContain('Account');             // label fallback
+
+    // Active route is highlighted
     expect(html).toContain('aria-current="page"');
+  });
+
+  it('renders My Vehicles sub-items and maintains parent active state when sub-item is selected', () => {
+    const html = renderToStaticMarkup(
+      React.createElement(
+        CustomerShellProvider,
+        { initialRoute: '/wishlist' },
+        React.createElement(CustomerNav)
+      )
+    );
+
+    // Parent group should be open and marked active
+    expect(html).toContain('My Vehicles');
+    expect(html).toContain('cc-cust-nav-group__toggle cc-cust-shell-nav__link--active');
+    // Sub-item should be rendered and marked active
+    expect(html).toContain('My Wishlist');
+    expect(html).toContain('cc-cust-nav-group__sub-link--active');
+    expect(html).toContain('aria-current="page"');
+  });
+
+  it('renders Wire Remittance as a top-level nav item without sub-nav', () => {
+    const html = renderToStaticMarkup(
+      React.createElement(
+        CustomerShellProvider,
+        { initialRoute: '/payments' },
+        React.createElement(CustomerNav)
+      )
+    );
+
+    expect(html).toContain('Wire Remittance');
+    expect(html).toContain('href="/payments"');
+    expect(html).not.toContain('Purchased Vehicles');
+    expect(html).not.toContain('Secure Vault');
   });
 
   it('renders mobile menu toggle button with aria-expanded attribute', () => {

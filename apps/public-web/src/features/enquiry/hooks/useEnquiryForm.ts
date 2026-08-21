@@ -75,6 +75,7 @@ function resolveBaseUrl(): string {
 export interface UseEnquiryFormOptions {
   enquiryService?: EnquiryService;
   freightService?: FreightService;
+  token?: string | null;
 }
 
 export interface UseEnquiryFormReturn {
@@ -108,10 +109,10 @@ export interface UseEnquiryFormReturn {
  */
 export function useEnquiryForm(context: EnquiryContext = {}, options: UseEnquiryFormOptions = {}): UseEnquiryFormReturn {
   const [enquiryService] = useState<EnquiryService>(
-    () => options.enquiryService || new EnquiryService(new HttpClient({ baseUrl: resolveBaseUrl() }))
+    () => options.enquiryService || new EnquiryService(new HttpClient({ baseUrl: resolveBaseUrl(), getAuthToken: () => options.token })),
   );
   const [freightService] = useState<FreightService>(
-    () => options.freightService || new FreightService(new HttpClient({ baseUrl: resolveBaseUrl() }))
+    () => options.freightService || new FreightService(new HttpClient({ baseUrl: resolveBaseUrl(), getAuthToken: () => options.token })),
   );
 
   const defaultValues = useMemo(() => buildDefaultValues(context), [context]);
@@ -190,9 +191,6 @@ export function useEnquiryForm(context: EnquiryContext = {}, options: UseEnquiry
       await handleSubmit(async (formValues) => {
       try {
         const response = await enquiryService.submit({
-          name: formValues.name.trim(),
-          email: formValues.email.trim(),
-          phone: formValues.phone.trim(),
           message: formValues.message.trim(),
           consent: formValues.consent === true,
           vehicleSlug: context.vehicleSlug,

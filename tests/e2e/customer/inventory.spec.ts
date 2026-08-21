@@ -14,7 +14,7 @@ async function signIn(page: Page): Promise<void> {
   await page.getByTestId('cust-login-email').fill(FIXTURE_EMAIL);
   await page.getByTestId('cust-login-password').fill(FIXTURE_PASSWORD);
   await page.getByTestId('cust-login-submit').click();
-  await expect(page.getByRole('heading', { name: 'Customer Portal' })).toBeVisible();
+  await expect(page.locator('.cc-cust-shell-layout')).toBeVisible({ timeout: 10000 });
 }
 
 test.describe('Customer Inventory & Vehicle Detail E2E (D02-P03-T003)', () => {

@@ -24,7 +24,8 @@ async function getVehicles(): Promise<Vehicle[]> {
   try {
     const response = await fetch(`${apiBaseUrl}/api/v1/vehicles`);
     if (!response.ok) return [];
-    return await response.json() as Vehicle[];
+    const result = await response.json() as { items?: Vehicle[] };
+    return result.items || [];
   } catch {
     return [];
   }

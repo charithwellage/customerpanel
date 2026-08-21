@@ -27,7 +27,6 @@ import type {
   LeadListResponse,
   CustomerInquirySummary,
   CustomerInquiryListResponse,
-  VehicleInquiryAggregate,
   WishlistItem,
   WishlistListResponse,
   WishlistToggleRequest,
@@ -70,7 +69,6 @@ import type {
   CustomerInvoiceAllocationItem,
   CustomerInvoiceSummary,
   CustomerInvoiceDetail,
-  CustomerInvoiceCountsByType,
   CustomerInvoiceTotals,
   CustomerInvoiceListResponse,
   ListCustomerInvoicesQuery,
@@ -93,7 +91,6 @@ import type {
   CustomerDebitCreditListResponse,
   CustomerPolymorphicInquiry,
   CustomerPolymorphicInquiryListResponse,
-  CustomerPairedAccount,
   BankAccount,
 } from '@carchief/domain';
 import {
@@ -110,8 +107,11 @@ import {
   MAX_ACTIVE_RESERVATIONS_PER_CUSTOMER,
   RESERVABLE_VEHICLE_STATUSES,
   COUNTRIES,
+  VehicleComplianceEvaluation,
+  evaluateVehicleCompliance,
+  isVehicleCompliantForCountry,
+  normalizeCountryCode,
 } from '@carchief/domain';
-import { validateEmail } from '@carchief/validation';
 export { FreightRequestError, resolveFreightRateStatus } from '@carchief/domain';
 
 
@@ -160,6 +160,56 @@ export interface VehicleRecord {
   logisticsStatus?: string;
 }
 
+/** Reference values are canonicalized once at the persistence boundary. */
+function normalizeReferenceKey(value: string): string {
+  return value.trim().replace(/\s+/g, ' ').toLocaleLowerCase();
+}
+
+function canonicalReferenceValue(value: string | undefined): string | undefined {
+  if (!value) return value;
+  return value.trim().replace(/\s+/g, ' ');
+}
+
+const vehicleReferenceTables = {
+  make: 'vehicle_makes',
+  model: 'vehicle_models',
+  bodyStyle: 'vehicle_body_styles',
+  vehicleSubType: 'vehicle_sub_types',
+  fuelType: 'vehicle_fuel_types',
+  transmission: 'vehicle_transmissions',
+  driveTrain: 'vehicle_drive_trains',
+  overdrive: 'vehicle_overdrives',
+  color: 'vehicle_colors',
+  exteriorGrade: 'vehicle_exterior_grades',
+  steering: 'vehicle_steering_types',
+  stockCountry: 'vehicle_stock_countries',
+  stockLocation: 'vehicle_stock_locations',
+  destinationPort: 'vehicle_destination_ports',
+} as const;
+
+type VehicleReferenceKind = keyof typeof vehicleReferenceTables;
+
+function canonicalizeVehicle(vehicle: VehicleRecord): VehicleRecord {
+  return {
+    ...vehicle,
+    make: canonicalReferenceValue(vehicle.make) || vehicle.make,
+    model: canonicalReferenceValue(vehicle.model) || vehicle.model,
+    bodyStyle: canonicalReferenceValue(vehicle.bodyStyle),
+    vehicleSubType: canonicalReferenceValue(vehicle.vehicleSubType),
+    fuelType: canonicalReferenceValue(vehicle.fuelType),
+    transmission: canonicalReferenceValue(vehicle.transmission),
+    driveTrain: canonicalReferenceValue(vehicle.driveTrain),
+    overdrive: canonicalReferenceValue(vehicle.overdrive),
+    color: canonicalReferenceValue(vehicle.color),
+    exteriorGrade: canonicalReferenceValue(vehicle.exteriorGrade),
+    steering: canonicalReferenceValue(vehicle.steering),
+    stockCountry: canonicalReferenceValue(vehicle.stockCountry),
+    stockLocation: canonicalReferenceValue(vehicle.stockLocation),
+    destinationPort: canonicalReferenceValue(vehicle.destinationPort),
+    category: vehicle.category?.split(',').map((value) => canonicalReferenceValue(value) || '').filter(Boolean).join(','),
+  };
+}
+
 interface VehicleFeatureCatalogEntry {
   key: string;
   label: string;
@@ -196,6 +246,7 @@ export interface GetVehiclesQuery extends SearchVehiclesQuery {
   market?: string;
   category?: string;
   limit?: number;
+  destinationCountry?: string;
 }
 
 const seedConfig: PublicConfig = { siteName: 'CarChief', currency: 'USD', contactPhone: '+256 700 000 000' };
@@ -1175,6 +1226,8 @@ export interface VehicleQueryContext {
   audience?: 'public' | 'customer' | 'salesperson';
   customerId?: string;
   customerTier?: CustomerTier;
+  customerCountry?: string;
+  destinationCountry?: string;
   nowISO?: string;
   reservations?: ReservationRecord[];
 }
@@ -1182,8 +1235,7 @@ export interface VehicleQueryContext {
 export interface DemoStore {
   ready(): Promise<void>;
   getConfig(): Promise<PublicConfig>;
-  getVehicles(query?: GetVehiclesQuery, context?: VehicleQueryContext): Promise<VehicleDomainSummary[]>;
-  searchVehicles(query?: SearchVehiclesQuery, context?: VehicleQueryContext): Promise<VehicleSearchResult>;
+  getVehicles(query?: GetVehiclesQuery, context?: VehicleQueryContext): Promise<VehicleSearchResult>;
   getVehicleDetail(idOrSlug: string, context?: VehicleQueryContext): Promise<VehicleDetail | null>;
   getFreightDestinations(): Promise<FreightDestination[]>;
   getFreightPorts(): Promise<FreightPort[]>;
@@ -1193,7 +1245,6 @@ export interface DemoStore {
   getLeadById(id: string): Promise<LeadRecord | null>;
   listLeads(): Promise<LeadListResponse>;
   listCustomerInquiries(customerId: string): Promise<CustomerInquiryListResponse>;
-  getVehicleInquiryAggregate(vehicleSlugOrId: string): Promise<VehicleInquiryAggregate>;
   createReservation(customerId: string, customerEmail: string, request: ReservationRequest, nowISO?: string): Promise<ReservationResponse>;
   getReservationById(id: string): Promise<ReservationResponse | null>;
   // Phase 1.7 Content methods
@@ -1215,7 +1266,6 @@ export interface DemoStore {
   listCustomerDocuments(customerId: string): Promise<CustomerDocument[]>;
   getCustomerDocument(customerId: string, documentId: string): Promise<CustomerDocument | null>;
   listCustomerNotifications(customerId: string, query?: { status?: 'all' | 'read' | 'unread'; q?: string }): Promise<CustomerNotificationListResponse>;
-  getCustomerNotification(customerId: string, notificationId: string): Promise<Notification | null>;
   markCustomerNotificationRead(customerId: string, notificationId: string): Promise<Notification | null>;
   markAllCustomerNotificationsRead(customerId: string): Promise<MarkNotificationsReadResponse>;
   deleteCustomerNotification(customerId: string, notificationId: string): Promise<boolean>;
@@ -1226,7 +1276,6 @@ export interface DemoStore {
   getCustomerInvoiceById(customerId: string, id: string, nowISO?: string): Promise<CustomerInvoiceDetail | null>;
   getCustomerInvoiceDocument(customerId: string, id: string, nowISO?: string): Promise<CustomerInvoiceDocument | null>;
   listCustomerPayments(customerId: string): Promise<CustomerPaymentListResponse>;
-  getCustomerPayment(customerId: string, id: string): Promise<CustomerPayment | null>;
   createCustomerPayment(customerId: string, request: CreateCustomerPaymentRequest, nowISO?: string): Promise<CustomerPayment>;
   listCustomerPaymentNotifications(customerId: string, paymentId?: string): Promise<CustomerPaymentNotificationListResponse>;
   resubmitCustomerPayment(customerId: string, paymentId: string, nowISO?: string): Promise<CustomerPayment>;
@@ -1254,7 +1303,6 @@ export interface DemoStore {
   getCustomerStatement(customerId: string, fromDate?: string, toDate?: string): Promise<CustomerStatementSummary>;
   getCustomerDebitCreditRefunds(customerId: string): Promise<CustomerDebitCreditListResponse>;
   listCustomerPolymorphicInquiries(customerId: string): Promise<CustomerPolymorphicInquiryListResponse>;
-  getCustomerPairedAccounts(customerId: string): Promise<CustomerPairedAccount[]>;
   reset(): Promise<void>;
   close(): Promise<void>;
 }
@@ -1648,6 +1696,27 @@ function buildSeedCustomerAccount(): CustomerAccountRecord {
     dialCode: '+256',
     mobileNumber: '700000000',
     email: SEED_CUSTOMER_ACCOUNT_EMAIL,
+    passwordHash: hash,
+    passwordSalt: salt,
+    status: 'active',
+    verificationState: 'unverified',
+    createdAt: seedTimestamp,
+    updatedAt: seedTimestamp,
+    passwordUpdatedAt: seedTimestamp,
+  };
+}
+
+function buildSeedOtherCustomerAccount(): CustomerAccountRecord {
+  const { hash, salt } = hashPassword(SEED_CUSTOMER_ACCOUNT_PASSWORD);
+  const seedTimestamp = '2026-01-01T00:00:00.000Z';
+  return {
+    id: 'acct-user-other-456',
+    customerId: 'user-other-456',
+    nameWithInitials: 'O. Customer',
+    countryCode: 'KE',
+    dialCode: '+254',
+    mobileNumber: '700000001',
+    email: 'other@example.com',
     passwordHash: hash,
     passwordSalt: salt,
     status: 'active',
@@ -2201,10 +2270,7 @@ const seedBranches: BranchContent[] = [
       address: 'Harare, Zimbabwe — exact office address pending approval',
       hours: 'Mon-Fri 08:30 - 16:30 CAT',
     },
-    contentOwner: 'BranchTeam',
     status: 'approved',
-    latestArrivalsQuery: { destinationPort: 'Durban', limit: 4 },
-    recentlyDiscountedQuery: { destinationPort: 'Durban', limit: 4 },
   },
   {
     id: 'kingston-hub',
@@ -2224,10 +2290,7 @@ const seedBranches: BranchContent[] = [
       address: 'Kingston, Jamaica — exact office address pending approval',
       hours: 'Mon-Fri 08:00 - 17:00 EST',
     },
-    contentOwner: 'BranchTeam',
     status: 'approved',
-    latestArrivalsQuery: { limit: 4 },
-    recentlyDiscountedQuery: { limit: 4 },
   },
   {
     id: 'port-louis-hub',
@@ -2247,10 +2310,7 @@ const seedBranches: BranchContent[] = [
       address: 'Port Louis, Mauritius — exact office address pending approval',
       hours: 'Mon-Fri 08:30 - 16:30 MUT',
     },
-    contentOwner: 'BranchTeam',
     status: 'approved',
-    latestArrivalsQuery: { limit: 4 },
-    recentlyDiscountedQuery: { limit: 4 },
   },
 ];
 
@@ -2282,7 +2342,6 @@ function filterFaqs(
         categories,
         items: [],
         total: categories.length,
-        matchedCount: 0,
         groundedNoAnswer: true,
         message: 'No grounded answer found matching your query. Please contact our support team.',
       };
@@ -2292,7 +2351,6 @@ function filterFaqs(
       categories,
       items: matched,
       total: categories.length,
-      matchedCount: matched.length,
       groundedNoAnswer: false,
     };
   }
@@ -2301,7 +2359,6 @@ function filterFaqs(
     categories,
     items: approvedItems,
     total: categories.length,
-    matchedCount: approvedItems.length,
     groundedNoAnswer: false,
   };
 }
@@ -2353,9 +2410,6 @@ export class EnquiryRequestError extends Error {
 export interface EnquiryRecord {
   id: string;
   dedupeKey: string;
-  name: string;
-  email: string;
-  phone: string;
   message: string;
   consent: boolean;
   vehicleSlug?: string;
@@ -2369,7 +2423,10 @@ export interface EnquiryRecord {
   preferredDriveSide?: EnquiryPreferredDriveSide;
   preferredYear?: number;
   targetPriceUsd?: number;
-  customerId?: string;
+  customerId: string;
+  customerName?: string;
+  customerEmail?: string;
+  customerPhone?: string;
 }
 
 /** Wishlist item internal record (D02-P13-T002, CUST-36). */
@@ -2391,9 +2448,6 @@ export interface FavouriteSearchRecord {
 }
 
 interface PreparedEnquiry {
-  name: string;
-  email: string;
-  phone: string;
   message: string;
   consent: boolean;
   vehicleSlug?: string;
@@ -2405,7 +2459,7 @@ interface PreparedEnquiry {
   preferredDriveSide?: EnquiryPreferredDriveSide;
   preferredYear?: number;
   targetPriceUsd?: number;
-  customerId?: string;
+  customerId: string;
 }
 
 function requireNonEmptyString(value: unknown, field: string, label: string): string {
@@ -2429,18 +2483,15 @@ export function prepareEnquiry(
   records: FreightRateRecord[],
   request: EnquiryRequest,
   nowISO: string,
-  customerId?: string
+  customerId: string
 ): PreparedEnquiry {
   if (!request || typeof request !== 'object') {
     throw new EnquiryRequestError(400, 'A request body is required');
   }
-
-  const name = requireNonEmptyString(request.name, 'name', 'Name');
-  const email = requireNonEmptyString(request.email, 'email', 'Email');
-  if (!validateEmail(email)) {
-    throw new EnquiryRequestError(400, 'Enter a valid email address', 'email');
+  if (!customerId) {
+    throw new EnquiryRequestError(401, 'An authenticated customer is required');
   }
-  const phone = requireNonEmptyString(request.phone, 'phone', 'Phone number');
+
   const message = requireNonEmptyString(request.message, 'message', 'Message');
 
   // D01-P06-T002 (PUB-14): consent is validated beyond native browser
@@ -2555,9 +2606,6 @@ export function prepareEnquiry(
   }
 
   return {
-    name,
-    email,
-    phone,
     message,
     consent,
     vehicleSlug,
@@ -2583,7 +2631,7 @@ export function prepareEnquiry(
  */
 export function buildEnquiryDedupeKey(prepared: PreparedEnquiry): string {
   return [
-    prepared.customerId ?? prepared.email.trim().toLowerCase(),
+    prepared.customerId,
     prepared.vehicleSlug ?? '',
     prepared.estimateSnapshot?.destinationCode ?? '',
     prepared.estimateSnapshot?.portCode ?? '',
@@ -2598,7 +2646,8 @@ export function buildEnquiryDedupeKey(prepared: PreparedEnquiry): string {
 }
 
 const ENQUIRY_SELECT_COLUMNS =
-  'SELECT id, dedupe_key, name, email, phone, message, consent, vehicle_slug, destination_code, port_code, rate_status, currency, rate_effective_from, rate_effective_to, estimate_message, received_at, enquiry_type, source, duplicate_resubmission_count, preferred_make, preferred_model, preferred_drive_side, preferred_year, target_price_usd, customer_id';
+  'SELECT e.id, e.dedupe_key, e.message, e.consent, e.vehicle_slug, e.destination_code, e.port_code, e.rate_status, e.currency, e.rate_effective_from, e.rate_effective_to, e.estimate_message, e.received_at, e.enquiry_type, e.source, e.duplicate_resubmission_count, e.preferred_make, e.preferred_model, e.preferred_drive_side, e.preferred_year, e.target_price_usd, e.customer_id, ca.name_with_initials AS customer_name, ca.email AS customer_email, ca.mobile_number AS customer_phone';
+const ENQUIRY_FROM = ' FROM enquiries e JOIN customer_accounts ca ON ca.customer_id = e.customer_id';
 
 function rowToEnquiryRecord(row: Record<string, unknown>): EnquiryRecord {
   const destinationCode = row.destination_code as string | null;
@@ -2606,9 +2655,6 @@ function rowToEnquiryRecord(row: Record<string, unknown>): EnquiryRecord {
   return {
     id: row.id as string,
     dedupeKey: row.dedupe_key as string,
-    name: row.name as string,
-    email: row.email as string,
-    phone: row.phone as string,
     message: row.message as string,
     consent: row.consent === undefined || row.consent === null ? true : Boolean(row.consent),
     vehicleSlug: (row.vehicle_slug as string | null) || undefined,
@@ -2621,7 +2667,10 @@ function rowToEnquiryRecord(row: Record<string, unknown>): EnquiryRecord {
     preferredDriveSide: (row.preferred_drive_side as EnquiryPreferredDriveSide | null) || undefined,
     preferredYear: row.preferred_year !== undefined && row.preferred_year !== null ? Number(row.preferred_year) : undefined,
     targetPriceUsd: row.target_price_usd !== undefined && row.target_price_usd !== null ? Number(row.target_price_usd) : undefined,
-    customerId: (row.customer_id as string | null) || undefined,
+    customerId: row.customer_id as string,
+    customerName: row.customer_name as string,
+    customerEmail: row.customer_email as string,
+    customerPhone: row.customer_phone as string,
     estimateSnapshot:
       destinationCode && portCode
         ? {
@@ -2665,9 +2714,10 @@ function toLeadRecord(record: EnquiryRecord): LeadRecord {
     status: 'New',
     enquiryType: record.enquiryType,
     source: record.source,
-    name: record.name,
-    email: record.email,
-    phone: record.phone,
+    customerId: record.customerId,
+    name: record.customerName || record.customerId,
+    email: record.customerEmail || `${record.customerId}@example.invalid`,
+    phone: record.customerPhone || '',
     message: record.message,
     consent: record.consent,
     vehicleSlug: record.vehicleSlug,
@@ -2790,7 +2840,9 @@ export function projectVehicle(
     active,
     nowOnSale,
     priceState,
-    countryEligibility: [...DEMO_COUNTRY_ELIGIBILITY_PLACEHOLDER],
+    compliance: (context.destinationCountry || context.customerCountry)
+      ? evaluateVehicleCompliance(v, context.destinationCountry || context.customerCountry, new Date(nowISO).getUTCFullYear())
+      : undefined,
     tierPricing,
     reservationEligibility,
   };
@@ -2893,7 +2945,9 @@ export function buildVehicleDetail(
     etd: v.etd,
     eta: v.eta,
     featured: v.featured,
-    countryEligibility: [...DEMO_COUNTRY_ELIGIBILITY_PLACEHOLDER],
+    compliance: (context.destinationCountry || context.customerCountry)
+      ? evaluateVehicleCompliance(v, context.destinationCountry || context.customerCountry, new Date(nowISO).getUTCFullYear())
+      : undefined,
     // The demo record carries a single uncategorized `images` array, so only the
     // general gallery is populated. Auction/Japan/Durban categories stay empty
     // with their visibility flags false rather than re-labelling gallery images
@@ -2901,13 +2955,11 @@ export function buildVehicleDetail(
     media: {
       gallery,
       auctionPictures: [],
-      auctionSheet: [],
       japanPictures: [],
       durbanPictures: [],
       showAuctionPictures: false,
       showJapanPictures: false,
       showDurbanPictures: false,
-      totalPicturesCount: gallery.length,
     },
     active,
     nowOnSale,
@@ -3084,7 +3136,11 @@ function calculateSearchFacets(
   };
   const base = calculateFacets(filterAndSortVehicles(vehicles, facetQuery, context), catalog);
   const makeFacets = without('make');
-  const modelFacets = without('model');
+  // Model values are dependent on the selected make. Keep that constraint
+  // while calculating models, otherwise the UI offers models from unrelated
+  // makes in the same filter panel.
+  const modelQuery: SearchVehiclesQuery = { ...query, model: undefined, page: undefined, limit: undefined };
+  const modelFacets = calculateFacets(filterAndSortVehicles(vehicles, modelQuery, context), catalog);
   const modelCodeFacets = without('modelCode');
   const vehicleTypeFacets = without('bodyStyle');
   const vehicleSubTypeFacets = without('vehicleSubType');
@@ -3159,7 +3215,8 @@ function filterAndSortVehicles(
   const FIVE_DAYS_MS = 5 * 24 * 60 * 60 * 1000;
 
   if (query?.category) {
-    list = list.filter((v) => v.category?.split(',').includes(query.category!));
+    const category = normalizeReferenceKey(query.category);
+    list = list.filter((v) => v.category?.split(',').some((value) => normalizeReferenceKey(value) === category));
   }
 
   if (query?.collection) {
@@ -3239,44 +3296,44 @@ function filterAndSortVehicles(
 
   // Faceted query filters
   if (query?.make) {
-    const makeVal = query.make.toLowerCase();
-    list = list.filter((v) => v.make.toLowerCase() === makeVal);
+    const makeVal = normalizeReferenceKey(query.make);
+    list = list.filter((v) => normalizeReferenceKey(v.make) === makeVal);
   }
 
   if (query?.model) {
-    const modelVal = query.model.toLowerCase();
-    list = list.filter((v) => v.model.toLowerCase().includes(modelVal));
+    const modelVal = normalizeReferenceKey(query.model);
+    list = list.filter((v) => normalizeReferenceKey(v.model).includes(modelVal));
   }
 
-  if (query?.modelCode) list = list.filter((v) => v.modelCode?.toLowerCase() === query.modelCode!.toLowerCase());
+  if (query?.modelCode) list = list.filter((v) => v.modelCode?.toLowerCase() === query.modelCode!.trim().toLowerCase());
 
   if (query?.bodyStyle) {
-    const bodyVal = query.bodyStyle.toLowerCase();
-    list = list.filter((v) => v.bodyStyle && v.bodyStyle.toLowerCase() === bodyVal);
+    const bodyVal = normalizeReferenceKey(query.bodyStyle);
+    list = list.filter((v) => v.bodyStyle && normalizeReferenceKey(v.bodyStyle) === bodyVal);
   }
 
   if (query?.fuelType) {
-    const fuelVal = query.fuelType.toLowerCase();
-    list = list.filter((v) => v.fuelType && v.fuelType.toLowerCase() === fuelVal);
+    const fuelVal = normalizeReferenceKey(query.fuelType);
+    list = list.filter((v) => v.fuelType && normalizeReferenceKey(v.fuelType) === fuelVal);
   }
 
   if (query?.transmission) {
-    const transVal = query.transmission.toLowerCase();
-    list = list.filter((v) => v.transmission && v.transmission.toLowerCase() === transVal);
+    const transVal = normalizeReferenceKey(query.transmission);
+    list = list.filter((v) => v.transmission && normalizeReferenceKey(v.transmission) === transVal);
   }
 
   if (query?.driveTrain) {
-    const dtVal = query.driveTrain.toLowerCase();
-    list = list.filter((v) => v.driveTrain && v.driveTrain.toLowerCase() === dtVal);
+    const dtVal = normalizeReferenceKey(query.driveTrain);
+    list = list.filter((v) => v.driveTrain && normalizeReferenceKey(v.driveTrain) === dtVal);
   }
 
-  if (query?.vehicleSubType) list = list.filter((v) => v.vehicleSubType?.toLowerCase() === query.vehicleSubType!.toLowerCase());
-  if (query?.overdrive) list = list.filter((v) => v.overdrive === query.overdrive);
-  if (query?.color) list = list.filter((v) => v.color?.toLowerCase() === query.color!.toLowerCase());
-  if (query?.exteriorGrade) list = list.filter((v) => v.exteriorGrade === query.exteriorGrade);
-  if (query?.steering) list = list.filter((v) => v.steering?.toLowerCase() === query.steering!.toLowerCase());
-  if (query?.stockCountry) list = list.filter((v) => v.stockCountry?.toLowerCase() === query.stockCountry!.toLowerCase());
-  if (query?.stockLocation) list = list.filter((v) => v.stockLocation?.toLowerCase() === query.stockLocation!.toLowerCase());
+  if (query?.vehicleSubType) list = list.filter((v) => v.vehicleSubType && normalizeReferenceKey(v.vehicleSubType) === normalizeReferenceKey(query.vehicleSubType!));
+  if (query?.overdrive) list = list.filter((v) => v.overdrive && normalizeReferenceKey(v.overdrive) === normalizeReferenceKey(query.overdrive!));
+  if (query?.color) list = list.filter((v) => v.color && normalizeReferenceKey(v.color) === normalizeReferenceKey(query.color!));
+  if (query?.exteriorGrade) list = list.filter((v) => v.exteriorGrade && normalizeReferenceKey(v.exteriorGrade) === normalizeReferenceKey(query.exteriorGrade!));
+  if (query?.steering) list = list.filter((v) => v.steering && normalizeReferenceKey(v.steering) === normalizeReferenceKey(query.steering!));
+  if (query?.stockCountry) list = list.filter((v) => v.stockCountry && normalizeReferenceKey(v.stockCountry) === normalizeReferenceKey(query.stockCountry!));
+  if (query?.stockLocation) list = list.filter((v) => v.stockLocation && normalizeReferenceKey(v.stockLocation) === normalizeReferenceKey(query.stockLocation!));
   if (query?.seatsMin !== undefined) list = list.filter((v) => v.seats !== undefined && v.seats >= Number(query.seatsMin));
   if (query?.seatsMax !== undefined) list = list.filter((v) => v.seats !== undefined && v.seats <= Number(query.seatsMax));
   if (query?.loadCapacityMin !== undefined) list = list.filter((v) => v.loadCapacity !== undefined && v.loadCapacity >= Number(query.loadCapacityMin));
@@ -3315,7 +3372,7 @@ function filterAndSortVehicles(
   }
 
   if (query?.destinationPort) {
-    list = list.filter((v) => v.destinationPort === query.destinationPort);
+    list = list.filter((v) => v.destinationPort && normalizeReferenceKey(v.destinationPort) === normalizeReferenceKey(query.destinationPort!));
   }
 
   if (query?.mileageMin !== undefined) {
@@ -3333,6 +3390,20 @@ function filterAndSortVehicles(
 
   if (query?.engineCcMin !== undefined) list = list.filter((v) => v.engineCc !== undefined && v.engineCc >= Number(query.engineCcMin));
   if (query?.engineCcMax !== undefined) list = list.filter((v) => v.engineCc !== undefined && v.engineCc <= Number(query.engineCcMax));
+
+  // Country Import Compliance Filtering (D02-P14-T005)
+  const destCountry = (query?.destinationCountry || context?.destinationCountry || (effectiveAudience === 'customer' ? context?.customerCountry : undefined))?.trim();
+  if (destCountry) {
+    const complianceOnly = (query as any)?.complianceOnly !== false && (query as any)?.complianceOnly !== 'false';
+    const refYear = new Date(now).getUTCFullYear();
+    if (complianceOnly) {
+      list = list.filter((v) => isVehicleCompliantForCountry(v, destCountry, refYear));
+    }
+    list = list.map((v) => ({
+      ...v,
+      compliance: evaluateVehicleCompliance(v, destCountry, refYear),
+    }));
+  }
 
   // Sorting
   if (query?.sortBy) {
@@ -3603,7 +3674,6 @@ export interface CustomerShipment {
   eta?: string;
   location?: string;
   freshness: 'fresh' | 'stale' | 'unknown';
-  timeline: Array<{ stage: CustomerShipment['stage']; occurredAt?: string; current: boolean }>;
   shipOkStatus: 'Pending' | 'Approved' | 'Rejected';
   shipOkRejectionReason?: string;
   documentReleaseStatus: 'Pending' | 'Approved' | 'Rejected';
@@ -4204,7 +4274,6 @@ export function buildCustomerVehicleProjections(
         type: 'ProformaInvoice',
         title: `Proforma Invoice ${pi.id.toUpperCase()}`,
         status: 'Available',
-        fileUrl: `/documents/${pi.id}.pdf`,
         issuedAt: pi.issuedAt,
       });
     }
@@ -4214,7 +4283,6 @@ export function buildCustomerVehicleProjections(
         type: 'CommercialInvoice',
         title: `Commercial Invoice ${inv.id.toUpperCase()}`,
         status: 'Available',
-        fileUrl: `/documents/${inv.id}.pdf`,
         issuedAt: inv.invoicedAt,
       });
     }
@@ -4224,21 +4292,18 @@ export function buildCustomerVehicleProjections(
         type: 'BillOfLading',
         title: 'Bill of Lading BL-789012',
         status: shipment.status === 'InTransit' || shipment.status === 'Delivered' ? 'Available' : 'Pending',
-        fileUrl: '/documents/bl-789012.pdf',
       });
       docs.push({
         id: `doc-ec-${vId}`,
         type: 'ExportCertificate',
         title: 'Japan Export Certificate',
         status: 'Available',
-        fileUrl: '/documents/export-cert.pdf',
       });
       docs.push({
         id: `doc-ic-${vId}`,
         type: 'InspectionCertificate',
         title: 'JEVIC Pre-Shipment Inspection Certificate',
         status: 'Available',
-        fileUrl: '/documents/jevic-cert.pdf',
       });
     }
 
@@ -4442,12 +4507,10 @@ export function buildCustomerInvoiceProjections(
       paidAmountUsd: 0,
       outstandingAmountUsd: totalAmountUsd,
       depositRequiredUsd: depositInfo.requiredAmountUsd,
-      depositPaidUsd: 0,
       status,
       issuedAt: pi.issuedAt,
       dueDate: paymentDeadline,
       paymentDeadline,
-      documentStatus: 'Available',
       currency: 'USD',
       vehicle: {
         id: vehicle.id,
@@ -4461,12 +4524,6 @@ export function buildCustomerInvoiceProjections(
       lineItems: [],
       allocations: [],
       bankDetails: undefined,
-      documentUrl: undefined,
-      termsAndConditions: [
-        'This Proforma Invoice and reservation hold are valid for 72 hours from the issue date.',
-        'A minimum deposit of 50% is required to secure the vehicle and proceed with export preparation.',
-        'Payment instructions are unavailable pending Finance confirmation.',
-      ],
       isExpired,
       notes: 'Proforma Invoice issued for initial vehicle reservation and wire transfer payment.',
     });
@@ -4496,9 +4553,6 @@ export function buildCustomerInvoiceProjections(
       status = 'Issued';
     }
 
-    const docRecord = documents.find((d) => d.customerId === customerId && (d.vehicleId === inv.vehicleId || d.id === `doc-${inv.id}`) && d.type === 'Invoice');
-    const documentStatus: 'Available' | 'Pending' | 'Unavailable' = docRecord ? docRecord.status : 'Available';
-
     const allocationItems: CustomerInvoiceAllocationItem[] = customerAllocs.map((a) => ({
       id: a.id,
       paymentId: a.paymentId,
@@ -4523,11 +4577,9 @@ export function buildCustomerInvoiceProjections(
       paidAmountUsd,
       outstandingAmountUsd,
       depositRequiredUsd: Math.round(totalAmountUsd * 0.5),
-      depositPaidUsd: Math.min(Math.round(totalAmountUsd * 0.5), paidAmountUsd),
       status,
       issuedAt: inv.invoicedAt,
       dueDate,
-      documentStatus,
       currency: 'USD',
       vehicle: {
         id: vehicle.id,
@@ -4541,11 +4593,6 @@ export function buildCustomerInvoiceProjections(
       lineItems: [],
       allocations: allocationItems,
       bankDetails: undefined,
-      documentUrl: undefined,
-      termsAndConditions: [
-        'Final Commercial Invoice projection; approved payment allocations are shown separately.',
-        'Payment instructions are unavailable pending Finance confirmation.',
-      ],
       isExpired: false,
       notes: 'Final Commercial Invoice for vehicle export.',
     });
@@ -4558,12 +4605,6 @@ export function queryCustomerInvoices(
   allInvoices: CustomerInvoiceDetail[],
   query?: ListCustomerInvoicesQuery
 ): CustomerInvoiceListResponse {
-  const countsByType: CustomerInvoiceCountsByType = {
-    all: allInvoices.length,
-    proforma: allInvoices.filter((i) => i.type === 'Proforma').length,
-    commercial: allInvoices.filter((i) => i.type === 'Commercial').length,
-  };
-
   const totals: CustomerInvoiceTotals = {
     totalInvoicedUsd: allInvoices.reduce((sum, i) => sum + i.totalAmountUsd, 0),
     totalPaidUsd: allInvoices.reduce((sum, i) => sum + i.paidAmountUsd, 0),
@@ -4613,12 +4654,10 @@ export function queryCustomerInvoices(
     paidAmountUsd: d.paidAmountUsd,
     outstandingAmountUsd: d.outstandingAmountUsd,
     depositRequiredUsd: d.depositRequiredUsd,
-    depositPaidUsd: d.depositPaidUsd,
     status: d.status,
     issuedAt: d.issuedAt,
     dueDate: d.dueDate,
     paymentDeadline: d.paymentDeadline,
-    documentStatus: d.documentStatus,
     currency: d.currency,
   }));
 
@@ -4627,7 +4666,6 @@ export function queryCustomerInvoices(
     total: filtered.length,
     page,
     limit,
-    countsByType,
     totals,
   };
 }
@@ -4701,14 +4739,12 @@ export function buildCustomerInvoiceDocument(invoice: CustomerInvoiceDetail): Cu
   `;
 
   return {
-    documentId: `doc-${invoice.id}`,
     invoiceId: invoice.id,
     invoiceNumber: invoice.invoiceNumber,
     type: invoice.type,
     title: `${invoice.type === 'Proforma' ? 'Proforma Invoice' : 'Commercial Invoice'} ${invoice.invoiceNumber}`,
     contentHtml,
-    status: invoice.documentStatus === 'Unavailable' ? 'Unavailable' : 'Available',
-    generatedAt: new Date().toISOString(),
+    status: 'Available',
   };
 }
 
@@ -4772,11 +4808,8 @@ function checkReservationEligibility(
   }
 }
 
-const shipmentStages: CustomerShipment['stage'][] = ['Purchased', 'Inspection', 'Ready', 'In Transit', 'Delivered'];
-
 function toCustomerShipment(record: ShipmentRecord): CustomerShipment {
   const stage = record.status === 'InTransit' ? 'In Transit' : record.status;
-  const currentIndex = shipmentStages.indexOf(stage);
   return {
     id: record.id,
     vehicleId: record.vehicleId,
@@ -4790,11 +4823,6 @@ function toCustomerShipment(record: ShipmentRecord): CustomerShipment {
     shipOkRejectionReason: record.shipOkRejectionReason,
     documentReleaseStatus: record.documentReleaseStatus ?? 'Pending',
     documentReleaseRejectionReason: record.documentReleaseRejectionReason,
-    timeline: shipmentStages.map((timelineStage, index) => ({
-      stage: timelineStage,
-      current: index === currentIndex,
-      ...(index === currentIndex ? { occurredAt: record.shippedAt } : {}),
-    })),
   };
 }
 
@@ -4884,7 +4912,6 @@ function toCustomerPaymentNotification(record: PaymentNotificationRecord): Custo
     paymentId: record.paymentId,
     invoiceId: record.invoiceId,
     event: record.event,
-    deliveryStatus: 'Queued',
     createdAt: record.createdAt,
   };
 }
@@ -5024,7 +5051,7 @@ function createPaymentRecord(
 class MemoryStore implements DemoStore {
   private bankAccounts = seedBankAccounts.map((b) => ({ ...b }));
   private config = { ...seedConfig };
-  private vehicles = preparedSeedVehicles.map((vehicle) => ({ ...vehicle }));
+  private vehicles = preparedSeedVehicles.map((vehicle) => canonicalizeVehicle({ ...vehicle }));
   private enquiries: EnquiryRecord[] = [];
   private enquirySeq = 0;
   private reservations: ReservationRecord[] = seedReservations.map((r) => ({ ...r }));
@@ -5064,15 +5091,7 @@ class MemoryStore implements DemoStore {
     return Promise.resolve(seedBankAccounts);
   }
 
-  getVehicles(query?: GetVehiclesQuery, context?: VehicleQueryContext): Promise<VehicleDomainSummary[]> {
-    const mergedContext: VehicleQueryContext = {
-      ...context,
-      reservations: this.reservations,
-    };
-    return Promise.resolve(filterAndSortVehicles(this.vehicles, query, mergedContext));
-  }
-
-  searchVehicles(query?: SearchVehiclesQuery, context?: VehicleQueryContext): Promise<VehicleSearchResult> {
+  getVehicles(query?: GetVehiclesQuery, context?: VehicleQueryContext): Promise<VehicleSearchResult> {
     const mergedContext: VehicleQueryContext = {
       ...context,
       reservations: this.reservations,
@@ -5125,7 +5144,7 @@ class MemoryStore implements DemoStore {
     return buildFreightEstimate(freightDestinations, freightPorts, freightRateRecords, request);
   }
 
-  async createEnquiry(request: EnquiryRequest, customerId?: string): Promise<EnquiryResponse> {
+  async createEnquiry(request: EnquiryRequest, customerId = 'cust-123'): Promise<EnquiryResponse> {
     const prepared = prepareEnquiry(this.vehicles, freightDestinations, freightPorts, freightRateRecords, request, FREIGHT_REFERENCE_DATE, customerId);
     const dedupeKey = buildEnquiryDedupeKey(prepared);
 
@@ -5166,7 +5185,7 @@ class MemoryStore implements DemoStore {
       const enquiry = enquiries.find((e) => e.vehicleSlug === slug)!;
       const vehicle = this.vehicles.find((v) => generateVehicleSlug(v.year, v.make, v.model, v.id) === slug);
       const inquirerCount = this.enquiries.filter((e) => e.vehicleSlug === slug && e.enquiryType === 'price-request').reduce((acc, e) => {
-        const key = e.customerId ?? e.email;
+        const key = e.customerId;
         const seen = new Set(acc.map((x) => x));
         if (!seen.has(key)) {
           seen.add(key);
@@ -5184,19 +5203,6 @@ class MemoryStore implements DemoStore {
     });
 
     return Promise.resolve({ items });
-  }
-
-  getVehicleInquiryAggregate(vehicleSlugOrId: string): Promise<VehicleInquiryAggregate> {
-    const vehicle = findVehicleRecord(this.vehicles, vehicleSlugOrId);
-    const vehicleSlug = vehicle ? generateVehicleSlug(vehicle.year, vehicle.make, vehicle.model, vehicle.id) : vehicleSlugOrId;
-
-    const inquiries = this.enquiries.filter((e) => e.vehicleSlug === vehicleSlug && e.enquiryType === 'price-request');
-    const inquirerKeys = new Set(inquiries.map((e) => e.customerId ?? e.email));
-
-    return Promise.resolve({
-      vehicleSlug,
-      inquirerCount: inquirerKeys.size,
-    });
   }
 
   // No `await` between the eligibility check and the mutation below, so two
@@ -5358,14 +5364,6 @@ class MemoryStore implements DemoStore {
     // Notification unread count for this customer
     const notificationUnreadCount = this.notifications.filter((n) => n.customerId === customerId && !n.isRead).length;
 
-    // Partial failure indicators: all set to false since this is mock data (no actual failures)
-    const partialFailureIndicators = {
-      paymentsFailed: false,
-      shipmentsFailed: false,
-      documentsFailed: false,
-      notificationsFailed: false,
-    };
-
     return Promise.resolve({
       customerId,
       customerEmail,
@@ -5375,12 +5373,10 @@ class MemoryStore implements DemoStore {
       vehicleCountReserved: reservedVehicleIds.size,
       vehicleCountInvoiced: invoicedVehicleIds.size,
       vehicleCountDelivered: deliveredVehicleIds.size,
-      lastUpdated: new Date().toISOString(),
       paymentStatusSummary,
       shipmentStatusSummary,
       documentAvailabilityCount,
       notificationUnreadCount,
-      partialFailureIndicators,
     });
   }
 
@@ -5563,11 +5559,6 @@ class MemoryStore implements DemoStore {
     return Promise.resolve(queryCustomerNotifications(this.notifications.filter((notification) => notification.customerId === customerId), query));
   }
 
-  getCustomerNotification(customerId: string, notificationId: string): Promise<Notification | null> {
-    const notification = this.notifications.find((candidate) => candidate.customerId === customerId && candidate.id === notificationId);
-    return Promise.resolve(notification ? toCustomerNotification(notification) : null);
-  }
-
   markCustomerNotificationRead(customerId: string, notificationId: string): Promise<Notification | null> {
     const notification = this.notifications.find((candidate) => candidate.customerId === customerId && candidate.id === notificationId);
     if (notification) notification.isRead = true;
@@ -5654,11 +5645,6 @@ class MemoryStore implements DemoStore {
   listCustomerPayments(customerId: string): Promise<CustomerPaymentListResponse> {
     const items = this.payments.filter((payment) => payment.customerId === customerId).map((payment) => toCustomerPayment(payment, this.invoices, this.allocations));
     return Promise.resolve({ items, total: items.length });
-  }
-
-  getCustomerPayment(customerId: string, id: string): Promise<CustomerPayment | null> {
-    const payment = this.payments.find((candidate) => candidate.customerId === customerId && candidate.id === id);
-    return Promise.resolve(payment ? toCustomerPayment(payment, this.invoices, this.allocations) : null);
   }
 
   createCustomerPayment(customerId: string, request: CreateCustomerPaymentRequest, nowISO = new Date().toISOString()): Promise<CustomerPayment> {
@@ -6142,35 +6128,9 @@ class MemoryStore implements DemoStore {
     });
   }
 
-  getCustomerPairedAccounts(customerId: string): Promise<CustomerPairedAccount[]> {
-    return Promise.resolve([
-      {
-        id: 'pa-1',
-        name: 'Charith Wellage (Primary)',
-        type: 'PRIMARY',
-        balanceUsd: 450,
-        isCredit: true,
-      },
-      {
-        id: 'pa-2',
-        name: 'CarChief Kenya Hub (Branch)',
-        type: 'BRANCH',
-        balanceUsd: 12500,
-        isCredit: false,
-      },
-      {
-        id: 'pa-3',
-        name: 'Wellage Logistics Fleet (Logistics)',
-        type: 'LOGISTICS',
-        balanceUsd: 0,
-        isCredit: true,
-      },
-    ]);
-  }
-
   reset(): Promise<void> {
     this.config = { ...seedConfig };
-    this.vehicles = preparedSeedVehicles.map((vehicle) => ({ ...vehicle }));
+    this.vehicles = preparedSeedVehicles.map((vehicle) => canonicalizeVehicle({ ...vehicle }));
     this.enquiries = [];
     this.reservations = seedReservations.map((r) => ({ ...r }));
     this.invoices = seedInvoices.map((i) => ({ ...i }));
@@ -6210,6 +6170,138 @@ class PostgresStore implements DemoStore {
 
   constructor(connectionString: string) {
     this.pool = new Pool({ connectionString });
+  }
+
+  private referenceId(table: string, normalizedKey: string): string {
+    return `${table}-${Buffer.from(normalizedKey).toString('base64url')}`;
+  }
+
+  private async ensureVehicleReference(table: string, value: string): Promise<string> {
+    const displayName = canonicalReferenceValue(value);
+    if (!displayName) throw new Error(`Cannot create an empty vehicle reference in ${table}`);
+    const normalizedKey = normalizeReferenceKey(displayName);
+    const id = this.referenceId(table, normalizedKey);
+    await this.pool.query(
+      `INSERT INTO ${table} (id, display_name, normalized_key) VALUES ($1, $2, $3)
+       ON CONFLICT (normalized_key) DO UPDATE SET display_name = ${table}.display_name`,
+      [id, displayName, normalizedKey],
+    );
+    const result = await this.pool.query(`SELECT id FROM ${table} WHERE normalized_key = $1`, [normalizedKey]);
+    return result.rows[0].id as string;
+  }
+
+  private async ensureVehicleModel(makeId: string, value: string): Promise<string> {
+    const displayName = canonicalReferenceValue(value);
+    if (!displayName) throw new Error('Cannot create an empty vehicle model');
+    const normalizedKey = normalizeReferenceKey(displayName);
+    const id = this.referenceId(vehicleReferenceTables.model, `${makeId}:${normalizedKey}`);
+    await this.pool.query(
+      `INSERT INTO vehicle_models (id, make_id, display_name, normalized_key) VALUES ($1, $2, $3, $4)
+       ON CONFLICT (make_id, normalized_key) DO UPDATE SET display_name = vehicle_models.display_name`,
+      [id, makeId, displayName, normalizedKey],
+    );
+    const result = await this.pool.query('SELECT id FROM vehicle_models WHERE make_id = $1 AND normalized_key = $2', [makeId, normalizedKey]);
+    return result.rows[0].id as string;
+  }
+
+  private async backfillVehicleReferences(): Promise<void> {
+    const result = await this.pool.query('SELECT * FROM vehicles ORDER BY id');
+    for (const row of result.rows) {
+      const makeId = await this.ensureVehicleReference(vehicleReferenceTables.make, row.make);
+      const modelId = await this.ensureVehicleModel(makeId, row.model);
+      const ids: Record<string, string | null> = { make_id: makeId, model_id: modelId };
+      const fields: Array<[VehicleReferenceKind, string]> = [
+        ['bodyStyle', 'body_style'], ['vehicleSubType', 'vehicle_sub_type'], ['fuelType', 'fuel_type'],
+        ['transmission', 'transmission'], ['driveTrain', 'drive_train'], ['overdrive', 'overdrive'],
+        ['color', 'color'], ['exteriorGrade', 'exterior_grade'], ['steering', 'steering'],
+        ['stockCountry', 'stock_country'], ['stockLocation', 'stock_location'], ['destinationPort', 'destination_port'],
+      ];
+      for (const [kind, column] of fields) {
+        if (row[column]) ids[`${column === 'steering' ? 'steering_type' : column}_id`] = await this.ensureVehicleReference(vehicleReferenceTables[kind], row[column]);
+      }
+      await this.pool.query(
+        `UPDATE vehicles SET make_id=$1, model_id=$2, body_style_id=$3, vehicle_sub_type_id=$4,
+          fuel_type_id=$5, transmission_id=$6, drive_train_id=$7, overdrive_id=$8, color_id=$9,
+          exterior_grade_id=$10, steering_type_id=$11, stock_country_id=$12, stock_location_id=$13,
+          destination_port_id=$14 WHERE id=$15`,
+        [ids.make_id, ids.model_id, ids.body_style_id || null, ids.vehicle_sub_type_id || null, ids.fuel_type_id || null,
+          ids.transmission_id || null, ids.drive_train_id || null, ids.overdrive_id || null, ids.color_id || null,
+          ids.exterior_grade_id || null, ids.steering_type_id || null, ids.stock_country_id || null,
+          ids.stock_location_id || null, ids.destination_port_id || null, row.id],
+      );
+
+      await this.pool.query('DELETE FROM vehicle_category_assignments WHERE vehicle_id = $1', [row.id]);
+      for (const rawCategory of String(row.category || '').split(',').map((v) => v.trim()).filter(Boolean)) {
+        const categoryId = await this.ensureVehicleReference('vehicle_categories', rawCategory);
+        await this.pool.query('INSERT INTO vehicle_category_assignments (vehicle_id, category_id) VALUES ($1, $2) ON CONFLICT DO NOTHING', [row.id, categoryId]);
+      }
+      await this.pool.query('DELETE FROM vehicle_feature_assignments WHERE vehicle_id = $1', [row.id]);
+      const features = row.features ? JSON.parse(row.features) as Record<string, boolean> : {};
+      for (const [featureKey, enabled] of Object.entries(features)) {
+        if (!enabled) continue;
+        const known = await this.pool.query('SELECT 1 FROM vehicle_feature_catalog WHERE feature_key = $1', [featureKey]);
+        if (known.rowCount !== 1) throw new Error(`Unknown vehicle feature: ${featureKey}`);
+        await this.pool.query('INSERT INTO vehicle_feature_assignments (vehicle_id, feature_key) VALUES ($1, $2) ON CONFLICT DO NOTHING', [row.id, featureKey]);
+      }
+    }
+    const fkColumns: Array<[string, string]> = [
+      ['make_id', 'vehicle_makes'], ['model_id', 'vehicle_models'], ['body_style_id', 'vehicle_body_styles'],
+      ['vehicle_sub_type_id', 'vehicle_sub_types'], ['fuel_type_id', 'vehicle_fuel_types'], ['transmission_id', 'vehicle_transmissions'],
+      ['drive_train_id', 'vehicle_drive_trains'], ['overdrive_id', 'vehicle_overdrives'], ['color_id', 'vehicle_colors'],
+      ['exterior_grade_id', 'vehicle_exterior_grades'], ['steering_type_id', 'vehicle_steering_types'],
+      ['stock_country_id', 'vehicle_stock_countries'], ['stock_location_id', 'vehicle_stock_locations'], ['destination_port_id', 'vehicle_destination_ports'],
+    ];
+    for (const [column, table] of fkColumns) {
+      await this.pool.query(`CREATE INDEX IF NOT EXISTS vehicles_${column}_idx ON vehicles(${column})`);
+      await this.pool.query(`DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'vehicles_${column}_fkey') THEN ALTER TABLE vehicles ADD CONSTRAINT vehicles_${column}_fkey FOREIGN KEY (${column}) REFERENCES ${table}(id); END IF; END $$`);
+    }
+    await this.pool.query('CREATE UNIQUE INDEX IF NOT EXISTS vehicles_chassis_number_lower_idx ON vehicles (lower(trim(chassis_number)))');
+    await this.pool.query(`ALTER TABLE vehicles
+      ADD CONSTRAINT vehicles_status_valid CHECK (status IN ('Available', 'Sold', 'Draft', 'Invoiced', 'ReservedWithPI')),
+      ADD CONSTRAINT vehicles_location_status_valid CHECK (location_status IS NULL OR location_status IN ('In Japan', 'In Transit', 'In Port')),
+      ADD CONSTRAINT vehicles_stock_type_valid CHECK (stock_type IS NULL OR stock_type IN ('J', 'CRFO')),
+      ADD CONSTRAINT vehicles_price_nonnegative CHECK (price_usd >= 0),
+      ADD CONSTRAINT vehicles_discount_valid CHECK (discount_percent IS NULL OR discount_percent BETWEEN 0 AND 100),
+      ADD CONSTRAINT vehicles_mileage_nonnegative CHECK (mileage IS NULL OR mileage >= 0),
+      ADD CONSTRAINT vehicles_engine_cc_nonnegative CHECK (engine_cc IS NULL OR engine_cc >= 0),
+      ADD CONSTRAINT vehicles_seats_nonnegative CHECK (seats IS NULL OR seats >= 0),
+      ADD CONSTRAINT vehicles_load_capacity_nonnegative CHECK (load_capacity IS NULL OR load_capacity >= 0),
+      ADD CONSTRAINT vehicles_year_valid CHECK (year BETWEEN 1886 AND 2200)
+    `).catch((error: any) => { if (error?.code !== '42710') throw error; });
+  }
+
+  private async addRelationalConstraints(): Promise<void> {
+    const relations: Array<[string, string, string, string]> = [
+      ['reservations', 'customer_id', 'customer_accounts', 'customer_id'],
+      ['reservations', 'vehicle_id', 'vehicles', 'id'],
+      ['wishlist_items', 'customer_id', 'customer_accounts', 'customer_id'],
+      ['wishlist_items', 'vehicle_id', 'vehicles', 'id'],
+      ['favourite_searches', 'customer_id', 'customer_accounts', 'customer_id'],
+      ['proforma_invoices', 'customer_id', 'customer_accounts', 'customer_id'],
+      ['proforma_invoices', 'vehicle_id', 'vehicles', 'id'],
+      ['invoices', 'customer_id', 'customer_accounts', 'customer_id'],
+      ['invoices', 'vehicle_id', 'vehicles', 'id'],
+      ['allocations', 'customer_id', 'customer_accounts', 'customer_id'],
+      ['allocations', 'payment_id', 'payments', 'id'],
+      ['allocations', 'invoice_id', 'invoices', 'id'],
+      ['shipments', 'customer_id', 'customer_accounts', 'customer_id'],
+      ['shipments', 'vehicle_id', 'vehicles', 'id'],
+      ['documents', 'customer_id', 'customer_accounts', 'customer_id'],
+      ['documents', 'shipment_id', 'shipments', 'id'],
+      ['documents', 'vehicle_id', 'vehicles', 'id'],
+      ['payments', 'customer_id', 'customer_accounts', 'customer_id'],
+      ['payments', 'invoice_id', 'invoices', 'id'],
+      ['payment_notifications', 'customer_id', 'customer_accounts', 'customer_id'],
+      ['payment_notifications', 'payment_id', 'payments', 'id'],
+      ['payment_notifications', 'invoice_id', 'invoices', 'id'],
+      ['notifications', 'customer_id', 'customer_accounts', 'customer_id'],
+      ['faq_items', 'category_id', 'faq_categories', 'id'],
+    ];
+    for (const [table, column, target, targetColumn] of relations) {
+      const constraint = `${table}_${column}_fkey`;
+      await this.pool.query(`CREATE INDEX IF NOT EXISTS ${table}_${column}_idx ON ${table}(${column})`);
+      await this.pool.query(`DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = '${constraint}') THEN ALTER TABLE ${table} ADD CONSTRAINT ${constraint} FOREIGN KEY (${column}) REFERENCES ${target}(${targetColumn}); END IF; END $$`);
+    }
   }
 
   async ready(): Promise<void> {
@@ -6290,6 +6382,55 @@ class PostgresStore implements DemoStore {
         ADD COLUMN IF NOT EXISTS eta text,
         ADD COLUMN IF NOT EXISTS request_price boolean;`
     );
+    // Vehicle filters are persisted as controlled references. The legacy text
+    // columns remain during the one-time backfill so existing databases can be
+    // upgraded safely; reads use the normalized IDs below.
+    for (const table of Object.values(vehicleReferenceTables).filter((table) => table !== vehicleReferenceTables.model)) {
+      await this.pool.query(`CREATE TABLE IF NOT EXISTS ${table} (
+        id text PRIMARY KEY,
+        display_name text NOT NULL,
+        normalized_key text NOT NULL UNIQUE
+      );`);
+    }
+    await this.pool.query(`
+      CREATE TABLE IF NOT EXISTS vehicle_models (
+        id text PRIMARY KEY,
+        make_id text NOT NULL REFERENCES vehicle_makes(id),
+        display_name text NOT NULL,
+        normalized_key text NOT NULL,
+        UNIQUE (make_id, normalized_key)
+      );
+    `);
+    await this.pool.query(`ALTER TABLE vehicles
+      ADD COLUMN IF NOT EXISTS make_id text,
+      ADD COLUMN IF NOT EXISTS model_id text,
+      ADD COLUMN IF NOT EXISTS body_style_id text,
+      ADD COLUMN IF NOT EXISTS vehicle_sub_type_id text,
+      ADD COLUMN IF NOT EXISTS fuel_type_id text,
+      ADD COLUMN IF NOT EXISTS transmission_id text,
+      ADD COLUMN IF NOT EXISTS drive_train_id text,
+      ADD COLUMN IF NOT EXISTS overdrive_id text,
+      ADD COLUMN IF NOT EXISTS color_id text,
+      ADD COLUMN IF NOT EXISTS exterior_grade_id text,
+      ADD COLUMN IF NOT EXISTS steering_type_id text,
+      ADD COLUMN IF NOT EXISTS stock_country_id text,
+      ADD COLUMN IF NOT EXISTS stock_location_id text,
+      ADD COLUMN IF NOT EXISTS destination_port_id text;
+    `);
+    await this.pool.query(`
+      CREATE TABLE IF NOT EXISTS vehicle_categories (
+        id text PRIMARY KEY,
+        display_name text NOT NULL,
+        normalized_key text NOT NULL UNIQUE
+      );
+      CREATE TABLE IF NOT EXISTS vehicle_category_assignments (
+        vehicle_id text NOT NULL REFERENCES vehicles(id) ON DELETE CASCADE,
+        category_id text NOT NULL REFERENCES vehicle_categories(id),
+        PRIMARY KEY (vehicle_id, category_id)
+      );
+      CREATE INDEX IF NOT EXISTS vehicle_category_assignments_category_idx
+        ON vehicle_category_assignments(category_id);
+    `);
     await this.pool.query(
       `CREATE TABLE IF NOT EXISTS vehicle_feature_catalog (
         feature_key text PRIMARY KEY,
@@ -6306,6 +6447,15 @@ class PostgresStore implements DemoStore {
         [feature.key, feature.label, feature.sortOrder, feature.active],
       );
     }
+    await this.pool.query(`
+      CREATE TABLE IF NOT EXISTS vehicle_feature_assignments (
+        vehicle_id text NOT NULL REFERENCES vehicles(id) ON DELETE CASCADE,
+        feature_key text NOT NULL REFERENCES vehicle_feature_catalog(feature_key),
+        PRIMARY KEY (vehicle_id, feature_key)
+      );
+      CREATE INDEX IF NOT EXISTS vehicle_feature_assignments_feature_idx
+        ON vehicle_feature_assignments(feature_key);
+    `);
     await this.pool.query(
       `CREATE TABLE IF NOT EXISTS enquiries (
         id text PRIMARY KEY,
@@ -6412,6 +6562,23 @@ class PostgresStore implements DemoStore {
         consent boolean NOT NULL
       );`
     );
+    await this.pool.query('ALTER TABLE faq_categories ADD COLUMN IF NOT EXISTS normalized_name text');
+    const faqCategoryRows = await this.pool.query('SELECT id, name FROM faq_categories ORDER BY id');
+    const faqCategoryIds = new Map<string, string>();
+    for (const category of faqCategoryRows.rows) {
+      const normalized = normalizeReferenceKey(category.name);
+      const existing = faqCategoryIds.get(normalized);
+      if (existing && existing !== category.id) {
+        await this.pool.query('UPDATE faq_items SET category_id = $1 WHERE category_id = $2', [existing, category.id]);
+        await this.pool.query('DELETE FROM faq_categories WHERE id = $1', [category.id]);
+      } else {
+        faqCategoryIds.set(normalized, category.id);
+        await this.pool.query('UPDATE faq_categories SET name = $1, normalized_name = $2 WHERE id = $3', [canonicalReferenceValue(category.name), normalized, category.id]);
+      }
+    }
+    await this.pool.query('CREATE UNIQUE INDEX IF NOT EXISTS faq_categories_normalized_name_idx ON faq_categories(normalized_name)');
+    await this.pool.query('ALTER TABLE faq_items DROP COLUMN IF EXISTS category_name');
+    await this.pool.query('CREATE UNIQUE INDEX IF NOT EXISTS faq_items_slug_idx ON faq_items(slug)');
     await this.pool.query(
       `CREATE TABLE IF NOT EXISTS content_pages (
         slug text PRIMARY KEY,
@@ -6478,6 +6645,45 @@ class PostgresStore implements DemoStore {
     await this.pool.query(
       'CREATE UNIQUE INDEX IF NOT EXISTS customer_accounts_email_lower_idx ON customer_accounts (lower(email));'
     );
+    await this.pool.query(`
+      DO $$ BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'customer_accounts_customer_id_key') THEN
+          ALTER TABLE customer_accounts ADD CONSTRAINT customer_accounts_customer_id_key UNIQUE (customer_id);
+        END IF;
+      END $$
+    `);
+    // Enquiries are customer-owned. Backfill legacy contact-column rows before
+    // removing the duplicated contact data and enforcing the relationship.
+    // Older databases still have the duplicated email column and can be
+    // backfilled. Databases already migrated to customer ownership do not;
+    // avoid parsing a reference to the removed column in that case.
+    await this.pool.query(`
+      DO $$ BEGIN
+        IF EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_schema = 'public' AND table_name = 'enquiries' AND column_name = 'email'
+        ) THEN
+          EXECUTE 'UPDATE enquiries e SET customer_id = ca.customer_id FROM customer_accounts ca WHERE e.customer_id IS NULL AND lower(e.email) = lower(ca.email)';
+        END IF;
+      END $$;
+    `);
+    await this.pool.query('DELETE FROM enquiries WHERE customer_id IS NULL');
+    await this.pool.query(`
+      ALTER TABLE enquiries
+        DROP COLUMN IF EXISTS name,
+        DROP COLUMN IF EXISTS email,
+        DROP COLUMN IF EXISTS phone,
+        ALTER COLUMN customer_id SET NOT NULL
+    `);
+    await this.pool.query(`
+      DO $$ BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'enquiries_customer_id_fkey') THEN
+          ALTER TABLE enquiries ADD CONSTRAINT enquiries_customer_id_fkey
+            FOREIGN KEY (customer_id) REFERENCES customer_accounts(customer_id);
+        END IF;
+      END $$
+    `);
+    await this.pool.query('CREATE INDEX IF NOT EXISTS enquiries_customer_id_idx ON enquiries (customer_id)');
     await this.pool.query(
       `CREATE TABLE IF NOT EXISTS password_reset_outbox (
         token text PRIMARY KEY,
@@ -6708,6 +6914,7 @@ class PostgresStore implements DemoStore {
         ]
       );
     }
+    await this.ensureSeedCustomerAccountsInPostgres();
 
     const configResult = await this.pool.query('SELECT id FROM public_config WHERE id = 1');
     if (configResult.rows.length === 0) {
@@ -6719,7 +6926,7 @@ class PostgresStore implements DemoStore {
         await this.pool.query('INSERT INTO faq_categories (id, name, description, sort_order) VALUES ($1, $2, $3, $4)', [cat.id, cat.name, cat.description || null, cat.order]);
       }
       for (const item of seedFaqItems) {
-        await this.pool.query('INSERT INTO faq_items (id, category_id, category_name, question, answer, slug, featured, sort_order, owner, status, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)', [item.id, item.categoryId, item.categoryName, item.question, item.answer, item.slug, item.featured ?? false, item.order || 1, item.owner, item.status, item.updatedAt]);
+        await this.pool.query('INSERT INTO faq_items (id, category_id, question, answer, slug, featured, sort_order, owner, status, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)', [item.id, item.categoryId, item.question, item.answer, item.slug, item.featured ?? false, item.order || 1, item.owner, item.status, item.updatedAt]);
       }
       for (const testim of seedTestimonials) {
         await this.pool.query('INSERT INTO testimonials (id, author_name, author_location, avatar_url, vehicle_purchased, rating, content, submitted_at, status, consent) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)', [testim.id, testim.authorName, testim.authorLocation, testim.avatarUrl || null, testim.vehiclePurchased || null, testim.rating, testim.content, testim.submittedAt, testim.status, testim.consent]);
@@ -6731,7 +6938,7 @@ class PostgresStore implements DemoStore {
         await this.pool.query('INSERT INTO office_locations (id, name, city, country, address, phone, email, operating_hours, is_primary, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)', [office.id, office.name, office.city, office.country, office.address, office.phone, office.email, office.operatingHours, office.isPrimary, office.status]);
       }
       for (const branch of seedBranches) {
-        await this.pool.query('INSERT INTO branch_content (id, name, code, destination_port, introduction, welcome_banner, contact_banner, team_members, meet_and_greet_info, contact_details, content_owner, status, latest_arrivals_query, recently_discounted_query) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)', [branch.id, branch.name, branch.code, branch.destinationPort, branch.introduction, branch.welcomeBanner, branch.contactBanner, JSON.stringify(branch.teamMembers), branch.meetAndGreetInfo, JSON.stringify(branch.contactDetails), branch.contentOwner, branch.status, branch.latestArrivalsQuery ? JSON.stringify(branch.latestArrivalsQuery) : null, branch.recentlyDiscountedQuery ? JSON.stringify(branch.recentlyDiscountedQuery) : null]);
+        await this.pool.query('INSERT INTO branch_content (id, name, code, destination_port, introduction, welcome_banner, contact_banner, team_members, meet_and_greet_info, contact_details, content_owner, status, latest_arrivals_query, recently_discounted_query) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)', [branch.id, branch.name, branch.code, branch.destinationPort, branch.introduction, branch.welcomeBanner, branch.contactBanner, JSON.stringify(branch.teamMembers), branch.meetAndGreetInfo, JSON.stringify(branch.contactDetails), null, branch.status, null, null]);
       }
     }
 
@@ -6740,6 +6947,38 @@ class PostgresStore implements DemoStore {
     for (const acct of allAccounts.rows) {
       await this.ensureCustomerFleetDataInPostgres(acct.customer_id, acct.email);
     }
+    await this.backfillVehicleReferences();
+    await this.ensureMockRelationalFixtures();
+    await this.addRelationalConstraints();
+  }
+
+  private async ensureSeedCustomerAccountsInPostgres(): Promise<void> {
+    const account = buildSeedOtherCustomerAccount();
+    await this.pool.query(
+      `INSERT INTO customer_accounts (id, customer_id, name_with_initials, country_code, dial_code, mobile_number, email, password_hash, password_salt, status, verification_state, created_at, updated_at, password_updated_at)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
+       ON CONFLICT (customer_id) DO NOTHING`,
+      [account.id, account.customerId, account.nameWithInitials, account.countryCode, account.dialCode, account.mobileNumber,
+        account.email, account.passwordHash, account.passwordSalt, account.status, account.verificationState, account.createdAt,
+        account.updatedAt, account.passwordUpdatedAt],
+    );
+  }
+
+  private async ensureMockRelationalFixtures(): Promise<void> {
+    // Complete deterministic fixture rows before validating the new
+    // relational constraints on an upgraded database.
+    await this.pool.query(
+      `INSERT INTO payments (id, customer_id, invoice_id, amount_usd, paid_at, status, reference, bank_name, currency, remarks)
+       VALUES
+         ('pay-006', 'cust-123', 'inv-005', 12780, '2026-08-12T14:00:00.000Z', 'Approved', 'TT-2026-12780-DIRECT', 'Direct Wire Transfer', 'USD', 'Allocated to 2019 SUZUKI ALTO'),
+         ('pay-007', 'cust-123', 'inv-016', 7100, '2026-08-12T14:00:00.000Z', 'Approved', 'TT-2026-7100-DIRECT', 'Direct Wire Transfer', 'USD', 'Allocated to 2020 TOYOTA HIACE VAN')
+       ON CONFLICT (id) DO NOTHING`,
+    );
+    await this.pool.query(
+      `INSERT INTO invoices (id, customer_id, vehicle_id, vehicle_slug, make, model, year, total_amount_usd, invoiced_at, due_date, status, currency, type, document_status)
+       VALUES ('inv-user-other-456-004', 'user-other-456', 'veh-4', '2021-honda-civic-veh-4', 'Honda', 'Civic', 2021, 9500, '2026-08-12T10:00:00.000Z', NULL, 'Issued', 'USD', 'Commercial', 'Issued')
+       ON CONFLICT (id) DO NOTHING`,
+    );
   }
 
   private async ensureCustomerFleetDataInPostgres(customerId: string, customerEmail?: string): Promise<void> {
@@ -7113,7 +7352,23 @@ class PostgresStore implements DemoStore {
 
   private async getRawVehicles(): Promise<VehicleRecord[]> {
     const result = await this.pool.query(
-      'SELECT id, chassis_number, make, model, model_code, year, price_usd, status, category, location_status, created_at, images, featured, stock_type, destination_port, discount_percent, body_style, vehicle_sub_type, engine_cc, fuel_type, transmission, drive_train, overdrive, color, exterior_grade, steering, stock_country, stock_location, seats, load_capacity, features, mileage, etd, eta, request_price FROM vehicles ORDER BY id'
+      `SELECT v.id, v.chassis_number, m.display_name AS make, mo.display_name AS model, v.model_code, v.year, v.price_usd, v.status,
+        (SELECT string_agg(c.display_name, ',' ORDER BY c.display_name) FROM vehicle_category_assignments a JOIN vehicle_categories c ON c.id=a.category_id WHERE a.vehicle_id=v.id) AS category,
+        v.location_status, v.created_at, v.images, v.featured, v.stock_type, dp.display_name AS destination_port, v.discount_percent,
+        bs.display_name AS body_style, st.display_name AS vehicle_sub_type, v.engine_cc, ft.display_name AS fuel_type,
+        tr.display_name AS transmission, dt.display_name AS drive_train, od.display_name AS overdrive, co.display_name AS color,
+        eg.display_name AS exterior_grade, steer.display_name AS steering, sc.display_name AS stock_country, sl.display_name AS stock_location,
+        v.seats, v.load_capacity,
+        (SELECT COALESCE(jsonb_object_agg(f.feature_key, true), '{}'::jsonb)::text FROM vehicle_feature_assignments f WHERE f.vehicle_id=v.id) AS features,
+        v.mileage, v.etd, v.eta, v.request_price
+       FROM vehicles v JOIN vehicle_makes m ON m.id=v.make_id JOIN vehicle_models mo ON mo.id=v.model_id
+       LEFT JOIN vehicle_body_styles bs ON bs.id=v.body_style_id LEFT JOIN vehicle_sub_types st ON st.id=v.vehicle_sub_type_id
+       LEFT JOIN vehicle_fuel_types ft ON ft.id=v.fuel_type_id LEFT JOIN vehicle_transmissions tr ON tr.id=v.transmission_id
+       LEFT JOIN vehicle_drive_trains dt ON dt.id=v.drive_train_id LEFT JOIN vehicle_overdrives od ON od.id=v.overdrive_id
+       LEFT JOIN vehicle_colors co ON co.id=v.color_id LEFT JOIN vehicle_exterior_grades eg ON eg.id=v.exterior_grade_id
+       LEFT JOIN vehicle_steering_types steer ON steer.id=v.steering_type_id LEFT JOIN vehicle_stock_countries sc ON sc.id=v.stock_country_id
+       LEFT JOIN vehicle_stock_locations sl ON sl.id=v.stock_location_id LEFT JOIN vehicle_destination_ports dp ON dp.id=v.destination_port_id
+       ORDER BY v.id`
     );
     return result.rows.map((row) => ({
       id: row.id,
@@ -7161,7 +7416,23 @@ class PostgresStore implements DemoStore {
 
   private async getRawVehiclesWith(client: PoolClient): Promise<VehicleRecord[]> {
     const result = await client.query(
-      'SELECT id, chassis_number, make, model, model_code, year, price_usd, status, category, location_status, created_at, images, featured, stock_type, destination_port, discount_percent, body_style, vehicle_sub_type, engine_cc, fuel_type, transmission, drive_train, overdrive, color, exterior_grade, steering, stock_country, stock_location, seats, load_capacity, features, mileage, etd, eta, request_price FROM vehicles ORDER BY id'
+      `SELECT v.id, v.chassis_number, m.display_name AS make, mo.display_name AS model, v.model_code, v.year, v.price_usd, v.status,
+        (SELECT string_agg(c.display_name, ',' ORDER BY c.display_name) FROM vehicle_category_assignments a JOIN vehicle_categories c ON c.id=a.category_id WHERE a.vehicle_id=v.id) AS category,
+        v.location_status, v.created_at, v.images, v.featured, v.stock_type, dp.display_name AS destination_port, v.discount_percent,
+        bs.display_name AS body_style, st.display_name AS vehicle_sub_type, v.engine_cc, ft.display_name AS fuel_type,
+        tr.display_name AS transmission, dt.display_name AS drive_train, od.display_name AS overdrive, co.display_name AS color,
+        eg.display_name AS exterior_grade, steer.display_name AS steering, sc.display_name AS stock_country, sl.display_name AS stock_location,
+        v.seats, v.load_capacity,
+        (SELECT COALESCE(jsonb_object_agg(f.feature_key, true), '{}'::jsonb)::text FROM vehicle_feature_assignments f WHERE f.vehicle_id=v.id) AS features,
+        v.mileage, v.etd, v.eta, v.request_price
+       FROM vehicles v JOIN vehicle_makes m ON m.id=v.make_id JOIN vehicle_models mo ON mo.id=v.model_id
+       LEFT JOIN vehicle_body_styles bs ON bs.id=v.body_style_id LEFT JOIN vehicle_sub_types st ON st.id=v.vehicle_sub_type_id
+       LEFT JOIN vehicle_fuel_types ft ON ft.id=v.fuel_type_id LEFT JOIN vehicle_transmissions tr ON tr.id=v.transmission_id
+       LEFT JOIN vehicle_drive_trains dt ON dt.id=v.drive_train_id LEFT JOIN vehicle_overdrives od ON od.id=v.overdrive_id
+       LEFT JOIN vehicle_colors co ON co.id=v.color_id LEFT JOIN vehicle_exterior_grades eg ON eg.id=v.exterior_grade_id
+       LEFT JOIN vehicle_steering_types steer ON steer.id=v.steering_type_id LEFT JOIN vehicle_stock_countries sc ON sc.id=v.stock_country_id
+       LEFT JOIN vehicle_stock_locations sl ON sl.id=v.stock_location_id LEFT JOIN vehicle_destination_ports dp ON dp.id=v.destination_port_id
+       ORDER BY v.id`
     );
     return result.rows.map((row) => ({
       id: row.id,
@@ -7211,17 +7482,7 @@ class PostgresStore implements DemoStore {
     return seedBankAccounts;
   }
 
-  async getVehicles(query?: GetVehiclesQuery, context?: VehicleQueryContext): Promise<VehicleDomainSummary[]> {
-    const rawRecords = await this.getRawVehicles();
-    const reservations = await this.getRawReservations();
-    const mergedContext: VehicleQueryContext = {
-      ...context,
-      reservations,
-    };
-    return filterAndSortVehicles(rawRecords, query, mergedContext);
-  }
-
-  async searchVehicles(query?: SearchVehiclesQuery, context?: VehicleQueryContext): Promise<VehicleSearchResult> {
+  async getVehicles(query?: GetVehiclesQuery, context?: VehicleQueryContext): Promise<VehicleSearchResult> {
     const rawRecords = await this.getRawVehicles();
     const featureCatalog = await this.getFeatureCatalog();
     const reservations = await this.getRawReservations();
@@ -7279,13 +7540,13 @@ class PostgresStore implements DemoStore {
     return buildFreightEstimate(freightDestinations, freightPorts, freightRateRecords, request);
   }
 
-  async createEnquiry(request: EnquiryRequest, customerId?: string): Promise<EnquiryResponse> {
+  async createEnquiry(request: EnquiryRequest, customerId = 'cust-123'): Promise<EnquiryResponse> {
     const rawVehicles = await this.getRawVehicles();
     const prepared = prepareEnquiry(rawVehicles, freightDestinations, freightPorts, freightRateRecords, request, FREIGHT_REFERENCE_DATE, customerId);
     const dedupeKey = buildEnquiryDedupeKey(prepared);
 
     const existingResult = await this.pool.query(
-      `${ENQUIRY_SELECT_COLUMNS} FROM enquiries WHERE dedupe_key = $1 LIMIT 1`,
+      `${ENQUIRY_SELECT_COLUMNS}${ENQUIRY_FROM} WHERE e.dedupe_key = $1 LIMIT 1`,
       [dedupeKey]
     );
 
@@ -7300,13 +7561,10 @@ class PostgresStore implements DemoStore {
     const id = `enq-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     const receivedAt = new Date().toISOString();
     await this.pool.query(
-      'INSERT INTO enquiries (id, dedupe_key, name, email, phone, message, consent, vehicle_slug, destination_code, port_code, rate_status, currency, rate_effective_from, rate_effective_to, estimate_message, received_at, enquiry_type, source, duplicate_resubmission_count, preferred_make, preferred_model, preferred_drive_side, preferred_year, target_price_usd, customer_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25)',
+      'INSERT INTO enquiries (id, dedupe_key, message, consent, vehicle_slug, destination_code, port_code, rate_status, currency, rate_effective_from, rate_effective_to, estimate_message, received_at, enquiry_type, source, duplicate_resubmission_count, preferred_make, preferred_model, preferred_drive_side, preferred_year, target_price_usd, customer_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)',
       [
         id,
         dedupeKey,
-        prepared.name,
-        prepared.email,
-        prepared.phone,
         prepared.message,
         prepared.consent,
         prepared.vehicleSlug || null,
@@ -7326,7 +7584,7 @@ class PostgresStore implements DemoStore {
         prepared.preferredDriveSide || null,
         prepared.preferredYear || null,
         prepared.targetPriceUsd || null,
-        prepared.customerId || null,
+        prepared.customerId,
       ]
     );
 
@@ -7335,20 +7593,20 @@ class PostgresStore implements DemoStore {
   }
 
   async getLeadById(id: string): Promise<LeadRecord | null> {
-    const result = await this.pool.query(`${ENQUIRY_SELECT_COLUMNS} FROM enquiries WHERE id = $1 LIMIT 1`, [id]);
+    const result = await this.pool.query(`${ENQUIRY_SELECT_COLUMNS}${ENQUIRY_FROM} WHERE e.id = $1 LIMIT 1`, [id]);
     const row = result.rows[0];
     return row ? toLeadRecord(rowToEnquiryRecord(row)) : null;
   }
 
   async listLeads(): Promise<LeadListResponse> {
-    const result = await this.pool.query(`${ENQUIRY_SELECT_COLUMNS} FROM enquiries ORDER BY received_at ASC, id ASC`);
+    const result = await this.pool.query(`${ENQUIRY_SELECT_COLUMNS}${ENQUIRY_FROM} ORDER BY e.received_at ASC, e.id ASC`);
     const items = result.rows.map((row) => toLeadRecord(rowToEnquiryRecord(row)));
     return { items, total: items.length };
   }
 
   async listCustomerInquiries(customerId: string): Promise<CustomerInquiryListResponse> {
     const result = await this.pool.query(
-      `${ENQUIRY_SELECT_COLUMNS} FROM enquiries WHERE customer_id = $1 AND enquiry_type = 'price-request' ORDER BY received_at DESC`,
+      `${ENQUIRY_SELECT_COLUMNS}${ENQUIRY_FROM} WHERE e.customer_id = $1 AND e.enquiry_type = 'price-request' ORDER BY e.received_at DESC`,
       [customerId]
     );
 
@@ -7362,7 +7620,7 @@ class PostgresStore implements DemoStore {
       const vehicle = vehicles.find((v) => generateVehicleSlug(v.year, v.make, v.model, v.id) === slug);
 
       const countResult = await this.pool.query(
-        `SELECT COUNT(DISTINCT COALESCE(customer_id, email)) as inquirer_count FROM enquiries WHERE vehicle_slug = $1 AND enquiry_type = 'price-request'`,
+        `SELECT COUNT(DISTINCT customer_id) as inquirer_count FROM enquiries WHERE vehicle_slug = $1 AND enquiry_type = 'price-request'`,
         [slug]
       );
       const inquirerCount = Number(countResult.rows[0].inquirer_count);
@@ -7377,23 +7635,6 @@ class PostgresStore implements DemoStore {
     }
 
     return { items };
-  }
-
-  async getVehicleInquiryAggregate(vehicleSlugOrId: string): Promise<VehicleInquiryAggregate> {
-    const rawVehicles = await this.getRawVehicles();
-    const vehicle = findVehicleRecord(rawVehicles, vehicleSlugOrId);
-    const vehicleSlug = vehicle ? generateVehicleSlug(vehicle.year, vehicle.make, vehicle.model, vehicle.id) : vehicleSlugOrId;
-
-    const countResult = await this.pool.query(
-      `SELECT COUNT(DISTINCT COALESCE(customer_id, email)) as inquirer_count FROM enquiries WHERE vehicle_slug = $1 AND enquiry_type = 'price-request'`,
-      [vehicleSlug]
-    );
-    const inquirerCount = Number(countResult.rows[0]?.inquirer_count || 0);
-
-    return {
-      vehicleSlug,
-      inquirerCount,
-    };
   }
 
   private static rowToReservationRecord(row: Record<string, unknown>): ReservationRecord {
@@ -7468,7 +7709,7 @@ class PostgresStore implements DemoStore {
   // Phase 1.7 Content methods for PostgresStore
   async getFaqs(query?: { category?: string; q?: string }): Promise<FaqQueryResponse> {
     const catResult = await this.pool.query('SELECT id, name, description, sort_order FROM faq_categories ORDER BY sort_order ASC');
-    const itemResult = await this.pool.query('SELECT id, category_id, category_name, question, answer, slug, featured, sort_order, owner, status, updated_at FROM faq_items WHERE status = $1 ORDER BY sort_order ASC', ['approved']);
+    const itemResult = await this.pool.query('SELECT f.id, f.category_id, c.name AS category_name, f.question, f.answer, f.slug, f.featured, f.sort_order, f.owner, f.status, f.updated_at FROM faq_items f JOIN faq_categories c ON c.id=f.category_id WHERE f.status = $1 ORDER BY f.sort_order ASC', ['approved']);
 
     const categories: FaqCategory[] = catResult.rows.map((row) => ({
       id: row.id,
@@ -7600,10 +7841,7 @@ class PostgresStore implements DemoStore {
       teamMembers: JSON.parse(row.team_members),
       meetAndGreetInfo: row.meet_and_greet_info,
       contactDetails: JSON.parse(row.contact_details),
-      contentOwner: row.content_owner,
       status: row.status as ContentApprovalStatus,
-      latestArrivalsQuery: row.latest_arrivals_query ? JSON.parse(row.latest_arrivals_query) : undefined,
-      recentlyDiscountedQuery: row.recently_discounted_query ? JSON.parse(row.recently_discounted_query) : undefined,
     }));
     return { items, total: items.length };
   }
@@ -7623,10 +7861,7 @@ class PostgresStore implements DemoStore {
       teamMembers: JSON.parse(row.team_members),
       meetAndGreetInfo: row.meet_and_greet_info,
       contactDetails: JSON.parse(row.contact_details),
-      contentOwner: row.content_owner,
       status: row.status as ContentApprovalStatus,
-      latestArrivalsQuery: row.latest_arrivals_query ? JSON.parse(row.latest_arrivals_query) : undefined,
-      recentlyDiscountedQuery: row.recently_discounted_query ? JSON.parse(row.recently_discounted_query) : undefined,
     };
   }
 
@@ -7691,13 +7926,6 @@ class PostgresStore implements DemoStore {
 
     const notificationUnreadCount = this.notifications.filter((n) => n.customerId === customerId && !n.isRead).length;
 
-    const partialFailureIndicators = {
-      paymentsFailed: false,
-      shipmentsFailed: false,
-      documentsFailed: false,
-      notificationsFailed: false,
-    };
-
     return {
       customerId,
       customerEmail,
@@ -7707,12 +7935,10 @@ class PostgresStore implements DemoStore {
       vehicleCountReserved: reservedVehicleIds.size,
       vehicleCountInvoiced: invoicedVehicleIds.size,
       vehicleCountDelivered: deliveredVehicleIds.size,
-      lastUpdated: new Date().toISOString(),
       paymentStatusSummary,
       shipmentStatusSummary,
       documentAvailabilityCount,
       notificationUnreadCount,
-      partialFailureIndicators,
     };
   }
 
@@ -7818,27 +8044,6 @@ class PostgresStore implements DemoStore {
     await this.ensureCustomerFleetDataInPostgres(customerId);
     const notifications = await this.getRawNotifications(customerId);
     return queryCustomerNotifications(notifications, query);
-  }
-
-  async getCustomerNotification(customerId: string, notificationId: string): Promise<Notification | null> {
-    await this.ensureCustomerFleetDataInPostgres(customerId);
-    const res = await this.pool.query('SELECT * FROM notifications WHERE customer_id = $1 AND id = $2', [customerId, notificationId]);
-    if (res.rows.length === 0) return null;
-    const row = res.rows[0];
-    return toCustomerNotification({
-      id: row.id,
-      customerId: row.customer_id,
-      title: row.title || undefined,
-      message: row.message,
-      type: row.type as any,
-      isRead: Boolean(row.is_read),
-      createdAt: row.created_at,
-      related: row.related_kind ? {
-        kind: row.related_kind,
-        id: row.related_id,
-        href: row.related_href,
-      } : undefined,
-    });
   }
 
   async markCustomerNotificationRead(customerId: string, notificationId: string): Promise<Notification | null> {
@@ -8010,38 +8215,6 @@ class PostgresStore implements DemoStore {
       return toCustomerPayment(record, invoices, allocations);
     });
     return { items, total: items.length };
-  }
-
-  async getCustomerPayment(customerId: string, id: string): Promise<CustomerPayment | null> {
-    await this.ensureCustomerFleetDataInPostgres(customerId);
-    const invoices = await this.getRawInvoices(customerId);
-    const allocations = await this.getRawAllocations(customerId);
-    const result = await this.pool.query(
-      'SELECT id, customer_id, invoice_id, amount_usd, paid_at, status, reference, bank_name, currency, remarks FROM payments WHERE customer_id = $1 AND id = $2',
-      [customerId, id]
-    );
-    if (result.rows.length === 0) {
-      const payment = this.paymentRecords.find((candidate) => candidate.customerId === customerId && candidate.id === id);
-      return payment ? toCustomerPayment(payment, invoices, allocations) : null;
-    }
-    const row = result.rows[0];
-    const memoryMatch = this.paymentRecords.find((p) => p.id === row.id);
-    const record: PaymentRecord = {
-      id: row.id,
-      customerId: row.customer_id,
-      invoiceId: row.invoice_id,
-      amountUsd: Number(row.amount_usd),
-      paidAt: row.paid_at,
-      paymentDate: row.paid_at.slice(0, 10),
-      status: row.status as any,
-      reference: row.reference || memoryMatch?.reference || `TT-${row.id.replace(/^pay-/, '').toUpperCase()}`,
-      bankName: row.bank_name || memoryMatch?.bankName || 'Sumitomo Mitsui Banking Corp (USD)',
-      currency: row.currency || memoryMatch?.currency || 'USD',
-      remarks: row.remarks || memoryMatch?.remarks || 'None',
-      proof: memoryMatch?.proof,
-      idempotencyKey: memoryMatch?.idempotencyKey,
-    };
-    return toCustomerPayment(record, invoices, allocations);
   }
 
   async createCustomerPayment(customerId: string, request: CreateCustomerPaymentRequest, nowISO = new Date().toISOString()): Promise<CustomerPayment> {
@@ -8466,7 +8639,28 @@ class PostgresStore implements DemoStore {
     const client = await this.pool.connect();
     try {
       await client.query('BEGIN');
+      // Clear dependent rows first now that the normalization migration has
+      // added foreign keys to the vehicle and FAQ reference rows.
+      await client.query('DELETE FROM faq_items');
+      await client.query('DELETE FROM reservations');
+      await client.query('DELETE FROM wishlist_items');
+      await client.query('DELETE FROM favourite_searches');
+      await client.query('DELETE FROM allocations');
+      await client.query('DELETE FROM payment_notifications');
+      await client.query('DELETE FROM payments');
+      await client.query('DELETE FROM documents');
+      await client.query('DELETE FROM shipments');
+      await client.query('DELETE FROM proforma_invoices');
+      await client.query('DELETE FROM invoices');
+      await client.query('DELETE FROM vehicle_feature_assignments');
+      await client.query('DELETE FROM vehicle_category_assignments');
       await client.query('DELETE FROM vehicles');
+      await client.query('DELETE FROM vehicle_categories');
+      await client.query('DELETE FROM vehicle_models');
+      await client.query('DELETE FROM vehicle_makes');
+      for (const table of Object.values(vehicleReferenceTables).filter((table) => table !== vehicleReferenceTables.make && table !== vehicleReferenceTables.model)) {
+        await client.query(`DELETE FROM ${table}`);
+      }
       await client.query('DELETE FROM vehicle_feature_catalog');
       await client.query('DELETE FROM public_config');
       await client.query('DELETE FROM enquiries');
@@ -8478,6 +8672,7 @@ class PostgresStore implements DemoStore {
       await client.query('DELETE FROM office_locations');
       await client.query('DELETE FROM branch_content');
       await client.query('DELETE FROM password_reset_outbox');
+      await client.query('DELETE FROM notifications');
       await client.query('DELETE FROM customer_accounts');
       await client.query('DELETE FROM wishlist_items');
       await client.query('DELETE FROM favourite_searches');
@@ -8509,6 +8704,15 @@ class PostgresStore implements DemoStore {
           seedAccount.updatedAt,
           seedAccount.passwordUpdatedAt,
         ]
+      );
+      const otherSeedAccount = buildSeedOtherCustomerAccount();
+      await client.query(
+        `INSERT INTO customer_accounts (id, customer_id, name_with_initials, country_code, dial_code, mobile_number, email, password_hash, password_salt, status, verification_state, created_at, updated_at, password_updated_at)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
+        [otherSeedAccount.id, otherSeedAccount.customerId, otherSeedAccount.nameWithInitials, otherSeedAccount.countryCode,
+          otherSeedAccount.dialCode, otherSeedAccount.mobileNumber, otherSeedAccount.email, otherSeedAccount.passwordHash,
+          otherSeedAccount.passwordSalt, otherSeedAccount.status, otherSeedAccount.verificationState, otherSeedAccount.createdAt,
+          otherSeedAccount.updatedAt, otherSeedAccount.passwordUpdatedAt],
       );
 
       await client.query('INSERT INTO public_config (id, site_name, currency, contact_phone) VALUES (1, $1, $2, $3)', [
@@ -8576,7 +8780,7 @@ class PostgresStore implements DemoStore {
         await client.query('INSERT INTO faq_categories (id, name, description, sort_order) VALUES ($1, $2, $3, $4)', [cat.id, cat.name, cat.description || null, cat.order]);
       }
       for (const item of seedFaqItems) {
-        await client.query('INSERT INTO faq_items (id, category_id, category_name, question, answer, slug, featured, sort_order, owner, status, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)', [item.id, item.categoryId, item.categoryName, item.question, item.answer, item.slug, item.featured ?? false, item.order || 1, item.owner, item.status, item.updatedAt]);
+        await client.query('INSERT INTO faq_items (id, category_id, question, answer, slug, featured, sort_order, owner, status, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)', [item.id, item.categoryId, item.question, item.answer, item.slug, item.featured ?? false, item.order || 1, item.owner, item.status, item.updatedAt]);
       }
       for (const testim of seedTestimonials) {
         await client.query('INSERT INTO testimonials (id, author_name, author_location, avatar_url, vehicle_purchased, rating, content, submitted_at, status, consent) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)', [testim.id, testim.authorName, testim.authorLocation, testim.avatarUrl || null, testim.vehiclePurchased || null, testim.rating, testim.content, testim.submittedAt, testim.status, testim.consent]);
@@ -8588,7 +8792,7 @@ class PostgresStore implements DemoStore {
         await client.query('INSERT INTO office_locations (id, name, city, country, address, phone, email, operating_hours, is_primary, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)', [office.id, office.name, office.city, office.country, office.address, office.phone, office.email, office.operatingHours, office.isPrimary, office.status]);
       }
       for (const branch of seedBranches) {
-        await client.query('INSERT INTO branch_content (id, name, code, destination_port, introduction, welcome_banner, contact_banner, team_members, meet_and_greet_info, contact_details, content_owner, status, latest_arrivals_query, recently_discounted_query) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)', [branch.id, branch.name, branch.code, branch.destinationPort, branch.introduction, branch.welcomeBanner, branch.contactBanner, JSON.stringify(branch.teamMembers), branch.meetAndGreetInfo, JSON.stringify(branch.contactDetails), branch.contentOwner, branch.status, branch.latestArrivalsQuery ? JSON.stringify(branch.latestArrivalsQuery) : null, branch.recentlyDiscountedQuery ? JSON.stringify(branch.recentlyDiscountedQuery) : null]);
+        await client.query('INSERT INTO branch_content (id, name, code, destination_port, introduction, welcome_banner, contact_banner, team_members, meet_and_greet_info, contact_details, content_owner, status, latest_arrivals_query, recently_discounted_query) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)', [branch.id, branch.name, branch.code, branch.destinationPort, branch.introduction, branch.welcomeBanner, branch.contactBanner, JSON.stringify(branch.teamMembers), branch.meetAndGreetInfo, JSON.stringify(branch.contactDetails), null, branch.status, null, null]);
       }
 
       await client.query('COMMIT');
@@ -8599,6 +8803,9 @@ class PostgresStore implements DemoStore {
       this.allocations = seedAllocations.map((allocation) => ({ ...allocation }));
 
       await this.ensureCustomerFleetDataInPostgres(seedAccount.customerId, seedAccount.email);
+      await this.ensureCustomerFleetDataInPostgres('user-other-456', 'other@example.com');
+      await this.ensureMockRelationalFixtures();
+      await this.backfillVehicleReferences();
     } catch (error) {
       await client.query('ROLLBACK');
       throw error;
@@ -8620,11 +8827,6 @@ class PostgresStore implements DemoStore {
   listCustomerPolymorphicInquiries(customerId: string): Promise<CustomerPolymorphicInquiryListResponse> {
     const memory = new MemoryStore();
     return memory.listCustomerPolymorphicInquiries(customerId);
-  }
-
-  getCustomerPairedAccounts(customerId: string): Promise<CustomerPairedAccount[]> {
-    const memory = new MemoryStore();
-    return memory.getCustomerPairedAccounts(customerId);
   }
 
   async close(): Promise<void> {

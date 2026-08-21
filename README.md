@@ -58,6 +58,54 @@ This account is a development fixture for local testing. It is separate from
 the POC account above. The Public Web registration page is available at
 [http://127.0.0.1:3000/register](http://127.0.0.1:3000/register).
 
+## Explore the Mock API with Swagger UI
+
+The Mock API exposes an interactive Swagger UI for viewing and trying the
+available API endpoints.
+
+### Start the Mock API
+
+Start the frontend Compose stack from the repository root:
+
+```bash
+docker compose -f docker-compose.frontend.yml up -d
+```
+
+The Mock API runs on port `4000` inside Docker and is bound to localhost on the
+Docker host by default.
+
+### Open Swagger UI
+
+Open this URL in a browser on the Docker host:
+
+[http://127.0.0.1:4000/swagger](http://127.0.0.1:4000/swagger)
+
+The raw OpenAPI document is available at:
+
+[http://127.0.0.1:4000/openapi.json](http://127.0.0.1:4000/openapi.json)
+
+In Swagger UI, expand an endpoint, select **Try it out**, enter any required
+parameters, and click **Execute** to send a request to the Mock API.
+
+### Verify the Mock API
+
+The health endpoint is:
+
+[http://127.0.0.1:4000/healthz](http://127.0.0.1:4000/healthz)
+
+You can also check the container status and logs:
+
+```bash
+docker compose -f docker-compose.frontend.yml ps mock-api
+docker compose -f docker-compose.frontend.yml logs -f mock-api
+```
+
+The Mock API port can be changed with `CARCHIEF_MOCK_API_PORT` in a local
+`.env` file. The Swagger URL must use the same host port. The API is bound to
+`127.0.0.1` by default and is not directly available from other computers on
+the LAN. Remote users should access the public website through its same-origin
+API proxy instead of connecting directly to the Mock API.
+
 ### Share the web apps on a local network
 
 The frontend Compose stack publishes the Public Web and Customer App on all
@@ -75,28 +123,54 @@ TCP ports 3000 and 3001 through the computer's firewall only on a trusted
 local network; this configuration is for development and is not a production
 deployment.
 
-## Inspect the Mock PostgreSQL database with pgAdmin
+## Connect to the Mock Database with pgAdmin
 
 The frontend Compose stack includes a local-only pgAdmin container for browsing
-the Mock API database. Start the stack with:
+the Mock API PostgreSQL database.
+
+### 1. Start the database and pgAdmin
+
+From the repository root, run:
 
 ```bash
 docker compose -f docker-compose.frontend.yml up -d
 ```
 
-Open [http://127.0.0.1:5050](http://127.0.0.1:5050) and sign in with:
+Wait until the `postgres` and `pgadmin` services are healthy:
+
+```bash
+docker compose -f docker-compose.frontend.yml ps
+```
+
+### 2. Open pgAdmin in a browser
+
+On the computer running Docker, open:
+
+[http://127.0.0.1:5050](http://127.0.0.1:5050)
+
+If `CARCHIEF_PGADMIN_PORT` was changed in the local `.env` file, replace
+`5050` with that configured port.
+
+### 3. Sign in to pgAdmin
+
+Use the default development credentials:
 
 - Email: `admin@carchief.dev`
 - Password: `carchief_pgadmin_dev_pass`
 
-You can override the host port and login values in a local `.env` file using
-`CARCHIEF_PGADMIN_PORT`, `PGADMIN_DEFAULT_EMAIL`, and
-`PGADMIN_DEFAULT_PASSWORD`. Do not commit real credentials or local `.env`
-files.
+These values can be overridden in a local `.env` file with
+`PGADMIN_DEFAULT_EMAIL` and `PGADMIN_DEFAULT_PASSWORD`. The browser URL can be
+changed with `CARCHIEF_PGADMIN_PORT`. Do not commit real credentials or local
+`.env` files.
 
-To register the Mock PostgreSQL server in pgAdmin, right-click **Servers** and
-choose **Register > Server**. Use any display name, then enter these values on
-the **Connection** tab:
+### 4. Register the PostgreSQL server
+
+After signing in:
+
+1. In the left sidebar, right-click **Servers**.
+2. Select **Register > Server**.
+3. On the **General** tab, enter any name, such as `CarChief Mock Database`.
+4. Open the **Connection** tab and enter:
 
 - Host name/address: `postgres`
 - Port: `5432`
@@ -104,12 +178,41 @@ the **Connection** tab:
 - Username: `carchief`
 - Password: `carchief_dev_pass`
 
-Save the server, expand **Databases > carchief_mock > Schemas > public >
-Tables**, and select a table to view its columns and data. The hostname
-`postgres` works because pgAdmin and PostgreSQL share the Compose network; do
-not use `127.0.0.1` for this connection.
+5. Optionally enable **Save password**.
+6. Click **Save**.
 
-Stop the stack with:
+The hostname `postgres` is the Docker Compose service name. It works because
+the pgAdmin and PostgreSQL containers share the same Docker network. Do not
+use `127.0.0.1` in this pgAdmin connection field.
+
+### 5. Browse tables and data
+
+Expand:
+
+`Servers > CarChief Mock Database > Databases > carchief_mock > Schemas > public > Tables`
+
+Right-click a table and choose **View/Edit Data > All Rows** to inspect the
+mock records. Use **Query Tool** from the database menu to run SQL queries.
+
+The Compose file does not publish PostgreSQL to the host; therefore, an
+external pgAdmin installation cannot connect to this database by using
+`127.0.0.1:5432` unless you intentionally add a PostgreSQL port mapping. The
+included pgAdmin container is the supported development connection. To confirm
+the containers are ready, run:
+
+```bash
+docker compose -f docker-compose.frontend.yml ps
+docker compose -f docker-compose.frontend.yml logs postgres pgadmin
+```
+
+The pgAdmin web interface is intentionally bound to `127.0.0.1`, so it is
+available only on the Docker host. Do not expose pgAdmin or PostgreSQL to a
+LAN in development unless you also configure authentication and firewall
+rules appropriately.
+
+### 6. Stop the stack
+
+Stop the services while retaining the database data volumes:
 
 ```bash
 docker compose -f docker-compose.frontend.yml down

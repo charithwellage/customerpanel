@@ -835,3 +835,655 @@
   margin-top: 1rem;
 }
 
+/* ==========================================================================
+   Customer Actions & Get Free Quote Card (Car View Section)
+   ========================================================================== */
+.cc-detail-customer-actions-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+  position: relative;
+  overflow: hidden;
+}
+
+.cc-detail-customer-actions-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #dc2626 0%, #ef4444 100%);
+}
+
+.cc-actions-card-top {
+  margin-bottom: 1.25rem;
+}
+
+.cc-actions-badge-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.cc-actions-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.cc-actions-stock-tag {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #6b7280;
+  letter-spacing: 0.03em;
+}
+
+.cc-actions-title {
+  font-family: var(--font-display, 'Barlow', 'Plus Jakarta Sans', sans-serif);
+  font-size: 1.3rem;
+  font-weight: 900;
+  color: #111827;
+  letter-spacing: 0.01em;
+  margin: 0 0 0.4rem;
+  text-transform: uppercase;
+}
+
+.cc-actions-subtitle {
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: #4b5563;
+  margin: 0;
+}
+
+.cc-customer-actions-btn-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+@media (max-width: 640px) {
+  .cc-customer-actions-btn-group {
+    grid-template-columns: 1fr;
+  }
+}
+
+.cc-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 0.95rem 1.25rem;
+  border-radius: 8px;
+  font-family: var(--font-display, 'Barlow', 'Plus Jakarta Sans', sans-serif);
+  font-size: 0.95rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: all 180ms cubic-bezier(0.16, 1, 0.3, 1);
+  border: none;
+}
+
+.cc-action-btn-quote {
+  background: #dc2626;
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.28);
+}
+
+.cc-action-btn-quote:hover {
+  background: #b91c1c;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(220, 38, 38, 0.38);
+}
+
+.cc-action-btn-wishlist {
+  background: #ffffff;
+  color: #374151;
+  border: 1.5px solid #d1d5db;
+}
+
+.cc-action-btn-wishlist:hover {
+  border-color: #9ca3af;
+  background: #f9fafb;
+  color: #111827;
+  transform: translateY(-1px);
+}
+
+.cc-action-btn-wishlist--active {
+  background: #fef2f2;
+  border-color: #fca5a5;
+  color: #dc2626;
+}
+
+.cc-action-toast-banner {
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #065f46;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 0.6rem 0.85rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  animation: fadeIn 200ms ease;
+}
+
+.cc-actions-features-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid #f3f4f6;
+  flex-wrap: wrap;
+}
+
+.cc-action-feature-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #4b5563;
+}
+
+.cc-feature-check {
+  color: #16a34a;
+  font-weight: 800;
+}
+
+/* Hero Price Card CTA Button */
+.cc-hero-quote-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 0.85rem 1rem;
+  background: #dc2626;
+  color: #ffffff;
+  font-family: var(--font-display, 'Barlow', 'Plus Jakarta Sans', sans-serif);
+  font-weight: 900;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  margin-bottom: 1rem;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.22);
+  transition: all 160ms ease;
+}
+
+.cc-hero-quote-btn:hover {
+  background: #b91c1c;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(220, 38, 38, 0.32);
+}
+
+/* ==========================================================================
+   Social Auth Modal for Free Quote
+   ========================================================================== */
+.cc-auth-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 1.25rem;
+  animation: fadeIn 200ms ease;
+}
+
+.cc-auth-modal-card {
+  background: #ffffff;
+  border-radius: 16px;
+  max-width: 480px;
+  width: 100%;
+  padding: 2.25rem 2rem 2rem;
+  position: relative;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+  animation: modalPop 240ms cubic-bezier(0.16, 1, 0.3, 1);
+  text-align: center;
+}
+
+@keyframes modalPop {
+  from {
+    opacity: 0;
+    transform: scale(0.94) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.cc-auth-modal-close-btn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #f3f4f6;
+  border: none;
+  font-size: 0.95rem;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.cc-auth-modal-close-btn:hover {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+.cc-auth-brand-badge {
+  font-family: var(--font-display, 'Barlow', 'Plus Jakarta Sans', sans-serif);
+  font-weight: 900;
+  font-size: 1.25rem;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.6rem;
+}
+
+.cc-auth-brand-car {
+  color: #111827;
+}
+
+.cc-auth-brand-chief {
+  color: #dc2626;
+}
+
+.cc-auth-brand-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 0.85rem;
+  margin-bottom: 0.85rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.cc-auth-brand-logo-group {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.cc-auth-shield-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0 2px 4px rgba(220, 38, 38, 0.3));
+}
+
+.cc-auth-brand-title {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+}
+
+.cc-auth-brand-car {
+  font-family: var(--font-display, 'Barlow', 'Plus Jakarta Sans', sans-serif);
+  font-size: 1.2rem;
+  font-weight: 900;
+  color: #111827;
+}
+
+.cc-auth-brand-chief {
+  font-family: var(--font-display, 'Barlow', 'Plus Jakarta Sans', sans-serif);
+  font-size: 1.2rem;
+  font-weight: 900;
+  color: #dc2626;
+}
+
+.cc-auth-brand-portal {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #64748b;
+  letter-spacing: 0.08em;
+}
+
+.cc-auth-online-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.55rem;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 9999px;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #16a34a;
+  letter-spacing: 0.06em;
+}
+
+.cc-auth-online-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 6px #22c55e;
+}
+
+.cc-auth-modal-title {
+  font-family: var(--font-display, 'Barlow', 'Plus Jakarta Sans', sans-serif);
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 0.35rem;
+}
+
+.cc-auth-modal-subtitle {
+  font-size: 0.84rem;
+  line-height: 1.5;
+  color: #64748b;
+  margin: 0 0 1rem;
+}
+
+.cc-auth-benefits-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 1.25rem;
+}
+
+.cc-auth-chip {
+  padding: 0.25rem 0.55rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.cc-auth-sso-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.cc-sso-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 0.65rem 1rem;
+  border-radius: 10px;
+  font-family: var(--font-display, 'Barlow', 'Plus Jakarta Sans', sans-serif);
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 180ms ease;
+  width: 100%;
+}
+
+.cc-sso-button--google {
+  background: #ffffff;
+  color: #1f2937;
+  border: 1.5px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.cc-sso-button--google:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+  transform: translateY(-1px);
+}
+
+.cc-sso-button--apple {
+  background: #000000;
+  color: #ffffff;
+  border: 1.5px solid #000000;
+}
+
+.cc-sso-button--apple:hover {
+  background: #1f2937;
+  border-color: #1f2937;
+  transform: translateY(-1px);
+}
+
+.cc-sso-button--ms {
+  background: #ffffff;
+  color: #1f2937;
+  border: 1.5px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.cc-sso-button--ms:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+  transform: translateY(-1px);
+}
+
+.cc-sso-icon {
+  flex-shrink: 0;
+}
+
+.cc-auth-modal-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 1rem 0;
+  color: #94a3b8;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.cc-auth-modal-divider::before,
+.cc-auth-modal-divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.cc-auth-modal-divider span {
+  padding: 0 0.75rem;
+}
+
+.cc-auth-error-box {
+  padding: 0.65rem 0.85rem;
+  background: #fef2f2;
+  border: 1px solid #f87171;
+  border-left: 3px solid #dc2626;
+  border-radius: 6px;
+  color: #991b1b;
+  font-size: 0.78rem;
+  font-weight: 600;
+  margin-bottom: 0.85rem;
+}
+
+.cc-auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+.cc-auth-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.cc-auth-label-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.cc-auth-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #1e293b;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.cc-auth-input {
+  width: 100%;
+  min-height: 42px;
+  padding: 0.6rem 0.85rem;
+  background: #f8fafc;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  color: #0f172a;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.cc-auth-input:focus {
+  outline: none;
+  background: #ffffff;
+  border-color: #dc2626;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
+}
+
+.cc-auth-password-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.cc-auth-input--password {
+  padding-right: 2.75rem;
+}
+
+.cc-auth-pwd-toggle {
+  position: absolute;
+  right: 0.65rem;
+  background: transparent;
+  border: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  opacity: 0.7;
+}
+
+.cc-auth-pwd-toggle:hover {
+  opacity: 1;
+}
+
+.cc-auth-forgot-btn {
+  padding: 0;
+  background: none;
+  border: none;
+  color: #dc2626;
+  font-size: 0.76rem;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.cc-auth-forgot-btn:hover {
+  color: #b91c1c;
+}
+
+.cc-auth-submit-btn {
+  width: 100%;
+  padding: 0.75rem 1.25rem;
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  font-family: var(--font-display, 'Barlow', 'Plus Jakarta Sans', sans-serif);
+  font-size: 0.92rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.35);
+  transition: all 180ms ease;
+}
+
+.cc-auth-submit-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+  box-shadow: 0 6px 20px rgba(220, 38, 38, 0.5);
+  transform: translateY(-1px);
+}
+
+.cc-auth-submit-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.cc-auth-modal-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: center;
+  padding-top: 0.75rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+.cc-auth-return-btn {
+  background: none;
+  border: none;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #dc2626;
+  cursor: pointer;
+  text-decoration: none;
+  transition: color 150ms ease;
+}
+
+.cc-auth-return-btn:hover {
+  color: #b91c1c;
+  text-decoration: underline;
+}
+
+.cc-auth-security-notice {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.cc-inquiry-auth-prompt {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 0.85rem;
+  margin-bottom: 0.75rem;
+  background: #fffbeb;
+  border: 1px solid #fef3c7;
+  border-left: 3px solid #f59e0b;
+  border-radius: 6px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: #92400e;
+}
+
+.cc-inquiry-auth-icon {
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+

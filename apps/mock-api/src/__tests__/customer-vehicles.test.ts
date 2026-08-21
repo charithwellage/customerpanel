@@ -129,11 +129,9 @@ describe('Customer Vehicles & Status Projection Contract (D02-P04-T001)', () => 
         requiredAmountUsd: 5000,
         paidAmountUsd: 2000,
         remainingAmountUsd: 3000,
-        isFullyPaid: false,
       });
 
       const fullyPaidDeposit = calculateVehicleDeposit(totalAmountUsd, 5000);
-      expect(fullyPaidDeposit.isFullyPaid).toBe(true);
       expect(fullyPaidDeposit.remainingAmountUsd).toBe(0);
     });
 

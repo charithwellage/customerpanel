@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import type { Server } from 'node:http';
 import { createStore } from '../store.js';
 import { createMockApiApp } from '../server.js';
-import type { CustomerInquiryListResponse, VehicleInquiryAggregate } from '@carchief/domain';
+import type { CustomerInquiryListResponse } from '@carchief/domain';
 import { issueSessionToken } from '@carchief/domain';
 
 const VALID_VEHICLE_SLUG = '2021-toyota-corolla-axio-veh-1';
@@ -161,102 +161,6 @@ describe('Customer inquiry list and vehicle inquiry aggregate (D02-P13-T001, CUS
     });
   });
 
-  describe('DemoStore.getVehicleInquiryAggregate', () => {
-    it('returns 0 for a vehicle with no quote requests', async () => {
-      const result = await store.getVehicleInquiryAggregate(VALID_VEHICLE_SLUG);
-      expect(result.inquirerCount).toBe(0);
-    });
-
-    it('returns the correct count with mixed authenticated and anonymous submitters', async () => {
-      await store.createEnquiry(
-        {
-          name: 'Customer A',
-          consent: true,
-          email: 'a@example.com',
-          phone: '+256700111111',
-          message: 'Quote.',
-          vehicleSlug: VALID_VEHICLE_SLUG,
-          enquiryType: 'price-request',
-        },
-        'cust-alice'
-      );
-      await store.createEnquiry(
-        {
-          name: 'Customer B',
-          consent: true,
-          email: 'b@example.com',
-          phone: '+256700222222',
-          message: 'Quote.',
-          vehicleSlug: VALID_VEHICLE_SLUG,
-          enquiryType: 'price-request',
-        },
-        'cust-bob'
-      );
-      await store.createEnquiry({
-        name: 'Anonymous',
-        consent: true,
-        email: 'anon@example.com',
-        phone: '+256700333333',
-        message: 'Quote.',
-        vehicleSlug: VALID_VEHICLE_SLUG,
-        enquiryType: 'price-request',
-      });
-
-      const result = await store.getVehicleInquiryAggregate(VALID_VEHICLE_SLUG);
-      expect(result.inquirerCount).toBe(3);
-    });
-
-    it('counts only price-request enquiries, ignoring other types', async () => {
-      await store.createEnquiry(
-        {
-          name: 'Customer',
-          consent: true,
-          email: 'customer@example.com',
-          phone: '+256700111111',
-          message: 'Quote.',
-          vehicleSlug: VALID_VEHICLE_SLUG,
-          enquiryType: 'price-request',
-        },
-        'cust-alice'
-      );
-      await store.createEnquiry({
-        name: 'General Inquiry',
-        consent: true,
-        email: 'other@example.com',
-        phone: '+256700222222',
-        message: 'General question.',
-        vehicleSlug: VALID_VEHICLE_SLUG,
-        enquiryType: 'vehicle',
-      });
-
-      const result = await store.getVehicleInquiryAggregate(VALID_VEHICLE_SLUG);
-      expect(result.inquirerCount).toBe(1);
-    });
-
-    it('survives a reset operation', async () => {
-      await store.createEnquiry(
-        {
-          name: 'Customer',
-          consent: true,
-          email: 'customer@example.com',
-          phone: '+256700111111',
-          message: 'Quote.',
-          vehicleSlug: VALID_VEHICLE_SLUG,
-          enquiryType: 'price-request',
-        },
-        'cust-alice'
-      );
-
-      let result = await store.getVehicleInquiryAggregate(VALID_VEHICLE_SLUG);
-      expect(result.inquirerCount).toBe(1);
-
-      await store.reset();
-
-      result = await store.getVehicleInquiryAggregate(VALID_VEHICLE_SLUG);
-      expect(result.inquirerCount).toBe(0);
-    });
-  });
-
   describe('HTTP contract via Express app', () => {
     it('debug: verify enquiry was created with customerId', async () => {
       const customerSub = 'debug@example.com';
@@ -292,57 +196,13 @@ describe('Customer inquiry list and vehicle inquiry aggregate (D02-P13-T001, CUS
     });
 
 
-    it('serves GET /api/v1/vehicles/{idOrSlug}/inquiry-count returning the aggregate', async () => {
+    it('does not expose the removed vehicle inquiry-count endpoint', async () => {
       const { server, port } = await startServer(store);
       try {
-        await store.createEnquiry(
-          {
-            name: 'Customer A',
-            consent: true,
-            email: 'a@example.com',
-            phone: '+256700111111',
-            message: 'Quote.',
-            vehicleSlug: VALID_VEHICLE_SLUG,
-            enquiryType: 'price-request',
-          },
-          'cust-alice'
-        );
-        await store.createEnquiry(
-          {
-            name: 'Customer B',
-            consent: true,
-            email: 'b@example.com',
-            phone: '+256700222222',
-            message: 'Quote.',
-            vehicleSlug: VALID_VEHICLE_SLUG,
-            enquiryType: 'price-request',
-          },
-          'cust-bob'
-        );
-
-        const res = await fetch(`http://localhost:${port}/api/v1/vehicles/${VALID_VEHICLE_SLUG}/inquiry-count`, {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' },
-        });
-        expect(res.status).toBe(200);
-        const data = (await res.json()) as VehicleInquiryAggregate;
-        expect(data.inquirerCount).toBe(2);
-      } finally {
-        await new Promise((resolve) => server.close(resolve));
-      }
-    });
-
-    it('serves GET /api/v1/vehicles/{idOrSlug}/inquiry-count 404 for an unknown vehicle', async () => {
-      const { server, port } = await startServer(store);
-      try {
-        const res = await fetch(`http://localhost:${port}/api/v1/vehicles/not-a-vehicle/inquiry-count`, {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' },
-        });
+        const res = await fetch(`http://localhost:${port}/api/v1/vehicles/${VALID_VEHICLE_SLUG}/inquiry-count`);
         expect(res.status).toBe(404);
       } finally {
         await new Promise((resolve) => server.close(resolve));
       }
     });
-  });
 });

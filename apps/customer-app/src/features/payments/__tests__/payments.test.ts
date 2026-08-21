@@ -43,7 +43,6 @@ const event = (name: CustomerPaymentNotification['event']): CustomerPaymentNotif
   paymentId: 'pay-test',
   invoiceId: 'inv-003',
   event: name,
-  deliveryStatus: 'Queued',
   createdAt: '2026-08-14T00:00:00.000Z',
 });
 

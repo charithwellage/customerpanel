@@ -55,7 +55,7 @@ describe('Public Route Metadata (PUB-11, DEC-PUB-SEO-SCOPE)', () => {
       status: 'Available',
       priceState: 'priced',
       priceUsd: 28500,
-      media: { gallery: ['https://example.com/rav4.jpg'], totalPicturesCount: 1 },
+  media: { gallery: ['https://example.com/rav4.jpg'] },
       locationStatus: 'In Japan',
       bodyStyle: 'SUV',
     });

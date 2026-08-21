@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import type { CustomerVehicleSummary } from '@carchief/domain';
 import { useDashboard } from './useDashboard.js';
 import { useCustomerShell } from '../shell/index.js';
@@ -23,19 +23,36 @@ import {
 export const OverviewPage: React.FC = () => {
   const { user, pairedAccounts, switchAccount, setActiveRoute } = useCustomerShell();
   const { data: dashboard, isLoading, error } = useDashboard();
-  const { data: vehiclesData, isLoading: isLoadingVehicles } = useCustomerVehicles();
-  const { data: invoicesData, isLoading: isLoadingInvoices } = useCustomerInvoices();
-  const { data: notificationsData, isLoading: isLoadingNotifications } = useCustomerNotifications('all', '');
+  const { data: vehiclesData } = useCustomerVehicles();
+  const { data: invoicesData } = useCustomerInvoices();
+  const { data: notificationsData } = useCustomerNotifications('all', '');
   const { inquiries } = useCustomerInquiries();
   const { data: profile } = useCustomerProfile();
   const { data: documents } = useDocuments();
-  const { data: shipmentsData, isLoading: isLoadingShipments } = useShipments();
+  const { data: shipmentsData } = useShipments();
 
   const [selectedTrackingVehicle, setSelectedTrackingVehicle] = useState<CustomerVehicleSummary | null>(null);
 
-  const displayName = user?.name || profile?.name || 'Charith Wellage';
+  const displayName = user?.name || profile?.name || 'Rameez';
+  const firstName = displayName.split(' ')[0] || displayName;
   const customerId = user?.id || profile?.customerId || dashboard?.customerId || 'USR-78291';
   const country = profile?.deliveryAddress || user?.company || 'Kenya';
+
+  // Dynamic time-based greeting
+  const greeting = useMemo(() => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 18) return 'Good afternoon';
+    return 'Good evening';
+  }, []);
+
+  // Formatted current date e.g. "Thu 20 Aug"
+  const formattedToday = useMemo(() => {
+    const now = new Date();
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return `${days[now.getDay()]} ${now.getDate()} ${months[now.getMonth()]}`;
+  }, []);
 
   // Financial values
   const totalInvoicedUsd = invoicesData?.totals?.totalInvoicedUsd ?? dashboard?.outstandingBalanceUsd ?? 284000;
@@ -51,10 +68,6 @@ export const OverviewPage: React.FC = () => {
   const isCreditBalance = outstandingBalance < 0;
 
   // 4 Purchased Vehicles Statuses (FRD 2.9)
-  // Ready to Ship: still in Japan (without ETD or ETD not crossed)
-  // In Transit: crossed ETD and future ETA
-  // Arrived to Port: crossed ATA
-  // Delivered: marked as Delivered
   const allVehicles = vehiclesData?.items || [];
   const readyToShipCount = allVehicles.filter(
     (v) =>
@@ -93,7 +106,7 @@ export const OverviewPage: React.FC = () => {
   const wishlistPriceDropsCount = 3;
 
   // 6 Most Recent Purchases (FRD 2.16) - Sorted newest to oldest
-  const recentPurchases = React.useMemo(() => {
+  const recentPurchases = useMemo(() => {
     const defaultPurchases = [
       { id: 'veh-rp-1', make: 'Toyota', model: 'Land Cruiser 250', yom: '2024', purchaseDate: '2026-08-10', invoiceNumber: 'INV-34503' },
       { id: 'veh-rp-2', make: 'Toyota', model: 'Raize Z', yom: '2024', purchaseDate: '2026-08-08', invoiceNumber: 'INV-90745' },
@@ -118,7 +131,7 @@ export const OverviewPage: React.FC = () => {
   }, [allVehicles]);
 
   // 4 Recent Shipment Updates (FRD 2.17)
-  const recentShipmentUpdates = React.useMemo(() => {
+  const recentShipmentUpdates = useMemo(() => {
     if (!allVehicles || allVehicles.length === 0) {
       return [
         { id: 'veh-6', make: 'Toyota', model: 'Land Cruiser 250', yom: '2024', stockNumber: 'LC250-9842', updateDate: '2026-08-16', status: 'VESSEL BOOKED' },
@@ -153,148 +166,362 @@ export const OverviewPage: React.FC = () => {
         </div>
       )}
 
-      {/* 1. TOP WELCOME & SWITCH ACCOUNT HEADER (FRD 2.2 & 2.4) */}
-      <section className="cc-dash-welcome-card" aria-labelledby="dash-welcome-title">
-        <div className="cc-dash-welcome-left">
-          <div className="cc-dash-badge-row">
-            <span className="cc-dash-pill-badge cc-dash-pill-badge--security">
-              <SecurityShieldIcon size={14} className="cc-dash-badge-icon" />
-              SECURE CLIENT SESSION
-            </span>
-            <span className="cc-dash-pill-badge cc-dash-pill-badge--active">
-              <span className="cc-dash-dot-indicator" aria-hidden="true" />
-              ACTIVE
-            </span>
-          </div>
-
-          <h1 id="dash-welcome-title" className="cc-dash-welcome-title">
-            Welcome Mr./Ms. <span className="cc-dash-title-highlight">{displayName}</span>
+      {/* 1. TOP AIRY GREETING HEADER (Matching Reference UI) */}
+      <section className="cc-dash-hero-header" aria-labelledby="dash-welcome-title">
+        <div className="cc-dash-hero-left">
+          <span className="cc-dash-hero-overline">MY WORKSPACE</span>
+          <h1 id="dash-welcome-title" className="cc-dash-hero-title">
+            {greeting}, <span className="cc-dash-hero-name">{firstName}.</span>
           </h1>
-
-          <p className="cc-dash-welcome-desc">
-            Direct executive dashboard for <strong className="cc-dash-highlight-text">{country}</strong>. Monitor purchased vehicles, live ocean tracking, proforma orders, and multi-currency accounts.
+          <p className="cc-dash-hero-subtext">
+            Here is what your vehicle fleet and transactions look like right now.
           </p>
         </div>
 
-        {/* Switch Account Dropdown (FRD 2.4) */}
-        <div className="cc-dash-welcome-right">
-          <div className="cc-dash-account-switch-box">
-            <label htmlFor="dash-account-switch" className="cc-dash-account-switch-label">
-              SWITCH PAIRED ACCOUNT:
-            </label>
+        <div className="cc-dash-hero-right">
+          <div className="cc-dash-date-badge">
+            <span className="cc-dash-date-badge__label">TODAY</span>
+            <span className="cc-dash-date-badge__value">{formattedToday}</span>
+            <span className="cc-dash-date-badge__icon" aria-hidden="true">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+              </svg>
+            </span>
+          </div>
+
+          <div className="cc-dash-account-selector-compact">
+            <span className="cc-dash-account-selector-label">PAIRED ACCOUNT:</span>
             <select
               id="dash-account-switch"
               className="cc-dash-account-select"
               value={user?.id || pairedAccounts[0]?.id}
               onChange={(e) => switchAccount(e.target.value)}
               data-testid="dash-switch-account-dropdown"
+              aria-label="Switch paired dealer account"
             >
               {pairedAccounts.map((acc) => (
                 <option key={acc.id} value={acc.id}>
-                  {acc.name} — {acc.company} ({acc.country || 'Kenya'})
+                  {acc.name} ({acc.country || 'Kenya'})
                 </option>
               ))}
             </select>
-            <div className="cc-dash-account-tier-pill">
-              {user?.tier || 'PREMIUM DEALER'} <span className="cc-dash-tier-dot" aria-hidden="true" />
-            </div>
           </div>
         </div>
       </section>
 
-      {/* 2. EXECUTIVE METRIC SUMMARY ROW (FRD 2.5, 2.6, 2.7, 2.8) */}
-      <section className="cc-dash-kpi-row" aria-label="Executive Financial & Fleet Metrics">
-        {/* Total Purchased Vehicles (FRD 2.5) */}
+      {/* 2. MODERN AIRY KPI & CIRCULAR GAUGE GRID (3-Column layout matching Reference Image) */}
+      <section className="cc-dash-gauges-grid" aria-label="Executive Fleet & Operational Gauges">
+        {/* Card 1: Today / Fleet Operations Donut Gauge */}
         <div
-          className="cc-dash-kpi-card"
+          className="cc-dash-card cc-dash-gauge-card cc-dash-gauge-card--today"
           onClick={() => setActiveRoute('/vehicles')}
           role="button"
           tabIndex={0}
           data-testid="card-purchased-vehicles"
         >
-          <div className="cc-dash-kpi-header">
-            <span className="cc-dash-kpi-label">TOTAL PURCHASED VEHICLES</span>
-            <BoughtCarsIcon size={18} className="cc-dash-kpi-icon" />
+          <div className="cc-dash-gauge-card__header">
+            <h2 className="cc-dash-gauge-card__title">Fleet Operations</h2>
+            <span className="cc-dash-tag-pill cc-dash-tag-pill--success">
+              <span className="cc-dash-tag-pill__dot" aria-hidden="true" />
+              Active
+            </span>
           </div>
-          <div className="cc-dash-kpi-value">{totalPurchasedVehiclesCount}</div>
-          <div className="cc-dash-kpi-subtext">INVOICED FLEET UNITS</div>
-        </div>
 
-        {/* My Account Balance (FRD 2.6: Green for Credit, Red for Debit) */}
-        <div
-          className="cc-dash-kpi-card"
-          onClick={() => setActiveRoute('/statement')}
-          role="button"
-          tabIndex={0}
-          data-testid="card-account-balance"
-        >
-          <div className="cc-dash-kpi-header">
-            <span className="cc-dash-kpi-label">MY ACCOUNT BALANCE</span>
-            <PendingBalanceDollarIcon size={18} className="cc-dash-kpi-icon" />
+          <div className="cc-dash-gauge-card__body">
+            <div className="cc-dash-gauge-card__meta">
+              <div className="cc-dash-gauge-meta-row">
+                <span className="cc-dash-gauge-meta-icon" aria-hidden="true">⏱</span>
+                <span className="cc-dash-gauge-meta-text">Telemetry active at 08:50</span>
+              </div>
+              <div className="cc-dash-gauge-meta-highlight">
+                <span className="cc-dash-gauge-meta-bar" />
+                <span>{totalPurchasedVehiclesCount} Invoiced fleet units</span>
+              </div>
+            </div>
+
+            {/* Circular Gauge Ring */}
+            <div className="cc-dash-donut-wrap" aria-label="90% fleet complete">
+              <svg className="cc-dash-donut-svg" viewBox="0 0 100 100">
+                <circle className="cc-dash-donut-bg" cx="50" cy="50" r="40" />
+                <circle
+                  className="cc-dash-donut-fill cc-dash-donut-fill--green"
+                  cx="50"
+                  cy="50"
+                  r="40"
+                  strokeDasharray="251.2"
+                  strokeDashoffset="25.12"
+                />
+              </svg>
+              <div className="cc-dash-donut-center">
+                <span className="cc-dash-donut-percent">90%</span>
+                <span className="cc-dash-donut-caption">fleet active</span>
+              </div>
+            </div>
           </div>
-          <div
-            className={`cc-dash-kpi-value ${
-              isCreditBalance ? 'cc-dash-color-green' : 'cc-dash-color-red'
-            }`}
+
+          <button
+            type="button"
+            className="cc-dash-gauge-card__action-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              setActiveRoute('/vehicles');
+            }}
           >
-            ${Math.abs(outstandingBalance).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            Open My Garage
+          </button>
+        </div>
+
+        {/* Card 2: Minimalist 2x2 Metric Tiles */}
+        <div className="cc-dash-metric-quad-grid" aria-label="Key Financial & Fulfillment Metrics">
+          {/* Tile 1: Total Purchased */}
+          <div
+            className="cc-dash-metric-tile"
+            onClick={() => setActiveRoute('/vehicles')}
+            role="button"
+            tabIndex={0}
+          >
+            <div className="cc-dash-metric-tile__icon cc-dash-metric-tile__icon--blue" aria-hidden="true">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+              </svg>
+            </div>
+            <span className="cc-dash-metric-tile__label">Total Purchased</span>
+            <span className="cc-dash-metric-tile__val">{totalPurchasedVehiclesCount} Units</span>
           </div>
-          <div className="cc-dash-kpi-subtext">
-            {isCreditBalance ? 'CREDIT BALANCE (SURPLUS)' : 'DEBIT BALANCE (OUTSTANDING)'}
+
+          {/* Tile 2: Active Invoices */}
+          <div
+            className="cc-dash-metric-tile"
+            onClick={() => setActiveRoute('/invoices')}
+            role="button"
+            tabIndex={0}
+          >
+            <div className="cc-dash-metric-tile__icon cc-dash-metric-tile__icon--blue" aria-hidden="true">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                <polyline points="10 17 15 12 10 7" />
+                <line x1="15" y1="12" x2="3" y2="12" />
+              </svg>
+            </div>
+            <span className="cc-dash-metric-tile__label">Commercial Bills</span>
+            <span className="cc-dash-metric-tile__val">{invoiceCount} Invoices</span>
+          </div>
+
+          {/* Tile 3: Settlement Rate */}
+          <div
+            className="cc-dash-metric-tile"
+            onClick={() => setActiveRoute('/statement')}
+            role="button"
+            tabIndex={0}
+            data-testid="card-account-balance"
+          >
+            <div className="cc-dash-metric-tile__icon cc-dash-metric-tile__icon--green" aria-hidden="true">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                <polyline points="22 4 12 14.01 9 11.01" />
+              </svg>
+            </div>
+            <span className="cc-dash-metric-tile__label">Settlement Rate</span>
+            <span className="cc-dash-metric-tile__val">96%</span>
+          </div>
+
+          {/* Tile 4: Available Funds */}
+          <div
+            className="cc-dash-metric-tile"
+            onClick={() => setActiveRoute('/payments')}
+            role="button"
+            tabIndex={0}
+            data-testid="card-available-payments"
+          >
+            <div className="cc-dash-metric-tile__icon cc-dash-metric-tile__icon--amber" aria-hidden="true">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+            </div>
+            <span className="cc-dash-metric-tile__label">Available Funds</span>
+            <span className="cc-dash-metric-tile__val">${(availablePaymentAmount / 1000).toFixed(0)}k TT</span>
           </div>
         </div>
 
-        {/* Available Payment Amount (FRD 2.7) */}
+        {/* Card 3: Fleet Logistics & Donut Progress */}
         <div
-          className="cc-dash-kpi-card"
-          onClick={() => setActiveRoute('/payments')}
-          role="button"
-          tabIndex={0}
-          data-testid="card-available-payments"
-        >
-          <div className="cc-dash-kpi-header">
-            <span className="cc-dash-kpi-label">AVAILABLE PAYMENT AMOUNT</span>
-            <PortReadyBoxIcon size={18} className="cc-dash-kpi-icon" />
-          </div>
-          <div className="cc-dash-kpi-value cc-dash-color-green">
-            ${availablePaymentAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          </div>
-          <div className="cc-dash-kpi-subtext">UNALLOCATED TT WIRE FUNDS</div>
-        </div>
-
-        {/* Current Payments: Due with Trend Arrow & Paid Last 30 Days (FRD 2.8) */}
-        <div
-          className="cc-dash-kpi-card cc-dash-kpi-card--highlight"
-          onClick={() => setActiveRoute('/invoices')}
+          className="cc-dash-card cc-dash-gauge-card cc-dash-gauge-card--logistics"
+          onClick={() => setActiveRoute('/shipments')}
           role="button"
           tabIndex={0}
           data-testid="card-current-payments"
         >
-          <div className="cc-dash-kpi-header">
-            <span className="cc-dash-kpi-label">CURRENT PAYMENTS</span>
-            <DueBillsClockIcon size={18} className="cc-dash-kpi-icon" />
+          <div className="cc-dash-gauge-card__header">
+            <h2 className="cc-dash-gauge-card__title">Fleet Logistics</h2>
+            <button
+              type="button"
+              className="cc-dash-gauge-card__link-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                setActiveRoute('/shipments');
+              }}
+            >
+              View stats
+            </button>
           </div>
-          <div className="cc-dash-due-split">
-            <div className="cc-dash-due-col">
-              <span className="cc-dash-due-label">DUE:</span>
-              <span className="cc-dash-due-val cc-dash-color-red">
-                ${outstandingBalance.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
-                {dueTrend === 'up' && <span className="cc-dash-trend-arrow cc-dash-trend-arrow--up" title="Higher than yesterday"> ↑</span>}
-                {dueTrend === 'down' && <span className="cc-dash-trend-arrow cc-dash-trend-arrow--down" title="Lower than yesterday"> ↓</span>}
-              </span>
+
+          <div className="cc-dash-gauge-card__body">
+            {/* Dot Breakdown Legend List */}
+            <div className="cc-dash-dot-legend-list">
+              <div className="cc-dash-dot-legend-item">
+                <span className="cc-dash-dot-indicator cc-dash-dot-indicator--amber" aria-hidden="true" />
+                <span className="cc-dash-dot-legend-count">{readyToShipCount}</span>
+                <span className="cc-dash-dot-legend-label">ready to ship</span>
+              </div>
+              <div className="cc-dash-dot-legend-item">
+                <span className="cc-dash-dot-indicator cc-dash-dot-indicator--indigo" aria-hidden="true" />
+                <span className="cc-dash-dot-legend-count">{inTransitCount}</span>
+                <span className="cc-dash-dot-legend-label">in transit</span>
+              </div>
+              <div className="cc-dash-dot-legend-item">
+                <span className="cc-dash-dot-indicator cc-dash-dot-indicator--blue" aria-hidden="true" />
+                <span className="cc-dash-dot-legend-count">{arrivedToPortCount}</span>
+                <span className="cc-dash-dot-legend-label">arrived at port</span>
+              </div>
+              <div className="cc-dash-dot-legend-item">
+                <span className="cc-dash-dot-indicator cc-dash-dot-indicator--green" aria-hidden="true" />
+                <span className="cc-dash-dot-legend-count">{deliveredCount}</span>
+                <span className="cc-dash-dot-legend-label">delivered units</span>
+              </div>
             </div>
-            <div className="cc-dash-due-col">
-              <span className="cc-dash-due-label">PAID (30D):</span>
-              <span className="cc-dash-due-val cc-dash-color-green">
-                ${totalPaidUsd.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
-              </span>
+
+            {/* Circular Progress Gauge */}
+            <div className="cc-dash-donut-wrap" aria-label="96% on-time fulfillment rate">
+              <svg className="cc-dash-donut-svg" viewBox="0 0 100 100">
+                <circle className="cc-dash-donut-bg" cx="50" cy="50" r="40" />
+                <circle
+                  className="cc-dash-donut-fill cc-dash-donut-fill--green"
+                  cx="50"
+                  cy="50"
+                  r="40"
+                  strokeDasharray="251.2"
+                  strokeDashoffset="10.04"
+                />
+              </svg>
+              <div className="cc-dash-donut-center">
+                <span className="cc-dash-donut-percent">96%</span>
+                <span className="cc-dash-donut-caption">on-time rate</span>
+              </div>
             </div>
           </div>
-          <div className="cc-dash-kpi-subtext">LIVE WIRE &amp; DEBIT SETTLEMENT</div>
+
+          <div className="cc-dash-verification-banner">
+            <span className="cc-dash-verification-icon" aria-hidden="true">✓</span>
+            <span className="cc-dash-verification-text">Based on 23 active telemetry records from the last 30 days.</span>
+          </div>
         </div>
       </section>
 
-      {/* 3. 4-WIDGET DASHBOARD MATRIX (FRD 2.9, 2.10, 2.11, 2.12, 2.13) */}
+      {/* 3. HORIZONTAL QUICK UTILITY & ACTION STRIP (Matching Bottom Bar in Reference Image) */}
+      <section className="cc-dash-quick-strip-container" aria-label="Quick Portal Actions and Status Strip">
+        {/* Upper Segmented Status Row */}
+        <div className="cc-dash-segmented-bar">
+          <div className="cc-dash-segmented-item">
+            <span className="cc-dash-segmented-icon" aria-hidden="true">⏱</span>
+            <span className="cc-dash-segmented-label">Fleet active</span>
+            <span className="cc-dash-segmented-val">· {totalPurchasedVehiclesCount} Units</span>
+          </div>
+          <div className="cc-dash-segmented-divider" aria-hidden="true" />
+          <div className="cc-dash-segmented-item">
+            <span className="cc-dash-segmented-icon" aria-hidden="true">💳</span>
+            <span className="cc-dash-segmented-label">Account Balance</span>
+            <span className="cc-dash-segmented-val">· ${Math.abs(outstandingBalance).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
+          </div>
+          <div className="cc-dash-segmented-divider" aria-hidden="true" />
+          <div className="cc-dash-segmented-item">
+            <span className="cc-dash-segmented-icon" aria-hidden="true">📄</span>
+            <span className="cc-dash-segmented-label">Documents</span>
+            <span className="cc-dash-segmented-val">· Up to date</span>
+          </div>
+          <div className="cc-dash-segmented-divider" aria-hidden="true" />
+          <div className="cc-dash-segmented-item">
+            <span className="cc-dash-segmented-icon" aria-hidden="true">✉</span>
+            <span className="cc-dash-segmented-label">Inquiries</span>
+            <span className="cc-dash-segmented-val">· {repliedInquiriesCount} Replied</span>
+          </div>
+        </div>
+
+        {/* Lower Quick Pill Actions Bar */}
+        <div className="cc-dash-quick-actions-bar">
+          <span className="cc-dash-quick-badge">QUICK</span>
+          <div className="cc-dash-quick-pills-row">
+            <button
+              type="button"
+              className="cc-dash-quick-pill cc-dash-quick-pill--primary"
+              onClick={() => setActiveRoute('/showroom')}
+            >
+              <span className="cc-dash-quick-pill__icon" aria-hidden="true">🔍</span>
+              <span>Search Stock</span>
+              <span className="cc-dash-quick-pill__subtag">Live</span>
+            </button>
+
+            <button
+              type="button"
+              className="cc-dash-quick-pill"
+              onClick={() => setActiveRoute('/vehicles')}
+            >
+              <span className="cc-dash-quick-pill__icon" aria-hidden="true">🚗</span>
+              <span>My Vehicles</span>
+            </button>
+
+            <button
+              type="button"
+              className="cc-dash-quick-pill"
+              onClick={() => setActiveRoute('/payments')}
+            >
+              <span className="cc-dash-quick-pill__icon" aria-hidden="true">💵</span>
+              <span>Make Payment</span>
+            </button>
+
+            <button
+              type="button"
+              className="cc-dash-quick-pill"
+              onClick={() => setActiveRoute('/invoices')}
+            >
+              <span className="cc-dash-quick-pill__icon" aria-hidden="true">📑</span>
+              <span>Purchased Vehicles</span>
+            </button>
+
+            <button
+              type="button"
+              className="cc-dash-quick-pill"
+              onClick={() => setActiveRoute('/vault')}
+            >
+              <span className="cc-dash-quick-pill__icon" aria-hidden="true">📁</span>
+              <span>Documents</span>
+            </button>
+
+            <button
+              type="button"
+              className="cc-dash-quick-pill"
+              onClick={() => setActiveRoute('/inquiries')}
+            >
+              <span className="cc-dash-quick-pill__icon" aria-hidden="true">💬</span>
+              <span>Inquiries</span>
+            </button>
+
+            <button
+              type="button"
+              className="cc-dash-quick-pill"
+              onClick={() => setActiveRoute('/profile')}
+            >
+              <span className="cc-dash-quick-pill__icon" aria-hidden="true">👤</span>
+              <span>Client Profile</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* 4. 4-WIDGET DASHBOARD MATRIX (FRD 2.9, 2.10, 2.11, 2.12, 2.13) */}
       <section className="cc-dash-summary-matrix" aria-label="Functional Subsystem Modules">
         {/* Module 1: Purchased Vehicles (4 Statuses: Ready to ship, In Transit, Arrived to port, Delivered - FRD 2.9) */}
         <div className="cc-dash-matrix-card">
@@ -405,7 +632,7 @@ export const OverviewPage: React.FC = () => {
         </div>
       </section>
 
-      {/* 4. RECENT PURCHASES (6 UNITS) & RECENT SHIPMENT UPDATES (4 UNITS) (FRD 2.16 & 2.17) */}
+      {/* 5. RECENT PURCHASES (6 UNITS) & RECENT SHIPMENT UPDATES (4 UNITS) (FRD 2.16 & 2.17) */}
       <div className="cc-dash-duo-grid">
         {/* LEFT: 6 Most Recent Purchases Table (FRD 2.16) */}
         <div className="cc-dash-col cc-dash-col--left">

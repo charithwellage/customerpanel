@@ -38,7 +38,6 @@ const mockBranch: BranchContent = {
     address: 'Sam Nujoma St, Harare',
     hours: 'Mon-Fri 08:30 - 16:30 CAT',
   },
-  contentOwner: 'BranchTeam',
   status: 'approved',
 };
 

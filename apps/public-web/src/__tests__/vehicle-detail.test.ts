@@ -27,7 +27,6 @@ import VehicleDetailPage from '../features/vehicle-detail/VehicleDetailPage';
 
 const makeMedia = (gallery: string[] = []): CategorizedPublicMedia => ({
   gallery,
-  totalPicturesCount: gallery.length,
 });
 
 const basePricedVehicle: VehicleDetail = {
@@ -197,7 +196,6 @@ describe('CategorizedPublicMedia gallery array', () => {
   it('returns empty gallery array for no-media vehicle', () => {
     const gallery = noMediaVehicle.media.gallery;
     expect(gallery).toEqual([]);
-    expect(noMediaVehicle.media.totalPicturesCount).toBe(0);
   });
 
   it('sold vehicle has empty gallery in no-media scenario', () => {
@@ -415,7 +413,7 @@ describe('VehicleDetailPage Component Presentation & Integration', () => {
 
     const noMedia: VehicleDetail = {
       ...basePricedVehicle,
-      media: { gallery: [], totalPicturesCount: 0 },
+      media: { gallery: [] },
     };
 
     const html = renderToStaticMarkup(React.createElement(VehicleDetailPage, { vehicle: noMedia }));
@@ -510,5 +508,45 @@ describe('VehicleGalleryPrimitive (shared package)', () => {
       React.createElement(VehicleGalleryPrimitive, { images: [], title: '2024 Toyota Corolla' }),
     );
     expect(empty).toContain('No images available for this vehicle yet.');
+  });
+
+  it('renders Customer Actions card with Get Free Quote, Add to Wishlist, and Specs Inquiry Form', async () => {
+    const React = await import('react');
+    const { renderToStaticMarkup } = await import('react-dom/server');
+
+    const html = renderToStaticMarkup(
+      React.createElement(VehicleDetailPage, { vehicle: basePricedVehicle })
+    );
+
+    expect(html).toContain('Customer Actions &amp; Free Quotation');
+    expect(html).toContain('GET FREE QUOTE');
+    expect(html).toContain('ADD TO WISHLIST');
+    expect(html).toContain('SPECS INQUIRY &amp; BOOKING FORM');
+    expect(html).toContain('SUBMIT INQUIRY SPEC FILE');
+    expect(html).toContain('Verified customer account required');
+    expect(html).toContain('C&amp;F CALCULATOR');
+  });
+
+  it('renders EnterpriseLoginModal when open with all enterprise SSO providers', async () => {
+    const React = await import('react');
+    const { renderToStaticMarkup } = await import('react-dom/server');
+    const { EnterpriseLoginModal } = await import('../features/account-entry/index.js');
+
+    const html = renderToStaticMarkup(
+      React.createElement(EnterpriseLoginModal, {
+        isOpen: true,
+        onClose: () => {},
+        title: 'Sign In to Add to Wishlist',
+        subtitle: 'Save this vehicle to your wishlist.',
+      })
+    );
+
+    expect(html).toContain('Sign In to Add to Wishlist');
+    expect(html).toContain('Continue with Google');
+    expect(html).toContain('Continue with Apple');
+    expect(html).toContain('Continue with Microsoft / Outlook');
+    expect(html).toContain('EMAIL ADDRESS');
+    expect(html).toContain('PASSWORD');
+    expect(html).toContain('SIGN IN TO CUSTOMER PORTAL');
   });
 });

@@ -7,15 +7,21 @@ import type { CustomerInventoryState } from './types.js';
 export interface UseCustomerInventoryOptions {
   apiBaseUrl?: string;
   token?: string;
+  destinationCountry?: string;
   initialQuery?: SearchVehiclesQuery;
 }
 
 export function useCustomerInventory({
   apiBaseUrl = '',
   token,
+  destinationCountry,
   initialQuery = { page: 1, limit: 12, sortBy: 'newest' },
 }: UseCustomerInventoryOptions = {}) {
-  const [query, setQuery] = useState<SearchVehiclesQuery>(initialQuery);
+  const [query, setQuery] = useState<SearchVehiclesQuery>(() => ({
+    ...initialQuery,
+    destinationCountry: initialQuery.destinationCountry || destinationCountry,
+    complianceOnly: initialQuery.complianceOnly !== undefined ? initialQuery.complianceOnly : true,
+  }));
   const [naturalPhrase, setNaturalPhrase] = useState<string>(initialQuery.searchQuery || '');
   const [state, setState] = useState<CustomerInventoryState>({
     items: [],
@@ -48,11 +54,12 @@ export function useCustomerInventory({
         const vehicleService = new VehicleService(httpClient);
 
         const queryWithAudience: SearchVehiclesQuery = {
+          destinationCountry,
           ...currentQuery,
           audience: 'customer',
         };
 
-        const result: VehicleSearchResult = await vehicleService.searchVehicles(queryWithAudience);
+        const result: VehicleSearchResult = await vehicleService.getVehicles(queryWithAudience);
 
         if (!controller.signal.aborted) {
           setState({

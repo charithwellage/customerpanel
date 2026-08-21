@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import type { WishlistItem } from '@carchief/domain';
 import { useCustomerShell } from '../shell/index.js';
 import { useCustomerWishlist } from './useCustomerWishlist.js';
@@ -113,7 +113,7 @@ export const SEED_AUCTION_WISHLIST: WishlistAuctionItem[] = [
 
 export const CustomerWishlistPage: React.FC = () => {
   const { setActiveRoute } = useCustomerShell();
-  const { removeItem } = useCustomerWishlist();
+  const { items: serverWishlistItems, removeItem } = useCustomerWishlist();
 
   // Category selection (FRD 8.2: Stock List vs Auction)
   const [activeCategory, setActiveCategory] = useState<'STOCK' | 'AUCTION'>('STOCK');
@@ -127,8 +127,78 @@ export const CustomerWishlistPage: React.FC = () => {
   const [stockList, setStockList] = useState<WishlistStockItem[]>(SEED_STOCK_WISHLIST);
   const [auctionList, setAuctionList] = useState<WishlistAuctionItem[]>(SEED_AUCTION_WISHLIST);
 
+  useEffect(() => {
+    const combinedSlugs: string[] = [];
+    if (typeof window !== 'undefined') {
+      try {
+        const localSlugs: string[] = JSON.parse(localStorage.getItem('carchief_wishlist') || '[]');
+        combinedSlugs.push(...localSlugs);
+      } catch {
+        // ignore
+      }
+    }
+    if (serverWishlistItems && serverWishlistItems.length > 0) {
+      for (const item of serverWishlistItems) {
+        if (!combinedSlugs.includes(item.vehicleSlug)) {
+          combinedSlugs.push(item.vehicleSlug);
+        }
+      }
+    }
+
+    if (combinedSlugs.length > 0) {
+      const newItems: WishlistStockItem[] = combinedSlugs.map((slug, idx) => {
+        const existing = SEED_STOCK_WISHLIST.find((s) => s.vehicleSlug === slug);
+        if (existing) return existing;
+
+        const parts = slug.split('-');
+        const year = parts[0]?.match(/^\d{4}$/) ? parts[0] : '2023';
+        const make = parts[1] ? parts[1].charAt(0).toUpperCase() + parts[1].slice(1) : 'Toyota';
+        const model = parts.slice(2).join(' ') || 'Luxury Vehicle';
+
+        return {
+          id: `w-dynamic-${idx}-${slug}`,
+          vehicleSlug: slug,
+          vehicleId: `veh-${idx + 10}`,
+          make,
+          model: model.toUpperCase(),
+          yom: year,
+          stockNumber: `J240${111110 + idx}`,
+          chassisNumber: `${make.toUpperCase().slice(0, 3)}${year}-${100000 + idx}`,
+          viewsCount: 24,
+          fobPriceUsd: 12500,
+          cfPriceUsd: 14200,
+          inquirerCount: 6,
+          imageUrl: 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=600',
+          specs: {
+            engineCc: '2,000CC',
+            mileage: '45,000 KM',
+            fuel: 'Hybrid / Petrol',
+            transmission: 'Automatic',
+            color: 'Pearl Black',
+          },
+        };
+      });
+
+      for (const seed of SEED_STOCK_WISHLIST) {
+        if (!newItems.find((n) => n.vehicleSlug === seed.vehicleSlug)) {
+          newItems.push(seed);
+        }
+      }
+      setStockList(newItems);
+    }
+  }, [serverWishlistItems]);
+
   const handleRemoveStock = async (id: string, slug: string) => {
-    setStockList((prev) => prev.filter((item) => item.id !== id));
+    setStockList((prev) => prev.filter((item) => item.id !== id && item.vehicleSlug !== slug));
+    if (typeof window !== 'undefined') {
+      try {
+        const localSlugs: string[] = JSON.parse(localStorage.getItem('carchief_wishlist') || '[]');
+        const next = localSlugs.filter((s) => s !== slug);
+        localStorage.setItem('carchief_wishlist', JSON.stringify(next));
+      } catch {
+        // ignore
+      }
+    }
     try {
       await removeItem(slug);
     } catch {
