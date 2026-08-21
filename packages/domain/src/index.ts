@@ -112,7 +112,6 @@ export interface CustomerPaymentNotification {
   paymentId: string;
   invoiceId: string;
   event: CustomerPaymentNotificationEvent;
-  deliveryStatus: 'Queued';
   createdAt: string;
 }
 
@@ -317,13 +316,11 @@ export interface SearchVehiclesQuery {
 export interface CategorizedPublicMedia {
   gallery: string[];
   auctionPictures?: string[];
-  auctionSheet?: string[];
   japanPictures?: string[];
   durbanPictures?: string[];
   showAuctionPictures?: boolean;
   showJapanPictures?: boolean;
   showDurbanPictures?: boolean;
-  totalPicturesCount: number;
 }
 
 export interface VehicleDetail {
@@ -363,7 +360,6 @@ export interface VehicleDetail {
   etd?: string;
   eta?: string;
   featured?: boolean;
-  countryEligibility?: string[];
   compliance?: VehicleComplianceEvaluation;
   media: CategorizedPublicMedia;
 
@@ -876,7 +872,6 @@ export interface CustomerDashboard {
   vehicleCountReserved: number;
   vehicleCountInvoiced: number;
   vehicleCountDelivered: number;
-  lastUpdated: string;
   // Enhanced with linked record aggregates (D02-P02-T001)
   paymentStatusSummary?: {
     approved: number;
@@ -895,12 +890,6 @@ export interface CustomerDashboard {
     unavailable: number;
   };
   notificationUnreadCount?: number;
-  partialFailureIndicators?: {
-    paymentsFailed?: boolean;
-    shipmentsFailed?: boolean;
-    documentsFailed?: boolean;
-    notificationsFailed?: boolean;
-  };
 }
 
 // --- Phase 2.4: Customer Vehicle Transaction & Status Projections (CUST-10, CUST-11, CUST-12, CUST-13, RULE-04, RULE-07, RULE-08, RULE-09) ---
@@ -925,7 +914,6 @@ export interface CustomerVehicleDocumentReference {
   type: string;
   title: string;
   status: 'Available' | 'Pending' | 'Draft';
-  fileUrl?: string;
   issuedAt?: string;
 }
 
@@ -934,7 +922,6 @@ export interface CustomerVehicleDepositInfo {
   requiredAmountUsd: number;
   paidAmountUsd: number;
   remainingAmountUsd: number;
-  isFullyPaid: boolean;
 }
 
 export const DEPOSIT_PERCENT_RULE_07 = 50;
@@ -950,7 +937,6 @@ export function calculateVehicleDeposit(totalAmountUsd: number, paidAmountUsd = 
     requiredAmountUsd,
     paidAmountUsd,
     remainingAmountUsd,
-    isFullyPaid: paidAmountUsd >= requiredAmountUsd,
   };
 }
 
@@ -1093,12 +1079,10 @@ export interface CustomerInvoiceSummary {
   paidAmountUsd: number;
   outstandingAmountUsd: number;
   depositRequiredUsd?: number;
-  depositPaidUsd?: number;
   status: CustomerInvoiceStatus;
   issuedAt: string;
   dueDate: string;
   paymentDeadline?: string;
-  documentStatus: 'Available' | 'Pending' | 'Unavailable';
   currency: string;
 }
 
@@ -1117,16 +1101,8 @@ export interface CustomerInvoiceDetail extends CustomerInvoiceSummary {
   lineItems: CustomerInvoiceLineItem[];
   allocations: CustomerInvoiceAllocationItem[];
   bankDetails?: CustomerInvoiceBankDetails;
-  documentUrl?: string;
-  termsAndConditions?: string[];
   isExpired?: boolean;
   notes?: string;
-}
-
-export interface CustomerInvoiceCountsByType {
-  all: number;
-  proforma: number;
-  commercial: number;
 }
 
 export interface CustomerInvoiceTotals {
@@ -1140,7 +1116,6 @@ export interface CustomerInvoiceListResponse {
   total: number;
   page: number;
   limit: number;
-  countsByType: CustomerInvoiceCountsByType;
   totals: CustomerInvoiceTotals;
 }
 
@@ -1153,14 +1128,12 @@ export interface ListCustomerInvoicesQuery {
 }
 
 export interface CustomerInvoiceDocument {
-  documentId: string;
   invoiceId: string;
   invoiceNumber: string;
   type: CustomerInvoiceType;
   title: string;
   contentHtml: string;
   status: 'Available' | 'Unavailable';
-  generatedAt: string;
 }
 
 /**
@@ -1260,13 +1233,6 @@ export interface CustomerPolymorphicInquiryListResponse {
   total: number;
 }
 
-export interface CustomerPairedAccount {
-  id: string;
-  name: string;
-  type: 'PRIMARY' | 'BRANCH' | 'LOGISTICS';
-  balanceUsd: number;
-  isCredit: boolean;
-}
 
 export * from './auth.js';
 export * from './freight.js';

@@ -27,7 +27,6 @@ import type {
   LeadListResponse,
   CustomerInquirySummary,
   CustomerInquiryListResponse,
-  VehicleInquiryAggregate,
   WishlistItem,
   WishlistListResponse,
   WishlistToggleRequest,
@@ -70,7 +69,6 @@ import type {
   CustomerInvoiceAllocationItem,
   CustomerInvoiceSummary,
   CustomerInvoiceDetail,
-  CustomerInvoiceCountsByType,
   CustomerInvoiceTotals,
   CustomerInvoiceListResponse,
   ListCustomerInvoicesQuery,
@@ -93,7 +91,6 @@ import type {
   CustomerDebitCreditListResponse,
   CustomerPolymorphicInquiry,
   CustomerPolymorphicInquiryListResponse,
-  CustomerPairedAccount,
   BankAccount,
 } from '@carchief/domain';
 import {
@@ -1248,7 +1245,6 @@ export interface DemoStore {
   getLeadById(id: string): Promise<LeadRecord | null>;
   listLeads(): Promise<LeadListResponse>;
   listCustomerInquiries(customerId: string): Promise<CustomerInquiryListResponse>;
-  getVehicleInquiryAggregate(vehicleSlugOrId: string): Promise<VehicleInquiryAggregate>;
   createReservation(customerId: string, customerEmail: string, request: ReservationRequest, nowISO?: string): Promise<ReservationResponse>;
   getReservationById(id: string): Promise<ReservationResponse | null>;
   // Phase 1.7 Content methods
@@ -1270,7 +1266,6 @@ export interface DemoStore {
   listCustomerDocuments(customerId: string): Promise<CustomerDocument[]>;
   getCustomerDocument(customerId: string, documentId: string): Promise<CustomerDocument | null>;
   listCustomerNotifications(customerId: string, query?: { status?: 'all' | 'read' | 'unread'; q?: string }): Promise<CustomerNotificationListResponse>;
-  getCustomerNotification(customerId: string, notificationId: string): Promise<Notification | null>;
   markCustomerNotificationRead(customerId: string, notificationId: string): Promise<Notification | null>;
   markAllCustomerNotificationsRead(customerId: string): Promise<MarkNotificationsReadResponse>;
   deleteCustomerNotification(customerId: string, notificationId: string): Promise<boolean>;
@@ -1281,7 +1276,6 @@ export interface DemoStore {
   getCustomerInvoiceById(customerId: string, id: string, nowISO?: string): Promise<CustomerInvoiceDetail | null>;
   getCustomerInvoiceDocument(customerId: string, id: string, nowISO?: string): Promise<CustomerInvoiceDocument | null>;
   listCustomerPayments(customerId: string): Promise<CustomerPaymentListResponse>;
-  getCustomerPayment(customerId: string, id: string): Promise<CustomerPayment | null>;
   createCustomerPayment(customerId: string, request: CreateCustomerPaymentRequest, nowISO?: string): Promise<CustomerPayment>;
   listCustomerPaymentNotifications(customerId: string, paymentId?: string): Promise<CustomerPaymentNotificationListResponse>;
   resubmitCustomerPayment(customerId: string, paymentId: string, nowISO?: string): Promise<CustomerPayment>;
@@ -1309,7 +1303,6 @@ export interface DemoStore {
   getCustomerStatement(customerId: string, fromDate?: string, toDate?: string): Promise<CustomerStatementSummary>;
   getCustomerDebitCreditRefunds(customerId: string): Promise<CustomerDebitCreditListResponse>;
   listCustomerPolymorphicInquiries(customerId: string): Promise<CustomerPolymorphicInquiryListResponse>;
-  getCustomerPairedAccounts(customerId: string): Promise<CustomerPairedAccount[]>;
   reset(): Promise<void>;
   close(): Promise<void>;
 }
@@ -2277,10 +2270,7 @@ const seedBranches: BranchContent[] = [
       address: 'Harare, Zimbabwe — exact office address pending approval',
       hours: 'Mon-Fri 08:30 - 16:30 CAT',
     },
-    contentOwner: 'BranchTeam',
     status: 'approved',
-    latestArrivalsQuery: { destinationPort: 'Durban', limit: 4 },
-    recentlyDiscountedQuery: { destinationPort: 'Durban', limit: 4 },
   },
   {
     id: 'kingston-hub',
@@ -2300,10 +2290,7 @@ const seedBranches: BranchContent[] = [
       address: 'Kingston, Jamaica — exact office address pending approval',
       hours: 'Mon-Fri 08:00 - 17:00 EST',
     },
-    contentOwner: 'BranchTeam',
     status: 'approved',
-    latestArrivalsQuery: { limit: 4 },
-    recentlyDiscountedQuery: { limit: 4 },
   },
   {
     id: 'port-louis-hub',
@@ -2323,10 +2310,7 @@ const seedBranches: BranchContent[] = [
       address: 'Port Louis, Mauritius — exact office address pending approval',
       hours: 'Mon-Fri 08:30 - 16:30 MUT',
     },
-    contentOwner: 'BranchTeam',
     status: 'approved',
-    latestArrivalsQuery: { limit: 4 },
-    recentlyDiscountedQuery: { limit: 4 },
   },
 ];
 
@@ -2358,7 +2342,6 @@ function filterFaqs(
         categories,
         items: [],
         total: categories.length,
-        matchedCount: 0,
         groundedNoAnswer: true,
         message: 'No grounded answer found matching your query. Please contact our support team.',
       };
@@ -2368,7 +2351,6 @@ function filterFaqs(
       categories,
       items: matched,
       total: categories.length,
-      matchedCount: matched.length,
       groundedNoAnswer: false,
     };
   }
@@ -2377,7 +2359,6 @@ function filterFaqs(
     categories,
     items: approvedItems,
     total: categories.length,
-    matchedCount: approvedItems.length,
     groundedNoAnswer: false,
   };
 }
@@ -2859,7 +2840,6 @@ export function projectVehicle(
     active,
     nowOnSale,
     priceState,
-    countryEligibility: [...DEMO_COUNTRY_ELIGIBILITY_PLACEHOLDER],
     compliance: (context.destinationCountry || context.customerCountry)
       ? evaluateVehicleCompliance(v, context.destinationCountry || context.customerCountry, new Date(nowISO).getUTCFullYear())
       : undefined,
@@ -2965,7 +2945,6 @@ export function buildVehicleDetail(
     etd: v.etd,
     eta: v.eta,
     featured: v.featured,
-    countryEligibility: [...DEMO_COUNTRY_ELIGIBILITY_PLACEHOLDER],
     compliance: (context.destinationCountry || context.customerCountry)
       ? evaluateVehicleCompliance(v, context.destinationCountry || context.customerCountry, new Date(nowISO).getUTCFullYear())
       : undefined,
@@ -2976,13 +2955,11 @@ export function buildVehicleDetail(
     media: {
       gallery,
       auctionPictures: [],
-      auctionSheet: [],
       japanPictures: [],
       durbanPictures: [],
       showAuctionPictures: false,
       showJapanPictures: false,
       showDurbanPictures: false,
-      totalPicturesCount: gallery.length,
     },
     active,
     nowOnSale,
@@ -3697,7 +3674,6 @@ export interface CustomerShipment {
   eta?: string;
   location?: string;
   freshness: 'fresh' | 'stale' | 'unknown';
-  timeline: Array<{ stage: CustomerShipment['stage']; occurredAt?: string; current: boolean }>;
   shipOkStatus: 'Pending' | 'Approved' | 'Rejected';
   shipOkRejectionReason?: string;
   documentReleaseStatus: 'Pending' | 'Approved' | 'Rejected';
@@ -4298,7 +4274,6 @@ export function buildCustomerVehicleProjections(
         type: 'ProformaInvoice',
         title: `Proforma Invoice ${pi.id.toUpperCase()}`,
         status: 'Available',
-        fileUrl: `/documents/${pi.id}.pdf`,
         issuedAt: pi.issuedAt,
       });
     }
@@ -4308,7 +4283,6 @@ export function buildCustomerVehicleProjections(
         type: 'CommercialInvoice',
         title: `Commercial Invoice ${inv.id.toUpperCase()}`,
         status: 'Available',
-        fileUrl: `/documents/${inv.id}.pdf`,
         issuedAt: inv.invoicedAt,
       });
     }
@@ -4318,21 +4292,18 @@ export function buildCustomerVehicleProjections(
         type: 'BillOfLading',
         title: 'Bill of Lading BL-789012',
         status: shipment.status === 'InTransit' || shipment.status === 'Delivered' ? 'Available' : 'Pending',
-        fileUrl: '/documents/bl-789012.pdf',
       });
       docs.push({
         id: `doc-ec-${vId}`,
         type: 'ExportCertificate',
         title: 'Japan Export Certificate',
         status: 'Available',
-        fileUrl: '/documents/export-cert.pdf',
       });
       docs.push({
         id: `doc-ic-${vId}`,
         type: 'InspectionCertificate',
         title: 'JEVIC Pre-Shipment Inspection Certificate',
         status: 'Available',
-        fileUrl: '/documents/jevic-cert.pdf',
       });
     }
 
@@ -4536,12 +4507,10 @@ export function buildCustomerInvoiceProjections(
       paidAmountUsd: 0,
       outstandingAmountUsd: totalAmountUsd,
       depositRequiredUsd: depositInfo.requiredAmountUsd,
-      depositPaidUsd: 0,
       status,
       issuedAt: pi.issuedAt,
       dueDate: paymentDeadline,
       paymentDeadline,
-      documentStatus: 'Available',
       currency: 'USD',
       vehicle: {
         id: vehicle.id,
@@ -4555,12 +4524,6 @@ export function buildCustomerInvoiceProjections(
       lineItems: [],
       allocations: [],
       bankDetails: undefined,
-      documentUrl: undefined,
-      termsAndConditions: [
-        'This Proforma Invoice and reservation hold are valid for 72 hours from the issue date.',
-        'A minimum deposit of 50% is required to secure the vehicle and proceed with export preparation.',
-        'Payment instructions are unavailable pending Finance confirmation.',
-      ],
       isExpired,
       notes: 'Proforma Invoice issued for initial vehicle reservation and wire transfer payment.',
     });
@@ -4590,9 +4553,6 @@ export function buildCustomerInvoiceProjections(
       status = 'Issued';
     }
 
-    const docRecord = documents.find((d) => d.customerId === customerId && (d.vehicleId === inv.vehicleId || d.id === `doc-${inv.id}`) && d.type === 'Invoice');
-    const documentStatus: 'Available' | 'Pending' | 'Unavailable' = docRecord ? docRecord.status : 'Available';
-
     const allocationItems: CustomerInvoiceAllocationItem[] = customerAllocs.map((a) => ({
       id: a.id,
       paymentId: a.paymentId,
@@ -4617,11 +4577,9 @@ export function buildCustomerInvoiceProjections(
       paidAmountUsd,
       outstandingAmountUsd,
       depositRequiredUsd: Math.round(totalAmountUsd * 0.5),
-      depositPaidUsd: Math.min(Math.round(totalAmountUsd * 0.5), paidAmountUsd),
       status,
       issuedAt: inv.invoicedAt,
       dueDate,
-      documentStatus,
       currency: 'USD',
       vehicle: {
         id: vehicle.id,
@@ -4635,11 +4593,6 @@ export function buildCustomerInvoiceProjections(
       lineItems: [],
       allocations: allocationItems,
       bankDetails: undefined,
-      documentUrl: undefined,
-      termsAndConditions: [
-        'Final Commercial Invoice projection; approved payment allocations are shown separately.',
-        'Payment instructions are unavailable pending Finance confirmation.',
-      ],
       isExpired: false,
       notes: 'Final Commercial Invoice for vehicle export.',
     });
@@ -4652,12 +4605,6 @@ export function queryCustomerInvoices(
   allInvoices: CustomerInvoiceDetail[],
   query?: ListCustomerInvoicesQuery
 ): CustomerInvoiceListResponse {
-  const countsByType: CustomerInvoiceCountsByType = {
-    all: allInvoices.length,
-    proforma: allInvoices.filter((i) => i.type === 'Proforma').length,
-    commercial: allInvoices.filter((i) => i.type === 'Commercial').length,
-  };
-
   const totals: CustomerInvoiceTotals = {
     totalInvoicedUsd: allInvoices.reduce((sum, i) => sum + i.totalAmountUsd, 0),
     totalPaidUsd: allInvoices.reduce((sum, i) => sum + i.paidAmountUsd, 0),
@@ -4707,12 +4654,10 @@ export function queryCustomerInvoices(
     paidAmountUsd: d.paidAmountUsd,
     outstandingAmountUsd: d.outstandingAmountUsd,
     depositRequiredUsd: d.depositRequiredUsd,
-    depositPaidUsd: d.depositPaidUsd,
     status: d.status,
     issuedAt: d.issuedAt,
     dueDate: d.dueDate,
     paymentDeadline: d.paymentDeadline,
-    documentStatus: d.documentStatus,
     currency: d.currency,
   }));
 
@@ -4721,7 +4666,6 @@ export function queryCustomerInvoices(
     total: filtered.length,
     page,
     limit,
-    countsByType,
     totals,
   };
 }
@@ -4795,14 +4739,12 @@ export function buildCustomerInvoiceDocument(invoice: CustomerInvoiceDetail): Cu
   `;
 
   return {
-    documentId: `doc-${invoice.id}`,
     invoiceId: invoice.id,
     invoiceNumber: invoice.invoiceNumber,
     type: invoice.type,
     title: `${invoice.type === 'Proforma' ? 'Proforma Invoice' : 'Commercial Invoice'} ${invoice.invoiceNumber}`,
     contentHtml,
-    status: invoice.documentStatus === 'Unavailable' ? 'Unavailable' : 'Available',
-    generatedAt: new Date().toISOString(),
+    status: 'Available',
   };
 }
 
@@ -4866,11 +4808,8 @@ function checkReservationEligibility(
   }
 }
 
-const shipmentStages: CustomerShipment['stage'][] = ['Purchased', 'Inspection', 'Ready', 'In Transit', 'Delivered'];
-
 function toCustomerShipment(record: ShipmentRecord): CustomerShipment {
   const stage = record.status === 'InTransit' ? 'In Transit' : record.status;
-  const currentIndex = shipmentStages.indexOf(stage);
   return {
     id: record.id,
     vehicleId: record.vehicleId,
@@ -4884,11 +4823,6 @@ function toCustomerShipment(record: ShipmentRecord): CustomerShipment {
     shipOkRejectionReason: record.shipOkRejectionReason,
     documentReleaseStatus: record.documentReleaseStatus ?? 'Pending',
     documentReleaseRejectionReason: record.documentReleaseRejectionReason,
-    timeline: shipmentStages.map((timelineStage, index) => ({
-      stage: timelineStage,
-      current: index === currentIndex,
-      ...(index === currentIndex ? { occurredAt: record.shippedAt } : {}),
-    })),
   };
 }
 
@@ -4978,7 +4912,6 @@ function toCustomerPaymentNotification(record: PaymentNotificationRecord): Custo
     paymentId: record.paymentId,
     invoiceId: record.invoiceId,
     event: record.event,
-    deliveryStatus: 'Queued',
     createdAt: record.createdAt,
   };
 }
@@ -5272,19 +5205,6 @@ class MemoryStore implements DemoStore {
     return Promise.resolve({ items });
   }
 
-  getVehicleInquiryAggregate(vehicleSlugOrId: string): Promise<VehicleInquiryAggregate> {
-    const vehicle = findVehicleRecord(this.vehicles, vehicleSlugOrId);
-    const vehicleSlug = vehicle ? generateVehicleSlug(vehicle.year, vehicle.make, vehicle.model, vehicle.id) : vehicleSlugOrId;
-
-    const inquiries = this.enquiries.filter((e) => e.vehicleSlug === vehicleSlug && e.enquiryType === 'price-request');
-    const inquirerKeys = new Set(inquiries.map((e) => e.customerId));
-
-    return Promise.resolve({
-      vehicleSlug,
-      inquirerCount: inquirerKeys.size,
-    });
-  }
-
   // No `await` between the eligibility check and the mutation below, so two
   // concurrent calls (e.g. `Promise.all([...])`) resolve this async function
   // body to completion, one after the other, without interleaving — the
@@ -5444,14 +5364,6 @@ class MemoryStore implements DemoStore {
     // Notification unread count for this customer
     const notificationUnreadCount = this.notifications.filter((n) => n.customerId === customerId && !n.isRead).length;
 
-    // Partial failure indicators: all set to false since this is mock data (no actual failures)
-    const partialFailureIndicators = {
-      paymentsFailed: false,
-      shipmentsFailed: false,
-      documentsFailed: false,
-      notificationsFailed: false,
-    };
-
     return Promise.resolve({
       customerId,
       customerEmail,
@@ -5461,12 +5373,10 @@ class MemoryStore implements DemoStore {
       vehicleCountReserved: reservedVehicleIds.size,
       vehicleCountInvoiced: invoicedVehicleIds.size,
       vehicleCountDelivered: deliveredVehicleIds.size,
-      lastUpdated: new Date().toISOString(),
       paymentStatusSummary,
       shipmentStatusSummary,
       documentAvailabilityCount,
       notificationUnreadCount,
-      partialFailureIndicators,
     });
   }
 
@@ -5649,11 +5559,6 @@ class MemoryStore implements DemoStore {
     return Promise.resolve(queryCustomerNotifications(this.notifications.filter((notification) => notification.customerId === customerId), query));
   }
 
-  getCustomerNotification(customerId: string, notificationId: string): Promise<Notification | null> {
-    const notification = this.notifications.find((candidate) => candidate.customerId === customerId && candidate.id === notificationId);
-    return Promise.resolve(notification ? toCustomerNotification(notification) : null);
-  }
-
   markCustomerNotificationRead(customerId: string, notificationId: string): Promise<Notification | null> {
     const notification = this.notifications.find((candidate) => candidate.customerId === customerId && candidate.id === notificationId);
     if (notification) notification.isRead = true;
@@ -5740,11 +5645,6 @@ class MemoryStore implements DemoStore {
   listCustomerPayments(customerId: string): Promise<CustomerPaymentListResponse> {
     const items = this.payments.filter((payment) => payment.customerId === customerId).map((payment) => toCustomerPayment(payment, this.invoices, this.allocations));
     return Promise.resolve({ items, total: items.length });
-  }
-
-  getCustomerPayment(customerId: string, id: string): Promise<CustomerPayment | null> {
-    const payment = this.payments.find((candidate) => candidate.customerId === customerId && candidate.id === id);
-    return Promise.resolve(payment ? toCustomerPayment(payment, this.invoices, this.allocations) : null);
   }
 
   createCustomerPayment(customerId: string, request: CreateCustomerPaymentRequest, nowISO = new Date().toISOString()): Promise<CustomerPayment> {
@@ -6226,32 +6126,6 @@ class MemoryStore implements DemoStore {
       items,
       total: items.length,
     });
-  }
-
-  getCustomerPairedAccounts(customerId: string): Promise<CustomerPairedAccount[]> {
-    return Promise.resolve([
-      {
-        id: 'pa-1',
-        name: 'Charith Wellage (Primary)',
-        type: 'PRIMARY',
-        balanceUsd: 450,
-        isCredit: true,
-      },
-      {
-        id: 'pa-2',
-        name: 'CarChief Kenya Hub (Branch)',
-        type: 'BRANCH',
-        balanceUsd: 12500,
-        isCredit: false,
-      },
-      {
-        id: 'pa-3',
-        name: 'Wellage Logistics Fleet (Logistics)',
-        type: 'LOGISTICS',
-        balanceUsd: 0,
-        isCredit: true,
-      },
-    ]);
   }
 
   reset(): Promise<void> {
@@ -7064,7 +6938,7 @@ class PostgresStore implements DemoStore {
         await this.pool.query('INSERT INTO office_locations (id, name, city, country, address, phone, email, operating_hours, is_primary, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)', [office.id, office.name, office.city, office.country, office.address, office.phone, office.email, office.operatingHours, office.isPrimary, office.status]);
       }
       for (const branch of seedBranches) {
-        await this.pool.query('INSERT INTO branch_content (id, name, code, destination_port, introduction, welcome_banner, contact_banner, team_members, meet_and_greet_info, contact_details, content_owner, status, latest_arrivals_query, recently_discounted_query) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)', [branch.id, branch.name, branch.code, branch.destinationPort, branch.introduction, branch.welcomeBanner, branch.contactBanner, JSON.stringify(branch.teamMembers), branch.meetAndGreetInfo, JSON.stringify(branch.contactDetails), branch.contentOwner, branch.status, branch.latestArrivalsQuery ? JSON.stringify(branch.latestArrivalsQuery) : null, branch.recentlyDiscountedQuery ? JSON.stringify(branch.recentlyDiscountedQuery) : null]);
+        await this.pool.query('INSERT INTO branch_content (id, name, code, destination_port, introduction, welcome_banner, contact_banner, team_members, meet_and_greet_info, contact_details, content_owner, status, latest_arrivals_query, recently_discounted_query) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)', [branch.id, branch.name, branch.code, branch.destinationPort, branch.introduction, branch.welcomeBanner, branch.contactBanner, JSON.stringify(branch.teamMembers), branch.meetAndGreetInfo, JSON.stringify(branch.contactDetails), null, branch.status, null, null]);
       }
     }
 
@@ -7763,23 +7637,6 @@ class PostgresStore implements DemoStore {
     return { items };
   }
 
-  async getVehicleInquiryAggregate(vehicleSlugOrId: string): Promise<VehicleInquiryAggregate> {
-    const rawVehicles = await this.getRawVehicles();
-    const vehicle = findVehicleRecord(rawVehicles, vehicleSlugOrId);
-    const vehicleSlug = vehicle ? generateVehicleSlug(vehicle.year, vehicle.make, vehicle.model, vehicle.id) : vehicleSlugOrId;
-
-    const countResult = await this.pool.query(
-      `SELECT COUNT(DISTINCT customer_id) as inquirer_count FROM enquiries WHERE vehicle_slug = $1 AND enquiry_type = 'price-request'`,
-      [vehicleSlug]
-    );
-    const inquirerCount = Number(countResult.rows[0]?.inquirer_count || 0);
-
-    return {
-      vehicleSlug,
-      inquirerCount,
-    };
-  }
-
   private static rowToReservationRecord(row: Record<string, unknown>): ReservationRecord {
     return {
       id: row.id as string,
@@ -7984,10 +7841,7 @@ class PostgresStore implements DemoStore {
       teamMembers: JSON.parse(row.team_members),
       meetAndGreetInfo: row.meet_and_greet_info,
       contactDetails: JSON.parse(row.contact_details),
-      contentOwner: row.content_owner,
       status: row.status as ContentApprovalStatus,
-      latestArrivalsQuery: row.latest_arrivals_query ? JSON.parse(row.latest_arrivals_query) : undefined,
-      recentlyDiscountedQuery: row.recently_discounted_query ? JSON.parse(row.recently_discounted_query) : undefined,
     }));
     return { items, total: items.length };
   }
@@ -8007,10 +7861,7 @@ class PostgresStore implements DemoStore {
       teamMembers: JSON.parse(row.team_members),
       meetAndGreetInfo: row.meet_and_greet_info,
       contactDetails: JSON.parse(row.contact_details),
-      contentOwner: row.content_owner,
       status: row.status as ContentApprovalStatus,
-      latestArrivalsQuery: row.latest_arrivals_query ? JSON.parse(row.latest_arrivals_query) : undefined,
-      recentlyDiscountedQuery: row.recently_discounted_query ? JSON.parse(row.recently_discounted_query) : undefined,
     };
   }
 
@@ -8075,13 +7926,6 @@ class PostgresStore implements DemoStore {
 
     const notificationUnreadCount = this.notifications.filter((n) => n.customerId === customerId && !n.isRead).length;
 
-    const partialFailureIndicators = {
-      paymentsFailed: false,
-      shipmentsFailed: false,
-      documentsFailed: false,
-      notificationsFailed: false,
-    };
-
     return {
       customerId,
       customerEmail,
@@ -8091,12 +7935,10 @@ class PostgresStore implements DemoStore {
       vehicleCountReserved: reservedVehicleIds.size,
       vehicleCountInvoiced: invoicedVehicleIds.size,
       vehicleCountDelivered: deliveredVehicleIds.size,
-      lastUpdated: new Date().toISOString(),
       paymentStatusSummary,
       shipmentStatusSummary,
       documentAvailabilityCount,
       notificationUnreadCount,
-      partialFailureIndicators,
     };
   }
 
@@ -8202,27 +8044,6 @@ class PostgresStore implements DemoStore {
     await this.ensureCustomerFleetDataInPostgres(customerId);
     const notifications = await this.getRawNotifications(customerId);
     return queryCustomerNotifications(notifications, query);
-  }
-
-  async getCustomerNotification(customerId: string, notificationId: string): Promise<Notification | null> {
-    await this.ensureCustomerFleetDataInPostgres(customerId);
-    const res = await this.pool.query('SELECT * FROM notifications WHERE customer_id = $1 AND id = $2', [customerId, notificationId]);
-    if (res.rows.length === 0) return null;
-    const row = res.rows[0];
-    return toCustomerNotification({
-      id: row.id,
-      customerId: row.customer_id,
-      title: row.title || undefined,
-      message: row.message,
-      type: row.type as any,
-      isRead: Boolean(row.is_read),
-      createdAt: row.created_at,
-      related: row.related_kind ? {
-        kind: row.related_kind,
-        id: row.related_id,
-        href: row.related_href,
-      } : undefined,
-    });
   }
 
   async markCustomerNotificationRead(customerId: string, notificationId: string): Promise<Notification | null> {
@@ -8394,38 +8215,6 @@ class PostgresStore implements DemoStore {
       return toCustomerPayment(record, invoices, allocations);
     });
     return { items, total: items.length };
-  }
-
-  async getCustomerPayment(customerId: string, id: string): Promise<CustomerPayment | null> {
-    await this.ensureCustomerFleetDataInPostgres(customerId);
-    const invoices = await this.getRawInvoices(customerId);
-    const allocations = await this.getRawAllocations(customerId);
-    const result = await this.pool.query(
-      'SELECT id, customer_id, invoice_id, amount_usd, paid_at, status, reference, bank_name, currency, remarks FROM payments WHERE customer_id = $1 AND id = $2',
-      [customerId, id]
-    );
-    if (result.rows.length === 0) {
-      const payment = this.paymentRecords.find((candidate) => candidate.customerId === customerId && candidate.id === id);
-      return payment ? toCustomerPayment(payment, invoices, allocations) : null;
-    }
-    const row = result.rows[0];
-    const memoryMatch = this.paymentRecords.find((p) => p.id === row.id);
-    const record: PaymentRecord = {
-      id: row.id,
-      customerId: row.customer_id,
-      invoiceId: row.invoice_id,
-      amountUsd: Number(row.amount_usd),
-      paidAt: row.paid_at,
-      paymentDate: row.paid_at.slice(0, 10),
-      status: row.status as any,
-      reference: row.reference || memoryMatch?.reference || `TT-${row.id.replace(/^pay-/, '').toUpperCase()}`,
-      bankName: row.bank_name || memoryMatch?.bankName || 'Sumitomo Mitsui Banking Corp (USD)',
-      currency: row.currency || memoryMatch?.currency || 'USD',
-      remarks: row.remarks || memoryMatch?.remarks || 'None',
-      proof: memoryMatch?.proof,
-      idempotencyKey: memoryMatch?.idempotencyKey,
-    };
-    return toCustomerPayment(record, invoices, allocations);
   }
 
   async createCustomerPayment(customerId: string, request: CreateCustomerPaymentRequest, nowISO = new Date().toISOString()): Promise<CustomerPayment> {
@@ -9003,7 +8792,7 @@ class PostgresStore implements DemoStore {
         await client.query('INSERT INTO office_locations (id, name, city, country, address, phone, email, operating_hours, is_primary, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)', [office.id, office.name, office.city, office.country, office.address, office.phone, office.email, office.operatingHours, office.isPrimary, office.status]);
       }
       for (const branch of seedBranches) {
-        await client.query('INSERT INTO branch_content (id, name, code, destination_port, introduction, welcome_banner, contact_banner, team_members, meet_and_greet_info, contact_details, content_owner, status, latest_arrivals_query, recently_discounted_query) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)', [branch.id, branch.name, branch.code, branch.destinationPort, branch.introduction, branch.welcomeBanner, branch.contactBanner, JSON.stringify(branch.teamMembers), branch.meetAndGreetInfo, JSON.stringify(branch.contactDetails), branch.contentOwner, branch.status, branch.latestArrivalsQuery ? JSON.stringify(branch.latestArrivalsQuery) : null, branch.recentlyDiscountedQuery ? JSON.stringify(branch.recentlyDiscountedQuery) : null]);
+        await client.query('INSERT INTO branch_content (id, name, code, destination_port, introduction, welcome_banner, contact_banner, team_members, meet_and_greet_info, contact_details, content_owner, status, latest_arrivals_query, recently_discounted_query) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)', [branch.id, branch.name, branch.code, branch.destinationPort, branch.introduction, branch.welcomeBanner, branch.contactBanner, JSON.stringify(branch.teamMembers), branch.meetAndGreetInfo, JSON.stringify(branch.contactDetails), null, branch.status, null, null]);
       }
 
       await client.query('COMMIT');
@@ -9038,11 +8827,6 @@ class PostgresStore implements DemoStore {
   listCustomerPolymorphicInquiries(customerId: string): Promise<CustomerPolymorphicInquiryListResponse> {
     const memory = new MemoryStore();
     return memory.listCustomerPolymorphicInquiries(customerId);
-  }
-
-  getCustomerPairedAccounts(customerId: string): Promise<CustomerPairedAccount[]> {
-    const memory = new MemoryStore();
-    return memory.getCustomerPairedAccounts(customerId);
   }
 
   async close(): Promise<void> {

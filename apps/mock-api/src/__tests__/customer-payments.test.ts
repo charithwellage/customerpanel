@@ -79,7 +79,7 @@ describe('Customer TT payment journal contract (D02-P06-T001)', () => {
     const listed = await fetch(`${baseUrl}/api/v1/customer/payment-notifications?paymentId=pay-004`, { headers: customerHeaders });
     expect(listed.status).toBe(200);
     expect((await listed.json()).items).toEqual(expect.arrayContaining([
-      expect.objectContaining({ paymentId: 'pay-004', event: 'FinanceReviewRequested', deliveryStatus: 'Queued' }),
+      expect.objectContaining({ paymentId: 'pay-004', event: 'FinanceReviewRequested' }),
     ]));
 
     const customerAttempt = await fetch(`${baseUrl}/api/v1/finance/customer-payments/pay-004/notifications`, {

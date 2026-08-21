@@ -41,7 +41,6 @@ const MOCK_SUMMARY: CustomerVehicleSummary = {
     requiredAmountUsd: 22500,
     paidAmountUsd: 10000,
     remainingAmountUsd: 12500,
-    isFullyPaid: false,
   },
   locationStatus: 'In Japan',
   destinationPort: 'Mombasa',
@@ -242,7 +241,6 @@ describe('My Vehicles UI Components (D02-P04-T002 & D02-P14-T008)', () => {
             requiredAmountUsd: 25000,
             paidAmountUsd: 25000,
             remainingAmountUsd: 0,
-            isFullyPaid: true,
           },
           proformaInvoiceId: 'pi-1001',
           invoiceId: 'inv-2001',
@@ -467,4 +465,3 @@ describe('My Vehicles UI Components (D02-P04-T002 & D02-P14-T008)', () => {
     });
   });
 });
-

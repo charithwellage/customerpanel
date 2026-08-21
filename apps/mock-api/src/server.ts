@@ -236,17 +236,6 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
     res.json(dcRecords);
   });
 
-  // 3k-pa. Customer paired / linked accounts (FRD Section 1)
-  app.get('/api/v1/customer/paired-accounts', async (req: AuthenticatedRequest, res: Response) => {
-    if (!req.user) {
-      res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
-      return;
-    }
-    const customerId = resolveCustomerScope(req.user.sub);
-    const accounts = await store.getCustomerPairedAccounts(customerId);
-    res.json({ items: accounts });
-  });
-
   // 3l. Wishlist operations (D02-P13-T002, CUST-36/CUST-37): list, add, remove
   // wishlist items for the signed-in customer.
   app.get('/api/v1/customer/wishlist', async (req: AuthenticatedRequest, res: Response) => {
@@ -375,20 +364,6 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
   app.get('/api/v1/customer/favourites/facets', async (req: Request, res: Response) => {
     const facets = await store.getFavouriteFacets();
     res.json(facets);
-  });
-
-  // 3k. Vehicle inquiry aggregate (D02-P13-T001, CUST-35): returns the count
-  // of distinct people who have requested a quote for a given vehicle.
-  app.get('/api/v1/vehicles/:idOrSlug/inquiry-count', async (req: Request, res: Response) => {
-    const rawParam = req.params.idOrSlug;
-    const idOrSlug = Array.isArray(rawParam) ? rawParam[0] : rawParam;
-    const vehicle = await store.getVehicleDetail(idOrSlug);
-    if (!vehicle) {
-      res.status(404).json({ statusCode: 404, message: `Vehicle '${idOrSlug}' not found`, correlationId: `corr-404-${Date.now()}` });
-      return;
-    }
-    const aggregate = await store.getVehicleInquiryAggregate(idOrSlug);
-    res.json(aggregate);
   });
 
   // 3i-r. Transactional reservation eligibility and hold (PUB-23, RULE-05,
@@ -791,14 +766,6 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
     res.json(await store.listCustomerNotifications(resolveCustomerScope(req.user.sub), { status, q }));
   });
 
-  app.get('/api/v1/customer/notifications/:id', async (req: AuthenticatedRequest, res: Response) => {
-    if (!req.user) return void res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
-    if (!hasPermission(req.user.role, 'read:customer')) return void res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
-    const notification = await store.getCustomerNotification(resolveCustomerScope(req.user.sub), req.params.id as string);
-    if (!notification) return void res.status(404).json({ statusCode: 404, message: 'Notification not found', correlationId: `corr-404-${Date.now()}` });
-    res.json(notification);
-  });
-
   app.post('/api/v1/customer/notifications/:id/read', async (req: AuthenticatedRequest, res: Response) => {
     if (!req.user) return void res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
     if (!hasPermission(req.user.role, 'read:customer')) return void res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
@@ -933,14 +900,6 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
     if (!req.user) return void res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
     if (!hasPermission(req.user.role, 'read:customer')) return void res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
     res.json(await store.listCustomerPayments(resolveCustomerScope(req.user.sub)));
-  });
-
-  app.get('/api/v1/customer/payments/:id', async (req: AuthenticatedRequest, res: Response) => {
-    if (!req.user) return void res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
-    if (!hasPermission(req.user.role, 'read:customer')) return void res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
-    const payment = await store.getCustomerPayment(resolveCustomerScope(req.user.sub), req.params.id as string);
-    if (!payment) return void res.status(404).json({ statusCode: 404, message: 'Payment not found or not owned by customer', correlationId: `corr-404-${Date.now()}` });
-    res.json(payment);
   });
 
   app.post('/api/v1/customer/payments/:id/resubmit', async (req: AuthenticatedRequest, res: Response) => {

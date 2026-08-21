@@ -26,7 +26,6 @@ export interface FaqQueryResponse {
   categories: FaqCategory[];
   items: FaqItem[];
   total: number;
-  matchedCount: number;
   groundedNoAnswer: boolean;
   message?: string;
 }
@@ -70,7 +69,6 @@ export interface TestimonialListResponse {
 export interface ContentPageSection {
   title: string;
   content: string;
-  image?: string;
 }
 
 export interface PublicContentPage {
@@ -108,7 +106,6 @@ export interface OfficeListResponse {
 export interface BranchTeamMember {
   name: string;
   role: string;
-  photoUrl?: string;
   contactEmail?: string;
 }
 
@@ -130,10 +127,7 @@ export interface BranchContent {
   teamMembers: BranchTeamMember[];
   meetAndGreetInfo: string;
   contactDetails: BranchContactDetails;
-  contentOwner: string;
   status: ContentApprovalStatus;
-  latestArrivalsQuery?: { destinationPort?: string; limit?: number };
-  recentlyDiscountedQuery?: { destinationPort?: string; limit?: number };
 }
 
 export interface BranchListResponse {

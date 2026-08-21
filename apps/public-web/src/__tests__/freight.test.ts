@@ -74,7 +74,7 @@ const basePricedVehicle: VehicleDetail = {
   priceState: 'priced',
   priceUsd: 8500,
   requestPrice: false,
-  media: { gallery: [], totalPicturesCount: 0 },
+  media: { gallery: [] },
   bodyStyle: 'Sedan',
 };
 

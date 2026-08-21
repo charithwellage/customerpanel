@@ -245,7 +245,6 @@ describe('API Client & Contract Boundary Tests', () => {
           requestPrice: false,
           media: {
             gallery: ['https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?w=400'],
-            totalPicturesCount: 1,
           },
         }),
       };
@@ -932,7 +931,6 @@ describe('API Client & Contract Boundary Tests', () => {
             categories: [{ id: 'cat-buying-process', name: 'Buying Process', order: 1 }],
             items: [],
             total: 1,
-            matchedCount: 0,
             groundedNoAnswer: false,
           }),
         };
@@ -1793,30 +1791,6 @@ describe('API Client & Contract Boundary Tests', () => {
       expect(result.items[0].inquirerCount).toBe(2);
     });
 
-    it('gets the aggregate inquirer count for a vehicle', async () => {
-      let capturedUrl: string | undefined;
-      const mockFetch = vi.fn().mockImplementation(async (url) => {
-        capturedUrl = url;
-        return {
-          ok: true,
-          status: 200,
-          headers: new Headers({ 'content-type': 'application/json' }),
-          json: async () => ({
-            vehicleSlug: 'toyota-corolla-2020',
-            inquirerCount: 5,
-          }),
-        };
-      });
-      global.fetch = mockFetch;
-
-      const client = new HttpClient({ baseUrl: 'http://localhost:4000', getAuthToken: () => 'auth-token' });
-      const { CustomerInquiryService } = await import('../services/customerInquiries.js');
-      const service = new CustomerInquiryService(client);
-
-      const result = await service.getVehicleInquiryCount('toyota-corolla-2020');
-      expect(capturedUrl).toContain('/api/v1/vehicles/toyota-corolla-2020/inquiry-count');
-      expect(result.inquirerCount).toBe(5);
-    });
   });
 
   describe('WishlistService (D02-P13-T002, CUST-36/CUST-37)', () => {

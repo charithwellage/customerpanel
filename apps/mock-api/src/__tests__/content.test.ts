@@ -81,7 +81,6 @@ describe('Public content, FAQ and testimonial services (PUB-17..PUB-35, D01-P07-
 
         const data = (await res.json()) as FaqQueryResponse;
         expect(data.groundedNoAnswer).toBe(true);
-        expect(data.matchedCount).toBe(0);
         expect(data.items).toEqual([]);
         expect(data.message).toContain('No grounded answer found matching your query');
       } finally {

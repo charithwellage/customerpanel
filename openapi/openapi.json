@@ -1069,39 +1069,6 @@
         }
       }
     },
-    "/api/v1/vehicles/{idOrSlug}/inquiry-count": {
-      "get": {
-        "summary": "Get the aggregate count of distinct inquirers for a vehicle (D02-P13-T001, CUST-35)",
-        "operationId": "getVehicleInquiryAggregate",
-        "parameters": [
-          {
-            "name": "idOrSlug",
-            "in": "path",
-            "required": true,
-            "schema": { "type": "string" },
-            "x-placeholder": "2021-toyota-corolla-axio-veh-1"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "The vehicle inquiry aggregate",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/VehicleInquiryAggregate" }
-              }
-            }
-          },
-          "404": {
-            "description": "No vehicle exists with this id or slug",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v1/reservations": {
       "post": {
         "summary": "Create a transactional 48-hour reservation hold on a vehicle for the authenticated demo customer (PUB-23, RULE-05, RULE-08, RULE-10, D01-P06-T004)",
@@ -1616,20 +1583,6 @@
         }
       }
     },
-    "/api/v1/customer/notifications/{id}": {
-      "get": {
-        "summary": "Get one customer notification",
-        "operationId": "getCustomerNotification",
-        "security": [{ "BearerAuth": [] }],
-        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
-        "responses": {
-          "200": { "description": "Customer notification", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Notification" } } } },
-          "401": { "description": "Unauthenticated", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
-          "403": { "description": "Forbidden", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
-          "404": { "description": "Notification not found", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
-        }
-      }
-    },
     "/api/v1/customer/notifications/{id}/read": {
       "post": {
         "summary": "Mark one customer notification as read",
@@ -1922,19 +1875,6 @@
           "400": { "description": "Invalid payment metadata", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
           "401": { "description": "Unauthenticated", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
           "403": { "description": "Forbidden", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
-        }
-      }
-    },
-    "/api/v1/customer/payments/{id}": {
-      "get": {
-        "operationId": "getCustomerPayment",
-        "security": [{ "BearerAuth": [] }],
-        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
-        "responses": {
-          "200": { "description": "Customer payment journal entry", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CustomerPayment" } } } },
-          "401": { "description": "Unauthenticated", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
-          "403": { "description": "Forbidden", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
-          "404": { "description": "Payment not found", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
         }
       }
     },
@@ -2251,10 +2191,6 @@
           "active": { "type": "boolean", "example": true },
           "nowOnSale": { "type": "boolean", "example": true },
           "priceState": { "type": "string", "enum": ["priced", "request_price"], "example": "priced" },
-          "countryEligibility": {
-            "type": "array",
-            "items": { "type": "string" }
-          },
           "tierPricing": { "$ref": "#/components/schemas/VehicleTierPricing" },
           "reservationEligibility": { "$ref": "#/components/schemas/VehicleReservationEligibility" }
         },
@@ -2297,10 +2233,6 @@
             "type": "array",
             "items": { "type": "string" }
           },
-          "auctionSheet": {
-            "type": "array",
-            "items": { "type": "string" }
-          },
           "japanPictures": {
             "type": "array",
             "items": { "type": "string" }
@@ -2311,10 +2243,9 @@
           },
           "showAuctionPictures": { "type": "boolean", "example": false },
           "showJapanPictures": { "type": "boolean", "example": true },
-          "showDurbanPictures": { "type": "boolean", "example": false },
-          "totalPicturesCount": { "type": "integer", "example": 5 }
+          "showDurbanPictures": { "type": "boolean", "example": false }
         },
-        "required": ["gallery", "totalPicturesCount"]
+        "required": ["gallery"]
       },
       "VehicleDetail": {
         "type": "object",
@@ -2358,10 +2289,6 @@
           "etd": { "type": "string", "example": "2026-08-20T00:00:00.000Z" },
           "eta": { "type": "string", "example": "2026-09-10T00:00:00.000Z" },
           "featured": { "type": "boolean", "example": true },
-          "countryEligibility": {
-            "type": "array",
-            "items": { "type": "string" }
-          },
           "media": { "$ref": "#/components/schemas/CategorizedPublicMedia" },
           "active": { "type": "boolean", "example": true },
           "nowOnSale": { "type": "boolean", "example": true },
@@ -2934,11 +2861,10 @@
           "categories": { "type": "array", "items": { "$ref": "#/components/schemas/FaqCategory" } },
           "items": { "type": "array", "items": { "$ref": "#/components/schemas/FaqItem" } },
           "total": { "type": "integer", "example": 12 },
-          "matchedCount": { "type": "integer", "example": 12 },
           "groundedNoAnswer": { "type": "boolean", "example": false },
           "message": { "type": "string", "example": "No grounded answer found matching your query." }
         },
-        "required": ["categories", "items", "total", "matchedCount", "groundedNoAnswer"]
+        "required": ["categories", "items", "total", "groundedNoAnswer"]
       },
       "TestimonialItem": {
         "type": "object",
@@ -3034,10 +2960,9 @@
           "welcomeBanner": { "type": "string", "example": "Welcome to CarChief Harare Hub" },
           "contactBanner": { "type": "string", "example": "Contact our Harare import specialists" },
           "meetAndGreetInfo": { "type": "string", "example": "Visit our representative office..." },
-          "contentOwner": { "type": "string", "example": "BranchTeam" },
           "status": { "type": "string", "enum": ["approved", "pending", "draft", "unavailable", "rejected"], "example": "approved" }
         },
-        "required": ["id", "name", "code", "destinationPort", "introduction", "welcomeBanner", "contactBanner", "meetAndGreetInfo", "contentOwner", "status"]
+        "required": ["id", "name", "code", "destinationPort", "introduction", "welcomeBanner", "contactBanner", "meetAndGreetInfo", "status"]
       },
       "BranchListResponse": {
         "type": "object",
@@ -3092,15 +3017,9 @@
           "shipOkStatus": { "type": "string", "enum": ["Pending", "Approved", "Rejected"] },
           "shipOkRejectionReason": { "type": "string" },
           "documentReleaseStatus": { "type": "string", "enum": ["Pending", "Approved", "Rejected"] },
-          "documentReleaseRejectionReason": { "type": "string" },
-          "timeline": { "type": "array", "items": { "$ref": "#/components/schemas/ShipmentTimelineEvent" } }
+          "documentReleaseRejectionReason": { "type": "string" }
         },
-        "required": ["id", "vehicleId", "stage", "shippedAt", "freshness", "shipOkStatus", "documentReleaseStatus", "timeline"]
-      },
-      "ShipmentTimelineEvent": {
-        "type": "object",
-        "properties": { "stage": { "type": "string" }, "occurredAt": { "type": "string" }, "current": { "type": "boolean" } },
-        "required": ["stage", "current"]
+        "required": ["id", "vehicleId", "stage", "shippedAt", "freshness", "shipOkStatus", "documentReleaseStatus"]
       },
       "CustomerShipmentList": {
         "type": "object",
@@ -3136,7 +3055,6 @@
           "vehicleCountReserved": { "type": "integer", "example": 2 },
           "vehicleCountInvoiced": { "type": "integer", "example": 1 },
           "vehicleCountDelivered": { "type": "integer", "example": 0 },
-          "lastUpdated": { "type": "string", "example": "2026-08-14T10:00:00.000Z" },
           "paymentStatusSummary": {
             "type": "object",
             "description": "Count of payments linked to customer invoices by status",
@@ -3172,20 +3090,9 @@
             "type": "integer",
             "description": "Count of unread notifications for this customer",
             "example": 2
-          },
-          "partialFailureIndicators": {
-            "type": "object",
-            "description": "Flags indicating if any linked-record query failed; missing/empty lists are not failures",
-            "properties": {
-              "paymentsFailed": { "type": "boolean", "example": false },
-              "shipmentsFailed": { "type": "boolean", "example": false },
-              "documentsFailed": { "type": "boolean", "example": false },
-              "notificationsFailed": { "type": "boolean", "example": false }
-            },
-            "required": ["paymentsFailed", "shipmentsFailed", "documentsFailed", "notificationsFailed"]
           }
         },
-        "required": ["customerId", "customerEmail", "creditLimitUsd", "outstandingBalanceUsd", "creditUtilisationPercent", "vehicleCountReserved", "vehicleCountInvoiced", "vehicleCountDelivered", "lastUpdated", "paymentStatusSummary", "shipmentStatusSummary", "documentAvailabilityCount", "notificationUnreadCount", "partialFailureIndicators"]
+        "required": ["customerId", "customerEmail", "creditLimitUsd", "outstandingBalanceUsd", "creditUtilisationPercent", "vehicleCountReserved", "vehicleCountInvoiced", "vehicleCountDelivered", "paymentStatusSummary", "shipmentStatusSummary", "documentAvailabilityCount", "notificationUnreadCount"]
       },
       "CustomerVehicleStatus": {
         "type": "string",
@@ -3208,7 +3115,6 @@
           "type": { "type": "string", "example": "ProformaInvoice" },
           "title": { "type": "string", "example": "Proforma Invoice PI-2026-001" },
           "status": { "type": "string", "enum": ["Available", "Pending", "Draft"], "example": "Available" },
-          "fileUrl": { "type": "string", "example": "/documents/pi-001.pdf" },
           "issuedAt": { "type": "string", "example": "2026-08-10T10:00:00.000Z" }
         },
         "required": ["id", "type", "title", "status"]
@@ -3220,10 +3126,9 @@
           "requiredPercent": { "type": "number", "example": 50 },
           "requiredAmountUsd": { "type": "number", "example": 4250.00 },
           "paidAmountUsd": { "type": "number", "example": 2000.00 },
-          "remainingAmountUsd": { "type": "number", "example": 2250.00 },
-          "isFullyPaid": { "type": "boolean", "example": false }
+          "remainingAmountUsd": { "type": "number", "example": 2250.00 }
         },
-        "required": ["requiredPercent", "requiredAmountUsd", "paidAmountUsd", "remainingAmountUsd", "isFullyPaid"]
+        "required": ["requiredPercent", "requiredAmountUsd", "paidAmountUsd", "remainingAmountUsd"]
       },
       "CustomerVehicleSummary": {
         "type": "object",
@@ -3394,9 +3299,9 @@
         "properties": {
           "id": { "type": "string" }, "customerId": { "type": "string" }, "paymentId": { "type": "string" }, "invoiceId": { "type": "string" },
           "event": { "type": "string", "enum": ["FinanceReviewRequested", "PaymentHeld", "PaymentResubmitted", "PaymentApproved", "PaymentAllocated"] },
-          "deliveryStatus": { "type": "string", "enum": ["Queued"] }, "createdAt": { "type": "string" }
+          "createdAt": { "type": "string" }
         },
-        "required": ["id", "customerId", "paymentId", "invoiceId", "event", "deliveryStatus", "createdAt"]
+        "required": ["id", "customerId", "paymentId", "invoiceId", "event", "createdAt"]
       },
       "CustomerPaymentNotificationListResponse": {
         "type": "object",
@@ -3469,15 +3374,13 @@
           "paidAmountUsd": { "type": "number", "example": 5500.00 },
           "outstandingAmountUsd": { "type": "number", "example": 3000.00 },
           "depositRequiredUsd": { "type": "number", "example": 4250.00 },
-          "depositPaidUsd": { "type": "number", "example": 2000.00 },
           "status": { "$ref": "#/components/schemas/CustomerInvoiceStatus" },
           "issuedAt": { "type": "string", "example": "2026-08-10T10:00:00.000Z" },
           "dueDate": { "type": "string", "example": "2026-08-17T10:00:00.000Z" },
           "paymentDeadline": { "type": "string", "example": "2026-08-13T10:00:00.000Z" },
-          "documentStatus": { "type": "string", "enum": ["Available", "Pending", "Unavailable"], "example": "Available" },
           "currency": { "type": "string", "example": "USD" }
         },
-        "required": ["id", "invoiceNumber", "type", "customerId", "vehicleId", "vehicleSlug", "make", "model", "year", "totalAmountUsd", "paidAmountUsd", "outstandingAmountUsd", "status", "issuedAt", "dueDate", "documentStatus", "currency"]
+        "required": ["id", "invoiceNumber", "type", "customerId", "vehicleId", "vehicleSlug", "make", "model", "year", "totalAmountUsd", "paidAmountUsd", "outstandingAmountUsd", "status", "issuedAt", "dueDate", "currency"]
       },
       "CustomerInvoiceDetail": {
         "allOf": [
@@ -3507,26 +3410,12 @@
                 "items": { "$ref": "#/components/schemas/CustomerInvoiceAllocationItem" }
               },
               "bankDetails": { "$ref": "#/components/schemas/CustomerInvoiceBankDetails" },
-              "documentUrl": { "type": "string", "example": "/documents/inv-001.pdf" },
-              "termsAndConditions": {
-                "type": "array",
-                "items": { "type": "string" }
-              },
               "isExpired": { "type": "boolean", "example": false },
               "notes": { "type": "string", "example": "Proforma invoice issued with 50% deposit requirement" }
             },
             "required": ["vehicle", "lineItems", "allocations"]
           }
         ]
-      },
-      "CustomerInvoiceCountsByType": {
-        "type": "object",
-        "properties": {
-          "all": { "type": "integer", "example": 4 },
-          "proforma": { "type": "integer", "example": 1 },
-          "commercial": { "type": "integer", "example": 3 }
-        },
-        "required": ["all", "proforma", "commercial"]
       },
       "CustomerInvoiceTotals": {
         "type": "object",
@@ -3547,24 +3436,21 @@
           "total": { "type": "integer", "example": 4 },
           "page": { "type": "integer", "example": 1 },
           "limit": { "type": "integer", "example": 20 },
-          "countsByType": { "$ref": "#/components/schemas/CustomerInvoiceCountsByType" },
           "totals": { "$ref": "#/components/schemas/CustomerInvoiceTotals" }
         },
-        "required": ["items", "total", "page", "limit", "countsByType", "totals"]
+        "required": ["items", "total", "page", "limit", "totals"]
       },
       "CustomerInvoiceDocument": {
         "type": "object",
         "properties": {
-          "documentId": { "type": "string", "example": "doc-inv-001" },
           "invoiceId": { "type": "string", "example": "inv-001" },
           "invoiceNumber": { "type": "string", "example": "INV-2026-001" },
           "type": { "$ref": "#/components/schemas/CustomerInvoiceType" },
           "title": { "type": "string", "example": "Commercial Invoice INV-2026-001" },
           "contentHtml": { "type": "string", "example": "<div class=\"invoice-doc\">...</div>" },
-          "status": { "type": "string", "enum": ["Available", "Unavailable"], "example": "Available" },
-          "generatedAt": { "type": "string", "example": "2026-08-10T10:00:00.000Z" }
+          "status": { "type": "string", "enum": ["Available", "Unavailable"], "example": "Available" }
         },
-        "required": ["documentId", "invoiceId", "invoiceNumber", "type", "title", "contentHtml", "status", "generatedAt"]
+        "required": ["invoiceId", "invoiceNumber", "type", "title", "contentHtml", "status"]
       }
     }
   }
