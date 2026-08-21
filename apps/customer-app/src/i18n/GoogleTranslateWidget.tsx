@@ -26,6 +26,22 @@ export const CustomerGoogleTranslateWidget: React.FC = () => {
           },
           'customer_google_translate_element'
         );
+
+        setTimeout(() => {
+          try {
+            const saved = localStorage.getItem('carchief_lang');
+            if (saved && saved !== 'en') {
+              const select = document.querySelector<HTMLSelectElement>('.goog-te-combo');
+              if (select) {
+                select.value = saved;
+                select.dispatchEvent(new Event('change', { bubbles: true }));
+                select.dispatchEvent(new Event('input', { bubbles: true }));
+              }
+            }
+          } catch {
+            // Ignore
+          }
+        }, 100);
       }
     };
 

@@ -749,7 +749,7 @@ function VehicleDetailPageInner({ vehicle }: VehicleDetailPageProps) {
             </div>
 
             <div className="cc-cif-body">
-              <h4 className="cc-cif-calculator-heading">CIF CALCULATOR</h4>
+              <h4 className="cc-cif-calculator-heading">{includeInsurance ? 'CIF CALCULATOR' : 'C&F CALCULATOR'}</h4>
 
               <div className="cc-cif-field">
                 <label htmlFor={countrySelectId} className="cc-cif-label">

@@ -46,6 +46,8 @@ function getGroupLabel(item: NavigationItem, t: (key: string, params?: Record<st
     case 'dashboard': return t('customer.dashboard', undefined, item.label);
     case 'browse':    return t('customer.allInventoryStock', undefined, item.label);
     case 'garage':    return t('customer.myVehicles', undefined, item.label);
+    case 'statement': return t('customer.statement', undefined, item.label);
+    case 'payments':  return t('customer.wireRemittance', undefined, item.label);
     case 'finances':  return t('customer.finances', undefined, item.label);
     case 'account':   return t('customer.account', undefined, item.label);
     default: return item.label;
@@ -63,7 +65,7 @@ function getSubItemLabel(item: SubNavigationItem, t: (key: string, params?: Reco
     case 'shipments':     return t('customer.holdVehicles', undefined, item.label);
     case 'statement':     return t('customer.statement', undefined, item.label);
     case 'invoices':      return t('customer.purchasedVehicles', undefined, item.label);
-    case 'payments':      return t('customer.payments', undefined, item.label);
+    case 'payments':      return t('customer.wireRemittance', undefined, item.label);
     case 'documents':     return t('customer.documents', undefined, item.label);
     case 'notifications': return t('customer.notifications', undefined, item.label);
     case 'profile':       return t('customer.profile', undefined, item.label);
@@ -76,7 +78,7 @@ const renderNavIcon = (itemId: string, fallbackIcon?: string): React.ReactNode =
     case 'dashboard':     return <DashboardGridIcon size={18} />;
     case 'browse':        return <ShowroomCarIcon size={18} />;
     case 'garage':        return <VehiclesSideCarIcon size={18} />;
-    case 'finances':      return <InvoiceDocumentIcon size={18} />;
+    case 'finances':      return <WireRemittanceDollarIcon size={18} />;
     case 'account':       return <ClientProfileUserIcon size={18} />;
     case 'statement':     return <InvoiceDocumentIcon size={18} />;
     case 'inventory':     return <ShowroomCarIcon size={18} />;
@@ -121,9 +123,16 @@ const NavGroup: React.FC<NavGroupProps> = ({ item, activeRoute, setActiveRoute, 
 
   // A group is active when the active route is the parent or any child route
   const childRoutes = item.children?.map((c) => c.href) ?? [];
-  const isGroupActive = activeRoute === item.href || childRoutes.some((r) => activeRoute === r || (r !== '/' && activeRoute.startsWith(`${r}/`)));
+  const isGroupActive = activeRoute === item.href || (item.href !== '/' && activeRoute.startsWith(`${item.href}/`)) || childRoutes.some((r) => activeRoute === r || (r !== '/' && activeRoute.startsWith(`${r}/`)));
 
   const [isOpen, setIsOpen] = useState(isGroupActive);
+
+  // Automatically keep sub-nav open when any child is active
+  React.useEffect(() => {
+    if (isGroupActive) {
+      setIsOpen(true);
+    }
+  }, [isGroupActive]);
 
   const groupLabel = getGroupLabel(item, t);
   const linkClass = mobile ? 'cc-cust-shell-nav__link--mobile' : 'cc-cust-shell-nav__link';

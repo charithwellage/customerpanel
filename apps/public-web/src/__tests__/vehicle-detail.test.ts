@@ -526,6 +526,7 @@ describe('VehicleGalleryPrimitive (shared package)', () => {
     expect(html).toContain('SPECS INQUIRY &amp; BOOKING FORM');
     expect(html).toContain('SUBMIT INQUIRY SPEC FILE');
     expect(html).toContain('Verified customer account required');
+    expect(html).toContain('C&amp;F CALCULATOR');
   });
 
   it('renders EnterpriseLoginModal when open with all enterprise SSO providers', async () => {
