@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { VehicleDomainSummary } from '@carchief/domain';
 import {
   SearchEmptyState,
@@ -7,11 +7,11 @@ import {
   SearchPagination,
   SearchResultsHeader,
   VehicleCollectionPrimitive,
-  VehicleSearchHero,
 } from '@carchief/vehicle-search';
 import { useCustomerShell } from '../shell/index.js';
 import { useCustomerProfile } from '../profile/index.js';
 import { useCustomerInventory } from './useCustomerInventory.js';
+import { useCustomerInventoryConfig } from './useCustomerInventoryConfig.js';
 
 export interface CustomerInventoryPageProps {
   apiBaseUrl?: string;
@@ -26,6 +26,7 @@ export const CustomerInventoryPage: React.FC<CustomerInventoryPageProps> = ({
 }) => {
   const { user } = useCustomerShell();
   const { data: profile } = useCustomerProfile();
+  const { data: publicConfig } = useCustomerInventoryConfig();
   const destinationCountry = profile?.deliveryAddress || user?.company || 'Kenya';
 
   const {
@@ -48,28 +49,51 @@ export const CustomerInventoryPage: React.FC<CustomerInventoryPageProps> = ({
   const tier = user?.tier || 'Standard';
   const tierDiscountPercent =
     tier === 'Platinum' ? 15 : tier === 'Gold' ? 10 : tier === 'Silver' ? 5 : 0;
+  const [tierInfoOpen, setTierInfoOpen] = useState(false);
+  const tierDescription = publicConfig?.tierDescriptions?.[tier as keyof NonNullable<typeof publicConfig.tierDescriptions>]
+    || (tierDiscountPercent > 0
+      ? `Your verified account receives a ${tierDiscountPercent}% VIP discount on fixed-price export stock.`
+      : 'Standard export inventory pricing with real-time stock allocation and 48-hour reservation holds.');
 
   return (
-    <div className="cc-search-wrapper" data-testid="customer-inventory-page">
-      <VehicleSearchHero
-        title="CarChief Inventory Search"
-        description="Browse the complete live vehicle inventory available to customer accounts, then filter by the details that matter to you."
-      />
-      <div className="cc-search-container">
-        <div className="cc-cust-tier-banner" role="region" aria-label="Customer tier pricing status">
-          <div className="cc-cust-tier-banner__badge">
-            <span className="cc-cust-tier-banner__icon">⭐️</span>
-            <span className="cc-cust-tier-banner__tier-name">{tier} Tier Account</span>
+    <div className="cc-cust-inventory-page" data-testid="customer-inventory-page">
+      <header className="cc-cust-inventory-header" data-testid="customer-inventory-header">
+        <span className="cc-cust-inventory-header__eyebrow">CUSTOMER PORTAL / INVENTORY</span>
+        <div className="cc-cust-inventory-header__row">
+          <div>
+            <h1 className="cc-cust-inventory-header__title">Vehicle Inventory</h1>
+            <p className="cc-cust-inventory-header__subtitle">
+              Search and compare vehicles available to your account, then enquire or reserve the vehicle that fits your requirements.
+            </p>
           </div>
-          <div className="cc-cust-tier-banner__info">
-            {tierDiscountPercent > 0 ? (
-              <p>Your verified account receives a <strong>{tierDiscountPercent}% VIP discount</strong> on fixed-price export stock.</p>
-            ) : (
-              <p>Standard export inventory pricing with real-time stock allocation and 48-hour reservation holds.</p>
+          <div
+            className="cc-cust-tier-summary"
+            data-testid="customer-tier-summary"
+            onMouseEnter={() => setTierInfoOpen(true)}
+            onMouseLeave={() => setTierInfoOpen(false)}
+          >
+            <span className="cc-cust-tier-summary__icon" aria-hidden="true">★</span>
+            <span className="cc-cust-tier-summary__label">{tier} Tier Account</span>
+            <button
+              type="button"
+              className="cc-cust-tier-summary__info"
+              aria-label={`More information about ${tier} tier pricing`}
+              aria-expanded={tierInfoOpen}
+              aria-describedby="customer-tier-description"
+              onClick={() => setTierInfoOpen((open) => !open)}
+            >
+              i
+            </button>
+            {tierInfoOpen && (
+              <span id="customer-tier-description" className="cc-cust-tier-summary__description" role="tooltip">
+                {tierDescription}
+              </span>
             )}
           </div>
         </div>
+      </header>
 
+      <div className="cc-cust-inventory-content">
         <div className="cc-cust-compliance-banner" role="region" aria-label="Country import compliance localization" data-testid="compliance-localization-banner">
           <div className="cc-cust-compliance-banner__badge">
             <span className="cc-cust-compliance-banner__icon">📍</span>

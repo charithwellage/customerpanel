@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { VehicleGalleryPrimitive, formatVehicleTitle, getVisibleGalleryImages } from '@carchief/vehicle-detail';
 import { useCustomerShell } from '../shell/index.js';
 import { useCustomerProfile } from '../profile/index.js';
 import { useCustomerVehicleDetail } from './useCustomerVehicleDetail.js';
+import { CustomerInquiryModal } from './CustomerInquiryModal.js';
 
 export interface CustomerVehicleDetailPageProps {
   slug: string;
@@ -21,7 +22,7 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
   const { data: profile } = useCustomerProfile();
   const destinationCountry = profile?.deliveryAddress || user?.company || 'Kenya';
 
-  const { state, refetch, reserveVehicle, requestPriceInquiry, submitQuoteRequest, toggleWishlist } = useCustomerVehicleDetail({
+  const { state, refetch, reserveVehicle, requestPriceInquiry, toggleWishlist } = useCustomerVehicleDetail({
     idOrSlug: slug,
     apiBaseUrl,
     token,
@@ -29,6 +30,8 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
   });
 
   const { vehicle, loading, error, reserving, reserveSuccess, reserveError, holdExpiresAt } = state;
+  const [inquiryModalOpen, setInquiryModalOpen] = useState(false);
+  const [inquiryNotice, setInquiryNotice] = useState<string | null>(null);
 
   if (loading) {
     return (
@@ -59,6 +62,8 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
   }
 
   const title = formatVehicleTitle(vehicle);
+  const customerName = profile?.name || user?.name || '';
+  const customerEmail = profile?.email || user?.email || '';
   const images = vehicle.media ? getVisibleGalleryImages(vehicle.media) : [];
   const tierPricing = vehicle.tierPricing;
   const isRequestPrice = Boolean(vehicle.requestPrice || vehicle.priceState === 'request_price' || !vehicle.priceUsd);
@@ -71,6 +76,22 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
 
   const displayExpiry = holdExpiresAt || eligibility?.holdExpiresAt;
   const formattedExpiry = displayExpiry ? new Date(displayExpiry).toLocaleString() : '';
+
+  const handleOpenInquiry = () => {
+    if (state.inquiryAlreadySubmitted) {
+      setInquiryNotice('You have already submitted an inquiry for this vehicle.');
+      return;
+    }
+    setInquiryNotice(null);
+    setInquiryModalOpen(true);
+  };
+
+  const handleSubmitInquiry = async (message: string) => {
+    const response = await requestPriceInquiry(message);
+    if (!response) return;
+    setInquiryModalOpen(false);
+    setInquiryNotice(response.duplicate ? 'You have already submitted an inquiry for this vehicle.' : null);
+  };
 
   return (
     <div className="cc-cust-detail-page" data-testid="customer-vehicle-detail-page">
@@ -280,39 +301,46 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
             )}
           </div>
 
-          {/* Customer App Actions: Quote Request and Wishlist (D02-P13-T005) */}
+          {/* Customer App Actions: Inquiry and Wishlist (D02-P13-T005) */}
           <div className="cc-cust-actions-card" data-testid="customer-actions-card">
             <h2 className="cc-cust-actions-card__heading">Customer Actions</h2>
             <div className="cc-cust-actions-grid">
-              {/* Quote Request Button */}
+              {/* Vehicle Inquiry */}
               <div className="cc-cust-action-item">
-                {state.quoteSubmitSuccess ? (
+                {inquiryNotice && (
                   <div className="cc-cust-status-banner cc-cust-status-banner--success" role="status">
                     <span className="cc-cust-status-banner__icon">✓</span>
                     <div>
-                      <strong>Quote Requested</strong>
-                      <p>Our export desk will contact you shortly with pricing information.</p>
+                      <strong>Inquiry Already Submitted</strong>
+                      <p>{inquiryNotice}</p>
                     </div>
                   </div>
-                ) : (
-                  <>
-                    {state.quoteSubmitError && (
-                      <div className="cc-cust-reservation-error" role="alert">
-                        <p>{state.quoteSubmitError}</p>
-                      </div>
-                    )}
-                    <button
-                      type="button"
-                      className="cc-cust-btn cc-cust-btn--primary cc-cust-btn--large"
-                      onClick={submitQuoteRequest}
-                      disabled={state.quoteSubmitting}
-                      data-testid="quote-request-btn"
-                      aria-label={state.quoteSubmitting ? 'Requesting quote...' : 'Request free quote'}
-                    >
-                      {state.quoteSubmitting ? 'Requesting Quote...' : 'Get Free Quote'}
-                    </button>
-                  </>
                 )}
+                {!inquiryNotice && state.inquiryDuplicate && (
+                  <div className="cc-cust-status-banner cc-cust-status-banner--success" role="status">
+                    <span className="cc-cust-status-banner__icon">✓</span>
+                    <div><strong>Inquiry Already Submitted</strong><p>You have already submitted an inquiry for this vehicle.</p></div>
+                  </div>
+                )}
+                {!inquiryNotice && !state.inquiryDuplicate && state.inquirySuccess && (
+                  <div className="cc-cust-status-banner cc-cust-status-banner--success" role="status">
+                    <span className="cc-cust-status-banner__icon">✓</span>
+                    <div><strong>Inquiry Submitted</strong><p>Your inquiry has been submitted successfully.</p></div>
+                  </div>
+                )}
+                {state.inquiryError && (
+                  <div className="cc-cust-reservation-error" role="alert"><p>{state.inquiryError}</p></div>
+                )}
+                <button
+                  type="button"
+                  className="cc-cust-btn cc-cust-btn--primary cc-cust-btn--large"
+                  onClick={handleOpenInquiry}
+                  disabled={state.inquirySubmitting}
+                  data-testid="submit-inquiry-btn"
+                  aria-label={state.inquirySubmitting ? 'Submitting inquiry...' : 'Submit an inquiry'}
+                >
+                  {state.inquirySubmitting ? 'Submitting Inquiry...' : 'Submit an Inquiry'}
+                </button>
               </div>
 
               {/* Wishlist Toggle Button */}
@@ -400,6 +428,17 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
           </div>
         </div>
       </div>
+
+      <CustomerInquiryModal
+        isOpen={inquiryModalOpen}
+        vehicleTitle={title}
+        customerName={customerName}
+        customerEmail={customerEmail}
+        submitting={state.inquirySubmitting}
+        error={state.inquiryError}
+        onClose={() => setInquiryModalOpen(false)}
+        onSubmit={handleSubmitInquiry}
+      />
     </div>
   );
 };

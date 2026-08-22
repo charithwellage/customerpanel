@@ -1,6 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { VehicleDetail, ReservationResponse, EnquiryResponse } from '@carchief/domain';
-import { HttpClient, VehicleService, ReservationService, EnquiryService, WishlistService } from '@carchief/api-client';
+import {
+  HttpClient,
+  VehicleService,
+  ReservationService,
+  EnquiryService,
+  CustomerInquiryService,
+  WishlistService,
+} from '@carchief/api-client';
 import type { CustomerVehicleDetailState } from './types.js';
 
 export interface UseCustomerVehicleDetailOptions {
@@ -25,13 +32,12 @@ export function useCustomerVehicleDetail({
     reserveError: null,
     inquirySubmitting: false,
     inquirySuccess: false,
+    inquiryAlreadySubmitted: false,
+    inquiryDuplicate: false,
     inquiryError: null,
     wishlistLoading: true,
     wishlistError: null,
     isWishlisted: false,
-    quoteSubmitting: false,
-    quoteSubmitError: null,
-    quoteSubmitSuccess: false,
   });
 
   const fetchDetail = useCallback(async () => {
@@ -106,10 +112,30 @@ export function useCustomerVehicleDetail({
     }
   }, [apiBaseUrl, idOrSlug, token]);
 
+  const fetchExistingInquiry = useCallback(async () => {
+    if (!idOrSlug) return;
+
+    try {
+      const httpClient = new HttpClient({
+        baseUrl: apiBaseUrl,
+        getAuthToken: () => token,
+      });
+      const response = await new CustomerInquiryService(httpClient).list();
+      const alreadySubmitted = response.items.some(
+        (item) => item.vehicleSlug === idOrSlug || item.vehicleId === idOrSlug,
+      );
+
+      setState((prev) => ({ ...prev, inquiryAlreadySubmitted: alreadySubmitted }));
+    } catch {
+      // Inquiry history is supplementary. A failure here must not block the detail page.
+    }
+  }, [apiBaseUrl, idOrSlug, token]);
+
   useEffect(() => {
     fetchDetail();
     fetchWishlistState();
-  }, [fetchDetail, fetchWishlistState]);
+    fetchExistingInquiry();
+  }, [fetchDetail, fetchWishlistState, fetchExistingInquiry]);
 
   const reserveVehicle = useCallback(async () => {
     if (!state.vehicle) return;
@@ -187,8 +213,8 @@ export function useCustomerVehicleDetail({
     }
   }, [apiBaseUrl, state.vehicle, token]);
 
-  const requestPriceInquiry = useCallback(async (customMessage?: string) => {
-    if (!state.vehicle) return;
+  const requestPriceInquiry = useCallback(async (customMessage?: string): Promise<EnquiryResponse | null> => {
+    if (!state.vehicle) return null;
 
     if (typeof navigator !== 'undefined' && !navigator.onLine) {
       setState((prev) => ({
@@ -197,7 +223,7 @@ export function useCustomerVehicleDetail({
         inquirySuccess: false,
         inquiryError: 'You are currently offline. Inquiries cannot be sent while offline.',
       }));
-      return;
+      return null;
     }
 
     setState((prev) => ({
@@ -223,9 +249,12 @@ export function useCustomerVehicleDetail({
         ...prev,
         inquirySubmitting: false,
         inquirySuccess: true,
+        inquiryAlreadySubmitted: true,
+        inquiryDuplicate: res.duplicate,
         inquiryError: null,
         inquiryId: res.id,
       }));
+      return res;
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Unable to submit price quotation request.';
       setState((prev) => ({
@@ -234,64 +263,7 @@ export function useCustomerVehicleDetail({
         inquirySuccess: false,
         inquiryError: msg,
       }));
-    }
-  }, [apiBaseUrl, state.vehicle, token]);
-
-  const submitQuoteRequest = useCallback(async () => {
-    if (!state.vehicle) return;
-
-    if (typeof navigator !== 'undefined' && !navigator.onLine) {
-      setState((prev) => ({
-        ...prev,
-        quoteSubmitting: false,
-        quoteSubmitError: 'You are currently offline. Quotes cannot be requested while offline.',
-      }));
-      return;
-    }
-
-    setState((prev) => ({
-      ...prev,
-      quoteSubmitting: true,
-      quoteSubmitError: null,
-    }));
-
-    try {
-      const httpClient = new HttpClient({
-        baseUrl: apiBaseUrl,
-        getAuthToken: () => token,
-      });
-
-      const enquiryService = new EnquiryService(httpClient);
-      await enquiryService.submit({
-        message: 'Quote request from customer application',
-        consent: true,
-        vehicleSlug: state.vehicle.slug,
-        enquiryType: 'price-request',
-        source: 'form',
-      });
-
-      setState((prev) => ({
-        ...prev,
-        quoteSubmitting: false,
-        quoteSubmitSuccess: true,
-        quoteSubmitError: null,
-      }));
-
-      // Reset success state after a short delay to allow the UI to show feedback
-      setTimeout(() => {
-        setState((prev) => ({
-          ...prev,
-          quoteSubmitSuccess: false,
-        }));
-      }, 2000);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Unable to submit quote request.';
-      setState((prev) => ({
-        ...prev,
-        quoteSubmitting: false,
-        quoteSubmitSuccess: false,
-        quoteSubmitError: msg,
-      }));
+      return null;
     }
   }, [apiBaseUrl, state.vehicle, token]);
 
@@ -352,7 +324,6 @@ export function useCustomerVehicleDetail({
     refetch: fetchDetail,
     reserveVehicle,
     requestPriceInquiry,
-    submitQuoteRequest,
     toggleWishlist,
   };
 }

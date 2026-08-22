@@ -8,6 +8,7 @@ export interface PublicConfig {
   currency: string;
   contactPhone: string;
   liveAuctionUrl?: string;
+  tierDescriptions?: Partial<Record<'Platinum' | 'Gold' | 'Silver' | 'Standard', string>>;
 }
 
 export interface SessionClaims {

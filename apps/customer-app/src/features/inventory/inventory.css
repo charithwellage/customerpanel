@@ -7,7 +7,406 @@
   width: 100%;
 }
 
-/* Tier Status Banner */
+/* Portal inventory header and scoped search presentation. The shared vehicle
+ * search package is also used by the public website, so customer-specific
+ * theme overrides stay under this page root. */
+.cc-cust-inventory-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-md) 0 var(--spacing-sm);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.cc-cust-inventory-header__eyebrow {
+  color: var(--color-primary);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.cc-cust-inventory-header__title {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 3vw, 2.15rem);
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.cc-cust-inventory-header__subtitle {
+  max-width: 48rem;
+  margin: var(--spacing-xs) 0 0;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.cc-cust-inventory-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  width: 100%;
+}
+
+.cc-cust-inventory-page .cc-search-filter-panel,
+.cc-cust-inventory-page .cc-results-header {
+  background: var(--color-surface-elevated);
+  border-color: var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.cc-cust-inventory-page .cc-search-filter-panel {
+  padding: var(--spacing-md);
+}
+
+.cc-cust-inventory-page .cc-search-input {
+  color: var(--color-text-primary);
+  background: var(--color-surface);
+  border-color: var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.cc-cust-inventory-page .cc-search-input:focus {
+  background: var(--color-surface-elevated);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 18%, transparent);
+}
+
+.cc-cust-inventory-page .cc-search-input-icon,
+.cc-cust-inventory-page .cc-search-reset-btn,
+.cc-cust-inventory-page .cc-force-sync-btn {
+  color: var(--color-primary);
+}
+
+.cc-cust-inventory-page .cc-search-filter-toggle-btn,
+.cc-cust-inventory-page .cc-filter-select,
+.cc-cust-inventory-page .cc-filter-input {
+  color: var(--color-text-primary);
+  background-color: var(--color-surface);
+  border-color: var(--color-border);
+}
+
+.cc-cust-inventory-page .cc-search-filter-toggle-btn:hover,
+.cc-cust-inventory-page .cc-filter-select:hover,
+.cc-cust-inventory-page .cc-filter-input:hover {
+  background-color: var(--color-neutral-surface);
+  border-color: var(--color-primary);
+}
+
+.cc-cust-inventory-page .cc-filter-select:focus,
+.cc-cust-inventory-page .cc-filter-input:focus,
+.cc-cust-inventory-page .cc-search-filter-toggle-btn:focus-visible,
+.cc-cust-inventory-page .cc-search-reset-btn:focus-visible,
+.cc-cust-inventory-page .cc-force-sync-btn:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.cc-cust-inventory-page .cc-filter-grid {
+  border-top-color: var(--color-border);
+}
+
+.cc-cust-inventory-page .cc-filter-label,
+.cc-cust-inventory-page .cc-understood-token-label {
+  color: var(--color-text-secondary);
+}
+
+.cc-cust-inventory-page .cc-understood-token-chip,
+.cc-cust-inventory-page .cc-chip-remove {
+  color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  border-color: color-mix(in srgb, var(--color-primary) 28%, var(--color-border));
+}
+
+.cc-cust-inventory-page .cc-chip-remove:hover {
+  color: var(--color-text-primary);
+  background: var(--color-neutral-surface);
+}
+
+.cc-cust-inventory-page .cc-filter-features {
+  background: var(--color-surface);
+  border-color: var(--color-border);
+}
+
+.cc-cust-inventory-page .cc-filter-checkbox {
+  color: var(--color-text-secondary);
+}
+
+.cc-cust-inventory-page .cc-filter-checkbox:hover {
+  color: var(--color-text-primary);
+  background: var(--color-neutral-surface);
+}
+
+.cc-cust-inventory-page .cc-filter-checkbox input {
+  accent-color: var(--color-primary);
+}
+
+.cc-cust-inventory-page .cc-results-header {
+  padding: var(--spacing-sm) var(--spacing-md);
+}
+
+.cc-cust-inventory-page .cc-results-count,
+.cc-cust-inventory-page .cc-pagination-info {
+  color: var(--color-text-secondary);
+}
+
+.cc-cust-inventory-page .cc-force-sync-btn {
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  border-color: color-mix(in srgb, var(--color-primary) 30%, var(--color-border));
+}
+
+.cc-cust-inventory-page .cc-force-sync-btn:hover {
+  background: color-mix(in srgb, var(--color-primary) 18%, transparent);
+  border-color: var(--color-primary);
+}
+
+.cc-cust-inventory-page .cc-vehicle-collection__grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+  gap: var(--spacing-md);
+}
+
+.cc-cust-inventory-page .cc-vehicle-card {
+  background: var(--color-surface-elevated);
+  border-color: var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.cc-cust-inventory-page .cc-vehicle-card:hover {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-md);
+}
+
+.cc-cust-inventory-page .cc-vehicle-card__media {
+  background: var(--color-neutral-surface);
+}
+
+.cc-cust-inventory-page .cc-vehicle-card__body {
+  background: var(--color-surface-elevated);
+}
+
+.cc-cust-inventory-page .cc-vehicle-card__eyebrow,
+.cc-cust-inventory-page .cc-vehicle-card__discount {
+  color: var(--color-primary);
+}
+
+.cc-cust-inventory-page .cc-vehicle-card__title {
+  color: var(--color-text-primary);
+}
+
+.cc-cust-inventory-page .cc-vehicle-card:hover .cc-vehicle-card__title {
+  color: var(--color-primary);
+}
+
+.cc-cust-inventory-page .cc-vehicle-card__meta,
+.cc-cust-inventory-page .cc-vehicle-card__specs,
+.cc-cust-inventory-page .cc-vehicle-card__details {
+  color: var(--color-text-secondary);
+  border-color: var(--color-border);
+}
+
+.cc-cust-inventory-page .cc-vehicle-collection__state,
+.cc-cust-inventory-page .cc-empty-state-panel {
+  color: var(--color-text-secondary);
+  background: var(--color-surface-elevated);
+  border-color: var(--color-border);
+}
+
+.cc-cust-inventory-page .cc-pagination-bar {
+  border-top-color: var(--color-border);
+}
+
+.cc-cust-inventory-page .cc-pagination-btn {
+  color: var(--color-text-primary);
+  background: var(--color-surface);
+  border-color: var(--color-border);
+}
+
+.cc-cust-inventory-page .cc-pagination-btn:hover:not(:disabled),
+.cc-cust-inventory-page .cc-pagination-btn--active {
+  color: var(--color-text-on-primary);
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+/* Customer-app typography alignment. The shared search primitives use public
+ * fallback families and fixed rem sizes, so explicitly normalize them here. */
+.cc-cust-inventory-page,
+.cc-cust-inventory-page button,
+.cc-cust-inventory-page input,
+.cc-cust-inventory-page select {
+  font-family: var(--font-body);
+}
+
+.cc-cust-inventory-page {
+  font-size: var(--font-size-base);
+  line-height: 1.5;
+}
+
+.cc-cust-inventory-page .cc-cust-inventory-header__eyebrow,
+.cc-cust-inventory-page .cc-filter-label,
+.cc-cust-inventory-page .cc-understood-token-label,
+.cc-cust-inventory-page .cc-vehicle-card__eyebrow,
+.cc-cust-inventory-page .cc-vehicle-card__price-label {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+}
+
+.cc-cust-inventory-page .cc-cust-inventory-header__title {
+  font-family: var(--font-display);
+  font-size: var(--font-size-2xl);
+  letter-spacing: -0.02em;
+}
+
+.cc-cust-inventory-page .cc-cust-inventory-header__subtitle,
+.cc-cust-inventory-page .cc-search-input,
+.cc-cust-inventory-page .cc-filter-select,
+.cc-cust-inventory-page .cc-filter-input,
+.cc-cust-inventory-page .cc-results-count,
+.cc-cust-inventory-page .cc-pagination-info,
+.cc-cust-inventory-page .cc-vehicle-card__details {
+  font-family: var(--font-body);
+  font-size: var(--font-size-sm);
+}
+
+.cc-cust-inventory-page .cc-search-input,
+.cc-cust-inventory-page .cc-filter-select,
+.cc-cust-inventory-page .cc-filter-input {
+  line-height: 1.4;
+}
+
+.cc-cust-inventory-page .cc-search-filter-toggle-btn,
+.cc-cust-inventory-page .cc-search-reset-btn,
+.cc-cust-inventory-page .cc-force-sync-btn,
+.cc-cust-inventory-page .cc-pagination-btn {
+  font-family: var(--font-display);
+  font-size: var(--font-size-xs);
+}
+
+.cc-cust-inventory-page .cc-understood-token-chip,
+.cc-cust-inventory-page .cc-chip-remove {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+}
+
+.cc-cust-inventory-page .cc-vehicle-card__title {
+  font-family: var(--font-display);
+  font-size: var(--font-size-base);
+  line-height: 1.25;
+}
+
+.cc-cust-inventory-page .cc-vehicle-card__discount {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+}
+
+.cc-cust-inventory-page .cc-vehicle-card__price,
+.cc-cust-inventory-page .cc-vehicle-card__price--discounted {
+  font-family: var(--font-display);
+  font-size: var(--font-size-lg);
+}
+
+.cc-cust-inventory-page .cc-vehicle-card__price--request,
+.cc-cust-inventory-page .cc-vehicle-card__price--original {
+  font-family: var(--font-display);
+  font-size: var(--font-size-sm);
+}
+
+/* Compact customer tier summary in the inventory header */
+.cc-cust-inventory-header__row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-lg);
+}
+
+.cc-cust-tier-summary {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  flex: 0 0 auto;
+  margin-top: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-elevated);
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.cc-cust-tier-summary__icon {
+  color: var(--color-warning);
+  font-size: var(--font-size-sm);
+}
+
+.cc-cust-tier-summary__label {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.cc-cust-tier-summary__info {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.15rem;
+  height: 1.15rem;
+  border: 1px solid var(--color-text-secondary);
+  border-radius: 50%;
+  padding: 0;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-family: var(--font-display);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.cc-cust-tier-summary__info:hover,
+.cc-cust-tier-summary__info:focus-visible {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.cc-cust-tier-summary__description {
+  position: absolute;
+  top: calc(100% + var(--spacing-xs));
+  right: 0;
+  z-index: 10;
+  width: min(22rem, 80vw);
+  padding: var(--spacing-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-dark);
+  color: var(--color-text-on-dark);
+  box-shadow: var(--shadow-md);
+  font-size: var(--font-size-xs);
+  line-height: 1.45;
+  white-space: normal;
+}
+
+@media (max-width: 640px) {
+  .cc-cust-inventory-header__row {
+    flex-direction: column;
+  }
+
+  .cc-cust-tier-summary {
+    margin-top: 0;
+  }
+
+  .cc-cust-tier-summary__description {
+    left: 0;
+    right: auto;
+  }
+}
+
+/* Legacy banner styles retained for compatibility with older embedded consumers. */
 .cc-cust-tier-banner {
   display: flex;
   flex-direction: column;
@@ -663,4 +1062,156 @@
   background: var(--color-neutral-surface);
   padding: var(--spacing-xs) var(--spacing-sm);
   border-radius: var(--radius-sm);
+}
+
+/* Customer vehicle inquiry modal */
+.cc-cust-inquiry-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-md);
+  background: color-mix(in srgb, var(--color-surface-dark) 60%, transparent);
+}
+
+.cc-cust-inquiry-modal {
+  width: min(100%, 32rem);
+  max-height: 90vh;
+  overflow: auto;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+.cc-cust-inquiry-modal__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.cc-cust-inquiry-modal__eyebrow {
+  display: block;
+  margin-bottom: var(--spacing-xs);
+  color: var(--color-text-secondary);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.cc-cust-inquiry-modal__header h2 {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-family: var(--font-display);
+  font-size: var(--font-size-xl);
+}
+
+.cc-cust-inquiry-modal__close {
+  flex: 0 0 auto;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-elevated);
+  color: var(--color-text-secondary);
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.cc-cust-inquiry-modal__close:hover:not(:disabled),
+.cc-cust-inquiry-modal__close:focus-visible {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.cc-cust-inquiry-modal__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg);
+}
+
+.cc-cust-inquiry-modal__vehicle {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.cc-cust-inquiry-modal__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  color: var(--color-text-primary);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+}
+
+.cc-cust-inquiry-modal__field input,
+.cc-cust-inquiry-modal__field textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: var(--spacing-sm);
+  background: var(--color-surface-elevated);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  font-size: var(--font-size-sm);
+}
+
+.cc-cust-inquiry-modal__field input:disabled {
+  background: var(--color-neutral-surface);
+  color: var(--color-text-secondary);
+  opacity: 1;
+}
+
+.cc-cust-inquiry-modal__field textarea {
+  min-height: 7rem;
+  resize: vertical;
+}
+
+.cc-cust-inquiry-modal__field input:focus-visible,
+.cc-cust-inquiry-modal__field textarea:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.cc-cust-inquiry-modal__error {
+  margin: 0;
+  color: var(--color-error);
+  font-size: var(--font-size-sm);
+}
+
+.cc-cust-inquiry-modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-sm);
+  padding-top: var(--spacing-xs);
+}
+
+@media (max-width: 480px) {
+  .cc-cust-inquiry-modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .cc-cust-inquiry-modal {
+    max-height: 94vh;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  }
+
+  .cc-cust-inquiry-modal__actions {
+    flex-direction: column-reverse;
+  }
+
+  .cc-cust-inquiry-modal__actions .cc-cust-btn {
+    width: 100%;
+  }
 }

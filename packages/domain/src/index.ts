@@ -750,6 +750,7 @@ export interface PublicConfig {
   currency: string;
   contactPhone: string;
   liveAuctionUrl?: string;
+  tierDescriptions?: Partial<Record<CustomerTier, string>>;
 }
 
 export function generateVehicleSlug(year: number, make: string, model: string, id: string): string {

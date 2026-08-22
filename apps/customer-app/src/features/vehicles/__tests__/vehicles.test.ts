@@ -160,7 +160,6 @@ describe('My Vehicles UI Components (D02-P04-T002 & D02-P14-T008)', () => {
       expect(html).toContain('$45,000');
       expect(html).toContain('Deposit (50%):');
       expect(html).toContain('$22,500');
-      expect(html).toContain('TRACK SHIPMENT');
       expect(html).toContain('PAY ADVANCE DEPOSIT');
       expect(html).toContain('cc-status-tracker');
       expect(html).toContain('View Status Logs &amp; Next Steps');
@@ -176,14 +175,14 @@ describe('My Vehicles UI Components (D02-P04-T002 & D02-P14-T008)', () => {
       );
       expect(reservedHtml).toContain('PAY DEPOSIT (50%)');
 
-      // Delivered: VIEW CLEARANCE DOCS
+      // Delivered: clearance documents are no longer offered from the card.
       const deliveredHtml = renderToStaticMarkup(
         React.createElement(VehicleFleetCard, {
           vehicle: { ...MOCK_SUMMARY, status: 'Delivered' },
           onSelect: () => {},
         })
       );
-      expect(deliveredHtml).toContain('VIEW CLEARANCE DOCS');
+      expect(deliveredHtml).not.toContain('VIEW CLEARANCE DOCS');
 
       // In Transit: TRACK SHIPMENT
       const inTransitHtml = renderToStaticMarkup(
@@ -193,6 +192,7 @@ describe('My Vehicles UI Components (D02-P04-T002 & D02-P14-T008)', () => {
         })
       );
       expect(inTransitHtml).toContain('TRACK SHIPMENT');
+      expect(inTransitHtml).not.toContain('cc-cust-fleet-card__action-btn--green');
     });
   });
 

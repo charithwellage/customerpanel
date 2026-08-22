@@ -7,7 +7,6 @@ export interface VehicleFleetCardProps {
   onSelect: (vehicle: CustomerVehicleSummary) => void;
   onTrackShipment?: (vehicle: CustomerVehicleSummary) => void;
   onPayDeposit?: (vehicle: CustomerVehicleSummary) => void;
-  onViewDocuments?: (vehicle: CustomerVehicleSummary) => void;
 }
 
 export interface ContextualAction {
@@ -23,7 +22,6 @@ export const VehicleFleetCard: React.FC<VehicleFleetCardProps> = ({
   onSelect,
   onTrackShipment,
   onPayDeposit,
-  onViewDocuments,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -63,15 +61,6 @@ export const VehicleFleetCard: React.FC<VehicleFleetCardProps> = ({
       onPayDeposit(vehicle);
     } else if (onTrackShipment) {
       onTrackShipment(vehicle);
-    } else {
-      onSelect(vehicle);
-    }
-  };
-
-  const handleDocsClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (onViewDocuments) {
-      onViewDocuments(vehicle);
     } else {
       onSelect(vehicle);
     }
@@ -368,40 +357,7 @@ export const VehicleFleetCard: React.FC<VehicleFleetCardProps> = ({
             </button>
           )}
 
-          {isInvoiced && vehicle.status !== 'Delivered' && (
-            <button
-              type="button"
-              className="cc-cust-fleet-card__action-btn cc-cust-fleet-card__action-btn--primary cc-cust-fleet-card__action-btn--green"
-              data-testid={`fleet-card-primary-cta-${vehicle.id || vehicle.chassisNumber}`}
-              onClick={handleTrackClick}
-              aria-label={`Track live shipment for ${vehicle.year} ${vehicle.make} ${vehicle.model}`}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <circle cx="12" cy="12" r="10" />
-                <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
-              </svg>
-              TRACK SHIPMENT
-            </button>
-          )}
-
-          {vehicle.status === 'Delivered' && (
-            <button
-              type="button"
-              className="cc-cust-fleet-card__action-btn cc-cust-fleet-card__action-btn--primary cc-cust-fleet-card__action-btn--green"
-              data-testid={`fleet-card-primary-cta-${vehicle.id || vehicle.chassisNumber}`}
-              onClick={handleDocsClick}
-              aria-label={`View delivery & clearance documents for ${vehicle.year} ${vehicle.make} ${vehicle.model}`}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                <polyline points="14 2 14 8 20 8" />
-                <path d="M9 15l2 2 4-4" />
-              </svg>
-              VIEW CLEARANCE DOCS
-            </button>
-          )}
-
-          {/* Secondary Track / Details Action */}
+          {/* Track / Details Action */}
           <button
             type="button"
             className="cc-cust-fleet-card__track-btn"

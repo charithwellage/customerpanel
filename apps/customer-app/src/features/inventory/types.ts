@@ -22,14 +22,13 @@ export interface CustomerVehicleDetailState {
   holdExpiresAt?: string;
   inquirySubmitting: boolean;
   inquirySuccess: boolean;
+  inquiryAlreadySubmitted: boolean;
+  inquiryDuplicate: boolean;
   inquiryError: string | null;
   inquiryId?: string;
   wishlistLoading: boolean;
   wishlistError: string | null;
   isWishlisted: boolean;
-  quoteSubmitting: boolean;
-  quoteSubmitError: string | null;
-  quoteSubmitSuccess: boolean;
 }
 
 export interface CustomerInventoryFilterState extends SearchVehiclesQuery {

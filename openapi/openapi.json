@@ -2143,13 +2143,18 @@
           "siteName": { "type": "string", "example": "CarChief" },
           "currency": { "type": "string", "example": "USD" },
           "contactPhone": { "type": "string", "example": "+256 700 000 000" },
+          "tierDescriptions": {
+            "type": "object",
+            "description": "Customer inventory pricing descriptions keyed by customer tier.",
+            "additionalProperties": { "type": "string" }
+          },
           "liveAuctionUrl": {
             "type": "string",
             "description": "Approved external Live Auction destination (PUB-27, D01-ASM-002). Absent when no destination is approved — the account-gated Live Auction entry is hidden, never a placeholder link (RULE-10).",
             "example": "https://auctions.example.com/live"
           }
         },
-        "required": ["siteName", "currency", "contactPhone"]
+        "required": ["siteName", "currency", "contactPhone", "tierDescriptions"]
       },
       "SessionClaims": {
         "type": "object",

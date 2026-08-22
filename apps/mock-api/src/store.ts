@@ -234,6 +234,7 @@ export interface PublicConfig {
   siteName: string;
   currency: string;
   contactPhone: string;
+  tierDescriptions?: Partial<Record<'Platinum' | 'Gold' | 'Silver' | 'Standard', string>>;
   // PUB-27, D01-P06-T003, D01-ASM-002: gates the account-gated Live Auction
   // entry. Left unset — no approved external auction destination exists yet
   // — so the entry point stays hidden rather than pointing at an invented
@@ -249,7 +250,17 @@ export interface GetVehiclesQuery extends SearchVehiclesQuery {
   destinationCountry?: string;
 }
 
-const seedConfig: PublicConfig = { siteName: 'CarChief', currency: 'USD', contactPhone: '+256 700 000 000' };
+const seedConfig: PublicConfig = {
+  siteName: 'CarChief',
+  currency: 'USD',
+  contactPhone: '+256 700 000 000',
+  tierDescriptions: {
+    Platinum: 'Your verified account receives a 15% VIP discount on fixed-price export stock.',
+    Gold: 'Your verified account receives a 10% VIP discount on fixed-price export stock.',
+    Silver: 'Your verified account receives a 5% VIP discount on fixed-price export stock.',
+    Standard: 'Standard export inventory pricing with real-time stock allocation and 48-hour reservation holds.',
+  },
+};
 
 // Reference date for deterministic 5-day window & ETD/ETA tests: 2026-08-10T10:00:00.000Z
 const seedVehicles: VehicleRecord[] = [
@@ -6306,8 +6317,9 @@ class PostgresStore implements DemoStore {
 
   async ready(): Promise<void> {
     await this.pool.query(
-      `CREATE TABLE IF NOT EXISTS public_config (id integer PRIMARY KEY, site_name text NOT NULL, currency text NOT NULL, contact_phone text NOT NULL);`
+      `CREATE TABLE IF NOT EXISTS public_config (id integer PRIMARY KEY, site_name text NOT NULL, currency text NOT NULL, contact_phone text NOT NULL, tier_descriptions jsonb NOT NULL DEFAULT '{}'::jsonb);`
     );
+    await this.pool.query(`ALTER TABLE public_config ADD COLUMN IF NOT EXISTS tier_descriptions jsonb NOT NULL DEFAULT '{}'::jsonb`);
     await this.pool.query(
       `CREATE TABLE IF NOT EXISTS vehicles (
         id text PRIMARY KEY,
@@ -6919,8 +6931,8 @@ class PostgresStore implements DemoStore {
     const configResult = await this.pool.query('SELECT id FROM public_config WHERE id = 1');
     if (configResult.rows.length === 0) {
       await this.pool.query(
-        'INSERT INTO public_config (id, site_name, currency, contact_phone) VALUES (1, $1, $2, $3)',
-        [seedConfig.siteName, seedConfig.currency, seedConfig.contactPhone]
+        'INSERT INTO public_config (id, site_name, currency, contact_phone, tier_descriptions) VALUES (1, $1, $2, $3, $4)',
+        [seedConfig.siteName, seedConfig.currency, seedConfig.contactPhone, JSON.stringify(seedConfig.tierDescriptions)]
       );
       for (const cat of seedFaqCategories) {
         await this.pool.query('INSERT INTO faq_categories (id, name, description, sort_order) VALUES ($1, $2, $3, $4)', [cat.id, cat.name, cat.description || null, cat.order]);
@@ -6941,6 +6953,10 @@ class PostgresStore implements DemoStore {
         await this.pool.query('INSERT INTO branch_content (id, name, code, destination_port, introduction, welcome_banner, contact_banner, team_members, meet_and_greet_info, contact_details, content_owner, status, latest_arrivals_query, recently_discounted_query) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)', [branch.id, branch.name, branch.code, branch.destinationPort, branch.introduction, branch.welcomeBanner, branch.contactBanner, JSON.stringify(branch.teamMembers), branch.meetAndGreetInfo, JSON.stringify(branch.contactDetails), null, branch.status, null, null]);
       }
     }
+    await this.pool.query(
+      `UPDATE public_config SET tier_descriptions = $1 WHERE id = 1 AND (tier_descriptions IS NULL OR tier_descriptions = '{}'::jsonb)`,
+      [JSON.stringify(seedConfig.tierDescriptions)],
+    );
 
     // Ensure fleet seed data in PostgreSQL for all registered accounts
     const allAccounts = await this.pool.query('SELECT customer_id, email FROM customer_accounts');
@@ -7473,9 +7489,16 @@ class PostgresStore implements DemoStore {
   }
 
   async getConfig(): Promise<PublicConfig> {
-    const result = await this.pool.query('SELECT site_name, currency, contact_phone FROM public_config WHERE id = 1');
+    const result = await this.pool.query('SELECT site_name, currency, contact_phone, tier_descriptions FROM public_config WHERE id = 1');
     const row = result.rows[0];
-    return row ? { siteName: row.site_name, currency: row.currency, contactPhone: row.contact_phone } : { ...seedConfig };
+    return row ? {
+      siteName: row.site_name,
+      currency: row.currency,
+      contactPhone: row.contact_phone,
+      tierDescriptions: row.tier_descriptions && Object.keys(row.tier_descriptions).length > 0
+        ? row.tier_descriptions
+        : seedConfig.tierDescriptions,
+    } : { ...seedConfig };
   }
 
   async getBankAccounts(): Promise<BankAccount[]> {
@@ -8715,10 +8738,11 @@ class PostgresStore implements DemoStore {
           otherSeedAccount.updatedAt, otherSeedAccount.passwordUpdatedAt],
       );
 
-      await client.query('INSERT INTO public_config (id, site_name, currency, contact_phone) VALUES (1, $1, $2, $3)', [
+      await client.query('INSERT INTO public_config (id, site_name, currency, contact_phone, tier_descriptions) VALUES (1, $1, $2, $3, $4)', [
         seedConfig.siteName,
         seedConfig.currency,
         seedConfig.contactPhone,
+        JSON.stringify(seedConfig.tierDescriptions),
       ]);
       for (const feature of vehicleFeatureCatalog) {
         await client.query(
