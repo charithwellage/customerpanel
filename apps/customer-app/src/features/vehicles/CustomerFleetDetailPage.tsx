@@ -242,18 +242,6 @@ export const CustomerFleetDetailPage: React.FC<CustomerFleetDetailPageProps> = (
                   <span className="cc-timeline-detail-label">Inspection Status:</span>
                   <span className="cc-timeline-detail-val cc-timeline-status-pass">{vehicle.inspectionStatus || 'PASSED [JAAI/QISJ]'}</span>
                 </div>
-                <div className="cc-timeline-detail-row">
-                  <span className="cc-timeline-detail-label">Courier Dispatch:</span>
-                  <a
-                    href="https://www.dhl.com"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="cc-timeline-courier-link"
-                    title="Track Courier dispatch on DHL"
-                  >
-                    Track Courier ({vehicle.courierCompany || 'DHL'}: {vehicle.trackingNumber || '0010019284'}) →
-                  </a>
-                </div>
               </div>
             </div>
           </section>

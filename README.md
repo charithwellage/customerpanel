@@ -58,6 +58,32 @@ This account is a development fixture for local testing. It is separate from
 the POC account above. The Public Web registration page is available at
 [http://127.0.0.1:3000/register](http://127.0.0.1:3000/register).
 
+### Customer tier test accounts
+
+The Mock API database also contains deterministic accounts for testing
+customer-tier pricing and reservation limits. All of these development
+accounts use the password `CarChief#Fixture2026`:
+
+| Email | Customer ID | Tier | Discount | Active reservation limit |
+|---|---|---:|---:|---:|
+| `demo.customer@carchief.com` | `cust-123` | Standard | 0% | 1 |
+| `other@example.com` | `user-other-456` | Silver | 5% | 2 |
+| `silver@example.com` | `cust-silver-789` | Silver | 5% | 2 |
+| `gold@example.com` | `cust-gold-012` | Gold | 10% | 3 |
+| `platinum@example.com` | `cust-platinum-345` | Platinum | 15% | 5 |
+
+Tier discounts apply to current vehicle list and detail pricing. The original
+price remains available for comparison, while historical invoice, payment,
+reservation, and purchased-vehicle amounts are not recalculated.
+Reservation limits count simultaneous active holds; expired holds no longer
+count, and duplicate holds for the same vehicle remain rejected.
+
+Tier name, discount percentage, reservation limit, and description are stored
+in the `customer_tier_rules` table. Each authenticated customer’s tier is
+resolved from `customer_accounts`; a client-supplied tier cannot elevate the
+account. The customer portal reads authenticated benefits from
+`GET /api/v1/customer/tier-benefits`.
+
 ## Explore the Mock API with Swagger UI
 
 The Mock API exposes an interactive Swagger UI for viewing and trying the

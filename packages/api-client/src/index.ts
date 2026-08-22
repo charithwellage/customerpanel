@@ -13,6 +13,7 @@ export * from './services/customerInvoices.js';
 export * from './services/customerPayments.js';
 export * from './services/customerNotifications.js';
 export * from './services/customerProfile.js';
+export * from './services/customerTierBenefits.js';
 export * from './services/auth.js';
 export * from './services/country.js';
 export * from './services/customerInquiries.js';

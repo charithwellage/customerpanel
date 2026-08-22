@@ -165,7 +165,7 @@
 }
 
 /* =========================================================================
-   2. 3-COLUMN MODERN AIRY GAUGES GRID (Matching Reference UI)
+   2. FINANCIAL & LOGISTICS SUMMARY
    ========================================================================= */
 
 .cc-dash-gauges-grid {
@@ -173,27 +173,6 @@
   grid-template-columns: repeat(12, 1fr);
   gap: var(--spacing-md);
   width: 100%;
-}
-
-.cc-dash-gauge-card--today {
-  grid-column: span 12;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: var(--spacing-md);
-  padding: var(--spacing-lg);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-  cursor: pointer;
-  transition: transform var(--motion-fast) ease, box-shadow var(--motion-fast) ease;
-}
-
-@media (min-width: 900px) {
-  .cc-dash-gauge-card--today {
-    grid-column: span 4;
-  }
 }
 
 .cc-dash-metric-quad-grid {
@@ -205,7 +184,7 @@
 
 @media (min-width: 900px) {
   .cc-dash-metric-quad-grid {
-    grid-column: span 4;
+    grid-column: span 6;
   }
 }
 
@@ -226,11 +205,10 @@
 
 @media (min-width: 900px) {
   .cc-dash-gauge-card--logistics {
-    grid-column: span 4;
+    grid-column: span 6;
   }
 }
 
-.cc-dash-gauge-card--today:hover,
 .cc-dash-gauge-card--logistics:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-md);

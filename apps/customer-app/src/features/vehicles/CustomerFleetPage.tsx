@@ -1,9 +1,11 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import type { CustomerVehicleSummary } from '@carchief/domain';
 import { useCustomerShell } from '../shell/index.js';
 import { useCustomerVehicles } from './useCustomerVehicles.js';
 import { VehicleFleetCard } from './components/VehicleFleetCard.js';
 import { VehicleTrackingModal } from './components/VehicleTrackingModal.js';
+import { ViewModeToggle, type ViewMode } from '../../components/ViewModeToggle.js';
+import { useTranslation } from '../../i18n/index.js';
 
 export interface CustomerFleetPageProps {
   onSelectVehicle: (vehicle: CustomerVehicleSummary) => void;
@@ -12,11 +14,15 @@ export interface CustomerFleetPageProps {
 export type FleetTabKey = 'reserved' | 'withPI' | 'invoiced' | 'all' | 'underNegotiation' | 'underNegotiationWithPI' | 'confirmed' | 'inTransit' | 'delivered';
 
 export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVehicle }) => {
+  const { t } = useTranslation();
   const { setActiveRoute } = useCustomerShell();
   const [activeTab, setActiveTab] = useState<FleetTabKey>('invoiced');
   const [searchQuery, setSearchQuery] = useState('');
   const [shippingStatusFilter, setShippingStatusFilter] = useState('all');
   const [selectedTrackingVehicle, setSelectedTrackingVehicle] = useState<CustomerVehicleSummary | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 8;
 
   React.useEffect(() => {
     setActiveRoute('/vehicles');
@@ -57,6 +63,13 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
     });
   }, [data?.items, shippingStatusFilter]);
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeTab, searchQuery, shippingStatusFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(displayedVehicles.length / pageSize));
+  const pagedVehicles = displayedVehicles.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
   const counts = data?.countsByStatus || {
     all: 0,
     underNegotiation: 0,
@@ -69,12 +82,14 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
   const reservedCount = counts.underNegotiation;
   const withPICount = counts.underNegotiationWithPI;
   const invoicedCount = counts.confirmed + counts.inTransit + counts.delivered;
+  const reservedStatus = data?.statusDefinitions?.find((definition) => definition.code === 'Reserved');
+  const reservedVehiclesLabel = reservedStatus?.pluralLabel || 'Reserved Vehicles';
 
   return (
     <div className="cc-cust-fleet" data-testid="customer-fleet-page">
       {/* Top 3 KPI Summary Cards */}
       <section className="cc-cust-kpi-grid" aria-label="Fleet Overview Summary" data-testid="fleet-kpi-summary">
-        {/* KPI 1: Hold Vehicles */}
+        {/* KPI 1: Reserved Vehicles */}
         <div
           role="button"
           tabIndex={0}
@@ -85,10 +100,10 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
         >
           <div className="cc-cust-kpi-card__content">
             <div className="cc-cust-kpi-card__header-row">
-              <span className="cc-cust-kpi-card__title">HOLD VEHICLES</span>
+              <span className="cc-cust-kpi-card__title">{reservedVehiclesLabel.toUpperCase()}</span>
             </div>
             <div className="cc-cust-kpi-card__count">{reservedCount} Units</div>
-            <p className="cc-cust-kpi-card__subtitle">Active vehicle holds</p>
+            <p className="cc-cust-kpi-card__subtitle">Active vehicle reservations</p>
           </div>
           <div className="cc-cust-kpi-card__icon-wrap cc-cust-kpi-card__icon-wrap--amber">
             <span className="cc-cust-kpi-card__icon" aria-hidden="true">⏱</span>
@@ -150,7 +165,7 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
             className={`cc-cust-fleet-pill cc-cust-fleet-pill--amber ${activeTab === 'reserved' || activeTab === 'underNegotiation' ? 'cc-cust-fleet-pill--active' : ''}`}
             onClick={() => setActiveTab('reserved')}
           >
-            <span className="cc-cust-fleet-pill__icon" aria-hidden="true">⏱</span> HOLD VEHICLES ({reservedCount})
+            <span className="cc-cust-fleet-pill__icon" aria-hidden="true">⏱</span> {reservedVehiclesLabel.toUpperCase()} ({reservedCount})
           </button>
 
           <button
@@ -232,6 +247,7 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
               <option value="Delivered">Delivered</option>
             </select>
           </div>
+          <ViewModeToggle value={viewMode} onChange={setViewMode} label={t('customer.myVehicles', undefined, 'My vehicles view')} />
         </div>
       </div>
 
@@ -283,8 +299,8 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
 
       {/* Vehicle 5-column Grid */}
       {!isLoading && !error && displayedVehicles.length > 0 && (
-        <div className="cc-cust-fleet-grid" data-testid="fleet-vehicles-grid">
-          {displayedVehicles.map((v) => (
+        <div className={`cc-cust-fleet-grid cc-cust-fleet-grid--${viewMode}`} data-testid="fleet-vehicles-grid">
+          {pagedVehicles.map((v) => (
             <VehicleFleetCard
               key={v.id}
               vehicle={v}
@@ -293,6 +309,30 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
             />
           ))}
         </div>
+      )}
+
+      {!isLoading && !error && displayedVehicles.length > 0 && (
+        <nav className="cc-cust-fleet-pagination" aria-label="My vehicle pages">
+          <button
+            type="button"
+            className="cc-cust-fleet-pagination__button"
+            onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+            disabled={currentPage === 1}
+          >
+            {t('customer.previous', undefined, 'Previous')}
+          </button>
+          <span className="cc-cust-fleet-pagination__status" aria-live="polite">
+            {t('customer.pageOf', { page: currentPage, total: totalPages }, `Page ${currentPage} of ${totalPages}`)} · {t('customer.vehiclesCount', { count: displayedVehicles.length }, `${displayedVehicles.length} vehicles`)}
+          </span>
+          <button
+            type="button"
+            className="cc-cust-fleet-pagination__button"
+            onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+            disabled={currentPage === totalPages}
+          >
+            {t('customer.next', undefined, 'Next')}
+          </button>
+        </nav>
       )}
 
       {/* Vehicle Logistics & Shipment Timeline Tracking Modal */}

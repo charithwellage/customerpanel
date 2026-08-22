@@ -10,6 +10,7 @@ import { useCustomerProfile } from '../profile/useCustomerProfile.js';
 import { useDocuments } from '../documents/useDocuments.js';
 import { useShipments } from '../shipments/useShipments.js';
 import { VehicleTrackingModal } from '../vehicles/components/VehicleTrackingModal.js';
+import { useTranslation } from '../../i18n/index.js';
 import {
   SecurityShieldIcon,
   BoughtCarsIcon,
@@ -21,6 +22,7 @@ import {
 } from '../../components/Icons.js';
 
 export const OverviewPage: React.FC = () => {
+  const { t } = useTranslation();
   const { user, pairedAccounts, switchAccount, setActiveRoute } = useCustomerShell();
   const { data: dashboard, isLoading, error } = useDashboard();
   const { data: vehiclesData } = useCustomerVehicles();
@@ -210,69 +212,9 @@ export const OverviewPage: React.FC = () => {
         </div>
       </section>
 
-      {/* 2. MODERN AIRY KPI & CIRCULAR GAUGE GRID (3-Column layout matching Reference Image) */}
-      <section className="cc-dash-gauges-grid" aria-label="Executive Fleet & Operational Gauges">
-        {/* Card 1: Today / Fleet Operations Donut Gauge */}
-        <div
-          className="cc-dash-card cc-dash-gauge-card cc-dash-gauge-card--today"
-          onClick={() => setActiveRoute('/vehicles')}
-          role="button"
-          tabIndex={0}
-          data-testid="card-purchased-vehicles"
-        >
-          <div className="cc-dash-gauge-card__header">
-            <h2 className="cc-dash-gauge-card__title">Fleet Operations</h2>
-            <span className="cc-dash-tag-pill cc-dash-tag-pill--success">
-              <span className="cc-dash-tag-pill__dot" aria-hidden="true" />
-              Active
-            </span>
-          </div>
-
-          <div className="cc-dash-gauge-card__body">
-            <div className="cc-dash-gauge-card__meta">
-              <div className="cc-dash-gauge-meta-row">
-                <span className="cc-dash-gauge-meta-icon" aria-hidden="true">⏱</span>
-                <span className="cc-dash-gauge-meta-text">Telemetry active at 08:50</span>
-              </div>
-              <div className="cc-dash-gauge-meta-highlight">
-                <span className="cc-dash-gauge-meta-bar" />
-                <span>{totalPurchasedVehiclesCount} Invoiced fleet units</span>
-              </div>
-            </div>
-
-            {/* Circular Gauge Ring */}
-            <div className="cc-dash-donut-wrap" aria-label="90% fleet complete">
-              <svg className="cc-dash-donut-svg" viewBox="0 0 100 100">
-                <circle className="cc-dash-donut-bg" cx="50" cy="50" r="40" />
-                <circle
-                  className="cc-dash-donut-fill cc-dash-donut-fill--green"
-                  cx="50"
-                  cy="50"
-                  r="40"
-                  strokeDasharray="251.2"
-                  strokeDashoffset="25.12"
-                />
-              </svg>
-              <div className="cc-dash-donut-center">
-                <span className="cc-dash-donut-percent">90%</span>
-                <span className="cc-dash-donut-caption">fleet active</span>
-              </div>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            className="cc-dash-gauge-card__action-btn"
-            onClick={(e) => {
-              e.stopPropagation();
-              setActiveRoute('/vehicles');
-            }}
-          >
-            Open My Garage
-          </button>
-        </div>
-
-        {/* Card 2: Minimalist 2x2 Metric Tiles */}
+      {/* 2. KPI & OPERATIONAL SUMMARY */}
+      <section className="cc-dash-gauges-grid" aria-label="Financial and logistics summary">
+        {/* Financial & Fulfillment Metrics */}
         <div className="cc-dash-metric-quad-grid" aria-label="Key Financial & Fulfillment Metrics">
           {/* Tile 1: Total Purchased */}
           <div
@@ -287,7 +229,7 @@ export const OverviewPage: React.FC = () => {
                 <polyline points="12 6 12 12 16 14" />
               </svg>
             </div>
-            <span className="cc-dash-metric-tile__label">Total Purchased</span>
+            <span className="cc-dash-metric-tile__label">{t('customer.totalPurchased', undefined, 'Total Purchased')}</span>
             <span className="cc-dash-metric-tile__val">{totalPurchasedVehiclesCount} Units</span>
           </div>
 
@@ -305,7 +247,7 @@ export const OverviewPage: React.FC = () => {
                 <line x1="15" y1="12" x2="3" y2="12" />
               </svg>
             </div>
-            <span className="cc-dash-metric-tile__label">Commercial Bills</span>
+            <span className="cc-dash-metric-tile__label">{t('customer.commercialBills', undefined, 'Commercial Bills')}</span>
             <span className="cc-dash-metric-tile__val">{invoiceCount} Invoices</span>
           </div>
 
@@ -323,7 +265,7 @@ export const OverviewPage: React.FC = () => {
                 <polyline points="22 4 12 14.01 9 11.01" />
               </svg>
             </div>
-            <span className="cc-dash-metric-tile__label">Settlement Rate</span>
+            <span className="cc-dash-metric-tile__label">{t('customer.settlementRate', undefined, 'Settlement Rate')}</span>
             <span className="cc-dash-metric-tile__val">96%</span>
           </div>
 
@@ -342,7 +284,7 @@ export const OverviewPage: React.FC = () => {
                 <line x1="21" y1="12" x2="9" y2="12" />
               </svg>
             </div>
-            <span className="cc-dash-metric-tile__label">Available Funds</span>
+            <span className="cc-dash-metric-tile__label">{t('customer.availableFunds', undefined, 'Available Funds')}</span>
             <span className="cc-dash-metric-tile__val">${(availablePaymentAmount / 1000).toFixed(0)}k TT</span>
           </div>
         </div>
@@ -356,7 +298,7 @@ export const OverviewPage: React.FC = () => {
           data-testid="card-current-payments"
         >
           <div className="cc-dash-gauge-card__header">
-            <h2 className="cc-dash-gauge-card__title">Fleet Logistics</h2>
+            <h2 className="cc-dash-gauge-card__title">{t('customer.fleetLogistics', undefined, 'Fleet Logistics')}</h2>
             <button
               type="button"
               className="cc-dash-gauge-card__link-btn"
@@ -417,106 +359,6 @@ export const OverviewPage: React.FC = () => {
           <div className="cc-dash-verification-banner">
             <span className="cc-dash-verification-icon" aria-hidden="true">✓</span>
             <span className="cc-dash-verification-text">Based on 23 active telemetry records from the last 30 days.</span>
-          </div>
-        </div>
-      </section>
-
-      {/* 3. HORIZONTAL QUICK UTILITY & ACTION STRIP (Matching Bottom Bar in Reference Image) */}
-      <section className="cc-dash-quick-strip-container" aria-label="Quick Portal Actions and Status Strip">
-        {/* Upper Segmented Status Row */}
-        <div className="cc-dash-segmented-bar">
-          <div className="cc-dash-segmented-item">
-            <span className="cc-dash-segmented-icon" aria-hidden="true">⏱</span>
-            <span className="cc-dash-segmented-label">Fleet active</span>
-            <span className="cc-dash-segmented-val">· {totalPurchasedVehiclesCount} Units</span>
-          </div>
-          <div className="cc-dash-segmented-divider" aria-hidden="true" />
-          <div className="cc-dash-segmented-item">
-            <span className="cc-dash-segmented-icon" aria-hidden="true">💳</span>
-            <span className="cc-dash-segmented-label">Account Balance</span>
-            <span className="cc-dash-segmented-val">· ${Math.abs(outstandingBalance).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
-          </div>
-          <div className="cc-dash-segmented-divider" aria-hidden="true" />
-          <div className="cc-dash-segmented-item">
-            <span className="cc-dash-segmented-icon" aria-hidden="true">📄</span>
-            <span className="cc-dash-segmented-label">Documents</span>
-            <span className="cc-dash-segmented-val">· Up to date</span>
-          </div>
-          <div className="cc-dash-segmented-divider" aria-hidden="true" />
-          <div className="cc-dash-segmented-item">
-            <span className="cc-dash-segmented-icon" aria-hidden="true">✉</span>
-            <span className="cc-dash-segmented-label">Inquiries</span>
-            <span className="cc-dash-segmented-val">· {repliedInquiriesCount} Replied</span>
-          </div>
-        </div>
-
-        {/* Lower Quick Pill Actions Bar */}
-        <div className="cc-dash-quick-actions-bar">
-          <span className="cc-dash-quick-badge">QUICK</span>
-          <div className="cc-dash-quick-pills-row">
-            <button
-              type="button"
-              className="cc-dash-quick-pill cc-dash-quick-pill--primary"
-              onClick={() => setActiveRoute('/showroom')}
-            >
-              <span className="cc-dash-quick-pill__icon" aria-hidden="true">🔍</span>
-              <span>Search Stock</span>
-              <span className="cc-dash-quick-pill__subtag">Live</span>
-            </button>
-
-            <button
-              type="button"
-              className="cc-dash-quick-pill"
-              onClick={() => setActiveRoute('/vehicles')}
-            >
-              <span className="cc-dash-quick-pill__icon" aria-hidden="true">🚗</span>
-              <span>My Vehicles</span>
-            </button>
-
-            <button
-              type="button"
-              className="cc-dash-quick-pill"
-              onClick={() => setActiveRoute('/payments')}
-            >
-              <span className="cc-dash-quick-pill__icon" aria-hidden="true">💵</span>
-              <span>Make Payment</span>
-            </button>
-
-            <button
-              type="button"
-              className="cc-dash-quick-pill"
-              onClick={() => setActiveRoute('/invoices')}
-            >
-              <span className="cc-dash-quick-pill__icon" aria-hidden="true">📑</span>
-              <span>Purchased Vehicles</span>
-            </button>
-
-            <button
-              type="button"
-              className="cc-dash-quick-pill"
-              onClick={() => setActiveRoute('/vault')}
-            >
-              <span className="cc-dash-quick-pill__icon" aria-hidden="true">📁</span>
-              <span>Documents</span>
-            </button>
-
-            <button
-              type="button"
-              className="cc-dash-quick-pill"
-              onClick={() => setActiveRoute('/inquiries')}
-            >
-              <span className="cc-dash-quick-pill__icon" aria-hidden="true">💬</span>
-              <span>Inquiries</span>
-            </button>
-
-            <button
-              type="button"
-              className="cc-dash-quick-pill"
-              onClick={() => setActiveRoute('/profile')}
-            >
-              <span className="cc-dash-quick-pill__icon" aria-hidden="true">👤</span>
-              <span>Client Profile</span>
-            </button>
           </div>
         </div>
       </section>

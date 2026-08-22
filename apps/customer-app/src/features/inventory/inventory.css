@@ -76,8 +76,7 @@
 }
 
 .cc-cust-inventory-page .cc-search-input-icon,
-.cc-cust-inventory-page .cc-search-reset-btn,
-.cc-cust-inventory-page .cc-force-sync-btn {
+.cc-cust-inventory-page .cc-search-reset-btn {
   color: var(--color-primary);
 }
 
@@ -87,6 +86,7 @@
   color: var(--color-text-primary);
   background-color: var(--color-surface);
   border-color: var(--color-border);
+  border-radius: var(--radius-md);
 }
 
 .cc-cust-inventory-page .cc-search-filter-toggle-btn:hover,
@@ -99,10 +99,14 @@
 .cc-cust-inventory-page .cc-filter-select:focus,
 .cc-cust-inventory-page .cc-filter-input:focus,
 .cc-cust-inventory-page .cc-search-filter-toggle-btn:focus-visible,
-.cc-cust-inventory-page .cc-search-reset-btn:focus-visible,
-.cc-cust-inventory-page .cc-force-sync-btn:focus-visible {
+.cc-cust-inventory-page .cc-search-reset-btn:focus-visible {
   outline: var(--focus-ring-width) solid var(--color-focus);
   outline-offset: 2px;
+}
+
+.cc-cust-inventory-page .cc-filter-input::placeholder {
+  color: var(--color-text-secondary);
+  opacity: 1;
 }
 
 .cc-cust-inventory-page .cc-filter-grid {
@@ -151,16 +155,6 @@
 .cc-cust-inventory-page .cc-results-count,
 .cc-cust-inventory-page .cc-pagination-info {
   color: var(--color-text-secondary);
-}
-
-.cc-cust-inventory-page .cc-force-sync-btn {
-  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
-  border-color: color-mix(in srgb, var(--color-primary) 30%, var(--color-border));
-}
-
-.cc-cust-inventory-page .cc-force-sync-btn:hover {
-  background: color-mix(in srgb, var(--color-primary) 18%, transparent);
-  border-color: var(--color-primary);
 }
 
 .cc-cust-inventory-page .cc-vehicle-collection__grid {
@@ -280,7 +274,6 @@
 
 .cc-cust-inventory-page .cc-search-filter-toggle-btn,
 .cc-cust-inventory-page .cc-search-reset-btn,
-.cc-cust-inventory-page .cc-force-sync-btn,
 .cc-cust-inventory-page .cc-pagination-btn {
   font-family: var(--font-display);
   font-size: var(--font-size-xs);
@@ -391,6 +384,13 @@
   white-space: normal;
 }
 
+.cc-cust-tier-summary__quota {
+  display: block;
+  margin-top: var(--spacing-xs);
+  color: var(--color-text-on-dark);
+  font-weight: 600;
+}
+
 @media (max-width: 640px) {
   .cc-cust-inventory-header__row {
     flex-direction: column;
@@ -451,74 +451,6 @@
 
 .cc-cust-tier-banner__info strong {
   color: var(--color-primary);
-}
-
-/* Compliance Status Banner */
-.cc-cust-compliance-banner {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
-  background: var(--color-surface-elevated);
-  border: 1px solid var(--color-border);
-  border-left: 4px solid var(--color-success);
-  border-radius: var(--radius-md);
-  padding: var(--spacing-sm) var(--spacing-md);
-  box-shadow: var(--shadow-sm);
-  margin-top: var(--spacing-sm);
-  margin-bottom: var(--spacing-md);
-}
-
-@media (min-width: 640px) {
-  .cc-cust-compliance-banner {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-  }
-}
-
-.cc-cust-compliance-banner__badge {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--spacing-sm);
-}
-
-.cc-cust-compliance-banner__icon {
-  font-size: 1.25rem;
-  line-height: 1.4;
-}
-
-.cc-cust-compliance-banner__tier-name {
-  font-weight: 700;
-  font-size: var(--font-size-sm);
-  color: var(--color-text-primary);
-  display: block;
-}
-
-.cc-cust-compliance-banner__subtitle {
-  margin: var(--spacing-xs) 0 0;
-  font-size: var(--font-size-xs);
-  color: var(--color-text-secondary);
-}
-
-.cc-cust-compliance-banner__btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--spacing-xs) var(--spacing-sm);
-  font-size: var(--font-size-xs);
-  font-weight: 600;
-  color: var(--color-text-primary);
-  background: var(--color-neutral-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background-color 150ms ease, border-color 150ms ease;
-}
-
-.cc-cust-compliance-banner__btn:hover {
-  background: var(--color-surface);
-  border-color: var(--color-primary);
 }
 
 /* Search Wrapper */
@@ -703,6 +635,50 @@
   margin-bottom: var(--spacing-sm);
 }
 
+.cc-cust-tier-benefit-badge {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.cc-cust-tier-benefit-badge__info {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.15rem;
+  height: 1.15rem;
+  border: 1px solid var(--color-info);
+  border-radius: 50%;
+  padding: 0;
+  background: transparent;
+  color: var(--color-info);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.cc-cust-tier-benefit-badge__info:focus-visible,
+.cc-cust-tier-benefit-badge__info:hover {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.cc-cust-tier-benefit-badge__tooltip {
+  position: absolute;
+  top: calc(100% + var(--spacing-xs));
+  left: 0;
+  z-index: 10;
+  width: min(24rem, 80vw);
+  padding: var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-dark);
+  color: var(--color-text-on-dark);
+  box-shadow: var(--shadow-md);
+  font-size: var(--font-size-xs);
+  line-height: 1.45;
+}
+
 .cc-cust-tier-badge {
   display: inline-block;
   align-self: flex-start;
@@ -718,6 +694,12 @@
   font-size: 0.875rem;
   color: var(--color-text-secondary);
   text-decoration: line-through;
+}
+
+.cc-cust-reservation-capacity {
+  margin: calc(var(--spacing-sm) * -1) 0 var(--spacing-sm);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
 }
 
 .cc-cust-price-card__final-row {
@@ -841,6 +823,12 @@
   color: var(--color-text-primary);
   border: 1px solid var(--color-border);
   padding: var(--spacing-sm) var(--spacing-md);
+}
+
+/* Keep secondary large actions aligned with primary large actions. */
+.cc-cust-btn--secondary.cc-cust-btn--large {
+  min-height: 3.5rem;
+  padding: var(--spacing-md) var(--spacing-lg);
 }
 
 /* Status Banners */
@@ -986,6 +974,19 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-sm);
+}
+
+.cc-cust-disabled-action {
+  display: block;
+  width: 100%;
+}
+
+.cc-cust-disabled-action--disabled {
+  cursor: not-allowed;
+}
+
+.cc-cust-disabled-action--disabled .cc-cust-btn {
+  pointer-events: none;
 }
 
 .cc-cust-btn--secondary:hover:not(:disabled) {

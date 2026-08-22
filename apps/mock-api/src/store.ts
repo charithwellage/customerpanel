@@ -63,6 +63,7 @@ import type {
   CustomerVehicleDetail,
   CustomerVehicleCountsByStatus,
   CustomerVehicleListResponse,
+  VehicleStatusDefinition,
   ListCustomerVehiclesQuery,
   CustomerInvoiceType,
   CustomerInvoiceStatus,
@@ -99,18 +100,18 @@ import {
   resolveFreightRateStatus,
   calculateTierPricing,
   calculateVehicleDeposit,
-  TIER_DISCOUNTS,
   ENQUIRY_TYPES,
   ENQUIRY_SOURCES,
   ENQUIRY_PREFERRED_DRIVE_SIDES,
   RESERVATION_HOLD_HOURS,
-  MAX_ACTIVE_RESERVATIONS_PER_CUSTOMER,
   RESERVABLE_VEHICLE_STATUSES,
   COUNTRIES,
   VehicleComplianceEvaluation,
   evaluateVehicleCompliance,
   isVehicleCompliantForCountry,
   normalizeCountryCode,
+  CustomerTierRule,
+  CustomerTierBenefits,
 } from '@carchief/domain';
 export { FreightRequestError, resolveFreightRateStatus } from '@carchief/domain';
 
@@ -261,6 +262,40 @@ const seedConfig: PublicConfig = {
     Standard: 'Standard export inventory pricing with real-time stock allocation and 48-hour reservation holds.',
   },
 };
+
+// Seed data for the database-backed customer benefit rules. These values are
+// inserted into customer_tier_rules during mock reset/initialisation; runtime
+// pricing and reservation enforcement always read the persisted rule.
+const seedTierRules: CustomerTierRule[] = [
+  { tier: 'Standard', discountPercent: 0, maxActiveReservations: 1, description: 'Standard export inventory pricing with real-time stock allocation and 48-hour reservation holds.', active: true },
+  { tier: 'Silver', discountPercent: 5, maxActiveReservations: 2, description: 'Your verified account receives a 5% VIP discount on fixed-price export stock with up to 2 active reservation holds.', active: true },
+  { tier: 'Gold', discountPercent: 10, maxActiveReservations: 3, description: 'Your verified account receives a 10% VIP discount on fixed-price export stock with up to 3 active reservation holds.', active: true },
+  { tier: 'Platinum', discountPercent: 15, maxActiveReservations: 5, description: 'Your verified account receives a 15% VIP discount on fixed-price export stock with up to 5 active reservation holds.', active: true },
+];
+
+// Vehicle status codes remain stable business values; customer-facing labels
+// are maintained in this catalogue and are persisted by the PostgreSQL store.
+export const seedVehicleStatusDefinitions: VehicleStatusDefinition[] = [
+  { code: 'Draft', singularLabel: 'Draft Vehicle', pluralLabel: 'Draft Vehicles', description: 'Vehicle record is still being prepared.', active: true, sortOrder: 10 },
+  { code: 'Available', singularLabel: 'Available Vehicle', pluralLabel: 'Available Vehicles', description: 'Vehicle is available for reservation.', active: true, sortOrder: 20 },
+  { code: 'Pending', singularLabel: 'Pending Vehicle', pluralLabel: 'Pending Vehicles', description: 'Vehicle availability is pending confirmation.', active: true, sortOrder: 30 },
+  { code: 'Reserved', singularLabel: 'Reserved Vehicle', pluralLabel: 'Reserved Vehicles', description: 'Vehicle has an active reservation hold.', active: true, sortOrder: 40 },
+  { code: 'ReservedWithPI', singularLabel: 'Reserved With PI Vehicle', pluralLabel: 'Reserved With PI Vehicles', description: 'Vehicle is reserved and has a proforma invoice.', active: true, sortOrder: 50 },
+  { code: 'InvoiceCreated', singularLabel: 'Invoice Created Vehicle', pluralLabel: 'Invoice Created Vehicles', description: 'An invoice has been created for the vehicle.', active: true, sortOrder: 60 },
+  { code: 'Invoiced', singularLabel: 'Invoiced Vehicle', pluralLabel: 'Invoiced Vehicles', description: 'An issued invoice is linked to the vehicle.', active: true, sortOrder: 70 },
+  { code: 'Sold', singularLabel: 'Sold Vehicle', pluralLabel: 'Sold Vehicles', description: 'Vehicle sale has been completed.', active: true, sortOrder: 80 },
+];
+
+function resolveVehicleStatusDefinition(code: string, definitions: VehicleStatusDefinition[] = seedVehicleStatusDefinitions): VehicleStatusDefinition {
+  return definitions.find((definition) => definition.code === code) || {
+    code: code as VehicleStatusDefinition['code'],
+    singularLabel: `${code} Vehicle`,
+    pluralLabel: `${code} Vehicles`,
+    description: `Vehicle status: ${code}`,
+    active: false,
+    sortOrder: 999,
+  };
+}
 
 // Reference date for deterministic 5-day window & ETD/ETA tests: 2026-08-10T10:00:00.000Z
 const seedVehicles: VehicleRecord[] = [
@@ -1241,11 +1276,15 @@ export interface VehicleQueryContext {
   destinationCountry?: string;
   nowISO?: string;
   reservations?: ReservationRecord[];
+  tierRule?: CustomerTierRule;
+  allocatedCustomerId?: string;
 }
 
 export interface DemoStore {
   ready(): Promise<void>;
   getConfig(): Promise<PublicConfig>;
+  getCustomerTier(customerId: string): Promise<CustomerTier>;
+  getCustomerTierBenefits(customerId: string, nowISO?: string): Promise<CustomerTierBenefits>;
   getVehicles(query?: GetVehiclesQuery, context?: VehicleQueryContext): Promise<VehicleSearchResult>;
   getVehicleDetail(idOrSlug: string, context?: VehicleQueryContext): Promise<VehicleDetail | null>;
   getFreightDestinations(): Promise<FreightDestination[]>;
@@ -1362,6 +1401,7 @@ export interface CustomerAccountRecord {
   dialCode: string;
   mobileNumber: string;
   email: string;
+  tier: CustomerTier;
   passwordHash: string;
   passwordSalt: string;
   status: 'active';
@@ -1387,6 +1427,7 @@ export interface CustomerAccountProjection {
   dialCode: string;
   mobileNumber: string;
   email: string;
+  tier: CustomerTier;
   status: string;
   verificationState: string;
   createdAt: string;
@@ -1543,6 +1584,7 @@ function toCustomerAccountProjection(record: CustomerAccountRecord): CustomerAcc
     dialCode: record.dialCode,
     mobileNumber: record.mobileNumber,
     email: record.email,
+    tier: record.tier,
     status: record.status,
     verificationState: record.verificationState,
     createdAt: record.createdAt,
@@ -1577,6 +1619,7 @@ function performRegisterCustomerAccount(
     dialCode: validated.dialCode,
     mobileNumber: validated.mobileNumber,
     email: validated.email,
+    tier: 'Standard',
     passwordHash: hash,
     passwordSalt: salt,
     status: 'active',
@@ -1707,6 +1750,7 @@ function buildSeedCustomerAccount(): CustomerAccountRecord {
     dialCode: '+256',
     mobileNumber: '700000000',
     email: SEED_CUSTOMER_ACCOUNT_EMAIL,
+    tier: 'Standard',
     passwordHash: hash,
     passwordSalt: salt,
     status: 'active',
@@ -1728,6 +1772,35 @@ function buildSeedOtherCustomerAccount(): CustomerAccountRecord {
     dialCode: '+254',
     mobileNumber: '700000001',
     email: 'other@example.com',
+    tier: 'Silver',
+    passwordHash: hash,
+    passwordSalt: salt,
+    status: 'active',
+    verificationState: 'unverified',
+    createdAt: seedTimestamp,
+    updatedAt: seedTimestamp,
+    passwordUpdatedAt: seedTimestamp,
+  };
+}
+
+function buildSeedTierAccount(
+  customerId: string,
+  email: string,
+  nameWithInitials: string,
+  countryCode: string,
+  tier: CustomerTier,
+): CustomerAccountRecord {
+  const { hash, salt } = hashPassword(SEED_CUSTOMER_ACCOUNT_PASSWORD);
+  const seedTimestamp = '2026-01-01T00:00:00.000Z';
+  return {
+    id: `acct-${customerId}`,
+    customerId,
+    nameWithInitials,
+    countryCode,
+    dialCode: countryCode === 'KE' ? '+254' : '+256',
+    mobileNumber: '700000100',
+    email,
+    tier,
     passwordHash: hash,
     passwordSalt: salt,
     status: 'active',
@@ -2409,12 +2482,14 @@ function validateTestimonialSubmission(request: TestimonialSubmissionRequest): v
 export class EnquiryRequestError extends Error {
   public readonly statusCode: number;
   public readonly field?: string;
+  public readonly reason?: string;
 
-  constructor(statusCode: number, message: string, field?: string) {
+  constructor(statusCode: number, message: string, field?: string, reason?: string) {
     super(message);
     this.name = 'EnquiryRequestError';
     this.statusCode = statusCode;
     this.field = field;
+    this.reason = reason;
   }
 }
 
@@ -2478,6 +2553,26 @@ function requireNonEmptyString(value: unknown, field: string, label: string): st
     throw new EnquiryRequestError(400, `${label} is required`, field);
   }
   return value.trim();
+}
+
+function assertVehicleEnquiryAllowed(
+  vehicles: VehicleRecord[],
+  invoices: InvoiceRecord[],
+  request: EnquiryRequest,
+  customerId: string,
+): void {
+  if (!request.vehicleSlug) return;
+  const vehicle = findVehicleRecord(vehicles, request.vehicleSlug);
+  if (!vehicle) return;
+  const allocatedCustomerId = findAllocatedCustomerId(invoices, vehicle.id);
+  if (allocatedCustomerId && allocatedCustomerId !== customerId) {
+    throw new EnquiryRequestError(
+      409,
+      'This vehicle has already been allocated to another customer.',
+      'vehicleSlug',
+      'allocated_to_another_customer',
+    );
+  }
 }
 
 /**
@@ -2783,18 +2878,18 @@ export function projectVehicle(
     return exp > now;
   });
 
-  const nowOnSale = active && !isSold && (!activeHold || Boolean(context.customerId && activeHold.customerId === context.customerId));
+  const nowOnSale = active && v.status === 'Available' && (!activeHold || Boolean(context.customerId && activeHold.customerId === context.customerId));
   const isRequestPrice = Boolean(v.requestPrice || !v.priceUsd || v.priceUsd <= 0);
   const priceState: 'priced' | 'request_price' = isRequestPrice ? 'request_price' : 'priced';
 
   // Tier Pricing (RULE-06)
   const tier = context.customerTier || (context.audience === 'customer' ? 'Standard' : undefined);
-  const tierPricing = tier && v.priceUsd > 0 ? calculateTierPricing(v.priceUsd, tier) : undefined;
+  const tierPricing = tier && v.priceUsd > 0 ? calculateTierPricing(v.priceUsd, tier, context.tierRule?.discountPercent ?? 0) : undefined;
 
   // Reservation Eligibility (RULE-05, RULE-08, RULE-10)
   let reservationEligibility: VehicleReservationEligibility | undefined = undefined;
   if (context.audience === 'customer' || context.customerId || context.customerTier) {
-    if (isSold || !active) {
+    if (isSold || !active || !RESERVABLE_VEHICLE_STATUS_SET.has(v.status)) {
       reservationEligibility = { eligible: false, reason: 'not_reservable' };
     } else if (isRequestPrice) {
       reservationEligibility = { eligible: false, reason: 'price_on_request' };
@@ -2856,6 +2951,7 @@ export function projectVehicle(
       : undefined,
     tierPricing,
     reservationEligibility,
+    inquiryEligibility: buildVehicleInquiryEligibility(v, context),
   };
 }
 
@@ -2905,16 +3001,16 @@ export function buildVehicleDetail(
     return exp > now;
   });
 
-  const nowOnSale = active && !isSold && (!activeHold || Boolean(context.customerId && activeHold.customerId === context.customerId));
+  const nowOnSale = active && v.status === 'Available' && (!activeHold || Boolean(context.customerId && activeHold.customerId === context.customerId));
 
   // Tier Pricing (RULE-06)
   const tier = context.customerTier || (context.audience === 'customer' ? 'Standard' : undefined);
-  const tierPricing = tier && v.priceUsd > 0 ? calculateTierPricing(v.priceUsd, tier) : undefined;
+  const tierPricing = tier && v.priceUsd > 0 ? calculateTierPricing(v.priceUsd, tier, context.tierRule?.discountPercent ?? 0) : undefined;
 
   // Reservation Eligibility (RULE-05, RULE-08, RULE-10)
   let reservationEligibility: VehicleReservationEligibility | undefined = undefined;
   if (context.audience === 'customer' || context.customerId || context.customerTier) {
-    if (isSold || !active) {
+    if (isSold || !active || !RESERVABLE_VEHICLE_STATUS_SET.has(v.status)) {
       reservationEligibility = { eligible: false, reason: 'not_reservable' };
     } else if (isRequestPrice) {
       reservationEligibility = { eligible: false, reason: 'price_on_request' };
@@ -2976,6 +3072,7 @@ export function buildVehicleDetail(
     nowOnSale,
     tierPricing,
     reservationEligibility,
+    inquiryEligibility: buildVehicleInquiryEligibility(v, context),
   };
 }
 
@@ -3620,6 +3717,24 @@ export interface InvoiceRecord {
   status: 'Draft' | 'Issued' | 'Paid' | 'Overdue';
 }
 
+function findAllocatedCustomerId(invoices: InvoiceRecord[], vehicleId: string): string | undefined {
+  return invoices.find((invoice) => invoice.vehicleId === vehicleId && invoice.status !== 'Draft')?.customerId;
+}
+
+function buildVehicleInquiryEligibility(
+  vehicle: VehicleRecord,
+  context: VehicleQueryContext,
+): VehicleDomainSummary['inquiryEligibility'] {
+  if (!context.customerId) return undefined;
+  if (context.allocatedCustomerId && context.allocatedCustomerId !== context.customerId) {
+    return { eligible: false, reason: 'allocated_to_another_customer' };
+  }
+  if (vehicle.status !== 'Available' && !context.allocatedCustomerId) {
+    return { eligible: false, reason: 'not_available' };
+  }
+  return { eligible: true };
+}
+
 export interface AllocationRecord {
   id: string;
   customerId: string;
@@ -4169,7 +4284,8 @@ export function buildCustomerVehicleProjections(
   allocations: AllocationRecord[],
   shipments: ShipmentRecord[],
   documents: DocumentRecord[],
-  nowISO: string = '2026-08-10T10:00:00.000Z'
+  nowISO: string = '2026-08-10T10:00:00.000Z',
+  vehicleStatusDefinitions: VehicleStatusDefinition[] = seedVehicleStatusDefinitions
 ): CustomerVehicleDetail[] {
   const relevantVehicleIds = new Set<string>();
 
@@ -4337,6 +4453,15 @@ export function buildCustomerVehicleProjections(
     const logisticsStatus = vehicle.logisticsStatus || (status === 'Delivered' ? 'DELIVERED' : status === 'In Transit' ? 'IN TRANSIT' : status === 'Confirmed' ? 'INSPECTION' : 'RESERVED');
     const piRef = pi ? `PI-${stockNumber.replace(/^STK:\s*/, '')}` : (status === 'Under Negotiation With PI' ? `PI-${stockNumber.replace(/^STK:\s*/, '')}` : undefined);
     const shippingStage = status === 'Delivered' ? 'Delivered' : status === 'In Transit' ? 'In Transit' : status === 'Confirmed' ? 'Inspection' : 'Reserved';
+    // A live reservation overlays an otherwise available vehicle for the
+    // customer projection. Resolve its display label from the Reserved
+    // catalogue row while retaining the raw vehicle status code separately.
+    const displayStatusCode = status === 'Under Negotiation'
+      ? 'Reserved'
+      : status === 'Under Negotiation With PI'
+        ? 'ReservedWithPI'
+        : vehicle.status;
+    const statusDefinition = resolveVehicleStatusDefinition(displayStatusCode, vehicleStatusDefinitions);
 
     const detail: CustomerVehicleDetail = {
       id: vId,
@@ -4351,6 +4476,10 @@ export function buildCustomerVehicleProjections(
       priceUsd,
       totalAmountUsd,
       status,
+      vehicleStatusCode: statusDefinition.code,
+      statusLabel: statusDefinition.singularLabel,
+      statusLabelPlural: statusDefinition.pluralLabel,
+      statusDescription: statusDefinition.description,
       locationStatus,
       destinationPort: vehicle.destinationPort || 'Mombasa',
       reservationExpiresAt: r?.expiresAt,
@@ -4389,7 +4518,8 @@ export function buildCustomerVehicleProjections(
 
 export function queryCustomerVehicles(
   allVehicles: CustomerVehicleDetail[],
-  query?: ListCustomerVehiclesQuery
+  query?: ListCustomerVehiclesQuery,
+  vehicleStatusDefinitions: VehicleStatusDefinition[] = seedVehicleStatusDefinitions
 ): CustomerVehicleListResponse {
   const countsByStatus: CustomerVehicleCountsByStatus = {
     underNegotiation: allVehicles.filter((v) => v.status === 'Under Negotiation').length,
@@ -4444,6 +4574,10 @@ export function queryCustomerVehicles(
     priceUsd: d.priceUsd,
     totalAmountUsd: d.totalAmountUsd,
     status: d.status,
+    vehicleStatusCode: d.vehicleStatusCode,
+    statusLabel: d.statusLabel,
+    statusLabelPlural: d.statusLabelPlural,
+    statusDescription: d.statusDescription,
     locationStatus: d.locationStatus,
     destinationPort: d.destinationPort,
     reservationExpiresAt: d.reservationExpiresAt,
@@ -4466,6 +4600,7 @@ export function queryCustomerVehicles(
     items,
     total: filtered.length,
     countsByStatus,
+    statusDefinitions: vehicleStatusDefinitions.filter((definition) => definition.active).sort((a, b) => a.sortOrder - b.sortOrder),
   };
 }
 
@@ -4788,7 +4923,8 @@ function checkReservationEligibility(
   vehicle: VehicleRecord,
   existingReservations: ReservationRecord[],
   customerId: string,
-  nowISO: string
+  nowISO: string,
+  maxActiveReservations: number,
 ): void {
   const activeForVehicle = existingReservations.filter((r) => r.vehicleId === vehicle.id && isReservationActive(r, nowISO));
   const activeConflict = activeForVehicle.find((r) => r.customerId !== customerId);
@@ -4809,14 +4945,26 @@ function checkReservationEligibility(
   }
 
   const activeCountForCustomer = existingReservations.filter((r) => r.customerId === customerId && isReservationActive(r, nowISO)).length;
-  if (activeCountForCustomer >= MAX_ACTIVE_RESERVATIONS_PER_CUSTOMER) {
+  if (activeCountForCustomer >= maxActiveReservations) {
     throw new ReservationRequestError(
       409,
-      `You already have ${MAX_ACTIVE_RESERVATIONS_PER_CUSTOMER} active reservations, the maximum allowed at once`,
+      `You already have ${maxActiveReservations} active reservations, the maximum allowed at once`,
       undefined,
       'limit_exceeded'
     );
   }
+}
+
+function releaseExpiredReservationStatus(
+  vehicle: VehicleRecord,
+  reservations: ReservationRecord[],
+  nowISO: string,
+): void {
+  if (vehicle.status !== 'Reserved') return;
+  const vehicleReservations = reservations.filter((reservation) => reservation.vehicleId === vehicle.id);
+  const hasExpiredHold = vehicleReservations.some((reservation) => !isReservationActive(reservation, nowISO));
+  const hasActiveHold = vehicleReservations.some((reservation) => isReservationActive(reservation, nowISO));
+  if (hasExpiredHold && !hasActiveHold) vehicle.status = 'Available';
 }
 
 function toCustomerShipment(record: ShipmentRecord): CustomerShipment {
@@ -5062,6 +5210,7 @@ function createPaymentRecord(
 class MemoryStore implements DemoStore {
   private bankAccounts = seedBankAccounts.map((b) => ({ ...b }));
   private config = { ...seedConfig };
+  private vehicleStatusDefinitions = seedVehicleStatusDefinitions.map((definition) => ({ ...definition }));
   private vehicles = preparedSeedVehicles.map((vehicle) => canonicalizeVehicle({ ...vehicle }));
   private enquiries: EnquiryRecord[] = [];
   private enquirySeq = 0;
@@ -5083,7 +5232,14 @@ class MemoryStore implements DemoStore {
   private publicPages = seedPublicContentPages.map((p) => ({ ...p }));
   private offices = seedOfficeLocations.map((o) => ({ ...o }));
   private branches = seedBranches.map((b) => ({ ...b }));
-  private customerAccounts: CustomerAccountRecord[] = [buildSeedCustomerAccount()];
+  private customerAccounts: CustomerAccountRecord[] = [
+    buildSeedCustomerAccount(),
+    buildSeedOtherCustomerAccount(),
+    buildSeedTierAccount('cust-silver-789', 'silver@example.com', 'S. Buyer', 'KE', 'Silver'),
+    buildSeedTierAccount('cust-gold-012', 'gold@example.com', 'G. Buyer', 'UG', 'Gold'),
+    buildSeedTierAccount('cust-platinum-345', 'platinum@example.com', 'P. Buyer', 'KE', 'Platinum'),
+  ];
+  private tierRules = new Map<CustomerTier, CustomerTierRule>(seedTierRules.map((rule) => [rule.tier, { ...rule }]));
   private passwordResetOutbox: PasswordResetOutboxRecord[] = [];
   private wishlistItems: WishlistItemRecord[] = [];
   private wishlistSeq = 0;
@@ -5098,14 +5254,36 @@ class MemoryStore implements DemoStore {
     return Promise.resolve({ ...this.config });
   }
 
+  getCustomerTier(customerId: string): Promise<CustomerTier> {
+    return Promise.resolve(this.customerAccounts.find((account) => account.customerId === customerId)?.tier || 'Standard');
+  }
+
+  async getCustomerTierBenefits(customerId: string, nowISO = new Date().toISOString()): Promise<CustomerTierBenefits> {
+    const tier = await this.getCustomerTier(customerId);
+    const rule = this.tierRules.get(tier) || this.tierRules.get('Standard')!;
+    const activeReservations = this.reservations.filter((reservation) => reservation.customerId === customerId && isReservationActive(reservation, nowISO)).length;
+    return {
+      tier,
+      discountPercent: rule.discountPercent,
+      maxActiveReservations: rule.maxActiveReservations,
+      activeReservations,
+      remainingReservations: Math.max(0, rule.maxActiveReservations - activeReservations),
+      description: rule.description,
+    };
+  }
+
   getBankAccounts(): Promise<BankAccount[]> {
     return Promise.resolve(seedBankAccounts);
   }
 
-  getVehicles(query?: GetVehiclesQuery, context?: VehicleQueryContext): Promise<VehicleSearchResult> {
+  async getVehicles(query?: GetVehiclesQuery, context?: VehicleQueryContext): Promise<VehicleSearchResult> {
+    const effectiveTier = context?.customerId ? await this.getCustomerTier(context.customerId) : (context?.customerTier || query?.tier);
+    const tierRule = this.tierRules.get(effectiveTier as CustomerTier);
     const mergedContext: VehicleQueryContext = {
       ...context,
       reservations: this.reservations,
+      customerTier: effectiveTier as CustomerTier,
+      tierRule,
     };
     const filteredList = filterAndSortVehicles(this.vehicles, query, mergedContext);
     const facets = calculateSearchFacets(this.vehicles, query, mergedContext);
@@ -5118,7 +5296,7 @@ class MemoryStore implements DemoStore {
     const startIndex = (page - 1) * limit;
     const items = filteredList.slice(startIndex, startIndex + limit);
 
-    return Promise.resolve({
+    return {
       items,
       total,
       page,
@@ -5127,20 +5305,23 @@ class MemoryStore implements DemoStore {
       hasNextPage: page < totalPages,
       hasPrevPage: page > 1,
       facets,
-    });
+    };
   }
 
-  getVehicleDetail(idOrSlug: string, context?: VehicleQueryContext): Promise<VehicleDetail | null> {
+  async getVehicleDetail(idOrSlug: string, context?: VehicleQueryContext): Promise<VehicleDetail | null> {
     const record = findVehicleRecord(this.vehicles, idOrSlug);
-    if (!record) return Promise.resolve(null);
+    if (!record) return null;
     if ((context?.audience || 'public') !== 'salesperson' && record.status === 'Draft') {
-      return Promise.resolve(null);
+      return null;
     }
     const mergedContext: VehicleQueryContext = {
       ...context,
       reservations: this.reservations,
+      customerTier: context?.customerId ? await this.getCustomerTier(context.customerId) : context?.customerTier,
+      allocatedCustomerId: findAllocatedCustomerId(this.invoices, record.id),
     };
-    return Promise.resolve(buildVehicleDetail(record, mergedContext));
+    mergedContext.tierRule = mergedContext.customerTier ? this.tierRules.get(mergedContext.customerTier) : undefined;
+    return buildVehicleDetail(record, mergedContext);
   }
 
   getFreightDestinations(): Promise<FreightDestination[]> {
@@ -5156,6 +5337,7 @@ class MemoryStore implements DemoStore {
   }
 
   async createEnquiry(request: EnquiryRequest, customerId = 'cust-123'): Promise<EnquiryResponse> {
+    assertVehicleEnquiryAllowed(this.vehicles, this.invoices, request, customerId);
     const prepared = prepareEnquiry(this.vehicles, freightDestinations, freightPorts, freightRateRecords, request, FREIGHT_REFERENCE_DATE, customerId);
     const dedupeKey = buildEnquiryDedupeKey(prepared);
 
@@ -5224,7 +5406,10 @@ class MemoryStore implements DemoStore {
   // Node.js event loop).
   async createReservation(customerId: string, customerEmail: string, request: ReservationRequest, nowISO: string = new Date().toISOString()): Promise<ReservationResponse> {
     const vehicle = resolveReservationVehicle(this.vehicles, request);
-    checkReservationEligibility(vehicle, this.reservations, customerId, nowISO);
+    releaseExpiredReservationStatus(vehicle, this.reservations, nowISO);
+    const tier = await this.getCustomerTier(customerId);
+    const tierRule = this.tierRules.get(tier) || this.tierRules.get('Standard')!;
+    checkReservationEligibility(vehicle, this.reservations, customerId, nowISO, tierRule.maxActiveReservations);
 
     const expiresAt = new Date(new Date(nowISO).getTime() + RESERVATION_HOLD_HOURS * 60 * 60 * 1000).toISOString();
     const record: ReservationRecord = {
@@ -5517,9 +5702,10 @@ class MemoryStore implements DemoStore {
       this.allocations,
       this.shipments,
       this.documents,
-      nowISO
+      nowISO,
+      this.vehicleStatusDefinitions
     );
-    return Promise.resolve(queryCustomerVehicles(all, query));
+    return Promise.resolve(queryCustomerVehicles(all, query, this.vehicleStatusDefinitions));
   }
 
   getCustomerVehicleById(customerId: string, idOrSlug: string, nowISO?: string): Promise<CustomerVehicleDetail | null> {
@@ -5532,7 +5718,8 @@ class MemoryStore implements DemoStore {
       this.allocations,
       this.shipments,
       this.documents,
-      nowISO
+      nowISO,
+      this.vehicleStatusDefinitions
     );
     const target = all.find((v) => v.id === idOrSlug || v.vehicleId === idOrSlug || v.slug === idOrSlug);
     return Promise.resolve(target || null);
@@ -6141,6 +6328,7 @@ class MemoryStore implements DemoStore {
 
   reset(): Promise<void> {
     this.config = { ...seedConfig };
+    this.vehicleStatusDefinitions = seedVehicleStatusDefinitions.map((definition) => ({ ...definition }));
     this.vehicles = preparedSeedVehicles.map((vehicle) => canonicalizeVehicle({ ...vehicle }));
     this.enquiries = [];
     this.reservations = seedReservations.map((r) => ({ ...r }));
@@ -6159,7 +6347,14 @@ class MemoryStore implements DemoStore {
     this.publicPages = seedPublicContentPages.map((p) => ({ ...p }));
     this.offices = seedOfficeLocations.map((o) => ({ ...o }));
     this.branches = seedBranches.map((b) => ({ ...b }));
-    this.customerAccounts = [buildSeedCustomerAccount()];
+    this.customerAccounts = [
+      buildSeedCustomerAccount(),
+      buildSeedOtherCustomerAccount(),
+      buildSeedTierAccount('cust-silver-789', 'silver@example.com', 'S. Buyer', 'KE', 'Silver'),
+      buildSeedTierAccount('cust-gold-012', 'gold@example.com', 'G. Buyer', 'UG', 'Gold'),
+      buildSeedTierAccount('cust-platinum-345', 'platinum@example.com', 'P. Buyer', 'KE', 'Platinum'),
+    ];
+    this.tierRules = new Map(seedTierRules.map((rule) => [rule.tier, { ...rule }]));
     this.passwordResetOutbox = [];
     this.wishlistItems = [];
     this.favourites = [];
@@ -6267,8 +6462,8 @@ class PostgresStore implements DemoStore {
       await this.pool.query(`DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'vehicles_${column}_fkey') THEN ALTER TABLE vehicles ADD CONSTRAINT vehicles_${column}_fkey FOREIGN KEY (${column}) REFERENCES ${table}(id); END IF; END $$`);
     }
     await this.pool.query('CREATE UNIQUE INDEX IF NOT EXISTS vehicles_chassis_number_lower_idx ON vehicles (lower(trim(chassis_number)))');
+    await this.pool.query('ALTER TABLE vehicles DROP CONSTRAINT IF EXISTS vehicles_status_valid');
     await this.pool.query(`ALTER TABLE vehicles
-      ADD CONSTRAINT vehicles_status_valid CHECK (status IN ('Available', 'Sold', 'Draft', 'Invoiced', 'ReservedWithPI')),
       ADD CONSTRAINT vehicles_location_status_valid CHECK (location_status IS NULL OR location_status IN ('In Japan', 'In Transit', 'In Port')),
       ADD CONSTRAINT vehicles_stock_type_valid CHECK (stock_type IS NULL OR stock_type IN ('J', 'CRFO')),
       ADD CONSTRAINT vehicles_price_nonnegative CHECK (price_usd >= 0),
@@ -6279,6 +6474,8 @@ class PostgresStore implements DemoStore {
       ADD CONSTRAINT vehicles_load_capacity_nonnegative CHECK (load_capacity IS NULL OR load_capacity >= 0),
       ADD CONSTRAINT vehicles_year_valid CHECK (year BETWEEN 1886 AND 2200)
     `).catch((error: any) => { if (error?.code !== '42710') throw error; });
+    await this.pool.query(`DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'vehicles_status_fkey') THEN ALTER TABLE vehicles ADD CONSTRAINT vehicles_status_fkey FOREIGN KEY (status) REFERENCES vehicle_statuses(code); END IF; END $$`);
+    await this.pool.query('CREATE INDEX IF NOT EXISTS vehicles_status_idx ON vehicles(status)');
   }
 
   private async addRelationalConstraints(): Promise<void> {
@@ -6320,6 +6517,24 @@ class PostgresStore implements DemoStore {
       `CREATE TABLE IF NOT EXISTS public_config (id integer PRIMARY KEY, site_name text NOT NULL, currency text NOT NULL, contact_phone text NOT NULL, tier_descriptions jsonb NOT NULL DEFAULT '{}'::jsonb);`
     );
     await this.pool.query(`ALTER TABLE public_config ADD COLUMN IF NOT EXISTS tier_descriptions jsonb NOT NULL DEFAULT '{}'::jsonb`);
+    await this.pool.query(`CREATE TABLE IF NOT EXISTS vehicle_statuses (
+      code text PRIMARY KEY,
+      singular_label text NOT NULL,
+      plural_label text NOT NULL,
+      description text NOT NULL DEFAULT '',
+      active boolean NOT NULL DEFAULT true,
+      sort_order integer NOT NULL DEFAULT 0
+    );`);
+    for (const definition of seedVehicleStatusDefinitions) {
+      await this.pool.query(
+        `INSERT INTO vehicle_statuses (code, singular_label, plural_label, description, active, sort_order)
+         VALUES ($1, $2, $3, $4, $5, $6)
+         ON CONFLICT (code) DO UPDATE SET singular_label = EXCLUDED.singular_label,
+           plural_label = EXCLUDED.plural_label, description = EXCLUDED.description,
+           active = EXCLUDED.active, sort_order = EXCLUDED.sort_order`,
+        [definition.code, definition.singularLabel, definition.pluralLabel, definition.description, definition.active, definition.sortOrder]
+      );
+    }
     await this.pool.query(
       `CREATE TABLE IF NOT EXISTS vehicles (
         id text PRIMARY KEY,
@@ -6645,6 +6860,7 @@ class PostgresStore implements DemoStore {
         dial_code text NOT NULL,
         mobile_number text NOT NULL,
         email text NOT NULL,
+        tier text NOT NULL DEFAULT 'Standard',
         password_hash text NOT NULL,
         password_salt text NOT NULL,
         status text NOT NULL,
@@ -6654,6 +6870,31 @@ class PostgresStore implements DemoStore {
         password_updated_at text NOT NULL
       );`
     );
+    await this.pool.query(`ALTER TABLE customer_accounts ADD COLUMN IF NOT EXISTS tier text NOT NULL DEFAULT 'Standard'`);
+    await this.pool.query(
+      `CREATE TABLE IF NOT EXISTS customer_tier_rules (
+        tier text PRIMARY KEY,
+        discount_percent numeric NOT NULL CHECK (discount_percent BETWEEN 0 AND 100),
+        max_active_reservations integer NOT NULL CHECK (max_active_reservations > 0),
+        description text NOT NULL,
+        active boolean NOT NULL DEFAULT true
+      );`
+    );
+    for (const rule of seedTierRules) {
+      await this.pool.query(
+        `INSERT INTO customer_tier_rules (tier, discount_percent, max_active_reservations, description, active)
+         VALUES ($1, $2, $3, $4, $5)
+         ON CONFLICT (tier) DO UPDATE SET discount_percent = EXCLUDED.discount_percent,
+           max_active_reservations = EXCLUDED.max_active_reservations,
+           description = EXCLUDED.description, active = EXCLUDED.active`,
+        [rule.tier, rule.discountPercent, rule.maxActiveReservations, rule.description, rule.active],
+      );
+    }
+    await this.pool.query(`DO $$ BEGIN
+      IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'customer_accounts_tier_fkey') THEN
+        ALTER TABLE customer_accounts ADD CONSTRAINT customer_accounts_tier_fkey FOREIGN KEY (tier) REFERENCES customer_tier_rules(tier);
+      END IF;
+    END $$`);
     await this.pool.query(
       'CREATE UNIQUE INDEX IF NOT EXISTS customer_accounts_email_lower_idx ON customer_accounts (lower(email));'
     );
@@ -6906,8 +7147,8 @@ class PostgresStore implements DemoStore {
     if (seededAccountResult.rows.length === 0) {
       const seed = buildSeedCustomerAccount();
       await this.pool.query(
-        `INSERT INTO customer_accounts (id, customer_id, name_with_initials, country_code, dial_code, mobile_number, email, password_hash, password_salt, status, verification_state, created_at, updated_at, password_updated_at)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
+        `INSERT INTO customer_accounts (id, customer_id, name_with_initials, country_code, dial_code, mobile_number, email, tier, password_hash, password_salt, status, verification_state, created_at, updated_at, password_updated_at)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)`,
         [
           seed.id,
           seed.customerId,
@@ -6916,6 +7157,7 @@ class PostgresStore implements DemoStore {
           seed.dialCode,
           seed.mobileNumber,
           seed.email,
+          seed.tier,
           seed.passwordHash,
           seed.passwordSalt,
           seed.status,
@@ -6969,15 +7211,22 @@ class PostgresStore implements DemoStore {
   }
 
   private async ensureSeedCustomerAccountsInPostgres(): Promise<void> {
-    const account = buildSeedOtherCustomerAccount();
-    await this.pool.query(
-      `INSERT INTO customer_accounts (id, customer_id, name_with_initials, country_code, dial_code, mobile_number, email, password_hash, password_salt, status, verification_state, created_at, updated_at, password_updated_at)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
-       ON CONFLICT (customer_id) DO NOTHING`,
-      [account.id, account.customerId, account.nameWithInitials, account.countryCode, account.dialCode, account.mobileNumber,
-        account.email, account.passwordHash, account.passwordSalt, account.status, account.verificationState, account.createdAt,
-        account.updatedAt, account.passwordUpdatedAt],
-    );
+    const accounts = [
+      buildSeedOtherCustomerAccount(),
+      buildSeedTierAccount('cust-silver-789', 'silver@example.com', 'S. Buyer', 'KE', 'Silver'),
+      buildSeedTierAccount('cust-gold-012', 'gold@example.com', 'G. Buyer', 'UG', 'Gold'),
+      buildSeedTierAccount('cust-platinum-345', 'platinum@example.com', 'P. Buyer', 'KE', 'Platinum'),
+    ];
+    for (const account of accounts) {
+      await this.pool.query(
+        `INSERT INTO customer_accounts (id, customer_id, name_with_initials, country_code, dial_code, mobile_number, email, tier, password_hash, password_salt, status, verification_state, created_at, updated_at, password_updated_at)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
+         ON CONFLICT (customer_id) DO UPDATE SET tier = EXCLUDED.tier`,
+        [account.id, account.customerId, account.nameWithInitials, account.countryCode, account.dialCode, account.mobileNumber,
+          account.email, account.tier, account.passwordHash, account.passwordSalt, account.status, account.verificationState, account.createdAt,
+          account.updatedAt, account.passwordUpdatedAt],
+      );
+    }
   }
 
   private async ensureMockRelationalFixtures(): Promise<void> {
@@ -7044,6 +7293,16 @@ class PostgresStore implements DemoStore {
           const id = customerId === 'cust-123' ? a.id : `alloc-${customerId}-${a.id.replace(/^alloc-/, '')}`;
           const invoiceId = customerId === 'cust-123' ? a.invoiceId : `inv-${customerId}-${a.invoiceId.replace(/^inv-/, '')}`;
           const paymentId = customerId === 'cust-123' ? a.paymentId : `pay-${customerId}-${a.paymentId.replace(/^pay-/, '')}`;
+          // Older databases may contain the invoice but not the payment rows
+          // referenced by the allocation seed. Create the minimal payment
+          // snapshot first so the payment FK is valid before inserting the
+          // allocation; the full payment fixture is completed below.
+          await this.pool.query(
+            `INSERT INTO payments (id, customer_id, invoice_id, amount_usd, paid_at, status, reference, bank_name, currency, remarks)
+             VALUES ($1, $2, $3, $4, $5, 'Approved', $6, 'Direct Wire Transfer', 'USD', 'Seed allocation payment')
+             ON CONFLICT (id) DO NOTHING;`,
+            [paymentId, customerId, invoiceId, a.amountUsd, a.allocatedAt, `SEED-${paymentId}`]
+          );
           await this.pool.query(
             `INSERT INTO allocations (id, customer_id, payment_id, invoice_id, amount_usd, allocated_at, status)
              VALUES ($1, $2, $3, $4, $5, $6, $7)
@@ -7109,7 +7368,7 @@ class PostgresStore implements DemoStore {
           { id: 'veh-7', slug: '2023-lexus-rx450h-veh-7' },
           { id: 'veh-9', slug: '2019-mercedes-benz-c200-amg-line-veh-9' },
           { id: 'veh-10', slug: '2021-bmw-x3-xdrive20d-veh-10' },
-        ];
+        ].slice(0, (await this.getTierRule(await this.getCustomerTier(customerId))).maxActiveReservations);
         let seq = 1;
         for (const v of reservedVehicles) {
           await this.pool.query(
@@ -7430,6 +7689,20 @@ class PostgresStore implements DemoStore {
     return result.rows.map((row) => ({ key: row.feature_key, label: row.display_name, sortOrder: Number(row.sort_order), active: Boolean(row.active) }));
   }
 
+  private async getVehicleStatusDefinitions(): Promise<VehicleStatusDefinition[]> {
+    const result = await this.pool.query(
+      'SELECT code, singular_label, plural_label, description, active, sort_order FROM vehicle_statuses ORDER BY sort_order, code'
+    );
+    return result.rows.map((row) => ({
+      code: row.code as VehicleStatusDefinition['code'],
+      singularLabel: row.singular_label,
+      pluralLabel: row.plural_label,
+      description: row.description,
+      active: row.active,
+      sortOrder: Number(row.sort_order),
+    }));
+  }
+
   private async getRawVehiclesWith(client: PoolClient): Promise<VehicleRecord[]> {
     const result = await client.query(
       `SELECT v.id, v.chassis_number, m.display_name AS make, mo.display_name AS model, v.model_code, v.year, v.price_usd, v.status,
@@ -7501,6 +7774,45 @@ class PostgresStore implements DemoStore {
     } : { ...seedConfig };
   }
 
+  private async getTierRule(tier: CustomerTier): Promise<CustomerTierRule> {
+    const result = await this.pool.query(
+      'SELECT tier, discount_percent, max_active_reservations, description, active FROM customer_tier_rules WHERE tier = $1 AND active = true LIMIT 1',
+      [tier],
+    );
+    const row = result.rows[0];
+    if (row) return {
+      tier: row.tier as CustomerTier,
+      discountPercent: Number(row.discount_percent),
+      maxActiveReservations: Number(row.max_active_reservations),
+      description: row.description,
+      active: row.active,
+    };
+    return seedTierRules.find((rule) => rule.tier === 'Standard')!;
+  }
+
+  async getCustomerTier(customerId: string): Promise<CustomerTier> {
+    const result = await this.pool.query('SELECT tier FROM customer_accounts WHERE customer_id = $1 LIMIT 1', [customerId]);
+    return (result.rows[0]?.tier as CustomerTier) || 'Standard';
+  }
+
+  async getCustomerTierBenefits(customerId: string, nowISO = new Date().toISOString()): Promise<CustomerTierBenefits> {
+    const tier = await this.getCustomerTier(customerId);
+    const rule = await this.getTierRule(tier);
+    const activeResult = await this.pool.query(
+      'SELECT count(*)::int AS count FROM reservations WHERE customer_id = $1 AND expires_at > $2',
+      [customerId, nowISO],
+    );
+    const activeReservations = Number(activeResult.rows[0]?.count || 0);
+    return {
+      tier,
+      discountPercent: rule.discountPercent,
+      maxActiveReservations: rule.maxActiveReservations,
+      activeReservations,
+      remainingReservations: Math.max(0, rule.maxActiveReservations - activeReservations),
+      description: rule.description,
+    };
+  }
+
   async getBankAccounts(): Promise<BankAccount[]> {
     return seedBankAccounts;
   }
@@ -7509,9 +7821,12 @@ class PostgresStore implements DemoStore {
     const rawRecords = await this.getRawVehicles();
     const featureCatalog = await this.getFeatureCatalog();
     const reservations = await this.getRawReservations();
+    const effectiveTier = context?.customerId ? await this.getCustomerTier(context.customerId) : (context?.customerTier || query?.tier);
     const mergedContext: VehicleQueryContext = {
       ...context,
       reservations,
+      customerTier: effectiveTier,
+      tierRule: effectiveTier ? await this.getTierRule(effectiveTier) : undefined,
     };
     const filteredList = filterAndSortVehicles(rawRecords, query, mergedContext);
     const facets = calculateSearchFacets(rawRecords, query, mergedContext, featureCatalog);
@@ -7544,9 +7859,14 @@ class PostgresStore implements DemoStore {
       return null;
     }
     const reservations = await this.getRawReservations();
+    const invoices = await this.getRawInvoices();
+    const effectiveTier = context?.customerId ? await this.getCustomerTier(context.customerId) : context?.customerTier;
     const mergedContext: VehicleQueryContext = {
       ...context,
       reservations,
+      customerTier: effectiveTier,
+      tierRule: effectiveTier ? await this.getTierRule(effectiveTier) : undefined,
+      allocatedCustomerId: findAllocatedCustomerId(invoices, record.id),
     };
     return buildVehicleDetail(record, mergedContext);
   }
@@ -7565,6 +7885,8 @@ class PostgresStore implements DemoStore {
 
   async createEnquiry(request: EnquiryRequest, customerId = 'cust-123'): Promise<EnquiryResponse> {
     const rawVehicles = await this.getRawVehicles();
+    const invoices = await this.getRawInvoices();
+    assertVehicleEnquiryAllowed(rawVehicles, invoices, request, customerId);
     const prepared = prepareEnquiry(rawVehicles, freightDestinations, freightPorts, freightRateRecords, request, FREIGHT_REFERENCE_DATE, customerId);
     const dedupeKey = buildEnquiryDedupeKey(prepared);
 
@@ -7694,7 +8016,13 @@ class PostgresStore implements DemoStore {
         [vehicle.id, customerId]
       );
       const existingReservations = existingResult.rows.map(PostgresStore.rowToReservationRecord);
-      checkReservationEligibility(vehicle, existingReservations, customerId, nowISO);
+      releaseExpiredReservationStatus(vehicle, existingReservations, nowISO);
+      if (vehicle.status === 'Available') {
+        await client.query('UPDATE vehicles SET status = $1 WHERE id = $2', ['Available', vehicle.id]);
+      }
+      const tier = await this.getCustomerTier(customerId);
+      const tierRule = await this.getTierRule(tier);
+      checkReservationEligibility(vehicle, existingReservations, customerId, nowISO, tierRule.maxActiveReservations);
 
       const expiresAt = new Date(new Date(nowISO).getTime() + RESERVATION_HOLD_HOURS * 60 * 60 * 1000).toISOString();
       const id = `res-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -7974,6 +8302,7 @@ class PostgresStore implements DemoStore {
     const allocations = await this.getRawAllocations();
     const shipments = await this.getRawShipments();
     const documents = await this.getRawDocuments();
+    const statusDefinitions = await this.getVehicleStatusDefinitions();
     const all = buildCustomerVehicleProjections(
       customerId,
       vehicles,
@@ -7983,9 +8312,10 @@ class PostgresStore implements DemoStore {
       allocations,
       shipments,
       documents,
-      nowISO
+      nowISO,
+      statusDefinitions
     );
-    return queryCustomerVehicles(all, query);
+    return queryCustomerVehicles(all, query, statusDefinitions);
   }
 
   async getCustomerVehicleById(customerId: string, idOrSlug: string, nowISO?: string): Promise<CustomerVehicleDetail | null> {
@@ -7997,6 +8327,7 @@ class PostgresStore implements DemoStore {
     const allocations = await this.getRawAllocations();
     const shipments = await this.getRawShipments();
     const documents = await this.getRawDocuments();
+    const statusDefinitions = await this.getVehicleStatusDefinitions();
     const all = buildCustomerVehicleProjections(
       customerId,
       vehicles,
@@ -8006,7 +8337,8 @@ class PostgresStore implements DemoStore {
       allocations,
       shipments,
       documents,
-      nowISO
+      nowISO,
+      statusDefinitions
     );
     const target = all.find((v) => v.id === idOrSlug || v.vehicleId === idOrSlug || v.slug === idOrSlug);
     return target || null;
@@ -8307,6 +8639,7 @@ class PostgresStore implements DemoStore {
     dial_code: string;
     mobile_number: string;
     email: string;
+    tier?: string;
     password_hash: string;
     password_salt: string;
     status: string;
@@ -8323,6 +8656,7 @@ class PostgresStore implements DemoStore {
       dialCode: row.dial_code,
       mobileNumber: row.mobile_number,
       email: row.email,
+      tier: (row.tier as CustomerTier) || 'Standard',
       passwordHash: row.password_hash,
       passwordSalt: row.password_salt,
       status: row.status as CustomerAccountRecord['status'],
@@ -8343,9 +8677,9 @@ class PostgresStore implements DemoStore {
     const id = generateAccountId();
     const customerId = generateCustomerId();
     await this.pool.query(
-      `INSERT INTO customer_accounts (id, customer_id, name_with_initials, country_code, dial_code, mobile_number, email, password_hash, password_salt, status, verification_state, created_at, updated_at, password_updated_at)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
-      [id, customerId, validated.nameWithInitials, validated.countryCode, validated.dialCode, validated.mobileNumber, validated.email, hash, salt, 'active', 'unverified', nowISO, nowISO, nowISO]
+      `INSERT INTO customer_accounts (id, customer_id, name_with_initials, country_code, dial_code, mobile_number, email, tier, password_hash, password_salt, status, verification_state, created_at, updated_at, password_updated_at)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)`,
+      [id, customerId, validated.nameWithInitials, validated.countryCode, validated.dialCode, validated.mobileNumber, validated.email, 'Standard', hash, salt, 'active', 'unverified', nowISO, nowISO, nowISO]
     );
     this.customerProfiles.push({
       customerId,
@@ -8364,6 +8698,7 @@ class PostgresStore implements DemoStore {
       dialCode: validated.dialCode,
       mobileNumber: validated.mobileNumber,
       email: validated.email,
+      tier: 'Standard',
       passwordHash: hash,
       passwordSalt: salt,
       status: 'active',
@@ -8697,6 +9032,7 @@ class PostgresStore implements DemoStore {
       await client.query('DELETE FROM password_reset_outbox');
       await client.query('DELETE FROM notifications');
       await client.query('DELETE FROM customer_accounts');
+      await client.query('DELETE FROM customer_tier_rules');
       await client.query('DELETE FROM wishlist_items');
       await client.query('DELETE FROM favourite_searches');
       await client.query('DELETE FROM proforma_invoices');
@@ -8707,10 +9043,17 @@ class PostgresStore implements DemoStore {
       await client.query('DELETE FROM payments');
       await client.query('DELETE FROM payment_notifications');
 
+      for (const rule of seedTierRules) {
+        await client.query(
+          'INSERT INTO customer_tier_rules (tier, discount_percent, max_active_reservations, description, active) VALUES ($1, $2, $3, $4, $5)',
+          [rule.tier, rule.discountPercent, rule.maxActiveReservations, rule.description, rule.active],
+        );
+      }
+
       const seedAccount = buildSeedCustomerAccount();
       await client.query(
-        `INSERT INTO customer_accounts (id, customer_id, name_with_initials, country_code, dial_code, mobile_number, email, password_hash, password_salt, status, verification_state, created_at, updated_at, password_updated_at)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
+        `INSERT INTO customer_accounts (id, customer_id, name_with_initials, country_code, dial_code, mobile_number, email, tier, password_hash, password_salt, status, verification_state, created_at, updated_at, password_updated_at)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)`,
         [
           seedAccount.id,
           seedAccount.customerId,
@@ -8719,6 +9062,7 @@ class PostgresStore implements DemoStore {
           seedAccount.dialCode,
           seedAccount.mobileNumber,
           seedAccount.email,
+          seedAccount.tier,
           seedAccount.passwordHash,
           seedAccount.passwordSalt,
           seedAccount.status,
@@ -8730,14 +9074,27 @@ class PostgresStore implements DemoStore {
       );
       const otherSeedAccount = buildSeedOtherCustomerAccount();
       await client.query(
-        `INSERT INTO customer_accounts (id, customer_id, name_with_initials, country_code, dial_code, mobile_number, email, password_hash, password_salt, status, verification_state, created_at, updated_at, password_updated_at)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
+        `INSERT INTO customer_accounts (id, customer_id, name_with_initials, country_code, dial_code, mobile_number, email, tier, password_hash, password_salt, status, verification_state, created_at, updated_at, password_updated_at)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)`,
         [otherSeedAccount.id, otherSeedAccount.customerId, otherSeedAccount.nameWithInitials, otherSeedAccount.countryCode,
-          otherSeedAccount.dialCode, otherSeedAccount.mobileNumber, otherSeedAccount.email, otherSeedAccount.passwordHash,
+          otherSeedAccount.dialCode, otherSeedAccount.mobileNumber, otherSeedAccount.email, otherSeedAccount.tier, otherSeedAccount.passwordHash,
           otherSeedAccount.passwordSalt, otherSeedAccount.status, otherSeedAccount.verificationState, otherSeedAccount.createdAt,
           otherSeedAccount.updatedAt, otherSeedAccount.passwordUpdatedAt],
       );
 
+      for (const account of [
+        buildSeedTierAccount('cust-silver-789', 'silver@example.com', 'S. Buyer', 'KE', 'Silver'),
+        buildSeedTierAccount('cust-gold-012', 'gold@example.com', 'G. Buyer', 'UG', 'Gold'),
+        buildSeedTierAccount('cust-platinum-345', 'platinum@example.com', 'P. Buyer', 'KE', 'Platinum'),
+      ]) {
+        await client.query(
+          `INSERT INTO customer_accounts (id, customer_id, name_with_initials, country_code, dial_code, mobile_number, email, tier, password_hash, password_salt, status, verification_state, created_at, updated_at, password_updated_at)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)`,
+          [account.id, account.customerId, account.nameWithInitials, account.countryCode, account.dialCode, account.mobileNumber,
+            account.email, account.tier, account.passwordHash, account.passwordSalt, account.status, account.verificationState,
+            account.createdAt, account.updatedAt, account.passwordUpdatedAt],
+        );
+      }
       await client.query('INSERT INTO public_config (id, site_name, currency, contact_phone, tier_descriptions) VALUES (1, $1, $2, $3, $4)', [
         seedConfig.siteName,
         seedConfig.currency,

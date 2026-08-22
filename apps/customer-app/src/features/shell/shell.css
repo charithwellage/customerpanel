@@ -213,6 +213,12 @@
   text-align: left;
 }
 
+/* Keep an expanded group visibly active when one of its child routes is selected. */
+.cc-cust-nav-group__toggle.cc-cust-shell-nav__link--active {
+  background-color: var(--color-primary);
+  color: var(--color-text-on-primary);
+}
+
 .cc-cust-nav-group__toggle .cc-cust-shell-nav__label {
   flex: 1 1 auto;
 }
@@ -358,10 +364,6 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-}
-
-.cc-cust-tool-icon--spin {
-  animation: cc-cust-shell-spin var(--motion-slow) linear infinite;
 }
 
 .cc-cust-shell-sidebar__auth-action {

@@ -4,6 +4,7 @@ import { useCustomerShell } from '../shell/index.js';
 import { useCustomerInquiries } from './useCustomerInquiries.js';
 import { InquiryMessageModal } from './components/InquiryMessageModal.js';
 import { SearchGlassIcon, InquiriesChatIcon } from '../../components/Icons.js';
+import { ViewModeToggle, type ViewMode } from '../../components/ViewModeToggle.js';
 import './inquiries.css';
 
 export interface PolymorphicInquiry {
@@ -114,6 +115,7 @@ export const CustomerInquiriesPage: React.FC = () => {
   const [chassisNumberFilter, setChassisNumberFilter] = useState('');
   const [inquiryNumberFilter, setInquiryNumberFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
+  const [viewMode, setViewMode] = useState<ViewMode>('grid');
 
   // Wishlist heart toggle state
   const [wishlistToggled, setWishlistToggled] = useState<Record<string, boolean>>({});
@@ -288,10 +290,11 @@ export const CustomerInquiriesPage: React.FC = () => {
         <span className="cc-inq-count-text">
           Total Records Found: <strong>{filteredInquiries.length}</strong>
         </span>
+        <ViewModeToggle value={viewMode} onChange={setViewMode} label="Inquiry vehicle view" />
       </div>
 
       {/* 3. INQUIRY CARDS LIST (FRD 6.7, 6.8, 6.9) */}
-      <div className="cc-inq-cards-list">
+      <div className={`cc-inq-cards-list cc-inq-cards-list--${viewMode}`}>
         {filteredInquiries.map((inq) => {
           const isWishlisted = Boolean(wishlistToggled[inq.id]);
 

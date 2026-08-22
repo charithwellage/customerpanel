@@ -80,23 +80,23 @@ describe('Customer Inventory & Vehicle Detail Components (D02-P03-T003)', () => 
     it('loads tier description data through the existing public configuration API', async () => {
       const { readFile } = await import('node:fs/promises');
       const source = await readFile(new URL('../CustomerInventoryPage.tsx', import.meta.url), 'utf8');
-      const hook = await readFile(new URL('../useCustomerInventoryConfig.ts', import.meta.url), 'utf8');
+      const hook = await readFile(new URL('../useCustomerTierBenefits.ts', import.meta.url), 'utf8');
 
-      expect(source).toContain('tierDescriptions');
+      expect(source).toContain('tierBenefits');
       expect(source).toContain('customer-tier-description');
-      expect(hook).toContain('getPublicConfig');
+      expect(source).toContain('useCustomerTierBenefits');
+      expect(hook).toContain('CustomerTierBenefitsService');
     });
 
-    it('renders country compliance localization banner and toggle controls (D02-P14-T005)', () => {
+    it('does not render the country compliance banner on the inventory page', () => {
       const html = renderWithProviders(
         React.createElement(CustomerInventoryPage, {}),
         MOCK_PLATINUM_USER,
         '/inventory'
       );
 
-      expect(html).toContain('Import Compliance: Kenya');
-      expect(html).toContain('Showing vehicles compliant with Kenya import regulations');
-      expect(html).toContain('Show All Global Stock');
+      expect(html).not.toContain('Import Compliance: Kenya');
+      expect(html).not.toContain('compliance-localization-banner');
     });
 
     it('keeps the vehicle selection route and portal search controls wired', async () => {
@@ -108,6 +108,8 @@ describe('Customer Inventory & Vehicle Detail Components (D02-P03-T003)', () => 
       expect(source).toContain('SearchFilterBar');
       expect(source).toContain('SearchPagination');
       expect(source).toContain('SearchResultsHeader');
+      expect(source).not.toContain('onForceSync');
+      expect(source).not.toContain('FORCE SYNC');
     });
 
     it('scopes portal styling to the customer inventory page', async () => {
@@ -117,6 +119,7 @@ describe('Customer Inventory & Vehicle Detail Components (D02-P03-T003)', () => 
       expect(styles).toContain('.cc-cust-inventory-page .cc-search-filter-panel');
       expect(styles).toContain('.cc-cust-inventory-page .cc-vehicle-card');
       expect(styles).toContain('.cc-cust-inventory-page .cc-cust-inventory-header__title');
+      expect(styles).toContain('.cc-cust-inventory-page .cc-filter-input::placeholder');
       expect(styles).toContain('font-family: var(--font-body);');
       expect(styles).toContain('font-family: var(--font-display);');
       expect(styles).toContain('font-family: var(--font-mono);');
@@ -147,8 +150,12 @@ describe('Customer Inventory & Vehicle Detail Components (D02-P03-T003)', () => 
       expect(source).toContain('data-testid="vehicle-compliance-card"');
       expect(source).toContain('CustomerInquiryModal');
       expect(source).toContain('requestPriceInquiry');
+      expect(source).toContain('useCustomerTierBenefits');
+      expect(source).toContain('reservation-capacity');
       expect(source).toContain('toggleWishlist');
-      expect(source).toContain('Submit an Inquiry');
+    expect(source).toContain('Submit an Inquiry');
+    expect(source).toContain('allocated-vehicle-notice');
+    expect(source).toContain('inquiryEligibility');
       expect(source).not.toContain('Get Free Quote');
       expect(source).toContain('Add to Wishlist');
       expect(source).toContain('Remove from Wishlist');

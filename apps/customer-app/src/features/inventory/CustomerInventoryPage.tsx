@@ -11,7 +11,8 @@ import {
 import { useCustomerShell } from '../shell/index.js';
 import { useCustomerProfile } from '../profile/index.js';
 import { useCustomerInventory } from './useCustomerInventory.js';
-import { useCustomerInventoryConfig } from './useCustomerInventoryConfig.js';
+import { useCustomerTierBenefits } from './useCustomerTierBenefits.js';
+import { useTranslation } from '../../i18n/index.js';
 
 export interface CustomerInventoryPageProps {
   apiBaseUrl?: string;
@@ -24,9 +25,10 @@ export const CustomerInventoryPage: React.FC<CustomerInventoryPageProps> = ({
   token,
   onSelectVehicle,
 }) => {
+  const { t } = useTranslation();
   const { user } = useCustomerShell();
   const { data: profile } = useCustomerProfile();
-  const { data: publicConfig } = useCustomerInventoryConfig();
+  const { data: tierBenefits } = useCustomerTierBenefits();
   const destinationCountry = profile?.deliveryAddress || user?.company || 'Kenya';
 
   const {
@@ -47,23 +49,20 @@ export const CustomerInventoryPage: React.FC<CustomerInventoryPageProps> = ({
   });
 
   const tier = user?.tier || 'Standard';
-  const tierDiscountPercent =
-    tier === 'Platinum' ? 15 : tier === 'Gold' ? 10 : tier === 'Silver' ? 5 : 0;
+  const tierDiscountPercent = tierBenefits?.discountPercent ?? 0;
   const [tierInfoOpen, setTierInfoOpen] = useState(false);
-  const tierDescription = publicConfig?.tierDescriptions?.[tier as keyof NonNullable<typeof publicConfig.tierDescriptions>]
-    || (tierDiscountPercent > 0
-      ? `Your verified account receives a ${tierDiscountPercent}% VIP discount on fixed-price export stock.`
-      : 'Standard export inventory pricing with real-time stock allocation and 48-hour reservation holds.');
+  const tierDescription = tierBenefits?.description || t('customer.loading', undefined, 'Tier benefits are temporarily unavailable.');
+  const tierLabel = tierBenefits?.tier || tier;
 
   return (
     <div className="cc-cust-inventory-page" data-testid="customer-inventory-page">
       <header className="cc-cust-inventory-header" data-testid="customer-inventory-header">
-        <span className="cc-cust-inventory-header__eyebrow">CUSTOMER PORTAL / INVENTORY</span>
+        <span className="cc-cust-inventory-header__eyebrow">{t('customer.portalInventory', undefined, 'CUSTOMER PORTAL / INVENTORY')}</span>
         <div className="cc-cust-inventory-header__row">
           <div>
-            <h1 className="cc-cust-inventory-header__title">Vehicle Inventory</h1>
+            <h1 className="cc-cust-inventory-header__title">{t('customer.vehicleInventory', undefined, 'Vehicle Inventory')}</h1>
             <p className="cc-cust-inventory-header__subtitle">
-              Search and compare vehicles available to your account, then enquire or reserve the vehicle that fits your requirements.
+              {t('customer.inventorySubtitle', undefined, 'Search and compare vehicles available to your account, then enquire or reserve the vehicle that fits your requirements.')}
             </p>
           </div>
           <div
@@ -73,11 +72,11 @@ export const CustomerInventoryPage: React.FC<CustomerInventoryPageProps> = ({
             onMouseLeave={() => setTierInfoOpen(false)}
           >
             <span className="cc-cust-tier-summary__icon" aria-hidden="true">★</span>
-            <span className="cc-cust-tier-summary__label">{tier} Tier Account</span>
+            <span className="cc-cust-tier-summary__label">{t('customer.tierAccount', { tier: tierLabel }, `${tierLabel} Tier Account`)}</span>
             <button
               type="button"
               className="cc-cust-tier-summary__info"
-              aria-label={`More information about ${tier} tier pricing`}
+              aria-label={t('customer.tierInfo', { tier: tierLabel }, `More information about ${tierLabel} tier pricing`)}
               aria-expanded={tierInfoOpen}
               aria-describedby="customer-tier-description"
               onClick={() => setTierInfoOpen((open) => !open)}
@@ -86,7 +85,10 @@ export const CustomerInventoryPage: React.FC<CustomerInventoryPageProps> = ({
             </button>
             {tierInfoOpen && (
               <span id="customer-tier-description" className="cc-cust-tier-summary__description" role="tooltip">
-                {tierDescription}
+                <span>{tierDescription}</span>
+                <span className="cc-cust-tier-summary__quota">
+                  {t('customer.discount', { percent: tierBenefits?.discountPercent ?? 0 }, `Discount: ${tierBenefits?.discountPercent ?? 0}%`)} · {t('customer.reservations', { used: tierBenefits?.activeReservations ?? 0, maximum: tierBenefits?.maxActiveReservations ?? '—', remaining: tierBenefits?.remainingReservations ?? '—' }, `Reservations: ${tierBenefits?.activeReservations ?? 0}/${tierBenefits?.maxActiveReservations ?? '—'} used · ${tierBenefits?.remainingReservations ?? '—'} remaining`)}
+                </span>
               </span>
             )}
           </div>
@@ -94,34 +96,6 @@ export const CustomerInventoryPage: React.FC<CustomerInventoryPageProps> = ({
       </header>
 
       <div className="cc-cust-inventory-content">
-        <div className="cc-cust-compliance-banner" role="region" aria-label="Country import compliance localization" data-testid="compliance-localization-banner">
-          <div className="cc-cust-compliance-banner__badge">
-            <span className="cc-cust-compliance-banner__icon">📍</span>
-            <div>
-              <span className="cc-cust-compliance-banner__tier-name">
-                {query.complianceOnly !== false
-                  ? `Import Compliance: ${destinationCountry}`
-                  : `Global Stock (${destinationCountry} Filter Off)`}
-              </span>
-              <p className="cc-cust-compliance-banner__subtitle">
-                {query.complianceOnly !== false
-                  ? `Showing vehicles compliant with ${destinationCountry} import regulations (YOM age & steering verified).`
-                  : `Showing all worldwide inventory without destination country restrictions.`}
-              </p>
-            </div>
-          </div>
-          <div className="cc-cust-compliance-banner__actions">
-            <button
-              type="button"
-              className="cc-cust-compliance-banner__btn"
-              onClick={() => updateQuery({ complianceOnly: query.complianceOnly === false ? true : false })}
-              aria-pressed={query.complianceOnly !== false}
-              data-testid="compliance-toggle-btn"
-            >
-              {query.complianceOnly !== false ? 'Show All Global Stock' : `Filter for ${destinationCountry} Only`}
-            </button>
-          </div>
-        </div>
         <SearchFilterBar
           query={query}
           facets={state.facets}
@@ -135,7 +109,7 @@ export const CustomerInventoryPage: React.FC<CustomerInventoryPageProps> = ({
         {state.error ? <SearchErrorState error={state.error} onRetry={refetch} /> : (
           <>
             <div data-testid="inventory-total-count">
-              <SearchResultsHeader total={state.total} itemCount={state.items.length} query={query} onUpdateQuery={updateQuery} onForceSync={refetch} />
+              <SearchResultsHeader total={state.total} itemCount={state.items.length} query={query} onUpdateQuery={updateQuery} />
             </div>
             {!state.loading && state.items.length === 0 ? <SearchEmptyState onResetFilters={resetFilters} /> : (
               <VehicleCollectionPrimitive

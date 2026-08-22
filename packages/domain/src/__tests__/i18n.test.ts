@@ -5,12 +5,23 @@ import {
   TRANSLATION_DICTIONARIES,
   formatTranslation,
   translateKey,
+  CUSTOMER_APP_TRANSLATIONS,
   resolveLanguageCode,
   getLanguageInfo,
   type LanguageCode,
 } from '../i18n.js';
 
 describe('Domain i18n & Globalization Catalog', () => {
+  it('covers customer-app UI keys for every supported language', () => {
+    const keys = Object.keys(CUSTOMER_APP_TRANSLATIONS.en);
+    expect(keys.length).toBeGreaterThan(0);
+    for (const language of SUPPORTED_LANGUAGES) {
+      for (const key of keys) {
+        expect(translateKey(language.code, key)).not.toBe(key);
+      }
+    }
+  });
+
   it('defines the required primary language codes and metadata', () => {
     const expectedCodes: LanguageCode[] = ['en', 'ja', 'es', 'fr', 'sw', 'pt', 'ru', 'ar'];
     const codes = SUPPORTED_LANGUAGES.map((l) => l.code);

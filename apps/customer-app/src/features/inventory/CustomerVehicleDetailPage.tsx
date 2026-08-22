@@ -4,6 +4,7 @@ import { useCustomerShell } from '../shell/index.js';
 import { useCustomerProfile } from '../profile/index.js';
 import { useCustomerVehicleDetail } from './useCustomerVehicleDetail.js';
 import { CustomerInquiryModal } from './CustomerInquiryModal.js';
+import { useCustomerTierBenefits } from './useCustomerTierBenefits.js';
 
 export interface CustomerVehicleDetailPageProps {
   slug: string;
@@ -20,6 +21,7 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
 }) => {
   const { user } = useCustomerShell();
   const { data: profile } = useCustomerProfile();
+  const { data: tierBenefits } = useCustomerTierBenefits();
   const destinationCountry = profile?.deliveryAddress || user?.company || 'Kenya';
 
   const { state, refetch, reserveVehicle, requestPriceInquiry, toggleWishlist } = useCustomerVehicleDetail({
@@ -32,6 +34,7 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
   const { vehicle, loading, error, reserving, reserveSuccess, reserveError, holdExpiresAt } = state;
   const [inquiryModalOpen, setInquiryModalOpen] = useState(false);
   const [inquiryNotice, setInquiryNotice] = useState<string | null>(null);
+  const [tierInfoOpen, setTierInfoOpen] = useState(false);
 
   if (loading) {
     return (
@@ -68,10 +71,27 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
   const tierPricing = vehicle.tierPricing;
   const isRequestPrice = Boolean(vehicle.requestPrice || vehicle.priceState === 'request_price' || !vehicle.priceUsd);
   const eligibility = vehicle.reservationEligibility;
+  const inquiryEligibility = vehicle.inquiryEligibility;
+  const inquiryBlockedForAllocation = inquiryEligibility?.reason === 'allocated_to_another_customer';
+  const inquiryBlockedForInvoiced = vehicle.status === 'Invoiced';
+  const inquiryDisabled = state.inquirySubmitting || inquiryBlockedForAllocation || inquiryBlockedForInvoiced;
+  const inquiryDisabledMessage = inquiryBlockedForInvoiced
+    ? 'You cannot submit an inquiry because this vehicle has already been invoiced.'
+    : inquiryBlockedForAllocation
+      ? 'You cannot submit an inquiry because this vehicle has already been allocated to another customer.'
+      : undefined;
 
   const originalPrice = tierPricing ? tierPricing.originalPriceUsd : (vehicle.priceUsd ?? 0);
-  const finalPrice = tierPricing
-    ? tierPricing.tierPriceUsd
+  const hasTierDiscount = Boolean(tierPricing && tierPricing.tierDiscountPercent > 0);
+  const hasVehicleDiscount = Boolean(
+    !isRequestPrice &&
+    vehicle.discountedPriceUsd !== undefined &&
+    vehicle.priceUsd !== undefined &&
+    vehicle.discountedPriceUsd < vehicle.priceUsd,
+  );
+  const hasApplicableDiscount = hasTierDiscount || hasVehicleDiscount;
+  const finalPrice = hasTierDiscount
+    ? tierPricing!.tierPriceUsd
     : (vehicle.discountedPriceUsd ?? vehicle.priceUsd ?? 0);
 
   const displayExpiry = holdExpiresAt || eligibility?.holdExpiresAt;
@@ -186,11 +206,33 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
               </div>
             ) : (
               <div className="cc-cust-price-card__breakdown">
-                {tierPricing && tierPricing.tierDiscountPercent > 0 && (
+                {hasApplicableDiscount && (
                   <div className="cc-cust-price-card__tier-info">
-                    <span className="cc-cust-tier-badge">
-                      ⭐️ {tierPricing.tier} Tier Member (-{tierPricing.tierDiscountPercent}%)
-                    </span>
+                    {hasTierDiscount && (
+                      <div
+                        className="cc-cust-tier-benefit-badge"
+                        onMouseEnter={() => setTierInfoOpen(true)}
+                        onMouseLeave={() => setTierInfoOpen(false)}
+                      >
+                        <span className="cc-cust-tier-badge">
+                          ⭐️ {tierPricing!.tier} Tier Member (-{tierPricing!.tierDiscountPercent}%)
+                        </span>
+                        <button
+                          type="button"
+                          className="cc-cust-tier-benefit-badge__info"
+                          aria-label="Show customer tier benefits"
+                          aria-expanded={tierInfoOpen}
+                          onClick={() => setTierInfoOpen((open) => !open)}
+                        >
+                          i
+                        </button>
+                        {tierInfoOpen && tierBenefits && (
+                          <span className="cc-cust-tier-benefit-badge__tooltip" role="tooltip">
+                            {tierBenefits.description} Discount: {tierBenefits.discountPercent}%. Reservation capacity: {tierBenefits.remainingReservations} of {tierBenefits.maxActiveReservations} remaining.
+                          </span>
+                        )}
+                      </div>
+                    )}
                     <span className="cc-cust-price-card__original">
                       Original Price: ${originalPrice.toLocaleString()} USD
                     </span>
@@ -209,6 +251,11 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
           {/* Reservation Card (RULE-05, RULE-08, RULE-10, PUB-23) */}
           <div className="cc-cust-reservation-card" data-testid="vehicle-reservation-card">
             <h2 className="cc-cust-reservation-card__heading">Vehicle Allocation & Reservation</h2>
+            {tierBenefits && (
+              <p className="cc-cust-reservation-capacity" data-testid="reservation-capacity">
+                {tierBenefits.remainingReservations} of {tierBenefits.maxActiveReservations} reservation holds remaining for your {tierBenefits.tier} tier account.
+              </p>
+            )}
 
             {reserveSuccess || eligibility?.isOwnHold ? (
               <div className="cc-cust-reservation-status cc-cust-reservation-status--own-hold" role="status">
@@ -307,6 +354,12 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
             <div className="cc-cust-actions-grid">
               {/* Vehicle Inquiry */}
               <div className="cc-cust-action-item">
+                {inquiryBlockedForAllocation && (
+                  <div className="cc-cust-status-banner cc-cust-status-banner--info" role="status" data-testid="allocated-vehicle-notice">
+                    <span className="cc-cust-status-banner__icon">ℹ️</span>
+                    <div><strong>Vehicle Already Allocated</strong><p>This vehicle has already been allocated to another customer.</p></div>
+                  </div>
+                )}
                 {inquiryNotice && (
                   <div className="cc-cust-status-banner cc-cust-status-banner--success" role="status">
                     <span className="cc-cust-status-banner__icon">✓</span>
@@ -331,16 +384,21 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
                 {state.inquiryError && (
                   <div className="cc-cust-reservation-error" role="alert"><p>{state.inquiryError}</p></div>
                 )}
-                <button
-                  type="button"
-                  className="cc-cust-btn cc-cust-btn--primary cc-cust-btn--large"
-                  onClick={handleOpenInquiry}
-                  disabled={state.inquirySubmitting}
-                  data-testid="submit-inquiry-btn"
-                  aria-label={state.inquirySubmitting ? 'Submitting inquiry...' : 'Submit an inquiry'}
+                <span
+                  className={`cc-cust-disabled-action${inquiryDisabledMessage ? ' cc-cust-disabled-action--disabled' : ''}`}
+                  title={inquiryDisabledMessage}
                 >
-                  {state.inquirySubmitting ? 'Submitting Inquiry...' : 'Submit an Inquiry'}
-                </button>
+                  <button
+                    type="button"
+                    className="cc-cust-btn cc-cust-btn--primary cc-cust-btn--large"
+                    onClick={handleOpenInquiry}
+                    disabled={inquiryDisabled}
+                    data-testid="submit-inquiry-btn"
+                    aria-label={state.inquirySubmitting ? 'Submitting inquiry...' : 'Submit an inquiry'}
+                  >
+                    {state.inquirySubmitting ? 'Submitting Inquiry...' : 'Submit an Inquiry'}
+                  </button>
+                </span>
               </div>
 
               {/* Wishlist Toggle Button */}

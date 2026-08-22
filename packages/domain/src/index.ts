@@ -123,12 +123,32 @@ export type ShipmentStatus = 'Purchased' | 'Inspection' | 'Ready' | 'InTransit' 
 export type VehicleLocationStatus = 'In Japan' | 'In Transit' | 'In Port';
 export type PublicVehicleCategory = 'arrival' | 'premium' | 'clearance' | 'best_offer';
 
-export const TIER_DISCOUNTS: Record<CustomerTier, number> = {
-  Platinum: 15,
-  Gold: 10,
-  Silver: 5,
-  Standard: 0,
-};
+export interface CustomerTierRule {
+  tier: CustomerTier;
+  discountPercent: number;
+  maxActiveReservations: number;
+  description: string;
+  active: boolean;
+}
+
+export interface CustomerTierBenefits {
+  tier: CustomerTier;
+  discountPercent: number;
+  maxActiveReservations: number;
+  activeReservations: number;
+  remainingReservations: number;
+  description: string;
+}
+
+/** Database-backed vehicle status catalogue entry used by customer projections. */
+export interface VehicleStatusDefinition {
+  code: VehicleStatus;
+  singularLabel: string;
+  pluralLabel: string;
+  description: string;
+  active: boolean;
+  sortOrder: number;
+}
 
 export interface VehicleTierPricing {
   tier: CustomerTier;
@@ -137,8 +157,7 @@ export interface VehicleTierPricing {
   originalPriceUsd: number;
 }
 
-export function calculateTierPricing(priceUsd: number, tier: CustomerTier = 'Standard'): VehicleTierPricing {
-  const tierDiscountPercent = TIER_DISCOUNTS[tier] ?? 0;
+export function calculateTierPricing(priceUsd: number, tier: CustomerTier = 'Standard', tierDiscountPercent = 0): VehicleTierPricing {
   const tierPriceUsd = tierDiscountPercent > 0
     ? Math.round(priceUsd * (1 - tierDiscountPercent / 100))
     : priceUsd;
@@ -157,11 +176,20 @@ export type ReservationIneligibilityReason =
   | 'price_on_request'
   | 'limit_exceeded';
 
+export type InquiryIneligibilityReason =
+  | 'allocated_to_another_customer'
+  | 'not_available';
+
 export interface VehicleReservationEligibility {
   eligible: boolean;
   reason?: ReservationIneligibilityReason;
   holdExpiresAt?: string;
   isOwnHold?: boolean;
+}
+
+export interface VehicleInquiryEligibility {
+  eligible: boolean;
+  reason?: InquiryIneligibilityReason;
 }
 
 export interface VehicleDomainSummary {
@@ -212,6 +240,7 @@ export interface VehicleDomainSummary {
   compliance?: VehicleComplianceEvaluation;
   tierPricing?: VehicleTierPricing;
   reservationEligibility?: VehicleReservationEligibility;
+  inquiryEligibility?: VehicleInquiryEligibility;
 }
 
 export interface FacetCount {
@@ -368,6 +397,7 @@ export interface VehicleDetail {
   nowOnSale?: boolean;
   tierPricing?: VehicleTierPricing;
   reservationEligibility?: VehicleReservationEligibility;
+  inquiryEligibility?: VehicleInquiryEligibility;
 }
 
 // --- Phase 1.5: freight destination, port and rate lookup (D01-ASM-001) ---
@@ -693,14 +723,9 @@ export interface FavouriteSearchFacets {
 // exposes the expiry timestamp and lets a caller derive "active"/"expired"
 // itself, but never claims an automatic release action occurred (RULE-10).
 // `RESERVATION_HOLD_HOURS` matches RULE-05's default; an administrator
-// changing it is out of this task's scope. `MAX_ACTIVE_RESERVATIONS_PER_CUSTOMER`
-// is a safe MVP anti-abuse ceiling applied uniformly to every `CustomerBuyer`
-// — no approved per-tier reservation-count limit exists anywhere in
-// `REQUIREMENT.md`, and `CustomerTier` is not part of the demo session's
-// claims, so no tier-differentiated figure is invented here (see
-// `tasks/delivery_01/REQUIREMENT_GAPS_AND_ASSUMPTIONS.md` row `D01-ASM-003`).
+// changing the hold duration is out of this task's scope. Reservation quotas
+// are database-backed customer-tier benefits enforced by the mock store.
 export const RESERVATION_HOLD_HOURS = 48;
-export const MAX_ACTIVE_RESERVATIONS_PER_CUSTOMER = 3;
 
 /**
  * Vehicle statuses a fresh reservation attempt may ever apply to, once any
@@ -711,7 +736,7 @@ export const MAX_ACTIVE_RESERVATIONS_PER_CUSTOMER = 3;
  * vocabulary; it only uses it to decide whether to show a Reserve action at
  * all, never to grant eligibility itself.
  */
-export const RESERVABLE_VEHICLE_STATUSES: readonly VehicleStatus[] = ['Available', 'Reserved'];
+export const RESERVABLE_VEHICLE_STATUSES: readonly VehicleStatus[] = ['Available'];
 
 export type ReservationStatus = 'active' | 'expired';
 
@@ -959,6 +984,10 @@ export interface CustomerVehicleSummary {
   priceUsd: number;
   totalAmountUsd: number;
   status: CustomerVehicleStatus;
+  vehicleStatusCode: VehicleStatus;
+  statusLabel: string;
+  statusLabelPlural: string;
+  statusDescription?: string;
   locationStatus?: 'In Japan' | 'In Transit' | 'In Port';
   destinationPort?: string;
   reservationExpiresAt?: string;
@@ -1020,6 +1049,7 @@ export interface CustomerVehicleListResponse {
   items: CustomerVehicleSummary[];
   total: number;
   countsByStatus: CustomerVehicleCountsByStatus;
+  statusDefinitions: VehicleStatusDefinition[];
 }
 
 export interface ListCustomerVehiclesQuery {

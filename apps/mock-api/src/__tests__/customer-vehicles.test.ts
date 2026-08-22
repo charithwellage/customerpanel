@@ -86,6 +86,13 @@ describe('Customer Vehicles & Status Projection Contract (D02-P04-T001)', () => 
       const vehicleIds = body.items.map((i) => i.vehicleId);
       const uniqueIds = new Set(vehicleIds);
       expect(uniqueIds.size).toBe(vehicleIds.length);
+
+      const reservedDefinition = body.statusDefinitions.find((definition) => definition.code === 'Reserved');
+      expect(reservedDefinition?.singularLabel).toBe('Reserved Vehicle');
+      expect(reservedDefinition?.pluralLabel).toBe('Reserved Vehicles');
+      const reservedVehicle = body.items.find((item) => item.status === 'Under Negotiation');
+      expect(reservedVehicle?.statusLabel).toBe('Reserved Vehicle');
+      expect(reservedVehicle?.statusLabelPlural).toBe('Reserved Vehicles');
     });
 
     it('filters customer vehicles by status', async () => {
@@ -180,6 +187,9 @@ describe('Customer Vehicles & Status Projection Contract (D02-P04-T001)', () => 
       expect(body.make).toBe('Toyota');
       expect(body.model).toBe('Corolla Fielder');
       expect(body.images.length).toBeGreaterThanOrEqual(1);
+      expect(body.vehicleStatusCode).toBe('Invoiced');
+      expect(body.statusLabel).toBe('Invoiced Vehicle');
+      expect(body.statusLabelPlural).toBe('Invoiced Vehicles');
 
       // Status timeline has ordered milestones
       expect(body.statusHistory.length).toBeGreaterThanOrEqual(3);

@@ -128,15 +128,18 @@ const DEFAULT_NAV_ITEMS: NavigationItem[] = [
     icon: '💲',
   },
   {
-    id: 'account',
-    label: 'Account',
-    altLabel: 'Profile & Notifications',
+    id: 'profile',
+    label: 'Profile & Security',
+    altLabel: 'Profile & Account Security',
     href: '/profile',
     icon: '👤',
-    children: [
-      { id: 'profile', label: 'Client Profile', altLabel: 'Profile & Account', href: '/profile', icon: '👤' },
-      { id: 'notifications', label: 'Bulletins', altLabel: 'Notifications', href: '/notifications', icon: '🔔' },
-    ],
+  },
+  {
+    id: 'notifications',
+    label: 'Bulletins & Alerts',
+    altLabel: 'Notifications',
+    href: '/notifications',
+    icon: '🔔',
   },
 ];
 

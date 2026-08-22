@@ -63,11 +63,13 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
   // 3. Vehicle inventory with filtering, facets, pagination & sorting (Public & Customer-projected)
   app.get('/api/v1/vehicles', async (req: AuthenticatedRequest, res: Response) => {
     const audience = (req.query.audience as string) || (req.user?.role === 'CustomerBuyer' ? 'customer' : 'public');
-    const customerTier = (req.query.tier as any) || req.user?.tier;
+    const customerTier = req.user?.role === 'CustomerBuyer'
+      ? await store.getCustomerTier(resolveCustomerScope(req.user.sub))
+      : ((req.query.tier as any) || req.user?.tier);
     const destinationCountry = (req.query.destinationCountry as string) || req.user?.country || req.user?.countryCode;
     const context = {
       audience: audience as 'public' | 'customer' | 'salesperson',
-      customerId: req.user?.sub,
+      customerId: req.user ? resolveCustomerScope(req.user.sub) : undefined,
       customerTier,
       customerCountry: req.user?.country || req.user?.countryCode,
       destinationCountry,
@@ -80,11 +82,13 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
     const rawParam = req.params.idOrSlug;
     const idOrSlug = Array.isArray(rawParam) ? rawParam[0] : rawParam;
     const audience = (req.query.audience as string) || (req.user?.role === 'CustomerBuyer' ? 'customer' : 'public');
-    const customerTier = (req.query.tier as any) || req.user?.tier;
+    const customerTier = req.user?.role === 'CustomerBuyer'
+      ? await store.getCustomerTier(resolveCustomerScope(req.user.sub))
+      : ((req.query.tier as any) || req.user?.tier);
     const destinationCountry = (req.query.destinationCountry as string) || req.user?.country || req.user?.countryCode;
     const context = {
       audience: audience as 'public' | 'customer' | 'salesperson',
-      customerId: req.user?.sub,
+      customerId: req.user ? resolveCustomerScope(req.user.sub) : undefined,
       customerTier,
       customerCountry: req.user?.country || req.user?.countryCode,
       destinationCountry,
@@ -154,6 +158,7 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
           message: error.message,
           correlationId: `corr-${error.statusCode}-${Date.now()}`,
           ...(error.field ? { field: error.field } : {}),
+          ...(error.reason ? { reason: error.reason } : {}),
         });
         return;
       }
@@ -413,7 +418,13 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
         });
         return;
       }
-      throw error;
+      console.error('Reservation request failed', error);
+      res.status(500).json({
+        statusCode: 500,
+        message: 'Unable to create the reservation. Please try again.',
+        correlationId: `corr-500-${Date.now()}`,
+        reason: 'reservation_service_unavailable',
+      });
     }
   });
 
@@ -448,8 +459,8 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
   // `issueSessionToken` primitive internally — it stays an internal detail,
   // never a claim of a production identity provider
   // (DEC-CUST-IDENTITY-RECOVERY is unchanged).
-  function mintCustomerSessionToken(customerId: string, email: string) {
-    const token = mintDomainSessionToken('CustomerBuyer', customerId, email);
+  function mintCustomerSessionToken(customerId: string, email: string, tier: import('@carchief/domain').CustomerTier) {
+    const token = mintDomainSessionToken('CustomerBuyer', customerId, email, tier);
     const claims = parseSessionToken(token);
     return { token, claims };
   }
@@ -475,7 +486,7 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
   app.post('/api/v1/auth/login', async (req: Request, res: Response) => {
     try {
       const account = await store.authenticateCustomer(req.body ?? {});
-      const { token, claims } = mintCustomerSessionToken(account.customerId, account.email);
+      const { token, claims } = mintCustomerSessionToken(account.customerId, account.email, account.tier);
       if (!claims) {
         res.status(500).json({ statusCode: 500, message: 'Failed to mint session', correlationId: `corr-500-${Date.now()}` });
         return;
@@ -645,6 +656,12 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
       return;
     }
     res.json(req.user);
+  });
+
+  app.get('/api/v1/customer/tier-benefits', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) return void res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+    if (!hasPermission(req.user.role, 'read:customer')) return void res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
+    res.json(await store.getCustomerTierBenefits(resolveCustomerScope(req.user.sub), req.header('x-mock-now') || undefined));
   });
 
   app.get('/api/v1/bank-accounts', async (_req: Request, res: Response) => {

@@ -116,7 +116,7 @@ export const VehicleFleetCard: React.FC<VehicleFleetCardProps> = ({
           )}
           {isReserved && (
             <span className="cc-cust-fleet-badge cc-cust-fleet-badge--reserved">
-              <span className="cc-cust-fleet-badge__dot cc-cust-fleet-badge__dot--pulse" aria-hidden="true">●</span> HOLD VEHICLE
+              <span className="cc-cust-fleet-badge__dot cc-cust-fleet-badge__dot--pulse" aria-hidden="true">●</span> {vehicle.statusLabel || 'Reserved Vehicle'}
             </span>
           )}
 
@@ -128,6 +128,17 @@ export const VehicleFleetCard: React.FC<VehicleFleetCardProps> = ({
         {/* Bottom Logistics Banner on Image */}
         <div className="cc-cust-fleet-card__logistics-banner">
           LOGISTICS: {logisticsLabel}
+        </div>
+
+        <div className="cc-cust-fleet-card__list-price" aria-label={`Price ${price.toLocaleString()} dollars`}>
+          <span>PRICE</span>
+          <strong>${price.toLocaleString()}</strong>
+        </div>
+
+        <div className="cc-cust-fleet-card__list-meta">
+          <div><span>Chassis</span><strong>{vehicle.chassisNumber}</strong></div>
+          <div><span>Color</span><strong>{colorSpec}</strong></div>
+          <div><span>Mileage</span><strong>{mileageDisplay}</strong></div>
         </div>
       </div>
 

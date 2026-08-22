@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import type { WishlistItem } from '@carchief/domain';
 import { useCustomerShell } from '../shell/index.js';
 import { useCustomerWishlist } from './useCustomerWishlist.js';
+import { ViewModeToggle, type ViewMode } from '../../components/ViewModeToggle.js';
 import './wishlist.css';
 
 export interface WishlistStockItem {
@@ -122,6 +123,7 @@ export const CustomerWishlistPage: React.FC = () => {
   // Filtering & Pagination (FRD 8.3 & 8.5)
   const [keyword, setKeyword] = useState('');
   const [perPage, setPerPage] = useState<number>(10);
+  const [viewMode, setViewMode] = useState<ViewMode>('grid');
 
   // Local state for stock and auction wishlist items
   const [stockList, setStockList] = useState<WishlistStockItem[]>(SEED_STOCK_WISHLIST);
@@ -321,12 +323,13 @@ export const CustomerWishlistPage: React.FC = () => {
               <option value={50}>50</option>
             </select>
           </div>
+          <ViewModeToggle value={viewMode} onChange={setViewMode} label="Wishlist vehicle view" />
         </div>
       </div>
 
       {/* Main Content: Stock List Cards (FRD 8.6) */}
       {activeCategory === 'STOCK' ? (
-        <div className="cc-wishlist-cards-grid">
+        <div className={`cc-wishlist-cards-grid cc-wishlist-cards-grid--${viewMode}`}>
           {filteredStockItems.length === 0 ? (
             <div className="cc-wishlist-empty">
               <span className="cc-wishlist-empty-icon">❤️</span>
@@ -426,7 +429,7 @@ export const CustomerWishlistPage: React.FC = () => {
         </div>
       ) : (
         /* Auction Cards List */
-        <div className="cc-wishlist-cards-grid">
+        <div className={`cc-wishlist-cards-grid cc-wishlist-cards-grid--${viewMode}`}>
           {filteredAuctionItems.length === 0 ? (
             <div className="cc-wishlist-empty">
               <span className="cc-wishlist-empty-icon">🔨</span>

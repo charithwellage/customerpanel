@@ -34,6 +34,10 @@ const MOCK_SUMMARY: CustomerVehicleSummary = {
   year: 2022,
   chassisNumber: 'TRJ150-0192834',
   status: 'Under Negotiation With PI',
+  vehicleStatusCode: 'ReservedWithPI',
+  statusLabel: 'Reserved With PI Vehicle',
+  statusLabelPlural: 'Reserved With PI Vehicles',
+  statusDescription: 'Vehicle is reserved and has a proforma invoice.',
   totalAmountUsd: 45000,
   currency: 'USD',
   deposit: {
@@ -174,6 +178,21 @@ describe('My Vehicles UI Components (D02-P04-T002 & D02-P14-T008)', () => {
         })
       );
       expect(reservedHtml).toContain('PAY DEPOSIT (50%)');
+      const reservedBadgeHtml = renderToStaticMarkup(
+        React.createElement(VehicleFleetCard, {
+          vehicle: {
+            ...MOCK_SUMMARY,
+            status: 'Under Negotiation',
+            vehicleStatusCode: 'Reserved',
+            statusLabel: 'Reserved Vehicle',
+            statusLabelPlural: 'Reserved Vehicles',
+            proformaInvoiceId: undefined,
+          },
+          onSelect: () => {},
+        })
+      );
+      expect(reservedBadgeHtml).toContain('Reserved Vehicle');
+      expect(reservedBadgeHtml).not.toContain('HOLD VEHICLE');
 
       // Delivered: clearance documents are no longer offered from the card.
       const deliveredHtml = renderToStaticMarkup(
@@ -327,7 +346,7 @@ describe('My Vehicles UI Components (D02-P04-T002 & D02-P14-T008)', () => {
         )
       );
 
-      expect(html).toContain('HOLD VEHICLES');
+      expect(html).toContain('RESERVED VEHICLES');
       expect(html).toContain('ADVANCED PAID VEHICLES');
       expect(html).toContain('PURCHASED VEHICLES');
       expect(html).toContain('Shipping Status');

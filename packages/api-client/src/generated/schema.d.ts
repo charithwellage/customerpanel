@@ -17,6 +17,7 @@ export interface SessionClaims {
   role: 'PublicVisitor' | 'CustomerBuyer' | 'Salesperson' | 'StockController' | 'FinanceManager' | 'SystemAdmin';
   permissions: string[];
   exp: number;
+  tier?: 'Platinum' | 'Gold' | 'Silver' | 'Standard';
 }
 
 // Phase 2.12: customer self-registration, credential handling and the
@@ -31,10 +32,20 @@ export interface CustomerAccount {
   dialCode: string;
   mobileNumber: string;
   email: string;
+  tier: 'Platinum' | 'Gold' | 'Silver' | 'Standard';
   status: string;
   verificationState: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface CustomerTierBenefits {
+  tier: 'Platinum' | 'Gold' | 'Silver' | 'Standard';
+  discountPercent: number;
+  maxActiveReservations: number;
+  activeReservations: number;
+  remainingReservations: number;
+  description: string;
 }
 
 export interface RegisterCustomerRequest {
@@ -118,6 +129,9 @@ export interface VehicleSummary {
   stockType?: 'J' | 'CRFO';
   destinationPort?: string;
   discountPercent?: number;
+  tierPricing?: VehicleTierPricing;
+  reservationEligibility?: VehicleReservationEligibility;
+  inquiryEligibility?: VehicleInquiryEligibility;
 }
 
 export interface CategorizedPublicMedia {
@@ -168,6 +182,28 @@ export interface VehicleDetail {
   eta?: string;
   featured?: boolean;
   media: CategorizedPublicMedia;
+  tierPricing?: VehicleTierPricing;
+  reservationEligibility?: VehicleReservationEligibility;
+  inquiryEligibility?: VehicleInquiryEligibility;
+}
+
+export interface VehicleTierPricing {
+  tier: 'Platinum' | 'Gold' | 'Silver' | 'Standard';
+  tierDiscountPercent: number;
+  tierPriceUsd: number;
+  originalPriceUsd: number;
+}
+
+export interface VehicleReservationEligibility {
+  eligible: boolean;
+  reason?: 'already_reserved_by_you' | 'reserved_by_other' | 'not_reservable' | 'price_on_request' | 'limit_exceeded';
+  holdExpiresAt?: string;
+  isOwnHold?: boolean;
+}
+
+export interface VehicleInquiryEligibility {
+  eligible: boolean;
+  reason?: 'allocated_to_another_customer' | 'not_available';
 }
 
 export interface ErrorResponse {
@@ -640,6 +676,17 @@ export type CustomerVehicleStatus =
   | 'Expired'
   | 'Cancelled';
 
+export type VehicleStatus = 'Draft' | 'Available' | 'Pending' | 'Reserved' | 'ReservedWithPI' | 'InvoiceCreated' | 'Invoiced' | 'Sold';
+
+export interface VehicleStatusDefinition {
+  code: VehicleStatus;
+  singularLabel: string;
+  pluralLabel: string;
+  description: string;
+  active: boolean;
+  sortOrder: number;
+}
+
 export interface CustomerVehicleStatusHistoryItem {
   status: CustomerVehicleStatus;
   timestamp: string;
@@ -679,6 +726,10 @@ export interface CustomerVehicleSummary {
   priceUsd: number;
   totalAmountUsd: number;
   status: CustomerVehicleStatus;
+  vehicleStatusCode: VehicleStatus;
+  statusLabel: string;
+  statusLabelPlural: string;
+  statusDescription?: string;
   locationStatus?: 'In Japan' | 'In Transit' | 'In Port';
   destinationPort?: string;
   reservationExpiresAt?: string;
@@ -727,6 +778,7 @@ export interface CustomerVehicleListResponse {
   items: CustomerVehicleSummary[];
   total: number;
   countsByStatus: CustomerVehicleCountsByStatus;
+  statusDefinitions: VehicleStatusDefinition[];
 }
 
 export type CustomerInvoiceType = 'Proforma' | 'Commercial';

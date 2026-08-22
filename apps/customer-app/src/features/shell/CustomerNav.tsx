@@ -20,7 +20,6 @@ import {
   ClientProfileUserIcon,
   MidnightMoonIcon,
   DaylightSunIcon,
-  SyncArrowsIcon,
   ExternalArrowIcon,
   SecureLogoutDoorIcon,
 } from '../../components/Icons.js';
@@ -50,6 +49,8 @@ function getGroupLabel(item: NavigationItem, t: (key: string, params?: Record<st
     case 'payments':  return t('customer.wireRemittance', undefined, item.label);
     case 'finances':  return t('customer.finances', undefined, item.label);
     case 'account':   return t('customer.account', undefined, item.label);
+    case 'profile':   return t('customer.profileSecurity', undefined, item.label);
+    case 'notifications': return t('customer.bulletinsAlerts', undefined, item.label);
     default: return item.label;
   }
 }
@@ -158,6 +159,11 @@ const NavGroup: React.FC<NavGroupProps> = ({ item, activeRoute, setActiveRoute, 
             {renderNavIcon(item.id, item.icon)}
           </span>
           <span className="cc-cust-shell-nav__label">{groupLabel}</span>
+          {item.id === 'notifications' ? (
+            <LiveNotificationBadgeWrapper fallbackBadge={item.badge} />
+          ) : (
+            item.badge ? <span className="cc-cust-shell-nav__badge">{item.badge}</span> : null
+          )}
         </a>
       </li>
     );
@@ -234,17 +240,9 @@ export const CustomerNav: React.FC = () => {
   } = useCustomerShell();
   const { t } = useTranslation();
   const mobileMenuId = useId();
-  const [isSyncing, setIsSyncing] = useState(false);
   const publicWebUrl = typeof window !== 'undefined'
     ? `${window.location.protocol}//${window.location.hostname}:3000`
     : 'http://127.0.0.1:3000';
-
-  const handleSyncData = () => {
-    setIsSyncing(true);
-    setTimeout(() => {
-      setIsSyncing(false);
-    }, 800);
-  };
 
   return (
     <aside className="cc-cust-shell-sidebar">
@@ -316,18 +314,6 @@ export const CustomerNav: React.FC = () => {
                 )}
               </span>
               <span>{themeMode === 'midnight' ? 'Daylight Mode' : 'Midnight Mode'}</span>
-            </button>
-
-            <button
-              type="button"
-              className="cc-cust-sidebar-tool-btn"
-              onClick={handleSyncData}
-              disabled={isSyncing}
-            >
-              <span className={`cc-cust-tool-icon ${isSyncing ? 'cc-cust-tool-icon--spin' : ''}`} aria-hidden="true">
-                <SyncArrowsIcon size={16} />
-              </span>
-              <span>{isSyncing ? 'Syncing...' : t('customer.sync', undefined, 'Sync Data')}</span>
             </button>
 
             <a

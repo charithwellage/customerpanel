@@ -193,11 +193,18 @@ export function useCustomerVehicleDetail({
     } catch (err: unknown) {
       let errorMsg = 'Failed to reserve vehicle.';
       if (err && typeof err === 'object') {
-        const errorObj = err as { message?: string; error?: { message?: string; reason?: string } };
-        if (errorObj.error?.reason === 'conflict' || errorObj.error?.reason === 'vehicle_unavailable') {
+        const errorObj = err as { message?: string; statusCode?: number; rawError?: { message?: string; reason?: string }; error?: { message?: string; reason?: string } };
+        const reason = errorObj.rawError?.reason || errorObj.error?.reason;
+        if (reason === 'conflict') {
           errorMsg = 'This vehicle was just reserved by another customer.';
-        } else if (errorObj.error?.reason === 'already_reserved_by_you') {
+        } else if (reason === 'vehicle_unavailable' || reason === 'not_reservable') {
+          errorMsg = 'This vehicle is currently not available for reservation.';
+        } else if (reason === 'already_reserved_by_you') {
           errorMsg = 'You already have an active reservation hold on this vehicle.';
+        } else if (reason === 'reservation_service_unavailable' || (errorObj.statusCode !== undefined && errorObj.statusCode >= 500)) {
+          errorMsg = 'Unable to connect to the reservation service. Please try again.';
+        } else if (errorObj.rawError?.message) {
+          errorMsg = errorObj.rawError.message;
         } else if (errorObj.error?.message) {
           errorMsg = errorObj.error.message;
         } else if (errorObj.message) {
@@ -256,7 +263,15 @@ export function useCustomerVehicleDetail({
       }));
       return res;
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Unable to submit price quotation request.';
+      const errorObj = err && typeof err === 'object'
+        ? err as { message?: string; statusCode?: number; rawError?: { message?: string; reason?: string } }
+        : undefined;
+      const reason = errorObj?.rawError?.reason;
+      const msg = reason === 'allocated_to_another_customer'
+        ? 'This vehicle has already been allocated to another customer.'
+        : (errorObj?.statusCode !== undefined && errorObj.statusCode >= 500)
+          ? 'Unable to connect to the enquiry service. Please try again.'
+          : (errorObj?.rawError?.message || errorObj?.message || 'Unable to submit price quotation request.');
       setState((prev) => ({
         ...prev,
         inquirySubmitting: false,

@@ -26,9 +26,9 @@ export const VehicleCardPrimitive: React.FC<VehicleCardPrimitiveProps> = ({
   const hasRegularDiscount = Boolean(showDiscount && vehicle.discountPercent && vehicle.discountPercent > 0);
   const hasDiscount = hasTierDiscount || hasRegularDiscount;
 
-  const originalPrice = tierPricing ? tierPricing.originalPriceUsd : vehicle.priceUsd;
-  const discountedPrice = tierPricing
-    ? tierPricing.tierPriceUsd
+  const originalPrice = hasTierDiscount ? tierPricing!.originalPriceUsd : vehicle.priceUsd;
+  const discountedPrice = hasTierDiscount
+    ? tierPricing!.tierPriceUsd
     : hasRegularDiscount
       ? Math.round(vehicle.priceUsd * (1 - vehicle.discountPercent! / 100))
       : vehicle.priceUsd;

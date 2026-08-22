@@ -919,6 +919,35 @@ describe('API Client & Contract Boundary Tests', () => {
     });
   });
 
+  describe('CustomerTierBenefitsService', () => {
+    it('requests the authenticated customer tier benefits endpoint', async () => {
+      let capturedUrl: string | undefined;
+      const mockFetch = vi.fn().mockImplementation(async (url) => {
+        capturedUrl = url;
+        return {
+          ok: true,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: async () => ({
+            tier: 'Gold',
+            discountPercent: 10,
+            maxActiveReservations: 3,
+            activeReservations: 1,
+            remainingReservations: 2,
+            description: 'Gold benefits',
+          }),
+        };
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000', getAuthToken: () => 'customer-token' });
+      const { CustomerTierBenefitsService } = await import('../services/customerTierBenefits.js');
+      const benefits = await new CustomerTierBenefitsService(client).get();
+
+      expect(capturedUrl).toBe('http://localhost:4000/api/v1/customer/tier-benefits');
+      expect(benefits.remainingReservations).toBe(2);
+    });
+  });
+
   describe('ContentService (D01-P07-T001)', () => {
     it('calls getFaqs with category and query parameters', async () => {
       let capturedUrl: string | undefined;
@@ -1277,6 +1306,9 @@ describe('API Client & Contract Boundary Tests', () => {
                 priceUsd: 8500,
                 totalAmountUsd: 8500,
                 status: 'Confirmed',
+                vehicleStatusCode: 'Invoiced',
+                statusLabel: 'Invoiced Vehicle',
+                statusLabelPlural: 'Invoiced Vehicles',
                 createdAt: '2026-08-10T10:00:00.000Z',
                 updatedAt: '2026-08-10T10:00:00.000Z',
               },
@@ -1290,6 +1322,7 @@ describe('API Client & Contract Boundary Tests', () => {
               delivered: 0,
               all: 1,
             },
+            statusDefinitions: [],
           }),
         };
       });
@@ -1324,6 +1357,9 @@ describe('API Client & Contract Boundary Tests', () => {
             priceUsd: 8500,
             totalAmountUsd: 8500,
             status: 'Confirmed',
+            vehicleStatusCode: 'Invoiced',
+            statusLabel: 'Invoiced Vehicle',
+            statusLabelPlural: 'Invoiced Vehicles',
             images: ['https://example.com/veh-1.jpg'],
             statusHistory: [
               { status: 'Under Negotiation', timestamp: '2026-08-09T10:00:00.000Z' },

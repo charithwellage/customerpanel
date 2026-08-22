@@ -112,6 +112,14 @@ describe('Customer App Shell & Navigation Unit Tests', () => {
     expect(html).not.toContain('Secure Vault');
   });
 
+  it('wires the top-level Bulletins & Alerts item to the live unread badge', async () => {
+    const { readFile } = await import('node:fs/promises');
+    const source = await readFile(new URL('../CustomerNav.tsx', import.meta.url), 'utf8');
+
+    expect(source).toContain("item.id === 'notifications'");
+    expect(source).toContain('LiveNotificationBadgeWrapper fallbackBadge={item.badge}');
+  });
+
   it('renders mobile menu toggle button with aria-expanded attribute', () => {
     const html = renderToStaticMarkup(
       React.createElement(
