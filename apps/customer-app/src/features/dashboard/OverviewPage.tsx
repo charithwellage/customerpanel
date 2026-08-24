@@ -82,11 +82,27 @@ export const OverviewPage: React.FC = () => {
     (v) => v.status === 'Delivered' || v.logisticsStatus === 'DELIVERED'
   ).length || 2;
 
-  const totalPurchasedVehiclesCount = allVehicles.length || 19;
+  const vehicleCounts = vehiclesData?.countsByStatus;
+  const reservedVehiclesCount = vehicleCounts?.underNegotiation ?? allVehicles.filter((v) => v.status === 'Under Negotiation').length;
+  const advancedPaidVehiclesCount = vehicleCounts?.underNegotiationWithPI ?? allVehicles.filter((v) => v.status === 'Under Negotiation With PI').length;
+  const totalPurchasedVehiclesCount = vehicleCounts
+    ? vehicleCounts.confirmed + vehicleCounts.inTransit + vehicleCounts.delivered
+    : allVehicles.filter((v) => ['Confirmed', 'In Transit', 'Delivered'].includes(v.status)).length;
 
   // Proforma and Invoices counts (FRD 2.10)
   const proformaCount = invoicesData?.items?.filter((i) => i.type === 'Proforma').length || 21;
   const invoiceCount = invoicesData?.items?.filter((i) => i.type === 'Commercial').length || 19;
+
+  const navigateToFleetTab = (tab: 'reserved' | 'withPI' | 'invoiced') => {
+    setActiveRoute(`/vehicles?tab=${tab}`);
+  };
+
+  const handleMetricKeyDown = (event: React.KeyboardEvent<HTMLDivElement>, tab: 'reserved' | 'withPI' | 'invoiced') => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      navigateToFleetTab(tab);
+    }
+  };
 
   // Inquiries counts (FRD 2.11)
   const totalInquiriesCount = inquiries.length || 15;
@@ -184,10 +200,11 @@ export const OverviewPage: React.FC = () => {
       <section className="cc-dash-gauges-grid" aria-label="Financial and logistics summary">
         {/* Financial & Fulfillment Metrics */}
         <div className="cc-dash-metric-quad-grid" aria-label="Key Financial & Fulfillment Metrics">
-          {/* Tile 1: Total Purchased */}
+          {/* Tile 1: Total Purchased Vehicles */}
           <div
             className="cc-dash-metric-tile"
-            onClick={() => setActiveRoute('/vehicles?tab=invoiced')}
+            onClick={() => navigateToFleetTab('invoiced')}
+            onKeyDown={(event) => handleMetricKeyDown(event, 'invoiced')}
             role="button"
             tabIndex={0}
           >
@@ -197,14 +214,15 @@ export const OverviewPage: React.FC = () => {
                 <polyline points="12 6 12 12 16 14" />
               </svg>
             </div>
-            <span className="cc-dash-metric-tile__label">{t('customer.totalPurchased', undefined, 'Total Purchased')}</span>
+            <span className="cc-dash-metric-tile__label">{t('customer.totalPurchasedVehicles', undefined, 'Total Purchased Vehicles')}</span>
             <span className="cc-dash-metric-tile__val">{totalPurchasedVehiclesCount} Units</span>
           </div>
 
-          {/* Tile 2: Active Invoices */}
+          {/* Tile 2: Total Advance Paid Vehicles */}
           <div
             className="cc-dash-metric-tile"
-            onClick={() => setActiveRoute('/vehicles?tab=withPI')}
+            onClick={() => navigateToFleetTab('withPI')}
+            onKeyDown={(event) => handleMetricKeyDown(event, 'withPI')}
             role="button"
             tabIndex={0}
           >
@@ -215,26 +233,26 @@ export const OverviewPage: React.FC = () => {
                 <line x1="15" y1="12" x2="3" y2="12" />
               </svg>
             </div>
-            <span className="cc-dash-metric-tile__label">{t('customer.commercialBills', undefined, 'Commercial Bills')}</span>
-            <span className="cc-dash-metric-tile__val">{invoiceCount} Invoices</span>
+            <span className="cc-dash-metric-tile__label">Total Advance Paid Vehicles</span>
+            <span className="cc-dash-metric-tile__val">{advancedPaidVehiclesCount} Units</span>
           </div>
 
-          {/* Tile 3: Settlement Rate */}
+          {/* Tile 3: Total Reserved Vehicles */}
           <div
             className="cc-dash-metric-tile"
-            onClick={() => setActiveRoute('/statement')}
+            onClick={() => navigateToFleetTab('reserved')}
+            onKeyDown={(event) => handleMetricKeyDown(event, 'reserved')}
             role="button"
             tabIndex={0}
-            data-testid="card-account-balance"
           >
-            <div className="cc-dash-metric-tile__icon cc-dash-metric-tile__icon--green" aria-hidden="true">
+            <div className="cc-dash-metric-tile__icon cc-dash-metric-tile__icon--amber" aria-hidden="true">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                <polyline points="22 4 12 14.01 9 11.01" />
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 7v5l3 2" />
               </svg>
             </div>
-            <span className="cc-dash-metric-tile__label">{t('customer.settlementRate', undefined, 'Settlement Rate')}</span>
-            <span className="cc-dash-metric-tile__val">96%</span>
+            <span className="cc-dash-metric-tile__label">Total Reserved Vehicles</span>
+            <span className="cc-dash-metric-tile__val">{reservedVehiclesCount} Units</span>
           </div>
 
           {/* Tile 4: Available Funds */}

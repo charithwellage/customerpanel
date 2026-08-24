@@ -50,7 +50,7 @@ export function parseUrlSearchQuery(source: URLSearchParams | string): SearchVeh
 
   result.sortBy = (getString('sortBy') || 'newest') as SearchVehiclesQuery['sortBy'];
   result.page = getNumber('page') || 1;
-  result.limit = getNumber('limit') || 12;
+  result.limit = getNumber('limit') || 15;
 
   // Market & Destination Port context preservation
   result.market = getString('market');
@@ -123,7 +123,7 @@ export function serializeSearchQuery(query: SearchVehiclesQuery, existingParams?
     params.delete('page');
   }
 
-  if (query.limit && query.limit !== 12) {
+  if (query.limit && query.limit !== 15) {
     params.set('limit', String(query.limit));
   } else {
     params.delete('limit');

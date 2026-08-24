@@ -49,7 +49,7 @@ function appendVehicleQuery(params: URLSearchParams, query?: SearchVehiclesQuery
 
 function emptyVehicleSearchResult(): VehicleSearchResult {
   return {
-    items: [], total: 0, page: 1, limit: 12, totalPages: 0, hasNextPage: false, hasPrevPage: false,
+    items: [], total: 0, page: 1, limit: 15, totalPages: 0, hasNextPage: false, hasPrevPage: false,
     facets: {
       makes: [], bodyStyles: [], fuelTypes: [], transmissions: [], driveTrains: [], models: [], modelCodes: [], vehicleTypes: [], vehicleSubTypes: [], locationStatuses: [], destinationPorts: [], overdrives: [], colors: [], exteriorGrades: [], steerings: [], stockCountries: [], stockLocations: [], features: [], yearRange: { min: 2000, max: 2026 }, priceRange: { min: 0, max: 0 }, mileageRange: { min: 0, max: 0 }, engineCcRange: { min: 0, max: 0 }, seatsRange: { min: 0, max: 0 }, loadCapacityRange: { min: 0, max: 0 },
     },

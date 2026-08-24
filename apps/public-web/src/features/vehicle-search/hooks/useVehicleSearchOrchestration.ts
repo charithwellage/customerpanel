@@ -192,7 +192,7 @@ export function useVehicleSearchOrchestration(
       collection: options.lockedCollection || query.collection,
       category: options.lockedCategory || query.category,
       page: 1,
-      limit: 12,
+      limit: 15,
       sortBy: 'newest',
     };
     setNaturalPhrase('');

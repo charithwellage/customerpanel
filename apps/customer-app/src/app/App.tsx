@@ -102,7 +102,7 @@ const AppContent: React.FC<{ session: CustomerSession; apiBaseUrl: string }> = (
 
   if (activeRoute === '/vehicles' || activeRoute.startsWith('/vehicles?')) {
     const tab = new URLSearchParams(activeRoute.split('?')[1] || '').get('tab');
-    const initialTab = tab === 'withPI' || tab === 'invoiced' ? tab : undefined;
+    const initialTab = tab === 'reserved' || tab === 'withPI' || tab === 'invoiced' ? tab : undefined;
 
     return (
       <CustomerFleetPage
