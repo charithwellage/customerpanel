@@ -87,6 +87,15 @@ account. The customer portal reads authenticated benefits from
 The seeded customer profile data is also available through the customer
 profile API:
 
+### Customer statement data
+
+Customer statement transactions are persisted in PostgreSQL in the
+`customer_statement_transactions` table and are returned by
+`GET /api/v1/customer/statement`. The mock API does not use an in-memory
+statement fallback; start the frontend Compose stack with PostgreSQL enabled
+to view statement data. The deterministic local transaction rows are inserted
+idempotently during the mock database reset.
+
 | Account | Name | Phone | Delivery address |
 |---|---|---|---|
 | `prabodha@carchief.com` | Prabodha Wijerathne | `+94 77 123 4567` | No.414, Polhengoda Road, Colombo 05 |

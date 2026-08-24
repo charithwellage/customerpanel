@@ -14,6 +14,7 @@ import {
   ProfileConflictError,
   AccountRequestError,
   AuthenticationError,
+  DatabaseRequiredError,
 } from './store.js';
 import { resolveCustomerScope } from './auth/customer-scope.js';
 
@@ -249,8 +250,17 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
     const customerId = resolveCustomerScope(req.user.sub);
     const fromDate = typeof req.query.fromDate === 'string' ? req.query.fromDate : undefined;
     const toDate = typeof req.query.toDate === 'string' ? req.query.toDate : undefined;
-    const statement = await store.getCustomerStatement(customerId, fromDate, toDate);
-    res.json(statement);
+    try {
+      const statement = await store.getCustomerStatement(customerId, fromDate, toDate);
+      res.json(statement);
+    } catch (error) {
+      const statusCode = error instanceof DatabaseRequiredError ? 503 : 500;
+      res.status(statusCode).json({
+        statusCode,
+        message: error instanceof Error ? error.message : 'Unable to load customer statement',
+        correlationId: `corr-${statusCode}-${Date.now()}`,
+      });
+    }
   });
 
   // 3l. Wishlist operations (D02-P13-T002, CUST-36/CUST-37): list, add, remove

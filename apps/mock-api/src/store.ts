@@ -115,6 +115,7 @@ import {
   CustomerTierRule,
   CustomerTierBenefits,
 } from '@carchief/domain';
+import { statementSeedRows } from './statement-seed.js';
 export { FreightRequestError, resolveFreightRateStatus } from '@carchief/domain';
 
 
@@ -3862,6 +3863,15 @@ export interface CustomerProfileRecord {
   updatedAt: string;
 }
 
+export class DatabaseRequiredError extends Error {
+  readonly statusCode = 503;
+
+  constructor() {
+    super('Customer statement data requires the PostgreSQL database');
+    this.name = 'DatabaseRequiredError';
+  }
+}
+
 export interface PaymentNotificationRecord {
   id: string;
   customerId: string;
@@ -6410,89 +6420,8 @@ class MemoryStore implements DemoStore {
     };
   }
 
-  getCustomerStatement(customerId: string, fromDate?: string, toDate?: string): Promise<CustomerStatementSummary> {
-    const openingBalance = 450.00;
-    const entries: CustomerStatementEntry[] = [
-      {
-        id: 'stmt-0',
-        date: fromDate || '2024-09-01',
-        description: 'Opening Balance (Forward from previous cycle)',
-        debitUsd: 0,
-        creditUsd: 0,
-        runningBalanceUsd: openingBalance,
-        isOpeningBalance: true,
-      },
-      {
-        id: 'stmt-1',
-        date: '2024-09-05',
-        description: 'Invoice P-85492 (2021 TOYOTA COROLLA FIELDER)',
-        referenceNo: 'P-85492',
-        debitUsd: 17360,
-        creditUsd: 0,
-        runningBalanceUsd: 17360 - openingBalance,
-      },
-      {
-        id: 'stmt-2',
-        date: '2024-09-10',
-        description: 'Telegraphic Wire Remittance Deposit (TT2400005)',
-        referenceNo: 'TT2400005',
-        debitUsd: 0,
-        creditUsd: 100000,
-        runningBalanceUsd: -83090,
-      },
-      {
-        id: 'stmt-3',
-        date: '2024-09-15',
-        description: 'Commercial Invoice INV-34503 (2024 TOYOTA LAND CRUISER 250)',
-        referenceNo: 'INV-34503',
-        debitUsd: 45000,
-        creditUsd: 0,
-        runningBalanceUsd: -38090,
-      },
-      {
-        id: 'stmt-4',
-        date: '2024-09-22',
-        description: 'Debit Note DN2400008 (Storage & demurrage adjustment)',
-        referenceNo: 'DN2400008',
-        debitUsd: 1000,
-        creditUsd: 0,
-        runningBalanceUsd: -37090,
-      },
-      {
-        id: 'stmt-5',
-        date: '2024-09-30',
-        description: 'Credit Note CR2400005 (Port handling allowance)',
-        referenceNo: 'CR2400005',
-        debitUsd: 0,
-        creditUsd: 400,
-        runningBalanceUsd: -37490,
-      },
-    ];
-
-    let filtered = entries;
-    if (fromDate) {
-      const fromTime = new Date(fromDate).getTime();
-      filtered = filtered.filter((e) => e.isOpeningBalance || new Date(e.date).getTime() >= fromTime);
-    }
-    if (toDate) {
-      const toTime = new Date(toDate).getTime();
-      filtered = filtered.filter((e) => e.isOpeningBalance || new Date(e.date).getTime() <= toTime);
-    }
-
-    const totalDebitsUsd = filtered.filter((e) => !e.isOpeningBalance).reduce((sum, e) => sum + e.debitUsd, 0);
-    const totalCreditsUsd = filtered.filter((e) => !e.isOpeningBalance).reduce((sum, e) => sum + e.creditUsd, 0);
-    const closingBalanceUsd = totalDebitsUsd - totalCreditsUsd + openingBalance;
-
-    return Promise.resolve({
-      customerId,
-      fromDate: fromDate || '2024-09-01',
-      toDate: toDate || '2024-10-31',
-      openingBalanceUsd: openingBalance,
-      totalDebitsUsd,
-      totalCreditsUsd,
-      closingBalanceUsd,
-      entries: filtered,
-    });
+  getCustomerStatement(_customerId: string, _fromDate?: string, _toDate?: string): Promise<CustomerStatementSummary> {
+    return Promise.reject(new DatabaseRequiredError());
   }
 
   listCustomerPolymorphicInquiries(customerId: string): Promise<CustomerPolymorphicInquiryListResponse> {
@@ -6781,6 +6710,7 @@ class PostgresStore implements DemoStore {
       ['payment_notifications', 'payment_id', 'payments', 'id'],
       ['payment_notifications', 'invoice_id', 'invoices', 'id'],
       ['notifications', 'customer_id', 'customer_accounts', 'customer_id'],
+      ['customer_statement_transactions', 'customer_id', 'customer_accounts', 'customer_id'],
       ['faq_items', 'category_id', 'faq_categories', 'id'],
     ];
     for (const [table, column, target, targetColumn] of relations) {
@@ -7389,6 +7319,38 @@ class PostgresStore implements DemoStore {
         related_href text
       );`
     );
+    await this.pool.query(`
+      CREATE TABLE IF NOT EXISTS customer_statement_transactions (
+        id text PRIMARY KEY,
+        customer_id text NOT NULL,
+        entry_date date NOT NULL,
+        entry_type text NOT NULL,
+        description text NOT NULL,
+        reference_no text,
+        debit_usd numeric NOT NULL DEFAULT 0,
+        credit_usd numeric NOT NULL DEFAULT 0,
+        opening_balance_usd numeric NOT NULL DEFAULT 0,
+        is_opening_balance boolean NOT NULL DEFAULT false,
+        source_type text,
+        source_id text,
+        created_at timestamptz NOT NULL,
+        CONSTRAINT customer_statement_entry_type_valid CHECK (entry_type IN ('OpeningBalance', 'Invoice', 'DebitNote', 'CreditNote', 'Payment')),
+        CONSTRAINT customer_statement_amounts_nonnegative CHECK (debit_usd >= 0 AND credit_usd >= 0),
+        CONSTRAINT customer_statement_opening_nonnegative CHECK (opening_balance_usd >= 0),
+        CONSTRAINT customer_statement_single_side CHECK (debit_usd = 0 OR credit_usd = 0),
+        CONSTRAINT customer_statement_opening_shape CHECK (NOT is_opening_balance OR (debit_usd = 0 AND credit_usd = 0))
+      );
+      ALTER TABLE customer_statement_transactions
+        ADD COLUMN IF NOT EXISTS opening_balance_usd numeric NOT NULL DEFAULT 0;
+      DO $$ BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'customer_statement_opening_nonnegative') THEN
+          ALTER TABLE customer_statement_transactions
+            ADD CONSTRAINT customer_statement_opening_nonnegative CHECK (opening_balance_usd >= 0);
+        END IF;
+      END $$;
+      CREATE INDEX IF NOT EXISTS customer_statement_customer_date_idx
+        ON customer_statement_transactions(customer_id, entry_date, created_at, id);
+    `);
 
     // Always upsert all seed vehicles into the database
     for (const vehicle of preparedSeedVehicles) {
@@ -7575,6 +7537,30 @@ class PostgresStore implements DemoStore {
   }
 
   private async ensureMockRelationalFixtures(): Promise<void> {
+    for (const row of statementSeedRows) {
+      await this.pool.query(
+        `INSERT INTO customer_statement_transactions
+          (id, customer_id, entry_date, entry_type, description, reference_no, debit_usd, credit_usd,
+           opening_balance_usd, is_opening_balance, source_type, source_id, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+         ON CONFLICT (id) DO UPDATE SET
+           customer_id = EXCLUDED.customer_id,
+           entry_date = EXCLUDED.entry_date,
+           entry_type = EXCLUDED.entry_type,
+           description = EXCLUDED.description,
+           reference_no = EXCLUDED.reference_no,
+           debit_usd = EXCLUDED.debit_usd,
+           credit_usd = EXCLUDED.credit_usd,
+           opening_balance_usd = EXCLUDED.opening_balance_usd,
+           is_opening_balance = EXCLUDED.is_opening_balance,
+           source_type = EXCLUDED.source_type,
+           source_id = EXCLUDED.source_id,
+           created_at = EXCLUDED.created_at`,
+        [row.id, row.customerId, row.entryDate, row.entryType, row.description, row.referenceNo || null,
+          row.debitUsd, row.creditUsd, row.openingBalanceUsd || 0, row.isOpeningBalance ?? false,
+          row.sourceType || null, row.sourceId || null, row.createdAt],
+      );
+    }
     // Complete deterministic fixture rows before validating the new
     // relational constraints on an upgraded database.
     await this.pool.query(
@@ -9214,6 +9200,22 @@ class PostgresStore implements DemoStore {
     return toCustomerPayment(record, invoices, allocations);
   }
 
+  private async persistApprovedPaymentStatementEntry(payment: PaymentRecord): Promise<void> {
+    if (payment.status !== 'Approved') return;
+    await this.pool.query(
+      `INSERT INTO customer_statement_transactions
+        (id, customer_id, entry_date, entry_type, description, reference_no, debit_usd, credit_usd,
+         source_type, source_id, created_at)
+       VALUES ($1, $2, $3::date, 'Payment', 'Payment received', $4, 0, $5, 'payment', $6, $7)
+       ON CONFLICT (id) DO UPDATE SET
+         entry_date = EXCLUDED.entry_date,
+         reference_no = EXCLUDED.reference_no,
+         credit_usd = EXCLUDED.credit_usd`,
+      [`stmt-payment-${payment.id}`, payment.customerId, (payment.paymentDate || payment.paidAt).slice(0, 10),
+        payment.reference || payment.id.toUpperCase(), payment.amountUsd, payment.id, payment.createdAt || payment.paidAt],
+    );
+  }
+
   async resubmitCustomerPayment(customerId: string, paymentId: string, nowISO = new Date().toISOString()): Promise<CustomerPayment> {
     await this.ensureCustomerFleetDataInPostgres(customerId);
     const invoices = await this.getRawInvoices(customerId);
@@ -9234,7 +9236,9 @@ class PostgresStore implements DemoStore {
   async recordPaymentNotification(paymentId: string, request: RecordPaymentNotificationRequest, nowISO = new Date().toISOString()): Promise<CustomerPaymentNotification | null> {
     const payment = this.paymentRecords.find((candidate) => candidate.id === paymentId);
     if (!payment) return null;
-    return toCustomerPaymentNotification(applyPaymentNotification(payment, request, this.paymentNotifications, this.allocations, nowISO));
+    const notification = applyPaymentNotification(payment, request, this.paymentNotifications, this.allocations, nowISO);
+    await this.persistApprovedPaymentStatementEntry(payment);
+    return toCustomerPaymentNotification(notification);
   }
 
   private static rowToCustomerAccountRecord(row: {
@@ -9612,6 +9616,7 @@ class PostgresStore implements DemoStore {
       await client.query('DELETE FROM favourite_searches');
       await client.query('DELETE FROM allocations');
       await client.query('DELETE FROM payment_notifications');
+      await client.query('DELETE FROM customer_statement_transactions');
       await client.query('DELETE FROM payments');
       await client.query('DELETE FROM documents');
       await client.query('DELETE FROM shipments');
@@ -9811,9 +9816,50 @@ class PostgresStore implements DemoStore {
     }
   }
 
-  getCustomerStatement(customerId: string, fromDate?: string, toDate?: string): Promise<CustomerStatementSummary> {
-    const memory = new MemoryStore();
-    return memory.getCustomerStatement(customerId, fromDate, toDate);
+  async getCustomerStatement(customerId: string, fromDate?: string, toDate?: string): Promise<CustomerStatementSummary> {
+    const result = await this.pool.query(
+      `SELECT id, entry_date, description, reference_no, debit_usd, credit_usd, opening_balance_usd, is_opening_balance
+       FROM customer_statement_transactions
+       WHERE customer_id = $1
+         AND (is_opening_balance = true OR ($2::date IS NULL OR entry_date >= $2::date)
+         AND ($3::date IS NULL OR entry_date <= $3::date))
+       ORDER BY is_opening_balance DESC, entry_date ASC, created_at ASC, id ASC`,
+      [customerId, fromDate || null, toDate || null],
+    );
+
+    const openingRow = result.rows.find((row) => row.is_opening_balance);
+    const openingBalanceUsd = openingRow ? Number(openingRow.opening_balance_usd) : 0;
+    let runningBalanceUsd = openingBalanceUsd;
+    const entries: CustomerStatementEntry[] = result.rows.map((row) => {
+      const isOpeningBalance = Boolean(row.is_opening_balance);
+      const debitUsd = Number(row.debit_usd);
+      const creditUsd = Number(row.credit_usd);
+      if (!isOpeningBalance) runningBalanceUsd += debitUsd - creditUsd;
+      return {
+        id: row.id,
+        date: String(row.entry_date).slice(0, 10),
+        description: row.description,
+        ...(row.reference_no ? { referenceNo: row.reference_no } : {}),
+        debitUsd,
+        creditUsd,
+        runningBalanceUsd,
+        ...(isOpeningBalance ? { isOpeningBalance: true } : {}),
+      };
+    });
+    const transactionEntries = entries.filter((entry) => !entry.isOpeningBalance);
+    const totalDebitsUsd = transactionEntries.reduce((sum, entry) => sum + entry.debitUsd, 0);
+    const totalCreditsUsd = transactionEntries.reduce((sum, entry) => sum + entry.creditUsd, 0);
+
+    return {
+      customerId,
+      fromDate: fromDate || (entries[0]?.date ?? new Date().toISOString().slice(0, 10)),
+      toDate: toDate || (entries.at(-1)?.date ?? new Date().toISOString().slice(0, 10)),
+      openingBalanceUsd,
+      totalDebitsUsd,
+      totalCreditsUsd,
+      closingBalanceUsd: openingBalanceUsd + totalDebitsUsd - totalCreditsUsd,
+      entries,
+    };
   }
 
   listCustomerPolymorphicInquiries(customerId: string): Promise<CustomerPolymorphicInquiryListResponse> {

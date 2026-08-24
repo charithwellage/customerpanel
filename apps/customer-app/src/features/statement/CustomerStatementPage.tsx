@@ -1,93 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useCustomerShell } from '../shell/index.js';
-import { useCustomerInvoices } from '../invoices/useCustomerInvoices.js';
 import { useCustomerStatement } from './useCustomerStatement.js';
 import './statement.css';
-
-export interface StatementTransactionItem {
-  id: string;
-  date: string;
-  refNumber: string;
-  description: 'Invoice created' | 'Invoice cancelled' | 'Debit Note' | 'Credit Note' | 'Payment received';
-  debitAmountUsd: number;
-  creditAmountUsd: number;
-  type: 'INVOICE' | 'DEBIT_NOTE' | 'CREDIT_NOTE' | 'PAYMENT' | 'CANCELLATION';
-}
-
-export const SEED_STATEMENT_TRANSACTIONS: StatementTransactionItem[] = [
-  {
-    id: 'tx-1',
-    date: '2024-10-01',
-    refNumber: 'I-2020',
-    description: 'Invoice created',
-    debitAmountUsd: 5000,
-    creditAmountUsd: 0,
-    type: 'INVOICE',
-  },
-  {
-    id: 'tx-2',
-    date: '2024-10-04',
-    refNumber: 'DN2400001',
-    description: 'Debit Note',
-    debitAmountUsd: 250,
-    creditAmountUsd: 0,
-    type: 'DEBIT_NOTE',
-  },
-  {
-    id: 'tx-3',
-    date: '2024-10-20',
-    refNumber: 'TT2400002',
-    description: 'Payment received',
-    debitAmountUsd: 0,
-    creditAmountUsd: 16000,
-    type: 'PAYMENT',
-  },
-  {
-    id: 'tx-4',
-    date: '2024-10-30',
-    refNumber: 'CR2400005',
-    description: 'Credit Note',
-    debitAmountUsd: 0,
-    creditAmountUsd: 400,
-    type: 'CREDIT_NOTE',
-  },
-  {
-    id: 'tx-5',
-    date: '2024-10-31',
-    refNumber: 'I-2022',
-    description: 'Invoice created',
-    debitAmountUsd: 3400,
-    creditAmountUsd: 0,
-    type: 'INVOICE',
-  },
-  {
-    id: 'tx-6',
-    date: '2024-11-05',
-    refNumber: 'TT2400003',
-    description: 'Payment received',
-    debitAmountUsd: 0,
-    creditAmountUsd: 4000,
-    type: 'PAYMENT',
-  },
-  {
-    id: 'tx-7',
-    date: '2024-11-12',
-    refNumber: 'DN2400008',
-    description: 'Debit Note',
-    debitAmountUsd: 1000,
-    creditAmountUsd: 0,
-    type: 'DEBIT_NOTE',
-  },
-  {
-    id: 'tx-8',
-    date: '2024-11-20',
-    refNumber: 'I-3456',
-    description: 'Invoice created',
-    debitAmountUsd: 3500,
-    creditAmountUsd: 0,
-    type: 'INVOICE',
-  },
-];
 
 const formatDateInputValue = (date: Date): string => {
   const year = date.getFullYear();
@@ -114,8 +28,7 @@ export const CustomerStatementPage: React.FC = () => {
   const [fromDate, setFromDate] = useState<string>(defaultFromDate);
   const [toDate, setToDate] = useState<string>(defaultToDate);
 
-  const { data: invoicesData } = useCustomerInvoices();
-  const { data: statementData } = useCustomerStatement({ fromDate, toDate });
+  const { data: statementData, isLoading, isError, error } = useCustomerStatement({ fromDate, toDate });
 
   useEffect(() => {
     setActiveRoute('/statement');
@@ -141,82 +54,25 @@ export const CustomerStatementPage: React.FC = () => {
     URL.revokeObjectURL(url);
   };
 
-  const OPENING_BALANCE_DEFAULT = 10000.0; // USD opening carry forward balance
-
-  // Filter and calculate running balances (FRD 3.3)
   const { filteredRows, totalDebits, totalCredits, totalBalance, openingBalance } = useMemo(() => {
-    if (statementData?.entries && statementData.entries.length > 0) {
-      const nonOpening = statementData.entries.filter((e) => !e.isOpeningBalance);
-      return {
-        filteredRows: nonOpening.map((e) => ({
-          id: e.id,
-          date: e.date,
-          refNumber: e.referenceNo || 'N/A',
-          description: e.description as StatementTransactionItem['description'],
-          debitAmountUsd: e.debitUsd,
-          creditAmountUsd: e.creditUsd,
-          runningBalance: e.runningBalanceUsd,
-          type: (e.debitUsd > 0 ? 'INVOICE' : 'PAYMENT') as StatementTransactionItem['type'],
-        })),
-        totalDebits: statementData.totalDebitsUsd,
-        totalCredits: statementData.totalCreditsUsd,
-        totalBalance: statementData.closingBalanceUsd,
-        openingBalance: statementData.openingBalanceUsd,
-      };
-    }
-
-    const rawTransactions = [...SEED_STATEMENT_TRANSACTIONS];
-
-    // Combine any live invoices into the statement
-    if (invoicesData?.items) {
-      invoicesData.items.forEach((inv) => {
-        if (!rawTransactions.some((t) => t.refNumber === inv.invoiceNumber)) {
-          rawTransactions.push({
-            id: `inv-${inv.id}`,
-            date: inv.issuedAt ? inv.issuedAt.slice(0, 10) : '2026-07-21',
-            refNumber: inv.invoiceNumber,
-            description: 'Invoice created',
-            debitAmountUsd: inv.totalAmountUsd,
-            creditAmountUsd: 0,
-            type: 'INVOICE',
-          });
-        }
-      });
-    }
-
-    // Sort ascending by date
-    rawTransactions.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-
-    // Filter by selected range
-    const filtered = rawTransactions.filter((t) => {
-      if (fromDate && t.date < fromDate) return false;
-      if (toDate && t.date > toDate) return false;
-      return true;
-    });
-
-    let currentBalance = OPENING_BALANCE_DEFAULT;
-    let sumDebits = 0;
-    let sumCredits = 0;
-
-    const rowsWithBalance = filtered.map((item) => {
-      sumDebits += item.debitAmountUsd;
-      sumCredits += item.creditAmountUsd;
-      currentBalance = currentBalance + item.debitAmountUsd - item.creditAmountUsd;
-
-      return {
-        ...item,
-        runningBalance: currentBalance,
-      };
-    });
-
+    const entries = statementData?.entries ?? [];
+    const nonOpening = entries.filter((entry) => !entry.isOpeningBalance);
     return {
-      filteredRows: rowsWithBalance,
-      totalDebits: sumDebits,
-      totalCredits: sumCredits,
-      totalBalance: currentBalance,
-      openingBalance: OPENING_BALANCE_DEFAULT,
+      filteredRows: nonOpening.map((entry) => ({
+        id: entry.id,
+        date: entry.date,
+        refNumber: entry.referenceNo || 'N/A',
+        description: entry.description,
+        debitAmountUsd: entry.debitUsd,
+        creditAmountUsd: entry.creditUsd,
+        runningBalance: entry.runningBalanceUsd,
+      })),
+      totalDebits: statementData?.totalDebitsUsd ?? 0,
+      totalCredits: statementData?.totalCreditsUsd ?? 0,
+      totalBalance: statementData?.closingBalanceUsd ?? 0,
+      openingBalance: statementData?.openingBalanceUsd ?? 0,
     };
-  }, [statementData, invoicesData, fromDate, toDate]);
+  }, [statementData]);
 
   const isCredit = totalBalance <= 0;
 
@@ -329,6 +185,15 @@ export const CustomerStatementPage: React.FC = () => {
           </span>
         </div>
       </section>
+
+      {isLoading && (
+        <p className="cc-stmt-state" role="status">Loading statement transactions…</p>
+      )}
+      {isError && (
+        <p className="cc-stmt-state cc-stmt-state--error" role="alert">
+          {error instanceof Error ? error.message : 'Unable to load statement transactions.'}
+        </p>
+      )}
 
       {/* 3. RUNNING BALANCE TRANSACTION TABLE (FRD 3.3) */}
       <section className="cc-stmt-table-section" aria-label="Transaction Ledger Table">
