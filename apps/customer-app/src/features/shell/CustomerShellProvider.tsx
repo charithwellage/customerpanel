@@ -141,13 +141,6 @@ const DEFAULT_NAV_ITEMS: NavigationItem[] = [
     href: '/profile',
     icon: '👤',
   },
-  {
-    id: 'notifications',
-    label: 'Bulletins & Alerts',
-    altLabel: 'Notifications',
-    href: '/notifications',
-    icon: '🔔',
-  },
 ];
 
 const CustomerShellContext = createContext<CustomerShellContextValue | undefined>(undefined);
