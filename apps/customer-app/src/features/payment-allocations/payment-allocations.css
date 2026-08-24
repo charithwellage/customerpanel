@@ -1,12 +1,12 @@
 .cc-payment-allocations-page { max-width: 1440px; margin: 0 auto; padding: 28px; }
-.cc-payment-allocations-header h1 { margin: 0; font-size: var(--font-size-2xl); }
-.cc-payment-allocations-header p { color: var(--color-text-secondary); margin: 6px 0 0; }
+.cc-payment-allocations-header h1 { margin: 0; font-size: var(--font-size-xl); }
+.cc-payment-allocations-header p { color: var(--color-text-secondary); margin: var(--spacing-xs) 0 0; }
 .cc-payment-allocations-eyebrow { color: var(--color-primary) !important; font-size: var(--font-size-xs); font-weight: 800; letter-spacing: .12em; }
 .cc-payment-allocation-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin: 24px 0; }
 .cc-payment-allocation-kpis > div, .cc-payment-allocation-card, .cc-payment-allocation-filters { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); }
 .cc-payment-allocation-kpis > div { padding: 18px; display: grid; gap: 5px; }
 .cc-payment-allocation-kpis span, .cc-payment-allocation-card small { color: var(--color-text-secondary); }
-.cc-payment-allocation-kpis strong { font-size: var(--font-size-xl); }.cc-payment-allocation-positive { color: var(--color-success); }.cc-payment-allocation-warning { color: var(--color-warning); }
+.cc-payment-allocation-kpis strong { font-size: var(--font-size-2xl); }.cc-payment-allocation-positive { color: var(--color-success); }.cc-payment-allocation-warning { color: var(--color-warning); }
 .cc-payment-allocation-filters { padding: 16px; display: grid; grid-template-columns: 2fr repeat(3, 1fr); gap: 12px; margin-bottom: 18px; }
 .cc-payment-allocation-filters input, .cc-payment-allocation-filters select { min-height: 42px; border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 0 12px; background: var(--color-surface-elevated); color: var(--color-text-primary); font: inherit; }
 .cc-payment-allocation-list { display: grid; gap: 14px; }.cc-payment-allocation-card { overflow: hidden; }

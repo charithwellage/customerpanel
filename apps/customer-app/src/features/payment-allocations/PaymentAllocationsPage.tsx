@@ -42,17 +42,17 @@ export const PaymentAllocationsPage: React.FC = () => {
     <main className="cc-payment-allocations-page" data-testid="payment-allocations-page">
       <header className="cc-payment-allocations-header">
         <div>
-          <p className="cc-payment-allocations-eyebrow">CUSTOMER FINANCE</p>
-          <h1>Payment Allocations</h1>
-          <p>Track each telegraphic transfer, its vehicle allocations, and the invoice generated for it.</p>
+          <p className="cc-payment-allocations-eyebrow cc-portal-page-eyebrow">CUSTOMER FINANCE</p>
+          <h1 className="cc-portal-page-title">Payment Allocations</h1>
+          <p className="cc-portal-page-description">Track each telegraphic transfer, its vehicle allocations, and the invoice generated for it.</p>
         </div>
       </header>
 
       <section className="cc-payment-allocation-kpis" aria-label="TT payment totals">
-        <div><span>Total TT payments</span><strong>{usd(totals?.totalAmountUsd || 0)}</strong></div>
-        <div><span>Allocated</span><strong className="cc-payment-allocation-positive">{usd(totals?.allocatedAmountUsd || 0)}</strong></div>
-        <div><span>Unallocated</span><strong className="cc-payment-allocation-warning">{usd(totals?.unallocatedAmountUsd || 0)}</strong></div>
-        <div><span>Invoices available</span><strong>{totals?.invoiceCount || 0}</strong></div>
+        <div><span>Total TT payments</span><strong className="cc-portal-financial-amount">{usd(totals?.totalAmountUsd || 0)}</strong></div>
+        <div><span>Allocated</span><strong className="cc-portal-financial-amount cc-payment-allocation-positive">{usd(totals?.allocatedAmountUsd || 0)}</strong></div>
+        <div><span>Unallocated</span><strong className="cc-portal-financial-amount cc-payment-allocation-warning">{usd(totals?.unallocatedAmountUsd || 0)}</strong></div>
+        <div><span>Invoices available</span><strong className="cc-portal-financial-amount">{totals?.invoiceCount || 0}</strong></div>
       </section>
 
       <section className="cc-payment-allocation-filters" aria-label="Filter TT payments">

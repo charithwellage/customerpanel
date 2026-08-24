@@ -209,10 +209,10 @@ export const CustomerStatementPage: React.FC = () => {
       <section className="cc-stmt-header-card" aria-labelledby="statement-heading">
         <div className="cc-stmt-header-top">
           <div>
-            <h1 id="statement-heading" className="cc-stmt-title">
+            <h1 id="statement-heading" className="cc-stmt-title cc-portal-page-title">
               My Statement
             </h1>
-            <p className="cc-stmt-subtitle">
+            <p className="cc-stmt-subtitle cc-portal-page-description">
               Comprehensive running balance statement, debits, credits, and wire remittances.
             </p>
           </div>

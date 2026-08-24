@@ -323,7 +323,7 @@ export const PaymentsPage: React.FC = () => {
             <div className="cc-remit-kpi-card cc-remit-kpi-card--approved">
               <div className="cc-remit-kpi-card__content">
                 <span className="cc-remit-kpi-card__label">TOTAL TT AMOUNT</span>
-                <span className="cc-remit-kpi-card__value cc-remit-kpi-card__value--green">
+                <span className="cc-remit-kpi-card__value cc-remit-kpi-card__value--green cc-portal-financial-amount">
                   ${totalTtAmount.toLocaleString()}
                 </span>
               </div>
@@ -335,7 +335,7 @@ export const PaymentsPage: React.FC = () => {
             <div className="cc-remit-kpi-card cc-remit-kpi-card--review">
               <div className="cc-remit-kpi-card__content">
                 <span className="cc-remit-kpi-card__label">TOTAL ALLOCATED</span>
-                <span className="cc-remit-kpi-card__value cc-remit-kpi-card__value--gold">
+                <span className="cc-remit-kpi-card__value cc-remit-kpi-card__value--gold cc-portal-financial-amount">
                   ${totalAllocatedAmount.toLocaleString()}
                 </span>
               </div>
@@ -347,7 +347,7 @@ export const PaymentsPage: React.FC = () => {
             <div className="cc-remit-kpi-card cc-remit-kpi-card--balance">
               <div className="cc-remit-kpi-card__content">
                 <span className="cc-remit-kpi-card__label">TOTAL AVAILABLE</span>
-                <span className="cc-remit-kpi-card__value cc-remit-kpi-card__value--green">
+                <span className="cc-remit-kpi-card__value cc-remit-kpi-card__value--green cc-portal-financial-amount">
                   ${totalAvailableAmount.toLocaleString()}
                 </span>
               </div>

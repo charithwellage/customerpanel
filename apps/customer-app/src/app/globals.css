@@ -16,6 +16,7 @@
 @import "../features/profile/profile.css";
 @import "../features/documents/documents.css";
 @import "../features/payments/payments.css";
+@import "../styles/portal-typography.css";
 @import "../../../../packages/vehicle-search/src/vehicle-search.css";
 @import "../../../../packages/vehicle-detail/src/vehicle-detail.css";
 @import "./placeholder.css";
