@@ -89,13 +89,30 @@ export const SEED_STATEMENT_TRANSACTIONS: StatementTransactionItem[] = [
   },
 ];
 
+const formatDateInputValue = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const getDateMonthsAgo = (months: number): string => {
+  const date = new Date();
+  const originalDay = date.getDate();
+  date.setDate(1);
+  date.setMonth(date.getMonth() - months);
+  const lastDayOfTargetMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+  date.setDate(Math.min(originalDay, lastDayOfTargetMonth));
+  return formatDateInputValue(date);
+};
+
 export const CustomerStatementPage: React.FC = () => {
   const { setActiveRoute } = useCustomerShell();
-  const defaultToDate = new Date().toISOString().slice(0, 10);
-  const defaultFromDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  const defaultToDate = formatDateInputValue(new Date());
+  const defaultFromDate = getDateMonthsAgo(3);
 
-  const [fromDate, setFromDate] = useState<string>('2024-10-01');
-  const [toDate, setToDate] = useState<string>('2026-12-31');
+  const [fromDate, setFromDate] = useState<string>(defaultFromDate);
+  const [toDate, setToDate] = useState<string>(defaultToDate);
 
   const { data: invoicesData } = useCustomerInvoices();
   const { data: statementData } = useCustomerStatement({ fromDate, toDate });
