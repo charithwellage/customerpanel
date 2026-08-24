@@ -704,6 +704,17 @@ export interface CustomerInquirySummary {
   vehicleTitle: string;
   requestedAt: string;
   inquirerCount: number;
+  stockNumber?: string;
+  chassisNumber?: string;
+  imageUrl?: string;
+  engineCc?: number;
+  mileage?: number;
+  fuelType?: string;
+  transmission?: string;
+  color?: string;
+  priceState?: 'priced' | 'request_price';
+  priceUsd?: number;
+  tierPricing?: VehicleTierPricing;
 }
 
 /** Signed-in customer's inquiry list (D02-P13-T001, CUST-34). */
@@ -1348,6 +1359,16 @@ export interface CustomerPolymorphicInquiry {
   auctionRemaining?: string;
   auctionFinished?: boolean;
   imageUrl?: string;
+  vehicleSlug?: string;
+  vehicleId?: string;
+  engineCc?: number;
+  mileage?: number;
+  fuelType?: string;
+  transmission?: string;
+  color?: string;
+  priceState?: 'priced' | 'request_price';
+  priceUsd?: number;
+  tierPricing?: VehicleTierPricing;
 }
 
 export interface CustomerPolymorphicInquiryListResponse {

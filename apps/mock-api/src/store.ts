@@ -5684,10 +5684,15 @@ class MemoryStore implements DemoStore {
   listCustomerInquiries(customerId: string): Promise<CustomerInquiryListResponse> {
     const enquiries = this.enquiries.filter((e) => e.customerId === customerId && e.enquiryType === 'price-request');
     const vehicleSlugs = [...new Set(enquiries.map((e) => e.vehicleSlug).filter(Boolean))];
+    const customerTier = this.customerAccounts.find((account) => account.customerId === customerId)?.tier || 'Standard';
+    const tierRule = this.tierRules.get(customerTier);
 
     const items: CustomerInquirySummary[] = vehicleSlugs.map((slug) => {
       const enquiry = enquiries.find((e) => e.vehicleSlug === slug)!;
       const vehicle = this.vehicles.find((v) => generateVehicleSlug(v.year, v.make, v.model, v.id) === slug);
+      const projection = vehicle
+        ? projectVehicle(vehicle, { audience: 'customer', customerId, customerTier, tierRule })
+        : undefined;
       const inquirerCount = this.enquiries.filter((e) => e.vehicleSlug === slug && e.enquiryType === 'price-request').reduce((acc, e) => {
         const key = e.customerId;
         const seen = new Set(acc.map((x) => x));
@@ -5703,6 +5708,17 @@ class MemoryStore implements DemoStore {
         vehicleTitle: vehicle ? `${vehicle.year} ${vehicle.make} ${vehicle.model}` : 'Unknown Vehicle',
         requestedAt: enquiry.receivedAt,
         inquirerCount,
+        stockNumber: vehicle?.stockNumber,
+        chassisNumber: vehicle?.chassisNumber,
+        imageUrl: projection?.images?.[0],
+        engineCc: projection?.engineCc,
+        mileage: projection?.mileage,
+        fuelType: projection?.fuelType,
+        transmission: projection?.transmission,
+        color: projection?.color,
+        priceState: projection?.priceState,
+        priceUsd: projection?.priceState === 'priced' ? projection.priceUsd : undefined,
+        tierPricing: projection?.tierPricing,
       };
     });
 
@@ -6491,6 +6507,8 @@ class MemoryStore implements DemoStore {
         make: 'Toyota',
         model: 'Corolla Fielder 1.5G',
         yom: '2021',
+        vehicleSlug: '2021-toyota-corolla-fielder-veh-inv-1',
+        vehicleId: 'veh-inv-1',
         stockNumber: 'J240111111',
         chassisNumber: 'NRE161-0091995',
         viewsCount: 12,
@@ -6511,6 +6529,8 @@ class MemoryStore implements DemoStore {
         make: 'Toyota',
         model: 'Raize Z 4WD',
         yom: '2024',
+        vehicleSlug: '2024-toyota-raize-veh-7',
+        vehicleId: 'veh-7',
         lotNumber: '36071',
         chassisModel: 'A210A',
         viewsCount: 8,
@@ -6544,9 +6564,40 @@ class MemoryStore implements DemoStore {
       },
     ];
 
+    const customerAccount = this.customerAccounts.find((account) => account.customerId === customerId);
+    const customerTier = customerAccount?.tier || 'Standard';
+    const tierRule = this.tierRules.get(customerTier);
+    const enrichedItems = items.map((item) => {
+      if (!item.vehicleSlug) return item;
+      const vehicle = findVehicleRecord(this.vehicles, item.vehicleSlug);
+      if (!vehicle) return item;
+      const projection = projectVehicle(vehicle, {
+        audience: 'customer',
+        customerId,
+        customerTier,
+        tierRule,
+      });
+      return {
+        ...item,
+        vehicleSlug: projection.slug,
+        vehicleId: projection.id,
+        stockNumber: item.stockNumber || vehicle.stockNumber,
+        chassisNumber: item.chassisNumber || projection.chassisNumber,
+        imageUrl: item.imageUrl || projection.images?.[0],
+        engineCc: projection.engineCc,
+        mileage: projection.mileage,
+        fuelType: projection.fuelType,
+        transmission: projection.transmission,
+        color: projection.color,
+        priceState: projection.priceState,
+        priceUsd: projection.priceState === 'priced' ? projection.priceUsd : undefined,
+        tierPricing: projection.tierPricing,
+      };
+    });
+
     return Promise.resolve({
-      items,
-      total: items.length,
+      items: enrichedItems,
+      total: enrichedItems.length,
     });
   }
 
@@ -8429,11 +8480,16 @@ class PostgresStore implements DemoStore {
     const enquiries = result.rows.map((row) => rowToEnquiryRecord(row));
     const vehicleSlugs = [...new Set(enquiries.map((e) => e.vehicleSlug).filter(Boolean))];
     const vehicles = await this.getRawVehicles();
+    const customerTier = await this.getCustomerTier(customerId);
+    const tierRule = await this.getTierRule(customerTier);
 
     const items: CustomerInquirySummary[] = [];
     for (const slug of vehicleSlugs) {
       const enquiry = enquiries.find((e) => e.vehicleSlug === slug)!;
       const vehicle = vehicles.find((v) => generateVehicleSlug(v.year, v.make, v.model, v.id) === slug);
+      const projection = vehicle
+        ? projectVehicle(vehicle, { audience: 'customer', customerId, customerTier, tierRule })
+        : undefined;
 
       const countResult = await this.pool.query(
         `SELECT COUNT(DISTINCT customer_id) as inquirer_count FROM enquiries WHERE vehicle_slug = $1 AND enquiry_type = 'price-request'`,
@@ -8447,6 +8503,17 @@ class PostgresStore implements DemoStore {
         vehicleTitle: vehicle ? `${vehicle.year} ${vehicle.make} ${vehicle.model}` : 'Unknown Vehicle',
         requestedAt: enquiry.receivedAt,
         inquirerCount,
+        stockNumber: vehicle?.stockNumber,
+        chassisNumber: vehicle?.chassisNumber,
+        imageUrl: projection?.images?.[0],
+        engineCc: projection?.engineCc,
+        mileage: projection?.mileage,
+        fuelType: projection?.fuelType,
+        transmission: projection?.transmission,
+        color: projection?.color,
+        priceState: projection?.priceState,
+        priceUsd: projection?.priceState === 'priced' ? projection.priceUsd : undefined,
+        tierPricing: projection?.tierPricing,
       });
     }
 

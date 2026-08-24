@@ -2788,7 +2788,18 @@
           "vehicleId": { "type": "string", "example": "veh-1" },
           "vehicleTitle": { "type": "string", "example": "2021 Toyota Corolla Axio" },
           "requestedAt": { "type": "string", "example": "2026-08-11T12:00:00.000Z" },
-          "inquirerCount": { "type": "integer", "example": 3, "description": "Count of distinct inquirers for this vehicle" }
+          "inquirerCount": { "type": "integer", "example": 3, "description": "Count of distinct inquirers for this vehicle" },
+          "stockNumber": { "type": "string", "example": "J240111111" },
+          "chassisNumber": { "type": "string", "example": "NRE161-0091995" },
+          "imageUrl": { "type": "string", "format": "uri" },
+          "engineCc": { "type": "integer", "example": 1500 },
+          "mileage": { "type": "integer", "example": 177000 },
+          "fuelType": { "type": "string", "example": "Petrol" },
+          "transmission": { "type": "string", "example": "Automatic" },
+          "color": { "type": "string", "example": "Pearl White" },
+          "priceState": { "type": "string", "enum": ["priced", "request_price"] },
+          "priceUsd": { "type": "number", "example": 17360 },
+          "tierPricing": { "$ref": "#/components/schemas/VehicleTierPricing" }
         },
         "required": ["vehicleSlug", "vehicleId", "vehicleTitle", "requestedAt", "inquirerCount"]
       },
@@ -2797,10 +2808,43 @@
         "properties": {
           "items": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/CustomerInquirySummary" }
+            "items": { "$ref": "#/components/schemas/CustomerPolymorphicInquiry" }
           }
         },
         "required": ["items"]
+      },
+      "CustomerPolymorphicInquiry": {
+        "type": "object",
+        "description": "A customer inquiry card with optional vehicle, auction, and pricing details.",
+        "properties": {
+          "id": { "type": "string" },
+          "customerId": { "type": "string" },
+          "inquiryNumber": { "type": "string" },
+          "source": { "type": "string", "enum": ["Stock", "WhatsApp", "Auction", "General"] },
+          "status": { "type": "string", "enum": ["Pending Reply", "Replied"] },
+          "inquiryDate": { "type": "string" },
+          "make": { "type": "string" },
+          "model": { "type": "string" },
+          "yom": { "type": "string" },
+          "stockNumber": { "type": "string" },
+          "chassisNumber": { "type": "string" },
+          "vehicleSlug": { "type": "string" },
+          "vehicleId": { "type": "string" },
+          "imageUrl": { "type": "string", "format": "uri" },
+          "engineCc": { "type": "integer" },
+          "mileage": { "type": "integer" },
+          "fuelType": { "type": "string" },
+          "transmission": { "type": "string" },
+          "color": { "type": "string" },
+          "priceState": { "type": "string", "enum": ["priced", "request_price"] },
+          "priceUsd": { "type": "number" },
+          "tierPricing": { "$ref": "#/components/schemas/VehicleTierPricing" },
+          "message": { "type": "string" },
+          "replyMessage": { "type": "string" },
+          "repliedAt": { "type": "string" },
+          "inquirerCount": { "type": "integer" }
+        },
+        "required": ["id", "inquiryNumber", "source", "status", "inquiryDate", "make", "model", "yom", "message"]
       },
       "VehicleInquiryAggregate": {
         "type": "object",

@@ -1,11 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
-import type { CustomerInquirySummary } from '@carchief/domain';
+import type { CustomerPolymorphicInquiry } from '@carchief/domain';
 import { HttpClient } from '@carchief/api-client';
 import { loadCustomerSession } from '../account/index.js';
 import { CustomerInquiryService } from '@carchief/api-client';
 
 export interface UseCustomerInquiriesResult {
-  inquiries: CustomerInquirySummary[];
+  inquiries: CustomerPolymorphicInquiry[];
   isLoading: boolean;
   isError: boolean;
   error: Error | null;

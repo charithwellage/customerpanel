@@ -370,6 +370,24 @@
   color: var(--color-text-primary);
 }
 
+.cc-inq-price-values {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+}
+
+.cc-inq-price-val--original {
+  color: var(--color-text-secondary);
+  text-decoration: line-through;
+  font-weight: 600;
+}
+
+.cc-inq-price-val--discounted {
+  color: var(--color-primary);
+  font-weight: 800;
+}
+
 .cc-inq-price-val--bold {
   font-weight: 800;
   color: var(--color-primary);
