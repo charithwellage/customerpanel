@@ -306,6 +306,7 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
               vehicle={v}
               onSelect={onSelectVehicle}
               onTrackShipment={(vehicle) => setSelectedTrackingVehicle(vehicle)}
+              onPayDeposit={() => setActiveRoute('/payments')}
             />
           ))}
         </div>

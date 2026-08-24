@@ -100,6 +100,11 @@ export const VehicleFleetCard: React.FC<VehicleFleetCardProps> = ({
           alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
           className="cc-cust-fleet-card__image"
           loading="lazy"
+          onError={(event) => {
+            if (event.currentTarget.src !== fallbackImage) {
+              event.currentTarget.src = fallbackImage;
+            }
+          }}
         />
 
         {/* Top Badges */}
@@ -136,10 +141,9 @@ export const VehicleFleetCard: React.FC<VehicleFleetCardProps> = ({
         </div>
 
         <div className="cc-cust-fleet-card__list-meta">
-          <div><span>Chassis</span><strong>{vehicle.chassisNumber}</strong></div>
-          <div><span>Color</span><strong>{colorSpec}</strong></div>
           <div><span>Mileage</span><strong>{mileageDisplay}</strong></div>
         </div>
+
       </div>
 
       {/* Card Body */}
@@ -153,6 +157,15 @@ export const VehicleFleetCard: React.FC<VehicleFleetCardProps> = ({
             ${price.toLocaleString()}
           </span>
         </div>
+
+        {isInvoiced && (
+          <div className="cc-cust-fleet-card__list-commercial-bill" aria-label="Purchased commercial bill summary">
+            <div className="cc-cust-fleet-card__list-commercial-bill-title">✓ Purchased Commercial Bill</div>
+            <div><span>Sold</span><strong>${soldAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></div>
+            <div><span>Paid</span><strong className="cc-cust-fleet-card__list-commercial-bill-paid">${paidAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></div>
+            <div><span>Balance</span><strong className="cc-cust-fleet-card__list-commercial-bill-balance">${balanceAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></div>
+          </div>
+        )}
 
         {/* Prominent Visual Status Tracker */}
         <div className="cc-cust-fleet-card__status-tracker-container">
@@ -342,13 +355,13 @@ export const VehicleFleetCard: React.FC<VehicleFleetCardProps> = ({
               className="cc-cust-fleet-card__action-btn cc-cust-fleet-card__action-btn--primary cc-cust-fleet-card__action-btn--amber"
               data-testid={`fleet-card-primary-cta-${vehicle.id || vehicle.chassisNumber}`}
               onClick={handlePayClick}
-              aria-label={`Pay deposit for ${vehicle.year} ${vehicle.make} ${vehicle.model}`}
+              aria-label={`Pay 30 percent deposit for ${vehicle.year} ${vehicle.make} ${vehicle.model}`}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <rect x="2" y="4" width="20" height="16" rx="2" />
                 <line x1="2" y1="10" x2="22" y2="10" />
               </svg>
-              PAY DEPOSIT (50%)
+              PAY DEPOSIT (30%)
             </button>
           )}
 
@@ -358,13 +371,13 @@ export const VehicleFleetCard: React.FC<VehicleFleetCardProps> = ({
               className="cc-cust-fleet-card__action-btn cc-cust-fleet-card__action-btn--primary cc-cust-fleet-card__action-btn--purple"
               data-testid={`fleet-card-primary-cta-${vehicle.id || vehicle.chassisNumber}`}
               onClick={handlePayClick}
-              aria-label={`View proforma and pay deposit for ${vehicle.year} ${vehicle.make} ${vehicle.model}`}
+              aria-label={`Make a payment for ${vehicle.year} ${vehicle.make} ${vehicle.model}`}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                 <polyline points="14 2 14 8 20 8" />
               </svg>
-              PAY ADVANCE DEPOSIT
+              MAKE A PAYMENT
             </button>
           )}
 

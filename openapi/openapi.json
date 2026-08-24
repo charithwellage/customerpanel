@@ -1998,6 +1998,53 @@
         }
       }
     },
+    "/api/v1/customer/payment-allocations": {
+      "get": {
+        "operationId": "listCustomerPaymentAllocations",
+        "summary": "List the authenticated customer's TT payments and vehicle allocations",
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
+        "parameters": [
+          {"name":"query","in":"query","schema":{"type":"string"}},
+          {"name":"paymentStatus","in":"query","schema":{"type":"string"}},
+          {"name":"allocationStatus","in":"query","schema":{"type":"string","enum":["Unallocated","PartiallyAllocated","FullyAllocated"]}},
+          {"name":"purpose","in":"query","schema":{"type":"string","enum":["Advance","Balance"]}},
+          {"name":"scope","in":"query","schema":{"type":"string","enum":["SingleVehicle","MultipleVehicles"]}},
+          {"name":"from","in":"query","schema":{"type":"string","format":"date"}},
+          {"name":"to","in":"query","schema":{"type":"string","format":"date"}},
+          {"name":"page","in":"query","schema":{"type":"integer","minimum":1}},
+          {"name":"limit","in":"query","schema":{"type":"integer","minimum":1,"maximum":100}}
+        ],
+        "responses": {
+          "200":{"description":"Customer-scoped TT allocation journal","content":{"application/json":{"schema":{"$ref":"#/components/schemas/CustomerPaymentAllocationListResponse"}}}},
+          "401":{"description":"Unauthenticated","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ErrorResponse"}}}}
+        }
+      }
+    },
+    "/api/v1/customer/payment-allocations/{paymentId}": {
+      "get": {
+        "operationId": "getCustomerPaymentAllocation",
+        "summary": "Get one authenticated customer's TT payment allocation",
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
+        "parameters": [{"name":"paymentId","in":"path","required":true,"schema":{"type":"string"}}],
+        "responses": {
+          "200":{"description":"TT allocation detail","content":{"application/json":{"schema":{"$ref":"#/components/schemas/CustomerPaymentAllocationSummary"}}}},
+          "401":{"description":"Unauthenticated","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ErrorResponse"}}}},
+          "404":{"description":"TT payment not found or not owned by customer","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ErrorResponse"}}}}
+        }
+      }
+    },
+    "/api/v1/customer/invoices/{id}/document.pdf": {
+      "get": {
+        "operationId": "downloadCustomerInvoicePdf",
+        "summary": "Download an authenticated customer's invoice PDF",
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
+        "parameters": [{"name":"id","in":"path","required":true,"schema":{"type":"string"}}],
+        "responses": {"200":{"description":"PDF invoice","content":{"application/pdf":{"schema":{"type":"string","format":"binary"}}}},"401":{"description":"Unauthenticated"},"404":{"description":"Invoice not found or not owned by customer"}}
+      }
+    },
     "/api/v1/customer/payments": {
       "get": {
         "operationId": "listCustomerPayments",
@@ -3486,6 +3533,21 @@
       "MarkNotificationsReadResponse": {
         "type": "object", "properties": { "updatedCount": { "type": "integer" }, "unreadCount": { "type": "integer" } }, "required": ["updatedCount", "unreadCount"]
       },
+      "CustomerPaymentAllocationVehicle": {
+        "type":"object", "properties":{"id":{"type":"string"},"slug":{"type":"string"},"stockNumber":{"type":"string"},"chassisNumber":{"type":"string"},"make":{"type":"string"},"model":{"type":"string"},"year":{"type":"integer"},"primaryImage":{"type":"string"}}, "required":["id","slug","stockNumber","chassisNumber","make","model","year"]
+      },
+      "CustomerPaymentAllocationLine": {
+        "type":"object", "properties":{"id":{"type":"string"},"vehicle":{"$ref":"#/components/schemas/CustomerPaymentAllocationVehicle"},"invoiceId":{"type":"string"},"invoiceNumber":{"type":"string"},"amountUsd":{"type":"number"},"vehicleTotalAmountUsd":{"type":"number"},"vehicleAllocatedAmountUsd":{"type":"number"},"vehicleBalanceAmountUsd":{"type":"number"},"purpose":{"type":"string","enum":["Advance","Balance"]},"status":{"type":"string","enum":["Approved","Pending","Rejected"]},"allocatedAt":{"type":"string","format":"date-time"}}, "required":["id","vehicle","amountUsd","vehicleTotalAmountUsd","vehicleAllocatedAmountUsd","vehicleBalanceAmountUsd","purpose","status","allocatedAt"]
+      },
+      "CustomerPaymentAllocationInvoice": {
+        "type":"object", "properties":{"id":{"type":"string"},"invoiceNumber":{"type":"string"},"issuedAt":{"type":"string","format":"date-time"},"totalAmountUsd":{"type":"number"},"paidAmountUsd":{"type":"number"},"outstandingAmountUsd":{"type":"number"},"status":{"$ref":"#/components/schemas/CustomerInvoiceStatus"},"vehicleCount":{"type":"integer"},"documentAvailable":{"type":"boolean"}}, "required":["id","invoiceNumber","issuedAt","totalAmountUsd","paidAmountUsd","outstandingAmountUsd","status","vehicleCount","documentAvailable"]
+      },
+      "CustomerPaymentAllocationSummary": {
+        "type":"object", "properties":{"id":{"type":"string"},"reference":{"type":"string"},"bankName":{"type":"string"},"currency":{"type":"string"},"amountUsd":{"type":"number"},"paymentDate":{"type":"string"},"paymentStatus":{"type":"string"},"allocationStatus":{"type":"string","enum":["Unallocated","PartiallyAllocated","FullyAllocated"]},"allocatedAmountUsd":{"type":"number"},"unallocatedAmountUsd":{"type":"number"},"allocationPercent":{"type":"number"},"vehicleCount":{"type":"integer"},"allocations":{"type":"array","items":{"$ref":"#/components/schemas/CustomerPaymentAllocationLine"}},"invoice":{"$ref":"#/components/schemas/CustomerPaymentAllocationInvoice"}}, "required":["id","reference","bankName","currency","amountUsd","paymentDate","paymentStatus","allocationStatus","allocatedAmountUsd","unallocatedAmountUsd","allocationPercent","vehicleCount","allocations"]
+      },
+      "CustomerPaymentAllocationListResponse": {
+        "type":"object", "properties":{"items":{"type":"array","items":{"$ref":"#/components/schemas/CustomerPaymentAllocationSummary"}},"total":{"type":"integer"},"page":{"type":"integer"},"limit":{"type":"integer"},"totals":{"type":"object","properties":{"totalAmountUsd":{"type":"number"},"allocatedAmountUsd":{"type":"number"},"unallocatedAmountUsd":{"type":"number"},"invoiceCount":{"type":"integer"}},"required":["totalAmountUsd","allocatedAmountUsd","unallocatedAmountUsd","invoiceCount"]}}, "required":["items","total","page","limit","totals"]
+      },
       "CustomerPayment": {
         "type": "object",
         "properties": {
@@ -3496,7 +3558,7 @@
           "holdReason": { "type": "string" }, "proof": { "$ref": "#/components/schemas/CustomerPaymentProofMetadata" },
           "idempotencyKey": { "type": "string" }, "createdAt": { "type": "string" }
         },
-        "required": ["id", "customerId", "invoiceId", "reference", "bankName", "currency", "amountUsd", "paymentDate", "status", "idempotencyKey", "createdAt"]
+        "required": ["id", "customerId", "reference", "bankName", "currency", "amountUsd", "paymentDate", "status", "idempotencyKey", "createdAt"]
       },
       "CreateCustomerPaymentRequest": {
         "type": "object",
@@ -3505,7 +3567,7 @@
           "currency": { "type": "string", "enum": ["USD", "JPY", "EUR", "GBP", "KES", "AED", "AUD", "CAD", "NZD", "SGD"] }, "amountUsd": { "type": "number" }, "paymentDate": { "type": "string" },
           "remarks": { "type": "string" }, "proof": { "$ref": "#/components/schemas/CustomerPaymentProofMetadata" }, "idempotencyKey": { "type": "string" }
         },
-        "required": ["invoiceId", "reference", "bankName", "currency", "amountUsd", "paymentDate", "proof", "idempotencyKey"]
+        "required": ["reference", "bankName", "currency", "amountUsd", "paymentDate", "proof", "idempotencyKey"]
       },
       "CustomerPaymentListResponse": {
         "type": "object",

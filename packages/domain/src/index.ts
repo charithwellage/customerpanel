@@ -54,7 +54,7 @@ export interface CustomerPaymentAllocation {
 export interface CustomerPayment {
   id: string;
   customerId: string;
-  invoiceId: string;
+  invoiceId?: string;
   reference: string;
   bankName: string;
   currency: string;
@@ -77,7 +77,8 @@ export interface CustomerPayment {
 }
 
 export interface CreateCustomerPaymentRequest {
-  invoiceId: string;
+  /** Optional because a bulk TT can be verified before sales staff allocate it and issue its invoice. */
+  invoiceId?: string;
   reference: string;
   bankName: string;
   currency: string;
@@ -97,6 +98,88 @@ export interface RecordPaymentNotificationRequest {
 export interface CustomerPaymentListResponse {
   items: CustomerPayment[];
   total: number;
+}
+
+export type CustomerPaymentPurpose = 'Advance' | 'Balance';
+export type CustomerPaymentAllocationStatus = 'Unallocated' | 'PartiallyAllocated' | 'FullyAllocated';
+
+export interface CustomerPaymentAllocationVehicle {
+  id: string;
+  slug: string;
+  stockNumber: string;
+  chassisNumber: string;
+  make: string;
+  model: string;
+  year: number;
+  primaryImage?: string;
+}
+
+export interface CustomerPaymentAllocationLine {
+  id: string;
+  vehicle: CustomerPaymentAllocationVehicle;
+  invoiceId?: string;
+  invoiceNumber?: string;
+  amountUsd: number;
+  vehicleTotalAmountUsd: number;
+  vehicleAllocatedAmountUsd: number;
+  vehicleBalanceAmountUsd: number;
+  purpose: CustomerPaymentPurpose;
+  status: 'Approved' | 'Pending' | 'Rejected';
+  allocatedAt: string;
+}
+
+export interface CustomerPaymentAllocationInvoice {
+  id: string;
+  invoiceNumber: string;
+  issuedAt: string;
+  totalAmountUsd: number;
+  paidAmountUsd: number;
+  outstandingAmountUsd: number;
+  status: CustomerInvoiceStatus;
+  vehicleCount: number;
+  documentAvailable: boolean;
+}
+
+export interface CustomerPaymentAllocationSummary {
+  id: string;
+  reference: string;
+  bankName: string;
+  currency: string;
+  amountUsd: number;
+  paymentDate: string;
+  paymentStatus: PaymentStatus;
+  allocationStatus: CustomerPaymentAllocationStatus;
+  allocatedAmountUsd: number;
+  unallocatedAmountUsd: number;
+  allocationPercent: number;
+  vehicleCount: number;
+  allocations: CustomerPaymentAllocationLine[];
+  invoice?: CustomerPaymentAllocationInvoice;
+}
+
+export interface ListCustomerPaymentAllocationsQuery {
+  query?: string;
+  paymentStatus?: PaymentStatus | string;
+  allocationStatus?: CustomerPaymentAllocationStatus | string;
+  purpose?: CustomerPaymentPurpose | string;
+  scope?: 'SingleVehicle' | 'MultipleVehicles' | string;
+  from?: string;
+  to?: string;
+  page?: number;
+  limit?: number;
+}
+
+export interface CustomerPaymentAllocationListResponse {
+  items: CustomerPaymentAllocationSummary[];
+  total: number;
+  page: number;
+  limit: number;
+  totals: {
+    totalAmountUsd: number;
+    allocatedAmountUsd: number;
+    unallocatedAmountUsd: number;
+    invoiceCount: number;
+  };
 }
 
 export type CustomerPaymentNotificationEvent =
@@ -1129,6 +1212,8 @@ export interface CustomerInvoiceDetailVehicle {
 
 export interface CustomerInvoiceDetail extends CustomerInvoiceSummary {
   vehicle: CustomerInvoiceDetailVehicle;
+  /** Includes every vehicle where a single TT-backed invoice is allocated to a fleet. */
+  vehicles?: CustomerInvoiceDetailVehicle[];
   lineItems: CustomerInvoiceLineItem[];
   allocations: CustomerInvoiceAllocationItem[];
   bankDetails?: CustomerInvoiceBankDetails;

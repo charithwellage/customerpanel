@@ -81,6 +81,9 @@ import type {
   CustomerPaymentNotificationEvent,
   CustomerPaymentNotificationListResponse,
   RecordPaymentNotificationRequest,
+  CustomerPaymentAllocationSummary,
+  CustomerPaymentAllocationListResponse,
+  ListCustomerPaymentAllocationsQuery,
   Notification,
   CustomerNotificationListResponse,
   MarkNotificationsReadResponse,
@@ -1325,6 +1328,8 @@ export interface DemoStore {
   getCustomerInvoices(customerId: string, query?: ListCustomerInvoicesQuery, nowISO?: string): Promise<CustomerInvoiceListResponse>;
   getCustomerInvoiceById(customerId: string, id: string, nowISO?: string): Promise<CustomerInvoiceDetail | null>;
   getCustomerInvoiceDocument(customerId: string, id: string, nowISO?: string): Promise<CustomerInvoiceDocument | null>;
+  listCustomerPaymentAllocations(customerId: string, query?: ListCustomerPaymentAllocationsQuery): Promise<CustomerPaymentAllocationListResponse>;
+  getCustomerPaymentAllocation(customerId: string, paymentId: string): Promise<CustomerPaymentAllocationSummary | null>;
   listCustomerPayments(customerId: string): Promise<CustomerPaymentListResponse>;
   createCustomerPayment(customerId: string, request: CreateCustomerPaymentRequest, nowISO?: string): Promise<CustomerPayment>;
   listCustomerPaymentNotifications(customerId: string, paymentId?: string): Promise<CustomerPaymentNotificationListResponse>;
@@ -3715,6 +3720,17 @@ export interface InvoiceRecord {
   totalAmountUsd: number;
   invoicedAt: string;
   status: 'Draft' | 'Issued' | 'Paid' | 'Overdue';
+  vehicleItems?: InvoiceVehicleItemRecord[];
+}
+
+interface InvoiceVehicleItemRecord {
+  vehicleId: string;
+  make: string;
+  model: string;
+  year: number;
+  chassisNumber: string;
+  stockNumber: string;
+  amountUsd: number;
 }
 
 function findAllocatedCustomerId(invoices: InvoiceRecord[], vehicleId: string): string | undefined {
@@ -3740,6 +3756,9 @@ export interface AllocationRecord {
   customerId: string;
   paymentId: string;
   invoiceId: string;
+  /** The specific vehicle receiving the TT allocation; legacy rows fall back to the invoice vehicle. */
+  vehicleId?: string;
+  purpose?: 'Advance' | 'Balance';
   amountUsd: number;
   allocatedAt: string;
   status: 'Approved' | 'Pending' | 'Rejected';
@@ -3748,7 +3767,7 @@ export interface AllocationRecord {
 export interface PaymentRecord {
   id: string;
   customerId: string;
-  invoiceId: string;
+  invoiceId?: string;
   amountUsd: number;
   paidAt: string;
   status: 'Pending' | 'Held' | 'Resubmitted' | 'Approved' | 'Rejected';
@@ -3846,6 +3865,20 @@ export interface PaymentNotificationRecord {
 }
 
 const seedInvoices: InvoiceRecord[] = [
+  // One TT can fund multiple vehicles while producing one commercial invoice.
+  { id: 'inv-bulk-001', customerId: 'cust-123', vehicleId: 'veh-inv-1', vehicleSlug: '2021-toyota-corolla-fielder-veh-inv-1', make: 'Toyota', model: 'Corolla Fielder', year: 2021, totalAmountUsd: 5500.00, invoicedAt: '2026-08-14T09:00:00.000Z', status: 'Issued', vehicleItems: [
+    { vehicleId: 'veh-inv-1', make: 'Toyota', model: 'Corolla Fielder', year: 2021, chassisNumber: '', stockNumber: 'veh-inv-1', amountUsd: 2500 },
+    { vehicleId: 'veh-inv-2', make: 'Mazda', model: 'Demio', year: 2013, chassisNumber: '', stockNumber: 'veh-inv-2', amountUsd: 3000 },
+  ] },
+  // Additional multi-vehicle examples: one fully allocated TT and one partial TT.
+  { id: 'inv-bulk-002', customerId: 'cust-123', vehicleId: 'veh-inv-7', vehicleSlug: '2013-volvo-v40-veh-inv-7', make: 'Volvo', model: 'V40', year: 2013, totalAmountUsd: 18000.00, invoicedAt: '2026-08-16T09:00:00.000Z', status: 'Issued', vehicleItems: [
+    { vehicleId: 'veh-inv-7', make: 'Volvo', model: 'V40', year: 2013, chassisNumber: '', stockNumber: 'veh-inv-7', amountUsd: 9000 },
+    { vehicleId: 'veh-inv-9', make: 'Toyota', model: 'Corolla Fielder', year: 2013, chassisNumber: '', stockNumber: 'veh-inv-9', amountUsd: 9000 },
+  ] },
+  { id: 'inv-bulk-003', customerId: 'cust-123', vehicleId: 'veh-inv-10', vehicleSlug: '2013-toyota-premio-veh-inv-10', make: 'Toyota', model: 'Premio', year: 2013, totalAmountUsd: 24000.00, invoicedAt: '2026-08-17T09:00:00.000Z', status: 'Issued', vehicleItems: [
+    { vehicleId: 'veh-inv-10', make: 'Toyota', model: 'Premio', year: 2013, chassisNumber: '', stockNumber: 'veh-inv-10', amountUsd: 12000 },
+    { vehicleId: 'veh-inv-15', make: 'Mazda', model: 'Demio', year: 2012, chassisNumber: '', stockNumber: 'veh-inv-15', amountUsd: 12000 },
+  ] },
   // 16 Invoiced vehicles for cust-123 (matching Image 2)
   { id: 'inv-001', customerId: 'cust-123', vehicleId: 'veh-inv-1', vehicleSlug: '2021-toyota-corolla-fielder-veh-inv-1', make: 'Toyota', model: 'Corolla Fielder', year: 2021, totalAmountUsd: 17360.00, invoicedAt: '2026-08-10T10:00:00.000Z', status: 'Issued' },
   { id: 'inv-002', customerId: 'cust-123', vehicleId: 'veh-inv-2', vehicleSlug: '2013-mazda-demio-veh-inv-2', make: 'Mazda', model: 'Demio', year: 2013, totalAmountUsd: 7840.00, invoicedAt: '2026-08-10T10:00:00.000Z', status: 'Issued' },
@@ -3879,6 +3912,27 @@ const seedInvoices: InvoiceRecord[] = [
 ];
 
 const seedAllocations: AllocationRecord[] = [
+  {
+    id: 'alloc-bulk-001', customerId: 'cust-123', paymentId: 'pay-bulk-001', invoiceId: 'inv-bulk-001', vehicleId: 'veh-inv-1', purpose: 'Advance', amountUsd: 2500.00, allocatedAt: '2026-08-14T09:00:00.000Z', status: 'Approved',
+  },
+  {
+    id: 'alloc-bulk-002', customerId: 'cust-123', paymentId: 'pay-bulk-001', invoiceId: 'inv-bulk-001', vehicleId: 'veh-inv-2', purpose: 'Advance', amountUsd: 3000.00, allocatedAt: '2026-08-14T09:00:00.000Z', status: 'Approved',
+  },
+  {
+    id: 'alloc-partial-001', customerId: 'cust-123', paymentId: 'pay-partial-001', invoiceId: 'inv-003', vehicleId: 'veh-inv-3', purpose: 'Balance', amountUsd: 2000.00, allocatedAt: '2026-08-15T09:00:00.000Z', status: 'Approved',
+  },
+  {
+    id: 'alloc-bulk-002-001', customerId: 'cust-123', paymentId: 'pay-bulk-002', invoiceId: 'inv-bulk-002', vehicleId: 'veh-inv-7', purpose: 'Advance', amountUsd: 9000.00, allocatedAt: '2026-08-16T09:00:00.000Z', status: 'Approved',
+  },
+  {
+    id: 'alloc-bulk-002-002', customerId: 'cust-123', paymentId: 'pay-bulk-002', invoiceId: 'inv-bulk-002', vehicleId: 'veh-inv-9', purpose: 'Advance', amountUsd: 9000.00, allocatedAt: '2026-08-16T09:00:00.000Z', status: 'Approved',
+  },
+  {
+    id: 'alloc-partial-002-001', customerId: 'cust-123', paymentId: 'pay-partial-002', invoiceId: 'inv-bulk-003', vehicleId: 'veh-inv-10', purpose: 'Balance', amountUsd: 8000.00, allocatedAt: '2026-08-17T09:00:00.000Z', status: 'Approved',
+  },
+  {
+    id: 'alloc-partial-002-002', customerId: 'cust-123', paymentId: 'pay-partial-002', invoiceId: 'inv-bulk-003', vehicleId: 'veh-inv-15', purpose: 'Balance', amountUsd: 4000.00, allocatedAt: '2026-08-17T09:00:00.000Z', status: 'Approved',
+  },
   {
     id: 'alloc-001',
     customerId: 'cust-123',
@@ -3928,6 +3982,18 @@ const seedAllocations: AllocationRecord[] = [
 
 // Seed data for payments (D02-P02-T001)
 const seedPayments: PaymentRecord[] = [
+  {
+    id: 'pay-bulk-001', customerId: 'cust-123', invoiceId: 'inv-bulk-001', amountUsd: 5500.00, paidAt: '2026-08-14T08:00:00.000Z', paymentDate: '2026-08-14T08:00:00.000Z', status: 'Approved', reference: 'TT-2026-BULK-5500', bankName: 'Sumitomo Mitsui Banking Corp', currency: 'USD', remarks: 'Advance TT allocated to two vehicles', idempotencyKey: 'seed-pay-bulk-001',
+  },
+  {
+    id: 'pay-partial-001', customerId: 'cust-123', invoiceId: 'inv-003', amountUsd: 6000.00, paidAt: '2026-08-15T08:00:00.000Z', paymentDate: '2026-08-15T08:00:00.000Z', status: 'Approved', reference: 'TT-2026-PARTIAL-6000', bankName: 'MUFG Bank Tokyo', currency: 'USD', remarks: 'Balance TT pending further allocation', idempotencyKey: 'seed-pay-partial-001',
+  },
+  {
+    id: 'pay-bulk-002', customerId: 'cust-123', invoiceId: 'inv-bulk-002', amountUsd: 18000.00, paidAt: '2026-08-16T08:00:00.000Z', paymentDate: '2026-08-16T08:00:00.000Z', status: 'Approved', reference: 'TT-2026-BULK-18000', bankName: 'Sumitomo Mitsui Banking Corp', currency: 'USD', remarks: 'Advance TT fully allocated across two vehicles', idempotencyKey: 'seed-pay-bulk-002',
+  },
+  {
+    id: 'pay-partial-002', customerId: 'cust-123', invoiceId: 'inv-bulk-003', amountUsd: 24000.00, paidAt: '2026-08-17T08:00:00.000Z', paymentDate: '2026-08-17T08:00:00.000Z', status: 'Approved', reference: 'TT-2026-PARTIAL-24000', bankName: 'MUFG Bank Tokyo', currency: 'USD', remarks: 'Balance TT partially allocated across two vehicles', idempotencyKey: 'seed-pay-partial-002',
+  },
   // Active customer (cust-123): 3 approved payments
   {
     id: 'pay-001',
@@ -4708,6 +4774,18 @@ export function buildCustomerInvoiceProjections(
     }));
 
     const dueDate = new Date(new Date(inv.invoicedAt).getTime() + (7 * 24 * 60 * 60 * 1000)).toISOString();
+    const invoiceVehicles = Array.from(new Set(customerAllocs.map((allocation) => allocation.vehicleId || inv.vehicleId)))
+      .map((vehicleId) => vehicles.find((candidate) => candidate.id === vehicleId))
+      .filter((candidate): candidate is VehicleRecord => Boolean(candidate))
+      .map((candidate) => ({
+        id: candidate.id,
+        chassisNumber: candidate.chassisNumber,
+        make: candidate.make,
+        model: candidate.model,
+        year: candidate.year,
+        slug: generateVehicleSlug(candidate.year, candidate.make, candidate.model, candidate.id),
+        primaryImage: candidate.images?.[0],
+      }));
 
     result.push({
       id: inv.id,
@@ -4736,6 +4814,7 @@ export function buildCustomerInvoiceProjections(
         slug,
         primaryImage,
       },
+      vehicles: invoiceVehicles.length > 0 ? invoiceVehicles : undefined,
       lineItems: [],
       allocations: allocationItems,
       bankDetails: undefined,
@@ -4832,7 +4911,9 @@ export function buildCustomerInvoiceDocument(invoice: CustomerInvoiceDetail): Cu
       </div>
       <div class="carchief-invoice-document__vehicle">
         <h3>Vehicle Information</h3>
-        <p>${invoice.year} ${invoice.make} ${invoice.model} (Chassis: ${invoice.vehicle.chassisNumber})</p>
+        ${(invoice.vehicles && invoice.vehicles.length > 0 ? invoice.vehicles : [invoice.vehicle]).map((vehicle) =>
+          `<p>${vehicle.year} ${vehicle.make} ${vehicle.model} (Chassis: ${vehicle.chassisNumber})</p>`
+        ).join('')}
       </div>
       <table class="carchief-invoice-document__table">
         <thead>
@@ -5064,6 +5145,125 @@ function toCustomerPayment(record: PaymentRecord, invoices: InvoiceRecord[] = []
   };
 }
 
+/** Customer-safe TT-to-vehicle projection.  Allocation ownership is always
+ * derived from the payment/customer rows, never from caller-supplied IDs. */
+function buildCustomerPaymentAllocationSummaries(
+  customerId: string,
+  payments: PaymentRecord[],
+  allocations: AllocationRecord[],
+  invoices: InvoiceRecord[],
+  vehicles: VehicleRecord[],
+): CustomerPaymentAllocationSummary[] {
+  return payments
+    .filter((payment) => payment.customerId === customerId)
+    .map((payment) => {
+      const rows = allocations.filter((allocation) => allocation.customerId === customerId && allocation.paymentId === payment.id);
+      const approved = rows.filter((row) => row.status === 'Approved');
+      const allocatedAmountUsd = approved.reduce((total, row) => total + row.amountUsd, 0);
+      const vehicleIds = new Set(rows.map((row) => row.vehicleId || invoices.find((invoice) => invoice.id === row.invoiceId)?.vehicleId).filter(Boolean));
+      const invoiceId = rows.find((row) => row.invoiceId)?.invoiceId || payment.invoiceId;
+      const invoice = invoiceId ? invoices.find((candidate) => candidate.id === invoiceId && candidate.customerId === customerId) : undefined;
+      const invoicePaid = invoice
+        ? allocations.filter((row) => row.customerId === customerId && row.invoiceId === invoice.id && row.status === 'Approved').reduce((total, row) => total + row.amountUsd, 0)
+        : 0;
+      const allocationStatus: CustomerPaymentAllocationSummary['allocationStatus'] = allocatedAmountUsd <= 0
+        ? 'Unallocated'
+        : allocatedAmountUsd >= payment.amountUsd ? 'FullyAllocated' : 'PartiallyAllocated';
+      const allocationLines = rows.map((row) => {
+        const vehicle = vehicles.find((candidate) => candidate.id === (row.vehicleId || invoice?.vehicleId));
+        if (!vehicle) return null;
+        const rowInvoice = invoices.find((candidate) => candidate.id === row.invoiceId && candidate.customerId === customerId);
+        const allocationVehicleId = row.vehicleId || rowInvoice?.vehicleId;
+        const invoiceItem = rowInvoice?.vehicleItems?.find((item) => item.vehicleId === allocationVehicleId);
+        const vehicleTotalAmountUsd = invoiceItem?.amountUsd
+          ?? (rowInvoice?.vehicleItems?.length ? 0 : rowInvoice?.totalAmountUsd ?? 0);
+        const vehicleAllocatedAmountUsd = rowInvoice
+          ? allocations
+            .filter((allocation) => allocation.customerId === customerId
+              && allocation.invoiceId === rowInvoice.id
+              && (allocation.vehicleId || rowInvoice.vehicleId) === allocationVehicleId
+              && allocation.status === 'Approved')
+            .reduce((total, allocation) => total + allocation.amountUsd, 0)
+          : 0;
+        return {
+          id: row.id,
+          vehicle: {
+            id: vehicle.id,
+            slug: generateVehicleSlug(vehicle.year, vehicle.make, vehicle.model, vehicle.id),
+            stockNumber: vehicle.stockNumber || vehicle.id,
+            chassisNumber: vehicle.chassisNumber,
+            make: vehicle.make,
+            model: vehicle.model,
+            year: vehicle.year,
+            primaryImage: vehicle.images?.[0],
+          },
+          ...(rowInvoice ? { invoiceId: rowInvoice.id, invoiceNumber: `INV-${rowInvoice.id.replace(/^inv-?/i, '').padStart(4, '0')}` } : {}),
+          amountUsd: row.amountUsd,
+          vehicleTotalAmountUsd,
+          vehicleAllocatedAmountUsd,
+          vehicleBalanceAmountUsd: Math.max(vehicleTotalAmountUsd - vehicleAllocatedAmountUsd, 0),
+          purpose: row.purpose || 'Balance',
+          status: row.status,
+          allocatedAt: row.allocatedAt,
+        };
+      }).filter((row): row is NonNullable<typeof row> => Boolean(row));
+      return {
+        id: payment.id,
+        reference: payment.reference || payment.id.toUpperCase(),
+        bankName: payment.bankName || 'Unspecified bank',
+        currency: payment.currency || 'USD',
+        amountUsd: payment.amountUsd,
+        paymentDate: payment.paymentDate || payment.paidAt,
+        paymentStatus: payment.status,
+        allocationStatus,
+        allocatedAmountUsd,
+        unallocatedAmountUsd: Math.max(payment.amountUsd - allocatedAmountUsd, 0),
+        allocationPercent: payment.amountUsd > 0 ? Math.round((allocatedAmountUsd / payment.amountUsd) * 100) : 0,
+        vehicleCount: vehicleIds.size,
+        allocations: allocationLines,
+        ...(invoice ? {
+          invoice: {
+            id: invoice.id,
+            invoiceNumber: `INV-${invoice.id.replace(/^inv-?/i, '').padStart(4, '0')}`,
+            issuedAt: invoice.invoicedAt,
+            totalAmountUsd: invoice.totalAmountUsd,
+            paidAmountUsd: invoicePaid,
+            outstandingAmountUsd: Math.max(invoice.totalAmountUsd - invoicePaid, 0),
+            status: (invoicePaid >= invoice.totalAmountUsd ? 'Paid' : invoicePaid > 0 ? 'PartiallyPaid' : 'Issued') as CustomerInvoiceStatus,
+            vehicleCount: new Set(allocations.filter((row) => row.invoiceId === invoice.id).map((row) => row.vehicleId || invoice.vehicleId)).size,
+            documentAvailable: true,
+          },
+        } : {}),
+      };
+    })
+    .sort((left, right) => right.paymentDate.localeCompare(left.paymentDate));
+}
+
+function queryCustomerPaymentAllocations(
+  summaries: CustomerPaymentAllocationSummary[],
+  query?: ListCustomerPaymentAllocationsQuery,
+): CustomerPaymentAllocationListResponse {
+  let filtered = summaries;
+  const term = query?.query?.trim().toLowerCase();
+  if (term) filtered = filtered.filter((item) => `${item.reference} ${item.bankName} ${item.invoice?.invoiceNumber || ''} ${item.allocations.map((row) => `${row.vehicle.make} ${row.vehicle.model} ${row.vehicle.stockNumber}`).join(' ')}`.toLowerCase().includes(term));
+  if (query?.paymentStatus) filtered = filtered.filter((item) => item.paymentStatus === query.paymentStatus);
+  if (query?.allocationStatus) filtered = filtered.filter((item) => item.allocationStatus === query.allocationStatus);
+  if (query?.purpose) filtered = filtered.filter((item) => item.allocations.some((row) => row.purpose === query.purpose));
+  if (query?.scope === 'SingleVehicle') filtered = filtered.filter((item) => item.vehicleCount === 1);
+  if (query?.scope === 'MultipleVehicles') filtered = filtered.filter((item) => item.vehicleCount > 1);
+  if (query?.from) filtered = filtered.filter((item) => item.paymentDate >= query.from!);
+  if (query?.to) filtered = filtered.filter((item) => item.paymentDate <= `${query.to}T23:59:59.999Z`);
+  const page = Math.max(1, Number(query?.page) || 1);
+  const limit = Math.max(1, Math.min(100, Number(query?.limit) || 10));
+  const totals = filtered.reduce((result, item) => ({
+    totalAmountUsd: result.totalAmountUsd + item.amountUsd,
+    allocatedAmountUsd: result.allocatedAmountUsd + item.allocatedAmountUsd,
+    unallocatedAmountUsd: result.unallocatedAmountUsd + item.unallocatedAmountUsd,
+    invoiceCount: result.invoiceCount + (item.invoice ? 1 : 0),
+  }), { totalAmountUsd: 0, allocatedAmountUsd: 0, unallocatedAmountUsd: 0, invoiceCount: 0 });
+  return { items: filtered.slice((page - 1) * limit, page * limit), total: filtered.length, page, limit, totals };
+}
+
 function toCustomerPaymentNotification(record: PaymentNotificationRecord): CustomerPaymentNotification {
   return {
     id: record.id,
@@ -5132,6 +5332,7 @@ function applyPaymentNotification(
     payment.status = 'Approved';
   } else if (request.event === 'PaymentAllocated') {
     if (current !== 'Approved') throw new PaymentWorkflowError(409, 'Only an approved payment can be allocated');
+    if (!payment.invoiceId) throw new PaymentWorkflowError(409, 'Sales allocation requires an invoice to be issued first');
     const alreadyAllocated = allocations.filter((item) => item.paymentId === payment.id && item.status === 'Approved').reduce((sum, item) => sum + item.amountUsd, 0);
     const amount = request.allocationAmountUsd ?? payment.amountUsd;
     const invoice = seedInvoices.find((item) => item.id === payment.invoiceId && item.customerId === payment.customerId);
@@ -5143,7 +5344,7 @@ function applyPaymentNotification(
 
   const record: PaymentNotificationRecord = {
     id: `pay-event-${notifications.length + 1}`, customerId: payment.customerId, paymentId: payment.id,
-    invoiceId: payment.invoiceId, event: request.event, deliveryStatus: 'Queued', createdAt: nowISO,
+    invoiceId: payment.invoiceId || 'unallocated', event: request.event, deliveryStatus: 'Queued', createdAt: nowISO,
   };
   notifications.push(record);
   return record;
@@ -5163,7 +5364,7 @@ const SUPPORTED_PAYMENT_CURRENCIES_SET = new Set([
 ]);
 
 function validatePaymentRequest(request: CreateCustomerPaymentRequest): void {
-  if (!request || !request.invoiceId || !request.reference || !request.bankName || !SUPPORTED_PAYMENT_CURRENCIES_SET.has(request.currency)) throw new Error('Invalid payment or invoice reference');
+  if (!request || !request.reference || !request.bankName || !SUPPORTED_PAYMENT_CURRENCIES_SET.has(request.currency)) throw new Error('Invalid payment reference');
   if (!Number.isFinite(request.amountUsd) || request.amountUsd <= 0) throw new Error('amountUsd must be greater than zero');
   if (!request.idempotencyKey) throw new Error('idempotencyKey is required');
   if (!request.proof || !['PDF', 'JPG', 'PNG'].includes(request.proof.fileType)) throw new Error('Proof must be PDF, JPG or PNG metadata');
@@ -5178,11 +5379,11 @@ function createPaymentRecord(
   invoices: InvoiceRecord[],
 ): PaymentRecord {
   validatePaymentRequest(request);
-  let invoice = invoices.find((candidate) => candidate.id === request.invoiceId);
+  let invoice = request.invoiceId ? invoices.find((candidate) => candidate.id === request.invoiceId) : undefined;
   if (!invoice && (request.invoiceId === 'INV-GENERAL' || request.invoiceId === 'GENERAL')) {
     invoice = invoices.find((candidate) => candidate.customerId === customerId);
   }
-  if (!invoice || invoice.customerId !== customerId) {
+  if (request.invoiceId && !invoice) {
     throw new Error('Invoice not found or not owned by customer');
   }
   const duplicate = existing.find((payment) => payment.customerId === customerId && payment.idempotencyKey === request.idempotencyKey);
@@ -5190,7 +5391,7 @@ function createPaymentRecord(
   const record: PaymentRecord = {
     id: `pay-${Date.now()}-${existing.length + 1}`,
     customerId,
-    invoiceId: invoice.id,
+    invoiceId: invoice?.id,
     amountUsd: request.amountUsd,
     paidAt: request.paymentDate,
     paymentDate: request.paymentDate,
@@ -5531,7 +5732,7 @@ class MemoryStore implements DemoStore {
     // Compute linked record aggregates (D02-P02-T001)
     // Payment status summary: count payments by status for this customer's invoices
     const customerInvoiceIds = new Set(customerInvoices.map((i) => i.id));
-    const customerPayments = this.payments.filter((p) => p.customerId === customerId && customerInvoiceIds.has(p.invoiceId));
+    const customerPayments = this.payments.filter((p) => p.customerId === customerId && Boolean(p.invoiceId) && customerInvoiceIds.has(p.invoiceId!));
     const paymentStatusSummary = {
       approved: customerPayments.filter((p) => p.status === 'Approved').length,
       pending: customerPayments.filter((p) => p.status === 'Pending').length,
@@ -5843,6 +6044,20 @@ class MemoryStore implements DemoStore {
   listCustomerPayments(customerId: string): Promise<CustomerPaymentListResponse> {
     const items = this.payments.filter((payment) => payment.customerId === customerId).map((payment) => toCustomerPayment(payment, this.invoices, this.allocations));
     return Promise.resolve({ items, total: items.length });
+  }
+
+  listCustomerPaymentAllocations(customerId: string, query?: ListCustomerPaymentAllocationsQuery): Promise<CustomerPaymentAllocationListResponse> {
+    this.ensureCustomerFleetInMemory(customerId);
+    return Promise.resolve(queryCustomerPaymentAllocations(
+      buildCustomerPaymentAllocationSummaries(customerId, this.payments, this.allocations, this.invoices, this.vehicles),
+      query,
+    ));
+  }
+
+  getCustomerPaymentAllocation(customerId: string, paymentId: string): Promise<CustomerPaymentAllocationSummary | null> {
+    this.ensureCustomerFleetInMemory(customerId);
+    return Promise.resolve(buildCustomerPaymentAllocationSummaries(customerId, this.payments, this.allocations, this.invoices, this.vehicles)
+      .find((item) => item.id === paymentId) || null);
   }
 
   createCustomerPayment(customerId: string, request: CreateCustomerPaymentRequest, nowISO = new Date().toISOString()): Promise<CustomerPayment> {
@@ -6990,6 +7205,28 @@ class PostgresStore implements DemoStore {
         status text NOT NULL
       );`
     );
+    // Payment allocation is a many-to-many business record: one TT can be
+    // distributed across vehicles, while an invoice can contain several
+    // vehicle lines.  Legacy rows are backfilled from their invoice vehicle.
+    await this.pool.query(`ALTER TABLE allocations ADD COLUMN IF NOT EXISTS vehicle_id text;`);
+    await this.pool.query(`ALTER TABLE allocations ADD COLUMN IF NOT EXISTS purpose text NOT NULL DEFAULT 'Balance';`);
+    await this.pool.query(`ALTER TABLE allocations ADD CONSTRAINT allocations_amount_positive CHECK (amount_usd > 0) NOT VALID;`).catch(() => undefined);
+    await this.pool.query(
+      `CREATE TABLE IF NOT EXISTS invoice_vehicle_items (
+        id text PRIMARY KEY,
+        invoice_id text NOT NULL REFERENCES invoices(id) ON DELETE CASCADE,
+        vehicle_id text NOT NULL REFERENCES vehicles(id),
+        make text NOT NULL,
+        model text NOT NULL,
+        year integer NOT NULL,
+        chassis_number text NOT NULL,
+        stock_number text NOT NULL,
+        amount_usd numeric NOT NULL CHECK (amount_usd > 0),
+        UNIQUE (invoice_id, vehicle_id)
+      );`
+    );
+    await this.pool.query(`CREATE INDEX IF NOT EXISTS allocations_customer_payment_idx ON allocations(customer_id, payment_id);`);
+    await this.pool.query(`CREATE INDEX IF NOT EXISTS allocations_invoice_vehicle_idx ON allocations(invoice_id, vehicle_id);`);
     await this.pool.query(
       `CREATE TABLE IF NOT EXISTS shipments (
         id text PRIMARY KEY,
@@ -7034,6 +7271,7 @@ class PostgresStore implements DemoStore {
     await this.pool.query(`ALTER TABLE payments ADD COLUMN IF NOT EXISTS bank_name text;`);
     await this.pool.query(`ALTER TABLE payments ADD COLUMN IF NOT EXISTS currency text;`);
     await this.pool.query(`ALTER TABLE payments ADD COLUMN IF NOT EXISTS remarks text;`);
+    await this.pool.query(`ALTER TABLE payments ALTER COLUMN invoice_id DROP NOT NULL;`);
     await this.pool.query(
       `CREATE TABLE IF NOT EXISTS payment_notifications (
         id text PRIMARY KEY,
@@ -7239,6 +7477,44 @@ class PostgresStore implements DemoStore {
          ('pay-007', 'cust-123', 'inv-016', 7100, '2026-08-12T14:00:00.000Z', 'Approved', 'TT-2026-7100-DIRECT', 'Direct Wire Transfer', 'USD', 'Allocated to 2020 TOYOTA HIACE VAN')
        ON CONFLICT (id) DO NOTHING`,
     );
+    // Keep the multi-vehicle TT examples available on an existing PostgreSQL
+    // database as well as after a full reset. These rows are intentionally
+    // idempotent so startup can safely repair an older fixture set.
+    await this.pool.query(
+      `INSERT INTO invoices (id, customer_id, vehicle_id, vehicle_slug, make, model, year, total_amount_usd, invoiced_at, due_date, status, currency, type, document_status)
+       VALUES
+         ('inv-bulk-002', 'cust-123', 'veh-inv-7', '2013-volvo-v40-veh-inv-7', 'Volvo', 'V40', 2013, 18000, '2026-08-16T09:00:00.000Z', NULL, 'Issued', 'USD', 'Commercial', 'Issued'),
+         ('inv-bulk-003', 'cust-123', 'veh-inv-10', '2013-toyota-premio-veh-inv-10', 'Toyota', 'Premio', 2013, 24000, '2026-08-17T09:00:00.000Z', NULL, 'Issued', 'USD', 'Commercial', 'Issued')
+       ON CONFLICT (id) DO NOTHING`,
+    );
+    await this.pool.query(
+      `INSERT INTO payments (id, customer_id, invoice_id, amount_usd, paid_at, status, reference, bank_name, currency, remarks)
+       VALUES
+         ('pay-bulk-002', 'cust-123', 'inv-bulk-002', 18000, '2026-08-16T08:00:00.000Z', 'Approved', 'TT-2026-BULK-18000', 'Sumitomo Mitsui Banking Corp', 'USD', 'Advance TT fully allocated across two vehicles'),
+         ('pay-partial-002', 'cust-123', 'inv-bulk-003', 24000, '2026-08-17T08:00:00.000Z', 'Approved', 'TT-2026-PARTIAL-24000', 'MUFG Bank Tokyo', 'USD', 'Balance TT partially allocated across two vehicles')
+       ON CONFLICT (id) DO NOTHING`,
+    );
+    await this.pool.query(
+      `INSERT INTO allocations (id, customer_id, payment_id, invoice_id, vehicle_id, purpose, amount_usd, allocated_at, status)
+       VALUES
+         ('alloc-bulk-002-001', 'cust-123', 'pay-bulk-002', 'inv-bulk-002', 'veh-inv-7', 'Advance', 9000, '2026-08-16T09:00:00.000Z', 'Approved'),
+         ('alloc-bulk-002-002', 'cust-123', 'pay-bulk-002', 'inv-bulk-002', 'veh-inv-9', 'Advance', 9000, '2026-08-16T09:00:00.000Z', 'Approved'),
+         ('alloc-partial-002-001', 'cust-123', 'pay-partial-002', 'inv-bulk-003', 'veh-inv-10', 'Balance', 8000, '2026-08-17T09:00:00.000Z', 'Approved'),
+         ('alloc-partial-002-002', 'cust-123', 'pay-partial-002', 'inv-bulk-003', 'veh-inv-15', 'Balance', 4000, '2026-08-17T09:00:00.000Z', 'Approved')
+       ON CONFLICT (id) DO NOTHING`,
+    );
+    await this.pool.query(
+      `INSERT INTO invoice_vehicle_items (id, invoice_id, vehicle_id, make, model, year, chassis_number, stock_number, amount_usd)
+       SELECT item.id, item.invoice_id, item.vehicle_id, v.make, v.model, v.year, v.chassis_number, v.id, item.amount_usd
+       FROM (VALUES
+         ('inv-item-inv-bulk-002-veh-inv-7', 'inv-bulk-002', 'veh-inv-7', 9000::numeric),
+         ('inv-item-inv-bulk-002-veh-inv-9', 'inv-bulk-002', 'veh-inv-9', 9000::numeric),
+         ('inv-item-inv-bulk-003-veh-inv-10', 'inv-bulk-003', 'veh-inv-10', 8000::numeric),
+         ('inv-item-inv-bulk-003-veh-inv-15', 'inv-bulk-003', 'veh-inv-15', 4000::numeric)
+       ) AS item(id, invoice_id, vehicle_id, amount_usd)
+       JOIN vehicles v ON v.id = item.vehicle_id
+       ON CONFLICT (invoice_id, vehicle_id) DO UPDATE SET amount_usd = EXCLUDED.amount_usd`,
+    );
     await this.pool.query(
       `INSERT INTO invoices (id, customer_id, vehicle_id, vehicle_slug, make, model, year, total_amount_usd, invoiced_at, due_date, status, currency, type, document_status)
        VALUES ('inv-user-other-456-004', 'user-other-456', 'veh-4', '2021-honda-civic-veh-4', 'Honda', 'Civic', 2021, 9500, '2026-08-12T10:00:00.000Z', NULL, 'Issued', 'USD', 'Commercial', 'Issued')
@@ -7285,6 +7561,22 @@ class PostgresStore implements DemoStore {
       }
     }
 
+    // Backfill the invoice's legacy primary vehicle as a durable invoice item.
+    // Bulk invoices receive additional rows when their allocations are seeded.
+    await this.pool.query(
+      `INSERT INTO invoice_vehicle_items (id, invoice_id, vehicle_id, make, model, year, chassis_number, stock_number, amount_usd)
+       SELECT 'inv-item-' || i.id || '-' || i.vehicle_id, i.id, i.vehicle_id, i.make, i.model, i.year, v.chassis_number, v.id, i.total_amount_usd
+       FROM invoices i JOIN vehicles v ON v.id = i.vehicle_id
+       WHERE i.customer_id = $1
+       ON CONFLICT (invoice_id, vehicle_id) DO NOTHING`,
+      [customerId],
+    );
+    await this.pool.query(
+      `UPDATE allocations a SET vehicle_id = i.vehicle_id FROM invoices i
+       WHERE a.invoice_id = i.id AND a.customer_id = $1 AND a.vehicle_id IS NULL`,
+      [customerId],
+    );
+
     // 3. Payment Allocations
     const allocCountResult = await this.pool.query('SELECT count(*) FROM allocations WHERE customer_id = $1', [customerId]);
     if (Number(allocCountResult.rows[0]?.count || 0) === 0) {
@@ -7304,14 +7596,24 @@ class PostgresStore implements DemoStore {
             [paymentId, customerId, invoiceId, a.amountUsd, a.allocatedAt, `SEED-${paymentId}`]
           );
           await this.pool.query(
-            `INSERT INTO allocations (id, customer_id, payment_id, invoice_id, amount_usd, allocated_at, status)
-             VALUES ($1, $2, $3, $4, $5, $6, $7)
+          `INSERT INTO allocations (id, customer_id, payment_id, invoice_id, vehicle_id, purpose, amount_usd, allocated_at, status)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
              ON CONFLICT (id) DO NOTHING;`,
-            [id, customerId, paymentId, invoiceId, a.amountUsd, a.allocatedAt, a.status]
+            [id, customerId, paymentId, invoiceId, a.vehicleId || null, a.purpose || 'Balance', a.amountUsd, a.allocatedAt, a.status]
           );
         }
       }
     }
+    await this.pool.query(
+      `INSERT INTO invoice_vehicle_items (id, invoice_id, vehicle_id, make, model, year, chassis_number, stock_number, amount_usd)
+       SELECT 'inv-item-' || a.invoice_id || '-' || a.vehicle_id, a.invoice_id, a.vehicle_id, v.make, v.model, v.year, v.chassis_number, v.id,
+              SUM(a.amount_usd)
+       FROM allocations a JOIN vehicles v ON v.id = a.vehicle_id
+       WHERE a.customer_id = $1 AND a.vehicle_id IS NOT NULL
+       GROUP BY a.invoice_id, a.vehicle_id, v.make, v.model, v.year, v.chassis_number, v.id
+       ON CONFLICT (invoice_id, vehicle_id) DO UPDATE SET amount_usd = EXCLUDED.amount_usd`,
+      [customerId],
+    );
 
     // 4. Shipments
     const shipCountResult = await this.pool.query('SELECT count(*) FROM shipments WHERE customer_id = $1', [customerId]);
@@ -7543,7 +7845,7 @@ class PostgresStore implements DemoStore {
     if (result.rows.length === 0 && (!customerId || customerId === 'cust-123' || customerId === 'cust-exception-001')) {
       return customerId ? seedInvoices.filter((i) => i.customerId === customerId) : seedInvoices;
     }
-    return result.rows.map((row) => ({
+    const invoiceRecords = result.rows.map((row) => ({
       id: row.id,
       customerId: row.customer_id,
       vehicleId: row.vehicle_id,
@@ -7555,12 +7857,36 @@ class PostgresStore implements DemoStore {
       invoicedAt: row.invoiced_at,
       status: row.status as 'Draft' | 'Issued' | 'Paid' | 'Overdue',
     }));
+    if (invoiceRecords.length === 0) return invoiceRecords;
+    const itemResult = await this.pool.query(
+      `SELECT invoice_id, vehicle_id, make, model, year, chassis_number, stock_number, amount_usd
+       FROM invoice_vehicle_items WHERE invoice_id = ANY($1::text[])`,
+      [invoiceRecords.map((invoice) => invoice.id)],
+    );
+    const itemsByInvoice = new Map<string, InvoiceVehicleItemRecord[]>();
+    for (const row of itemResult.rows) {
+      const items = itemsByInvoice.get(row.invoice_id) || [];
+      items.push({
+        vehicleId: row.vehicle_id,
+        make: row.make,
+        model: row.model,
+        year: Number(row.year),
+        chassisNumber: row.chassis_number,
+        stockNumber: row.stock_number,
+        amountUsd: Number(row.amount_usd),
+      });
+      itemsByInvoice.set(row.invoice_id, items);
+    }
+    return invoiceRecords.map((invoice) => ({
+      ...invoice,
+      ...(itemsByInvoice.has(invoice.id) ? { vehicleItems: itemsByInvoice.get(invoice.id) } : {}),
+    }));
   }
 
   private async getRawAllocations(customerId?: string): Promise<AllocationRecord[]> {
     const query = customerId
-      ? 'SELECT id, customer_id, payment_id, invoice_id, amount_usd, allocated_at, status FROM allocations WHERE customer_id = $1'
-      : 'SELECT id, customer_id, payment_id, invoice_id, amount_usd, allocated_at, status FROM allocations';
+      ? 'SELECT id, customer_id, payment_id, invoice_id, vehicle_id, purpose, amount_usd, allocated_at, status FROM allocations WHERE customer_id = $1'
+      : 'SELECT id, customer_id, payment_id, invoice_id, vehicle_id, purpose, amount_usd, allocated_at, status FROM allocations';
     const params = customerId ? [customerId] : [];
     const result = await this.pool.query(query, params);
     if (result.rows.length === 0 && (!customerId || customerId === 'cust-123')) {
@@ -7571,6 +7897,8 @@ class PostgresStore implements DemoStore {
       customerId: row.customer_id,
       paymentId: row.payment_id,
       invoiceId: row.invoice_id,
+      vehicleId: row.vehicle_id || undefined,
+      purpose: (row.purpose || 'Balance') as 'Advance' | 'Balance',
       amountUsd: Number(row.amount_usd),
       allocatedAt: row.allocated_at,
       status: row.status as 'Approved' | 'Pending' | 'Rejected',
@@ -8570,6 +8898,36 @@ class PostgresStore implements DemoStore {
       return toCustomerPayment(record, invoices, allocations);
     });
     return { items, total: items.length };
+  }
+
+  async listCustomerPaymentAllocations(customerId: string, query?: ListCustomerPaymentAllocationsQuery): Promise<CustomerPaymentAllocationListResponse> {
+    await this.ensureCustomerFleetDataInPostgres(customerId);
+    const [paymentResult, invoices, allocations, vehicles] = await Promise.all([
+      this.listCustomerPayments(customerId),
+      this.getRawInvoices(customerId),
+      this.getRawAllocations(customerId),
+      this.getRawVehicles(),
+    ]);
+    const payments: PaymentRecord[] = paymentResult.items.map((payment) => ({
+      id: payment.id,
+      customerId: payment.customerId,
+      invoiceId: payment.invoiceId,
+      amountUsd: payment.amountUsd,
+      paidAt: payment.paymentDate,
+      paymentDate: payment.paymentDate,
+      status: payment.status,
+      reference: payment.reference,
+      bankName: payment.bankName,
+      currency: payment.currency,
+      remarks: payment.remarks,
+      idempotencyKey: payment.idempotencyKey,
+    }));
+    return queryCustomerPaymentAllocations(buildCustomerPaymentAllocationSummaries(customerId, payments, allocations, invoices, vehicles), query);
+  }
+
+  async getCustomerPaymentAllocation(customerId: string, paymentId: string): Promise<CustomerPaymentAllocationSummary | null> {
+    const result = await this.listCustomerPaymentAllocations(customerId, { page: 1, limit: 100 });
+    return result.items.find((item) => item.id === paymentId) || null;
   }
 
   async createCustomerPayment(customerId: string, request: CreateCustomerPaymentRequest, nowISO = new Date().toISOString()): Promise<CustomerPayment> {

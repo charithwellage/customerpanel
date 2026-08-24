@@ -128,6 +128,13 @@ const DEFAULT_NAV_ITEMS: NavigationItem[] = [
     icon: '💲',
   },
   {
+    id: 'payment-allocations',
+    label: 'TT Payments & Allocations',
+    altLabel: 'TT Payments & Allocations',
+    href: '/payment-allocations',
+    icon: '🧾',
+  },
+  {
     id: 'profile',
     label: 'Profile & Security',
     altLabel: 'Profile & Account Security',

@@ -21,6 +21,29 @@ export interface AuthenticatedRequest extends Request {
   user?: JwtClaims;
 }
 
+function createInvoicePdf(title: string, html: string): Buffer {
+  const text = `${title}\n\n${html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()}`.slice(0, 7000)
+    .replace(/([\\()])/g, '\\$1');
+  const lines = text.match(/.{1,92}(?:\s|$)/g) || [title];
+  const stream = [`BT /F1 10 Tf 48 760 Td 13 TL`, ...lines.map((line, index) => `${index ? 'T* ' : ''}(${line.trim()}) Tj`), 'ET'].join('\n');
+  const objects = [
+    '<< /Type /Catalog /Pages 2 0 R >>',
+    '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
+    '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>',
+    '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>',
+    `<< /Length ${Buffer.byteLength(stream)} >>\nstream\n${stream}\nendstream`,
+  ];
+  let pdf = '%PDF-1.4\n';
+  const offsets = [0];
+  for (let index = 0; index < objects.length; index += 1) {
+    offsets.push(Buffer.byteLength(pdf));
+    pdf += `${index + 1} 0 obj\n${objects[index]}\nendobj\n`;
+  }
+  const xref = Buffer.byteLength(pdf);
+  pdf += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n${offsets.slice(1).map((offset) => `${String(offset).padStart(10, '0')} 00000 n `).join('\n')}\ntrailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
+  return Buffer.from(pdf, 'utf8');
+}
+
 export function createMockApiApp(store: DemoStore = createStore()): Express {
   const app: Express = express();
   app.use(express.json());
@@ -910,6 +933,30 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
       return;
     }
     res.json(doc);
+  });
+
+  app.get('/api/v1/customer/invoices/:id/document.pdf', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) return void res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+    if (!hasPermission(req.user.role, 'read:customer')) return void res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
+    const doc = await store.getCustomerInvoiceDocument(resolveCustomerScope(req.user.sub), req.params.id as string, req.header('x-mock-now') || undefined);
+    if (!doc) return void res.status(404).json({ statusCode: 404, message: 'Invoice document not found or not owned by customer', correlationId: `corr-404-${Date.now()}` });
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${doc.invoiceNumber.replace(/[^a-z0-9_-]/gi, '_')}.pdf"`);
+    res.send(createInvoicePdf(doc.title, doc.contentHtml));
+  });
+
+  app.get('/api/v1/customer/payment-allocations', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) return void res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+    if (!hasPermission(req.user.role, 'read:customer')) return void res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
+    res.json(await store.listCustomerPaymentAllocations(resolveCustomerScope(req.user.sub), req.query as Record<string, string>));
+  });
+
+  app.get('/api/v1/customer/payment-allocations/:paymentId', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) return void res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+    if (!hasPermission(req.user.role, 'read:customer')) return void res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
+    const allocation = await store.getCustomerPaymentAllocation(resolveCustomerScope(req.user.sub), req.params.paymentId as string);
+    if (!allocation) return void res.status(404).json({ statusCode: 404, message: 'TT payment not found or not owned by customer', correlationId: `corr-404-${Date.now()}` });
+    res.json(allocation);
   });
 
   // 4g. Customer TT journal and proof metadata (D02-P06-T001).

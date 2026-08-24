@@ -70,6 +70,8 @@ export const PaymentsPage: React.FC = () => {
   const [searchKeyword, setSearchKeyword] = useState('');
   const [currencyFilter, setCurrencyFilter] = useState('ALL');
   const [approvalFilter, setApprovalFilter] = useState('ALL');
+  const [currentPage, setCurrentPage] = useState(1);
+  const paymentsPerPage = 10;
 
   const online = useCustomerOnlineStatus();
   const createPayment = useCreateCustomerPayment();
@@ -219,6 +221,20 @@ export const PaymentsPage: React.FC = () => {
       return true;
     });
   }, [allEntries, searchKeyword, currencyFilter, approvalFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredEntries.length / paymentsPerPage));
+  const paginatedEntries = useMemo(
+    () => filteredEntries.slice((currentPage - 1) * paymentsPerPage, currentPage * paymentsPerPage),
+    [currentPage, filteredEntries]
+  );
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchKeyword, currencyFilter, approvalFilter]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) setCurrentPage(totalPages);
+  }, [currentPage, totalPages]);
 
   const {
     register,
@@ -444,7 +460,7 @@ export const PaymentsPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredEntries.map((entry) => {
+                {paginatedEntries.map((entry) => {
                   const statusClass =
                     entry.status === 'APPROVED - AVAILABLE'
                       ? 'cc-remit-status--approved'
@@ -517,6 +533,30 @@ export const PaymentsPage: React.FC = () => {
               </tbody>
             </table>
           </div>
+
+          {totalPages > 1 && (
+            <nav className="cc-remit-pagination" aria-label="Payment journal pagination">
+              <button
+                type="button"
+                className="cc-remit-pagination__button"
+                onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                disabled={currentPage === 1}
+              >
+                Previous
+              </button>
+              <span className="cc-remit-pagination__status" aria-live="polite">
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                type="button"
+                className="cc-remit-pagination__button"
+                onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                disabled={currentPage === totalPages}
+              >
+                Next
+              </button>
+            </nav>
+          )}
 
           {/* Detailed View Modal (FRD 5.7) */}
           <PaymentDetailModal

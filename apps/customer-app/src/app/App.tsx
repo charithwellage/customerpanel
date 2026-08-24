@@ -10,6 +10,7 @@ import { CustomerFleetPage, CustomerFleetDetailPage } from '../features/vehicles
 import { DocumentsPage } from '../features/documents/index.js';
 import { CustomerInvoicesPage, CustomerInvoiceDetailPage } from '../features/invoices/index.js';
 import { PaymentsPage } from '../features/payments/index.js';
+import { PaymentAllocationsPage } from '../features/payment-allocations/index.js';
 import { NotificationsPage } from '../features/notifications/index.js';
 import { ShipmentPage } from '../features/shipments/index.js';
 import { ProfilePage } from '../features/profile/index.js';
@@ -138,6 +139,10 @@ const AppContent: React.FC<{ session: CustomerSession; apiBaseUrl: string }> = (
 
   if (activeRoute === '/payments') {
     return <PaymentsPage />;
+  }
+
+  if (activeRoute === '/payment-allocations') {
+    return <PaymentAllocationsPage />;
   }
 
   if (activeRoute === '/shipments') {

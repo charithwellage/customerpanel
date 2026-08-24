@@ -164,7 +164,7 @@ describe('My Vehicles UI Components (D02-P04-T002 & D02-P14-T008)', () => {
       expect(html).toContain('$45,000');
       expect(html).toContain('Deposit (50%):');
       expect(html).toContain('$22,500');
-      expect(html).toContain('PAY ADVANCE DEPOSIT');
+      expect(html).toContain('MAKE A PAYMENT');
       expect(html).toContain('cc-status-tracker');
       expect(html).toContain('View Status Logs &amp; Next Steps');
     });
@@ -177,7 +177,7 @@ describe('My Vehicles UI Components (D02-P04-T002 & D02-P14-T008)', () => {
           onSelect: () => {},
         })
       );
-      expect(reservedHtml).toContain('PAY DEPOSIT (50%)');
+      expect(reservedHtml).toContain('PAY DEPOSIT (30%)');
       const reservedBadgeHtml = renderToStaticMarkup(
         React.createElement(VehicleFleetCard, {
           vehicle: {
