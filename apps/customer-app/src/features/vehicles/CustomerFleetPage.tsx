@@ -158,57 +158,8 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
         </div>
       </section>
 
-      {/* Filter Bar: Status Pills on left, Search & Shipping Status dropdown on right */}
+      {/* Filter Bar: Search & Shipping Status dropdown */}
       <div className="cc-cust-fleet-filter-bar" data-testid="fleet-tabs">
-        {/* Status filter pills */}
-        <div className="cc-cust-fleet-pills" role="tablist" aria-label="Vehicle Status Filter">
-          <button
-            type="button"
-            role="tab"
-            data-testid="tab-reserved"
-            aria-selected={activeTab === 'reserved' || activeTab === 'underNegotiation'}
-            className={`cc-cust-fleet-pill cc-cust-fleet-pill--amber ${activeTab === 'reserved' || activeTab === 'underNegotiation' ? 'cc-cust-fleet-pill--active' : ''}`}
-            onClick={() => setActiveTab('reserved')}
-          >
-            <span className="cc-cust-fleet-pill__icon" aria-hidden="true">⏱</span> {reservedVehiclesLabel.toUpperCase()} ({reservedCount})
-          </button>
-
-          <button
-            type="button"
-            role="tab"
-            data-testid="tab-with-pi"
-            aria-selected={activeTab === 'withPI' || activeTab === 'underNegotiationWithPI'}
-            className={`cc-cust-fleet-pill cc-cust-fleet-pill--purple ${activeTab === 'withPI' || activeTab === 'underNegotiationWithPI' ? 'cc-cust-fleet-pill--active' : ''}`}
-            onClick={() => setActiveTab('withPI')}
-          >
-            <span className="cc-cust-fleet-pill__icon" aria-hidden="true">📄</span> {advancedPaidVehiclesLabel.toUpperCase()} ({withPICount})
-          </button>
-
-          <button
-            type="button"
-            role="tab"
-            data-testid="tab-invoiced"
-            aria-selected={activeTab === 'invoiced' || activeTab === 'confirmed' || activeTab === 'inTransit' || activeTab === 'delivered'}
-            className={`cc-cust-fleet-pill cc-cust-fleet-pill--green ${activeTab === 'invoiced' || activeTab === 'confirmed' || activeTab === 'inTransit' || activeTab === 'delivered' ? 'cc-cust-fleet-pill--active' : ''}`}
-            onClick={() => setActiveTab('invoiced')}
-          >
-            <span className="cc-cust-fleet-pill__icon" aria-hidden="true">✓</span> {purchasedVehiclesLabel.toUpperCase()} ({invoicedCount})
-          </button>
-
-          {activeTab === 'all' && (
-            <button
-              type="button"
-              role="tab"
-              data-testid="tab-all"
-              aria-selected={activeTab === 'all'}
-              className="cc-cust-fleet-pill cc-cust-fleet-pill--active"
-              onClick={() => setActiveTab('all')}
-            >
-              ALL ({counts.all})
-            </button>
-          )}
-        </div>
-
         {/* Search & Shipping Status Dropdown */}
         <div className="cc-cust-fleet-search-group">
           <div className="cc-cust-fleet-search-input-wrap">

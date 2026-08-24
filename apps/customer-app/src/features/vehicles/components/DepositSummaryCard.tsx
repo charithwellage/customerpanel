@@ -16,6 +16,10 @@ export const DepositSummaryCard: React.FC<DepositSummaryCardProps> = ({
   proformaInvoiceId,
   paymentDeadline,
 }) => {
+  const paidPercent = totalAmountUsd > 0 && deposit
+    ? Math.round((deposit.paidAmountUsd / totalAmountUsd) * 100)
+    : 0;
+
   return (
     <div className="cc-cust-fleet-card cc-cust-fleet-deposit-card" aria-label="Financial and Deposit Summary">
       <h3 className="cc-cust-fleet-section-title">Financial & Deposit Summary</h3>
@@ -34,7 +38,7 @@ export const DepositSummaryCard: React.FC<DepositSummaryCardProps> = ({
             </div>
 
             <div className="cc-cust-fleet-stat">
-              <span className="cc-cust-fleet-stat__label">Deposit Paid</span>
+              <span className="cc-cust-fleet-stat__label">Paid Amount ({paidPercent}%)</span>
               <span className="cc-cust-fleet-stat__value cc-cust-fleet-stat__value--success">
                 ${deposit.paidAmountUsd.toLocaleString()} USD
               </span>

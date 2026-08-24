@@ -135,13 +135,13 @@ describe('Customer Vehicles & Status Projection Contract (D02-P04-T001)', () => 
       const totalAmountUsd = 10000;
       const deposit = calculateVehicleDeposit(totalAmountUsd, 2000);
       expect(deposit).toEqual({
-        requiredPercent: 50,
-        requiredAmountUsd: 5000,
+        requiredPercent: 30,
+        requiredAmountUsd: 3000,
         paidAmountUsd: 2000,
         remainingAmountUsd: 3000,
       });
 
-      const fullyPaidDeposit = calculateVehicleDeposit(totalAmountUsd, 5000);
+      const fullyPaidDeposit = calculateVehicleDeposit(totalAmountUsd, 3000);
       expect(fullyPaidDeposit.remainingAmountUsd).toBe(0);
     });
 
@@ -159,8 +159,18 @@ describe('Customer Vehicles & Status Projection Contract (D02-P04-T001)', () => 
       expect(body.status).toBe('Under Negotiation With PI');
       expect(body.proformaInvoiceId).toBe('pi-001');
       expect(body.deposit).toBeDefined();
-      expect(body.deposit?.requiredPercent).toBe(50);
+      expect(body.deposit?.requiredPercent).toBe(30);
       expect(body.deposit?.requiredAmountUsd).toBe(Math.round(body.totalAmountUsd * 0.3));
+      expect(body.deposit?.paidAmountUsd).toBe(2160);
+      expect(body.deposit?.paidAmountUsd).not.toBe(Math.round(body.totalAmountUsd * 0.3));
+
+      const higherPaidResponse = await fetch(`${baseUrl}/api/v1/customer/vehicles/veh-pi-3`, {
+        headers: { Authorization: `Bearer ${token}`, 'x-mock-now': '2026-08-10T10:00:00.000Z' },
+      });
+      const higherPaidBody: CustomerVehicleDetail = await higherPaidResponse.json();
+      expect(higherPaidBody.status).toBe('Under Negotiation With PI');
+      expect(higherPaidBody.deposit?.paidAmountUsd).toBe(6240);
+      expect(higherPaidBody.deposit?.paidAmountUsd).toBeGreaterThan(Math.round(higherPaidBody.totalAmountUsd * 0.3));
     });
   });
 

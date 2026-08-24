@@ -150,7 +150,7 @@ describe('My Vehicles UI Components (D02-P04-T002 & D02-P14-T008)', () => {
   });
 
   describe('VehicleFleetCard (D02-P14-T008)', () => {
-    it('renders vehicle information, 30% deposit breakdown (RULE-07), status pill, and status tracker', () => {
+    it('renders vehicle information, API-paid amount percentage, status pill, and status tracker', () => {
       const html = renderToStaticMarkup(
         React.createElement(VehicleFleetCard, {
           vehicle: MOCK_SUMMARY,
@@ -162,8 +162,10 @@ describe('My Vehicles UI Components (D02-P04-T002 & D02-P14-T008)', () => {
       expect(html).toContain('TRJ150-0192834');
       expect(html).toContain('Advanced Paid Vehicle');
       expect(html).toContain('$45,000');
-      expect(html).toContain('Deposit (30%):');
-      expect(html).toContain('$13,500');
+      expect(html).toContain('Paid Amount (22%):');
+      expect(html).toContain('$10,000');
+      expect(html).toContain('Remaining Amount:');
+      expect(html).toContain('$35,000');
       expect(html).toContain('MAKE A PAYMENT');
       expect(html).toContain('cc-status-tracker');
       expect(html).toContain('View Status Logs &amp; Next Steps');
@@ -270,6 +272,7 @@ describe('My Vehicles UI Components (D02-P04-T002 & D02-P14-T008)', () => {
       expect(html).toContain('Financial &amp; Deposit Summary');
       expect(html).toContain('$50,000 USD');
       expect(html).toContain('Required Deposit (30%)');
+      expect(html).toContain('Paid Amount (30%)');
       expect(html).toContain('$15,000 USD');
       expect(html).toContain('PI-1001');
       expect(html).toContain('INV-2001');
@@ -349,6 +352,9 @@ describe('My Vehicles UI Components (D02-P04-T002 & D02-P14-T008)', () => {
       // Status labels are supplied by the API status catalogue once the query resolves.
       expect(html).toContain('data-testid="fleet-tabs"');
       expect(html).toContain('Shipping Status');
+      expect(html).not.toContain('data-testid="tab-reserved"');
+      expect(html).not.toContain('data-testid="tab-with-pi"');
+      expect(html).not.toContain('data-testid="tab-invoiced"');
     });
 
     it('renders detail page loading and back button', () => {

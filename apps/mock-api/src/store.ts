@@ -4232,6 +4232,7 @@ export interface ProformaInvoiceRecord {
   model: string;
   year: number;
   totalAmountUsd: number;
+  paidAmountUsd: number;
   issuedAt: string;
   paymentDeadline: string;
   status: 'Issued' | 'Expired' | 'Cancelled';
@@ -4247,6 +4248,7 @@ const seedProformaInvoices: ProformaInvoiceRecord[] = [
     model: 'V40',
     year: 2013,
     totalAmountUsd: 10800.00,
+    paidAmountUsd: 2160.00,
     issuedAt: '2026-08-10T10:00:00.000Z',
     paymentDeadline: '2026-08-15T10:00:00.000Z',
     status: 'Issued',
@@ -4260,6 +4262,7 @@ const seedProformaInvoices: ProformaInvoiceRecord[] = [
     model: 'CX-8',
     year: 2019,
     totalAmountUsd: 10192.00,
+    paidAmountUsd: 3567.20,
     issuedAt: '2026-08-10T10:00:00.000Z',
     paymentDeadline: '2026-08-15T10:00:00.000Z',
     status: 'Issued',
@@ -4273,6 +4276,7 @@ const seedProformaInvoices: ProformaInvoiceRecord[] = [
     model: 'Impreza Wagon',
     year: 2019,
     totalAmountUsd: 12480.00,
+    paidAmountUsd: 6240.00,
     issuedAt: '2026-08-10T10:00:00.000Z',
     paymentDeadline: '2026-08-15T10:00:00.000Z',
     status: 'Issued',
@@ -4286,6 +4290,7 @@ const seedProformaInvoices: ProformaInvoiceRecord[] = [
     model: 'V40',
     year: 2013,
     totalAmountUsd: 10800.00,
+    paidAmountUsd: 2700.00,
     issuedAt: '2026-08-10T10:00:00.000Z',
     paymentDeadline: '2026-08-15T10:00:00.000Z',
     status: 'Issued',
@@ -4299,6 +4304,7 @@ const seedProformaInvoices: ProformaInvoiceRecord[] = [
     model: 'Alto',
     year: 2019,
     totalAmountUsd: 12480.00,
+    paidAmountUsd: 4992.00,
     issuedAt: '2026-08-10T10:00:00.000Z',
     paymentDeadline: '2026-08-15T10:00:00.000Z',
     status: 'Issued',
@@ -4312,6 +4318,7 @@ const seedProformaInvoices: ProformaInvoiceRecord[] = [
     model: 'CX-3',
     year: 2015,
     totalAmountUsd: 8624.00,
+    paidAmountUsd: 2587.20,
     issuedAt: '2026-08-10T10:00:00.000Z',
     paymentDeadline: '2026-08-15T10:00:00.000Z',
     status: 'Issued',
@@ -4366,7 +4373,9 @@ export function buildCustomerVehicleProjections(
     const inv = invoices.find((i) => i.customerId === customerId && i.vehicleId === vId);
     const shipment = shipments.find((s) => s.customerId === customerId && s.vehicleId === vId);
     const customerAllocs = inv ? allocations.filter((a) => a.customerId === customerId && a.invoiceId === inv.id && a.status === 'Approved') : [];
-    const paidAmountUsd = customerAllocs.reduce((sum, a) => sum + a.amountUsd, 0);
+    const paidAmountUsd = inv
+      ? customerAllocs.reduce((sum, a) => sum + a.amountUsd, 0)
+      : Math.max(0, Math.min(pi?.paidAmountUsd ?? 0, pi?.totalAmountUsd ?? 0));
 
     const priceUsd = vehicle.priceUsd;
     const totalAmountUsd = inv ? inv.totalAmountUsd : (pi ? pi.totalAmountUsd : priceUsd);
@@ -4377,7 +4386,7 @@ export function buildCustomerVehicleProjections(
       status = 'Delivered';
     } else if (shipment?.status === 'InTransit' || vehicle.locationStatus === 'In Transit') {
       status = 'In Transit';
-    } else if (inv || shipment?.status === 'Ready' || vehicle.status === 'InvoiceCreated' || vehicle.status === 'Invoiced' || (paidAmountUsd >= totalAmountUsd * 0.3 && totalAmountUsd > 0)) {
+    } else if (inv || shipment?.status === 'Ready' || vehicle.status === 'InvoiceCreated' || vehicle.status === 'Invoiced' || (inv && paidAmountUsd >= totalAmountUsd * 0.3 && totalAmountUsd > 0)) {
       status = 'Confirmed';
     } else if (activePi || (vehicle.status === 'ReservedWithPI' && !piExpired)) {
       status = 'Under Negotiation With PI';
@@ -7137,11 +7146,19 @@ class PostgresStore implements DemoStore {
         model text NOT NULL,
         year integer NOT NULL,
         total_amount_usd numeric NOT NULL,
+        paid_amount_usd numeric NOT NULL DEFAULT 0,
         issued_at text NOT NULL,
         payment_deadline text NOT NULL,
         status text NOT NULL
       );`
     );
+    await this.pool.query(`ALTER TABLE proforma_invoices ADD COLUMN IF NOT EXISTS paid_amount_usd numeric NOT NULL DEFAULT 0;`);
+    await this.pool.query(`DO $$ BEGIN
+      IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'proforma_invoices_paid_amount_valid') THEN
+        ALTER TABLE proforma_invoices ADD CONSTRAINT proforma_invoices_paid_amount_valid
+          CHECK (paid_amount_usd >= 0 AND paid_amount_usd <= total_amount_usd);
+      END IF;
+    END $$`);
     await this.pool.query(
       `CREATE TABLE IF NOT EXISTS invoices (
         id text PRIMARY KEY,
@@ -7503,10 +7520,10 @@ class PostgresStore implements DemoStore {
         const deadline = customerId === 'cust-123' ? pi.paymentDeadline : '2029-01-01T00:00:00.000Z';
         const id = customerId === 'cust-123' ? pi.id : `pi-${customerId}-${pi.id.replace(/^pi-/, '')}`;
         await this.pool.query(
-          `INSERT INTO proforma_invoices (id, customer_id, vehicle_id, vehicle_slug, make, model, year, total_amount_usd, issued_at, payment_deadline, status)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+          `INSERT INTO proforma_invoices (id, customer_id, vehicle_id, vehicle_slug, make, model, year, total_amount_usd, paid_amount_usd, issued_at, payment_deadline, status)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
            ON CONFLICT (id) DO NOTHING;`,
-          [id, customerId, pi.vehicleId, pi.vehicleSlug, pi.make, pi.model, pi.year, pi.totalAmountUsd, pi.issuedAt, deadline, pi.status]
+          [id, customerId, pi.vehicleId, pi.vehicleSlug, pi.make, pi.model, pi.year, pi.totalAmountUsd, pi.paidAmountUsd, pi.issuedAt, deadline, pi.status]
         );
       }
     }
@@ -7780,8 +7797,8 @@ class PostgresStore implements DemoStore {
 
   private async getRawProformaInvoices(customerId?: string): Promise<ProformaInvoiceRecord[]> {
     const query = customerId
-      ? 'SELECT id, customer_id, vehicle_id, vehicle_slug, make, model, year, total_amount_usd, issued_at, payment_deadline, status FROM proforma_invoices WHERE customer_id = $1'
-      : 'SELECT id, customer_id, vehicle_id, vehicle_slug, make, model, year, total_amount_usd, issued_at, payment_deadline, status FROM proforma_invoices';
+      ? 'SELECT id, customer_id, vehicle_id, vehicle_slug, make, model, year, total_amount_usd, paid_amount_usd, issued_at, payment_deadline, status FROM proforma_invoices WHERE customer_id = $1'
+      : 'SELECT id, customer_id, vehicle_id, vehicle_slug, make, model, year, total_amount_usd, paid_amount_usd, issued_at, payment_deadline, status FROM proforma_invoices';
     const params = customerId ? [customerId] : [];
     const result = await this.pool.query(query, params);
     if (result.rows.length === 0 && customerId === 'cust-123') {
@@ -7797,6 +7814,7 @@ class PostgresStore implements DemoStore {
       modelCode: row.model_code,
       year: Number(row.year),
       totalAmountUsd: Number(row.total_amount_usd),
+      paidAmountUsd: Number(row.paid_amount_usd || 0),
       issuedAt: row.issued_at,
       paymentDeadline: row.payment_deadline,
       status: row.status as 'Issued' | 'Expired' | 'Cancelled',

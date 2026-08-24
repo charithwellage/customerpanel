@@ -3334,7 +3334,7 @@
         "properties": {
           "requiredPercent": { "type": "number", "example": 50 },
           "requiredAmountUsd": { "type": "number", "example": 4250.00 },
-          "paidAmountUsd": { "type": "number", "example": 2000.00 },
+          "paidAmountUsd": { "type": "number", "description": "Approved amount already paid toward the vehicle, sourced from the related payment records.", "example": 2160.00 },
           "remainingAmountUsd": { "type": "number", "example": 2250.00 }
         },
         "required": ["requiredPercent", "requiredAmountUsd", "paidAmountUsd", "remainingAmountUsd"]
@@ -3625,7 +3625,7 @@
           "totalAmountUsd": { "type": "number", "example": 8500.00 },
           "paidAmountUsd": { "type": "number", "example": 5500.00 },
           "outstandingAmountUsd": { "type": "number", "example": 3000.00 },
-          "depositRequiredUsd": { "type": "number", "example": 4250.00 },
+          "depositRequiredUsd": { "type": "number", "example": 2550.00 },
           "status": { "$ref": "#/components/schemas/CustomerInvoiceStatus" },
           "issuedAt": { "type": "string", "example": "2026-08-10T10:00:00.000Z" },
           "dueDate": { "type": "string", "example": "2026-08-17T10:00:00.000Z" },

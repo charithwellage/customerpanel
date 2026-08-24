@@ -32,6 +32,9 @@ export const VehicleFleetCard: React.FC<VehicleFleetCardProps> = ({
   const fallbackImage = 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=400';
   const stockDisplay = vehicle.stockNumber || `STK: ${vehicle.chassisNumber.slice(0, 6)}`;
   const price = vehicle.priceUsd || vehicle.totalAmountUsd || 0;
+  const advancedPaidAmount = vehicle.deposit?.paidAmountUsd ?? 0;
+  const advancedRemainingAmount = Math.max(0, price - advancedPaidAmount);
+  const paidPercent = price > 0 ? Math.round((advancedPaidAmount / price) * 100) : 0;
   const colorSpec = vehicle.colorSpec || vehicle.color || 'Silver';
   const mileageDisplay = vehicle.mileage !== undefined ? `${vehicle.mileage.toLocaleString()} km` : '113,000 km';
   const logisticsLabel = vehicle.logisticsStatus || (vehicle.status === 'Delivered' ? 'DELIVERED' : vehicle.status === 'In Transit' ? 'IN TRANSIT' : vehicle.status === 'Confirmed' ? 'INSPECTION' : 'RESERVED');
@@ -42,7 +45,6 @@ export const VehicleFleetCard: React.FC<VehicleFleetCardProps> = ({
   const balanceAmount = vehicle.commercialBill?.balanceAmountUsd ?? Math.max(0, soldAmount - paidAmount);
 
   // Deposit calculation
-  const depositReq = vehicle.deposit?.requiredAmountUsd;
   const piRefDisplay = vehicle.piRef || (stockDisplay ? `PI-${stockDisplay.replace(/^STK:\s*/i, '')}` : 'PI-63519');
 
   // Contextual actions calculation
@@ -222,9 +224,15 @@ export const VehicleFleetCard: React.FC<VehicleFleetCardProps> = ({
             </div>
             <div className="cc-cust-fleet-card__bill-divider" />
             <div className="cc-cust-fleet-card__bill-row">
-              <span className="cc-cust-fleet-card__bill-label">Deposit ({vehicle.deposit?.requiredPercent ?? '—'}%):</span>
+              <span className="cc-cust-fleet-card__bill-label">Paid Amount ({paidPercent}%):</span>
               <span className="cc-cust-fleet-card__bill-val cc-cust-fleet-card__bill-val--bold">
-                {depositReq !== undefined ? `$${depositReq.toLocaleString()}` : '—'}
+                ${advancedPaidAmount.toLocaleString()}
+              </span>
+            </div>
+            <div className="cc-cust-fleet-card__bill-row">
+              <span className="cc-cust-fleet-card__bill-label">Remaining Amount:</span>
+              <span className="cc-cust-fleet-card__bill-val cc-cust-fleet-card__bill-val--danger">
+                ${advancedRemainingAmount.toLocaleString()}
               </span>
             </div>
           </div>
