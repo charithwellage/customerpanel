@@ -75,6 +75,12 @@ export const PaymentAllocationsPage: React.FC = () => {
       <section className="cc-payment-allocation-list" aria-label="TT payment allocation list">
         {data.data?.items.map((item) => {
           const isOpen = expanded === item.id;
+          const totalAmount = Math.max(item.amountUsd, 0);
+          const allocatedAmount = Math.max(item.allocatedAmountUsd, 0);
+          const unallocatedAmount = Math.max(item.unallocatedAmountUsd, 0);
+          const allocatedPercent = totalAmount > 0
+            ? Math.min(100, Math.max(0, (allocatedAmount / totalAmount) * 100))
+            : 0;
           return <article className="cc-payment-allocation-card" key={item.id}>
             <button type="button" className="cc-payment-allocation-card__header" aria-expanded={isOpen} onClick={() => setExpanded(isOpen ? null : item.id)}>
               <span><strong>{item.reference}</strong><small>{item.bankName} · {new Date(item.paymentDate).toLocaleDateString()}</small></span>
@@ -82,14 +88,21 @@ export const PaymentAllocationsPage: React.FC = () => {
               <span className={`cc-payment-allocation-status cc-payment-allocation-status--${item.allocationStatus}`}>{item.allocationStatus.replace(/([A-Z])/g, ' $1').trim()}</span>
             </button>
             <div
-              className={`cc-payment-allocation-chart cc-payment-allocation-chart--${item.amountUsd > 0 ? item.allocationStatus : 'ZeroValue'}`}
-              style={{ '--cc-payment-allocation-percent': `${item.amountUsd > 0 ? item.allocationPercent : 0}%` } as React.CSSProperties}
-              role="img"
-              aria-label={`${item.allocationPercent}% allocated: ${usd(item.allocatedAmountUsd)} allocated and ${usd(item.unallocatedAmountUsd)} unallocated`}
+              className={`cc-payment-allocation-bar cc-payment-allocation-bar--${totalAmount > 0 ? item.allocationStatus : 'ZeroValue'}`}
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={allocatedPercent}
+              aria-label={`${usd(allocatedAmount)} allocated and ${usd(unallocatedAmount)} unallocated from ${usd(totalAmount)} total TT amount`}
             >
-              <span>{item.amountUsd > 0 ? `${item.allocationPercent}%` : '—'}</span>
+              <span className="cc-payment-allocation-bar__allocated" style={{ width: `${allocatedPercent}%` }} />
+              <span className="cc-payment-allocation-bar__unallocated" style={{ width: `${totalAmount > 0 ? 100 - allocatedPercent : 100}%` }} />
             </div>
-            <div className="cc-payment-allocation-card__summary"><span>{usd(item.allocatedAmountUsd)} allocated</span><span>{usd(item.unallocatedAmountUsd)} unallocated</span></div>
+            <dl className="cc-payment-allocation-card__summary">
+              <div><dt>Total TT Amount</dt><dd>{usd(totalAmount)}</dd></div>
+              <div><dt>Allocated Amount</dt><dd className="cc-payment-allocation-positive">{usd(allocatedAmount)}</dd></div>
+              <div><dt>Unallocated Amount</dt><dd className="cc-payment-allocation-warning">{usd(unallocatedAmount)}</dd></div>
+            </dl>
             {isOpen && <div className="cc-payment-allocation-card__detail">
               <h2>Vehicle allocations</h2>
               {item.allocations.length === 0 ? <p>This TT has been verified but has not yet been allocated by the sales team.</p> : <div className="cc-payment-allocation-lines">
