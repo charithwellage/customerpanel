@@ -18,8 +18,8 @@ export function validateEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
-export { enquiryFormSchema, quoteRequestFormSchema } from './enquiry.js';
-export type { EnquiryFormSchemaValues, EnquiryFormSchemaInput, QuoteRequestFormSchemaValues, QuoteRequestFormSchemaInput } from './enquiry.js';
+export { enquiryFormSchema } from './enquiry.js';
+export type { EnquiryFormSchemaValues, EnquiryFormSchemaInput } from './enquiry.js';
 export { wishlistToggleSchema } from './wishlist.js';
 export type { WishlistToggleSchemaValues, WishlistToggleSchemaInput } from './wishlist.js';
 export { favouriteSearchCriteriaSchema, favouriteSearchCreateSchema } from './favourites.js';
