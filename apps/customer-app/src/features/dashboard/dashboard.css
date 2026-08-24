@@ -770,9 +770,9 @@
 }
 
 .cc-dash-shipment-item {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  justify-content: space-between;
   gap: var(--spacing-sm);
   padding: var(--spacing-sm);
   border: 1px solid var(--color-border);
@@ -785,6 +785,11 @@
 .cc-dash-shipment-item:hover {
   background: var(--color-neutral-surface);
   border-color: var(--color-text-secondary);
+}
+
+.cc-dash-shipment-item:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .cc-dash-shipment-info {
@@ -820,27 +825,11 @@
   flex-direction: column;
   align-items: flex-end;
   gap: 2px;
+  justify-self: end;
 }
 
 .cc-dash-shipment-eta {
   font-family: var(--font-mono);
   font-size: 0.65rem;
   color: var(--color-text-secondary);
-}
-
-.cc-dash-shipment-view-btn {
-  padding: 4px 8px;
-  border-radius: var(--radius-sm);
-  background: var(--color-neutral-surface);
-  border: 1px solid var(--color-border);
-  font-family: var(--font-mono);
-  font-size: 0.65rem;
-  font-weight: 700;
-  color: var(--color-text-primary);
-  cursor: pointer;
-}
-
-.cc-dash-shipment-view-btn:hover {
-  background: var(--color-primary);
-  color: var(--color-text-on-primary);
 }

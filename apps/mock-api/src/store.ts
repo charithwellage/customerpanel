@@ -6553,6 +6553,8 @@ class MemoryStore implements DemoStore {
         make: 'Toyota',
         model: 'Land Cruiser 250 ZX',
         yom: '2024',
+        vehicleSlug: '2024-toyota-land-cruiser-250-veh-6',
+        vehicleId: 'veh-6',
         message: 'Looking for 2024 Land Cruiser 250 with sunroof, leather interior, and 7 seats.',
         replyMessage: 'We have reserved 2 units arriving at Yokohama port this week.',
         repliedAt: '26th Sep, 2024 16:00:00',

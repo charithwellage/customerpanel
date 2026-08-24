@@ -103,6 +103,10 @@ export const SEED_INQUIRIES: PolymorphicInquiry[] = [
     make: 'Toyota',
     model: 'Land Cruiser 250 ZX',
     yom: '2024',
+    vehicleSlug: '2024-toyota-land-cruiser-250-veh-6',
+    vehicleId: 'veh-6',
+    priceState: 'priced',
+    priceUsd: 45000,
     message: 'Looking for 2024 Land Cruiser 250 with sunroof, leather interior, and 7 seats.',
     replyMessage: 'We have reserved 2 units arriving at Yokohama port this week.',
     repliedAt: '26th Sep, 2024 16:00:00',
@@ -524,6 +528,7 @@ export const CustomerInquiriesPage: React.FC = () => {
 
                   <div className="cc-inq-card__financials">
                     {renderVehicleSpecs(inq)}
+                    {renderSellingPrice(inq)}
                     <div className="cc-inq-price-block">
                       <span className="cc-inq-price-label">Start Price:</span>
                       <span className="cc-inq-price-val">${inq.startPriceUsd?.toLocaleString()} USD</span>
@@ -545,9 +550,29 @@ export const CustomerInquiriesPage: React.FC = () => {
           // General Inquiry (FRD 6.9: No Image)
           return (
             <article key={inq.id} className="cc-inq-card cc-inq-card--general" data-testid={`inq-card-${inq.inquiryNumber}`}>
-              <div className="cc-inq-card__no-image-box">
-                <span className="cc-inq-no-image-text">No Image</span>
-              </div>
+              {inq.imageUrl ? (
+                <div
+                  className="cc-inq-card__image-box"
+                  onClick={() => navigateToVehicle(inq)}
+                  onKeyDown={(event) => handleVehicleKeyDown(event, inq)}
+                  role={inq.vehicleSlug ? 'button' : undefined}
+                  tabIndex={inq.vehicleSlug ? 0 : -1}
+                  title={inq.vehicleSlug ? 'Click to view vehicle details' : undefined}
+                >
+                  <img src={inq.imageUrl} alt={`${inq.make} ${inq.model}`} className="cc-inq-card__image" loading="lazy" />
+                </div>
+              ) : (
+                <div
+                  className="cc-inq-card__no-image-box"
+                  onClick={() => navigateToVehicle(inq)}
+                  onKeyDown={(event) => handleVehicleKeyDown(event, inq)}
+                  role={inq.vehicleSlug ? 'button' : undefined}
+                  tabIndex={inq.vehicleSlug ? 0 : -1}
+                  title={inq.vehicleSlug ? 'Click to view vehicle details' : undefined}
+                >
+                  <span className="cc-inq-no-image-text">No Image</span>
+                </div>
+              )}
 
               <div className="cc-inq-card__body">
                 <div className="cc-inq-card__top">
@@ -586,7 +611,10 @@ export const CustomerInquiriesPage: React.FC = () => {
                   </div>
                 </div>
 
+                {renderVehicleSpecs(inq)}
+
                 <div className="cc-inq-card__financials">
+                  {renderSellingPrice(inq)}
                   <div className="cc-inq-price-block">
                     <span className="cc-inq-price-label">Min Selling Price:</span>
                     <span className="cc-inq-price-val">${inq.minFobUsd?.toLocaleString()} USD</span>

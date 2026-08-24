@@ -446,6 +446,12 @@ export const OverviewPage: React.FC = () => {
                   key={ship.id}
                   className="cc-dash-shipment-item"
                   onClick={() => setActiveRoute(`/vehicles`)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      setActiveRoute('/vehicles');
+                    }
+                  }}
                   role="button"
                   tabIndex={0}
                 >
@@ -466,16 +472,6 @@ export const OverviewPage: React.FC = () => {
                     <span className="cc-dash-shipment-eta">{ship.updateDate}</span>
                   </div>
 
-                  <button
-                    type="button"
-                    className="cc-dash-shipment-view-btn"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setActiveRoute('/vehicles');
-                    }}
-                  >
-                    VIEW
-                  </button>
                 </div>
               ))}
             </div>
