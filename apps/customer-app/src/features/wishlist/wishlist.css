@@ -9,7 +9,7 @@
   width: 100%;
 }
 
-/* Category Tabs (Stock vs Auction) */
+/* Wishlist category */
 .cc-wishlist-tabs {
   display: flex;
   align-items: center;
@@ -40,45 +40,6 @@
   color: var(--color-primary);
   border-bottom: 3px solid var(--color-primary);
   font-weight: 800;
-}
-
-/* Auction Group Pills */
-.cc-wishlist-auction-groups {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-xs) 0;
-}
-
-.cc-wishlist-groups-label {
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
-  font-weight: 700;
-  color: var(--color-text-secondary);
-}
-
-.cc-wishlist-group-pill {
-  background-color: var(--color-neutral-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-pill);
-  padding: 2px var(--spacing-md);
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
-  font-weight: 700;
-  color: var(--color-text-primary);
-  cursor: pointer;
-  transition: all var(--motion-fast);
-}
-
-.cc-wishlist-group-pill:hover {
-  border-color: var(--color-primary);
-}
-
-.cc-wishlist-group-pill--active {
-  background-color: var(--color-primary);
-  color: var(--color-text-on-primary);
-  border-color: var(--color-primary);
 }
 
 /* Controls Bar (Search + Found + Per Page) */
@@ -334,8 +295,7 @@
   color: var(--color-primary);
 }
 
-.cc-wishlist-inquirer-note,
-.cc-wishlist-auction-timer {
+.cc-wishlist-inquirer-note {
   font-family: var(--font-mono);
   font-size: 0.68rem;
   color: var(--color-text-secondary);

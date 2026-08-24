@@ -20,7 +20,7 @@ const MOCK_USER = {
 };
 
 describe('FRD Section 8: Customer Wishlist UI', () => {
-  it('renders CustomerWishlistPage with Stock List vs Auction tabs, search, count, and action buttons', () => {
+  it('renders the stock wishlist without the removed Auction tab', () => {
     const html = renderToStaticMarkup(
       React.createElement(
         QueryClientProvider,
@@ -39,7 +39,8 @@ describe('FRD Section 8: Customer Wishlist UI', () => {
 
     expect(html).toContain('data-testid="customer-wishlist-page"');
     expect(html).toContain('data-testid="tab-stock-wishlist"');
-    expect(html).toContain('data-testid="tab-auction-wishlist"');
+    expect(html).not.toContain('data-testid="tab-auction-wishlist"');
+    expect(html).not.toContain('Auction');
     expect(html).toContain('Found:');
     expect(html).toContain('Per Page:');
     expect(html).toContain('data-testid="wishlist-card-J240111111"');
