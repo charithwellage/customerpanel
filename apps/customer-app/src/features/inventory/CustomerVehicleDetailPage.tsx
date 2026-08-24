@@ -5,6 +5,7 @@ import { useCustomerProfile } from '../profile/index.js';
 import { useCustomerVehicleDetail } from './useCustomerVehicleDetail.js';
 import { CustomerInquiryModal } from './CustomerInquiryModal.js';
 import { useCustomerTierBenefits } from './useCustomerTierBenefits.js';
+import { CustomerVehicleSpecifications } from '../../components/CustomerVehicleSpecifications.js';
 
 export interface CustomerVehicleDetailPageProps {
   slug: string;
@@ -426,64 +427,7 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
             </div>
           </div>
 
-          {/* Specifications Table */}
-          <div className="cc-cust-specs-card">
-            <h2 className="cc-cust-specs-card__heading">Vehicle Specifications</h2>
-            <dl className="cc-cust-specs-list">
-              <div className="cc-cust-specs-item">
-                <dt>Chassis No.</dt>
-                <dd>{vehicle.chassisNumber}</dd>
-              </div>
-              <div className="cc-cust-specs-item">
-                <dt>Year</dt>
-                <dd>{vehicle.year}</dd>
-              </div>
-              <div className="cc-cust-specs-item">
-                <dt>Make</dt>
-                <dd>{vehicle.make}</dd>
-              </div>
-              <div className="cc-cust-specs-item">
-                <dt>Model</dt>
-                <dd>{vehicle.model}</dd>
-              </div>
-              {vehicle.bodyStyle && (
-                <div className="cc-cust-specs-item">
-                  <dt>Body Style</dt>
-                  <dd>{vehicle.bodyStyle}</dd>
-                </div>
-              )}
-              {vehicle.fuelType && (
-                <div className="cc-cust-specs-item">
-                  <dt>Fuel Type</dt>
-                  <dd>{vehicle.fuelType}</dd>
-                </div>
-              )}
-              {vehicle.transmission && (
-                <div className="cc-cust-specs-item">
-                  <dt>Transmission</dt>
-                  <dd>{vehicle.transmission}</dd>
-                </div>
-              )}
-              {vehicle.driveTrain && (
-                <div className="cc-cust-specs-item">
-                  <dt>Drive Train</dt>
-                  <dd>{vehicle.driveTrain}</dd>
-                </div>
-              )}
-              {vehicle.mileage !== undefined && (
-                <div className="cc-cust-specs-item">
-                  <dt>Mileage</dt>
-                  <dd>{vehicle.mileage.toLocaleString()} km</dd>
-                </div>
-              )}
-              {vehicle.stockType && (
-                <div className="cc-cust-specs-item">
-                  <dt>Stock Type</dt>
-                  <dd>{vehicle.stockType === 'J' ? 'Japan Stock' : vehicle.stockType === 'CRFO' ? 'Cross-Regional Stock' : vehicle.stockType}</dd>
-                </div>
-              )}
-            </dl>
-          </div>
+          <CustomerVehicleSpecifications vehicle={vehicle} />
         </div>
       </div>
 

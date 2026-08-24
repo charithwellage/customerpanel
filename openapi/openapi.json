@@ -3390,11 +3390,31 @@
                 "type": "array",
                 "items": { "type": "string" }
               },
+              "stockType": { "type": "string", "enum": ["J", "CRFO"] },
               "bodyStyle": { "type": "string", "example": "Sedan" },
               "fuelType": { "type": "string", "example": "Petrol" },
               "transmission": { "type": "string", "example": "Automatic" },
               "driveTrain": { "type": "string", "example": "2WD" },
               "mileage": { "type": "integer", "example": 32000 },
+              "engineSize": { "type": "string", "example": "1500 cc" },
+              "modelCode": { "type": "string", "example": "DBA-NZE141" },
+              "versionClass": { "type": "string", "example": "1.5X" },
+              "registerYear": { "type": "string", "example": "2021/04" },
+              "mfgYear": { "type": "string", "example": "2021/03" },
+              "steering": { "type": "string", "example": "Right Hand" },
+              "seats": { "type": "integer", "example": 5 },
+              "loadCapacity": { "type": "number", "example": 500 },
+              "doors": { "type": "integer", "example": 5 },
+              "grossWeight": { "type": "number", "example": 1800 },
+              "dimensions": {
+                "type": "object",
+                "properties": {
+                  "lengthMm": { "type": "number" },
+                  "widthMm": { "type": "number" },
+                  "heightMm": { "type": "number" },
+                  "m3": { "type": "number" }
+                }
+              },
               "invoiceId": { "type": "string", "example": "inv-001" },
               "shipmentId": { "type": "string", "example": "ship-001" },
               "vesselName": { "type": "string", "example": "Global Highway" },

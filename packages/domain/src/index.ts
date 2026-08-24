@@ -1091,11 +1091,28 @@ export interface CustomerVehicleSummary {
 
 export interface CustomerVehicleDetail extends CustomerVehicleSummary {
   images: string[];
+  stockType?: 'J' | 'CRFO';
   bodyStyle?: string;
   fuelType?: string;
   transmission?: string;
   driveTrain?: string;
   mileage?: number;
+  engineSize?: string;
+  modelCode?: string;
+  versionClass?: string;
+  registerYear?: string;
+  mfgYear?: string;
+  steering?: string;
+  seats?: number;
+  loadCapacity?: number;
+  doors?: number;
+  grossWeight?: number;
+  dimensions?: {
+    lengthMm?: number;
+    widthMm?: number;
+    heightMm?: number;
+    m3?: number;
+  };
   invoiceId?: string;
   shipmentId?: string;
   vesselName?: string;

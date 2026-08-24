@@ -6,6 +6,7 @@ import { DepositSummaryCard } from './components/DepositSummaryCard.js';
 import { ShippingTrackingCard } from './components/ShippingTrackingCard.js';
 import { ExportDocumentsCard } from './components/ExportDocumentsCard.js';
 import { VehicleGalleryPrimitive } from '@carchief/vehicle-detail';
+import { CustomerVehicleSpecifications } from '../../components/CustomerVehicleSpecifications.js';
 
 export interface CustomerFleetDetailPageProps {
   vehicleId: string;
@@ -97,58 +98,7 @@ export const CustomerFleetDetailPage: React.FC<CustomerFleetDetailPageProps> = (
             />
           </section>
 
-          {/* Specifications */}
-          <section className="cc-cust-fleet-card cc-cust-fleet-specs" aria-label="Vehicle Specifications">
-            <h3 className="cc-cust-fleet-section-title">Vehicle Specifications</h3>
-            <dl className="cc-cust-fleet-specs__list">
-              <div className="cc-cust-fleet-specs__item">
-                <dt>Year</dt>
-                <dd>{vehicle.year}</dd>
-              </div>
-              <div className="cc-cust-fleet-specs__item">
-                <dt>Make</dt>
-                <dd>{vehicle.make}</dd>
-              </div>
-              <div className="cc-cust-fleet-specs__item">
-                <dt>Model</dt>
-                <dd>{vehicle.model}</dd>
-              </div>
-              <div className="cc-cust-fleet-specs__item">
-                <dt>Chassis No.</dt>
-                <dd>{vehicle.chassisNumber}</dd>
-              </div>
-              {vehicle.bodyStyle && (
-                <div className="cc-cust-fleet-specs__item">
-                  <dt>Body Style</dt>
-                  <dd>{vehicle.bodyStyle}</dd>
-                </div>
-              )}
-              {vehicle.fuelType && (
-                <div className="cc-cust-fleet-specs__item">
-                  <dt>Fuel Type</dt>
-                  <dd>{vehicle.fuelType}</dd>
-                </div>
-              )}
-              {vehicle.transmission && (
-                <div className="cc-cust-fleet-specs__item">
-                  <dt>Transmission</dt>
-                  <dd>{vehicle.transmission}</dd>
-                </div>
-              )}
-              {vehicle.driveTrain && (
-                <div className="cc-cust-fleet-specs__item">
-                  <dt>Drive Train</dt>
-                  <dd>{vehicle.driveTrain}</dd>
-                </div>
-              )}
-              {vehicle.mileage !== undefined && (
-                <div className="cc-cust-fleet-specs__item">
-                  <dt>Mileage</dt>
-                  <dd>{vehicle.mileage.toLocaleString()} km</dd>
-                </div>
-              )}
-            </dl>
-          </section>
+          <CustomerVehicleSpecifications vehicle={vehicle} />
 
           {/* Order Timeline (FRD 4.28: Order Dates -> Inspection Dates -> Shipping Dates) */}
           <section className="cc-cust-fleet-card cc-order-timeline-card" aria-label="Order & Shipping Timeline">
