@@ -4035,6 +4035,34 @@ const seedPayments: PaymentRecord[] = [
     paidAt: '2026-08-13T09:00:00.000Z',
     status: 'Pending',
   },
+  // Active customer: finance review states used by the payment journal filters
+  {
+    id: 'pay-cust123-hold-001',
+    customerId: 'cust-123',
+    invoiceId: 'inv-003',
+    amountUsd: 4200.00,
+    paidAt: '2026-08-14T10:30:00.000Z',
+    status: 'Held',
+    holdReason: 'Awaiting additional bank confirmation',
+    reference: 'TT-2026-4200-HOLD',
+    bankName: 'Standard Chartered Bank',
+    currency: 'USD',
+    remarks: 'Payment temporarily held for finance review',
+    idempotencyKey: 'seed-pay-cust123-hold-001',
+  },
+  {
+    id: 'pay-cust123-rejected-001',
+    customerId: 'cust-123',
+    invoiceId: 'inv-003',
+    amountUsd: 2800.00,
+    paidAt: '2026-08-15T11:15:00.000Z',
+    status: 'Rejected',
+    reference: 'TT-2026-2800-REJECTED',
+    bankName: 'MUFG Bank Tokyo',
+    currency: 'USD',
+    remarks: 'Payment proof rejected because the reference was incomplete',
+    idempotencyKey: 'seed-pay-cust123-rejected-001',
+  },
   // Exception customer: 1 rejected payment
   {
     id: 'pay-005',
@@ -7275,6 +7303,8 @@ class PostgresStore implements DemoStore {
     await this.pool.query(`ALTER TABLE payments ADD COLUMN IF NOT EXISTS currency text;`);
     await this.pool.query(`ALTER TABLE payments ADD COLUMN IF NOT EXISTS remarks text;`);
     await this.pool.query(`ALTER TABLE payments ALTER COLUMN invoice_id DROP NOT NULL;`);
+    await this.pool.query(`ALTER TABLE payments DROP CONSTRAINT IF EXISTS payments_status_valid;`);
+    await this.pool.query(`ALTER TABLE payments ADD CONSTRAINT payments_status_valid CHECK (status IN ('Pending', 'Held', 'Resubmitted', 'Approved', 'Rejected'));`);
     await this.pool.query(
       `CREATE TABLE IF NOT EXISTS payment_notifications (
         id text PRIMARY KEY,
@@ -7494,6 +7524,28 @@ class PostgresStore implements DemoStore {
          ('pay-006', 'cust-123', 'inv-005', 12780, '2026-08-12T14:00:00.000Z', 'Approved', 'TT-2026-12780-DIRECT', 'Direct Wire Transfer', 'USD', 'Allocated to 2019 SUZUKI ALTO'),
          ('pay-007', 'cust-123', 'inv-016', 7100, '2026-08-12T14:00:00.000Z', 'Approved', 'TT-2026-7100-DIRECT', 'Direct Wire Transfer', 'USD', 'Allocated to 2020 TOYOTA HIACE VAN')
        ON CONFLICT (id) DO NOTHING`,
+    );
+    await this.pool.query(
+      `INSERT INTO payments (id, customer_id, invoice_id, amount_usd, paid_at, status, reference, bank_name, currency, remarks)
+       VALUES
+         ('pay-cust123-hold-001', 'cust-123', 'inv-003', 4200, '2026-08-14T10:30:00.000Z', 'Held', 'TT-2026-4200-HOLD', 'Standard Chartered Bank', 'USD', 'Payment temporarily held for finance review'),
+         ('pay-cust123-rejected-001', 'cust-123', 'inv-003', 2800, '2026-08-15T11:15:00.000Z', 'Rejected', 'TT-2026-2800-REJECTED', 'MUFG Bank Tokyo', 'USD', 'Payment proof rejected because the reference was incomplete')
+       ON CONFLICT (id) DO UPDATE SET
+         status = EXCLUDED.status,
+         reference = EXCLUDED.reference,
+         bank_name = EXCLUDED.bank_name,
+         currency = EXCLUDED.currency,
+         remarks = EXCLUDED.remarks`,
+    );
+    await this.pool.query(
+      `INSERT INTO payments (id, customer_id, invoice_id, amount_usd, paid_at, status, reference, bank_name, currency, remarks)
+       VALUES ('pay-004', 'cust-123', 'inv-003', 5000, '2026-08-13T09:00:00.000Z', 'Pending', 'PAY-004', 'Sumitomo Mitsui Banking Corp (USD)', 'USD', 'Wire Remittance')
+       ON CONFLICT (id) DO UPDATE SET
+         status = EXCLUDED.status,
+         reference = COALESCE(payments.reference, EXCLUDED.reference),
+         bank_name = COALESCE(payments.bank_name, EXCLUDED.bank_name),
+         currency = COALESCE(payments.currency, EXCLUDED.currency),
+         remarks = COALESCE(payments.remarks, EXCLUDED.remarks)`,
     );
     // Keep the multi-vehicle TT examples available on an existing PostgreSQL
     // database as well as after a full reset. These rows are intentionally

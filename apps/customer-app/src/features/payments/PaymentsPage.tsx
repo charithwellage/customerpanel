@@ -36,7 +36,14 @@ export interface RemittanceJournalEntry {
   customerName: string;
   approvedDate?: string;
   remarks?: string;
-  status: 'APPROVED' | 'REJECTED' | 'UNDER REVIEW';
+  status: 'APPROVED' | 'REJECTED' | 'UNDER REVIEW' | 'ON HOLD';
+}
+
+export function getRemittanceJournalStatus(status: CustomerPayment['status']): RemittanceJournalEntry['status'] {
+  if (status === 'Approved') return 'APPROVED';
+  if (status === 'Rejected') return 'REJECTED';
+  if (status === 'Held') return 'ON HOLD';
+  return 'UNDER REVIEW';
 }
 
 export function getCustomerPaymentStatus(
@@ -97,11 +104,7 @@ export const PaymentsPage: React.FC = () => {
         customerName: payment.customerName || payment.customerId,
         approvedDate: payment.approvedDate,
         remarks: payment.remarks,
-        status: payment.status === 'Approved'
-          ? 'APPROVED'
-          : payment.status === 'Rejected'
-            ? 'REJECTED'
-            : 'UNDER REVIEW',
+        status: getRemittanceJournalStatus(payment.status),
       };
     });
   }, [apiPayments]);
@@ -146,6 +149,7 @@ export const PaymentsPage: React.FC = () => {
       if (approvalFilter !== 'ALL') {
         if (approvalFilter === 'APPROVED' && entry.status !== 'APPROVED') return false;
         if (approvalFilter === 'UNDER_REVIEW' && entry.status !== 'UNDER REVIEW') return false;
+        if (approvalFilter === 'ON_HOLD' && entry.status !== 'ON HOLD') return false;
         if (approvalFilter === 'REJECTED' && entry.status !== 'REJECTED') return false;
       }
 
@@ -349,7 +353,8 @@ export const PaymentsPage: React.FC = () => {
               >
                 <option value="ALL">All Approval Status</option>
                 <option value="APPROVED">Approved</option>
-                <option value="UNDER_REVIEW">Under Review / On Hold</option>
+                <option value="UNDER_REVIEW">Under Review</option>
+                <option value="ON_HOLD">On Hold</option>
                 <option value="REJECTED">Rejected</option>
               </select>
             </div>

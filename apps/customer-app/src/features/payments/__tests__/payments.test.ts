@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { CustomerPayment, CustomerPaymentNotification } from '@carchief/domain';
 import { CustomerShellProvider } from '../../shell/index.js';
 import { HttpClientProvider } from '../../account/index.js';
-import { getCustomerPaymentStatus, PaymentsPage } from '../PaymentsPage.js';
+import { getCustomerPaymentStatus, getRemittanceJournalStatus, PaymentsPage } from '../PaymentsPage.js';
 import { PaymentDetailModal } from '../components/PaymentDetailModal.js';
 
 const queryClient = new QueryClient({
@@ -45,6 +45,13 @@ const event = (name: CustomerPaymentNotification['event']): CustomerPaymentNotif
 });
 
 describe('customer payment status projection', () => {
+  it('keeps under review and on hold as separate journal statuses', () => {
+    expect(getRemittanceJournalStatus('Pending')).toBe('UNDER REVIEW');
+    expect(getRemittanceJournalStatus('Resubmitted')).toBe('UNDER REVIEW');
+    expect(getRemittanceJournalStatus('Held')).toBe('ON HOLD');
+    expect(getRemittanceJournalStatus('Rejected')).toBe('REJECTED');
+  });
+
   it('maps server events to held, resubmitted, approved and allocated states', () => {
     expect(getCustomerPaymentStatus(payment, [event('PaymentHeld')])).toBe('Held');
     expect(getCustomerPaymentStatus(payment, [event('PaymentResubmitted')])).toBe('Resubmitted');
