@@ -15,8 +15,8 @@ import { CUSTOMER_APP_BASE_URL } from './customerAppBase.js';
  * account's data across every customer domain.
  */
 const MOCK_API_BASE_URL = process.env.MOCK_API_BASE_URL ?? 'http://127.0.0.1:4000';
-const FIXTURE_EMAIL = 'demo.customer@carchief.com';
-const FIXTURE_PASSWORD = 'CarChief#Fixture2026';
+const FIXTURE_EMAIL = 'prabodha@carchief.com';
+const FIXTURE_PASSWORD = 'Password@1234';
 
 function uniqueEmail(prefix: string): string {
   return `${prefix}.${Date.now()}.${Math.floor(Math.random() * 100000)}@example.com`;

@@ -69,7 +69,7 @@ export const PaymentsPage: React.FC = () => {
   const [currencyFilter, setCurrencyFilter] = useState('ALL');
   const [approvalFilter, setApprovalFilter] = useState('ALL');
   const [currentPage, setCurrentPage] = useState(1);
-  const paymentsPerPage = 10;
+  const paymentsPerPage = 20;
 
   const online = useCustomerOnlineStatus();
   const createPayment = useCreateCustomerPayment();

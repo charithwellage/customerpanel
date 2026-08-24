@@ -25,7 +25,7 @@ export function EnterpriseLoginModal({
   onSuccessAuth,
 }: EnterpriseLoginModalProps) {
   const dialogId = useId();
-  const [email, setEmail] = useState('demo.customer@carchief.com');
+  const [email, setEmail] = useState('prabodha@carchief.com');
   const [password, setPassword] = useState('Password123!');
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);

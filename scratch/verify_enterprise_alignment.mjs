@@ -11,8 +11,8 @@ async function main() {
   const emailInput = await page.$('input[type="email"]');
   if (emailInput) {
     console.log('Logging in...');
-    await page.fill('input[type="email"]', 'demo.customer@carchief.com');
-    await page.fill('input[type="password"]', 'CarChief#Fixture2026');
+    await page.fill('input[type="email"]', 'prabodha@carchief.com');
+    await page.fill('input[type="password"]', 'Password@1234');
     await page.click('button[type="submit"]');
   }
 

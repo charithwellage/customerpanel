@@ -25,8 +25,10 @@ export const VehicleFleetCard: React.FC<VehicleFleetCardProps> = ({
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const isPI = vehicle.status === 'Under Negotiation With PI' || Boolean(vehicle.proformaInvoiceId);
-  const isInvoiced = vehicle.status === 'Confirmed' || vehicle.status === 'In Transit' || vehicle.status === 'Delivered' || Boolean(vehicle.commercialBill);
+  const isPaid = vehicle.paymentStatus === 'Paid';
+  const hasOutstandingInvoice = Boolean(vehicle.invoiceId && !isPaid);
+  const isPI = vehicle.status === 'Under Negotiation With PI' || Boolean(vehicle.proformaInvoiceId) || hasOutstandingInvoice;
+  const isInvoiced = isPaid && (vehicle.status === 'Confirmed' || vehicle.status === 'In Transit' || vehicle.status === 'Delivered');
   const isReserved = vehicle.status === 'Under Negotiation' || (!isPI && !isInvoiced);
 
   const fallbackImage = 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=400';
@@ -160,9 +162,9 @@ export const VehicleFleetCard: React.FC<VehicleFleetCardProps> = ({
           </span>
         </div>
 
-        {isInvoiced && (
+        {vehicle.invoiceId && (
           <div className="cc-cust-fleet-card__list-commercial-bill" aria-label="Purchased commercial bill summary">
-            <div className="cc-cust-fleet-card__list-commercial-bill-title">✓ Purchased Commercial Bill</div>
+            <div className="cc-cust-fleet-card__list-commercial-bill-title">{isPaid ? '✓ Purchased Commercial Bill' : 'Commercial Bill — Payment Due'}</div>
             <div><span>Sold</span><strong>${soldAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></div>
             <div><span>Paid</span><strong className="cc-cust-fleet-card__list-commercial-bill-paid">${paidAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></div>
             <div><span>Balance</span><strong className="cc-cust-fleet-card__list-commercial-bill-balance">${balanceAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></div>

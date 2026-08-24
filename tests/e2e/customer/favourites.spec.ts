@@ -8,7 +8,7 @@ import { CUSTOMER_APP_BASE_URL } from './customerAppBase.js';
  * D02-P13-CODE_REVIEW Finding 3: `signIn()` waited on a "Customer Portal"
  * heading absent from the rendered shell (fixed below — the real always-
  * present landmark is `.cc-cust-shell-layout`). Using the single shared
- * fixture account (`demo.customer@carchief.com`) plus a
+ * fixture account (`prabodha@carchief.com`) plus a
  * `POST /api/v1/__reset` `beforeEach` (the `profile.spec.ts` precedent) is
  * unsafe here specifically because `__reset` wipes state globally: with the
  * three viewport projects running concurrently, one project's reset can

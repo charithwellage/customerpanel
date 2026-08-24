@@ -2194,11 +2194,11 @@
         "properties": {
           "id": { "type": "string", "example": "acct-cust-123" },
           "customerId": { "type": "string", "example": "cust-123" },
-          "nameWithInitials": { "type": "string", "example": "J. K. Demo" },
+          "nameWithInitials": { "type": "string", "example": "Prabodha Wijerathne" },
           "countryCode": { "type": "string", "example": "UG" },
           "dialCode": { "type": "string", "example": "+256" },
           "mobileNumber": { "type": "string", "example": "700000000" },
-          "email": { "type": "string", "example": "demo.customer@carchief.com" },
+          "email": { "type": "string", "example": "prabodha@carchief.com" },
           "tier": { "type": "string", "enum": ["Platinum", "Gold", "Silver", "Standard"], "example": "Standard" },
           "status": { "type": "string", "example": "active" },
           "verificationState": { "type": "string", "example": "unverified" },
@@ -2234,7 +2234,7 @@
       "LoginRequest": {
         "type": "object",
         "properties": {
-          "email": { "type": "string", "example": "demo.customer@carchief.com" },
+          "email": { "type": "string", "example": "prabodha@carchief.com" },
           "password": { "type": "string" }
         },
         "required": ["email", "password"]
@@ -2266,7 +2266,7 @@
       "PasswordResetRequest": {
         "type": "object",
         "properties": {
-          "email": { "type": "string", "example": "demo.customer@carchief.com" }
+          "email": { "type": "string", "example": "prabodha@carchief.com" }
         },
         "required": ["email"]
       },
@@ -3315,8 +3315,8 @@
         "type": "object",
         "description": "Server-computed 30% deposit requirement under RULE-07",
         "properties": {
-          "requiredPercent": { "type": "number", "example": 50 },
-          "requiredAmountUsd": { "type": "number", "example": 4250.00 },
+          "requiredPercent": { "type": "number", "example": 30 },
+          "requiredAmountUsd": { "type": "number", "example": 2550.00 },
           "paidAmountUsd": { "type": "number", "description": "Approved amount already paid toward the vehicle, sourced from the related payment records.", "example": 2160.00 },
           "remainingAmountUsd": { "type": "number", "example": 2250.00 }
         },
@@ -3336,6 +3336,11 @@
           "priceUsd": { "type": "number", "example": 8500.00 },
           "totalAmountUsd": { "type": "number", "example": 8500.00 },
           "status": { "$ref": "#/components/schemas/CustomerVehicleStatus" },
+          "paymentStatus": { "type": "string", "enum": ["Unpaid", "PartiallyPaid", "Paid"], "description": "Server-resolved payment state for the vehicle invoice." },
+          "paidAmountUsd": { "type": "number", "minimum": 0 },
+          "balanceAmountUsd": { "type": "number", "minimum": 0 },
+          "invoiceTotalAmountUsd": { "type": "number", "minimum": 0 },
+          "invoiceId": { "type": "string" },
           "vehicleStatusCode": { "$ref": "#/components/schemas/VehicleStatus" },
           "statusLabel": { "type": "string", "description": "Customer-facing status label from the database-backed status catalogue. ReservedWithPI is Advanced Paid Vehicle; invoiced lifecycle statuses are Purchased Vehicle.", "example": "Reserved Vehicle" },
           "statusLabelPlural": { "type": "string", "description": "Customer-facing plural status label from the database-backed status catalogue.", "example": "Reserved Vehicles" },
@@ -3364,7 +3369,7 @@
           "createdAt": { "type": "string", "example": "2026-08-10T10:00:00.000Z" },
           "updatedAt": { "type": "string", "example": "2026-08-10T10:00:00.000Z" }
         },
-        "required": ["id", "vehicleId", "chassisNumber", "make", "model", "year", "slug", "priceUsd", "totalAmountUsd", "status", "vehicleStatusCode", "statusLabel", "statusLabelPlural", "createdAt", "updatedAt"]
+        "required": ["id", "vehicleId", "chassisNumber", "make", "model", "year", "slug", "priceUsd", "totalAmountUsd", "status", "paymentStatus", "paidAmountUsd", "balanceAmountUsd", "vehicleStatusCode", "statusLabel", "statusLabelPlural", "createdAt", "updatedAt"]
       },
       "CustomerVehicleDetail": {
         "allOf": [

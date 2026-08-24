@@ -71,12 +71,13 @@ describe('Customer Invoices & PI Contract (D02-P05-T001)', () => {
       expect(body).toHaveProperty('total');
       expect(body).toHaveProperty('totals');
 
-      // cust-123 has 3 commercial invoices (inv-001, inv-002, inv-003) and 1 proforma invoice (pi-001)
-      expect(body.total).toBe(22);
+      // cust-123 has the deterministic commercial and proforma fixtures,
+      // including the multi-vehicle invoice examples.
+      expect(body.total).toBe(25);
       // Totals check
-      expect(body.totals.totalInvoicedUsd).toBe(786406.00);
-      expect(body.totals.totalPaidUsd).toBe(32380.00);
-      expect(body.totals.totalOutstandingUsd).toBe(754026.00);
+      expect(body.totals.totalInvoicedUsd).toBe(850746.00);
+      expect(body.totals.totalPaidUsd).toBe(89580.00);
+      expect(body.totals.totalOutstandingUsd).toBe(761166.00);
 
       // All items must belong to cust-123 (RULE-04)
       for (const item of body.items) {
@@ -106,7 +107,7 @@ describe('Customer Invoices & PI Contract (D02-P05-T001)', () => {
       });
       expect(commRes.status).toBe(200);
       const commBody = (await commRes.json()) as CustomerInvoiceListResponse;
-      expect(commBody.total).toBe(16);
+      expect(commBody.total).toBe(19);
       for (const item of commBody.items) {
         expect(item.type).toBe('Commercial');
       }

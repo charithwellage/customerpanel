@@ -1,8 +1,8 @@
 import { test, expect } from '@playwright/test';
 import { CUSTOMER_APP_BASE_URL } from './customerAppBase.js';
 
-const FIXTURE_EMAIL = 'demo.customer@carchief.com';
-const FIXTURE_PASSWORD = 'CarChief#Fixture2026';
+const FIXTURE_EMAIL = 'prabodha@carchief.com';
+const FIXTURE_PASSWORD = 'Password@1234';
 
 test.describe('Customer App Globalization & i18n Language Switcher (D02-P14-T006)', () => {
   test.beforeEach(async ({ page }) => {

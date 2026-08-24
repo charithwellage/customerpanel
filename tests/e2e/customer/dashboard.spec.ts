@@ -6,8 +6,8 @@ import { CUSTOMER_APP_BASE_URL } from './customerAppBase.js';
  * Verifies the dashboard loads with KPI cards and supports all UI states.
  * Tests authentication, state transitions, and responsive behavior.
  */
-const FIXTURE_EMAIL = 'demo.customer@carchief.com';
-const FIXTURE_PASSWORD = 'CarChief#Fixture2026';
+const FIXTURE_EMAIL = 'prabodha@carchief.com';
+const FIXTURE_PASSWORD = 'Password@1234';
 
 test.describe('Customer Dashboard Overview E2E', () => {
   test.beforeEach(async ({ page }) => {

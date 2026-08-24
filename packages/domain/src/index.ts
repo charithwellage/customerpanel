@@ -1060,6 +1060,8 @@ export interface CustomerCommercialBillInfo {
   balanceAmountUsd: number;
 }
 
+export type CustomerVehiclePaymentStatus = 'Unpaid' | 'PartiallyPaid' | 'Paid';
+
 export interface CustomerVehicleSummary {
   id: string;
   vehicleId: string;
@@ -1072,6 +1074,11 @@ export interface CustomerVehicleSummary {
   priceUsd: number;
   totalAmountUsd: number;
   status: CustomerVehicleStatus;
+  paymentStatus: CustomerVehiclePaymentStatus;
+  paidAmountUsd: number;
+  balanceAmountUsd: number;
+  invoiceTotalAmountUsd?: number;
+  invoiceId?: string;
   vehicleStatusCode: VehicleStatus;
   statusLabel: string;
   statusLabelPlural: string;

@@ -2,8 +2,8 @@ import { test, expect, type Page } from '@playwright/test';
 import { CUSTOMER_APP_BASE_URL } from './customerAppBase.js';
 
 /** Signs in through the Mock API demo-session endpoint and waits for the shell. */
-const FIXTURE_EMAIL = 'demo.customer@carchief.com';
-const FIXTURE_PASSWORD = 'CarChief#Fixture2026';
+const FIXTURE_EMAIL = 'prabodha@carchief.com';
+const FIXTURE_PASSWORD = 'Password@1234';
 
 /** Signs in with the seeded fixture credential (D02-P12-T001), the removed
  * demo-session endpoint's replacement (D02-P12-T007 reopen of D02-P12-T005's

@@ -33,7 +33,7 @@ export function getVehicleActiveTimelineStepIndex(vehicle: CustomerVehicleSummar
   if (logistics === 'LOADED') return 5;
   if (logistics === 'VESSEL BOOKED') return 4;
   if (logistics === 'READY FOR LOADING' || logistics === 'READY') return 3;
-  if (status === 'confirmed' || logistics === 'INSPECTION' || Boolean(vehicle.commercialBill)) return 2;
+  if (status === 'confirmed' || logistics === 'INSPECTION' || (Boolean(vehicle.commercialBill) && vehicle.paymentStatus === 'Paid')) return 2;
   if (status === 'under negotiation with pi' || (status !== 'under negotiation' && Boolean(vehicle.proformaInvoiceId)) || logistics === 'PURCHASED') return 1;
   return 0; // RESERVED
 }
@@ -93,7 +93,7 @@ export const VehicleTrackingModal: React.FC<VehicleTrackingModalProps> = ({
   const dischargePort = vehicle.destinationPort || 'Mombasa';
 
   const isPI = vehicle.status === 'Under Negotiation With PI' || Boolean(vehicle.proformaInvoiceId);
-  const isInvoiced = vehicle.status === 'Confirmed' || vehicle.status === 'In Transit' || vehicle.status === 'Delivered' || Boolean(vehicle.commercialBill);
+  const isInvoiced = vehicle.paymentStatus === 'Paid' && (vehicle.status === 'Confirmed' || vehicle.status === 'In Transit' || vehicle.status === 'Delivered');
   const badgeLabel = vehicle.statusLabel || '';
 
   return (

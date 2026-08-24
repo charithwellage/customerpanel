@@ -10,8 +10,8 @@ import type { JwtClaims } from '@carchief/domain';
 // a real server-enforced credential check against the seeded fixture
 // account instead of a no-input mint.
 
-const SEED_EMAIL = 'demo.customer@carchief.com';
-const SEED_PASSWORD = 'CarChief#Fixture2026';
+const SEED_EMAIL = 'prabodha@carchief.com';
+const SEED_PASSWORD = 'Password@1234';
 
 async function startServer(store: ReturnType<typeof createStore>) {
   const app = createMockApiApp(store);

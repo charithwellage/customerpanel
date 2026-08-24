@@ -18,11 +18,11 @@ const GENERIC_INVALID_CREDENTIAL_MESSAGE = 'Invalid email or password. Please tr
 
 /** Reads the `email` query param T003's registration confirmation forwards. */
 function readPrefilledEmail(): string {
-  if (typeof window === 'undefined') return 'demo.customer@carchief.com';
+  if (typeof window === 'undefined') return 'prabodha@carchief.com';
   try {
-    return new URLSearchParams(window.location.search).get('email') || 'demo.customer@carchief.com';
+    return new URLSearchParams(window.location.search).get('email') || 'prabodha@carchief.com';
   } catch {
-    return 'demo.customer@carchief.com';
+    return 'prabodha@carchief.com';
   }
 }
 

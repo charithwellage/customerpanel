@@ -51,8 +51,8 @@ docker compose -f docker-compose.frontend.yml up -d
 Then open [http://127.0.0.1:3001/](http://127.0.0.1:3001/). The seeded Mock
 API customer account is:
 
-- Email: `demo.customer@carchief.com`
-- Password: `CarChief#Fixture2026`
+- Email: `prabodha@carchief.com`
+- Password: `Password@1234`
 
 This account is a development fixture for local testing. It is separate from
 the POC account above. The Public Web registration page is available at
@@ -62,15 +62,15 @@ the POC account above. The Public Web registration page is available at
 
 The Mock API database also contains deterministic accounts for testing
 customer-tier pricing and reservation limits. All of these development
-accounts use the password `CarChief#Fixture2026`:
+accounts use the password `Password@1234`:
 
 | Email | Customer ID | Tier | Discount | Active reservation limit |
 |---|---|---:|---:|---:|
-| `demo.customer@carchief.com` | `cust-123` | Standard | 0% | 1 |
-| `other@example.com` | `user-other-456` | Silver | 5% | 2 |
-| `silver@example.com` | `cust-silver-789` | Silver | 5% | 2 |
-| `gold@example.com` | `cust-gold-012` | Gold | 10% | 3 |
-| `platinum@example.com` | `cust-platinum-345` | Platinum | 15% | 5 |
+| `prabodha@carchief.com` | `cust-123` | Standard | 0% | 1 |
+| `amina.njeri@example.com` | `user-other-456` | Silver | 5% | 2 |
+| `daniel.mwangi@example.com` | `cust-silver-789` | Silver | 5% | 2 |
+| `haruto.sato@example.com` | `cust-gold-012` | Gold | 10% | 3 |
+| `sofia.almeida@example.com` | `cust-platinum-345` | Platinum | 15% | 5 |
 
 Tier discounts apply to current vehicle list and detail pricing. The original
 price remains available for comparison, while historical invoice, payment,
@@ -83,6 +83,17 @@ in the `customer_tier_rules` table. Each authenticated customer’s tier is
 resolved from `customer_accounts`; a client-supplied tier cannot elevate the
 account. The customer portal reads authenticated benefits from
 `GET /api/v1/customer/tier-benefits`.
+
+The seeded customer profile data is also available through the customer
+profile API:
+
+| Account | Name | Phone | Delivery address |
+|---|---|---|---|
+| `prabodha@carchief.com` | Prabodha Wijerathne | `+94 77 123 4567` | No.414, Polhengoda Road, Colombo 05 |
+| `amina.njeri@example.com` | Amina Njeri | `+254 712 345 678` | Westlands Road, Nairobi, Kenya |
+| `daniel.mwangi@example.com` | Daniel Mwangi | `+254 723 456 789` | Mombasa Road, Nairobi, Kenya |
+| `haruto.sato@example.com` | Haruto Sato | `+81 90 1234 5678` | Chiyoda-ku, Tokyo, Japan |
+| `sofia.almeida@example.com` | Sofia Almeida | `+351 912 345 678` | Avenida da Liberdade, Lisbon, Portugal |
 
 ## Explore the Mock API with Swagger UI
 

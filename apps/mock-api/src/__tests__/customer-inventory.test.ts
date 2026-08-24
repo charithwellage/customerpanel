@@ -84,7 +84,7 @@ describe('Customer Inventory Projection & Tier Pricing Contract (D02-P03-T001)',
     });
 
     it('projects customer tier pricing on /api/v1/vehicles when authenticated with Platinum token', async () => {
-      const token = issueSessionToken('CustomerBuyer', 'cust-platinum-345', 'platinum@example.com', 'Platinum');
+      const token = issueSessionToken('CustomerBuyer', 'cust-platinum-345', 'sofia.almeida@example.com', 'Platinum');
       const res = await fetch(`${baseUrl}/api/v1/vehicles`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -116,7 +116,7 @@ describe('Customer Inventory Projection & Tier Pricing Contract (D02-P03-T001)',
     });
 
     it('projects customer tier pricing on /api/v1/vehicles/:idOrSlug detail lookup', async () => {
-      const token = issueSessionToken('CustomerBuyer', 'cust-silver-789', 'silver@example.com', 'Silver');
+      const token = issueSessionToken('CustomerBuyer', 'cust-silver-789', 'daniel.mwangi@example.com', 'Silver');
       const res = await fetch(`${baseUrl}/api/v1/vehicles/veh-1`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -147,7 +147,7 @@ describe('Customer Inventory Projection & Tier Pricing Contract (D02-P03-T001)',
     });
 
     it('does not allow an authenticated customer query parameter to override the database tier', async () => {
-      const token = issueSessionToken('CustomerBuyer', 'cust-silver-789', 'silver@example.com', 'Silver');
+      const token = issueSessionToken('CustomerBuyer', 'cust-silver-789', 'daniel.mwangi@example.com', 'Silver');
       const res = await fetch(`${baseUrl}/api/v1/vehicles?tier=Platinum`, { headers: { Authorization: `Bearer ${token}` } });
       const data = (await res.json()) as { items: VehicleDomainSummary[] };
       expect(data.items.find((vehicle) => vehicle.id === 'veh-1')?.tierPricing).toMatchObject({ tier: 'Silver', tierDiscountPercent: 5 });
@@ -192,7 +192,7 @@ describe('Customer Inventory Projection & Tier Pricing Contract (D02-P03-T001)',
 
     it('returns eligible: false with reason: "already_reserved_by_you" when the holder herself views the vehicle', async () => {
       // veh-2 is seeded with hold owned by user-other-456
-      const token = issueSessionToken('CustomerBuyer', 'user-other-456', 'other@example.com');
+      const token = issueSessionToken('CustomerBuyer', 'user-other-456', 'amina.njeri@example.com');
       const res = await fetch(`${baseUrl}/api/v1/vehicles/veh-2`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -247,7 +247,7 @@ describe('Customer Inventory Projection & Tier Pricing Contract (D02-P03-T001)',
       expect(enquiryRes.status).toBe(409);
       await expect(enquiryRes.json()).resolves.toMatchObject({ reason: 'allocated_to_another_customer' });
 
-      const ownerToken = issueSessionToken('CustomerBuyer', 'cust-123', 'demo.customer@carchief.com');
+      const ownerToken = issueSessionToken('CustomerBuyer', 'cust-123', 'prabodha@carchief.com');
       const ownerDetailRes = await fetch(`${baseUrl}/api/v1/vehicles/veh-inv-1`, {
         headers: { Authorization: `Bearer ${ownerToken}` },
       });

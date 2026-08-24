@@ -19,7 +19,7 @@ const VEHICLE_SLUG_7 = generateVehicleSlug(2024, 'Toyota', 'Raize', 'veh-7');
 const VEHICLE_SLUG_SOLD = generateVehicleSlug(2019, 'Mazda', 'CX-5', 'veh-sold');
 
 const CUSTOMER_A_TOKEN = issueSessionToken('CustomerBuyer', 'customer-a', 'a@example.com');
-const CUSTOMER_PLATINUM_TOKEN = issueSessionToken('CustomerBuyer', 'cust-platinum-345', 'platinum@example.com', 'Platinum');
+const CUSTOMER_PLATINUM_TOKEN = issueSessionToken('CustomerBuyer', 'cust-platinum-345', 'sofia.almeida@example.com', 'Platinum');
 const CUSTOMER_B_TOKEN = issueSessionToken('CustomerBuyer', 'customer-b', 'b@example.com');
 const SALESPERSON_TOKEN = issueSessionToken('Salesperson', 'staff-1', 'staff@example.com');
 
@@ -99,9 +99,9 @@ describe('Transactional reservation eligibility and hold (PUB-23, RULE-05, RULE-
       const slugs = [VEHICLE_SLUG_1, VEHICLE_SLUG_3, VEHICLE_SLUG_4];
       expect(slugs.length).toBe(3);
       for (const vehicleSlug of slugs) {
-        await store.createReservation('cust-platinum-345', 'platinum@example.com', { vehicleSlug });
+        await store.createReservation('cust-platinum-345', 'sofia.almeida@example.com', { vehicleSlug });
       }
-      await expect(store.createReservation('cust-platinum-345', 'platinum@example.com', { vehicleSlug: VEHICLE_SLUG_5 })).rejects.toMatchObject({
+      await expect(store.createReservation('cust-platinum-345', 'sofia.almeida@example.com', { vehicleSlug: VEHICLE_SLUG_5 })).rejects.toMatchObject({
         statusCode: 409,
         reason: 'limit_exceeded',
       });

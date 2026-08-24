@@ -5,7 +5,7 @@ import { CUSTOMER_APP_BASE_URL } from './customerAppBase.js';
  * D02-P12-T006: profile identity, contact-detail editing (with its
  * optimistic-concurrency 409 path) and real password change.
  *
- * The seeded fixture credential (`demo.customer@carchief.com`) is used
+ * The seeded fixture credential (`prabodha@carchief.com`) is used
  * rather than a fresh `POST /api/v1/auth/register` account: only the fixture
  * customer (`cust-123`) has a seeded `CustomerProfile` record (the Mock API,
  * out of this task's owned paths, does not create one for a newly registered
@@ -13,8 +13,8 @@ import { CUSTOMER_APP_BASE_URL } from './customerAppBase.js';
  * test resets the Mock API first, which also restores the fixture account's
  * password, so tests can run independently even though they mutate it.
  */
-const FIXTURE_EMAIL = 'demo.customer@carchief.com';
-const FIXTURE_PASSWORD = 'CarChief#Fixture2026';
+const FIXTURE_EMAIL = 'prabodha@carchief.com';
+const FIXTURE_PASSWORD = 'Password@1234';
 
 test.describe.configure({ mode: 'serial' });
 

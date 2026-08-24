@@ -10,7 +10,7 @@ async function main() {
 
   console.log('Filling credentials...');
   await page.fill('input[type="email"]', 'r.a.rimazmoulana@gmail.com');
-  await page.fill('input[type="password"]', 'CarChief#Fixture2026');
+  await page.fill('input[type="password"]', 'Password@1234');
 
   console.log('Submitting login...');
   await page.click('button[type="submit"]');
