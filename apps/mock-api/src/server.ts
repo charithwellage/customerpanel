@@ -253,17 +253,6 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
     res.json(statement);
   });
 
-  // 3k-dc. Customer debit, credit, refund transactions (FRD Section 5.9-5.14)
-  app.get('/api/v1/customer/debit-credit', async (req: AuthenticatedRequest, res: Response) => {
-    if (!req.user) {
-      res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
-      return;
-    }
-    const customerId = resolveCustomerScope(req.user.sub);
-    const dcRecords = await store.getCustomerDebitCreditRefunds(customerId);
-    res.json(dcRecords);
-  });
-
   // 3l. Wishlist operations (D02-P13-T002, CUST-36/CUST-37): list, add, remove
   // wishlist items for the signed-in customer.
   app.get('/api/v1/customer/wishlist', async (req: AuthenticatedRequest, res: Response) => {

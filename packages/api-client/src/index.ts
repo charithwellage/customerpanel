@@ -20,5 +20,4 @@ export * from './services/customerInquiries.js';
 export * from './services/wishlist.js';
 export * from './services/favourites.js';
 export * from './services/customerStatement.js';
-export * from './services/customerDebitCredit.js';
 export * from './http.js';

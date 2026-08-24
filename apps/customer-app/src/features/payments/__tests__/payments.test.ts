@@ -8,7 +8,6 @@ import { HttpClientProvider } from '../../account/index.js';
 import { getCustomerPaymentStatus, PaymentsPage } from '../PaymentsPage.js';
 import { PaymentDetailModal } from '../components/PaymentDetailModal.js';
 import { PaymentAllocationHistoryModal } from '../components/PaymentAllocationHistoryModal.js';
-import { DebitCreditRefundTab, SEED_DEBIT_CREDIT_RECORDS } from '../components/DebitCreditRefundTab.js';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -59,8 +58,8 @@ describe('customer payment status projection', () => {
   });
 });
 
-describe('FRD Phase 4: My Payments & Debit/Credit Components', () => {
-  it('renders PaymentsPage with sub-tabs, KPI cards, and TT Remittance table', () => {
+describe('FRD Phase 4: My Payments', () => {
+  it('renders the single Payments page with KPI cards and TT Remittance table', () => {
     const html = renderToStaticMarkup(
       React.createElement(
         QueryClientProvider,
@@ -78,8 +77,9 @@ describe('FRD Phase 4: My Payments & Debit/Credit Components', () => {
     );
 
     expect(html).toContain('data-testid="customer-payments-page"');
-    expect(html).toContain('data-testid="tab-payments"');
-    expect(html).toContain('data-testid="tab-debit-credit"');
+    expect(html).not.toContain('role="tablist"');
+    expect(html).not.toContain('Debit / Credit / Refunds');
+    expect(html).not.toContain('Payments (TT)');
     expect(html).toContain('TOTAL TT AMOUNT');
     expect(html).toContain('TOTAL ALLOCATED');
     expect(html).toContain('TOTAL AVAILABLE');
@@ -129,26 +129,4 @@ describe('FRD Phase 4: My Payments & Debit/Credit Components', () => {
     expect(html).toContain('$3,000.00 USD');
   });
 
-  it('renders DebitCreditRefundTab with Total Debits, Credits, Refunds and multi-filter table', () => {
-    const html = renderToStaticMarkup(
-      React.createElement(
-        QueryClientProvider,
-        { client: queryClient },
-        React.createElement(
-          HttpClientProvider,
-          { apiBaseUrl: 'http://127.0.0.1:4000' },
-          React.createElement(DebitCreditRefundTab)
-        )
-      )
-    );
-
-    expect(html).toContain('data-testid="debit-credit-tab"');
-    expect(html).toContain('TOTAL DEBITS:');
-    expect(html).toContain('TOTAL CREDITS:');
-    expect(html).toContain('TOTAL REFUNDS:');
-    expect(html).toContain('DN2400008');
-    expect(html).toContain('RF2400006');
-    expect(html).toContain('CR2400008');
-    expect(html).toContain('Paid in Cash');
-  });
 });

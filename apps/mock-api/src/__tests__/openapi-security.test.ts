@@ -49,7 +49,6 @@ describe('OpenAPI public/customer security classification', () => {
 
   it('keeps registered customer operations and removed operations accurate', () => {
     expect(openapi.paths['/api/v1/customer/statement']?.get?.tags).toEqual(['Customer APIs']);
-    expect(openapi.paths['/api/v1/customer/debit-credit']?.get?.tags).toEqual(['Customer APIs']);
     expect(openapi.paths['/api/v1/customer/notifications/{id}']?.delete?.tags).toEqual(['Customer APIs']);
     expect(openapi.paths['/api/v1/customer/payments/{id}']).toBeUndefined();
     expect(openapi.paths['/api/v1/vehicles/{idOrSlug}/inquiry-count']).toBeUndefined();

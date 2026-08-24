@@ -91,8 +91,6 @@ import type {
   UpdateCustomerProfileRequest,
   CustomerStatementEntry,
   CustomerStatementSummary,
-  CustomerDebitCreditRecord,
-  CustomerDebitCreditListResponse,
   CustomerPolymorphicInquiry,
   CustomerPolymorphicInquiryListResponse,
   BankAccount,
@@ -1353,9 +1351,8 @@ export interface DemoStore {
   createFavourite(customerId: string, name: string, criteria: FavouriteSearchCriteria, nowISO?: string): Promise<FavouriteSearch>;
   deleteFavourite(customerId: string, id: string): Promise<void>;
   getFavouriteFacets(): Promise<FavouriteSearchFacets>;
-  // FRD Additions: Statement, Debit/Credit/Refunds, Polymorphic Inquiries
+  // FRD Additions: Statement and Polymorphic Inquiries
   getCustomerStatement(customerId: string, fromDate?: string, toDate?: string): Promise<CustomerStatementSummary>;
-  getCustomerDebitCreditRefunds(customerId: string): Promise<CustomerDebitCreditListResponse>;
   listCustomerPolymorphicInquiries(customerId: string): Promise<CustomerPolymorphicInquiryListResponse>;
   reset(): Promise<void>;
   close(): Promise<void>;
@@ -6353,98 +6350,6 @@ class MemoryStore implements DemoStore {
     });
   }
 
-  getCustomerDebitCreditRefunds(customerId: string): Promise<CustomerDebitCreditListResponse> {
-    const records: CustomerDebitCreditRecord[] = [
-      {
-        id: 'dc-1',
-        customerId,
-        refNumber: 'DN2400008',
-        type: 'Debit',
-        cashInDate: '2024-10-31',
-        stockId: 'J24013263',
-        currency: 'USD',
-        amount: 1000,
-        balanceAmount: 1000,
-        paidInCash: false,
-        approvedDate: '2024-10-31',
-        customerNotes: 'Storage & documentation demurrage adjustment.',
-        notesVisibleToCustomer: true,
-      },
-      {
-        id: 'dc-2',
-        customerId,
-        refNumber: 'RF2400006',
-        type: 'Refund',
-        cashInDate: '2024-10-25',
-        stockId: '-',
-        currency: 'USD',
-        amount: 5000,
-        balanceAmount: 5000,
-        paidInCash: true,
-        approvedDate: '2024-10-25',
-        customerNotes: 'Direct remittance excess wire refund.',
-        notesVisibleToCustomer: true,
-      },
-      {
-        id: 'dc-3',
-        customerId,
-        refNumber: 'CR2400008',
-        type: 'Credit',
-        cashInDate: '2024-10-24',
-        stockId: '-',
-        currency: 'USD',
-        amount: 4500,
-        balanceAmount: 4500,
-        paidInCash: false,
-        approvedDate: '2024-10-24',
-        customerNotes: 'Ocean freight discount rebate credited to ledger.',
-        notesVisibleToCustomer: true,
-      },
-      {
-        id: 'dc-4',
-        customerId,
-        refNumber: 'DN2400001',
-        type: 'Debit',
-        cashInDate: '2024-10-04',
-        stockId: 'NRE161',
-        currency: 'USD',
-        amount: 250,
-        balanceAmount: 250,
-        paidInCash: false,
-        approvedDate: '2024-10-04',
-        customerNotes: 'Inspection expediting fee.',
-        notesVisibleToCustomer: true,
-      },
-      {
-        id: 'dc-5',
-        customerId,
-        refNumber: 'CR2400005',
-        type: 'Credit',
-        cashInDate: '2024-09-30',
-        stockId: 'DE3FS-',
-        currency: 'USD',
-        amount: 400,
-        balanceAmount: 400,
-        paidInCash: false,
-        approvedDate: '2024-09-30',
-        customerNotes: 'Port handling allowance credited.',
-        notesVisibleToCustomer: true,
-      },
-    ];
-
-    const totalDebitsUsd = records.filter((r) => r.type === 'Debit').reduce((sum, r) => sum + r.amount, 0);
-    const totalCreditsUsd = records.filter((r) => r.type === 'Credit').reduce((sum, r) => sum + r.amount, 0);
-    const totalRefundsUsd = records.filter((r) => r.type === 'Refund').reduce((sum, r) => sum + r.amount, 0);
-
-    return Promise.resolve({
-      items: records,
-      total: records.length,
-      totalDebitsUsd,
-      totalCreditsUsd,
-      totalRefundsUsd,
-    });
-  }
-
   listCustomerPolymorphicInquiries(customerId: string): Promise<CustomerPolymorphicInquiryListResponse> {
     const items: CustomerPolymorphicInquiry[] = [
       {
@@ -9530,11 +9435,6 @@ class PostgresStore implements DemoStore {
   getCustomerStatement(customerId: string, fromDate?: string, toDate?: string): Promise<CustomerStatementSummary> {
     const memory = new MemoryStore();
     return memory.getCustomerStatement(customerId, fromDate, toDate);
-  }
-
-  getCustomerDebitCreditRefunds(customerId: string): Promise<CustomerDebitCreditListResponse> {
-    const memory = new MemoryStore();
-    return memory.getCustomerDebitCreditRefunds(customerId);
   }
 
   listCustomerPolymorphicInquiries(customerId: string): Promise<CustomerPolymorphicInquiryListResponse> {

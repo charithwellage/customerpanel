@@ -14,7 +14,6 @@ import { useCreateCustomerPayment } from './useCreateCustomerPayment.js';
 import { useCustomerOnlineStatus } from '../pwa/useCustomerOnlineStatus.js';
 import { PaymentDetailModal, type PaymentDetailRecord } from './components/PaymentDetailModal.js';
 import { PaymentAllocationHistoryModal } from './components/PaymentAllocationHistoryModal.js';
-import { DebitCreditRefundTab } from './components/DebitCreditRefundTab.js';
 import {
   CheckmarkCircleIcon,
   ClockCircleIcon,
@@ -56,7 +55,6 @@ export function getCustomerPaymentStatus(
 
 export const PaymentsPage: React.FC = () => {
   const { setActiveRoute, user } = useCustomerShell();
-  const [activeTab, setActiveTab] = useState<'PAYMENTS' | 'DEBIT_CREDIT'>('PAYMENTS');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [proofFile, setProofFile] = useState<File | null>(null);
   const [submitMessage, setSubmitMessage] = useState<string | null>(null);
@@ -320,35 +318,7 @@ export const PaymentsPage: React.FC = () => {
 
   return (
     <section className="cc-cust-remittance-page" aria-label="Customer Wire Remittance" data-testid="customer-payments-page">
-      {/* Sub-Navigation Tabs (FRD Section 5: Payments vs Debit/Credit) */}
-      <div className="cc-remit-tab-strip" role="tablist" aria-label="Payments navigation">
-        <button
-          type="button"
-          role="tab"
-          aria-selected={activeTab === 'PAYMENTS'}
-          className={`cc-remit-tab-btn ${activeTab === 'PAYMENTS' ? 'cc-remit-tab-btn--active' : ''}`}
-          onClick={() => setActiveTab('PAYMENTS')}
-          data-testid="tab-payments"
-        >
-          Payments (TT)
-        </button>
-        <button
-          type="button"
-          role="tab"
-          aria-selected={activeTab === 'DEBIT_CREDIT'}
-          className={`cc-remit-tab-btn ${activeTab === 'DEBIT_CREDIT' ? 'cc-remit-tab-btn--active' : ''}`}
-          onClick={() => setActiveTab('DEBIT_CREDIT')}
-          data-testid="tab-debit-credit"
-        >
-          Debit / Credit / Refunds
-        </button>
-      </div>
-
-      {activeTab === 'DEBIT_CREDIT' ? (
-        <DebitCreditRefundTab />
-      ) : (
-        <>
-          {/* Top Strip: 3 KPI Cards + 1 Action Button (FRD 5.2) */}
+      {/* Top Strip: 3 KPI Cards + 1 Action Button (FRD 5.2) */}
           <div className="cc-remit-top-strip">
             <div className="cc-remit-kpi-card cc-remit-kpi-card--approved">
               <div className="cc-remit-kpi-card__content">
@@ -571,9 +541,6 @@ export const PaymentsPage: React.FC = () => {
             onClose={() => setSelectedHistoryRef(null)}
             reference={selectedHistoryRef || ''}
           />
-        </>
-      )}
-
       {/* Modal: UPLOAD CUSTOMER TT PROOF */}
       {isModalOpen && (
         <div

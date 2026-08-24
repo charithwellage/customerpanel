@@ -1310,30 +1310,6 @@ export interface CustomerStatementSummary {
   entries: CustomerStatementEntry[];
 }
 
-export interface CustomerDebitCreditRecord {
-  id: string;
-  customerId?: string;
-  refNumber: string;
-  type: 'Debit' | 'Credit' | 'Refund';
-  cashInDate: string;
-  stockId: string;
-  currency: string;
-  amount: number;
-  balanceAmount: number;
-  paidInCash: boolean;
-  approvedDate: string;
-  customerNotes?: string;
-  notesVisibleToCustomer?: boolean;
-}
-
-export interface CustomerDebitCreditListResponse {
-  items: CustomerDebitCreditRecord[];
-  total: number;
-  totalDebitsUsd: number;
-  totalCreditsUsd: number;
-  totalRefundsUsd: number;
-}
-
 export interface CustomerPolymorphicInquiry {
   id: string;
   customerId?: string;
