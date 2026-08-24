@@ -71,32 +71,6 @@ function Hero() {
           </a>
         </div>
 
-        {/* 3-Column Value Proposition Strip */}
-        <div className="hero-value-strip">
-          <div className="value-strip-item">
-            <div className="value-strip-icon">🛡️</div>
-            <div>
-              <div className="value-strip-title">ELITE QUALITY SOURCING</div>
-              <div className="value-strip-text">Strict inspection & technical logs for every chassis.</div>
-            </div>
-          </div>
-
-          <div className="value-strip-item">
-            <div className="value-strip-icon">🚢</div>
-            <div>
-              <div className="value-strip-title">CONTAINER OCEAN FREIGHT</div>
-              <div className="value-strip-text">Secure maritime container pipelines & customs clearing.</div>
-            </div>
-          </div>
-
-          <div className="value-strip-item">
-            <div className="value-strip-icon">🔒</div>
-            <div>
-              <div className="value-strip-title">DEDICATED SECURE PORTAL</div>
-              <div className="value-strip-text">Track order pipelines, invoices & documents live.</div>
-            </div>
-          </div>
-        </div>
       </div>
     </section>
   );

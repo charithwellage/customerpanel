@@ -102,6 +102,24 @@ describe('Customer inquiry list and vehicle inquiry aggregate (D02-P13-T001, CUS
       expect(result.items[0].inquirerCount).toBe(3);
     });
 
+    it('returns vehicle specifications and pricing for every vehicle-backed inquiry', async () => {
+      const result = await store.listCustomerPolymorphicInquiries('cust-alice');
+      const stock = result.items.find((item) => item.source === 'Stock');
+      const auction = result.items.find((item) => item.source === 'Auction');
+
+      expect(stock?.vehicleSlug).toBeTruthy();
+      expect(stock?.engineCc).toBeTypeOf('number');
+      expect(stock?.mileage).toBeTypeOf('number');
+      expect(stock?.fuelType).toBeTruthy();
+      expect(stock?.transmission).toBeTruthy();
+      expect(stock?.color).toBeTruthy();
+      expect(stock?.priceState).toBe('priced');
+      expect(stock?.priceUsd).toBeTypeOf('number');
+      expect(auction?.vehicleSlug).toBeTruthy();
+      expect(auction?.engineCc).toBeTypeOf('number');
+      expect(auction?.fuelType).toBeTruthy();
+    });
+
     it("enforces customer isolation (customer A never sees customer B's inquiries)", async () => {
       await store.createEnquiry(
         {
@@ -205,4 +223,5 @@ describe('Customer inquiry list and vehicle inquiry aggregate (D02-P13-T001, CUS
         await new Promise((resolve) => server.close(resolve));
       }
     });
+});
 });

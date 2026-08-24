@@ -76,20 +76,20 @@ describe('Customer Account Lifecycle and Features Requirement Coverage (CUST-26 
       status: 'COVERED',
     },
     'CUST-31': {
-      title: 'A shopper viewing a vehicle detail page in public-web or Customer application sees a "Get Free Quote" action',
+      title: 'A customer viewing a vehicle detail page can submit an inquiry through the supported customer workflow',
       phase: 'Phase 2.13',
       testFiles: [
-        'apps/public-web/src/features/quote-request/__tests__/quote-request.test.ts',
+        'apps/public-web/src/__tests__/vehicle-detail.test.ts',
         'apps/customer-app/src/features/inventory/__tests__/inventory.test.ts',
         'apps/mock-api/src/__tests__/enquiries.test.ts',
       ],
       status: 'COVERED',
     },
     'CUST-32': {
-      title: 'In public-web, requesting a quote requires name, email address and mobile number (all mandatory)',
+      title: 'Public vehicle-detail enquiry retains the required contact and message validation',
       phase: 'Phase 2.13',
       testFiles: [
-        'apps/public-web/src/features/quote-request/__tests__/quote-request.test.ts',
+        'apps/public-web/src/__tests__/enquiries.test.ts',
         'packages/validation/src/__tests__/enquiry.test.ts',
       ],
       status: 'COVERED',

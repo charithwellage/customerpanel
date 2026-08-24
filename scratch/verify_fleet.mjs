@@ -9,9 +9,9 @@ async function main() {
   console.log('Navigating to http://localhost:3001...');
   await page.goto('http://localhost:3001', { waitUntil: 'networkidle' });
 
-  console.log('Filling login form with CarChief#Fixture2026...');
+  console.log('Filling login form with Password@1234...');
   await page.fill('input[type="email"]', 'r.a.rimazmoulana@gmail.com');
-  await page.fill('input[type="password"]', 'CarChief#Fixture2026');
+  await page.fill('input[type="password"]', 'Password@1234');
 
   await Promise.all([
     page.waitForResponse((r) => r.url().includes('/api/v1/auth/login')),

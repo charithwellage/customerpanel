@@ -10,7 +10,7 @@ import { CUSTOMER_APP_BASE_URL } from './customerAppBase.js';
  * after that fix also surfaced two further pre-existing defects: (1) the
  * wishlist button's real `data-testid` is `wishlist-toggle-btn` (T005), not
  * `add-to-wishlist-btn`, so the vehicle was silently never wishlisted; (2)
- * using the single shared fixture account (`demo.customer@carchief.com`)
+ * using the single shared fixture account (`prabodha@carchief.com`)
  * plus a `POST /api/v1/__reset` `beforeEach` (the `profile.spec.ts`
  * precedent) is unsafe here specifically because `__reset` wipes state
  * globally: with the three viewport projects running concurrently, one

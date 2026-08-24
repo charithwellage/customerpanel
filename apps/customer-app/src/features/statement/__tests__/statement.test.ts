@@ -44,5 +44,24 @@ describe('CustomerStatementPage (FRD Section 3)', () => {
     expect(html).toContain('data-testid="customer-statement-page"');
     expect(html).toContain('data-testid="statement-print-btn"');
     expect(html).toContain('data-testid="statement-excel-btn"');
+
+    const today = new Date();
+    const expectedFromDate = new Date(today);
+    const originalDay = expectedFromDate.getDate();
+    expectedFromDate.setDate(1);
+    expectedFromDate.setMonth(expectedFromDate.getMonth() - 3);
+    const lastDayOfTargetMonth = new Date(
+      expectedFromDate.getFullYear(),
+      expectedFromDate.getMonth() + 1,
+      0
+    ).getDate();
+    expectedFromDate.setDate(Math.min(originalDay, lastDayOfTargetMonth));
+    const formatDate = (date: Date) => {
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${date.getFullYear()}-${month}-${day}`;
+    };
+    expect(html).toContain(`value="${formatDate(expectedFromDate)}"`);
+    expect(html).toContain(`value="${formatDate(today)}"`);
   });
 });

@@ -7,6 +7,15 @@ import type { CustomerDashboard, PaymentStatusSummary, ShipmentStatusSummary, Do
  */
 
 describe('Dashboard Types & Data Validation', () => {
+  it('does not include the removed paired-account selector', async () => {
+    const { readFile } = await import('node:fs/promises');
+    const source = await readFile(new URL('../OverviewPage.tsx', import.meta.url), 'utf8');
+
+    expect(source).not.toContain('PAIRED ACCOUNT');
+    expect(source).not.toContain('dash-account-switch');
+    expect(source).toContain('cc-dash-date-badge');
+  });
+
   it('keeps dashboard progress styling in CSS rather than a static inline width', async () => {
     const { readFile } = await import('node:fs/promises');
     const source = await readFile(new URL('../components/CreditUtilisationCard.tsx', import.meta.url), 'utf8');

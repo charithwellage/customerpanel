@@ -3,8 +3,8 @@ import { CUSTOMER_APP_BASE_URL } from './customerAppBase.js';
 
 test.describe.configure({ mode: 'serial' });
 
-const FIXTURE_EMAIL = 'demo.customer@carchief.com';
-const FIXTURE_PASSWORD = 'CarChief#Fixture2026';
+const FIXTURE_EMAIL = 'prabodha@carchief.com';
+const FIXTURE_PASSWORD = 'Password@1234';
 
 test.describe('Customer notifications and linked navigation @serial-reset', () => {
   test.beforeEach(async ({ page }) => {

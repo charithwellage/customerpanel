@@ -6,10 +6,9 @@ export interface SearchResultsHeaderProps {
   query: SearchVehiclesQuery;
   facets?: VehicleFacets;
   onUpdateQuery: (updates: Partial<SearchVehiclesQuery>) => void;
-  onForceSync?: () => void;
 }
 
-export function SearchResultsHeader({ total, itemCount, query, facets, onUpdateQuery, onForceSync }: SearchResultsHeaderProps) {
+export function SearchResultsHeader({ total, itemCount, query, facets, onUpdateQuery }: SearchResultsHeaderProps) {
   const chips: Array<{ key: keyof SearchVehiclesQuery; label: string }> = [];
   if (query.make) chips.push({ key: 'make', label: `Make: ${query.make}` });
   if (query.bodyStyle) chips.push({ key: 'bodyStyle', label: `Body: ${query.bodyStyle}` });
@@ -64,7 +63,6 @@ export function SearchResultsHeader({ total, itemCount, query, facets, onUpdateQ
             <option value="mileage_asc">Sort: Mileage (Lowest First)</option>
           </select>
         </div>
-        {onForceSync && <button type="button" className="cc-force-sync-btn" onClick={onForceSync}>↻ FORCE SYNC</button>}
       </div>
     </div>
   );

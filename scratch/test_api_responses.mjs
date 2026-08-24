@@ -2,7 +2,7 @@ async function testApi() {
   const loginRes = await fetch('http://127.0.0.1:4000/api/v1/auth/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: 'r.a.rimazmoulana@gmail.com', password: 'CarChief#Fixture2026' }),
+    body: JSON.stringify({ email: 'r.a.rimazmoulana@gmail.com', password: 'Password@1234' }),
   });
   const loginData = await loginRes.json();
   console.log('LOGIN RES:', loginData);

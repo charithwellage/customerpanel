@@ -78,6 +78,20 @@ describe('Search Components & Presentation Tests (PUB-04, PUB-07, RULE-09)', () 
     expect(styles).toContain('.cc-filter-checkbox input {');
   });
 
+  it('places filters in a responsive sidebar beside the results', () => {
+    const showroomSource = fs.readFileSync(path.resolve(__dirname, '../features/vehicle-search/components/SearchShowroom.tsx'), 'utf8');
+    const styles = fs.readFileSync(path.resolve(__dirname, '../../../../packages/vehicle-search/src/vehicle-search.css'), 'utf8');
+    const filterSource = fs.readFileSync(path.resolve(__dirname, '../../../../packages/vehicle-search/src/SearchFilterBar.tsx'), 'utf8');
+
+    expect(showroomSource).toContain('className="cc-search-sidebar"');
+    expect(showroomSource).toContain('className="cc-search-results-column"');
+    expect(showroomSource).toContain('layout="sidebar"');
+    expect(filterSource).toContain("layout?: 'top' | 'sidebar'");
+    expect(styles).toContain('.cc-search-layout {');
+    expect(styles).toContain('.cc-search-filter-panel--sidebar {');
+    expect(styles).toContain('@media (max-width: 900px)');
+  });
+
   it('uses the same-origin API proxy for browser vehicle search', () => {
     const source = fs.readFileSync(path.resolve(__dirname, '../features/vehicle-search/hooks/useVehicleSearchOrchestration.ts'), 'utf8');
     expect(source).toContain("typeof window !== 'undefined' ? ''");

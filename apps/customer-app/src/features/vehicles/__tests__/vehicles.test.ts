@@ -34,13 +34,17 @@ const MOCK_SUMMARY: CustomerVehicleSummary = {
   year: 2022,
   chassisNumber: 'TRJ150-0192834',
   status: 'Under Negotiation With PI',
+  vehicleStatusCode: 'ReservedWithPI',
+  statusLabel: 'Advanced Paid Vehicle',
+  statusLabelPlural: 'Advanced Paid Vehicles',
+  statusDescription: 'Vehicle has received its advance payment and has a proforma invoice.',
   totalAmountUsd: 45000,
   currency: 'USD',
   deposit: {
-    requiredPercent: 50,
-    requiredAmountUsd: 22500,
+    requiredPercent: 30,
+    requiredAmountUsd: 13500,
     paidAmountUsd: 10000,
-    remainingAmountUsd: 12500,
+    remainingAmountUsd: 3500,
   },
   locationStatus: 'In Japan',
   destinationPort: 'Mombasa',
@@ -146,7 +150,7 @@ describe('My Vehicles UI Components (D02-P04-T002 & D02-P14-T008)', () => {
   });
 
   describe('VehicleFleetCard (D02-P14-T008)', () => {
-    it('renders vehicle information, 50% deposit breakdown (RULE-07), status pill, and status tracker', () => {
+    it('renders vehicle information, API-paid amount percentage, status pill, and status tracker', () => {
       const html = renderToStaticMarkup(
         React.createElement(VehicleFleetCard, {
           vehicle: MOCK_SUMMARY,
@@ -156,12 +160,13 @@ describe('My Vehicles UI Components (D02-P04-T002 & D02-P14-T008)', () => {
 
       expect(html).toContain('2022 TOYOTA LAND CRUISER PRADO');
       expect(html).toContain('TRJ150-0192834');
-      expect(html).toContain('ADVANCED PAID (PI)');
+      expect(html).toContain('Advanced Paid Vehicle');
       expect(html).toContain('$45,000');
-      expect(html).toContain('Deposit (50%):');
-      expect(html).toContain('$22,500');
-      expect(html).toContain('TRACK SHIPMENT');
-      expect(html).toContain('PAY ADVANCE DEPOSIT');
+      expect(html).toContain('Paid Amount (22%):');
+      expect(html).toContain('$10,000');
+      expect(html).toContain('Remaining Amount:');
+      expect(html).toContain('$35,000');
+      expect(html).toContain('MAKE A PAYMENT');
       expect(html).toContain('cc-status-tracker');
       expect(html).toContain('View Status Logs &amp; Next Steps');
     });
@@ -174,16 +179,31 @@ describe('My Vehicles UI Components (D02-P04-T002 & D02-P14-T008)', () => {
           onSelect: () => {},
         })
       );
-      expect(reservedHtml).toContain('PAY DEPOSIT (50%)');
+      expect(reservedHtml).toContain('PAY DEPOSIT (30%)');
+      const reservedBadgeHtml = renderToStaticMarkup(
+        React.createElement(VehicleFleetCard, {
+          vehicle: {
+            ...MOCK_SUMMARY,
+            status: 'Under Negotiation',
+            vehicleStatusCode: 'Reserved',
+            statusLabel: 'Reserved Vehicle',
+            statusLabelPlural: 'Reserved Vehicles',
+            proformaInvoiceId: undefined,
+          },
+          onSelect: () => {},
+        })
+      );
+      expect(reservedBadgeHtml).toContain('Reserved Vehicle');
+      expect(reservedBadgeHtml).not.toContain('HOLD VEHICLE');
 
-      // Delivered: VIEW CLEARANCE DOCS
+      // Delivered: clearance documents are no longer offered from the card.
       const deliveredHtml = renderToStaticMarkup(
         React.createElement(VehicleFleetCard, {
           vehicle: { ...MOCK_SUMMARY, status: 'Delivered' },
           onSelect: () => {},
         })
       );
-      expect(deliveredHtml).toContain('VIEW CLEARANCE DOCS');
+      expect(deliveredHtml).not.toContain('VIEW CLEARANCE DOCS');
 
       // In Transit: TRACK SHIPMENT
       const inTransitHtml = renderToStaticMarkup(
@@ -193,6 +213,7 @@ describe('My Vehicles UI Components (D02-P04-T002 & D02-P14-T008)', () => {
         })
       );
       expect(inTransitHtml).toContain('TRACK SHIPMENT');
+      expect(inTransitHtml).not.toContain('cc-cust-fleet-card__action-btn--green');
     });
   });
 
@@ -232,14 +253,14 @@ describe('My Vehicles UI Components (D02-P04-T002 & D02-P14-T008)', () => {
   });
 
   describe('DepositSummaryCard', () => {
-    it('renders 50% deposit requirement, paid amount, and remaining balance under RULE-07', () => {
+    it('renders 30% deposit requirement, paid amount, and remaining balance under RULE-07', () => {
       const html = renderToStaticMarkup(
         React.createElement(DepositSummaryCard, {
           totalAmountUsd: 50000,
           deposit: {
-            requiredPercent: 50,
-            requiredAmountUsd: 25000,
-            paidAmountUsd: 25000,
+            requiredPercent: 30,
+            requiredAmountUsd: 15000,
+            paidAmountUsd: 15000,
             remainingAmountUsd: 0,
           },
           proformaInvoiceId: 'pi-1001',
@@ -250,8 +271,9 @@ describe('My Vehicles UI Components (D02-P04-T002 & D02-P14-T008)', () => {
 
       expect(html).toContain('Financial &amp; Deposit Summary');
       expect(html).toContain('$50,000 USD');
-      expect(html).toContain('Required Deposit (50%)');
-      expect(html).toContain('$25,000 USD');
+      expect(html).toContain('Required Deposit (30%)');
+      expect(html).toContain('Paid Amount (30%)');
+      expect(html).toContain('$15,000 USD');
       expect(html).toContain('PI-1001');
       expect(html).toContain('INV-2001');
     });
@@ -327,10 +349,16 @@ describe('My Vehicles UI Components (D02-P04-T002 & D02-P14-T008)', () => {
         )
       );
 
-      expect(html).toContain('HOLD VEHICLES');
-      expect(html).toContain('ADVANCED PAID VEHICLES');
-      expect(html).toContain('PURCHASED VEHICLES');
+      // Status labels are supplied by the API status catalogue once the query resolves.
+      expect(html).toContain('data-testid="fleet-tabs"');
       expect(html).toContain('Shipping Status');
+      expect(html).toContain('class="cc-search-input"');
+      expect(html).toContain('class="cc-filter-select"');
+      expect(html).not.toContain('class="cc-cust-fleet-search-input"');
+      expect(html).not.toContain('class="cc-cust-fleet-select"');
+      expect(html).not.toContain('data-testid="tab-reserved"');
+      expect(html).not.toContain('data-testid="tab-with-pi"');
+      expect(html).not.toContain('data-testid="tab-invoiced"');
     });
 
     it('renders detail page loading and back button', () => {

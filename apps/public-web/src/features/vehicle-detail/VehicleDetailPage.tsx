@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useId, Suspense } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
 import type { VehicleDetail } from '@carchief/domain';
 import {
   VehicleGalleryPrimitive,
@@ -11,10 +10,8 @@ import {
   getVisibleGalleryImages,
   isVehicleAvailable,
   serializeJsonLd,
-  QuoteCalculatorModal,
 } from '@carchief/vehicle-detail';
 import { ReservationSection } from '../reservation';
-import { QuoteRequestSection } from '../quote-request';
 import { useSession, EnterpriseLoginModal } from '../account-entry';
 
 const TOAST_DISMISS_MS = 3000;
@@ -104,10 +101,9 @@ export interface VehicleDetailPageProps {
   vehicle: VehicleDetail;
 }
 
-type AuthActionType = 'quote' | 'wishlist' | 'inquiry' | null;
+type AuthActionType = 'wishlist' | 'inquiry' | null;
 
 function VehicleDetailPageInner({ vehicle }: VehicleDetailPageProps) {
-  const searchParams = useSearchParams();
   const session = useSession();
   const isSignedIn = session.status === 'active';
 
@@ -116,8 +112,7 @@ function VehicleDetailPageInner({ vehicle }: VehicleDetailPageProps) {
   const [selectedPortIndex, setSelectedPortIndex] = useState<number>(0);
   const [includeInsurance, setIncludeInsurance] = useState<boolean>(false);
 
-  // Quote & Auth Modal States
-  const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
+  // Auth Modal State
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authActionType, setAuthActionType] = useState<AuthActionType>(null);
 
@@ -181,13 +176,6 @@ function VehicleDetailPageInner({ vehicle }: VehicleDetailPageProps) {
     }
   }, [vehicle.slug]);
 
-  // Auto-open Quote Modal if returning from auth with ?openQuote=true
-  useEffect(() => {
-    if (searchParams?.get('openQuote') === 'true' && isSignedIn) {
-      setIsQuoteModalOpen(true);
-    }
-  }, [searchParams, isSignedIn]);
-
   async function handleShare() {
     const url = typeof window !== 'undefined' ? window.location.href : '';
     if (typeof navigator !== 'undefined' && navigator.share) {
@@ -244,15 +232,6 @@ function VehicleDetailPageInner({ vehicle }: VehicleDetailPageProps) {
     setInquirySubmitted(true);
   }
 
-  const handleGetFreeQuoteClick = () => {
-    if (isSignedIn) {
-      setIsQuoteModalOpen(true);
-    } else {
-      setAuthActionType('quote');
-      setIsAuthModalOpen(true);
-    }
-  };
-
   const handleWishlistToggle = () => {
     if (!isSignedIn) {
       setAuthActionType('wishlist');
@@ -303,9 +282,7 @@ function VehicleDetailPageInner({ vehicle }: VehicleDetailPageProps) {
   const handleAuthSuccess = (user: { email: string; name: string; token: string }) => {
     setIsAuthModalOpen(false);
 
-    if (authActionType === 'quote') {
-      setIsQuoteModalOpen(true);
-    } else if (authActionType === 'wishlist') {
+    if (authActionType === 'wishlist') {
       setIsWishlisted(true);
       if (typeof window !== 'undefined') {
         try {
@@ -374,9 +351,9 @@ function VehicleDetailPageInner({ vehicle }: VehicleDetailPageProps) {
       };
     }
     return {
-      title: 'Sign In to Get Your Free Quote',
-      subtitle: `Instant C&F ocean freight calculations, port clearance rates, and official export Proforma Invoices for ${title}.`,
-      badgeText: '⚡ INSTANT EXPORT INVOICING',
+      title: 'Sign In to Submit Vehicle Inquiry',
+      subtitle: `Sign in to submit your official sales inquiry for the ${title}.`,
+      badgeText: '✉️ VERIFIED SALES INQUIRY',
     };
   };
 
@@ -403,18 +380,6 @@ function VehicleDetailPageInner({ vehicle }: VehicleDetailPageProps) {
       availability: available ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
       itemCondition: 'https://schema.org/UsedCondition',
     },
-  };
-
-  const modalVehicle = {
-    id: vehicle.id,
-    slug: vehicle.slug,
-    make: vehicle.make,
-    model: vehicle.model,
-    year: vehicle.year,
-    priceUsd: vehicle.priceUsd,
-    discountedPriceUsd: vehicle.discountedPriceUsd,
-    stockNumber: `STK${vehicle.id.replace(/\D/g, '') || '611773'}`,
-    chassisNumber: vehicle.chassisNumber,
   };
 
   return (
@@ -469,36 +434,14 @@ function VehicleDetailPageInner({ vehicle }: VehicleDetailPageProps) {
             />
           </section>
 
-          {/* Customer Actions & Get Free Quote Card (Car View Section) */}
+          {/* Customer Actions Card (Car View Section) */}
           <div className="cc-detail-card cc-detail-customer-actions-card">
             <div className="cc-actions-card-top">
-              <div className="cc-actions-badge-wrapper">
-                <span className="cc-actions-badge">⚡ INSTANT EXPORT INVOICING</span>
-                <span className="cc-actions-stock-tag">STOCK ID: {vehicle.slug}</span>
-              </div>
-              <h3 className="cc-actions-title">Customer Actions &amp; Free Quotation</h3>
-              <p className="cc-actions-subtitle">
-                Calculate direct C&amp;F ocean freight to your destination port, add insurance &amp; warranties, and receive a binding export Proforma Invoice instantly.
-              </p>
+              <span className="cc-actions-stock-tag">STOCK ID: {vehicle.slug}</span>
+              <h3 className="cc-actions-title">Customer Actions</h3>
             </div>
 
             <div className="cc-customer-actions-btn-group">
-              <button
-                type="button"
-                className="cc-action-btn cc-action-btn-quote"
-                onClick={handleGetFreeQuoteClick}
-                data-testid="get-free-quote-btn"
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                  <polyline points="14 2 14 8 20 8" />
-                  <line x1="16" y1="13" x2="8" y2="13" />
-                  <line x1="16" y1="17" x2="8" y2="17" />
-                  <polyline points="10 9 9 9 8 9" />
-                </svg>
-                <span>GET FREE QUOTE</span>
-              </button>
-
               <button
                 type="button"
                 className={`cc-action-btn cc-action-btn-wishlist ${isWishlisted ? 'cc-action-btn-wishlist--active' : ''}`}
@@ -519,17 +462,6 @@ function VehicleDetailPageInner({ vehicle }: VehicleDetailPageProps) {
               </div>
             )}
 
-            <div className="cc-actions-features-row">
-              <div className="cc-action-feature-item">
-                <span className="cc-feature-check">✓</span> Real-Time Ocean Freight Rates
-              </div>
-              <div className="cc-action-feature-item">
-                <span className="cc-feature-check">✓</span> Instant Proforma Invoices (PDF)
-              </div>
-              <div className="cc-action-feature-item">
-                <span className="cc-feature-check">✓</span> 100% Free &amp; Zero Obligation
-              </div>
-            </div>
           </div>
 
           {/* Condition Assessment & Overview */}
@@ -700,7 +632,7 @@ function VehicleDetailPageInner({ vehicle }: VehicleDetailPageProps) {
 
             <div className="cc-detail-fob-box">
               <div className="cc-fob-col">
-                <span className="cc-fob-label">FOB PRICE</span>
+                <span className="cc-fob-label">SELLING PRICE</span>
                 <span className="cc-fob-val">
                   {priceText} {isRequestPrice ? '' : 'USD'}
                 </span>
@@ -714,16 +646,6 @@ function VehicleDetailPageInner({ vehicle }: VehicleDetailPageProps) {
                 </div>
               )}
             </div>
-
-            {/* Quick Hero Quotation Button */}
-            <button
-              type="button"
-              className="cc-hero-quote-btn"
-              onClick={handleGetFreeQuoteClick}
-              data-testid="hero-get-quote-btn"
-            >
-              REQUEST PRICE QUOTATION &amp; FREE CIF QUOTE →
-            </button>
 
             {isRequestPrice && (
               <p className="cc-detail-request-price-text">
@@ -975,14 +897,11 @@ function VehicleDetailPageInner({ vehicle }: VehicleDetailPageProps) {
               <ReservationSection vehicleSlug={vehicle.slug} vehicleStatus={vehicle.status} vehicleLabel={title} />
             </div>
 
-            <div className="cc-detail-quote-request-box">
-              <QuoteRequestSection vehicleSlug={vehicle.slug} vehicleLabel={title} vehicle={vehicle} />
-            </div>
           </div>
         </div>
       </div>
 
-      {/* Enterprise Login Modal for Gated Actions (Quote, Wishlist, Inquiry) */}
+      {/* Enterprise Login Modal for Gated Actions (Wishlist, Inquiry) */}
       <EnterpriseLoginModal
         isOpen={isAuthModalOpen}
         onClose={() => {
@@ -996,37 +915,6 @@ function VehicleDetailPageInner({ vehicle }: VehicleDetailPageProps) {
         onSuccessAuth={handleAuthSuccess}
       />
 
-      {/* C&F / CIF Quote Calculator Popup Modal */}
-      <QuoteCalculatorModal
-        isOpen={isQuoteModalOpen}
-        onClose={() => setIsQuoteModalOpen(false)}
-        vehicle={modalVehicle}
-        onSubmitQuote={async (quote) => {
-          if (session.token) {
-            try {
-              await fetch('/api/v1/enquiries', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  Authorization: `Bearer ${session.token}`,
-                },
-                body: JSON.stringify({
-                  name: session.claims?.email?.split('@')[0] || 'Customer',
-                  email: session.claims?.email || 'customer@example.com',
-                  phone: '+1 555-0199',
-                  message: `Quote for ${vehicle.year} ${vehicle.make} ${vehicle.model} - Port: ${quote.portName} (${quote.countryName}), Method: ${quote.shippingMethod}, Total C&F: $${quote.totalCandFPrice}`,
-                  vehicleSlug: vehicle.slug,
-                  consent: true,
-                  enquiryType: 'price-request',
-                  source: 'form',
-                }),
-              });
-            } catch {
-              // fallback
-            }
-          }
-        }}
-      />
     </article>
   );
 }

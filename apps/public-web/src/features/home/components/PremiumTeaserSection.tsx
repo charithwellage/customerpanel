@@ -35,7 +35,7 @@ export const PremiumTeaserSection: React.FC<PremiumTeaserSectionProps> = ({ vehi
       />
 
       <div className="premium-teaser-footer">
-        <a href="/allstock?category=premium" className="button primary premium-teaser-link">
+        <a href="/premium-stock" className="button primary premium-teaser-link">
           <span>Explore All Premium Stock ({vehicles.length > 0 ? `${vehicles.length} Available` : 'View Inventory'})</span>
           <span aria-hidden="true">→</span>
         </a>

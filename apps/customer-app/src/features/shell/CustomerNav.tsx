@@ -12,7 +12,6 @@ import {
   WishlistHeartIcon,
   FavouritesStarIcon,
   VehiclesSideCarIcon,
-  StopwatchClockIcon,
   InvoiceDocumentIcon,
   WireRemittanceDollarIcon,
   VaultShieldIcon,
@@ -20,7 +19,6 @@ import {
   ClientProfileUserIcon,
   MidnightMoonIcon,
   DaylightSunIcon,
-  SyncArrowsIcon,
   ExternalArrowIcon,
   SecureLogoutDoorIcon,
 } from '../../components/Icons.js';
@@ -40,6 +38,33 @@ const LiveNotificationBadgeWrapper: React.FC<{ fallbackBadge?: string | number }
   return <LiveNotificationBadge />;
 };
 
+const GlobalBulletinBell: React.FC = () => {
+  const { setActiveRoute } = useCustomerShell();
+  const queryClient = React.useContext(QueryClientContext);
+
+  if (!queryClient) return null;
+
+  return <GlobalBulletinBellLive onOpen={() => setActiveRoute('/notifications')} />;
+};
+
+const GlobalBulletinBellLive: React.FC<{ onOpen: () => void }> = ({ onOpen }) => {
+  const { data } = useCustomerNotifications('all', '');
+  const unreadCount = data?.unreadCount ?? 0;
+
+  return (
+    <button
+      type="button"
+      className="cc-cust-shell-global-bell"
+      aria-label={unreadCount > 0 ? `Bulletins and alerts, ${unreadCount} unread` : 'Bulletins and alerts'}
+      title="Bulletins & Alerts"
+      onClick={onOpen}
+    >
+      <BulletinsBellIcon size={20} />
+      {unreadCount > 0 && <span className="cc-cust-shell-global-bell__badge">{unreadCount}</span>}
+    </button>
+  );
+};
+
 /** Returns the translated label for a top-level nav group. */
 function getGroupLabel(item: NavigationItem, t: (key: string, params?: Record<string, string | number>, fallback?: string) => string): string {
   switch (item.id) {
@@ -50,6 +75,8 @@ function getGroupLabel(item: NavigationItem, t: (key: string, params?: Record<st
     case 'payments':  return t('customer.wireRemittance', undefined, item.label);
     case 'finances':  return t('customer.finances', undefined, item.label);
     case 'account':   return t('customer.account', undefined, item.label);
+    case 'profile':   return t('customer.profileSecurity', undefined, item.label);
+    case 'notifications': return t('customer.bulletinsAlerts', undefined, item.label);
     default: return item.label;
   }
 }
@@ -62,7 +89,6 @@ function getSubItemLabel(item: SubNavigationItem, t: (key: string, params?: Reco
     case 'wishlist':      return t('customer.wishlist', undefined, item.label);
     case 'favourites':    return t('customer.favourites', undefined, item.label);
     case 'vehicles':      return t('customer.myVehicles', undefined, item.label);
-    case 'shipments':     return t('customer.holdVehicles', undefined, item.label);
     case 'statement':     return t('customer.statement', undefined, item.label);
     case 'invoices':      return t('customer.purchasedVehicles', undefined, item.label);
     case 'payments':      return t('customer.wireRemittance', undefined, item.label);
@@ -86,7 +112,6 @@ const renderNavIcon = (itemId: string, fallbackIcon?: string): React.ReactNode =
     case 'wishlist':      return <WishlistHeartIcon size={18} />;
     case 'favourites':    return <FavouritesStarIcon size={18} />;
     case 'vehicles':      return <VehiclesSideCarIcon size={18} />;
-    case 'shipments':     return <StopwatchClockIcon size={18} />;
     case 'invoices':      return <InvoiceDocumentIcon size={18} />;
     case 'payments':      return <WireRemittanceDollarIcon size={18} />;
     case 'documents':     return <VaultShieldIcon size={18} />;
@@ -158,6 +183,11 @@ const NavGroup: React.FC<NavGroupProps> = ({ item, activeRoute, setActiveRoute, 
             {renderNavIcon(item.id, item.icon)}
           </span>
           <span className="cc-cust-shell-nav__label">{groupLabel}</span>
+          {item.id === 'notifications' ? (
+            <LiveNotificationBadgeWrapper fallbackBadge={item.badge} />
+          ) : (
+            item.badge ? <span className="cc-cust-shell-nav__badge">{item.badge}</span> : null
+          )}
         </a>
       </li>
     );
@@ -234,17 +264,9 @@ export const CustomerNav: React.FC = () => {
   } = useCustomerShell();
   const { t } = useTranslation();
   const mobileMenuId = useId();
-  const [isSyncing, setIsSyncing] = useState(false);
   const publicWebUrl = typeof window !== 'undefined'
     ? `${window.location.protocol}//${window.location.hostname}:3000`
     : 'http://127.0.0.1:3000';
-
-  const handleSyncData = () => {
-    setIsSyncing(true);
-    setTimeout(() => {
-      setIsSyncing(false);
-    }, 800);
-  };
 
   return (
     <aside className="cc-cust-shell-sidebar">
@@ -316,18 +338,6 @@ export const CustomerNav: React.FC = () => {
                 )}
               </span>
               <span>{themeMode === 'midnight' ? 'Daylight Mode' : 'Midnight Mode'}</span>
-            </button>
-
-            <button
-              type="button"
-              className="cc-cust-sidebar-tool-btn"
-              onClick={handleSyncData}
-              disabled={isSyncing}
-            >
-              <span className={`cc-cust-tool-icon ${isSyncing ? 'cc-cust-tool-icon--spin' : ''}`} aria-hidden="true">
-                <SyncArrowsIcon size={16} />
-              </span>
-              <span>{isSyncing ? 'Syncing...' : t('customer.sync', undefined, 'Sync Data')}</span>
             </button>
 
             <a
@@ -405,6 +415,8 @@ export const CustomerNav: React.FC = () => {
           </div>
         </nav>
       )}
+
+      <GlobalBulletinBell />
     </aside>
   );
 };

@@ -112,6 +112,23 @@ describe('Customer App Shell & Navigation Unit Tests', () => {
     expect(html).not.toContain('Secure Vault');
   });
 
+  it('keeps Bulletins & Alerts available through the fixed bell, not the sidebar', async () => {
+    const { readFile } = await import('node:fs/promises');
+    const source = await readFile(new URL('../CustomerNav.tsx', import.meta.url), 'utf8');
+
+    expect(source).toContain('GlobalBulletinBellLive');
+    expect(source).toContain("onOpen={() => setActiveRoute('/notifications')}");
+
+    const html = renderToStaticMarkup(
+      React.createElement(
+        CustomerShellProvider,
+        { initialRoute: '/dashboard' },
+        React.createElement(CustomerNav)
+      )
+    );
+    expect(html).not.toContain('href="/notifications"');
+  });
+
   it('renders mobile menu toggle button with aria-expanded attribute', () => {
     const html = renderToStaticMarkup(
       React.createElement(

@@ -149,16 +149,16 @@ export const CustomerInvoiceDetailPage: React.FC<CustomerInvoiceDetailPageProps>
         </div>
       </div>
 
-      {/* 50% Deposit & 72h Payment Deadline Notice (RULE-07) */}
+      {/* Deposit & 72h Payment Deadline Notice (RULE-07) */}
       {isProforma && (
         <div className="cc-invoice-pi-banner" data-testid="proforma-deadline-banner">
           <div className="cc-invoice-pi-banner__icon">⏱️</div>
           <div className="cc-invoice-pi-banner__content">
-            <h3>72-Hour Payment Deadline & 50% Deposit Requirement</h3>
+            <h3>72-Hour Payment Deadline & Deposit Requirement</h3>
             <p>
-              Under CarChief trade rules, a minimum 50% deposit of{' '}
+              Under CarChief trade rules, a minimum deposit of{' '}
               <strong>
-                {formatUsdAmount(invoice.depositRequiredUsd || Math.round(invoice.totalAmountUsd * 0.5))} USD
+                {invoice.depositRequiredUsd !== undefined ? `${formatUsdAmount(invoice.depositRequiredUsd)} USD` : 'the required amount'}
               </strong>{' '}
               must be remitted via wire transfer by{' '}
               <strong>{formatInvoiceDate(invoice.paymentDeadline || invoice.dueDate)}</strong> to lock this vehicle reservation.

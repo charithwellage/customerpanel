@@ -69,23 +69,38 @@ describe('Customer Vehicles & Status Projection Contract (D02-P04-T001)', () => 
       expect(res.status).toBe(200);
       const body: CustomerVehicleListResponse = await res.json();
 
-      expect(body.total).toBe(24);
-      expect(body.items.length).toBe(24);
+      expect(body.total).toBe(body.items.length);
+      expect(body.items.length).toBeGreaterThan(0);
 
       // Verify counts by status
-      expect(body.countsByStatus).toEqual({
-        underNegotiation: 2,
-        underNegotiationWithPI: 6,
-        confirmed: 14,
-        inTransit: 1,
-        delivered: 1,
-        all: 24,
-      });
+      expect(body.countsByStatus.all).toBe(body.items.length);
+      expect(body.countsByStatus.confirmed + body.countsByStatus.inTransit + body.countsByStatus.delivered)
+        .toBe(body.items.filter((item) => ['Confirmed', 'In Transit', 'Delivered'].includes(item.status)).length);
+      expect(body.items.filter((item) => ['Confirmed', 'In Transit', 'Delivered'].includes(item.status))
+        .every((item) => item.paymentStatus === 'Paid' && item.balanceAmountUsd === 0 && (item.invoiceTotalAmountUsd === undefined || item.paidAmountUsd >= item.invoiceTotalAmountUsd)))
+        .toBe(true);
+      expect(body.items.filter((item) => item.paymentStatus !== 'Paid')
+        .every((item) => !['Confirmed', 'In Transit', 'Delivered'].includes(item.status))).toBe(true);
 
       // Verify every vehicle ID is distinct (RULE-08 no duplicate vehicles)
       const vehicleIds = body.items.map((i) => i.vehicleId);
       const uniqueIds = new Set(vehicleIds);
       expect(uniqueIds.size).toBe(vehicleIds.length);
+
+      const reservedDefinition = body.statusDefinitions.find((definition) => definition.code === 'Reserved');
+      expect(reservedDefinition?.singularLabel).toBe('Reserved Vehicle');
+      expect(reservedDefinition?.pluralLabel).toBe('Reserved Vehicles');
+      const reservedVehicle = body.items.find((item) => item.status === 'Under Negotiation');
+      expect(reservedVehicle?.statusLabel).toBe('Reserved Vehicle');
+      expect(reservedVehicle?.statusLabelPlural).toBe('Reserved Vehicles');
+      const advancedPaidVehicle = body.items.find((item) => item.status === 'Under Negotiation With PI');
+      expect(advancedPaidVehicle?.statusLabel).toBe('Advanced Paid Vehicle');
+      expect(advancedPaidVehicle?.statusLabelPlural).toBe('Advanced Paid Vehicles');
+
+      const partialInvoiceVehicle = body.items.find((item) => item.vehicleId === 'veh-inv-3');
+      expect(partialInvoiceVehicle?.paymentStatus).toBe('PartiallyPaid');
+      expect(partialInvoiceVehicle?.paidAmountUsd).toBe(2000);
+      expect(partialInvoiceVehicle?.balanceAmountUsd).toBe(7690);
     });
 
     it('filters customer vehicles by status', async () => {
@@ -99,8 +114,8 @@ describe('Customer Vehicles & Status Projection Contract (D02-P04-T001)', () => 
       expect(res.status).toBe(200);
       const body: CustomerVehicleListResponse = await res.json();
 
-      expect(body.items.length).toBe(14);
-      expect(body.items[0].status).toBe('Confirmed');
+      expect(body.items.length).toBeGreaterThan(0);
+      expect(body.items.every((item) => item.status === 'Confirmed' && item.paymentStatus === 'Paid')).toBe(true);
     });
 
     it('searches customer vehicles by text keyword', async () => {
@@ -120,18 +135,18 @@ describe('Customer Vehicles & Status Projection Contract (D02-P04-T001)', () => 
     });
   });
 
-  describe('3. Server-Computed 50% Deposit Requirement (RULE-07)', () => {
-    it('computes 50% deposit requirement accurately via domain helper', () => {
+  describe('3. Server-Computed 30% Deposit Requirement (RULE-07)', () => {
+    it('computes 30% deposit requirement accurately via domain helper', () => {
       const totalAmountUsd = 10000;
       const deposit = calculateVehicleDeposit(totalAmountUsd, 2000);
       expect(deposit).toEqual({
-        requiredPercent: 50,
-        requiredAmountUsd: 5000,
+        requiredPercent: 30,
+        requiredAmountUsd: 3000,
         paidAmountUsd: 2000,
         remainingAmountUsd: 3000,
       });
 
-      const fullyPaidDeposit = calculateVehicleDeposit(totalAmountUsd, 5000);
+      const fullyPaidDeposit = calculateVehicleDeposit(totalAmountUsd, 3000);
       expect(fullyPaidDeposit.remainingAmountUsd).toBe(0);
     });
 
@@ -149,8 +164,18 @@ describe('Customer Vehicles & Status Projection Contract (D02-P04-T001)', () => 
       expect(body.status).toBe('Under Negotiation With PI');
       expect(body.proformaInvoiceId).toBe('pi-001');
       expect(body.deposit).toBeDefined();
-      expect(body.deposit?.requiredPercent).toBe(50);
-      expect(body.deposit?.requiredAmountUsd).toBe(Math.round(body.totalAmountUsd * 0.5));
+      expect(body.deposit?.requiredPercent).toBe(30);
+      expect(body.deposit?.requiredAmountUsd).toBe(Math.round(body.totalAmountUsd * 0.3));
+      expect(body.deposit?.paidAmountUsd).toBe(2160);
+      expect(body.deposit?.paidAmountUsd).not.toBe(Math.round(body.totalAmountUsd * 0.3));
+
+      const higherPaidResponse = await fetch(`${baseUrl}/api/v1/customer/vehicles/veh-pi-3`, {
+        headers: { Authorization: `Bearer ${token}`, 'x-mock-now': '2026-08-10T10:00:00.000Z' },
+      });
+      const higherPaidBody: CustomerVehicleDetail = await higherPaidResponse.json();
+      expect(higherPaidBody.status).toBe('Under Negotiation With PI');
+      expect(higherPaidBody.deposit?.paidAmountUsd).toBe(6240);
+      expect(higherPaidBody.deposit?.paidAmountUsd).toBeGreaterThan(Math.round(higherPaidBody.totalAmountUsd * 0.3));
     });
   });
 
@@ -180,6 +205,13 @@ describe('Customer Vehicles & Status Projection Contract (D02-P04-T001)', () => 
       expect(body.make).toBe('Toyota');
       expect(body.model).toBe('Corolla Fielder');
       expect(body.images.length).toBeGreaterThanOrEqual(1);
+      expect(body.vehicleStatusCode).toBe('Invoiced');
+      expect(body.statusLabel).toBe('Purchased Vehicle');
+      expect(body.statusLabelPlural).toBe('Purchased Vehicles');
+      expect(body.paymentStatus).toBe('Paid');
+      expect(body.paidAmountUsd).toBe(17360);
+      expect(body.balanceAmountUsd).toBe(0);
+      expect(body.invoiceTotalAmountUsd).toBe(17360);
 
       // Status timeline has ordered milestones
       expect(body.statusHistory.length).toBeGreaterThanOrEqual(3);

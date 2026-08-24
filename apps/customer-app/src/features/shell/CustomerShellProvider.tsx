@@ -32,19 +32,8 @@ export interface NavigationItem {
   children?: SubNavigationItem[];
 }
 
-export interface PairedAccount {
-  id: string;
-  name: string;
-  company: string;
-  email: string;
-  tier?: string;
-  country?: string;
-}
-
 export interface CustomerShellContextValue {
   user: CustomerUser | null;
-  pairedAccounts: PairedAccount[];
-  switchAccount: (accountId: string) => void;
   activeRoute: string;
   setActiveRoute: (route: string) => void;
   isMobileMenuOpen: boolean;
@@ -58,33 +47,6 @@ export interface CustomerShellContextValue {
   /** Signs the customer out. Absent when the shell is rendered without a live session (for example an isolated component test). */
   onSignOut?: () => void;
 }
-
-const DEFAULT_PAIRED_ACCOUNTS: PairedAccount[] = [
-  {
-    id: 'usr-charith-01',
-    name: 'Charith Wellage',
-    company: 'charith wellage',
-    email: 'charith.wellage@carchief.com',
-    tier: 'PREMIUM DEALER',
-    country: 'Kenya',
-  },
-  {
-    id: 'usr-branch-02',
-    name: 'CarChief Kenya Hub',
-    company: 'CarChief East Africa Ltd',
-    email: 'kenya.hub@carchief.com',
-    tier: 'REGIONAL DISTRIBUTOR',
-    country: 'Kenya',
-  },
-  {
-    id: 'usr-logistics-03',
-    name: 'Wellage Logistics Fleet',
-    company: 'Wellage Commercial Importers',
-    email: 'fleet@wellagelogistics.co.ke',
-    tier: 'WHOLESALE IMPORTER',
-    country: 'Kenya',
-  },
-];
 
 const DEFAULT_NAV_ITEMS: NavigationItem[] = [
   {
@@ -128,15 +90,18 @@ const DEFAULT_NAV_ITEMS: NavigationItem[] = [
     icon: '💲',
   },
   {
-    id: 'account',
-    label: 'Account',
-    altLabel: 'Profile & Notifications',
+    id: 'payment-allocations',
+    label: 'Payment Allocations',
+    altLabel: 'Payment Allocations',
+    href: '/payment-allocations',
+    icon: '🧾',
+  },
+  {
+    id: 'profile',
+    label: 'Profile & Security',
+    altLabel: 'Profile & Account Security',
     href: '/profile',
     icon: '👤',
-    children: [
-      { id: 'profile', label: 'Client Profile', altLabel: 'Profile & Account', href: '/profile', icon: '👤' },
-      { id: 'notifications', label: 'Bulletins', altLabel: 'Notifications', href: '/notifications', icon: '🔔' },
-    ],
   },
 ];
 
@@ -172,19 +137,6 @@ export const CustomerShellProvider: React.FC<CustomerShellProviderProps> = ({
   const [currentUser, setCurrentUser] = useState<CustomerUser | null>(initialUser ?? null);
   const [activeRoute, setActiveRouteState] = useState<string>(getInitialPath);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
-
-  const switchAccount = (accountId: string) => {
-    const matched = DEFAULT_PAIRED_ACCOUNTS.find((a) => a.id === accountId);
-    if (matched) {
-      setCurrentUser({
-        id: matched.id,
-        name: matched.name,
-        company: matched.company,
-        email: matched.email,
-        tier: matched.tier,
-      });
-    }
-  };
 
   const [themeMode, setThemeModeState] = useState<ThemeMode>(() => {
     if (initialThemeMode) return initialThemeMode;
@@ -251,8 +203,6 @@ export const CustomerShellProvider: React.FC<CustomerShellProviderProps> = ({
       <CustomerShellContext.Provider
         value={{
           user: currentUser,
-          pairedAccounts: DEFAULT_PAIRED_ACCOUNTS,
-          switchAccount,
           activeRoute,
           setActiveRoute,
           isMobileMenuOpen,

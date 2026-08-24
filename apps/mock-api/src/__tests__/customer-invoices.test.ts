@@ -71,12 +71,13 @@ describe('Customer Invoices & PI Contract (D02-P05-T001)', () => {
       expect(body).toHaveProperty('total');
       expect(body).toHaveProperty('totals');
 
-      // cust-123 has 3 commercial invoices (inv-001, inv-002, inv-003) and 1 proforma invoice (pi-001)
-      expect(body.total).toBe(22);
+      // cust-123 has the deterministic commercial and proforma fixtures,
+      // including the multi-vehicle invoice examples.
+      expect(body.total).toBe(25);
       // Totals check
-      expect(body.totals.totalInvoicedUsd).toBe(786406.00);
-      expect(body.totals.totalPaidUsd).toBe(32380.00);
-      expect(body.totals.totalOutstandingUsd).toBe(754026.00);
+      expect(body.totals.totalInvoicedUsd).toBe(850746.00);
+      expect(body.totals.totalPaidUsd).toBe(89580.00);
+      expect(body.totals.totalOutstandingUsd).toBe(761166.00);
 
       // All items must belong to cust-123 (RULE-04)
       for (const item of body.items) {
@@ -106,7 +107,7 @@ describe('Customer Invoices & PI Contract (D02-P05-T001)', () => {
       });
       expect(commRes.status).toBe(200);
       const commBody = (await commRes.json()) as CustomerInvoiceListResponse;
-      expect(commBody.total).toBe(16);
+      expect(commBody.total).toBe(19);
       for (const item of commBody.items) {
         expect(item.type).toBe('Commercial');
       }
@@ -176,7 +177,7 @@ describe('Customer Invoices & PI Contract (D02-P05-T001)', () => {
       expect(body.bankDetails).toBeUndefined();
     });
 
-    it('returns full proforma invoice detail with 72h payment deadline and 50% deposit requirement (RULE-07)', async () => {
+    it('returns full proforma invoice detail with 72h payment deadline and 30% deposit requirement (RULE-07)', async () => {
       const token = issueSessionToken('CustomerBuyer');
       const res = await fetch(`${baseUrl}/api/v1/customer/invoices/pi-001`, {
         headers: {
@@ -192,7 +193,7 @@ describe('Customer Invoices & PI Contract (D02-P05-T001)', () => {
       expect(body.type).toBe('Proforma');
       expect(body.customerId).toBe('cust-123');
       expect(body.totalAmountUsd).toBe(10800.00);
-      expect(body.depositRequiredUsd).toBe(5400.00); // 50% of 10800 under RULE-07
+      expect(body.depositRequiredUsd).toBe(3240.00); // 30% of 10800 under RULE-07
       expect(body.paymentDeadline).toBeDefined();
       expect(body.isExpired).toBe(false);
 

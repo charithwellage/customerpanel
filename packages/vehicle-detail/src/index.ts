@@ -5,17 +5,6 @@ export type { VehicleDetail, CategorizedPublicMedia };
 export { VehicleGalleryPrimitive } from './VehicleGalleryPrimitive.js';
 export type { VehicleGalleryPrimitiveProps } from './VehicleGalleryPrimitive.js';
 
-export {
-  QuoteCalculatorModal,
-  DEFAULT_DESTINATION_OPTIONS,
-} from './QuoteCalculatorModal.js';
-export type {
-  QuoteCalculatorModalProps,
-  CalculatedQuoteBreakdown,
-  CountryDestinationOption,
-  PortPricingOption,
-} from './QuoteCalculatorModal.js';
-
 export interface VehicleDetailProjection {
   vehicle: VehicleDomainSummary;
   galleryUrls: string[];

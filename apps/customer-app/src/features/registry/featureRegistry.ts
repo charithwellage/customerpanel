@@ -83,22 +83,12 @@ export const CUSTOMER_FEATURE_REGISTRY: Record<string, FeatureOwnershipRecord> =
   payments: {
     id: 'payments',
     phase: 'Phase 2.6',
-    title: 'Telegraphic Transfers & Payment Allocations',
+    title: 'Payment Allocations',
     routePath: '/payments',
     openapiPrefix: '/api/v1/customer/payments',
     mockApiPrefix: '/api/v1/customer/payments',
     fixtureNamespace: 'customer_payment',
     e2eSpecPath: 'tests/e2e/customer/payments.spec.ts',
-  },
-  shipments: {
-    id: 'shipments',
-    phase: 'Phase 2.7',
-    title: 'Shipments & Tracking Operations',
-    routePath: '/shipments',
-    openapiPrefix: '/api/v1/customer/shipments',
-    mockApiPrefix: '/api/v1/customer/shipments',
-    fixtureNamespace: 'customer_shipment',
-    e2eSpecPath: 'tests/e2e/customer/shipments.spec.ts',
   },
   documents: {
     id: 'documents',

@@ -59,10 +59,12 @@ import type {
   CustomerVehicleDocumentReference,
   CustomerVehicleDepositInfo,
   CustomerCommercialBillInfo,
+  CustomerVehiclePaymentStatus,
   CustomerVehicleSummary,
   CustomerVehicleDetail,
   CustomerVehicleCountsByStatus,
   CustomerVehicleListResponse,
+  VehicleStatusDefinition,
   ListCustomerVehiclesQuery,
   CustomerInvoiceType,
   CustomerInvoiceStatus,
@@ -80,6 +82,9 @@ import type {
   CustomerPaymentNotificationEvent,
   CustomerPaymentNotificationListResponse,
   RecordPaymentNotificationRequest,
+  CustomerPaymentAllocationSummary,
+  CustomerPaymentAllocationListResponse,
+  ListCustomerPaymentAllocationsQuery,
   Notification,
   CustomerNotificationListResponse,
   MarkNotificationsReadResponse,
@@ -87,8 +92,6 @@ import type {
   UpdateCustomerProfileRequest,
   CustomerStatementEntry,
   CustomerStatementSummary,
-  CustomerDebitCreditRecord,
-  CustomerDebitCreditListResponse,
   CustomerPolymorphicInquiry,
   CustomerPolymorphicInquiryListResponse,
   BankAccount,
@@ -99,19 +102,20 @@ import {
   resolveFreightRateStatus,
   calculateTierPricing,
   calculateVehicleDeposit,
-  TIER_DISCOUNTS,
   ENQUIRY_TYPES,
   ENQUIRY_SOURCES,
   ENQUIRY_PREFERRED_DRIVE_SIDES,
   RESERVATION_HOLD_HOURS,
-  MAX_ACTIVE_RESERVATIONS_PER_CUSTOMER,
   RESERVABLE_VEHICLE_STATUSES,
   COUNTRIES,
   VehicleComplianceEvaluation,
   evaluateVehicleCompliance,
   isVehicleCompliantForCountry,
   normalizeCountryCode,
+  CustomerTierRule,
+  CustomerTierBenefits,
 } from '@carchief/domain';
+import { statementSeedRows } from './statement-seed.js';
 export { FreightRequestError, resolveFreightRateStatus } from '@carchief/domain';
 
 
@@ -234,6 +238,7 @@ export interface PublicConfig {
   siteName: string;
   currency: string;
   contactPhone: string;
+  tierDescriptions?: Partial<Record<'Platinum' | 'Gold' | 'Silver' | 'Standard', string>>;
   // PUB-27, D01-P06-T003, D01-ASM-002: gates the account-gated Live Auction
   // entry. Left unset — no approved external auction destination exists yet
   // — so the entry point stays hidden rather than pointing at an invented
@@ -249,7 +254,51 @@ export interface GetVehiclesQuery extends SearchVehiclesQuery {
   destinationCountry?: string;
 }
 
-const seedConfig: PublicConfig = { siteName: 'CarChief', currency: 'USD', contactPhone: '+256 700 000 000' };
+const seedConfig: PublicConfig = {
+  siteName: 'CarChief',
+  currency: 'USD',
+  contactPhone: '+256 700 000 000',
+  tierDescriptions: {
+    Platinum: 'Your verified account receives a 15% VIP discount on fixed-price export stock.',
+    Gold: 'Your verified account receives a 10% VIP discount on fixed-price export stock.',
+    Silver: 'Your verified account receives a 5% VIP discount on fixed-price export stock.',
+    Standard: 'Standard export inventory pricing with real-time stock allocation and 48-hour reservation holds.',
+  },
+};
+
+// Seed data for the database-backed customer benefit rules. These values are
+// inserted into customer_tier_rules during mock reset/initialisation; runtime
+// pricing and reservation enforcement always read the persisted rule.
+const seedTierRules: CustomerTierRule[] = [
+  { tier: 'Standard', discountPercent: 0, maxActiveReservations: 1, description: 'Standard export inventory pricing with real-time stock allocation and 48-hour reservation holds.', active: true },
+  { tier: 'Silver', discountPercent: 5, maxActiveReservations: 2, description: 'Your verified account receives a 5% VIP discount on fixed-price export stock with up to 2 active reservation holds.', active: true },
+  { tier: 'Gold', discountPercent: 10, maxActiveReservations: 3, description: 'Your verified account receives a 10% VIP discount on fixed-price export stock with up to 3 active reservation holds.', active: true },
+  { tier: 'Platinum', discountPercent: 15, maxActiveReservations: 5, description: 'Your verified account receives a 15% VIP discount on fixed-price export stock with up to 5 active reservation holds.', active: true },
+];
+
+// Vehicle status codes remain stable business values; customer-facing labels
+// are maintained in this catalogue and are persisted by the PostgreSQL store.
+export const seedVehicleStatusDefinitions: VehicleStatusDefinition[] = [
+  { code: 'Draft', singularLabel: 'Draft Vehicle', pluralLabel: 'Draft Vehicles', description: 'Vehicle record is still being prepared.', active: true, sortOrder: 10 },
+  { code: 'Available', singularLabel: 'Available Vehicle', pluralLabel: 'Available Vehicles', description: 'Vehicle is available for reservation.', active: true, sortOrder: 20 },
+  { code: 'Pending', singularLabel: 'Pending Vehicle', pluralLabel: 'Pending Vehicles', description: 'Vehicle availability is pending confirmation.', active: true, sortOrder: 30 },
+  { code: 'Reserved', singularLabel: 'Reserved Vehicle', pluralLabel: 'Reserved Vehicles', description: 'Vehicle has an active reservation hold.', active: true, sortOrder: 40 },
+  { code: 'ReservedWithPI', singularLabel: 'Advanced Paid Vehicle', pluralLabel: 'Advanced Paid Vehicles', description: 'Vehicle has received its advance payment and has a proforma invoice.', active: true, sortOrder: 50 },
+  { code: 'InvoiceCreated', singularLabel: 'Purchased Vehicle', pluralLabel: 'Purchased Vehicles', description: 'A purchase invoice has been created for the vehicle.', active: true, sortOrder: 60 },
+  { code: 'Invoiced', singularLabel: 'Purchased Vehicle', pluralLabel: 'Purchased Vehicles', description: 'A purchase invoice has been issued for the vehicle.', active: true, sortOrder: 70 },
+  { code: 'Sold', singularLabel: 'Purchased Vehicle', pluralLabel: 'Purchased Vehicles', description: 'Vehicle purchase has been completed.', active: true, sortOrder: 80 },
+];
+
+function resolveVehicleStatusDefinition(code: string, definitions: VehicleStatusDefinition[] = seedVehicleStatusDefinitions): VehicleStatusDefinition {
+  return definitions.find((definition) => definition.code === code) || {
+    code: code as VehicleStatusDefinition['code'],
+    singularLabel: `${code} Vehicle`,
+    pluralLabel: `${code} Vehicles`,
+    description: `Vehicle status: ${code}`,
+    active: false,
+    sortOrder: 999,
+  };
+}
 
 // Reference date for deterministic 5-day window & ETD/ETA tests: 2026-08-10T10:00:00.000Z
 const seedVehicles: VehicleRecord[] = [
@@ -1230,11 +1279,16 @@ export interface VehicleQueryContext {
   destinationCountry?: string;
   nowISO?: string;
   reservations?: ReservationRecord[];
+  tierRule?: CustomerTierRule;
+  allocatedCustomerId?: string;
+  vehicleStatusDefinitions?: VehicleStatusDefinition[];
 }
 
 export interface DemoStore {
   ready(): Promise<void>;
   getConfig(): Promise<PublicConfig>;
+  getCustomerTier(customerId: string): Promise<CustomerTier>;
+  getCustomerTierBenefits(customerId: string, nowISO?: string): Promise<CustomerTierBenefits>;
   getVehicles(query?: GetVehiclesQuery, context?: VehicleQueryContext): Promise<VehicleSearchResult>;
   getVehicleDetail(idOrSlug: string, context?: VehicleQueryContext): Promise<VehicleDetail | null>;
   getFreightDestinations(): Promise<FreightDestination[]>;
@@ -1261,8 +1315,6 @@ export interface DemoStore {
   // Phase 2.4: customer vehicle projections (CUST-10, CUST-11, CUST-12, CUST-13, RULE-04, RULE-07, RULE-08)
   getCustomerVehicles(customerId: string, query?: ListCustomerVehiclesQuery, nowISO?: string): Promise<CustomerVehicleListResponse>;
   getCustomerVehicleById(customerId: string, idOrSlug: string, nowISO?: string): Promise<CustomerVehicleDetail | null>;
-  listCustomerShipments(customerId: string): Promise<CustomerShipment[]>;
-  getCustomerShipment(customerId: string, shipmentId: string): Promise<CustomerShipment | null>;
   listCustomerDocuments(customerId: string): Promise<CustomerDocument[]>;
   getCustomerDocument(customerId: string, documentId: string): Promise<CustomerDocument | null>;
   listCustomerNotifications(customerId: string, query?: { status?: 'all' | 'read' | 'unread'; q?: string }): Promise<CustomerNotificationListResponse>;
@@ -1275,6 +1327,8 @@ export interface DemoStore {
   getCustomerInvoices(customerId: string, query?: ListCustomerInvoicesQuery, nowISO?: string): Promise<CustomerInvoiceListResponse>;
   getCustomerInvoiceById(customerId: string, id: string, nowISO?: string): Promise<CustomerInvoiceDetail | null>;
   getCustomerInvoiceDocument(customerId: string, id: string, nowISO?: string): Promise<CustomerInvoiceDocument | null>;
+  listCustomerPaymentAllocations(customerId: string, query?: ListCustomerPaymentAllocationsQuery): Promise<CustomerPaymentAllocationListResponse>;
+  getCustomerPaymentAllocation(customerId: string, paymentId: string): Promise<CustomerPaymentAllocationSummary | null>;
   listCustomerPayments(customerId: string): Promise<CustomerPaymentListResponse>;
   createCustomerPayment(customerId: string, request: CreateCustomerPaymentRequest, nowISO?: string): Promise<CustomerPayment>;
   listCustomerPaymentNotifications(customerId: string, paymentId?: string): Promise<CustomerPaymentNotificationListResponse>;
@@ -1299,9 +1353,8 @@ export interface DemoStore {
   createFavourite(customerId: string, name: string, criteria: FavouriteSearchCriteria, nowISO?: string): Promise<FavouriteSearch>;
   deleteFavourite(customerId: string, id: string): Promise<void>;
   getFavouriteFacets(): Promise<FavouriteSearchFacets>;
-  // FRD Additions: Statement, Debit/Credit/Refunds, Polymorphic Inquiries, Paired Accounts
+  // FRD Additions: Statement and Polymorphic Inquiries
   getCustomerStatement(customerId: string, fromDate?: string, toDate?: string): Promise<CustomerStatementSummary>;
-  getCustomerDebitCreditRefunds(customerId: string): Promise<CustomerDebitCreditListResponse>;
   listCustomerPolymorphicInquiries(customerId: string): Promise<CustomerPolymorphicInquiryListResponse>;
   reset(): Promise<void>;
   close(): Promise<void>;
@@ -1351,6 +1404,7 @@ export interface CustomerAccountRecord {
   dialCode: string;
   mobileNumber: string;
   email: string;
+  tier: CustomerTier;
   passwordHash: string;
   passwordSalt: string;
   status: 'active';
@@ -1376,6 +1430,7 @@ export interface CustomerAccountProjection {
   dialCode: string;
   mobileNumber: string;
   email: string;
+  tier: CustomerTier;
   status: string;
   verificationState: string;
   createdAt: string;
@@ -1532,6 +1587,7 @@ function toCustomerAccountProjection(record: CustomerAccountRecord): CustomerAcc
     dialCode: record.dialCode,
     mobileNumber: record.mobileNumber,
     email: record.email,
+    tier: record.tier,
     status: record.status,
     verificationState: record.verificationState,
     createdAt: record.createdAt,
@@ -1566,6 +1622,7 @@ function performRegisterCustomerAccount(
     dialCode: validated.dialCode,
     mobileNumber: validated.mobileNumber,
     email: validated.email,
+    tier: 'Standard',
     passwordHash: hash,
     passwordSalt: salt,
     status: 'active',
@@ -1679,11 +1736,11 @@ function performConfirmPasswordReset(
   entry.consumed = true;
 }
 
-const SEED_CUSTOMER_ACCOUNT_EMAIL = 'demo.customer@carchief.com';
+const SEED_CUSTOMER_ACCOUNT_EMAIL = 'prabodha@carchief.com';
 // Fixture-only credential bound to the seeded `cust-123` identity so every
 // existing Delivery 02 customer suite keeps a working sign-in. Never a
 // production secret — mock/dev-only, and only ever stored as its scrypt hash.
-const SEED_CUSTOMER_ACCOUNT_PASSWORD = 'CarChief#Fixture2026';
+const SEED_CUSTOMER_ACCOUNT_PASSWORD = 'Password@1234';
 
 function buildSeedCustomerAccount(): CustomerAccountRecord {
   const { hash, salt } = hashPassword(SEED_CUSTOMER_ACCOUNT_PASSWORD);
@@ -1691,11 +1748,12 @@ function buildSeedCustomerAccount(): CustomerAccountRecord {
   return {
     id: 'acct-cust-123',
     customerId: 'cust-123',
-    nameWithInitials: 'J. K. Demo',
-    countryCode: 'UG',
-    dialCode: '+256',
-    mobileNumber: '700000000',
+    nameWithInitials: 'Prabodha Wijerathne',
+    countryCode: 'LK',
+    dialCode: '+94',
+    mobileNumber: '771234567',
     email: SEED_CUSTOMER_ACCOUNT_EMAIL,
+    tier: 'Standard',
     passwordHash: hash,
     passwordSalt: salt,
     status: 'active',
@@ -1712,11 +1770,40 @@ function buildSeedOtherCustomerAccount(): CustomerAccountRecord {
   return {
     id: 'acct-user-other-456',
     customerId: 'user-other-456',
-    nameWithInitials: 'O. Customer',
+    nameWithInitials: 'Amina Njeri',
     countryCode: 'KE',
     dialCode: '+254',
-    mobileNumber: '700000001',
-    email: 'other@example.com',
+    mobileNumber: '712345678',
+    email: 'amina.njeri@example.com',
+    tier: 'Silver',
+    passwordHash: hash,
+    passwordSalt: salt,
+    status: 'active',
+    verificationState: 'unverified',
+    createdAt: seedTimestamp,
+    updatedAt: seedTimestamp,
+    passwordUpdatedAt: seedTimestamp,
+  };
+}
+
+function buildSeedTierAccount(
+  customerId: string,
+  email: string,
+  nameWithInitials: string,
+  countryCode: string,
+  tier: CustomerTier,
+): CustomerAccountRecord {
+  const { hash, salt } = hashPassword(SEED_CUSTOMER_ACCOUNT_PASSWORD);
+  const seedTimestamp = '2026-01-01T00:00:00.000Z';
+  return {
+    id: `acct-${customerId}`,
+    customerId,
+    nameWithInitials,
+    countryCode,
+    dialCode: countryCode === 'KE' ? '+254' : countryCode === 'JP' ? '+81' : '+351',
+    mobileNumber: countryCode === 'KE' ? '723456789' : countryCode === 'JP' ? '9012345678' : '912345678',
+    email,
+    tier,
     passwordHash: hash,
     passwordSalt: salt,
     status: 'active',
@@ -2398,12 +2485,14 @@ function validateTestimonialSubmission(request: TestimonialSubmissionRequest): v
 export class EnquiryRequestError extends Error {
   public readonly statusCode: number;
   public readonly field?: string;
+  public readonly reason?: string;
 
-  constructor(statusCode: number, message: string, field?: string) {
+  constructor(statusCode: number, message: string, field?: string, reason?: string) {
     super(message);
     this.name = 'EnquiryRequestError';
     this.statusCode = statusCode;
     this.field = field;
+    this.reason = reason;
   }
 }
 
@@ -2467,6 +2556,26 @@ function requireNonEmptyString(value: unknown, field: string, label: string): st
     throw new EnquiryRequestError(400, `${label} is required`, field);
   }
   return value.trim();
+}
+
+function assertVehicleEnquiryAllowed(
+  vehicles: VehicleRecord[],
+  invoices: InvoiceRecord[],
+  request: EnquiryRequest,
+  customerId: string,
+): void {
+  if (!request.vehicleSlug) return;
+  const vehicle = findVehicleRecord(vehicles, request.vehicleSlug);
+  if (!vehicle) return;
+  const allocatedCustomerId = findAllocatedCustomerId(invoices, vehicle.id);
+  if (allocatedCustomerId && allocatedCustomerId !== customerId) {
+    throw new EnquiryRequestError(
+      409,
+      'This vehicle has already been allocated to another customer.',
+      'vehicleSlug',
+      'allocated_to_another_customer',
+    );
+  }
 }
 
 /**
@@ -2772,18 +2881,18 @@ export function projectVehicle(
     return exp > now;
   });
 
-  const nowOnSale = active && !isSold && (!activeHold || Boolean(context.customerId && activeHold.customerId === context.customerId));
+  const nowOnSale = active && v.status === 'Available' && (!activeHold || Boolean(context.customerId && activeHold.customerId === context.customerId));
   const isRequestPrice = Boolean(v.requestPrice || !v.priceUsd || v.priceUsd <= 0);
   const priceState: 'priced' | 'request_price' = isRequestPrice ? 'request_price' : 'priced';
 
   // Tier Pricing (RULE-06)
   const tier = context.customerTier || (context.audience === 'customer' ? 'Standard' : undefined);
-  const tierPricing = tier && v.priceUsd > 0 ? calculateTierPricing(v.priceUsd, tier) : undefined;
+  const tierPricing = tier && v.priceUsd > 0 ? calculateTierPricing(v.priceUsd, tier, context.tierRule?.discountPercent ?? 0) : undefined;
 
   // Reservation Eligibility (RULE-05, RULE-08, RULE-10)
   let reservationEligibility: VehicleReservationEligibility | undefined = undefined;
   if (context.audience === 'customer' || context.customerId || context.customerTier) {
-    if (isSold || !active) {
+    if (isSold || !active || !RESERVABLE_VEHICLE_STATUS_SET.has(v.status)) {
       reservationEligibility = { eligible: false, reason: 'not_reservable' };
     } else if (isRequestPrice) {
       reservationEligibility = { eligible: false, reason: 'price_on_request' };
@@ -2845,6 +2954,7 @@ export function projectVehicle(
       : undefined,
     tierPricing,
     reservationEligibility,
+    inquiryEligibility: buildVehicleInquiryEligibility(v, context),
   };
 }
 
@@ -2894,16 +3004,16 @@ export function buildVehicleDetail(
     return exp > now;
   });
 
-  const nowOnSale = active && !isSold && (!activeHold || Boolean(context.customerId && activeHold.customerId === context.customerId));
+  const nowOnSale = active && v.status === 'Available' && (!activeHold || Boolean(context.customerId && activeHold.customerId === context.customerId));
 
   // Tier Pricing (RULE-06)
   const tier = context.customerTier || (context.audience === 'customer' ? 'Standard' : undefined);
-  const tierPricing = tier && v.priceUsd > 0 ? calculateTierPricing(v.priceUsd, tier) : undefined;
+  const tierPricing = tier && v.priceUsd > 0 ? calculateTierPricing(v.priceUsd, tier, context.tierRule?.discountPercent ?? 0) : undefined;
 
   // Reservation Eligibility (RULE-05, RULE-08, RULE-10)
   let reservationEligibility: VehicleReservationEligibility | undefined = undefined;
   if (context.audience === 'customer' || context.customerId || context.customerTier) {
-    if (isSold || !active) {
+    if (isSold || !active || !RESERVABLE_VEHICLE_STATUS_SET.has(v.status)) {
       reservationEligibility = { eligible: false, reason: 'not_reservable' };
     } else if (isRequestPrice) {
       reservationEligibility = { eligible: false, reason: 'price_on_request' };
@@ -2928,6 +3038,9 @@ export function buildVehicleDetail(
     model: v.model,
     year: v.year,
     status: (v.status as VehicleStatus) || 'Available',
+    statusLabel: resolveVehicleStatusDefinition(v.status, context.vehicleStatusDefinitions).singularLabel,
+    statusLabelPlural: resolveVehicleStatusDefinition(v.status, context.vehicleStatusDefinitions).pluralLabel,
+    statusDescription: resolveVehicleStatusDefinition(v.status, context.vehicleStatusDefinitions).description,
     priceState,
     priceUsd,
     requestPrice: isRequestPrice,
@@ -2965,6 +3078,7 @@ export function buildVehicleDetail(
     nowOnSale,
     tierPricing,
     reservationEligibility,
+    inquiryEligibility: buildVehicleInquiryEligibility(v, context),
   };
 }
 
@@ -3498,7 +3612,7 @@ export const seedReservations: ReservationRecord[] = [
     vehicleId: 'veh-2',
     vehicleSlug: '2020-toyota-hiace-van-veh-2',
     customerId: 'user-other-456',
-    customerEmail: 'other@example.com',
+    customerEmail: 'amina.njeri@example.com',
     createdAt: '2026-08-09T10:00:00.000Z',
     expiresAt: '2026-08-11T10:00:00.000Z', // Active relative to 2026-08-10 reference date (48-hour hold)
     holdHours: 48,
@@ -3528,7 +3642,7 @@ export const seedReservations: ReservationRecord[] = [
     vehicleId: 'veh-3',
     vehicleSlug: '2022-nissan-x-trail-veh-3',
     customerId: 'user-other-456',
-    customerEmail: 'other@example.com',
+    customerEmail: 'amina.njeri@example.com',
     createdAt: '2026-08-06T10:00:00.000Z',
     expiresAt: '2026-08-08T10:00:00.000Z', // Expired relative to 2026-08-10 reference date
     holdHours: 48,
@@ -3607,6 +3721,54 @@ export interface InvoiceRecord {
   totalAmountUsd: number;
   invoicedAt: string;
   status: 'Draft' | 'Issued' | 'Paid' | 'Overdue';
+  vehicleItems?: InvoiceVehicleItemRecord[];
+}
+
+interface InvoiceVehicleItemRecord {
+  vehicleId: string;
+  make: string;
+  model: string;
+  year: number;
+  chassisNumber: string;
+  stockNumber: string;
+  amountUsd: number;
+}
+
+function findAllocatedCustomerId(invoices: InvoiceRecord[], vehicleId: string): string | undefined {
+  return invoices.find((invoice) => invoiceIncludesVehicle(invoice, vehicleId) && invoice.status !== 'Draft')?.customerId;
+}
+
+function invoiceIncludesVehicle(invoice: InvoiceRecord, vehicleId: string): boolean {
+  return invoice.vehicleId === vehicleId || Boolean(invoice.vehicleItems?.some((item) => item.vehicleId === vehicleId));
+}
+
+function getInvoiceVehicleAmount(invoice: InvoiceRecord, vehicleId: string): number {
+  const item = invoice.vehicleItems?.find((candidate) => candidate.vehicleId === vehicleId);
+  return Math.max(0, item?.amountUsd ?? (invoice.vehicleId === vehicleId ? invoice.totalAmountUsd : 0));
+}
+
+function findCanonicalInvoice(invoices: InvoiceRecord[], customerId: string, vehicleId: string): InvoiceRecord | undefined {
+  return invoices
+    .filter((invoice) => invoice.customerId === customerId && invoice.status !== 'Draft' && invoiceIncludesVehicle(invoice, vehicleId))
+    .sort((a, b) => {
+      const aBulk = a.vehicleItems?.some((item) => item.vehicleId === vehicleId) ? 1 : 0;
+      const bBulk = b.vehicleItems?.some((item) => item.vehicleId === vehicleId) ? 1 : 0;
+      return bBulk - aBulk || new Date(b.invoicedAt).getTime() - new Date(a.invoicedAt).getTime();
+    })[0];
+}
+
+function buildVehicleInquiryEligibility(
+  vehicle: VehicleRecord,
+  context: VehicleQueryContext,
+): VehicleDomainSummary['inquiryEligibility'] {
+  if (!context.customerId) return undefined;
+  if (context.allocatedCustomerId && context.allocatedCustomerId !== context.customerId) {
+    return { eligible: false, reason: 'allocated_to_another_customer' };
+  }
+  if (vehicle.status !== 'Available' && !context.allocatedCustomerId) {
+    return { eligible: false, reason: 'not_available' };
+  }
+  return { eligible: true };
 }
 
 export interface AllocationRecord {
@@ -3614,6 +3776,9 @@ export interface AllocationRecord {
   customerId: string;
   paymentId: string;
   invoiceId: string;
+  /** The specific vehicle receiving the TT allocation; legacy rows fall back to the invoice vehicle. */
+  vehicleId?: string;
+  purpose?: 'Advance' | 'Balance';
   amountUsd: number;
   allocatedAt: string;
   status: 'Approved' | 'Pending' | 'Rejected';
@@ -3622,11 +3787,12 @@ export interface AllocationRecord {
 export interface PaymentRecord {
   id: string;
   customerId: string;
-  invoiceId: string;
+  invoiceId?: string;
   amountUsd: number;
   paidAt: string;
   status: 'Pending' | 'Held' | 'Resubmitted' | 'Approved' | 'Rejected';
   holdReason?: string;
+  financeNote?: string;
   reference?: string;
   bankName?: string;
   currency?: string;
@@ -3635,6 +3801,8 @@ export interface PaymentRecord {
   proof?: CreateCustomerPaymentRequest['proof'];
   idempotencyKey?: string;
   createdAt?: string;
+  customerName?: string;
+  depositorName?: string;
 }
 
 export interface ShipmentRecord {
@@ -3665,21 +3833,6 @@ export interface DocumentRecord {
   visibleToCustomer?: boolean;
 }
 
-export interface CustomerShipment {
-  id: string;
-  vehicleId: string;
-  stage: 'Purchased' | 'Inspection' | 'Ready' | 'In Transit' | 'Delivered';
-  shippedAt: string;
-  deliveredAt?: string;
-  eta?: string;
-  location?: string;
-  freshness: 'fresh' | 'stale' | 'unknown';
-  shipOkStatus: 'Pending' | 'Approved' | 'Rejected';
-  shipOkRejectionReason?: string;
-  documentReleaseStatus: 'Pending' | 'Approved' | 'Rejected';
-  documentReleaseRejectionReason?: string;
-}
-
 export interface CustomerDocument {
   id: string;
   shipmentId?: string;
@@ -3702,11 +3855,21 @@ export interface NotificationRecord {
 
 export interface CustomerProfileRecord {
   customerId: string;
+  name: string;
   companyName: string;
   phone: string;
   deliveryAddress: string;
   version: number;
   updatedAt: string;
+}
+
+export class DatabaseRequiredError extends Error {
+  readonly statusCode = 503;
+
+  constructor() {
+    super('Customer statement data requires the PostgreSQL database');
+    this.name = 'DatabaseRequiredError';
+  }
 }
 
 export interface PaymentNotificationRecord {
@@ -3720,6 +3883,20 @@ export interface PaymentNotificationRecord {
 }
 
 const seedInvoices: InvoiceRecord[] = [
+  // One TT can fund multiple vehicles while producing one commercial invoice.
+  { id: 'inv-bulk-001', customerId: 'cust-123', vehicleId: 'veh-inv-1', vehicleSlug: '2021-toyota-corolla-fielder-veh-inv-1', make: 'Toyota', model: 'Corolla Fielder', year: 2021, totalAmountUsd: 25200.00, invoicedAt: '2026-08-14T09:00:00.000Z', status: 'Paid', vehicleItems: [
+    { vehicleId: 'veh-inv-1', make: 'Toyota', model: 'Corolla Fielder', year: 2021, chassisNumber: '', stockNumber: 'veh-inv-1', amountUsd: 17360 },
+    { vehicleId: 'veh-inv-2', make: 'Mazda', model: 'Demio', year: 2013, chassisNumber: '', stockNumber: 'veh-inv-2', amountUsd: 7840 },
+  ] },
+  // Additional multi-vehicle examples: one fully allocated TT and one partial TT.
+  { id: 'inv-bulk-002', customerId: 'cust-123', vehicleId: 'veh-inv-7', vehicleSlug: '2013-volvo-v40-veh-inv-7', make: 'Volvo', model: 'V40', year: 2013, totalAmountUsd: 23200.00, invoicedAt: '2026-08-16T09:00:00.000Z', status: 'Issued', vehicleItems: [
+    { vehicleId: 'veh-inv-7', make: 'Volvo', model: 'V40', year: 2013, chassisNumber: '', stockNumber: 'veh-inv-7', amountUsd: 10800 },
+    { vehicleId: 'veh-inv-9', make: 'Toyota', model: 'Corolla Fielder', year: 2013, chassisNumber: '', stockNumber: 'veh-inv-9', amountUsd: 12400 },
+  ] },
+  { id: 'inv-bulk-003', customerId: 'cust-123', vehicleId: 'veh-inv-10', vehicleSlug: '2013-toyota-premio-veh-inv-10', make: 'Toyota', model: 'Premio', year: 2013, totalAmountUsd: 15940.00, invoicedAt: '2026-08-17T09:00:00.000Z', status: 'Issued', vehicleItems: [
+    { vehicleId: 'veh-inv-10', make: 'Toyota', model: 'Premio', year: 2013, chassisNumber: '', stockNumber: 'veh-inv-10', amountUsd: 9440 },
+    { vehicleId: 'veh-inv-15', make: 'Mazda', model: 'Demio', year: 2012, chassisNumber: '', stockNumber: 'veh-inv-15', amountUsd: 6500 },
+  ] },
   // 16 Invoiced vehicles for cust-123 (matching Image 2)
   { id: 'inv-001', customerId: 'cust-123', vehicleId: 'veh-inv-1', vehicleSlug: '2021-toyota-corolla-fielder-veh-inv-1', make: 'Toyota', model: 'Corolla Fielder', year: 2021, totalAmountUsd: 17360.00, invoicedAt: '2026-08-10T10:00:00.000Z', status: 'Issued' },
   { id: 'inv-002', customerId: 'cust-123', vehicleId: 'veh-inv-2', vehicleSlug: '2013-mazda-demio-veh-inv-2', make: 'Mazda', model: 'Demio', year: 2013, totalAmountUsd: 7840.00, invoicedAt: '2026-08-10T10:00:00.000Z', status: 'Issued' },
@@ -3753,6 +3930,27 @@ const seedInvoices: InvoiceRecord[] = [
 ];
 
 const seedAllocations: AllocationRecord[] = [
+  {
+    id: 'alloc-bulk-001', customerId: 'cust-123', paymentId: 'pay-bulk-001', invoiceId: 'inv-bulk-001', vehicleId: 'veh-inv-1', purpose: 'Balance', amountUsd: 17360.00, allocatedAt: '2026-08-14T09:00:00.000Z', status: 'Approved',
+  },
+  {
+    id: 'alloc-bulk-002', customerId: 'cust-123', paymentId: 'pay-bulk-001', invoiceId: 'inv-bulk-001', vehicleId: 'veh-inv-2', purpose: 'Balance', amountUsd: 7840.00, allocatedAt: '2026-08-14T09:00:00.000Z', status: 'Approved',
+  },
+  {
+    id: 'alloc-partial-001', customerId: 'cust-123', paymentId: 'pay-partial-001', invoiceId: 'inv-003', vehicleId: 'veh-inv-3', purpose: 'Balance', amountUsd: 2000.00, allocatedAt: '2026-08-15T09:00:00.000Z', status: 'Approved',
+  },
+  {
+    id: 'alloc-bulk-002-001', customerId: 'cust-123', paymentId: 'pay-bulk-002', invoiceId: 'inv-bulk-002', vehicleId: 'veh-inv-7', purpose: 'Advance', amountUsd: 9000.00, allocatedAt: '2026-08-16T09:00:00.000Z', status: 'Approved',
+  },
+  {
+    id: 'alloc-bulk-002-002', customerId: 'cust-123', paymentId: 'pay-bulk-002', invoiceId: 'inv-bulk-002', vehicleId: 'veh-inv-9', purpose: 'Advance', amountUsd: 9000.00, allocatedAt: '2026-08-16T09:00:00.000Z', status: 'Approved',
+  },
+  {
+    id: 'alloc-partial-002-001', customerId: 'cust-123', paymentId: 'pay-partial-002', invoiceId: 'inv-bulk-003', vehicleId: 'veh-inv-10', purpose: 'Balance', amountUsd: 8000.00, allocatedAt: '2026-08-17T09:00:00.000Z', status: 'Approved',
+  },
+  {
+    id: 'alloc-partial-002-002', customerId: 'cust-123', paymentId: 'pay-partial-002', invoiceId: 'inv-bulk-003', vehicleId: 'veh-inv-15', purpose: 'Balance', amountUsd: 4000.00, allocatedAt: '2026-08-17T09:00:00.000Z', status: 'Approved',
+  },
   {
     id: 'alloc-001',
     customerId: 'cust-123',
@@ -3802,6 +4000,18 @@ const seedAllocations: AllocationRecord[] = [
 
 // Seed data for payments (D02-P02-T001)
 const seedPayments: PaymentRecord[] = [
+  {
+    id: 'pay-bulk-001', customerId: 'cust-123', invoiceId: 'inv-bulk-001', amountUsd: 25200.00, paidAt: '2026-08-14T08:00:00.000Z', paymentDate: '2026-08-14T08:00:00.000Z', status: 'Approved', reference: 'TT-2026-BULK-25200', bankName: 'Sumitomo Mitsui Banking Corp', currency: 'USD', remarks: 'Final balance TT allocated to two vehicles', idempotencyKey: 'seed-pay-bulk-001',
+  },
+  {
+    id: 'pay-partial-001', customerId: 'cust-123', invoiceId: 'inv-003', amountUsd: 6000.00, paidAt: '2026-08-15T08:00:00.000Z', paymentDate: '2026-08-15T08:00:00.000Z', status: 'Approved', reference: 'TT-2026-PARTIAL-6000', bankName: 'MUFG Bank Tokyo', currency: 'USD', remarks: 'Balance TT pending further allocation', idempotencyKey: 'seed-pay-partial-001',
+  },
+  {
+    id: 'pay-bulk-002', customerId: 'cust-123', invoiceId: 'inv-bulk-002', amountUsd: 18000.00, paidAt: '2026-08-16T08:00:00.000Z', paymentDate: '2026-08-16T08:00:00.000Z', status: 'Approved', reference: 'TT-2026-BULK-18000', bankName: 'Sumitomo Mitsui Banking Corp', currency: 'USD', remarks: 'Advance TT fully allocated across two vehicles', idempotencyKey: 'seed-pay-bulk-002',
+  },
+  {
+    id: 'pay-partial-002', customerId: 'cust-123', invoiceId: 'inv-bulk-003', amountUsd: 24000.00, paidAt: '2026-08-17T08:00:00.000Z', paymentDate: '2026-08-17T08:00:00.000Z', status: 'Approved', reference: 'TT-2026-PARTIAL-24000', bankName: 'MUFG Bank Tokyo', currency: 'USD', remarks: 'Balance TT partially allocated across two vehicles', idempotencyKey: 'seed-pay-partial-002',
+  },
   // Active customer (cust-123): 3 approved payments
   {
     id: 'pay-001',
@@ -3835,6 +4045,36 @@ const seedPayments: PaymentRecord[] = [
     amountUsd: 5000.00,
     paidAt: '2026-08-13T09:00:00.000Z',
     status: 'Pending',
+  },
+  // Active customer: finance review states used by the payment journal filters
+  {
+    id: 'pay-cust123-hold-001',
+    customerId: 'cust-123',
+    invoiceId: 'inv-003',
+    amountUsd: 4200.00,
+    paidAt: '2026-08-14T10:30:00.000Z',
+    status: 'Held',
+    holdReason: 'Awaiting additional bank confirmation',
+    financeNote: 'Finance is verifying the beneficiary bank confirmation before releasing this payment.',
+    reference: 'TT-2026-4200-HOLD',
+    bankName: 'Standard Chartered Bank',
+    currency: 'USD',
+    remarks: 'Payment temporarily held for finance review',
+    idempotencyKey: 'seed-pay-cust123-hold-001',
+  },
+  {
+    id: 'pay-cust123-rejected-001',
+    customerId: 'cust-123',
+    invoiceId: 'inv-003',
+    amountUsd: 2800.00,
+    paidAt: '2026-08-15T11:15:00.000Z',
+    status: 'Rejected',
+    financeNote: 'The uploaded payment proof did not include a verifiable bank reference. Please submit a corrected document.',
+    reference: 'TT-2026-2800-REJECTED',
+    bankName: 'MUFG Bank Tokyo',
+    currency: 'USD',
+    remarks: 'Payment proof rejected because the reference was incomplete',
+    idempotencyKey: 'seed-pay-cust123-rejected-001',
   },
   // Exception customer: 1 rejected payment
   {
@@ -3993,7 +4233,7 @@ const seedNotifications: NotificationRecord[] = [
     type: 'Shipment',
     isRead: false,
     createdAt: '2026-08-13T10:00:00.000Z',
-    related: { kind: 'Shipment', id: 'ship-001', href: '/customer/shipments/ship-001' },
+    related: { kind: 'Shipment', id: 'ship-001', href: '/customer/vehicles' },
   },
   {
     id: 'notif-003',
@@ -4027,14 +4267,52 @@ const seedNotifications: NotificationRecord[] = [
 const seedCustomerProfiles: CustomerProfileRecord[] = [
   {
     customerId: 'cust-123',
-    companyName: 'CarChief Demo Customer',
-    phone: '+1 555 0100',
-    deliveryAddress: 'Customer delivery address, demo only',
+    name: 'Prabodha Wijerathne',
+    companyName: 'Prabodha Wijerathne',
+    phone: '+94 77 123 4567',
+    deliveryAddress: 'No.414, Polhengoda Road, Colombo 05',
+    version: 1,
+    updatedAt: '2026-08-14T08:00:00.000Z',
+  },
+  {
+    customerId: 'user-other-456',
+    name: 'Amina Njeri',
+    companyName: 'Njeri Auto Imports',
+    phone: '+254 712 345 678',
+    deliveryAddress: 'Westlands Road, Nairobi, Kenya',
+    version: 1,
+    updatedAt: '2026-08-14T08:00:00.000Z',
+  },
+  {
+    customerId: 'cust-silver-789',
+    name: 'Daniel Mwangi',
+    companyName: 'Mwangi Mobility Ltd.',
+    phone: '+254 723 456 789',
+    deliveryAddress: 'Mombasa Road, Nairobi, Kenya',
+    version: 1,
+    updatedAt: '2026-08-14T08:00:00.000Z',
+  },
+  {
+    customerId: 'cust-gold-012',
+    name: 'Haruto Sato',
+    companyName: 'Sato Trading Co.',
+    phone: '+81 90 1234 5678',
+    deliveryAddress: 'Chiyoda-ku, Tokyo, Japan',
+    version: 1,
+    updatedAt: '2026-08-14T08:00:00.000Z',
+  },
+  {
+    customerId: 'cust-platinum-345',
+    name: 'Sofia Almeida',
+    companyName: 'Almeida Motors',
+    phone: '+351 912 345 678',
+    deliveryAddress: 'Avenida da Liberdade, Lisbon, Portugal',
     version: 1,
     updatedAt: '2026-08-14T08:00:00.000Z',
   },
   {
     customerId: 'cust-exception-001',
+    name: 'Exception Customer',
     companyName: 'Exception Customer',
     phone: '+1 555 0101',
     deliveryAddress: 'Exception customer address, demo only',
@@ -4053,6 +4331,7 @@ export interface ProformaInvoiceRecord {
   model: string;
   year: number;
   totalAmountUsd: number;
+  paidAmountUsd: number;
   issuedAt: string;
   paymentDeadline: string;
   status: 'Issued' | 'Expired' | 'Cancelled';
@@ -4068,6 +4347,7 @@ const seedProformaInvoices: ProformaInvoiceRecord[] = [
     model: 'V40',
     year: 2013,
     totalAmountUsd: 10800.00,
+    paidAmountUsd: 2160.00,
     issuedAt: '2026-08-10T10:00:00.000Z',
     paymentDeadline: '2026-08-15T10:00:00.000Z',
     status: 'Issued',
@@ -4081,6 +4361,7 @@ const seedProformaInvoices: ProformaInvoiceRecord[] = [
     model: 'CX-8',
     year: 2019,
     totalAmountUsd: 10192.00,
+    paidAmountUsd: 3567.20,
     issuedAt: '2026-08-10T10:00:00.000Z',
     paymentDeadline: '2026-08-15T10:00:00.000Z',
     status: 'Issued',
@@ -4094,6 +4375,7 @@ const seedProformaInvoices: ProformaInvoiceRecord[] = [
     model: 'Impreza Wagon',
     year: 2019,
     totalAmountUsd: 12480.00,
+    paidAmountUsd: 6240.00,
     issuedAt: '2026-08-10T10:00:00.000Z',
     paymentDeadline: '2026-08-15T10:00:00.000Z',
     status: 'Issued',
@@ -4107,6 +4389,7 @@ const seedProformaInvoices: ProformaInvoiceRecord[] = [
     model: 'V40',
     year: 2013,
     totalAmountUsd: 10800.00,
+    paidAmountUsd: 2700.00,
     issuedAt: '2026-08-10T10:00:00.000Z',
     paymentDeadline: '2026-08-15T10:00:00.000Z',
     status: 'Issued',
@@ -4120,6 +4403,7 @@ const seedProformaInvoices: ProformaInvoiceRecord[] = [
     model: 'Alto',
     year: 2019,
     totalAmountUsd: 12480.00,
+    paidAmountUsd: 4992.00,
     issuedAt: '2026-08-10T10:00:00.000Z',
     paymentDeadline: '2026-08-15T10:00:00.000Z',
     status: 'Issued',
@@ -4133,6 +4417,7 @@ const seedProformaInvoices: ProformaInvoiceRecord[] = [
     model: 'CX-3',
     year: 2015,
     totalAmountUsd: 8624.00,
+    paidAmountUsd: 2587.20,
     issuedAt: '2026-08-10T10:00:00.000Z',
     paymentDeadline: '2026-08-15T10:00:00.000Z',
     status: 'Issued',
@@ -4144,7 +4429,7 @@ const seedProformaInvoices: ProformaInvoiceRecord[] = [
  * Ensures:
  * 1. Strict customer scoping (RULE-04)
  * 2. Zero duplicate vehicle listings across categories (RULE-08)
- * 3. Server-computed 50% deposit calculations (RULE-07)
+ * 3. Server-computed 30% deposit calculations (RULE-07)
  * 4. 48-hour deterministic hold expiry (RULE-05)
  * 5. Full chronological status history (CUST-12)
  * 6. Linked export documents (CUST-13)
@@ -4158,12 +4443,15 @@ export function buildCustomerVehicleProjections(
   allocations: AllocationRecord[],
   shipments: ShipmentRecord[],
   documents: DocumentRecord[],
-  nowISO: string = '2026-08-10T10:00:00.000Z'
+  nowISO: string = '2026-08-10T10:00:00.000Z',
+  vehicleStatusDefinitions: VehicleStatusDefinition[] = seedVehicleStatusDefinitions
 ): CustomerVehicleDetail[] {
   const relevantVehicleIds = new Set<string>();
 
   for (const inv of invoices) {
-    if (inv.customerId === customerId) relevantVehicleIds.add(inv.vehicleId);
+    if (inv.customerId !== customerId) continue;
+    relevantVehicleIds.add(inv.vehicleId);
+    for (const item of inv.vehicleItems || []) relevantVehicleIds.add(item.vehicleId);
   }
   for (const pi of proformaInvoices) {
     if (pi.customerId === customerId && pi.status !== 'Cancelled') relevantVehicleIds.add(pi.vehicleId);
@@ -4183,23 +4471,40 @@ export function buildCustomerVehicleProjections(
     const piDeadline = pi?.paymentDeadline ? new Date(pi.paymentDeadline).getTime() : undefined;
     const piExpired = Boolean(pi && pi.status === 'Issued' && piDeadline !== undefined && piDeadline <= new Date(nowISO).getTime());
     const activePi = pi && pi.status === 'Issued' && !piExpired ? pi : undefined;
-    const inv = invoices.find((i) => i.customerId === customerId && i.vehicleId === vId);
+    const inv = findCanonicalInvoice(invoices, customerId, vId);
     const shipment = shipments.find((s) => s.customerId === customerId && s.vehicleId === vId);
-    const customerAllocs = inv ? allocations.filter((a) => a.customerId === customerId && a.invoiceId === inv.id && a.status === 'Approved') : [];
-    const paidAmountUsd = customerAllocs.reduce((sum, a) => sum + a.amountUsd, 0);
+    const invoiceTotalAmountUsd = inv ? getInvoiceVehicleAmount(inv, vId) : (pi?.totalAmountUsd ?? 0);
+    const customerAllocs = inv
+      ? allocations.filter((a) => (
+        a.customerId === customerId &&
+        a.invoiceId === inv.id &&
+        (a.vehicleId || inv.vehicleId) === vId &&
+        a.status === 'Approved'
+      ))
+      : [];
+    const paidAmountUsd = inv
+      ? Math.min(invoiceTotalAmountUsd, customerAllocs.reduce((sum, a) => sum + a.amountUsd, 0))
+      : Math.max(0, Math.min(pi?.paidAmountUsd ?? 0, pi?.totalAmountUsd ?? 0));
 
     const priceUsd = vehicle.priceUsd;
-    const totalAmountUsd = inv ? inv.totalAmountUsd : (pi ? pi.totalAmountUsd : priceUsd);
+    const totalAmountUsd = inv ? invoiceTotalAmountUsd : (pi ? pi.totalAmountUsd : priceUsd);
+    const balanceAmountUsd = Math.max(0, totalAmountUsd - paidAmountUsd);
+    const paymentStatus: CustomerVehiclePaymentStatus = paidAmountUsd <= 0
+      ? 'Unpaid'
+      : balanceAmountUsd > 0
+        ? 'PartiallyPaid'
+        : 'Paid';
+    const invoiceFullyPaid = Boolean(inv && invoiceTotalAmountUsd > 0 && paymentStatus === 'Paid');
 
     // Determine status
     let status: CustomerVehicleStatus;
-    if (shipment?.status === 'Delivered' || vehicle.status === 'Sold') {
+    if (invoiceFullyPaid && (shipment?.status === 'Delivered' || vehicle.status === 'Sold')) {
       status = 'Delivered';
-    } else if (shipment?.status === 'InTransit' || vehicle.locationStatus === 'In Transit') {
+    } else if (invoiceFullyPaid && (shipment?.status === 'InTransit' || vehicle.locationStatus === 'In Transit')) {
       status = 'In Transit';
-    } else if (inv || shipment?.status === 'Ready' || vehicle.status === 'InvoiceCreated' || vehicle.status === 'Invoiced' || (paidAmountUsd >= totalAmountUsd * 0.5 && totalAmountUsd > 0)) {
+    } else if (invoiceFullyPaid || (!inv && shipment?.status === 'Ready')) {
       status = 'Confirmed';
-    } else if (activePi || (vehicle.status === 'ReservedWithPI' && !piExpired)) {
+    } else if (inv || activePi || (vehicle.status === 'ReservedWithPI' && !piExpired)) {
       status = 'Under Negotiation With PI';
     } else if (r || vehicle.status === 'Reserved') {
       status = 'Under Negotiation';
@@ -4238,11 +4543,11 @@ export function buildCustomerVehicleProjections(
       statusHistory.push({
         status: 'Under Negotiation With PI',
         timestamp: pi?.issuedAt || inv?.invoicedAt || '2026-08-10T10:00:00.000Z',
-        notes: piExpired ? '72-hour PI hold expired; vehicle returned to Now On Sale' : 'Proforma invoice issued with 50% deposit requirement',
+        notes: piExpired ? '72-hour PI hold expired; vehicle returned to Now On Sale' : 'Proforma invoice issued with 30% deposit requirement',
       });
     }
 
-    if (inv || status === 'Confirmed' || status === 'In Transit' || status === 'Delivered') {
+    if (invoiceFullyPaid || status === 'In Transit' || status === 'Delivered') {
       statusHistory.push({
         status: 'Confirmed',
         timestamp: customerAllocs[0]?.allocatedAt || inv?.invoicedAt || '2026-08-11T10:00:00.000Z',
@@ -4309,9 +4614,8 @@ export function buildCustomerVehicleProjections(
 
     // Commercial bill calculation for invoiced vehicles
     let commercialBill: CustomerCommercialBillInfo | undefined;
-    if (inv || status === 'Confirmed' || status === 'In Transit' || status === 'Delivered') {
+    if (inv) {
       const soldAmountUsd = totalAmountUsd;
-      const balanceAmountUsd = Math.max(0, soldAmountUsd - paidAmountUsd);
       commercialBill = {
         soldAmountUsd,
         paidAmountUsd,
@@ -4326,6 +4630,17 @@ export function buildCustomerVehicleProjections(
     const logisticsStatus = vehicle.logisticsStatus || (status === 'Delivered' ? 'DELIVERED' : status === 'In Transit' ? 'IN TRANSIT' : status === 'Confirmed' ? 'INSPECTION' : 'RESERVED');
     const piRef = pi ? `PI-${stockNumber.replace(/^STK:\s*/, '')}` : (status === 'Under Negotiation With PI' ? `PI-${stockNumber.replace(/^STK:\s*/, '')}` : undefined);
     const shippingStage = status === 'Delivered' ? 'Delivered' : status === 'In Transit' ? 'In Transit' : status === 'Confirmed' ? 'Inspection' : 'Reserved';
+    // A live reservation overlays an otherwise available vehicle for the
+    // customer projection. Resolve its display label from the Reserved
+    // catalogue row while retaining the raw vehicle status code separately.
+    const displayStatusCode = status === 'Under Negotiation'
+      ? 'Reserved'
+      : status === 'Under Negotiation With PI'
+        ? 'ReservedWithPI'
+        : status === 'Confirmed' || status === 'In Transit' || status === 'Delivered'
+          ? 'Invoiced'
+          : vehicle.status;
+    const statusDefinition = resolveVehicleStatusDefinition(displayStatusCode, vehicleStatusDefinitions);
 
     const detail: CustomerVehicleDetail = {
       id: vId,
@@ -4337,9 +4652,18 @@ export function buildCustomerVehicleProjections(
       slug,
       primaryImage,
       images: vehicle.images || (primaryImage ? [primaryImage] : []),
+      stockType: vehicle.stockType,
       priceUsd,
       totalAmountUsd,
       status,
+      paymentStatus,
+      paidAmountUsd,
+      balanceAmountUsd,
+      invoiceTotalAmountUsd: inv ? invoiceTotalAmountUsd : undefined,
+      vehicleStatusCode: statusDefinition.code,
+      statusLabel: statusDefinition.singularLabel,
+      statusLabelPlural: statusDefinition.pluralLabel,
+      statusDescription: statusDefinition.description,
       locationStatus,
       destinationPort: vehicle.destinationPort || 'Mombasa',
       reservationExpiresAt: r?.expiresAt,
@@ -4351,6 +4675,10 @@ export function buildCustomerVehicleProjections(
       transmission: vehicle.transmission,
       driveTrain: vehicle.driveTrain,
       mileage,
+      engineSize: vehicle.engineCc !== undefined ? `${vehicle.engineCc} cc` : undefined,
+      steering: vehicle.steering,
+      seats: vehicle.seats,
+      loadCapacity: vehicle.loadCapacity,
       invoiceId: inv?.id,
       shipmentId: shipment?.id,
       vesselName: shipment ? 'Global Highway' : undefined,
@@ -4378,7 +4706,8 @@ export function buildCustomerVehicleProjections(
 
 export function queryCustomerVehicles(
   allVehicles: CustomerVehicleDetail[],
-  query?: ListCustomerVehiclesQuery
+  query?: ListCustomerVehiclesQuery,
+  vehicleStatusDefinitions: VehicleStatusDefinition[] = seedVehicleStatusDefinitions
 ): CustomerVehicleListResponse {
   const countsByStatus: CustomerVehicleCountsByStatus = {
     underNegotiation: allVehicles.filter((v) => v.status === 'Under Negotiation').length,
@@ -4433,6 +4762,15 @@ export function queryCustomerVehicles(
     priceUsd: d.priceUsd,
     totalAmountUsd: d.totalAmountUsd,
     status: d.status,
+    paymentStatus: d.paymentStatus,
+    paidAmountUsd: d.paidAmountUsd,
+    balanceAmountUsd: d.balanceAmountUsd,
+    invoiceTotalAmountUsd: d.invoiceTotalAmountUsd,
+    invoiceId: d.invoiceId,
+    vehicleStatusCode: d.vehicleStatusCode,
+    statusLabel: d.statusLabel,
+    statusLabelPlural: d.statusLabelPlural,
+    statusDescription: d.statusDescription,
     locationStatus: d.locationStatus,
     destinationPort: d.destinationPort,
     reservationExpiresAt: d.reservationExpiresAt,
@@ -4455,6 +4793,7 @@ export function queryCustomerVehicles(
     items,
     total: filtered.length,
     countsByStatus,
+    statusDefinitions: vehicleStatusDefinitions.filter((definition) => definition.active).sort((a, b) => a.sortOrder - b.sortOrder),
   };
 }
 
@@ -4562,6 +4901,18 @@ export function buildCustomerInvoiceProjections(
     }));
 
     const dueDate = new Date(new Date(inv.invoicedAt).getTime() + (7 * 24 * 60 * 60 * 1000)).toISOString();
+    const invoiceVehicles = Array.from(new Set(customerAllocs.map((allocation) => allocation.vehicleId || inv.vehicleId)))
+      .map((vehicleId) => vehicles.find((candidate) => candidate.id === vehicleId))
+      .filter((candidate): candidate is VehicleRecord => Boolean(candidate))
+      .map((candidate) => ({
+        id: candidate.id,
+        chassisNumber: candidate.chassisNumber,
+        make: candidate.make,
+        model: candidate.model,
+        year: candidate.year,
+        slug: generateVehicleSlug(candidate.year, candidate.make, candidate.model, candidate.id),
+        primaryImage: candidate.images?.[0],
+      }));
 
     result.push({
       id: inv.id,
@@ -4576,7 +4927,7 @@ export function buildCustomerInvoiceProjections(
       totalAmountUsd,
       paidAmountUsd,
       outstandingAmountUsd,
-      depositRequiredUsd: Math.round(totalAmountUsd * 0.5),
+      depositRequiredUsd: Math.round(totalAmountUsd * 0.3),
       status,
       issuedAt: inv.invoicedAt,
       dueDate,
@@ -4590,6 +4941,7 @@ export function buildCustomerInvoiceProjections(
         slug,
         primaryImage,
       },
+      vehicles: invoiceVehicles.length > 0 ? invoiceVehicles : undefined,
       lineItems: [],
       allocations: allocationItems,
       bankDetails: undefined,
@@ -4686,7 +5038,9 @@ export function buildCustomerInvoiceDocument(invoice: CustomerInvoiceDetail): Cu
       </div>
       <div class="carchief-invoice-document__vehicle">
         <h3>Vehicle Information</h3>
-        <p>${invoice.year} ${invoice.make} ${invoice.model} (Chassis: ${invoice.vehicle.chassisNumber})</p>
+        ${(invoice.vehicles && invoice.vehicles.length > 0 ? invoice.vehicles : [invoice.vehicle]).map((vehicle) =>
+          `<p>${vehicle.year} ${vehicle.make} ${vehicle.model} (Chassis: ${vehicle.chassisNumber})</p>`
+        ).join('')}
       </div>
       <table class="carchief-invoice-document__table">
         <thead>
@@ -4777,7 +5131,8 @@ function checkReservationEligibility(
   vehicle: VehicleRecord,
   existingReservations: ReservationRecord[],
   customerId: string,
-  nowISO: string
+  nowISO: string,
+  maxActiveReservations: number,
 ): void {
   const activeForVehicle = existingReservations.filter((r) => r.vehicleId === vehicle.id && isReservationActive(r, nowISO));
   const activeConflict = activeForVehicle.find((r) => r.customerId !== customerId);
@@ -4798,32 +5153,26 @@ function checkReservationEligibility(
   }
 
   const activeCountForCustomer = existingReservations.filter((r) => r.customerId === customerId && isReservationActive(r, nowISO)).length;
-  if (activeCountForCustomer >= MAX_ACTIVE_RESERVATIONS_PER_CUSTOMER) {
+  if (activeCountForCustomer >= maxActiveReservations) {
     throw new ReservationRequestError(
       409,
-      `You already have ${MAX_ACTIVE_RESERVATIONS_PER_CUSTOMER} active reservations, the maximum allowed at once`,
+      `You already have ${maxActiveReservations} active reservations, the maximum allowed at once`,
       undefined,
       'limit_exceeded'
     );
   }
 }
 
-function toCustomerShipment(record: ShipmentRecord): CustomerShipment {
-  const stage = record.status === 'InTransit' ? 'In Transit' : record.status;
-  return {
-    id: record.id,
-    vehicleId: record.vehicleId,
-    stage,
-    shippedAt: record.shippedAt,
-    deliveredAt: record.deliveredAt,
-    eta: record.eta,
-    location: record.location,
-    freshness: record.freshness ?? 'unknown',
-    shipOkStatus: record.shipOkStatus ?? 'Pending',
-    shipOkRejectionReason: record.shipOkRejectionReason,
-    documentReleaseStatus: record.documentReleaseStatus ?? 'Pending',
-    documentReleaseRejectionReason: record.documentReleaseRejectionReason,
-  };
+function releaseExpiredReservationStatus(
+  vehicle: VehicleRecord,
+  reservations: ReservationRecord[],
+  nowISO: string,
+): void {
+  if (vehicle.status !== 'Reserved') return;
+  const vehicleReservations = reservations.filter((reservation) => reservation.vehicleId === vehicle.id);
+  const hasExpiredHold = vehicleReservations.some((reservation) => !isReservationActive(reservation, nowISO));
+  const hasActiveHold = vehicleReservations.some((reservation) => isReservationActive(reservation, nowISO));
+  if (hasExpiredHold && !hasActiveHold) vehicle.status = 'Available';
 }
 
 function toCustomerDocument(record: DocumentRecord): CustomerDocument {
@@ -4864,7 +5213,7 @@ function queryCustomerNotifications(records: NotificationRecord[], query?: { sta
 function toCustomerProfile(record: CustomerProfileRecord, email: string): CustomerProfile {
   return {
     customerId: record.customerId,
-    name: email.split('@')[0] || 'Customer',
+    name: record.name || email.split('@')[0] || 'Customer',
     email,
     companyName: record.companyName,
     phone: record.phone,
@@ -4881,10 +5230,10 @@ function validateCustomerProfileRequest(request: UpdateCustomerProfileRequest): 
   if (request.expectedVersion !== undefined && (!Number.isInteger(request.expectedVersion) || request.expectedVersion < 1)) throw new Error('expectedVersion is invalid');
 }
 
-function toCustomerPayment(record: PaymentRecord, invoices: InvoiceRecord[] = [], allocations: AllocationRecord[] = []): CustomerPayment {
+function toCustomerPayment(record: PaymentRecord, invoices: InvoiceRecord[] = [], allocations: AllocationRecord[] = [], customerName?: string): CustomerPayment {
   const invoice = invoices.find((candidate) => candidate.id === record.invoiceId && candidate.customerId === record.customerId);
   const allocatedAmountUsd = allocations
-    .filter((allocation) => allocation.customerId === record.customerId && allocation.invoiceId === record.invoiceId && allocation.status === 'Approved')
+    .filter((allocation) => allocation.customerId === record.customerId && allocation.paymentId === record.id && allocation.status === 'Approved')
     .reduce((sum, allocation) => sum + allocation.amountUsd, 0);
   return {
     id: record.id,
@@ -4894,7 +5243,12 @@ function toCustomerPayment(record: PaymentRecord, invoices: InvoiceRecord[] = []
     bankName: record.bankName || 'Unspecified bank',
     currency: record.currency || 'USD',
     amountUsd: record.amountUsd,
-    ...(invoice ? { allocatedAmountUsd, remainingBalanceUsd: Math.max(invoice.totalAmountUsd - allocatedAmountUsd, 0) } : {}),
+    allocatedAmountUsd,
+    remainingBalanceUsd: Math.max(record.amountUsd - allocatedAmountUsd, 0),
+    customerName: record.customerName || customerName || record.customerId,
+    depositorName: record.depositorName || customerName || record.customerId,
+    ...(record.status === 'Approved' ? { approvedDate: record.paidAt } : {}),
+    ...(record.financeNote ? { financeNote: record.financeNote } : {}),
     paymentDate: record.paymentDate || record.paidAt,
     remarks: record.remarks,
     status: record.status,
@@ -4903,6 +5257,125 @@ function toCustomerPayment(record: PaymentRecord, invoices: InvoiceRecord[] = []
     idempotencyKey: record.idempotencyKey || record.id,
     createdAt: record.createdAt || record.paidAt,
   };
+}
+
+/** Customer-safe TT-to-vehicle projection.  Allocation ownership is always
+ * derived from the payment/customer rows, never from caller-supplied IDs. */
+function buildCustomerPaymentAllocationSummaries(
+  customerId: string,
+  payments: PaymentRecord[],
+  allocations: AllocationRecord[],
+  invoices: InvoiceRecord[],
+  vehicles: VehicleRecord[],
+): CustomerPaymentAllocationSummary[] {
+  return payments
+    .filter((payment) => payment.customerId === customerId)
+    .map((payment) => {
+      const rows = allocations.filter((allocation) => allocation.customerId === customerId && allocation.paymentId === payment.id);
+      const approved = rows.filter((row) => row.status === 'Approved');
+      const allocatedAmountUsd = approved.reduce((total, row) => total + row.amountUsd, 0);
+      const vehicleIds = new Set(rows.map((row) => row.vehicleId || invoices.find((invoice) => invoice.id === row.invoiceId)?.vehicleId).filter(Boolean));
+      const invoiceId = rows.find((row) => row.invoiceId)?.invoiceId || payment.invoiceId;
+      const invoice = invoiceId ? invoices.find((candidate) => candidate.id === invoiceId && candidate.customerId === customerId) : undefined;
+      const invoicePaid = invoice
+        ? allocations.filter((row) => row.customerId === customerId && row.invoiceId === invoice.id && row.status === 'Approved').reduce((total, row) => total + row.amountUsd, 0)
+        : 0;
+      const allocationStatus: CustomerPaymentAllocationSummary['allocationStatus'] = allocatedAmountUsd <= 0
+        ? 'Unallocated'
+        : allocatedAmountUsd >= payment.amountUsd ? 'FullyAllocated' : 'PartiallyAllocated';
+      const allocationLines = rows.map((row) => {
+        const vehicle = vehicles.find((candidate) => candidate.id === (row.vehicleId || invoice?.vehicleId));
+        if (!vehicle) return null;
+        const rowInvoice = invoices.find((candidate) => candidate.id === row.invoiceId && candidate.customerId === customerId);
+        const allocationVehicleId = row.vehicleId || rowInvoice?.vehicleId;
+        const invoiceItem = rowInvoice?.vehicleItems?.find((item) => item.vehicleId === allocationVehicleId);
+        const vehicleTotalAmountUsd = invoiceItem?.amountUsd
+          ?? (rowInvoice?.vehicleItems?.length ? 0 : rowInvoice?.totalAmountUsd ?? 0);
+        const vehicleAllocatedAmountUsd = rowInvoice
+          ? allocations
+            .filter((allocation) => allocation.customerId === customerId
+              && allocation.invoiceId === rowInvoice.id
+              && (allocation.vehicleId || rowInvoice.vehicleId) === allocationVehicleId
+              && allocation.status === 'Approved')
+            .reduce((total, allocation) => total + allocation.amountUsd, 0)
+          : 0;
+        return {
+          id: row.id,
+          vehicle: {
+            id: vehicle.id,
+            slug: generateVehicleSlug(vehicle.year, vehicle.make, vehicle.model, vehicle.id),
+            stockNumber: vehicle.stockNumber || vehicle.id,
+            chassisNumber: vehicle.chassisNumber,
+            make: vehicle.make,
+            model: vehicle.model,
+            year: vehicle.year,
+            primaryImage: vehicle.images?.[0],
+          },
+          ...(rowInvoice ? { invoiceId: rowInvoice.id, invoiceNumber: `INV-${rowInvoice.id.replace(/^inv-?/i, '').padStart(4, '0')}` } : {}),
+          amountUsd: row.amountUsd,
+          vehicleTotalAmountUsd,
+          vehicleAllocatedAmountUsd,
+          vehicleBalanceAmountUsd: Math.max(vehicleTotalAmountUsd - vehicleAllocatedAmountUsd, 0),
+          purpose: row.purpose || 'Balance',
+          status: row.status,
+          allocatedAt: row.allocatedAt,
+        };
+      }).filter((row): row is NonNullable<typeof row> => Boolean(row));
+      return {
+        id: payment.id,
+        reference: payment.reference || payment.id.toUpperCase(),
+        bankName: payment.bankName || 'Unspecified bank',
+        currency: payment.currency || 'USD',
+        amountUsd: payment.amountUsd,
+        paymentDate: payment.paymentDate || payment.paidAt,
+        paymentStatus: payment.status,
+        allocationStatus,
+        allocatedAmountUsd,
+        unallocatedAmountUsd: Math.max(payment.amountUsd - allocatedAmountUsd, 0),
+        allocationPercent: payment.amountUsd > 0 ? Math.round((allocatedAmountUsd / payment.amountUsd) * 100) : 0,
+        vehicleCount: vehicleIds.size,
+        allocations: allocationLines,
+        ...(invoice ? {
+          invoice: {
+            id: invoice.id,
+            invoiceNumber: `INV-${invoice.id.replace(/^inv-?/i, '').padStart(4, '0')}`,
+            issuedAt: invoice.invoicedAt,
+            totalAmountUsd: invoice.totalAmountUsd,
+            paidAmountUsd: invoicePaid,
+            outstandingAmountUsd: Math.max(invoice.totalAmountUsd - invoicePaid, 0),
+            status: (invoicePaid >= invoice.totalAmountUsd ? 'Paid' : invoicePaid > 0 ? 'PartiallyPaid' : 'Issued') as CustomerInvoiceStatus,
+            vehicleCount: new Set(allocations.filter((row) => row.invoiceId === invoice.id).map((row) => row.vehicleId || invoice.vehicleId)).size,
+            documentAvailable: true,
+          },
+        } : {}),
+      };
+    })
+    .sort((left, right) => right.paymentDate.localeCompare(left.paymentDate));
+}
+
+function queryCustomerPaymentAllocations(
+  summaries: CustomerPaymentAllocationSummary[],
+  query?: ListCustomerPaymentAllocationsQuery,
+): CustomerPaymentAllocationListResponse {
+  let filtered = summaries;
+  const term = query?.query?.trim().toLowerCase();
+  if (term) filtered = filtered.filter((item) => `${item.reference} ${item.bankName} ${item.invoice?.invoiceNumber || ''} ${item.allocations.map((row) => `${row.vehicle.make} ${row.vehicle.model} ${row.vehicle.stockNumber}`).join(' ')}`.toLowerCase().includes(term));
+  if (query?.paymentStatus) filtered = filtered.filter((item) => item.paymentStatus === query.paymentStatus);
+  if (query?.allocationStatus) filtered = filtered.filter((item) => item.allocationStatus === query.allocationStatus);
+  if (query?.purpose) filtered = filtered.filter((item) => item.allocations.some((row) => row.purpose === query.purpose));
+  if (query?.scope === 'SingleVehicle') filtered = filtered.filter((item) => item.vehicleCount === 1);
+  if (query?.scope === 'MultipleVehicles') filtered = filtered.filter((item) => item.vehicleCount > 1);
+  if (query?.from) filtered = filtered.filter((item) => item.paymentDate >= query.from!);
+  if (query?.to) filtered = filtered.filter((item) => item.paymentDate <= `${query.to}T23:59:59.999Z`);
+  const page = Math.max(1, Number(query?.page) || 1);
+  const limit = Math.max(1, Math.min(100, Number(query?.limit) || 10));
+  const totals = filtered.reduce((result, item) => ({
+    totalAmountUsd: result.totalAmountUsd + item.amountUsd,
+    allocatedAmountUsd: result.allocatedAmountUsd + item.allocatedAmountUsd,
+    unallocatedAmountUsd: result.unallocatedAmountUsd + item.unallocatedAmountUsd,
+    invoiceCount: result.invoiceCount + (item.invoice ? 1 : 0),
+  }), { totalAmountUsd: 0, allocatedAmountUsd: 0, unallocatedAmountUsd: 0, invoiceCount: 0 });
+  return { items: filtered.slice((page - 1) * limit, page * limit), total: filtered.length, page, limit, totals };
 }
 
 function toCustomerPaymentNotification(record: PaymentNotificationRecord): CustomerPaymentNotification {
@@ -4965,6 +5438,7 @@ function applyPaymentNotification(
     if (!['Pending', 'Resubmitted'].includes(current)) throw new PaymentWorkflowError(409, 'Only a pending payment can be held');
     payment.status = 'Held';
     payment.holdReason = request.reason.trim();
+    payment.financeNote = request.reason.trim();
   } else if (request.event === 'PaymentResubmitted') {
     if (current !== 'Held') throw new PaymentWorkflowError(409, 'Only a held payment can be resubmitted');
     payment.status = 'Resubmitted';
@@ -4973,18 +5447,23 @@ function applyPaymentNotification(
     payment.status = 'Approved';
   } else if (request.event === 'PaymentAllocated') {
     if (current !== 'Approved') throw new PaymentWorkflowError(409, 'Only an approved payment can be allocated');
+    if (!payment.invoiceId) throw new PaymentWorkflowError(409, 'Sales allocation requires an invoice to be issued first');
     const alreadyAllocated = allocations.filter((item) => item.paymentId === payment.id && item.status === 'Approved').reduce((sum, item) => sum + item.amountUsd, 0);
     const amount = request.allocationAmountUsd ?? payment.amountUsd;
     const invoice = seedInvoices.find((item) => item.id === payment.invoiceId && item.customerId === payment.customerId);
-    const invoiceRemaining = invoice ? Math.max(invoice.totalAmountUsd - allocations.filter((item) => item.invoiceId === payment.invoiceId && item.status === 'Approved').reduce((sum, item) => sum + item.amountUsd, 0), 0) : 0;
+    const allocationVehicleId = invoice?.vehicleId;
+    const invoiceVehicleTotal = invoice && allocationVehicleId ? getInvoiceVehicleAmount(invoice, allocationVehicleId) : invoice?.totalAmountUsd || 0;
+    const invoiceRemaining = invoice ? Math.max(invoiceVehicleTotal - allocations
+      .filter((item) => item.invoiceId === payment.invoiceId && item.status === 'Approved' && (!allocationVehicleId || (item.vehicleId || invoice.vehicleId) === allocationVehicleId))
+      .reduce((sum, item) => sum + item.amountUsd, 0), 0) : 0;
     if (!Number.isFinite(amount) || amount <= 0 || amount > payment.amountUsd - alreadyAllocated || amount > invoiceRemaining) throw new PaymentWorkflowError(409, 'Allocation exceeds the available payment or invoice balance');
-    allocations.push({ id: `alloc-${payment.id}`, customerId: payment.customerId, paymentId: payment.id, invoiceId: payment.invoiceId, amountUsd: amount, allocatedAt: nowISO, status: 'Approved' });
+    allocations.push({ id: `alloc-${payment.id}`, customerId: payment.customerId, paymentId: payment.id, invoiceId: payment.invoiceId, vehicleId: allocationVehicleId, amountUsd: amount, allocatedAt: nowISO, status: 'Approved' });
     payment.status = 'Approved';
   }
 
   const record: PaymentNotificationRecord = {
     id: `pay-event-${notifications.length + 1}`, customerId: payment.customerId, paymentId: payment.id,
-    invoiceId: payment.invoiceId, event: request.event, deliveryStatus: 'Queued', createdAt: nowISO,
+    invoiceId: payment.invoiceId || 'unallocated', event: request.event, deliveryStatus: 'Queued', createdAt: nowISO,
   };
   notifications.push(record);
   return record;
@@ -5004,7 +5483,7 @@ const SUPPORTED_PAYMENT_CURRENCIES_SET = new Set([
 ]);
 
 function validatePaymentRequest(request: CreateCustomerPaymentRequest): void {
-  if (!request || !request.invoiceId || !request.reference || !request.bankName || !SUPPORTED_PAYMENT_CURRENCIES_SET.has(request.currency)) throw new Error('Invalid payment or invoice reference');
+  if (!request || !request.reference || !request.bankName || !SUPPORTED_PAYMENT_CURRENCIES_SET.has(request.currency)) throw new Error('Invalid payment reference');
   if (!Number.isFinite(request.amountUsd) || request.amountUsd <= 0) throw new Error('amountUsd must be greater than zero');
   if (!request.idempotencyKey) throw new Error('idempotencyKey is required');
   if (!request.proof || !['PDF', 'JPG', 'PNG'].includes(request.proof.fileType)) throw new Error('Proof must be PDF, JPG or PNG metadata');
@@ -5019,11 +5498,11 @@ function createPaymentRecord(
   invoices: InvoiceRecord[],
 ): PaymentRecord {
   validatePaymentRequest(request);
-  let invoice = invoices.find((candidate) => candidate.id === request.invoiceId);
+  let invoice = request.invoiceId ? invoices.find((candidate) => candidate.id === request.invoiceId) : undefined;
   if (!invoice && (request.invoiceId === 'INV-GENERAL' || request.invoiceId === 'GENERAL')) {
     invoice = invoices.find((candidate) => candidate.customerId === customerId);
   }
-  if (!invoice || invoice.customerId !== customerId) {
+  if (request.invoiceId && !invoice) {
     throw new Error('Invoice not found or not owned by customer');
   }
   const duplicate = existing.find((payment) => payment.customerId === customerId && payment.idempotencyKey === request.idempotencyKey);
@@ -5031,7 +5510,7 @@ function createPaymentRecord(
   const record: PaymentRecord = {
     id: `pay-${Date.now()}-${existing.length + 1}`,
     customerId,
-    invoiceId: invoice.id,
+    invoiceId: invoice?.id,
     amountUsd: request.amountUsd,
     paidAt: request.paymentDate,
     paymentDate: request.paymentDate,
@@ -5051,6 +5530,7 @@ function createPaymentRecord(
 class MemoryStore implements DemoStore {
   private bankAccounts = seedBankAccounts.map((b) => ({ ...b }));
   private config = { ...seedConfig };
+  private vehicleStatusDefinitions = seedVehicleStatusDefinitions.map((definition) => ({ ...definition }));
   private vehicles = preparedSeedVehicles.map((vehicle) => canonicalizeVehicle({ ...vehicle }));
   private enquiries: EnquiryRecord[] = [];
   private enquirySeq = 0;
@@ -5072,7 +5552,14 @@ class MemoryStore implements DemoStore {
   private publicPages = seedPublicContentPages.map((p) => ({ ...p }));
   private offices = seedOfficeLocations.map((o) => ({ ...o }));
   private branches = seedBranches.map((b) => ({ ...b }));
-  private customerAccounts: CustomerAccountRecord[] = [buildSeedCustomerAccount()];
+  private customerAccounts: CustomerAccountRecord[] = [
+    buildSeedCustomerAccount(),
+    buildSeedOtherCustomerAccount(),
+    buildSeedTierAccount('cust-silver-789', 'daniel.mwangi@example.com', 'Daniel Mwangi', 'KE', 'Silver'),
+    buildSeedTierAccount('cust-gold-012', 'haruto.sato@example.com', 'Haruto Sato', 'JP', 'Gold'),
+    buildSeedTierAccount('cust-platinum-345', 'sofia.almeida@example.com', 'Sofia Almeida', 'PT', 'Platinum'),
+  ];
+  private tierRules = new Map<CustomerTier, CustomerTierRule>(seedTierRules.map((rule) => [rule.tier, { ...rule }]));
   private passwordResetOutbox: PasswordResetOutboxRecord[] = [];
   private wishlistItems: WishlistItemRecord[] = [];
   private wishlistSeq = 0;
@@ -5087,14 +5574,36 @@ class MemoryStore implements DemoStore {
     return Promise.resolve({ ...this.config });
   }
 
+  getCustomerTier(customerId: string): Promise<CustomerTier> {
+    return Promise.resolve(this.customerAccounts.find((account) => account.customerId === customerId)?.tier || 'Standard');
+  }
+
+  async getCustomerTierBenefits(customerId: string, nowISO = new Date().toISOString()): Promise<CustomerTierBenefits> {
+    const tier = await this.getCustomerTier(customerId);
+    const rule = this.tierRules.get(tier) || this.tierRules.get('Standard')!;
+    const activeReservations = this.reservations.filter((reservation) => reservation.customerId === customerId && isReservationActive(reservation, nowISO)).length;
+    return {
+      tier,
+      discountPercent: rule.discountPercent,
+      maxActiveReservations: rule.maxActiveReservations,
+      activeReservations,
+      remainingReservations: Math.max(0, rule.maxActiveReservations - activeReservations),
+      description: rule.description,
+    };
+  }
+
   getBankAccounts(): Promise<BankAccount[]> {
     return Promise.resolve(seedBankAccounts);
   }
 
-  getVehicles(query?: GetVehiclesQuery, context?: VehicleQueryContext): Promise<VehicleSearchResult> {
+  async getVehicles(query?: GetVehiclesQuery, context?: VehicleQueryContext): Promise<VehicleSearchResult> {
+    const effectiveTier = context?.customerId ? await this.getCustomerTier(context.customerId) : (context?.customerTier || query?.tier);
+    const tierRule = this.tierRules.get(effectiveTier as CustomerTier);
     const mergedContext: VehicleQueryContext = {
       ...context,
       reservations: this.reservations,
+      customerTier: effectiveTier as CustomerTier,
+      tierRule,
     };
     const filteredList = filterAndSortVehicles(this.vehicles, query, mergedContext);
     const facets = calculateSearchFacets(this.vehicles, query, mergedContext);
@@ -5107,7 +5616,7 @@ class MemoryStore implements DemoStore {
     const startIndex = (page - 1) * limit;
     const items = filteredList.slice(startIndex, startIndex + limit);
 
-    return Promise.resolve({
+    return {
       items,
       total,
       page,
@@ -5116,20 +5625,24 @@ class MemoryStore implements DemoStore {
       hasNextPage: page < totalPages,
       hasPrevPage: page > 1,
       facets,
-    });
+    };
   }
 
-  getVehicleDetail(idOrSlug: string, context?: VehicleQueryContext): Promise<VehicleDetail | null> {
+  async getVehicleDetail(idOrSlug: string, context?: VehicleQueryContext): Promise<VehicleDetail | null> {
     const record = findVehicleRecord(this.vehicles, idOrSlug);
-    if (!record) return Promise.resolve(null);
+    if (!record) return null;
     if ((context?.audience || 'public') !== 'salesperson' && record.status === 'Draft') {
-      return Promise.resolve(null);
+      return null;
     }
     const mergedContext: VehicleQueryContext = {
       ...context,
       reservations: this.reservations,
+      customerTier: context?.customerId ? await this.getCustomerTier(context.customerId) : context?.customerTier,
+      allocatedCustomerId: findAllocatedCustomerId(this.invoices, record.id),
+      vehicleStatusDefinitions: this.vehicleStatusDefinitions,
     };
-    return Promise.resolve(buildVehicleDetail(record, mergedContext));
+    mergedContext.tierRule = mergedContext.customerTier ? this.tierRules.get(mergedContext.customerTier) : undefined;
+    return buildVehicleDetail(record, mergedContext);
   }
 
   getFreightDestinations(): Promise<FreightDestination[]> {
@@ -5145,6 +5658,7 @@ class MemoryStore implements DemoStore {
   }
 
   async createEnquiry(request: EnquiryRequest, customerId = 'cust-123'): Promise<EnquiryResponse> {
+    assertVehicleEnquiryAllowed(this.vehicles, this.invoices, request, customerId);
     const prepared = prepareEnquiry(this.vehicles, freightDestinations, freightPorts, freightRateRecords, request, FREIGHT_REFERENCE_DATE, customerId);
     const dedupeKey = buildEnquiryDedupeKey(prepared);
 
@@ -5180,10 +5694,15 @@ class MemoryStore implements DemoStore {
   listCustomerInquiries(customerId: string): Promise<CustomerInquiryListResponse> {
     const enquiries = this.enquiries.filter((e) => e.customerId === customerId && e.enquiryType === 'price-request');
     const vehicleSlugs = [...new Set(enquiries.map((e) => e.vehicleSlug).filter(Boolean))];
+    const customerTier = this.customerAccounts.find((account) => account.customerId === customerId)?.tier || 'Standard';
+    const tierRule = this.tierRules.get(customerTier);
 
     const items: CustomerInquirySummary[] = vehicleSlugs.map((slug) => {
       const enquiry = enquiries.find((e) => e.vehicleSlug === slug)!;
       const vehicle = this.vehicles.find((v) => generateVehicleSlug(v.year, v.make, v.model, v.id) === slug);
+      const projection = vehicle
+        ? projectVehicle(vehicle, { audience: 'customer', customerId, customerTier, tierRule })
+        : undefined;
       const inquirerCount = this.enquiries.filter((e) => e.vehicleSlug === slug && e.enquiryType === 'price-request').reduce((acc, e) => {
         const key = e.customerId;
         const seen = new Set(acc.map((x) => x));
@@ -5199,6 +5718,17 @@ class MemoryStore implements DemoStore {
         vehicleTitle: vehicle ? `${vehicle.year} ${vehicle.make} ${vehicle.model}` : 'Unknown Vehicle',
         requestedAt: enquiry.receivedAt,
         inquirerCount,
+        stockNumber: vehicle?.stockNumber,
+        chassisNumber: vehicle?.chassisNumber,
+        imageUrl: projection?.images?.[0],
+        engineCc: projection?.engineCc,
+        mileage: projection?.mileage,
+        fuelType: projection?.fuelType,
+        transmission: projection?.transmission,
+        color: projection?.color,
+        priceState: projection?.priceState,
+        priceUsd: projection?.priceState === 'priced' ? projection.priceUsd : undefined,
+        tierPricing: projection?.tierPricing,
       };
     });
 
@@ -5213,7 +5743,10 @@ class MemoryStore implements DemoStore {
   // Node.js event loop).
   async createReservation(customerId: string, customerEmail: string, request: ReservationRequest, nowISO: string = new Date().toISOString()): Promise<ReservationResponse> {
     const vehicle = resolveReservationVehicle(this.vehicles, request);
-    checkReservationEligibility(vehicle, this.reservations, customerId, nowISO);
+    releaseExpiredReservationStatus(vehicle, this.reservations, nowISO);
+    const tier = await this.getCustomerTier(customerId);
+    const tierRule = this.tierRules.get(tier) || this.tierRules.get('Standard')!;
+    checkReservationEligibility(vehicle, this.reservations, customerId, nowISO, tierRule.maxActiveReservations);
 
     const expiresAt = new Date(new Date(nowISO).getTime() + RESERVATION_HOLD_HOURS * 60 * 60 * 1000).toISOString();
     const record: ReservationRecord = {
@@ -5335,7 +5868,7 @@ class MemoryStore implements DemoStore {
     // Compute linked record aggregates (D02-P02-T001)
     // Payment status summary: count payments by status for this customer's invoices
     const customerInvoiceIds = new Set(customerInvoices.map((i) => i.id));
-    const customerPayments = this.payments.filter((p) => p.customerId === customerId && customerInvoiceIds.has(p.invoiceId));
+    const customerPayments = this.payments.filter((p) => p.customerId === customerId && Boolean(p.invoiceId) && customerInvoiceIds.has(p.invoiceId!));
     const paymentStatusSummary = {
       approved: customerPayments.filter((p) => p.status === 'Approved').length,
       pending: customerPayments.filter((p) => p.status === 'Pending').length,
@@ -5506,9 +6039,10 @@ class MemoryStore implements DemoStore {
       this.allocations,
       this.shipments,
       this.documents,
-      nowISO
+      nowISO,
+      this.vehicleStatusDefinitions
     );
-    return Promise.resolve(queryCustomerVehicles(all, query));
+    return Promise.resolve(queryCustomerVehicles(all, query, this.vehicleStatusDefinitions));
   }
 
   getCustomerVehicleById(customerId: string, idOrSlug: string, nowISO?: string): Promise<CustomerVehicleDetail | null> {
@@ -5521,21 +6055,11 @@ class MemoryStore implements DemoStore {
       this.allocations,
       this.shipments,
       this.documents,
-      nowISO
+      nowISO,
+      this.vehicleStatusDefinitions
     );
     const target = all.find((v) => v.id === idOrSlug || v.vehicleId === idOrSlug || v.slug === idOrSlug);
     return Promise.resolve(target || null);
-  }
-
-  listCustomerShipments(customerId: string): Promise<CustomerShipment[]> {
-    return Promise.resolve(this.shipments
-      .filter((shipment) => shipment.customerId === customerId)
-      .map(toCustomerShipment));
-  }
-
-  async getCustomerShipment(customerId: string, shipmentId: string): Promise<CustomerShipment | null> {
-    const shipment = this.shipments.find((candidate) => candidate.id === shipmentId && candidate.customerId === customerId);
-    return shipment ? toCustomerShipment(shipment) : null;
   }
 
   listCustomerDocuments(customerId: string): Promise<CustomerDocument[]> {
@@ -5643,8 +6167,23 @@ class MemoryStore implements DemoStore {
   }
 
   listCustomerPayments(customerId: string): Promise<CustomerPaymentListResponse> {
-    const items = this.payments.filter((payment) => payment.customerId === customerId).map((payment) => toCustomerPayment(payment, this.invoices, this.allocations));
+    const customerName = this.customerAccounts.find((account) => account.customerId === customerId)?.nameWithInitials;
+    const items = this.payments.filter((payment) => payment.customerId === customerId).map((payment) => toCustomerPayment(payment, this.invoices, this.allocations, customerName));
     return Promise.resolve({ items, total: items.length });
+  }
+
+  listCustomerPaymentAllocations(customerId: string, query?: ListCustomerPaymentAllocationsQuery): Promise<CustomerPaymentAllocationListResponse> {
+    this.ensureCustomerFleetInMemory(customerId);
+    return Promise.resolve(queryCustomerPaymentAllocations(
+      buildCustomerPaymentAllocationSummaries(customerId, this.payments, this.allocations, this.invoices, this.vehicles),
+      query,
+    ));
+  }
+
+  getCustomerPaymentAllocation(customerId: string, paymentId: string): Promise<CustomerPaymentAllocationSummary | null> {
+    this.ensureCustomerFleetInMemory(customerId);
+    return Promise.resolve(buildCustomerPaymentAllocationSummaries(customerId, this.payments, this.allocations, this.invoices, this.vehicles)
+      .find((item) => item.id === paymentId) || null);
   }
 
   createCustomerPayment(customerId: string, request: CreateCustomerPaymentRequest, nowISO = new Date().toISOString()): Promise<CustomerPayment> {
@@ -5676,6 +6215,7 @@ class MemoryStore implements DemoStore {
     this.customerAccounts.push(record);
     this.customerProfiles.push({
       customerId: record.customerId,
+      name: record.nameWithInitials,
       companyName: '',
       phone: '',
       deliveryAddress: '',
@@ -5880,181 +6420,8 @@ class MemoryStore implements DemoStore {
     };
   }
 
-  getCustomerStatement(customerId: string, fromDate?: string, toDate?: string): Promise<CustomerStatementSummary> {
-    const openingBalance = 450.00;
-    const entries: CustomerStatementEntry[] = [
-      {
-        id: 'stmt-0',
-        date: fromDate || '2024-09-01',
-        description: 'Opening Balance (Forward from previous cycle)',
-        debitUsd: 0,
-        creditUsd: 0,
-        runningBalanceUsd: openingBalance,
-        isOpeningBalance: true,
-      },
-      {
-        id: 'stmt-1',
-        date: '2024-09-05',
-        description: 'Invoice P-85492 (2021 TOYOTA COROLLA FIELDER)',
-        referenceNo: 'P-85492',
-        debitUsd: 17360,
-        creditUsd: 0,
-        runningBalanceUsd: 17360 - openingBalance,
-      },
-      {
-        id: 'stmt-2',
-        date: '2024-09-10',
-        description: 'Telegraphic Wire Remittance Deposit (TT2400005)',
-        referenceNo: 'TT2400005',
-        debitUsd: 0,
-        creditUsd: 100000,
-        runningBalanceUsd: -83090,
-      },
-      {
-        id: 'stmt-3',
-        date: '2024-09-15',
-        description: 'Commercial Invoice INV-34503 (2024 TOYOTA LAND CRUISER 250)',
-        referenceNo: 'INV-34503',
-        debitUsd: 45000,
-        creditUsd: 0,
-        runningBalanceUsd: -38090,
-      },
-      {
-        id: 'stmt-4',
-        date: '2024-09-22',
-        description: 'Debit Note DN2400008 (Storage & demurrage adjustment)',
-        referenceNo: 'DN2400008',
-        debitUsd: 1000,
-        creditUsd: 0,
-        runningBalanceUsd: -37090,
-      },
-      {
-        id: 'stmt-5',
-        date: '2024-09-30',
-        description: 'Credit Note CR2400005 (Port handling allowance)',
-        referenceNo: 'CR2400005',
-        debitUsd: 0,
-        creditUsd: 400,
-        runningBalanceUsd: -37490,
-      },
-    ];
-
-    let filtered = entries;
-    if (fromDate) {
-      const fromTime = new Date(fromDate).getTime();
-      filtered = filtered.filter((e) => e.isOpeningBalance || new Date(e.date).getTime() >= fromTime);
-    }
-    if (toDate) {
-      const toTime = new Date(toDate).getTime();
-      filtered = filtered.filter((e) => e.isOpeningBalance || new Date(e.date).getTime() <= toTime);
-    }
-
-    const totalDebitsUsd = filtered.filter((e) => !e.isOpeningBalance).reduce((sum, e) => sum + e.debitUsd, 0);
-    const totalCreditsUsd = filtered.filter((e) => !e.isOpeningBalance).reduce((sum, e) => sum + e.creditUsd, 0);
-    const closingBalanceUsd = totalDebitsUsd - totalCreditsUsd + openingBalance;
-
-    return Promise.resolve({
-      customerId,
-      fromDate: fromDate || '2024-09-01',
-      toDate: toDate || '2024-10-31',
-      openingBalanceUsd: openingBalance,
-      totalDebitsUsd,
-      totalCreditsUsd,
-      closingBalanceUsd,
-      entries: filtered,
-    });
-  }
-
-  getCustomerDebitCreditRefunds(customerId: string): Promise<CustomerDebitCreditListResponse> {
-    const records: CustomerDebitCreditRecord[] = [
-      {
-        id: 'dc-1',
-        customerId,
-        refNumber: 'DN2400008',
-        type: 'Debit',
-        cashInDate: '2024-10-31',
-        stockId: 'J24013263',
-        currency: 'USD',
-        amount: 1000,
-        balanceAmount: 1000,
-        paidInCash: false,
-        approvedDate: '2024-10-31',
-        customerNotes: 'Storage & documentation demurrage adjustment.',
-        notesVisibleToCustomer: true,
-      },
-      {
-        id: 'dc-2',
-        customerId,
-        refNumber: 'RF2400006',
-        type: 'Refund',
-        cashInDate: '2024-10-25',
-        stockId: '-',
-        currency: 'USD',
-        amount: 5000,
-        balanceAmount: 5000,
-        paidInCash: true,
-        approvedDate: '2024-10-25',
-        customerNotes: 'Direct remittance excess wire refund.',
-        notesVisibleToCustomer: true,
-      },
-      {
-        id: 'dc-3',
-        customerId,
-        refNumber: 'CR2400008',
-        type: 'Credit',
-        cashInDate: '2024-10-24',
-        stockId: '-',
-        currency: 'USD',
-        amount: 4500,
-        balanceAmount: 4500,
-        paidInCash: false,
-        approvedDate: '2024-10-24',
-        customerNotes: 'Ocean freight discount rebate credited to ledger.',
-        notesVisibleToCustomer: true,
-      },
-      {
-        id: 'dc-4',
-        customerId,
-        refNumber: 'DN2400001',
-        type: 'Debit',
-        cashInDate: '2024-10-04',
-        stockId: 'NRE161',
-        currency: 'USD',
-        amount: 250,
-        balanceAmount: 250,
-        paidInCash: false,
-        approvedDate: '2024-10-04',
-        customerNotes: 'Inspection expediting fee.',
-        notesVisibleToCustomer: true,
-      },
-      {
-        id: 'dc-5',
-        customerId,
-        refNumber: 'CR2400005',
-        type: 'Credit',
-        cashInDate: '2024-09-30',
-        stockId: 'DE3FS-',
-        currency: 'USD',
-        amount: 400,
-        balanceAmount: 400,
-        paidInCash: false,
-        approvedDate: '2024-09-30',
-        customerNotes: 'Port handling allowance credited.',
-        notesVisibleToCustomer: true,
-      },
-    ];
-
-    const totalDebitsUsd = records.filter((r) => r.type === 'Debit').reduce((sum, r) => sum + r.amount, 0);
-    const totalCreditsUsd = records.filter((r) => r.type === 'Credit').reduce((sum, r) => sum + r.amount, 0);
-    const totalRefundsUsd = records.filter((r) => r.type === 'Refund').reduce((sum, r) => sum + r.amount, 0);
-
-    return Promise.resolve({
-      items: records,
-      total: records.length,
-      totalDebitsUsd,
-      totalCreditsUsd,
-      totalRefundsUsd,
-    });
+  getCustomerStatement(_customerId: string, _fromDate?: string, _toDate?: string): Promise<CustomerStatementSummary> {
+    return Promise.reject(new DatabaseRequiredError());
   }
 
   listCustomerPolymorphicInquiries(customerId: string): Promise<CustomerPolymorphicInquiryListResponse> {
@@ -6069,6 +6436,8 @@ class MemoryStore implements DemoStore {
         make: 'Toyota',
         model: 'Corolla Fielder 1.5G',
         yom: '2021',
+        vehicleSlug: '2021-toyota-corolla-fielder-veh-inv-1',
+        vehicleId: 'veh-inv-1',
         stockNumber: 'J240111111',
         chassisNumber: 'NRE161-0091995',
         viewsCount: 12,
@@ -6089,6 +6458,8 @@ class MemoryStore implements DemoStore {
         make: 'Toyota',
         model: 'Raize Z 4WD',
         yom: '2024',
+        vehicleSlug: '2024-toyota-raize-veh-7',
+        vehicleId: 'veh-7',
         lotNumber: '36071',
         chassisModel: 'A210A',
         viewsCount: 8,
@@ -6111,6 +6482,8 @@ class MemoryStore implements DemoStore {
         make: 'Toyota',
         model: 'Land Cruiser 250 ZX',
         yom: '2024',
+        vehicleSlug: '2024-toyota-land-cruiser-250-veh-6',
+        vehicleId: 'veh-6',
         message: 'Looking for 2024 Land Cruiser 250 with sunroof, leather interior, and 7 seats.',
         replyMessage: 'We have reserved 2 units arriving at Yokohama port this week.',
         repliedAt: '26th Sep, 2024 16:00:00',
@@ -6122,14 +6495,46 @@ class MemoryStore implements DemoStore {
       },
     ];
 
+    const customerAccount = this.customerAccounts.find((account) => account.customerId === customerId);
+    const customerTier = customerAccount?.tier || 'Standard';
+    const tierRule = this.tierRules.get(customerTier);
+    const enrichedItems = items.map((item) => {
+      if (!item.vehicleSlug) return item;
+      const vehicle = findVehicleRecord(this.vehicles, item.vehicleSlug);
+      if (!vehicle) return item;
+      const projection = projectVehicle(vehicle, {
+        audience: 'customer',
+        customerId,
+        customerTier,
+        tierRule,
+      });
+      return {
+        ...item,
+        vehicleSlug: projection.slug,
+        vehicleId: projection.id,
+        stockNumber: item.stockNumber || vehicle.stockNumber,
+        chassisNumber: item.chassisNumber || projection.chassisNumber,
+        imageUrl: item.imageUrl || projection.images?.[0],
+        engineCc: projection.engineCc,
+        mileage: projection.mileage,
+        fuelType: projection.fuelType,
+        transmission: projection.transmission,
+        color: projection.color,
+        priceState: projection.priceState,
+        priceUsd: projection.priceState === 'priced' ? projection.priceUsd : undefined,
+        tierPricing: projection.tierPricing,
+      };
+    });
+
     return Promise.resolve({
-      items,
-      total: items.length,
+      items: enrichedItems,
+      total: enrichedItems.length,
     });
   }
 
   reset(): Promise<void> {
     this.config = { ...seedConfig };
+    this.vehicleStatusDefinitions = seedVehicleStatusDefinitions.map((definition) => ({ ...definition }));
     this.vehicles = preparedSeedVehicles.map((vehicle) => canonicalizeVehicle({ ...vehicle }));
     this.enquiries = [];
     this.reservations = seedReservations.map((r) => ({ ...r }));
@@ -6148,7 +6553,14 @@ class MemoryStore implements DemoStore {
     this.publicPages = seedPublicContentPages.map((p) => ({ ...p }));
     this.offices = seedOfficeLocations.map((o) => ({ ...o }));
     this.branches = seedBranches.map((b) => ({ ...b }));
-    this.customerAccounts = [buildSeedCustomerAccount()];
+    this.customerAccounts = [
+      buildSeedCustomerAccount(),
+      buildSeedOtherCustomerAccount(),
+      buildSeedTierAccount('cust-silver-789', 'daniel.mwangi@example.com', 'Daniel Mwangi', 'KE', 'Silver'),
+      buildSeedTierAccount('cust-gold-012', 'haruto.sato@example.com', 'Haruto Sato', 'JP', 'Gold'),
+      buildSeedTierAccount('cust-platinum-345', 'sofia.almeida@example.com', 'Sofia Almeida', 'PT', 'Platinum'),
+    ];
+    this.tierRules = new Map(seedTierRules.map((rule) => [rule.tier, { ...rule }]));
     this.passwordResetOutbox = [];
     this.wishlistItems = [];
     this.favourites = [];
@@ -6256,8 +6668,8 @@ class PostgresStore implements DemoStore {
       await this.pool.query(`DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'vehicles_${column}_fkey') THEN ALTER TABLE vehicles ADD CONSTRAINT vehicles_${column}_fkey FOREIGN KEY (${column}) REFERENCES ${table}(id); END IF; END $$`);
     }
     await this.pool.query('CREATE UNIQUE INDEX IF NOT EXISTS vehicles_chassis_number_lower_idx ON vehicles (lower(trim(chassis_number)))');
+    await this.pool.query('ALTER TABLE vehicles DROP CONSTRAINT IF EXISTS vehicles_status_valid');
     await this.pool.query(`ALTER TABLE vehicles
-      ADD CONSTRAINT vehicles_status_valid CHECK (status IN ('Available', 'Sold', 'Draft', 'Invoiced', 'ReservedWithPI')),
       ADD CONSTRAINT vehicles_location_status_valid CHECK (location_status IS NULL OR location_status IN ('In Japan', 'In Transit', 'In Port')),
       ADD CONSTRAINT vehicles_stock_type_valid CHECK (stock_type IS NULL OR stock_type IN ('J', 'CRFO')),
       ADD CONSTRAINT vehicles_price_nonnegative CHECK (price_usd >= 0),
@@ -6268,6 +6680,8 @@ class PostgresStore implements DemoStore {
       ADD CONSTRAINT vehicles_load_capacity_nonnegative CHECK (load_capacity IS NULL OR load_capacity >= 0),
       ADD CONSTRAINT vehicles_year_valid CHECK (year BETWEEN 1886 AND 2200)
     `).catch((error: any) => { if (error?.code !== '42710') throw error; });
+    await this.pool.query(`DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'vehicles_status_fkey') THEN ALTER TABLE vehicles ADD CONSTRAINT vehicles_status_fkey FOREIGN KEY (status) REFERENCES vehicle_statuses(code); END IF; END $$`);
+    await this.pool.query('CREATE INDEX IF NOT EXISTS vehicles_status_idx ON vehicles(status)');
   }
 
   private async addRelationalConstraints(): Promise<void> {
@@ -6284,6 +6698,7 @@ class PostgresStore implements DemoStore {
       ['allocations', 'customer_id', 'customer_accounts', 'customer_id'],
       ['allocations', 'payment_id', 'payments', 'id'],
       ['allocations', 'invoice_id', 'invoices', 'id'],
+      ['allocations', 'vehicle_id', 'vehicles', 'id'],
       ['shipments', 'customer_id', 'customer_accounts', 'customer_id'],
       ['shipments', 'vehicle_id', 'vehicles', 'id'],
       ['documents', 'customer_id', 'customer_accounts', 'customer_id'],
@@ -6295,6 +6710,7 @@ class PostgresStore implements DemoStore {
       ['payment_notifications', 'payment_id', 'payments', 'id'],
       ['payment_notifications', 'invoice_id', 'invoices', 'id'],
       ['notifications', 'customer_id', 'customer_accounts', 'customer_id'],
+      ['customer_statement_transactions', 'customer_id', 'customer_accounts', 'customer_id'],
       ['faq_items', 'category_id', 'faq_categories', 'id'],
     ];
     for (const [table, column, target, targetColumn] of relations) {
@@ -6306,8 +6722,27 @@ class PostgresStore implements DemoStore {
 
   async ready(): Promise<void> {
     await this.pool.query(
-      `CREATE TABLE IF NOT EXISTS public_config (id integer PRIMARY KEY, site_name text NOT NULL, currency text NOT NULL, contact_phone text NOT NULL);`
+      `CREATE TABLE IF NOT EXISTS public_config (id integer PRIMARY KEY, site_name text NOT NULL, currency text NOT NULL, contact_phone text NOT NULL, tier_descriptions jsonb NOT NULL DEFAULT '{}'::jsonb);`
     );
+    await this.pool.query(`ALTER TABLE public_config ADD COLUMN IF NOT EXISTS tier_descriptions jsonb NOT NULL DEFAULT '{}'::jsonb`);
+    await this.pool.query(`CREATE TABLE IF NOT EXISTS vehicle_statuses (
+      code text PRIMARY KEY,
+      singular_label text NOT NULL,
+      plural_label text NOT NULL,
+      description text NOT NULL DEFAULT '',
+      active boolean NOT NULL DEFAULT true,
+      sort_order integer NOT NULL DEFAULT 0
+    );`);
+    for (const definition of seedVehicleStatusDefinitions) {
+      await this.pool.query(
+        `INSERT INTO vehicle_statuses (code, singular_label, plural_label, description, active, sort_order)
+         VALUES ($1, $2, $3, $4, $5, $6)
+         ON CONFLICT (code) DO UPDATE SET singular_label = EXCLUDED.singular_label,
+           plural_label = EXCLUDED.plural_label, description = EXCLUDED.description,
+           active = EXCLUDED.active, sort_order = EXCLUDED.sort_order`,
+        [definition.code, definition.singularLabel, definition.pluralLabel, definition.description, definition.active, definition.sortOrder]
+      );
+    }
     await this.pool.query(
       `CREATE TABLE IF NOT EXISTS vehicles (
         id text PRIMARY KEY,
@@ -6633,15 +7068,49 @@ class PostgresStore implements DemoStore {
         dial_code text NOT NULL,
         mobile_number text NOT NULL,
         email text NOT NULL,
+        tier text NOT NULL DEFAULT 'Standard',
         password_hash text NOT NULL,
         password_salt text NOT NULL,
         status text NOT NULL,
         verification_state text NOT NULL,
         created_at text NOT NULL,
         updated_at text NOT NULL,
-        password_updated_at text NOT NULL
+        password_updated_at text NOT NULL,
+        company_name text NOT NULL DEFAULT '',
+        profile_phone text NOT NULL DEFAULT '',
+        delivery_address text NOT NULL DEFAULT '',
+        profile_version integer NOT NULL DEFAULT 1
       );`
     );
+    await this.pool.query(`ALTER TABLE customer_accounts ADD COLUMN IF NOT EXISTS tier text NOT NULL DEFAULT 'Standard'`);
+    await this.pool.query(`ALTER TABLE customer_accounts ADD COLUMN IF NOT EXISTS company_name text NOT NULL DEFAULT ''`);
+    await this.pool.query(`ALTER TABLE customer_accounts ADD COLUMN IF NOT EXISTS profile_phone text NOT NULL DEFAULT ''`);
+    await this.pool.query(`ALTER TABLE customer_accounts ADD COLUMN IF NOT EXISTS delivery_address text NOT NULL DEFAULT ''`);
+    await this.pool.query(`ALTER TABLE customer_accounts ADD COLUMN IF NOT EXISTS profile_version integer NOT NULL DEFAULT 1`);
+    await this.pool.query(
+      `CREATE TABLE IF NOT EXISTS customer_tier_rules (
+        tier text PRIMARY KEY,
+        discount_percent numeric NOT NULL CHECK (discount_percent BETWEEN 0 AND 100),
+        max_active_reservations integer NOT NULL CHECK (max_active_reservations > 0),
+        description text NOT NULL,
+        active boolean NOT NULL DEFAULT true
+      );`
+    );
+    for (const rule of seedTierRules) {
+      await this.pool.query(
+        `INSERT INTO customer_tier_rules (tier, discount_percent, max_active_reservations, description, active)
+         VALUES ($1, $2, $3, $4, $5)
+         ON CONFLICT (tier) DO UPDATE SET discount_percent = EXCLUDED.discount_percent,
+           max_active_reservations = EXCLUDED.max_active_reservations,
+           description = EXCLUDED.description, active = EXCLUDED.active`,
+        [rule.tier, rule.discountPercent, rule.maxActiveReservations, rule.description, rule.active],
+      );
+    }
+    await this.pool.query(`DO $$ BEGIN
+      IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'customer_accounts_tier_fkey') THEN
+        ALTER TABLE customer_accounts ADD CONSTRAINT customer_accounts_tier_fkey FOREIGN KEY (tier) REFERENCES customer_tier_rules(tier);
+      END IF;
+    END $$`);
     await this.pool.query(
       'CREATE UNIQUE INDEX IF NOT EXISTS customer_accounts_email_lower_idx ON customer_accounts (lower(email));'
     );
@@ -6703,11 +7172,19 @@ class PostgresStore implements DemoStore {
         model text NOT NULL,
         year integer NOT NULL,
         total_amount_usd numeric NOT NULL,
+        paid_amount_usd numeric NOT NULL DEFAULT 0,
         issued_at text NOT NULL,
         payment_deadline text NOT NULL,
         status text NOT NULL
       );`
     );
+    await this.pool.query(`ALTER TABLE proforma_invoices ADD COLUMN IF NOT EXISTS paid_amount_usd numeric NOT NULL DEFAULT 0;`);
+    await this.pool.query(`DO $$ BEGIN
+      IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'proforma_invoices_paid_amount_valid') THEN
+        ALTER TABLE proforma_invoices ADD CONSTRAINT proforma_invoices_paid_amount_valid
+          CHECK (paid_amount_usd >= 0 AND paid_amount_usd <= total_amount_usd);
+      END IF;
+    END $$`);
     await this.pool.query(
       `CREATE TABLE IF NOT EXISTS invoices (
         id text PRIMARY KEY,
@@ -6737,6 +7214,38 @@ class PostgresStore implements DemoStore {
         status text NOT NULL
       );`
     );
+    // Payment allocation is a many-to-many business record: one TT can be
+    // distributed across vehicles, while an invoice can contain several
+    // vehicle lines.  Legacy rows are backfilled from their invoice vehicle.
+    await this.pool.query(`ALTER TABLE allocations ADD COLUMN IF NOT EXISTS vehicle_id text;`);
+    await this.pool.query(`ALTER TABLE allocations ADD COLUMN IF NOT EXISTS purpose text NOT NULL DEFAULT 'Balance';`);
+    await this.pool.query(`DO $$ BEGIN
+      IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'invoices_total_amount_positive') THEN
+        ALTER TABLE invoices ADD CONSTRAINT invoices_total_amount_positive CHECK (total_amount_usd > 0) NOT VALID;
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'allocations_amount_positive') THEN
+        ALTER TABLE allocations ADD CONSTRAINT allocations_amount_positive CHECK (amount_usd > 0) NOT VALID;
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'allocations_purpose_valid') THEN
+        ALTER TABLE allocations ADD CONSTRAINT allocations_purpose_valid CHECK (purpose IN ('Advance', 'Balance')) NOT VALID;
+      END IF;
+    END $$`).catch(() => undefined);
+    await this.pool.query(
+      `CREATE TABLE IF NOT EXISTS invoice_vehicle_items (
+        id text PRIMARY KEY,
+        invoice_id text NOT NULL REFERENCES invoices(id) ON DELETE CASCADE,
+        vehicle_id text NOT NULL REFERENCES vehicles(id),
+        make text NOT NULL,
+        model text NOT NULL,
+        year integer NOT NULL,
+        chassis_number text NOT NULL,
+        stock_number text NOT NULL,
+        amount_usd numeric NOT NULL CHECK (amount_usd > 0),
+        UNIQUE (invoice_id, vehicle_id)
+      );`
+    );
+    await this.pool.query(`CREATE INDEX IF NOT EXISTS allocations_customer_payment_idx ON allocations(customer_id, payment_id);`);
+    await this.pool.query(`CREATE INDEX IF NOT EXISTS allocations_invoice_vehicle_idx ON allocations(invoice_id, vehicle_id);`);
     await this.pool.query(
       `CREATE TABLE IF NOT EXISTS shipments (
         id text PRIMARY KEY,
@@ -6781,6 +7290,10 @@ class PostgresStore implements DemoStore {
     await this.pool.query(`ALTER TABLE payments ADD COLUMN IF NOT EXISTS bank_name text;`);
     await this.pool.query(`ALTER TABLE payments ADD COLUMN IF NOT EXISTS currency text;`);
     await this.pool.query(`ALTER TABLE payments ADD COLUMN IF NOT EXISTS remarks text;`);
+    await this.pool.query(`ALTER TABLE payments ADD COLUMN IF NOT EXISTS finance_note text;`);
+    await this.pool.query(`ALTER TABLE payments ALTER COLUMN invoice_id DROP NOT NULL;`);
+    await this.pool.query(`ALTER TABLE payments DROP CONSTRAINT IF EXISTS payments_status_valid;`);
+    await this.pool.query(`ALTER TABLE payments ADD CONSTRAINT payments_status_valid CHECK (status IN ('Pending', 'Held', 'Resubmitted', 'Approved', 'Rejected'));`);
     await this.pool.query(
       `CREATE TABLE IF NOT EXISTS payment_notifications (
         id text PRIMARY KEY,
@@ -6806,6 +7319,38 @@ class PostgresStore implements DemoStore {
         related_href text
       );`
     );
+    await this.pool.query(`
+      CREATE TABLE IF NOT EXISTS customer_statement_transactions (
+        id text PRIMARY KEY,
+        customer_id text NOT NULL,
+        entry_date date NOT NULL,
+        entry_type text NOT NULL,
+        description text NOT NULL,
+        reference_no text,
+        debit_usd numeric NOT NULL DEFAULT 0,
+        credit_usd numeric NOT NULL DEFAULT 0,
+        opening_balance_usd numeric NOT NULL DEFAULT 0,
+        is_opening_balance boolean NOT NULL DEFAULT false,
+        source_type text,
+        source_id text,
+        created_at timestamptz NOT NULL,
+        CONSTRAINT customer_statement_entry_type_valid CHECK (entry_type IN ('OpeningBalance', 'Invoice', 'DebitNote', 'CreditNote', 'Payment')),
+        CONSTRAINT customer_statement_amounts_nonnegative CHECK (debit_usd >= 0 AND credit_usd >= 0),
+        CONSTRAINT customer_statement_opening_nonnegative CHECK (opening_balance_usd >= 0),
+        CONSTRAINT customer_statement_single_side CHECK (debit_usd = 0 OR credit_usd = 0),
+        CONSTRAINT customer_statement_opening_shape CHECK (NOT is_opening_balance OR (debit_usd = 0 AND credit_usd = 0))
+      );
+      ALTER TABLE customer_statement_transactions
+        ADD COLUMN IF NOT EXISTS opening_balance_usd numeric NOT NULL DEFAULT 0;
+      DO $$ BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'customer_statement_opening_nonnegative') THEN
+          ALTER TABLE customer_statement_transactions
+            ADD CONSTRAINT customer_statement_opening_nonnegative CHECK (opening_balance_usd >= 0);
+        END IF;
+      END $$;
+      CREATE INDEX IF NOT EXISTS customer_statement_customer_date_idx
+        ON customer_statement_transactions(customer_id, entry_date, created_at, id);
+    `);
 
     // Always upsert all seed vehicles into the database
     for (const vehicle of preparedSeedVehicles) {
@@ -6894,8 +7439,8 @@ class PostgresStore implements DemoStore {
     if (seededAccountResult.rows.length === 0) {
       const seed = buildSeedCustomerAccount();
       await this.pool.query(
-        `INSERT INTO customer_accounts (id, customer_id, name_with_initials, country_code, dial_code, mobile_number, email, password_hash, password_salt, status, verification_state, created_at, updated_at, password_updated_at)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
+        `INSERT INTO customer_accounts (id, customer_id, name_with_initials, country_code, dial_code, mobile_number, email, tier, password_hash, password_salt, status, verification_state, created_at, updated_at, password_updated_at)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)`,
         [
           seed.id,
           seed.customerId,
@@ -6904,6 +7449,7 @@ class PostgresStore implements DemoStore {
           seed.dialCode,
           seed.mobileNumber,
           seed.email,
+          seed.tier,
           seed.passwordHash,
           seed.passwordSalt,
           seed.status,
@@ -6919,8 +7465,8 @@ class PostgresStore implements DemoStore {
     const configResult = await this.pool.query('SELECT id FROM public_config WHERE id = 1');
     if (configResult.rows.length === 0) {
       await this.pool.query(
-        'INSERT INTO public_config (id, site_name, currency, contact_phone) VALUES (1, $1, $2, $3)',
-        [seedConfig.siteName, seedConfig.currency, seedConfig.contactPhone]
+        'INSERT INTO public_config (id, site_name, currency, contact_phone, tier_descriptions) VALUES (1, $1, $2, $3, $4)',
+        [seedConfig.siteName, seedConfig.currency, seedConfig.contactPhone, JSON.stringify(seedConfig.tierDescriptions)]
       );
       for (const cat of seedFaqCategories) {
         await this.pool.query('INSERT INTO faq_categories (id, name, description, sort_order) VALUES ($1, $2, $3, $4)', [cat.id, cat.name, cat.description || null, cat.order]);
@@ -6938,9 +7484,13 @@ class PostgresStore implements DemoStore {
         await this.pool.query('INSERT INTO office_locations (id, name, city, country, address, phone, email, operating_hours, is_primary, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)', [office.id, office.name, office.city, office.country, office.address, office.phone, office.email, office.operatingHours, office.isPrimary, office.status]);
       }
       for (const branch of seedBranches) {
-        await this.pool.query('INSERT INTO branch_content (id, name, code, destination_port, introduction, welcome_banner, contact_banner, team_members, meet_and_greet_info, contact_details, content_owner, status, latest_arrivals_query, recently_discounted_query) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)', [branch.id, branch.name, branch.code, branch.destinationPort, branch.introduction, branch.welcomeBanner, branch.contactBanner, JSON.stringify(branch.teamMembers), branch.meetAndGreetInfo, JSON.stringify(branch.contactDetails), null, branch.status, null, null]);
+        await this.pool.query('INSERT INTO branch_content (id, name, code, destination_port, introduction, welcome_banner, contact_banner, team_members, meet_and_greet_info, contact_details, content_owner, status, latest_arrivals_query, recently_discounted_query) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)', [branch.id, branch.name, branch.code, branch.destinationPort, branch.introduction, branch.welcomeBanner, branch.contactBanner, JSON.stringify(branch.teamMembers), branch.meetAndGreetInfo, JSON.stringify(branch.contactDetails), 'BranchContentSeed', branch.status, null, null]);
       }
     }
+    await this.pool.query(
+      `UPDATE public_config SET tier_descriptions = $1 WHERE id = 1 AND (tier_descriptions IS NULL OR tier_descriptions = '{}'::jsonb)`,
+      [JSON.stringify(seedConfig.tierDescriptions)],
+    );
 
     // Ensure fleet seed data in PostgreSQL for all registered accounts
     const allAccounts = await this.pool.query('SELECT customer_id, email FROM customer_accounts');
@@ -6953,18 +7503,64 @@ class PostgresStore implements DemoStore {
   }
 
   private async ensureSeedCustomerAccountsInPostgres(): Promise<void> {
-    const account = buildSeedOtherCustomerAccount();
-    await this.pool.query(
-      `INSERT INTO customer_accounts (id, customer_id, name_with_initials, country_code, dial_code, mobile_number, email, password_hash, password_salt, status, verification_state, created_at, updated_at, password_updated_at)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
-       ON CONFLICT (customer_id) DO NOTHING`,
-      [account.id, account.customerId, account.nameWithInitials, account.countryCode, account.dialCode, account.mobileNumber,
-        account.email, account.passwordHash, account.passwordSalt, account.status, account.verificationState, account.createdAt,
-        account.updatedAt, account.passwordUpdatedAt],
-    );
+    const accounts = [
+      buildSeedCustomerAccount(),
+      buildSeedOtherCustomerAccount(),
+      buildSeedTierAccount('cust-silver-789', 'daniel.mwangi@example.com', 'Daniel Mwangi', 'KE', 'Silver'),
+      buildSeedTierAccount('cust-gold-012', 'haruto.sato@example.com', 'Haruto Sato', 'JP', 'Gold'),
+      buildSeedTierAccount('cust-platinum-345', 'sofia.almeida@example.com', 'Sofia Almeida', 'PT', 'Platinum'),
+    ];
+    for (const account of accounts) {
+      await this.pool.query(
+        `INSERT INTO customer_accounts (id, customer_id, name_with_initials, country_code, dial_code, mobile_number, email, tier, password_hash, password_salt, status, verification_state, created_at, updated_at, password_updated_at)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
+         ON CONFLICT (customer_id) DO UPDATE SET name_with_initials = EXCLUDED.name_with_initials,
+           country_code = EXCLUDED.country_code, dial_code = EXCLUDED.dial_code,
+           mobile_number = EXCLUDED.mobile_number, email = EXCLUDED.email, tier = EXCLUDED.tier,
+           password_hash = EXCLUDED.password_hash, password_salt = EXCLUDED.password_salt,
+           status = EXCLUDED.status, verification_state = EXCLUDED.verification_state,
+           updated_at = EXCLUDED.updated_at, password_updated_at = EXCLUDED.password_updated_at`,
+        [account.id, account.customerId, account.nameWithInitials, account.countryCode, account.dialCode, account.mobileNumber,
+          account.email, account.tier, account.passwordHash, account.passwordSalt, account.status, account.verificationState, account.createdAt,
+          account.updatedAt, account.passwordUpdatedAt],
+      );
+    }
+    for (const profile of seedCustomerProfiles) {
+      await this.pool.query(
+        `UPDATE customer_accounts
+         SET company_name = $2, profile_phone = $3, delivery_address = $4,
+             profile_version = $5, updated_at = $6
+         WHERE customer_id = $1`,
+        [profile.customerId, profile.companyName, profile.phone, profile.deliveryAddress, profile.version, profile.updatedAt],
+      );
+    }
   }
 
   private async ensureMockRelationalFixtures(): Promise<void> {
+    for (const row of statementSeedRows) {
+      await this.pool.query(
+        `INSERT INTO customer_statement_transactions
+          (id, customer_id, entry_date, entry_type, description, reference_no, debit_usd, credit_usd,
+           opening_balance_usd, is_opening_balance, source_type, source_id, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+         ON CONFLICT (id) DO UPDATE SET
+           customer_id = EXCLUDED.customer_id,
+           entry_date = EXCLUDED.entry_date,
+           entry_type = EXCLUDED.entry_type,
+           description = EXCLUDED.description,
+           reference_no = EXCLUDED.reference_no,
+           debit_usd = EXCLUDED.debit_usd,
+           credit_usd = EXCLUDED.credit_usd,
+           opening_balance_usd = EXCLUDED.opening_balance_usd,
+           is_opening_balance = EXCLUDED.is_opening_balance,
+           source_type = EXCLUDED.source_type,
+           source_id = EXCLUDED.source_id,
+           created_at = EXCLUDED.created_at`,
+        [row.id, row.customerId, row.entryDate, row.entryType, row.description, row.referenceNo || null,
+          row.debitUsd, row.creditUsd, row.openingBalanceUsd || 0, row.isOpeningBalance ?? false,
+          row.sourceType || null, row.sourceId || null, row.createdAt],
+      );
+    }
     // Complete deterministic fixture rows before validating the new
     // relational constraints on an upgraded database.
     await this.pool.query(
@@ -6973,6 +7569,113 @@ class PostgresStore implements DemoStore {
          ('pay-006', 'cust-123', 'inv-005', 12780, '2026-08-12T14:00:00.000Z', 'Approved', 'TT-2026-12780-DIRECT', 'Direct Wire Transfer', 'USD', 'Allocated to 2019 SUZUKI ALTO'),
          ('pay-007', 'cust-123', 'inv-016', 7100, '2026-08-12T14:00:00.000Z', 'Approved', 'TT-2026-7100-DIRECT', 'Direct Wire Transfer', 'USD', 'Allocated to 2020 TOYOTA HIACE VAN')
        ON CONFLICT (id) DO NOTHING`,
+    );
+    await this.pool.query(
+      `INSERT INTO payments (id, customer_id, invoice_id, amount_usd, paid_at, status, reference, bank_name, currency, remarks, finance_note)
+       VALUES
+         ('pay-cust123-hold-001', 'cust-123', 'inv-003', 4200, '2026-08-14T10:30:00.000Z', 'Held', 'TT-2026-4200-HOLD', 'Standard Chartered Bank', 'USD', 'Payment temporarily held for finance review', 'Finance is verifying the beneficiary bank confirmation before releasing this payment.'),
+         ('pay-cust123-rejected-001', 'cust-123', 'inv-003', 2800, '2026-08-15T11:15:00.000Z', 'Rejected', 'TT-2026-2800-REJECTED', 'MUFG Bank Tokyo', 'USD', 'Payment proof rejected because the reference was incomplete', 'The uploaded payment proof did not include a verifiable bank reference. Please submit a corrected document.')
+       ON CONFLICT (id) DO UPDATE SET
+         status = EXCLUDED.status,
+         reference = EXCLUDED.reference,
+         bank_name = EXCLUDED.bank_name,
+         currency = EXCLUDED.currency,
+         remarks = EXCLUDED.remarks,
+         finance_note = EXCLUDED.finance_note`,
+    );
+    await this.pool.query(
+      `INSERT INTO payments (id, customer_id, invoice_id, amount_usd, paid_at, status, reference, bank_name, currency, remarks)
+       VALUES ('pay-004', 'cust-123', 'inv-003', 5000, '2026-08-13T09:00:00.000Z', 'Pending', 'PAY-004', 'Sumitomo Mitsui Banking Corp (USD)', 'USD', 'Wire Remittance')
+       ON CONFLICT (id) DO UPDATE SET
+         status = EXCLUDED.status,
+         reference = COALESCE(payments.reference, EXCLUDED.reference),
+         bank_name = COALESCE(payments.bank_name, EXCLUDED.bank_name),
+         currency = COALESCE(payments.currency, EXCLUDED.currency),
+         remarks = COALESCE(payments.remarks, EXCLUDED.remarks)`,
+    );
+    // Keep the multi-vehicle TT examples available on an existing PostgreSQL
+    // database as well as after a full reset. These rows are intentionally
+    // idempotent so startup can safely repair an older fixture set.
+    await this.pool.query(
+      `INSERT INTO invoices (id, customer_id, vehicle_id, vehicle_slug, make, model, year, total_amount_usd, invoiced_at, due_date, status, currency, type, document_status)
+       VALUES
+         ('inv-bulk-002', 'cust-123', 'veh-inv-7', '2013-volvo-v40-veh-inv-7', 'Volvo', 'V40', 2013, 23200, '2026-08-16T09:00:00.000Z', NULL, 'Issued', 'USD', 'Commercial', 'Issued'),
+         ('inv-bulk-003', 'cust-123', 'veh-inv-10', '2013-toyota-premio-veh-inv-10', 'Toyota', 'Premio', 2013, 15940, '2026-08-17T09:00:00.000Z', NULL, 'Issued', 'USD', 'Commercial', 'Issued')
+       ON CONFLICT (id) DO NOTHING`,
+    );
+    await this.pool.query(
+      `UPDATE invoices SET total_amount_usd = CASE id
+         WHEN 'inv-bulk-001' THEN 25200
+         WHEN 'inv-bulk-002' THEN 23200
+         WHEN 'inv-bulk-003' THEN 15940
+         ELSE total_amount_usd
+       END
+       WHERE id IN ('inv-bulk-001', 'inv-bulk-002', 'inv-bulk-003')`,
+    );
+    await this.pool.query(
+      `INSERT INTO payments (id, customer_id, invoice_id, amount_usd, paid_at, status, reference, bank_name, currency, remarks)
+       VALUES
+         ('pay-bulk-002', 'cust-123', 'inv-bulk-002', 18000, '2026-08-16T08:00:00.000Z', 'Approved', 'TT-2026-BULK-18000', 'Sumitomo Mitsui Banking Corp', 'USD', 'Advance TT fully allocated across two vehicles'),
+         ('pay-partial-002', 'cust-123', 'inv-bulk-003', 24000, '2026-08-17T08:00:00.000Z', 'Approved', 'TT-2026-PARTIAL-24000', 'MUFG Bank Tokyo', 'USD', 'Balance TT partially allocated across two vehicles')
+       ON CONFLICT (id) DO NOTHING`,
+    );
+    await this.pool.query(
+      `INSERT INTO allocations (id, customer_id, payment_id, invoice_id, vehicle_id, purpose, amount_usd, allocated_at, status)
+       VALUES
+         ('alloc-bulk-002-001', 'cust-123', 'pay-bulk-002', 'inv-bulk-002', 'veh-inv-7', 'Advance', 9000, '2026-08-16T09:00:00.000Z', 'Approved'),
+         ('alloc-bulk-002-002', 'cust-123', 'pay-bulk-002', 'inv-bulk-002', 'veh-inv-9', 'Advance', 9000, '2026-08-16T09:00:00.000Z', 'Approved'),
+         ('alloc-partial-002-001', 'cust-123', 'pay-partial-002', 'inv-bulk-003', 'veh-inv-10', 'Balance', 8000, '2026-08-17T09:00:00.000Z', 'Approved'),
+         ('alloc-partial-002-002', 'cust-123', 'pay-partial-002', 'inv-bulk-003', 'veh-inv-15', 'Balance', 4000, '2026-08-17T09:00:00.000Z', 'Approved')
+       ON CONFLICT (id) DO NOTHING`,
+    );
+    await this.pool.query(
+      `INSERT INTO invoice_vehicle_items (id, invoice_id, vehicle_id, make, model, year, chassis_number, stock_number, amount_usd)
+       SELECT item.id, item.invoice_id, item.vehicle_id, v.make, v.model, v.year, v.chassis_number, v.id, item.amount_usd
+       FROM (VALUES
+         ('inv-item-inv-bulk-002-veh-inv-7', 'inv-bulk-002', 'veh-inv-7', 9000::numeric),
+         ('inv-item-inv-bulk-002-veh-inv-9', 'inv-bulk-002', 'veh-inv-9', 9000::numeric),
+         ('inv-item-inv-bulk-003-veh-inv-10', 'inv-bulk-003', 'veh-inv-10', 8000::numeric),
+         ('inv-item-inv-bulk-003-veh-inv-15', 'inv-bulk-003', 'veh-inv-15', 4000::numeric)
+       ) AS item(id, invoice_id, vehicle_id, amount_usd)
+       JOIN vehicles v ON v.id = item.vehicle_id
+       ON CONFLICT (invoice_id, vehicle_id) DO UPDATE SET amount_usd = EXCLUDED.amount_usd`,
+    );
+    await this.pool.query(
+      `UPDATE invoice_vehicle_items SET amount_usd = CASE invoice_id || ':' || vehicle_id
+         WHEN 'inv-bulk-001:veh-inv-1' THEN 17360
+         WHEN 'inv-bulk-001:veh-inv-2' THEN 7840
+         WHEN 'inv-bulk-002:veh-inv-7' THEN 10800
+         WHEN 'inv-bulk-002:veh-inv-9' THEN 12400
+         WHEN 'inv-bulk-003:veh-inv-10' THEN 9440
+         WHEN 'inv-bulk-003:veh-inv-15' THEN 6500
+         ELSE amount_usd
+       END
+       WHERE invoice_id IN ('inv-bulk-001', 'inv-bulk-002', 'inv-bulk-003')`,
+    );
+    await this.pool.query(
+      `UPDATE allocations SET amount_usd = CASE id
+         WHEN 'alloc-bulk-001' THEN 17360
+         WHEN 'alloc-bulk-002' THEN 7840
+         ELSE amount_usd
+       END,
+       purpose = CASE id
+         WHEN 'alloc-bulk-001' THEN 'Balance'
+         WHEN 'alloc-bulk-002' THEN 'Balance'
+         ELSE purpose
+       END
+       WHERE id IN ('alloc-bulk-001', 'alloc-bulk-002')`,
+    );
+    await this.pool.query(
+      `UPDATE payments SET amount_usd = 25200, reference = 'TT-2026-BULK-25200', remarks = 'Final balance TT allocated to two vehicles'
+       WHERE id = 'pay-bulk-001'`,
+    );
+    await this.pool.query(
+      `UPDATE invoices i SET status = CASE
+         WHEN COALESCE((SELECT SUM(a.amount_usd) FROM allocations a WHERE a.invoice_id = i.id AND a.status = 'Approved'), 0) >= i.total_amount_usd
+           AND i.total_amount_usd > 0 THEN 'Paid'
+         ELSE 'Issued'
+       END
+       WHERE i.customer_id = 'cust-123' AND i.status <> 'Draft'`,
     );
     await this.pool.query(
       `INSERT INTO invoices (id, customer_id, vehicle_id, vehicle_slug, make, model, year, total_amount_usd, invoiced_at, due_date, status, currency, type, document_status)
@@ -6996,10 +7699,10 @@ class PostgresStore implements DemoStore {
         const deadline = customerId === 'cust-123' ? pi.paymentDeadline : '2029-01-01T00:00:00.000Z';
         const id = customerId === 'cust-123' ? pi.id : `pi-${customerId}-${pi.id.replace(/^pi-/, '')}`;
         await this.pool.query(
-          `INSERT INTO proforma_invoices (id, customer_id, vehicle_id, vehicle_slug, make, model, year, total_amount_usd, issued_at, payment_deadline, status)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+          `INSERT INTO proforma_invoices (id, customer_id, vehicle_id, vehicle_slug, make, model, year, total_amount_usd, paid_amount_usd, issued_at, payment_deadline, status)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
            ON CONFLICT (id) DO NOTHING;`,
-          [id, customerId, pi.vehicleId, pi.vehicleSlug, pi.make, pi.model, pi.year, pi.totalAmountUsd, pi.issuedAt, deadline, pi.status]
+          [id, customerId, pi.vehicleId, pi.vehicleSlug, pi.make, pi.model, pi.year, pi.totalAmountUsd, pi.paidAmountUsd, pi.issuedAt, deadline, pi.status]
         );
       }
     }
@@ -7020,6 +7723,22 @@ class PostgresStore implements DemoStore {
       }
     }
 
+    // Backfill the invoice's legacy primary vehicle as a durable invoice item.
+    // Bulk invoices receive additional rows when their allocations are seeded.
+    await this.pool.query(
+      `INSERT INTO invoice_vehicle_items (id, invoice_id, vehicle_id, make, model, year, chassis_number, stock_number, amount_usd)
+       SELECT 'inv-item-' || i.id || '-' || i.vehicle_id, i.id, i.vehicle_id, i.make, i.model, i.year, v.chassis_number, v.id, i.total_amount_usd
+       FROM invoices i JOIN vehicles v ON v.id = i.vehicle_id
+       WHERE i.customer_id = $1
+       ON CONFLICT (invoice_id, vehicle_id) DO NOTHING`,
+      [customerId],
+    );
+    await this.pool.query(
+      `UPDATE allocations a SET vehicle_id = i.vehicle_id FROM invoices i
+       WHERE a.invoice_id = i.id AND a.customer_id = $1 AND a.vehicle_id IS NULL`,
+      [customerId],
+    );
+
     // 3. Payment Allocations
     const allocCountResult = await this.pool.query('SELECT count(*) FROM allocations WHERE customer_id = $1', [customerId]);
     if (Number(allocCountResult.rows[0]?.count || 0) === 0) {
@@ -7028,15 +7747,52 @@ class PostgresStore implements DemoStore {
           const id = customerId === 'cust-123' ? a.id : `alloc-${customerId}-${a.id.replace(/^alloc-/, '')}`;
           const invoiceId = customerId === 'cust-123' ? a.invoiceId : `inv-${customerId}-${a.invoiceId.replace(/^inv-/, '')}`;
           const paymentId = customerId === 'cust-123' ? a.paymentId : `pay-${customerId}-${a.paymentId.replace(/^pay-/, '')}`;
+          const paymentSeed = seedPayments.find((payment) => payment.id === a.paymentId);
+          // Older databases may contain the invoice but not the payment rows
+          // referenced by the allocation seed. Create the minimal payment
+          // snapshot first so the payment FK is valid before inserting the
+          // allocation; the full payment fixture is completed below.
           await this.pool.query(
-            `INSERT INTO allocations (id, customer_id, payment_id, invoice_id, amount_usd, allocated_at, status)
-             VALUES ($1, $2, $3, $4, $5, $6, $7)
+            `INSERT INTO payments (id, customer_id, invoice_id, amount_usd, paid_at, status, reference, bank_name, currency, remarks)
+             VALUES ($1, $2, $3, $4, $5, 'Approved', $6, 'Direct Wire Transfer', 'USD', 'Seed allocation payment')
              ON CONFLICT (id) DO NOTHING;`,
-            [id, customerId, paymentId, invoiceId, a.amountUsd, a.allocatedAt, a.status]
+            [paymentId, customerId, invoiceId, paymentSeed?.amountUsd ?? a.amountUsd, paymentSeed?.paymentDate ?? a.allocatedAt, paymentSeed?.reference ?? `SEED-${paymentId}`]
+          );
+          await this.pool.query(
+          `INSERT INTO allocations (id, customer_id, payment_id, invoice_id, vehicle_id, purpose, amount_usd, allocated_at, status)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+             ON CONFLICT (id) DO NOTHING;`,
+            [id, customerId, paymentId, invoiceId, a.vehicleId || null, a.purpose || 'Balance', a.amountUsd, a.allocatedAt, a.status]
           );
         }
       }
     }
+    await this.pool.query(
+      `INSERT INTO invoice_vehicle_items (id, invoice_id, vehicle_id, make, model, year, chassis_number, stock_number, amount_usd)
+       SELECT 'inv-item-' || a.invoice_id || '-' || a.vehicle_id, a.invoice_id, a.vehicle_id, v.make, v.model, v.year, v.chassis_number, v.id,
+              SUM(a.amount_usd)
+       FROM allocations a JOIN vehicles v ON v.id = a.vehicle_id
+       WHERE a.customer_id = $1 AND a.vehicle_id IS NOT NULL
+       GROUP BY a.invoice_id, a.vehicle_id, v.make, v.model, v.year, v.chassis_number, v.id
+       ON CONFLICT (invoice_id, vehicle_id) DO NOTHING`,
+      [customerId],
+    );
+    // Allocation rows represent money received, not the historical price of
+    // an invoice line. Repair legacy single-vehicle lines that may have been
+    // incorrectly overwritten by an older allocation backfill. Multi-vehicle
+    // invoices are excluded because their item snapshots are authoritative.
+    await this.pool.query(
+      `UPDATE invoice_vehicle_items item
+       SET amount_usd = i.total_amount_usd
+       FROM invoices i
+       WHERE item.invoice_id = i.id
+         AND item.vehicle_id = i.vehicle_id
+         AND NOT EXISTS (
+           SELECT 1 FROM invoice_vehicle_items sibling
+           WHERE sibling.invoice_id = item.invoice_id
+             AND sibling.vehicle_id <> item.vehicle_id
+         )`,
+    );
 
     // 4. Shipments
     const shipCountResult = await this.pool.query('SELECT count(*) FROM shipments WHERE customer_id = $1', [customerId]);
@@ -7074,7 +7830,7 @@ class PostgresStore implements DemoStore {
     // 6. Reservations (Reserved Vehicles)
     const resCountResult = await this.pool.query('SELECT count(*) FROM reservations WHERE customer_id = $1', [customerId]);
     if (Number(resCountResult.rows[0]?.count || 0) === 0) {
-      const email = customerEmail || (customerId === 'cust-123' ? 'demo.customer@carchief.com' : `${customerId}@example.com`);
+      const email = customerEmail || (customerId === 'cust-123' ? SEED_CUSTOMER_ACCOUNT_EMAIL : `${customerId}@example.com`);
       if (customerId === 'cust-123') {
         for (const res of seedReservations) {
           if (res.customerId === 'cust-123') {
@@ -7093,7 +7849,7 @@ class PostgresStore implements DemoStore {
           { id: 'veh-7', slug: '2023-lexus-rx450h-veh-7' },
           { id: 'veh-9', slug: '2019-mercedes-benz-c200-amg-line-veh-9' },
           { id: 'veh-10', slug: '2021-bmw-x3-xdrive20d-veh-10' },
-        ];
+        ].slice(0, (await this.getTierRule(await this.getCustomerTier(customerId))).maxActiveReservations);
         let seq = 1;
         for (const v of reservedVehicles) {
           await this.pool.query(
@@ -7236,8 +7992,8 @@ class PostgresStore implements DemoStore {
 
   private async getRawProformaInvoices(customerId?: string): Promise<ProformaInvoiceRecord[]> {
     const query = customerId
-      ? 'SELECT id, customer_id, vehicle_id, vehicle_slug, make, model, year, total_amount_usd, issued_at, payment_deadline, status FROM proforma_invoices WHERE customer_id = $1'
-      : 'SELECT id, customer_id, vehicle_id, vehicle_slug, make, model, year, total_amount_usd, issued_at, payment_deadline, status FROM proforma_invoices';
+      ? 'SELECT id, customer_id, vehicle_id, vehicle_slug, make, model, year, total_amount_usd, paid_amount_usd, issued_at, payment_deadline, status FROM proforma_invoices WHERE customer_id = $1'
+      : 'SELECT id, customer_id, vehicle_id, vehicle_slug, make, model, year, total_amount_usd, paid_amount_usd, issued_at, payment_deadline, status FROM proforma_invoices';
     const params = customerId ? [customerId] : [];
     const result = await this.pool.query(query, params);
     if (result.rows.length === 0 && customerId === 'cust-123') {
@@ -7253,6 +8009,7 @@ class PostgresStore implements DemoStore {
       modelCode: row.model_code,
       year: Number(row.year),
       totalAmountUsd: Number(row.total_amount_usd),
+      paidAmountUsd: Number(row.paid_amount_usd || 0),
       issuedAt: row.issued_at,
       paymentDeadline: row.payment_deadline,
       status: row.status as 'Issued' | 'Expired' | 'Cancelled',
@@ -7268,7 +8025,7 @@ class PostgresStore implements DemoStore {
     if (result.rows.length === 0 && (!customerId || customerId === 'cust-123' || customerId === 'cust-exception-001')) {
       return customerId ? seedInvoices.filter((i) => i.customerId === customerId) : seedInvoices;
     }
-    return result.rows.map((row) => ({
+    const invoiceRecords = result.rows.map((row) => ({
       id: row.id,
       customerId: row.customer_id,
       vehicleId: row.vehicle_id,
@@ -7280,12 +8037,36 @@ class PostgresStore implements DemoStore {
       invoicedAt: row.invoiced_at,
       status: row.status as 'Draft' | 'Issued' | 'Paid' | 'Overdue',
     }));
+    if (invoiceRecords.length === 0) return invoiceRecords;
+    const itemResult = await this.pool.query(
+      `SELECT invoice_id, vehicle_id, make, model, year, chassis_number, stock_number, amount_usd
+       FROM invoice_vehicle_items WHERE invoice_id = ANY($1::text[])`,
+      [invoiceRecords.map((invoice) => invoice.id)],
+    );
+    const itemsByInvoice = new Map<string, InvoiceVehicleItemRecord[]>();
+    for (const row of itemResult.rows) {
+      const items = itemsByInvoice.get(row.invoice_id) || [];
+      items.push({
+        vehicleId: row.vehicle_id,
+        make: row.make,
+        model: row.model,
+        year: Number(row.year),
+        chassisNumber: row.chassis_number,
+        stockNumber: row.stock_number,
+        amountUsd: Number(row.amount_usd),
+      });
+      itemsByInvoice.set(row.invoice_id, items);
+    }
+    return invoiceRecords.map((invoice) => ({
+      ...invoice,
+      ...(itemsByInvoice.has(invoice.id) ? { vehicleItems: itemsByInvoice.get(invoice.id) } : {}),
+    }));
   }
 
   private async getRawAllocations(customerId?: string): Promise<AllocationRecord[]> {
     const query = customerId
-      ? 'SELECT id, customer_id, payment_id, invoice_id, amount_usd, allocated_at, status FROM allocations WHERE customer_id = $1'
-      : 'SELECT id, customer_id, payment_id, invoice_id, amount_usd, allocated_at, status FROM allocations';
+      ? 'SELECT id, customer_id, payment_id, invoice_id, vehicle_id, purpose, amount_usd, allocated_at, status FROM allocations WHERE customer_id = $1'
+      : 'SELECT id, customer_id, payment_id, invoice_id, vehicle_id, purpose, amount_usd, allocated_at, status FROM allocations';
     const params = customerId ? [customerId] : [];
     const result = await this.pool.query(query, params);
     if (result.rows.length === 0 && (!customerId || customerId === 'cust-123')) {
@@ -7296,6 +8077,8 @@ class PostgresStore implements DemoStore {
       customerId: row.customer_id,
       paymentId: row.payment_id,
       invoiceId: row.invoice_id,
+      vehicleId: row.vehicle_id || undefined,
+      purpose: (row.purpose || 'Balance') as 'Advance' | 'Balance',
       amountUsd: Number(row.amount_usd),
       allocatedAt: row.allocated_at,
       status: row.status as 'Approved' | 'Pending' | 'Rejected',
@@ -7414,6 +8197,20 @@ class PostgresStore implements DemoStore {
     return result.rows.map((row) => ({ key: row.feature_key, label: row.display_name, sortOrder: Number(row.sort_order), active: Boolean(row.active) }));
   }
 
+  private async getVehicleStatusDefinitions(): Promise<VehicleStatusDefinition[]> {
+    const result = await this.pool.query(
+      'SELECT code, singular_label, plural_label, description, active, sort_order FROM vehicle_statuses ORDER BY sort_order, code'
+    );
+    return result.rows.map((row) => ({
+      code: row.code as VehicleStatusDefinition['code'],
+      singularLabel: row.singular_label,
+      pluralLabel: row.plural_label,
+      description: row.description,
+      active: row.active,
+      sortOrder: Number(row.sort_order),
+    }));
+  }
+
   private async getRawVehiclesWith(client: PoolClient): Promise<VehicleRecord[]> {
     const result = await client.query(
       `SELECT v.id, v.chassis_number, m.display_name AS make, mo.display_name AS model, v.model_code, v.year, v.price_usd, v.status,
@@ -7473,9 +8270,55 @@ class PostgresStore implements DemoStore {
   }
 
   async getConfig(): Promise<PublicConfig> {
-    const result = await this.pool.query('SELECT site_name, currency, contact_phone FROM public_config WHERE id = 1');
+    const result = await this.pool.query('SELECT site_name, currency, contact_phone, tier_descriptions FROM public_config WHERE id = 1');
     const row = result.rows[0];
-    return row ? { siteName: row.site_name, currency: row.currency, contactPhone: row.contact_phone } : { ...seedConfig };
+    return row ? {
+      siteName: row.site_name,
+      currency: row.currency,
+      contactPhone: row.contact_phone,
+      tierDescriptions: row.tier_descriptions && Object.keys(row.tier_descriptions).length > 0
+        ? row.tier_descriptions
+        : seedConfig.tierDescriptions,
+    } : { ...seedConfig };
+  }
+
+  private async getTierRule(tier: CustomerTier): Promise<CustomerTierRule> {
+    const result = await this.pool.query(
+      'SELECT tier, discount_percent, max_active_reservations, description, active FROM customer_tier_rules WHERE tier = $1 AND active = true LIMIT 1',
+      [tier],
+    );
+    const row = result.rows[0];
+    if (row) return {
+      tier: row.tier as CustomerTier,
+      discountPercent: Number(row.discount_percent),
+      maxActiveReservations: Number(row.max_active_reservations),
+      description: row.description,
+      active: row.active,
+    };
+    return seedTierRules.find((rule) => rule.tier === 'Standard')!;
+  }
+
+  async getCustomerTier(customerId: string): Promise<CustomerTier> {
+    const result = await this.pool.query('SELECT tier FROM customer_accounts WHERE customer_id = $1 LIMIT 1', [customerId]);
+    return (result.rows[0]?.tier as CustomerTier) || 'Standard';
+  }
+
+  async getCustomerTierBenefits(customerId: string, nowISO = new Date().toISOString()): Promise<CustomerTierBenefits> {
+    const tier = await this.getCustomerTier(customerId);
+    const rule = await this.getTierRule(tier);
+    const activeResult = await this.pool.query(
+      'SELECT count(*)::int AS count FROM reservations WHERE customer_id = $1 AND expires_at > $2',
+      [customerId, nowISO],
+    );
+    const activeReservations = Number(activeResult.rows[0]?.count || 0);
+    return {
+      tier,
+      discountPercent: rule.discountPercent,
+      maxActiveReservations: rule.maxActiveReservations,
+      activeReservations,
+      remainingReservations: Math.max(0, rule.maxActiveReservations - activeReservations),
+      description: rule.description,
+    };
   }
 
   async getBankAccounts(): Promise<BankAccount[]> {
@@ -7486,9 +8329,12 @@ class PostgresStore implements DemoStore {
     const rawRecords = await this.getRawVehicles();
     const featureCatalog = await this.getFeatureCatalog();
     const reservations = await this.getRawReservations();
+    const effectiveTier = context?.customerId ? await this.getCustomerTier(context.customerId) : (context?.customerTier || query?.tier);
     const mergedContext: VehicleQueryContext = {
       ...context,
       reservations,
+      customerTier: effectiveTier,
+      tierRule: effectiveTier ? await this.getTierRule(effectiveTier) : undefined,
     };
     const filteredList = filterAndSortVehicles(rawRecords, query, mergedContext);
     const facets = calculateSearchFacets(rawRecords, query, mergedContext, featureCatalog);
@@ -7521,9 +8367,16 @@ class PostgresStore implements DemoStore {
       return null;
     }
     const reservations = await this.getRawReservations();
+    const invoices = await this.getRawInvoices();
+    const vehicleStatusDefinitions = await this.getVehicleStatusDefinitions();
+    const effectiveTier = context?.customerId ? await this.getCustomerTier(context.customerId) : context?.customerTier;
     const mergedContext: VehicleQueryContext = {
       ...context,
       reservations,
+      customerTier: effectiveTier,
+      tierRule: effectiveTier ? await this.getTierRule(effectiveTier) : undefined,
+      allocatedCustomerId: findAllocatedCustomerId(invoices, record.id),
+      vehicleStatusDefinitions,
     };
     return buildVehicleDetail(record, mergedContext);
   }
@@ -7542,6 +8395,8 @@ class PostgresStore implements DemoStore {
 
   async createEnquiry(request: EnquiryRequest, customerId = 'cust-123'): Promise<EnquiryResponse> {
     const rawVehicles = await this.getRawVehicles();
+    const invoices = await this.getRawInvoices();
+    assertVehicleEnquiryAllowed(rawVehicles, invoices, request, customerId);
     const prepared = prepareEnquiry(rawVehicles, freightDestinations, freightPorts, freightRateRecords, request, FREIGHT_REFERENCE_DATE, customerId);
     const dedupeKey = buildEnquiryDedupeKey(prepared);
 
@@ -7613,11 +8468,16 @@ class PostgresStore implements DemoStore {
     const enquiries = result.rows.map((row) => rowToEnquiryRecord(row));
     const vehicleSlugs = [...new Set(enquiries.map((e) => e.vehicleSlug).filter(Boolean))];
     const vehicles = await this.getRawVehicles();
+    const customerTier = await this.getCustomerTier(customerId);
+    const tierRule = await this.getTierRule(customerTier);
 
     const items: CustomerInquirySummary[] = [];
     for (const slug of vehicleSlugs) {
       const enquiry = enquiries.find((e) => e.vehicleSlug === slug)!;
       const vehicle = vehicles.find((v) => generateVehicleSlug(v.year, v.make, v.model, v.id) === slug);
+      const projection = vehicle
+        ? projectVehicle(vehicle, { audience: 'customer', customerId, customerTier, tierRule })
+        : undefined;
 
       const countResult = await this.pool.query(
         `SELECT COUNT(DISTINCT customer_id) as inquirer_count FROM enquiries WHERE vehicle_slug = $1 AND enquiry_type = 'price-request'`,
@@ -7631,6 +8491,17 @@ class PostgresStore implements DemoStore {
         vehicleTitle: vehicle ? `${vehicle.year} ${vehicle.make} ${vehicle.model}` : 'Unknown Vehicle',
         requestedAt: enquiry.receivedAt,
         inquirerCount,
+        stockNumber: vehicle?.stockNumber,
+        chassisNumber: vehicle?.chassisNumber,
+        imageUrl: projection?.images?.[0],
+        engineCc: projection?.engineCc,
+        mileage: projection?.mileage,
+        fuelType: projection?.fuelType,
+        transmission: projection?.transmission,
+        color: projection?.color,
+        priceState: projection?.priceState,
+        priceUsd: projection?.priceState === 'priced' ? projection.priceUsd : undefined,
+        tierPricing: projection?.tierPricing,
       });
     }
 
@@ -7671,7 +8542,13 @@ class PostgresStore implements DemoStore {
         [vehicle.id, customerId]
       );
       const existingReservations = existingResult.rows.map(PostgresStore.rowToReservationRecord);
-      checkReservationEligibility(vehicle, existingReservations, customerId, nowISO);
+      releaseExpiredReservationStatus(vehicle, existingReservations, nowISO);
+      if (vehicle.status === 'Available') {
+        await client.query('UPDATE vehicles SET status = $1 WHERE id = $2', ['Available', vehicle.id]);
+      }
+      const tier = await this.getCustomerTier(customerId);
+      const tierRule = await this.getTierRule(tier);
+      checkReservationEligibility(vehicle, existingReservations, customerId, nowISO, tierRule.maxActiveReservations);
 
       const expiresAt = new Date(new Date(nowISO).getTime() + RESERVATION_HOLD_HOURS * 60 * 60 * 1000).toISOString();
       const id = `res-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -7951,6 +8828,7 @@ class PostgresStore implements DemoStore {
     const allocations = await this.getRawAllocations();
     const shipments = await this.getRawShipments();
     const documents = await this.getRawDocuments();
+    const statusDefinitions = await this.getVehicleStatusDefinitions();
     const all = buildCustomerVehicleProjections(
       customerId,
       vehicles,
@@ -7960,9 +8838,10 @@ class PostgresStore implements DemoStore {
       allocations,
       shipments,
       documents,
-      nowISO
+      nowISO,
+      statusDefinitions
     );
-    return queryCustomerVehicles(all, query);
+    return queryCustomerVehicles(all, query, statusDefinitions);
   }
 
   async getCustomerVehicleById(customerId: string, idOrSlug: string, nowISO?: string): Promise<CustomerVehicleDetail | null> {
@@ -7974,6 +8853,7 @@ class PostgresStore implements DemoStore {
     const allocations = await this.getRawAllocations();
     const shipments = await this.getRawShipments();
     const documents = await this.getRawDocuments();
+    const statusDefinitions = await this.getVehicleStatusDefinitions();
     const all = buildCustomerVehicleProjections(
       customerId,
       vehicles,
@@ -7983,23 +8863,11 @@ class PostgresStore implements DemoStore {
       allocations,
       shipments,
       documents,
-      nowISO
+      nowISO,
+      statusDefinitions
     );
     const target = all.find((v) => v.id === idOrSlug || v.vehicleId === idOrSlug || v.slug === idOrSlug);
     return target || null;
-  }
-
-  async listCustomerShipments(customerId: string): Promise<CustomerShipment[]> {
-    await this.ensureCustomerFleetDataInPostgres(customerId);
-    const shipments = await this.getRawShipments(customerId);
-    return shipments.map(toCustomerShipment);
-  }
-
-  async getCustomerShipment(customerId: string, shipmentId: string): Promise<CustomerShipment | null> {
-    await this.ensureCustomerFleetDataInPostgres(customerId);
-    const shipments = await this.getRawShipments(customerId);
-    const shipment = shipments.find((candidate) => candidate.id === shipmentId);
-    return shipment ? toCustomerShipment(shipment) : null;
   }
 
   async listCustomerDocuments(customerId: string): Promise<CustomerDocument[]> {
@@ -8085,10 +8953,28 @@ class PostgresStore implements DemoStore {
   }
 
   async getCustomerProfile(customerId: string, email: string): Promise<CustomerProfile> {
+    const accountResult = await this.pool.query(
+      `SELECT customer_id, name_with_initials, email, company_name, profile_phone, delivery_address, profile_version, updated_at
+       FROM customer_accounts WHERE customer_id = $1`,
+      [customerId],
+    );
+    const account = accountResult.rows[0];
+    if (account) {
+      return toCustomerProfile({
+        customerId: account.customer_id,
+        name: account.name_with_initials || '',
+        companyName: account.company_name || '',
+        phone: account.profile_phone || '',
+        deliveryAddress: account.delivery_address || '',
+        version: Number(account.profile_version || 1),
+        updatedAt: account.updated_at,
+      }, account.email || email);
+    }
     let profile = this.customerProfiles.find((candidate) => candidate.customerId === customerId);
     if (!profile) {
       profile = {
         customerId,
+        name: '',
         companyName: '',
         phone: '',
         deliveryAddress: '',
@@ -8102,16 +8988,38 @@ class PostgresStore implements DemoStore {
 
   async updateCustomerProfile(customerId: string, email: string, request: UpdateCustomerProfileRequest, nowISO = new Date().toISOString()): Promise<CustomerProfile> {
     validateCustomerProfileRequest(request);
+    const accountResult = await this.pool.query(
+      `SELECT customer_id, name_with_initials, email, company_name, profile_phone, delivery_address, profile_version, updated_at
+       FROM customer_accounts WHERE customer_id = $1`,
+      [customerId],
+    );
+    const account = accountResult.rows[0];
+    if (account) {
+      const currentVersion = Number(account.profile_version || 1);
+      if (request.expectedVersion !== undefined && request.expectedVersion !== currentVersion) throw new ProfileConflictError();
+      const nextVersion = currentVersion + 1;
+      const updated = await this.pool.query(
+        `UPDATE customer_accounts
+         SET company_name = $2, profile_phone = $3, delivery_address = $4,
+             profile_version = $5, updated_at = $6
+         WHERE customer_id = $1
+         RETURNING customer_id, name_with_initials, email, company_name, profile_phone, delivery_address, profile_version, updated_at`,
+        [customerId, request.companyName.trim(), request.phone.trim(), request.deliveryAddress.trim(), nextVersion, nowISO],
+      );
+      const row = updated.rows[0];
+      return toCustomerProfile({
+        customerId: row.customer_id,
+        name: row.name_with_initials || '',
+        companyName: row.company_name || '',
+        phone: row.profile_phone || '',
+        deliveryAddress: row.delivery_address || '',
+        version: Number(row.profile_version || nextVersion),
+        updatedAt: row.updated_at,
+      }, row.email || email);
+    }
     let profile = this.customerProfiles.find((candidate) => candidate.customerId === customerId);
     if (!profile) {
-      profile = {
-        customerId,
-        companyName: '',
-        phone: '',
-        deliveryAddress: '',
-        version: 1,
-        updatedAt: nowISO,
-      };
+      profile = { customerId, name: '', companyName: '', phone: '', deliveryAddress: '', version: 1, updatedAt: nowISO };
       this.customerProfiles.push(profile);
     }
     if (request.expectedVersion !== undefined && request.expectedVersion !== profile.version) throw new ProfileConflictError();
@@ -8188,11 +9096,16 @@ class PostgresStore implements DemoStore {
     const invoices = await this.getRawInvoices(customerId);
     const allocations = await this.getRawAllocations(customerId);
     const result = await this.pool.query(
-      'SELECT id, customer_id, invoice_id, amount_usd, paid_at, status, reference, bank_name, currency, remarks FROM payments WHERE customer_id = $1 ORDER BY paid_at DESC, id DESC',
+      `SELECT p.id, p.customer_id, p.invoice_id, p.amount_usd, p.paid_at, p.status, p.reference,
+              p.bank_name, p.currency, p.remarks, p.finance_note, ca.name_with_initials AS customer_name
+       FROM payments p
+       LEFT JOIN customer_accounts ca ON ca.customer_id = p.customer_id
+       WHERE p.customer_id = $1 ORDER BY p.paid_at DESC, p.id DESC`,
       [customerId]
     );
     if (result.rows.length === 0) {
-      const items = this.paymentRecords.filter((payment) => payment.customerId === customerId).map((payment) => toCustomerPayment(payment, invoices, allocations));
+      const customerName = this.paymentRecords.find((payment) => payment.customerId === customerId)?.customerName;
+      const items = this.paymentRecords.filter((payment) => payment.customerId === customerId).map((payment) => toCustomerPayment(payment, invoices, allocations, customerName));
       return { items, total: items.length };
     }
     const items = result.rows.map((row) => {
@@ -8209,12 +9122,46 @@ class PostgresStore implements DemoStore {
         bankName: row.bank_name || memoryMatch?.bankName || 'Sumitomo Mitsui Banking Corp (USD)',
         currency: row.currency || memoryMatch?.currency || 'USD',
         remarks: row.remarks || memoryMatch?.remarks || 'None',
+        financeNote: row.finance_note || memoryMatch?.financeNote,
         proof: memoryMatch?.proof,
         idempotencyKey: memoryMatch?.idempotencyKey,
+        customerName: row.customer_name || undefined,
+        depositorName: row.customer_name || undefined,
       };
-      return toCustomerPayment(record, invoices, allocations);
+      return toCustomerPayment(record, invoices, allocations, row.customer_name || undefined);
     });
     return { items, total: items.length };
+  }
+
+  async listCustomerPaymentAllocations(customerId: string, query?: ListCustomerPaymentAllocationsQuery): Promise<CustomerPaymentAllocationListResponse> {
+    await this.ensureCustomerFleetDataInPostgres(customerId);
+    const [paymentResult, invoices, allocations, vehicles] = await Promise.all([
+      this.listCustomerPayments(customerId),
+      this.getRawInvoices(customerId),
+      this.getRawAllocations(customerId),
+      this.getRawVehicles(),
+    ]);
+    const payments: PaymentRecord[] = paymentResult.items.map((payment) => ({
+      id: payment.id,
+      customerId: payment.customerId,
+      invoiceId: payment.invoiceId,
+      amountUsd: payment.amountUsd,
+      paidAt: payment.paymentDate,
+      paymentDate: payment.paymentDate,
+      status: payment.status,
+      reference: payment.reference,
+      bankName: payment.bankName,
+      currency: payment.currency,
+      remarks: payment.remarks,
+      financeNote: payment.financeNote,
+      idempotencyKey: payment.idempotencyKey,
+    }));
+    return queryCustomerPaymentAllocations(buildCustomerPaymentAllocationSummaries(customerId, payments, allocations, invoices, vehicles), query);
+  }
+
+  async getCustomerPaymentAllocation(customerId: string, paymentId: string): Promise<CustomerPaymentAllocationSummary | null> {
+    const result = await this.listCustomerPaymentAllocations(customerId, { page: 1, limit: 100 });
+    return result.items.find((item) => item.id === paymentId) || null;
   }
 
   async createCustomerPayment(customerId: string, request: CreateCustomerPaymentRequest, nowISO = new Date().toISOString()): Promise<CustomerPayment> {
@@ -8253,6 +9200,22 @@ class PostgresStore implements DemoStore {
     return toCustomerPayment(record, invoices, allocations);
   }
 
+  private async persistApprovedPaymentStatementEntry(payment: PaymentRecord): Promise<void> {
+    if (payment.status !== 'Approved') return;
+    await this.pool.query(
+      `INSERT INTO customer_statement_transactions
+        (id, customer_id, entry_date, entry_type, description, reference_no, debit_usd, credit_usd,
+         source_type, source_id, created_at)
+       VALUES ($1, $2, $3::date, 'Payment', 'Payment received', $4, 0, $5, 'payment', $6, $7)
+       ON CONFLICT (id) DO UPDATE SET
+         entry_date = EXCLUDED.entry_date,
+         reference_no = EXCLUDED.reference_no,
+         credit_usd = EXCLUDED.credit_usd`,
+      [`stmt-payment-${payment.id}`, payment.customerId, (payment.paymentDate || payment.paidAt).slice(0, 10),
+        payment.reference || payment.id.toUpperCase(), payment.amountUsd, payment.id, payment.createdAt || payment.paidAt],
+    );
+  }
+
   async resubmitCustomerPayment(customerId: string, paymentId: string, nowISO = new Date().toISOString()): Promise<CustomerPayment> {
     await this.ensureCustomerFleetDataInPostgres(customerId);
     const invoices = await this.getRawInvoices(customerId);
@@ -8273,7 +9236,9 @@ class PostgresStore implements DemoStore {
   async recordPaymentNotification(paymentId: string, request: RecordPaymentNotificationRequest, nowISO = new Date().toISOString()): Promise<CustomerPaymentNotification | null> {
     const payment = this.paymentRecords.find((candidate) => candidate.id === paymentId);
     if (!payment) return null;
-    return toCustomerPaymentNotification(applyPaymentNotification(payment, request, this.paymentNotifications, this.allocations, nowISO));
+    const notification = applyPaymentNotification(payment, request, this.paymentNotifications, this.allocations, nowISO);
+    await this.persistApprovedPaymentStatementEntry(payment);
+    return toCustomerPaymentNotification(notification);
   }
 
   private static rowToCustomerAccountRecord(row: {
@@ -8284,6 +9249,7 @@ class PostgresStore implements DemoStore {
     dial_code: string;
     mobile_number: string;
     email: string;
+    tier?: string;
     password_hash: string;
     password_salt: string;
     status: string;
@@ -8300,6 +9266,7 @@ class PostgresStore implements DemoStore {
       dialCode: row.dial_code,
       mobileNumber: row.mobile_number,
       email: row.email,
+      tier: (row.tier as CustomerTier) || 'Standard',
       passwordHash: row.password_hash,
       passwordSalt: row.password_salt,
       status: row.status as CustomerAccountRecord['status'],
@@ -8320,12 +9287,13 @@ class PostgresStore implements DemoStore {
     const id = generateAccountId();
     const customerId = generateCustomerId();
     await this.pool.query(
-      `INSERT INTO customer_accounts (id, customer_id, name_with_initials, country_code, dial_code, mobile_number, email, password_hash, password_salt, status, verification_state, created_at, updated_at, password_updated_at)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
-      [id, customerId, validated.nameWithInitials, validated.countryCode, validated.dialCode, validated.mobileNumber, validated.email, hash, salt, 'active', 'unverified', nowISO, nowISO, nowISO]
+      `INSERT INTO customer_accounts (id, customer_id, name_with_initials, country_code, dial_code, mobile_number, email, tier, password_hash, password_salt, status, verification_state, created_at, updated_at, password_updated_at)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)`,
+      [id, customerId, validated.nameWithInitials, validated.countryCode, validated.dialCode, validated.mobileNumber, validated.email, 'Standard', hash, salt, 'active', 'unverified', nowISO, nowISO, nowISO]
     );
     this.customerProfiles.push({
       customerId,
+      name: '',
       companyName: '',
       phone: '',
       deliveryAddress: '',
@@ -8341,6 +9309,7 @@ class PostgresStore implements DemoStore {
       dialCode: validated.dialCode,
       mobileNumber: validated.mobileNumber,
       email: validated.email,
+      tier: 'Standard',
       passwordHash: hash,
       passwordSalt: salt,
       status: 'active',
@@ -8647,6 +9616,7 @@ class PostgresStore implements DemoStore {
       await client.query('DELETE FROM favourite_searches');
       await client.query('DELETE FROM allocations');
       await client.query('DELETE FROM payment_notifications');
+      await client.query('DELETE FROM customer_statement_transactions');
       await client.query('DELETE FROM payments');
       await client.query('DELETE FROM documents');
       await client.query('DELETE FROM shipments');
@@ -8674,6 +9644,7 @@ class PostgresStore implements DemoStore {
       await client.query('DELETE FROM password_reset_outbox');
       await client.query('DELETE FROM notifications');
       await client.query('DELETE FROM customer_accounts');
+      await client.query('DELETE FROM customer_tier_rules');
       await client.query('DELETE FROM wishlist_items');
       await client.query('DELETE FROM favourite_searches');
       await client.query('DELETE FROM proforma_invoices');
@@ -8684,10 +9655,17 @@ class PostgresStore implements DemoStore {
       await client.query('DELETE FROM payments');
       await client.query('DELETE FROM payment_notifications');
 
+      for (const rule of seedTierRules) {
+        await client.query(
+          'INSERT INTO customer_tier_rules (tier, discount_percent, max_active_reservations, description, active) VALUES ($1, $2, $3, $4, $5)',
+          [rule.tier, rule.discountPercent, rule.maxActiveReservations, rule.description, rule.active],
+        );
+      }
+
       const seedAccount = buildSeedCustomerAccount();
       await client.query(
-        `INSERT INTO customer_accounts (id, customer_id, name_with_initials, country_code, dial_code, mobile_number, email, password_hash, password_salt, status, verification_state, created_at, updated_at, password_updated_at)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
+        `INSERT INTO customer_accounts (id, customer_id, name_with_initials, country_code, dial_code, mobile_number, email, tier, password_hash, password_salt, status, verification_state, created_at, updated_at, password_updated_at)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)`,
         [
           seedAccount.id,
           seedAccount.customerId,
@@ -8696,6 +9674,7 @@ class PostgresStore implements DemoStore {
           seedAccount.dialCode,
           seedAccount.mobileNumber,
           seedAccount.email,
+          seedAccount.tier,
           seedAccount.passwordHash,
           seedAccount.passwordSalt,
           seedAccount.status,
@@ -8707,18 +9686,41 @@ class PostgresStore implements DemoStore {
       );
       const otherSeedAccount = buildSeedOtherCustomerAccount();
       await client.query(
-        `INSERT INTO customer_accounts (id, customer_id, name_with_initials, country_code, dial_code, mobile_number, email, password_hash, password_salt, status, verification_state, created_at, updated_at, password_updated_at)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
+        `INSERT INTO customer_accounts (id, customer_id, name_with_initials, country_code, dial_code, mobile_number, email, tier, password_hash, password_salt, status, verification_state, created_at, updated_at, password_updated_at)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)`,
         [otherSeedAccount.id, otherSeedAccount.customerId, otherSeedAccount.nameWithInitials, otherSeedAccount.countryCode,
-          otherSeedAccount.dialCode, otherSeedAccount.mobileNumber, otherSeedAccount.email, otherSeedAccount.passwordHash,
+          otherSeedAccount.dialCode, otherSeedAccount.mobileNumber, otherSeedAccount.email, otherSeedAccount.tier, otherSeedAccount.passwordHash,
           otherSeedAccount.passwordSalt, otherSeedAccount.status, otherSeedAccount.verificationState, otherSeedAccount.createdAt,
           otherSeedAccount.updatedAt, otherSeedAccount.passwordUpdatedAt],
       );
 
-      await client.query('INSERT INTO public_config (id, site_name, currency, contact_phone) VALUES (1, $1, $2, $3)', [
+      for (const account of [
+        buildSeedTierAccount('cust-silver-789', 'daniel.mwangi@example.com', 'Daniel Mwangi', 'KE', 'Silver'),
+        buildSeedTierAccount('cust-gold-012', 'haruto.sato@example.com', 'Haruto Sato', 'JP', 'Gold'),
+        buildSeedTierAccount('cust-platinum-345', 'sofia.almeida@example.com', 'Sofia Almeida', 'PT', 'Platinum'),
+      ]) {
+        await client.query(
+          `INSERT INTO customer_accounts (id, customer_id, name_with_initials, country_code, dial_code, mobile_number, email, tier, password_hash, password_salt, status, verification_state, created_at, updated_at, password_updated_at)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)`,
+          [account.id, account.customerId, account.nameWithInitials, account.countryCode, account.dialCode, account.mobileNumber,
+            account.email, account.tier, account.passwordHash, account.passwordSalt, account.status, account.verificationState,
+            account.createdAt, account.updatedAt, account.passwordUpdatedAt],
+        );
+      }
+      for (const profile of seedCustomerProfiles) {
+        await client.query(
+          `UPDATE customer_accounts
+           SET company_name = $2, profile_phone = $3, delivery_address = $4,
+               profile_version = $5, updated_at = $6
+           WHERE customer_id = $1`,
+          [profile.customerId, profile.companyName, profile.phone, profile.deliveryAddress, profile.version, profile.updatedAt],
+        );
+      }
+      await client.query('INSERT INTO public_config (id, site_name, currency, contact_phone, tier_descriptions) VALUES (1, $1, $2, $3, $4)', [
         seedConfig.siteName,
         seedConfig.currency,
         seedConfig.contactPhone,
+        JSON.stringify(seedConfig.tierDescriptions),
       ]);
       for (const feature of vehicleFeatureCatalog) {
         await client.query(
@@ -8792,7 +9794,7 @@ class PostgresStore implements DemoStore {
         await client.query('INSERT INTO office_locations (id, name, city, country, address, phone, email, operating_hours, is_primary, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)', [office.id, office.name, office.city, office.country, office.address, office.phone, office.email, office.operatingHours, office.isPrimary, office.status]);
       }
       for (const branch of seedBranches) {
-        await client.query('INSERT INTO branch_content (id, name, code, destination_port, introduction, welcome_banner, contact_banner, team_members, meet_and_greet_info, contact_details, content_owner, status, latest_arrivals_query, recently_discounted_query) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)', [branch.id, branch.name, branch.code, branch.destinationPort, branch.introduction, branch.welcomeBanner, branch.contactBanner, JSON.stringify(branch.teamMembers), branch.meetAndGreetInfo, JSON.stringify(branch.contactDetails), null, branch.status, null, null]);
+        await client.query('INSERT INTO branch_content (id, name, code, destination_port, introduction, welcome_banner, contact_banner, team_members, meet_and_greet_info, contact_details, content_owner, status, latest_arrivals_query, recently_discounted_query) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)', [branch.id, branch.name, branch.code, branch.destinationPort, branch.introduction, branch.welcomeBanner, branch.contactBanner, JSON.stringify(branch.teamMembers), branch.meetAndGreetInfo, JSON.stringify(branch.contactDetails), 'BranchContentSeed', branch.status, null, null]);
       }
 
       await client.query('COMMIT');
@@ -8803,7 +9805,7 @@ class PostgresStore implements DemoStore {
       this.allocations = seedAllocations.map((allocation) => ({ ...allocation }));
 
       await this.ensureCustomerFleetDataInPostgres(seedAccount.customerId, seedAccount.email);
-      await this.ensureCustomerFleetDataInPostgres('user-other-456', 'other@example.com');
+      await this.ensureCustomerFleetDataInPostgres('user-other-456', 'amina.njeri@example.com');
       await this.ensureMockRelationalFixtures();
       await this.backfillVehicleReferences();
     } catch (error) {
@@ -8814,14 +9816,50 @@ class PostgresStore implements DemoStore {
     }
   }
 
-  getCustomerStatement(customerId: string, fromDate?: string, toDate?: string): Promise<CustomerStatementSummary> {
-    const memory = new MemoryStore();
-    return memory.getCustomerStatement(customerId, fromDate, toDate);
-  }
+  async getCustomerStatement(customerId: string, fromDate?: string, toDate?: string): Promise<CustomerStatementSummary> {
+    const result = await this.pool.query(
+      `SELECT id, entry_date, description, reference_no, debit_usd, credit_usd, opening_balance_usd, is_opening_balance
+       FROM customer_statement_transactions
+       WHERE customer_id = $1
+         AND (is_opening_balance = true OR ($2::date IS NULL OR entry_date >= $2::date)
+         AND ($3::date IS NULL OR entry_date <= $3::date))
+       ORDER BY is_opening_balance DESC, entry_date ASC, created_at ASC, id ASC`,
+      [customerId, fromDate || null, toDate || null],
+    );
 
-  getCustomerDebitCreditRefunds(customerId: string): Promise<CustomerDebitCreditListResponse> {
-    const memory = new MemoryStore();
-    return memory.getCustomerDebitCreditRefunds(customerId);
+    const openingRow = result.rows.find((row) => row.is_opening_balance);
+    const openingBalanceUsd = openingRow ? Number(openingRow.opening_balance_usd) : 0;
+    let runningBalanceUsd = openingBalanceUsd;
+    const entries: CustomerStatementEntry[] = result.rows.map((row) => {
+      const isOpeningBalance = Boolean(row.is_opening_balance);
+      const debitUsd = Number(row.debit_usd);
+      const creditUsd = Number(row.credit_usd);
+      if (!isOpeningBalance) runningBalanceUsd += debitUsd - creditUsd;
+      return {
+        id: row.id,
+        date: String(row.entry_date).slice(0, 10),
+        description: row.description,
+        ...(row.reference_no ? { referenceNo: row.reference_no } : {}),
+        debitUsd,
+        creditUsd,
+        runningBalanceUsd,
+        ...(isOpeningBalance ? { isOpeningBalance: true } : {}),
+      };
+    });
+    const transactionEntries = entries.filter((entry) => !entry.isOpeningBalance);
+    const totalDebitsUsd = transactionEntries.reduce((sum, entry) => sum + entry.debitUsd, 0);
+    const totalCreditsUsd = transactionEntries.reduce((sum, entry) => sum + entry.creditUsd, 0);
+
+    return {
+      customerId,
+      fromDate: fromDate || (entries[0]?.date ?? new Date().toISOString().slice(0, 10)),
+      toDate: toDate || (entries.at(-1)?.date ?? new Date().toISOString().slice(0, 10)),
+      openingBalanceUsd,
+      totalDebitsUsd,
+      totalCreditsUsd,
+      closingBalanceUsd: openingBalanceUsd + totalDebitsUsd - totalCreditsUsd,
+      entries,
+    };
   }
 
   listCustomerPolymorphicInquiries(customerId: string): Promise<CustomerPolymorphicInquiryListResponse> {

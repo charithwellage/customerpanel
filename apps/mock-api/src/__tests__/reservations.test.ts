@@ -3,7 +3,7 @@ import type { Server } from 'node:http';
 import { createStore } from '../store.js';
 import { createMockApiApp } from '../server.js';
 import type { ReservationResponse } from '@carchief/domain';
-import { issueSessionToken, generateVehicleSlug, RESERVATION_HOLD_HOURS, MAX_ACTIVE_RESERVATIONS_PER_CUSTOMER } from '@carchief/domain';
+import { issueSessionToken, generateVehicleSlug, RESERVATION_HOLD_HOURS } from '@carchief/domain';
 
 // PUB-23, RULE-05, RULE-08, RULE-10, D01-P06-T004. A reservation is a
 // transactional 48-hour hold on one vehicle for one authenticated demo
@@ -19,6 +19,7 @@ const VEHICLE_SLUG_7 = generateVehicleSlug(2024, 'Toyota', 'Raize', 'veh-7');
 const VEHICLE_SLUG_SOLD = generateVehicleSlug(2019, 'Mazda', 'CX-5', 'veh-sold');
 
 const CUSTOMER_A_TOKEN = issueSessionToken('CustomerBuyer', 'customer-a', 'a@example.com');
+const CUSTOMER_PLATINUM_TOKEN = issueSessionToken('CustomerBuyer', 'cust-platinum-345', 'sofia.almeida@example.com', 'Platinum');
 const CUSTOMER_B_TOKEN = issueSessionToken('CustomerBuyer', 'customer-b', 'b@example.com');
 const SALESPERSON_TOKEN = issueSessionToken('Salesperson', 'staff-1', 'staff@example.com');
 
@@ -96,11 +97,11 @@ describe('Transactional reservation eligibility and hold (PUB-23, RULE-05, RULE-
 
     it('rejects a new reservation once the customer already holds the maximum number of active reservations, with reason limit_exceeded (409)', async () => {
       const slugs = [VEHICLE_SLUG_1, VEHICLE_SLUG_3, VEHICLE_SLUG_4];
-      expect(slugs.length).toBe(MAX_ACTIVE_RESERVATIONS_PER_CUSTOMER);
+      expect(slugs.length).toBe(3);
       for (const vehicleSlug of slugs) {
-        await store.createReservation('customer-a', 'a@example.com', { vehicleSlug });
+        await store.createReservation('cust-platinum-345', 'sofia.almeida@example.com', { vehicleSlug });
       }
-      await expect(store.createReservation('customer-a', 'a@example.com', { vehicleSlug: VEHICLE_SLUG_5 })).rejects.toMatchObject({
+      await expect(store.createReservation('cust-platinum-345', 'sofia.almeida@example.com', { vehicleSlug: VEHICLE_SLUG_5 })).rejects.toMatchObject({
         statusCode: 409,
         reason: 'limit_exceeded',
       });
@@ -291,14 +292,14 @@ describe('Transactional reservation eligibility and hold (PUB-23, RULE-05, RULE-
         for (const vehicleSlug of slugs) {
           const res = await fetch(`http://localhost:${port}/api/v1/reservations`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${CUSTOMER_A_TOKEN}` },
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${CUSTOMER_PLATINUM_TOKEN}` },
             body: JSON.stringify({ vehicleSlug }),
           });
           expect(res.status).toBe(201);
         }
         const overLimit = await fetch(`http://localhost:${port}/api/v1/reservations`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${CUSTOMER_A_TOKEN}` },
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${CUSTOMER_PLATINUM_TOKEN}` },
           body: JSON.stringify({ vehicleSlug: VEHICLE_SLUG_5 }),
         });
         expect(overLimit.status).toBe(409);

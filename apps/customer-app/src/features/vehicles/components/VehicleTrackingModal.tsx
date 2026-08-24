@@ -33,7 +33,7 @@ export function getVehicleActiveTimelineStepIndex(vehicle: CustomerVehicleSummar
   if (logistics === 'LOADED') return 5;
   if (logistics === 'VESSEL BOOKED') return 4;
   if (logistics === 'READY FOR LOADING' || logistics === 'READY') return 3;
-  if (status === 'confirmed' || logistics === 'INSPECTION' || Boolean(vehicle.commercialBill)) return 2;
+  if (status === 'confirmed' || logistics === 'INSPECTION' || (Boolean(vehicle.commercialBill) && vehicle.paymentStatus === 'Paid')) return 2;
   if (status === 'under negotiation with pi' || (status !== 'under negotiation' && Boolean(vehicle.proformaInvoiceId)) || logistics === 'PURCHASED') return 1;
   return 0; // RESERVED
 }
@@ -93,8 +93,8 @@ export const VehicleTrackingModal: React.FC<VehicleTrackingModalProps> = ({
   const dischargePort = vehicle.destinationPort || 'Mombasa';
 
   const isPI = vehicle.status === 'Under Negotiation With PI' || Boolean(vehicle.proformaInvoiceId);
-  const isInvoiced = vehicle.status === 'Confirmed' || vehicle.status === 'In Transit' || vehicle.status === 'Delivered' || Boolean(vehicle.commercialBill);
-  const badgeLabel = vehicle.status === 'Delivered' ? 'DELIVERED' : vehicle.status === 'In Transit' ? 'IN TRANSIT' : isInvoiced ? 'INVOICED' : isPI ? 'RESERVED (PI)' : 'RESERVED';
+  const isInvoiced = vehicle.paymentStatus === 'Paid' && (vehicle.status === 'Confirmed' || vehicle.status === 'In Transit' || vehicle.status === 'Delivered');
+  const badgeLabel = vehicle.statusLabel || '';
 
   return (
     <div
@@ -169,7 +169,7 @@ export const VehicleTrackingModal: React.FC<VehicleTrackingModalProps> = ({
                   <span className="cc-track-modal-row__value cc-track-modal-row__value--mono">{purchaseDate}</span>
                 </div>
                 <div className="cc-track-modal-row cc-track-modal-row--price">
-                  <span className="cc-track-modal-row__label">FOB Price:</span>
+                  <span className="cc-track-modal-row__label">Selling Price:</span>
                   <span className="cc-track-modal-row__value cc-track-modal-row__value--fob">{priceDisplay}</span>
                 </div>
               </div>

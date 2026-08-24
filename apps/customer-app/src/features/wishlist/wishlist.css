@@ -9,78 +9,6 @@
   width: 100%;
 }
 
-/* Category Tabs (Stock vs Auction) */
-.cc-wishlist-tabs {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  border-bottom: 2px solid var(--color-border);
-  padding-bottom: 2px;
-}
-
-.cc-wishlist-tab-btn {
-  padding: var(--spacing-xs) var(--spacing-lg);
-  border: none;
-  background: transparent;
-  font-family: var(--font-display);
-  font-size: var(--font-size-sm);
-  font-weight: 700;
-  color: var(--color-text-secondary);
-  cursor: pointer;
-  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
-  transition: all var(--motion-fast);
-}
-
-.cc-wishlist-tab-btn:hover {
-  color: var(--color-text-primary);
-  background-color: var(--color-neutral-surface);
-}
-
-.cc-wishlist-tab-btn--active {
-  color: var(--color-primary);
-  border-bottom: 3px solid var(--color-primary);
-  font-weight: 800;
-}
-
-/* Auction Group Pills */
-.cc-wishlist-auction-groups {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-xs) 0;
-}
-
-.cc-wishlist-groups-label {
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
-  font-weight: 700;
-  color: var(--color-text-secondary);
-}
-
-.cc-wishlist-group-pill {
-  background-color: var(--color-neutral-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-pill);
-  padding: 2px var(--spacing-md);
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
-  font-weight: 700;
-  color: var(--color-text-primary);
-  cursor: pointer;
-  transition: all var(--motion-fast);
-}
-
-.cc-wishlist-group-pill:hover {
-  border-color: var(--color-primary);
-}
-
-.cc-wishlist-group-pill--active {
-  background-color: var(--color-primary);
-  color: var(--color-text-on-primary);
-  border-color: var(--color-primary);
-}
-
 /* Controls Bar (Search + Found + Per Page) */
 .cc-wishlist-controls-bar {
   display: flex;
@@ -168,6 +96,46 @@
 
 @media (max-width: 768px) {
   .cc-wishlist-card {
+    grid-template-columns: 1fr;
+  }
+}
+
+.cc-wishlist-cards-grid--grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--spacing-md);
+}
+
+.cc-wishlist-cards-grid--grid .cc-wishlist-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 0;
+}
+
+.cc-wishlist-cards-grid--grid .cc-wishlist-card__image-box {
+  height: 190px;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+.cc-wishlist-cards-grid--grid .cc-wishlist-card__body {
+  padding: var(--spacing-md);
+}
+
+@media (max-width: 1400px) {
+  .cc-wishlist-cards-grid--grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1000px) {
+  .cc-wishlist-cards-grid--grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .cc-wishlist-cards-grid--grid {
     grid-template-columns: 1fr;
   }
 }
@@ -294,49 +262,11 @@
   color: var(--color-primary);
 }
 
-.cc-wishlist-inquirer-note,
-.cc-wishlist-auction-timer {
+.cc-wishlist-inquirer-note {
   font-family: var(--font-mono);
   font-size: 0.68rem;
   color: var(--color-text-secondary);
   font-style: italic;
-}
-
-.cc-wishlist-card__actions {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  padding-top: var(--spacing-xs);
-}
-
-.cc-wishlist-action-btn {
-  padding: var(--spacing-xs) var(--spacing-md);
-  border-radius: var(--radius-md);
-  font-family: var(--font-body);
-  font-size: var(--font-size-xs);
-  font-weight: 700;
-  cursor: pointer;
-  transition: all var(--motion-fast);
-}
-
-.cc-wishlist-action-btn--whatsapp {
-  background-color: var(--color-success);
-  color: var(--color-text-on-primary);
-  border: 1px solid var(--color-success);
-}
-
-.cc-wishlist-action-btn--whatsapp:hover {
-  background-color: var(--color-success);
-}
-
-.cc-wishlist-action-btn--quote {
-  background-color: var(--color-primary);
-  color: var(--color-text-on-primary);
-  border: 1px solid var(--color-primary);
-}
-
-.cc-wishlist-action-btn--quote:hover {
-  background-color: var(--color-primary-hover);
 }
 
 .cc-wishlist-empty {

@@ -54,7 +54,7 @@ export interface CustomerPaymentAllocation {
 export interface CustomerPayment {
   id: string;
   customerId: string;
-  invoiceId: string;
+  invoiceId?: string;
   reference: string;
   bankName: string;
   currency: string;
@@ -65,6 +65,7 @@ export interface CustomerPayment {
   receivingBank?: string;
   customerName?: string;
   approvedDate?: string;
+  financeNote?: string;
   allocations?: CustomerPaymentAllocation[];
   documents?: Array<{ name: string; url: string }>;
   paymentDate: string;
@@ -77,7 +78,8 @@ export interface CustomerPayment {
 }
 
 export interface CreateCustomerPaymentRequest {
-  invoiceId: string;
+  /** Optional because a bulk TT can be verified before sales staff allocate it and issue its invoice. */
+  invoiceId?: string;
   reference: string;
   bankName: string;
   currency: string;
@@ -97,6 +99,88 @@ export interface RecordPaymentNotificationRequest {
 export interface CustomerPaymentListResponse {
   items: CustomerPayment[];
   total: number;
+}
+
+export type CustomerPaymentPurpose = 'Advance' | 'Balance';
+export type CustomerPaymentAllocationStatus = 'Unallocated' | 'PartiallyAllocated' | 'FullyAllocated';
+
+export interface CustomerPaymentAllocationVehicle {
+  id: string;
+  slug: string;
+  stockNumber: string;
+  chassisNumber: string;
+  make: string;
+  model: string;
+  year: number;
+  primaryImage?: string;
+}
+
+export interface CustomerPaymentAllocationLine {
+  id: string;
+  vehicle: CustomerPaymentAllocationVehicle;
+  invoiceId?: string;
+  invoiceNumber?: string;
+  amountUsd: number;
+  vehicleTotalAmountUsd: number;
+  vehicleAllocatedAmountUsd: number;
+  vehicleBalanceAmountUsd: number;
+  purpose: CustomerPaymentPurpose;
+  status: 'Approved' | 'Pending' | 'Rejected';
+  allocatedAt: string;
+}
+
+export interface CustomerPaymentAllocationInvoice {
+  id: string;
+  invoiceNumber: string;
+  issuedAt: string;
+  totalAmountUsd: number;
+  paidAmountUsd: number;
+  outstandingAmountUsd: number;
+  status: CustomerInvoiceStatus;
+  vehicleCount: number;
+  documentAvailable: boolean;
+}
+
+export interface CustomerPaymentAllocationSummary {
+  id: string;
+  reference: string;
+  bankName: string;
+  currency: string;
+  amountUsd: number;
+  paymentDate: string;
+  paymentStatus: PaymentStatus;
+  allocationStatus: CustomerPaymentAllocationStatus;
+  allocatedAmountUsd: number;
+  unallocatedAmountUsd: number;
+  allocationPercent: number;
+  vehicleCount: number;
+  allocations: CustomerPaymentAllocationLine[];
+  invoice?: CustomerPaymentAllocationInvoice;
+}
+
+export interface ListCustomerPaymentAllocationsQuery {
+  query?: string;
+  paymentStatus?: PaymentStatus | string;
+  allocationStatus?: CustomerPaymentAllocationStatus | string;
+  purpose?: CustomerPaymentPurpose | string;
+  scope?: 'SingleVehicle' | 'MultipleVehicles' | string;
+  from?: string;
+  to?: string;
+  page?: number;
+  limit?: number;
+}
+
+export interface CustomerPaymentAllocationListResponse {
+  items: CustomerPaymentAllocationSummary[];
+  total: number;
+  page: number;
+  limit: number;
+  totals: {
+    totalAmountUsd: number;
+    allocatedAmountUsd: number;
+    unallocatedAmountUsd: number;
+    invoiceCount: number;
+  };
 }
 
 export type CustomerPaymentNotificationEvent =
@@ -123,12 +207,32 @@ export type ShipmentStatus = 'Purchased' | 'Inspection' | 'Ready' | 'InTransit' 
 export type VehicleLocationStatus = 'In Japan' | 'In Transit' | 'In Port';
 export type PublicVehicleCategory = 'arrival' | 'premium' | 'clearance' | 'best_offer';
 
-export const TIER_DISCOUNTS: Record<CustomerTier, number> = {
-  Platinum: 15,
-  Gold: 10,
-  Silver: 5,
-  Standard: 0,
-};
+export interface CustomerTierRule {
+  tier: CustomerTier;
+  discountPercent: number;
+  maxActiveReservations: number;
+  description: string;
+  active: boolean;
+}
+
+export interface CustomerTierBenefits {
+  tier: CustomerTier;
+  discountPercent: number;
+  maxActiveReservations: number;
+  activeReservations: number;
+  remainingReservations: number;
+  description: string;
+}
+
+/** Database-backed vehicle status catalogue entry used by customer projections. */
+export interface VehicleStatusDefinition {
+  code: VehicleStatus;
+  singularLabel: string;
+  pluralLabel: string;
+  description: string;
+  active: boolean;
+  sortOrder: number;
+}
 
 export interface VehicleTierPricing {
   tier: CustomerTier;
@@ -137,8 +241,7 @@ export interface VehicleTierPricing {
   originalPriceUsd: number;
 }
 
-export function calculateTierPricing(priceUsd: number, tier: CustomerTier = 'Standard'): VehicleTierPricing {
-  const tierDiscountPercent = TIER_DISCOUNTS[tier] ?? 0;
+export function calculateTierPricing(priceUsd: number, tier: CustomerTier = 'Standard', tierDiscountPercent = 0): VehicleTierPricing {
   const tierPriceUsd = tierDiscountPercent > 0
     ? Math.round(priceUsd * (1 - tierDiscountPercent / 100))
     : priceUsd;
@@ -157,11 +260,20 @@ export type ReservationIneligibilityReason =
   | 'price_on_request'
   | 'limit_exceeded';
 
+export type InquiryIneligibilityReason =
+  | 'allocated_to_another_customer'
+  | 'not_available';
+
 export interface VehicleReservationEligibility {
   eligible: boolean;
   reason?: ReservationIneligibilityReason;
   holdExpiresAt?: string;
   isOwnHold?: boolean;
+}
+
+export interface VehicleInquiryEligibility {
+  eligible: boolean;
+  reason?: InquiryIneligibilityReason;
 }
 
 export interface VehicleDomainSummary {
@@ -212,6 +324,7 @@ export interface VehicleDomainSummary {
   compliance?: VehicleComplianceEvaluation;
   tierPricing?: VehicleTierPricing;
   reservationEligibility?: VehicleReservationEligibility;
+  inquiryEligibility?: VehicleInquiryEligibility;
 }
 
 export interface FacetCount {
@@ -331,6 +444,11 @@ export interface VehicleDetail {
   model: string;
   year: number;
   status: VehicleStatus;
+  /** Customer-facing label resolved by the server status catalogue. */
+  statusLabel?: string;
+  /** Customer-facing plural label resolved by the server status catalogue. */
+  statusLabelPlural?: string;
+  statusDescription?: string;
   priceState: 'priced' | 'request_price';
   priceUsd?: number;
   requestPrice: boolean;
@@ -368,6 +486,7 @@ export interface VehicleDetail {
   nowOnSale?: boolean;
   tierPricing?: VehicleTierPricing;
   reservationEligibility?: VehicleReservationEligibility;
+  inquiryEligibility?: VehicleInquiryEligibility;
 }
 
 // --- Phase 1.5: freight destination, port and rate lookup (D01-ASM-001) ---
@@ -585,6 +704,17 @@ export interface CustomerInquirySummary {
   vehicleTitle: string;
   requestedAt: string;
   inquirerCount: number;
+  stockNumber?: string;
+  chassisNumber?: string;
+  imageUrl?: string;
+  engineCc?: number;
+  mileage?: number;
+  fuelType?: string;
+  transmission?: string;
+  color?: string;
+  priceState?: 'priced' | 'request_price';
+  priceUsd?: number;
+  tierPricing?: VehicleTierPricing;
 }
 
 /** Signed-in customer's inquiry list (D02-P13-T001, CUST-34). */
@@ -693,14 +823,9 @@ export interface FavouriteSearchFacets {
 // exposes the expiry timestamp and lets a caller derive "active"/"expired"
 // itself, but never claims an automatic release action occurred (RULE-10).
 // `RESERVATION_HOLD_HOURS` matches RULE-05's default; an administrator
-// changing it is out of this task's scope. `MAX_ACTIVE_RESERVATIONS_PER_CUSTOMER`
-// is a safe MVP anti-abuse ceiling applied uniformly to every `CustomerBuyer`
-// — no approved per-tier reservation-count limit exists anywhere in
-// `REQUIREMENT.md`, and `CustomerTier` is not part of the demo session's
-// claims, so no tier-differentiated figure is invented here (see
-// `tasks/delivery_01/REQUIREMENT_GAPS_AND_ASSUMPTIONS.md` row `D01-ASM-003`).
+// changing the hold duration is out of this task's scope. Reservation quotas
+// are database-backed customer-tier benefits enforced by the mock store.
 export const RESERVATION_HOLD_HOURS = 48;
-export const MAX_ACTIVE_RESERVATIONS_PER_CUSTOMER = 3;
 
 /**
  * Vehicle statuses a fresh reservation attempt may ever apply to, once any
@@ -711,7 +836,7 @@ export const MAX_ACTIVE_RESERVATIONS_PER_CUSTOMER = 3;
  * vocabulary; it only uses it to decide whether to show a Reserve action at
  * all, never to grant eligibility itself.
  */
-export const RESERVABLE_VEHICLE_STATUSES: readonly VehicleStatus[] = ['Available', 'Reserved'];
+export const RESERVABLE_VEHICLE_STATUSES: readonly VehicleStatus[] = ['Available'];
 
 export type ReservationStatus = 'active' | 'expired';
 
@@ -750,6 +875,7 @@ export interface PublicConfig {
   currency: string;
   contactPhone: string;
   liveAuctionUrl?: string;
+  tierDescriptions?: Partial<Record<CustomerTier, string>>;
 }
 
 export function generateVehicleSlug(year: number, make: string, model: string, id: string): string {
@@ -918,16 +1044,16 @@ export interface CustomerVehicleDocumentReference {
 }
 
 export interface CustomerVehicleDepositInfo {
-  requiredPercent: number; // 50 under RULE-07
+  requiredPercent: number; // 30 under RULE-07
   requiredAmountUsd: number;
   paidAmountUsd: number;
   remainingAmountUsd: number;
 }
 
-export const DEPOSIT_PERCENT_RULE_07 = 50;
+export const DEPOSIT_PERCENT_RULE_07 = 30;
 
 /**
- * Computes 50% deposit requirement for vehicles under negotiation with PI (RULE-07).
+ * Computes the 30% deposit requirement for vehicles under negotiation with PI (RULE-07).
  */
 export function calculateVehicleDeposit(totalAmountUsd: number, paidAmountUsd = 0): CustomerVehicleDepositInfo {
   const requiredAmountUsd = Math.round(totalAmountUsd * (DEPOSIT_PERCENT_RULE_07 / 100));
@@ -946,6 +1072,8 @@ export interface CustomerCommercialBillInfo {
   balanceAmountUsd: number;
 }
 
+export type CustomerVehiclePaymentStatus = 'Unpaid' | 'PartiallyPaid' | 'Paid';
+
 export interface CustomerVehicleSummary {
   id: string;
   vehicleId: string;
@@ -958,6 +1086,15 @@ export interface CustomerVehicleSummary {
   priceUsd: number;
   totalAmountUsd: number;
   status: CustomerVehicleStatus;
+  paymentStatus: CustomerVehiclePaymentStatus;
+  paidAmountUsd: number;
+  balanceAmountUsd: number;
+  invoiceTotalAmountUsd?: number;
+  invoiceId?: string;
+  vehicleStatusCode: VehicleStatus;
+  statusLabel: string;
+  statusLabelPlural: string;
+  statusDescription?: string;
   locationStatus?: 'In Japan' | 'In Transit' | 'In Port';
   destinationPort?: string;
   reservationExpiresAt?: string;
@@ -978,11 +1115,28 @@ export interface CustomerVehicleSummary {
 
 export interface CustomerVehicleDetail extends CustomerVehicleSummary {
   images: string[];
+  stockType?: 'J' | 'CRFO';
   bodyStyle?: string;
   fuelType?: string;
   transmission?: string;
   driveTrain?: string;
   mileage?: number;
+  engineSize?: string;
+  modelCode?: string;
+  versionClass?: string;
+  registerYear?: string;
+  mfgYear?: string;
+  steering?: string;
+  seats?: number;
+  loadCapacity?: number;
+  doors?: number;
+  grossWeight?: number;
+  dimensions?: {
+    lengthMm?: number;
+    widthMm?: number;
+    heightMm?: number;
+    m3?: number;
+  };
   invoiceId?: string;
   shipmentId?: string;
   vesselName?: string;
@@ -1019,6 +1173,7 @@ export interface CustomerVehicleListResponse {
   items: CustomerVehicleSummary[];
   total: number;
   countsByStatus: CustomerVehicleCountsByStatus;
+  statusDefinitions: VehicleStatusDefinition[];
 }
 
 export interface ListCustomerVehiclesQuery {
@@ -1098,6 +1253,8 @@ export interface CustomerInvoiceDetailVehicle {
 
 export interface CustomerInvoiceDetail extends CustomerInvoiceSummary {
   vehicle: CustomerInvoiceDetailVehicle;
+  /** Includes every vehicle where a single TT-backed invoice is allocated to a fleet. */
+  vehicles?: CustomerInvoiceDetailVehicle[];
   lineItems: CustomerInvoiceLineItem[];
   allocations: CustomerInvoiceAllocationItem[];
   bankDetails?: CustomerInvoiceBankDetails;
@@ -1172,30 +1329,6 @@ export interface CustomerStatementSummary {
   entries: CustomerStatementEntry[];
 }
 
-export interface CustomerDebitCreditRecord {
-  id: string;
-  customerId?: string;
-  refNumber: string;
-  type: 'Debit' | 'Credit' | 'Refund';
-  cashInDate: string;
-  stockId: string;
-  currency: string;
-  amount: number;
-  balanceAmount: number;
-  paidInCash: boolean;
-  approvedDate: string;
-  customerNotes?: string;
-  notesVisibleToCustomer?: boolean;
-}
-
-export interface CustomerDebitCreditListResponse {
-  items: CustomerDebitCreditRecord[];
-  total: number;
-  totalDebitsUsd: number;
-  totalCreditsUsd: number;
-  totalRefundsUsd: number;
-}
-
 export interface CustomerPolymorphicInquiry {
   id: string;
   customerId?: string;
@@ -1226,6 +1359,16 @@ export interface CustomerPolymorphicInquiry {
   auctionRemaining?: string;
   auctionFinished?: boolean;
   imageUrl?: string;
+  vehicleSlug?: string;
+  vehicleId?: string;
+  engineCc?: number;
+  mileage?: number;
+  fuelType?: string;
+  transmission?: string;
+  color?: string;
+  priceState?: 'priced' | 'request_price';
+  priceUsd?: number;
+  tierPricing?: VehicleTierPricing;
 }
 
 export interface CustomerPolymorphicInquiryListResponse {

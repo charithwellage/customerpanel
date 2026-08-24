@@ -14,7 +14,7 @@ export function appRouteFor(notification: Notification): string | null {
   if (!related) return null;
   if (related.kind === 'Vehicle') return `/vehicles/${related.id}`;
   if (related.kind === 'Invoice' || related.kind === 'ProformaInvoice') return `/invoices/${related.id}`;
-  if (related.kind === 'Shipment' || related.kind === 'ShipOk') return '/shipments';
+  if (related.kind === 'Shipment' || related.kind === 'ShipOk') return '/vehicles';
   if (related.kind === 'Document' || related.kind === 'DocumentRelease') return '/documents';
   if (related.kind === 'Payment') return '/payments';
   return null;

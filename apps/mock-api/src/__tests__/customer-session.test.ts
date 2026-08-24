@@ -10,8 +10,8 @@ import type { JwtClaims } from '@carchief/domain';
 // minting, authorization headers, expired/invalid token responses and
 // identity boundary. Replaces the removed no-input demo-session mint.
 
-const SEED_EMAIL = 'demo.customer@carchief.com';
-const SEED_PASSWORD = 'CarChief#Fixture2026';
+const SEED_EMAIL = 'prabodha@carchief.com';
+const SEED_PASSWORD = 'Password@1234';
 
 async function startServer(store: ReturnType<typeof createStore>) {
   const app = createMockApiApp(store);

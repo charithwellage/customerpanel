@@ -1,12 +1,13 @@
 import React, { useState, useMemo } from 'react';
-import type { CustomerInquirySummary } from '@carchief/domain';
+import type { CustomerPolymorphicInquiry } from '@carchief/domain';
 import { useCustomerShell } from '../shell/index.js';
 import { useCustomerInquiries } from './useCustomerInquiries.js';
 import { InquiryMessageModal } from './components/InquiryMessageModal.js';
 import { SearchGlassIcon, InquiriesChatIcon } from '../../components/Icons.js';
+import { ViewModeToggle, type ViewMode } from '../../components/ViewModeToggle.js';
 import './inquiries.css';
 
-export interface PolymorphicInquiry {
+export interface PolymorphicInquiry extends CustomerPolymorphicInquiry {
   id: string;
   inquiryNumber: string;
   source: 'Stock' | 'WhatsApp' | 'Auction' | 'General';
@@ -34,7 +35,6 @@ export interface PolymorphicInquiry {
   inquirerCount?: number;
   auctionRemaining?: string;
   auctionFinished?: boolean;
-  imageUrl?: string;
 }
 
 export const SEED_INQUIRIES: PolymorphicInquiry[] = [
@@ -49,6 +49,15 @@ export const SEED_INQUIRIES: PolymorphicInquiry[] = [
     yom: '2021',
     stockNumber: 'J240111111',
     chassisNumber: 'NRE161-0091995',
+    vehicleSlug: '2021-toyota-corolla-fielder-veh-inv-1',
+    vehicleId: 'veh-inv-1',
+    engineCc: 1500,
+    mileage: 177000,
+    fuelType: 'Petrol',
+    transmission: 'Automatic',
+    color: 'Pearl White',
+    priceState: 'priced',
+    priceUsd: 1400,
     viewsCount: 12,
     message: 'Could you please confirm the earliest vessel departure schedule for Mombasa?',
     fobPriceUsd: 1400,
@@ -68,6 +77,13 @@ export const SEED_INQUIRIES: PolymorphicInquiry[] = [
     yom: '2024',
     lotNumber: '36071',
     chassisModel: 'A210A',
+    vehicleSlug: '2024-toyota-raize-veh-7',
+    vehicleId: 'veh-7',
+    engineCc: 1200,
+    mileage: 18500,
+    fuelType: 'Petrol',
+    transmission: 'Automatic',
+    color: 'Blue',
     viewsCount: 8,
     message: 'Inspection grade request and maximum auction bidding cap confirmation.',
     replyMessage: 'Grade 5.0 A condition verified. Starting bid placed at JAAI Yokohama.',
@@ -87,6 +103,10 @@ export const SEED_INQUIRIES: PolymorphicInquiry[] = [
     make: 'Toyota',
     model: 'Land Cruiser 250 ZX',
     yom: '2024',
+    vehicleSlug: '2024-toyota-land-cruiser-250-veh-6',
+    vehicleId: 'veh-6',
+    priceState: 'priced',
+    priceUsd: 45000,
     message: 'Looking for 2024 Land Cruiser 250 with sunroof, leather interior, and 7 seats.',
     replyMessage: 'We have reserved 2 units arriving at Yokohama port this week.',
     repliedAt: '26th Sep, 2024 16:00:00',
@@ -114,6 +134,7 @@ export const CustomerInquiriesPage: React.FC = () => {
   const [chassisNumberFilter, setChassisNumberFilter] = useState('');
   const [inquiryNumberFilter, setInquiryNumberFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
+  const [viewMode, setViewMode] = useState<ViewMode>('grid');
 
   // Wishlist heart toggle state
   const [wishlistToggled, setWishlistToggled] = useState<Record<string, boolean>>({});
@@ -129,7 +150,7 @@ export const CustomerInquiriesPage: React.FC = () => {
   };
 
   const filteredInquiries = useMemo(() => {
-    const dataSource = (apiInquiries && apiInquiries.length > 0) ? (apiInquiries as unknown as PolymorphicInquiry[]) : SEED_INQUIRIES;
+    const dataSource = (apiInquiries && apiInquiries.length > 0) ? (apiInquiries as PolymorphicInquiry[]) : SEED_INQUIRIES;
     return dataSource.filter((inq) => {
       // Source filter
       const effectiveSource = inq.source === 'WhatsApp' ? 'Stock' : inq.source;
@@ -166,6 +187,50 @@ export const CustomerInquiriesPage: React.FC = () => {
       return true;
     });
   }, [sources, keyword, stockNumberFilter, chassisNumberFilter, inquiryNumberFilter, statusFilter]);
+
+  const navigateToVehicle = (inquiry: PolymorphicInquiry) => {
+    if (inquiry.vehicleSlug) setActiveRoute(`/vehicles/${encodeURIComponent(inquiry.vehicleSlug)}`);
+  };
+
+  const handleVehicleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>, inquiry: PolymorphicInquiry) => {
+    if ((event.key === 'Enter' || event.key === ' ') && inquiry.vehicleSlug) {
+      event.preventDefault();
+      navigateToVehicle(inquiry);
+    }
+  };
+
+  const renderVehicleSpecs = (inquiry: PolymorphicInquiry) => {
+    const specs = [
+      inquiry.engineCc !== undefined ? `⚙️ ${inquiry.engineCc.toLocaleString()}CC` : null,
+      inquiry.mileage !== undefined ? `⚡ ${inquiry.mileage.toLocaleString()} KM` : null,
+      inquiry.fuelType ? `⛽ ${inquiry.fuelType}` : null,
+      inquiry.transmission ? `🕹️ ${inquiry.transmission}` : null,
+      inquiry.color ? `🎨 ${inquiry.color}` : null,
+    ].filter((value): value is string => Boolean(value));
+
+    return specs.length > 0 ? (
+      <div className="cc-inq-card__specs-row">
+        {specs.map((spec) => <span key={spec} className="cc-inq-spec-chip">{spec}</span>)}
+      </div>
+    ) : null;
+  };
+
+  const renderSellingPrice = (inquiry: PolymorphicInquiry) => {
+    if (inquiry.priceState !== 'priced' || inquiry.priceUsd === undefined) return null;
+    const pricing = inquiry.tierPricing;
+    const discounted = pricing && pricing.tierDiscountPercent > 0 && pricing.tierPriceUsd < pricing.originalPriceUsd;
+    return (
+      <div className="cc-inq-price-block">
+        <span className="cc-inq-price-label">Selling Price:</span>
+        <span className="cc-inq-price-values">
+          {discounted && <span className="cc-inq-price-val cc-inq-price-val--original">${pricing.originalPriceUsd.toLocaleString()} USD</span>}
+          <span className={`cc-inq-price-val ${discounted ? 'cc-inq-price-val--discounted' : ''}`}>
+            ${(discounted ? pricing.tierPriceUsd : inquiry.priceUsd).toLocaleString()} USD
+          </span>
+        </span>
+      </div>
+    );
+  };
 
   return (
     <div className="cc-inquiries-page" data-testid="customer-inquiries-page">
@@ -288,10 +353,11 @@ export const CustomerInquiriesPage: React.FC = () => {
         <span className="cc-inq-count-text">
           Total Records Found: <strong>{filteredInquiries.length}</strong>
         </span>
+        <ViewModeToggle value={viewMode} onChange={setViewMode} label="Inquiry vehicle view" />
       </div>
 
       {/* 3. INQUIRY CARDS LIST (FRD 6.7, 6.8, 6.9) */}
-      <div className="cc-inq-cards-list">
+      <div className={`cc-inq-cards-list cc-inq-cards-list--${viewMode}`}>
         {filteredInquiries.map((inq) => {
           const isWishlisted = Boolean(wishlistToggled[inq.id]);
 
@@ -300,10 +366,11 @@ export const CustomerInquiriesPage: React.FC = () => {
               <article key={inq.id} className="cc-inq-card cc-inq-card--stock" data-testid={`inq-card-${inq.inquiryNumber}`}>
                 <div
                   className="cc-inq-card__image-box"
-                  onClick={() => setActiveRoute('/inventory')}
+                  onClick={() => navigateToVehicle(inq)}
+                  onKeyDown={(event) => handleVehicleKeyDown(event, inq)}
                   role="button"
-                  tabIndex={0}
-                  title="Click to view in Browse Stock"
+                  tabIndex={inq.vehicleSlug ? 0 : -1}
+                  title={inq.vehicleSlug ? 'Click to view vehicle details' : 'Vehicle details unavailable'}
                 >
                   <img
                     src={inq.imageUrl || 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=600'}
@@ -370,23 +437,16 @@ export const CustomerInquiriesPage: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="cc-inq-card__specs-row">
-                    <span className="cc-inq-spec-chip">⚙️ 1,500CC</span>
-                    <span className="cc-inq-spec-chip">⚡ 177,000 KM</span>
-                    <span className="cc-inq-spec-chip">⛽ Petrol</span>
-                    <span className="cc-inq-spec-chip">🕹️ Automatic</span>
-                    <span className="cc-inq-spec-chip">🎨 Pearl White</span>
-                  </div>
+                  {renderVehicleSpecs(inq)}
 
                   <div className="cc-inq-card__financials">
-                    <div className="cc-inq-price-block">
-                      <span className="cc-inq-price-label">FOB Price:</span>
-                      <span className="cc-inq-price-val">${inq.fobPriceUsd?.toLocaleString()} USD</span>
-                    </div>
-                    <div className="cc-inq-price-block">
-                      <span className="cc-inq-price-label">C&amp;F Price:</span>
-                      <span className="cc-inq-price-val cc-inq-price-val--bold">${inq.cfPriceUsd?.toLocaleString()} USD</span>
-                    </div>
+                    {renderSellingPrice(inq)}
+                    {inq.cfPriceUsd !== undefined && (
+                      <div className="cc-inq-price-block">
+                        <span className="cc-inq-price-label">C&amp;F Price:</span>
+                        <span className="cc-inq-price-val cc-inq-price-val--bold">${inq.cfPriceUsd.toLocaleString()} USD</span>
+                      </div>
+                    )}
                     <div className="cc-inq-delivery-block">
                       <span className="cc-inq-delivery-label">Deliver To:</span>
                       <span className="cc-inq-delivery-val">{inq.deliveryLocation}</span>
@@ -403,10 +463,11 @@ export const CustomerInquiriesPage: React.FC = () => {
               <article key={inq.id} className="cc-inq-card cc-inq-card--auction" data-testid={`inq-card-${inq.inquiryNumber}`}>
                 <div
                   className="cc-inq-card__image-box"
-                  onClick={() => setActiveRoute('/inventory')}
+                  onClick={() => navigateToVehicle(inq)}
+                  onKeyDown={(event) => handleVehicleKeyDown(event, inq)}
                   role="button"
-                  tabIndex={0}
-                  title="Click to view Auction details"
+                  tabIndex={inq.vehicleSlug ? 0 : -1}
+                  title={inq.vehicleSlug ? 'Click to view vehicle details' : 'Vehicle details unavailable'}
                 >
                   <img
                     src={inq.imageUrl || 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=600'}
@@ -466,6 +527,8 @@ export const CustomerInquiriesPage: React.FC = () => {
                   </div>
 
                   <div className="cc-inq-card__financials">
+                    {renderVehicleSpecs(inq)}
+                    {renderSellingPrice(inq)}
                     <div className="cc-inq-price-block">
                       <span className="cc-inq-price-label">Start Price:</span>
                       <span className="cc-inq-price-val">${inq.startPriceUsd?.toLocaleString()} USD</span>
@@ -487,9 +550,29 @@ export const CustomerInquiriesPage: React.FC = () => {
           // General Inquiry (FRD 6.9: No Image)
           return (
             <article key={inq.id} className="cc-inq-card cc-inq-card--general" data-testid={`inq-card-${inq.inquiryNumber}`}>
-              <div className="cc-inq-card__no-image-box">
-                <span className="cc-inq-no-image-text">No Image</span>
-              </div>
+              {inq.imageUrl ? (
+                <div
+                  className="cc-inq-card__image-box"
+                  onClick={() => navigateToVehicle(inq)}
+                  onKeyDown={(event) => handleVehicleKeyDown(event, inq)}
+                  role={inq.vehicleSlug ? 'button' : undefined}
+                  tabIndex={inq.vehicleSlug ? 0 : -1}
+                  title={inq.vehicleSlug ? 'Click to view vehicle details' : undefined}
+                >
+                  <img src={inq.imageUrl} alt={`${inq.make} ${inq.model}`} className="cc-inq-card__image" loading="lazy" />
+                </div>
+              ) : (
+                <div
+                  className="cc-inq-card__no-image-box"
+                  onClick={() => navigateToVehicle(inq)}
+                  onKeyDown={(event) => handleVehicleKeyDown(event, inq)}
+                  role={inq.vehicleSlug ? 'button' : undefined}
+                  tabIndex={inq.vehicleSlug ? 0 : -1}
+                  title={inq.vehicleSlug ? 'Click to view vehicle details' : undefined}
+                >
+                  <span className="cc-inq-no-image-text">No Image</span>
+                </div>
+              )}
 
               <div className="cc-inq-card__body">
                 <div className="cc-inq-card__top">
@@ -528,13 +611,16 @@ export const CustomerInquiriesPage: React.FC = () => {
                   </div>
                 </div>
 
+                {renderVehicleSpecs(inq)}
+
                 <div className="cc-inq-card__financials">
+                  {renderSellingPrice(inq)}
                   <div className="cc-inq-price-block">
-                    <span className="cc-inq-price-label">Min FOB:</span>
+                    <span className="cc-inq-price-label">Min Selling Price:</span>
                     <span className="cc-inq-price-val">${inq.minFobUsd?.toLocaleString()} USD</span>
                   </div>
                   <div className="cc-inq-price-block">
-                    <span className="cc-inq-price-label">Max FOB:</span>
+                    <span className="cc-inq-price-label">Max Selling Price:</span>
                     <span className="cc-inq-price-val">${inq.maxFobUsd?.toLocaleString()} USD</span>
                   </div>
                   <div className="cc-inq-delivery-block">

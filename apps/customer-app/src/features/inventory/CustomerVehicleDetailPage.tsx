@@ -1,8 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { VehicleGalleryPrimitive, formatVehicleTitle, getVisibleGalleryImages } from '@carchief/vehicle-detail';
 import { useCustomerShell } from '../shell/index.js';
 import { useCustomerProfile } from '../profile/index.js';
 import { useCustomerVehicleDetail } from './useCustomerVehicleDetail.js';
+import { CustomerInquiryModal } from './CustomerInquiryModal.js';
+import { useCustomerTierBenefits } from './useCustomerTierBenefits.js';
+import { CustomerVehicleSpecifications } from '../../components/CustomerVehicleSpecifications.js';
 
 export interface CustomerVehicleDetailPageProps {
   slug: string;
@@ -19,9 +22,10 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
 }) => {
   const { user } = useCustomerShell();
   const { data: profile } = useCustomerProfile();
+  const { data: tierBenefits } = useCustomerTierBenefits();
   const destinationCountry = profile?.deliveryAddress || user?.company || 'Kenya';
 
-  const { state, refetch, reserveVehicle, requestPriceInquiry, submitQuoteRequest, toggleWishlist } = useCustomerVehicleDetail({
+  const { state, refetch, reserveVehicle, requestPriceInquiry, toggleWishlist } = useCustomerVehicleDetail({
     idOrSlug: slug,
     apiBaseUrl,
     token,
@@ -29,6 +33,9 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
   });
 
   const { vehicle, loading, error, reserving, reserveSuccess, reserveError, holdExpiresAt } = state;
+  const [inquiryModalOpen, setInquiryModalOpen] = useState(false);
+  const [inquiryNotice, setInquiryNotice] = useState<string | null>(null);
+  const [tierInfoOpen, setTierInfoOpen] = useState(false);
 
   if (loading) {
     return (
@@ -59,18 +66,53 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
   }
 
   const title = formatVehicleTitle(vehicle);
+  const customerName = profile?.name || user?.name || '';
+  const customerEmail = profile?.email || user?.email || '';
   const images = vehicle.media ? getVisibleGalleryImages(vehicle.media) : [];
   const tierPricing = vehicle.tierPricing;
   const isRequestPrice = Boolean(vehicle.requestPrice || vehicle.priceState === 'request_price' || !vehicle.priceUsd);
   const eligibility = vehicle.reservationEligibility;
+  const inquiryEligibility = vehicle.inquiryEligibility;
+  const inquiryBlockedForAllocation = inquiryEligibility?.reason === 'allocated_to_another_customer';
+  const inquiryBlockedForInvoiced = vehicle.status === 'Invoiced';
+  const inquiryDisabled = state.inquirySubmitting || inquiryBlockedForAllocation || inquiryBlockedForInvoiced;
+  const inquiryDisabledMessage = inquiryBlockedForInvoiced
+    ? 'You cannot submit an inquiry because this vehicle has already been invoiced.'
+    : inquiryBlockedForAllocation
+      ? 'You cannot submit an inquiry because this vehicle has already been allocated to another customer.'
+      : undefined;
 
   const originalPrice = tierPricing ? tierPricing.originalPriceUsd : (vehicle.priceUsd ?? 0);
-  const finalPrice = tierPricing
-    ? tierPricing.tierPriceUsd
+  const hasTierDiscount = Boolean(tierPricing && tierPricing.tierDiscountPercent > 0);
+  const hasVehicleDiscount = Boolean(
+    !isRequestPrice &&
+    vehicle.discountedPriceUsd !== undefined &&
+    vehicle.priceUsd !== undefined &&
+    vehicle.discountedPriceUsd < vehicle.priceUsd,
+  );
+  const hasApplicableDiscount = hasTierDiscount || hasVehicleDiscount;
+  const finalPrice = hasTierDiscount
+    ? tierPricing!.tierPriceUsd
     : (vehicle.discountedPriceUsd ?? vehicle.priceUsd ?? 0);
 
   const displayExpiry = holdExpiresAt || eligibility?.holdExpiresAt;
   const formattedExpiry = displayExpiry ? new Date(displayExpiry).toLocaleString() : '';
+
+  const handleOpenInquiry = () => {
+    if (state.inquiryAlreadySubmitted) {
+      setInquiryNotice('You have already submitted an inquiry for this vehicle.');
+      return;
+    }
+    setInquiryNotice(null);
+    setInquiryModalOpen(true);
+  };
+
+  const handleSubmitInquiry = async (message: string) => {
+    const response = await requestPriceInquiry(message);
+    if (!response) return;
+    setInquiryModalOpen(false);
+    setInquiryNotice(response.duplicate ? 'You have already submitted an inquiry for this vehicle.' : null);
+  };
 
   return (
     <div className="cc-cust-detail-page" data-testid="customer-vehicle-detail-page">
@@ -95,7 +137,7 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
           <VehicleGalleryPrimitive
             images={images}
             title={title}
-            badges={[{ label: vehicle.status, tone: vehicle.status === 'Available' ? ('success' as const) : ('warning' as const) }]}
+            badges={[{ label: vehicle.statusLabel || '', tone: vehicle.status === 'Available' ? ('success' as const) : ('warning' as const) }]}
           />
         </div>
 
@@ -165,11 +207,33 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
               </div>
             ) : (
               <div className="cc-cust-price-card__breakdown">
-                {tierPricing && tierPricing.tierDiscountPercent > 0 && (
+                {hasApplicableDiscount && (
                   <div className="cc-cust-price-card__tier-info">
-                    <span className="cc-cust-tier-badge">
-                      ⭐️ {tierPricing.tier} Tier Member (-{tierPricing.tierDiscountPercent}%)
-                    </span>
+                    {hasTierDiscount && (
+                      <div
+                        className="cc-cust-tier-benefit-badge"
+                        onMouseEnter={() => setTierInfoOpen(true)}
+                        onMouseLeave={() => setTierInfoOpen(false)}
+                      >
+                        <span className="cc-cust-tier-badge">
+                          ⭐️ {tierPricing!.tier} Tier Member (-{tierPricing!.tierDiscountPercent}%)
+                        </span>
+                        <button
+                          type="button"
+                          className="cc-cust-tier-benefit-badge__info"
+                          aria-label="Show customer tier benefits"
+                          aria-expanded={tierInfoOpen}
+                          onClick={() => setTierInfoOpen((open) => !open)}
+                        >
+                          i
+                        </button>
+                        {tierInfoOpen && tierBenefits && (
+                          <span className="cc-cust-tier-benefit-badge__tooltip" role="tooltip">
+                            {tierBenefits.description} Discount: {tierBenefits.discountPercent}%. Reservation capacity: {tierBenefits.remainingReservations} of {tierBenefits.maxActiveReservations} remaining.
+                          </span>
+                        )}
+                      </div>
+                    )}
                     <span className="cc-cust-price-card__original">
                       Original Price: ${originalPrice.toLocaleString()} USD
                     </span>
@@ -188,6 +252,11 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
           {/* Reservation Card (RULE-05, RULE-08, RULE-10, PUB-23) */}
           <div className="cc-cust-reservation-card" data-testid="vehicle-reservation-card">
             <h2 className="cc-cust-reservation-card__heading">Vehicle Allocation & Reservation</h2>
+            {tierBenefits && (
+              <p className="cc-cust-reservation-capacity" data-testid="reservation-capacity">
+                {tierBenefits.remainingReservations} of {tierBenefits.maxActiveReservations} reservation holds remaining for your {tierBenefits.tier} tier account.
+              </p>
+            )}
 
             {reserveSuccess || eligibility?.isOwnHold ? (
               <div className="cc-cust-reservation-status cc-cust-reservation-status--own-hold" role="status">
@@ -280,39 +349,57 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
             )}
           </div>
 
-          {/* Customer App Actions: Quote Request and Wishlist (D02-P13-T005) */}
+          {/* Customer App Actions: Inquiry and Wishlist (D02-P13-T005) */}
           <div className="cc-cust-actions-card" data-testid="customer-actions-card">
             <h2 className="cc-cust-actions-card__heading">Customer Actions</h2>
             <div className="cc-cust-actions-grid">
-              {/* Quote Request Button */}
+              {/* Vehicle Inquiry */}
               <div className="cc-cust-action-item">
-                {state.quoteSubmitSuccess ? (
+                {inquiryBlockedForAllocation && (
+                  <div className="cc-cust-status-banner cc-cust-status-banner--info" role="status" data-testid="allocated-vehicle-notice">
+                    <span className="cc-cust-status-banner__icon">ℹ️</span>
+                    <div><strong>Vehicle Already Allocated</strong><p>This vehicle has already been allocated to another customer.</p></div>
+                  </div>
+                )}
+                {inquiryNotice && (
                   <div className="cc-cust-status-banner cc-cust-status-banner--success" role="status">
                     <span className="cc-cust-status-banner__icon">✓</span>
                     <div>
-                      <strong>Quote Requested</strong>
-                      <p>Our export desk will contact you shortly with pricing information.</p>
+                      <strong>Inquiry Already Submitted</strong>
+                      <p>{inquiryNotice}</p>
                     </div>
                   </div>
-                ) : (
-                  <>
-                    {state.quoteSubmitError && (
-                      <div className="cc-cust-reservation-error" role="alert">
-                        <p>{state.quoteSubmitError}</p>
-                      </div>
-                    )}
-                    <button
-                      type="button"
-                      className="cc-cust-btn cc-cust-btn--primary cc-cust-btn--large"
-                      onClick={submitQuoteRequest}
-                      disabled={state.quoteSubmitting}
-                      data-testid="quote-request-btn"
-                      aria-label={state.quoteSubmitting ? 'Requesting quote...' : 'Request free quote'}
-                    >
-                      {state.quoteSubmitting ? 'Requesting Quote...' : 'Get Free Quote'}
-                    </button>
-                  </>
                 )}
+                {!inquiryNotice && state.inquiryDuplicate && (
+                  <div className="cc-cust-status-banner cc-cust-status-banner--success" role="status">
+                    <span className="cc-cust-status-banner__icon">✓</span>
+                    <div><strong>Inquiry Already Submitted</strong><p>You have already submitted an inquiry for this vehicle.</p></div>
+                  </div>
+                )}
+                {!inquiryNotice && !state.inquiryDuplicate && state.inquirySuccess && (
+                  <div className="cc-cust-status-banner cc-cust-status-banner--success" role="status">
+                    <span className="cc-cust-status-banner__icon">✓</span>
+                    <div><strong>Inquiry Submitted</strong><p>Your inquiry has been submitted successfully.</p></div>
+                  </div>
+                )}
+                {state.inquiryError && (
+                  <div className="cc-cust-reservation-error" role="alert"><p>{state.inquiryError}</p></div>
+                )}
+                <span
+                  className={`cc-cust-disabled-action${inquiryDisabledMessage ? ' cc-cust-disabled-action--disabled' : ''}`}
+                  title={inquiryDisabledMessage}
+                >
+                  <button
+                    type="button"
+                    className="cc-cust-btn cc-cust-btn--primary cc-cust-btn--large"
+                    onClick={handleOpenInquiry}
+                    disabled={inquiryDisabled}
+                    data-testid="submit-inquiry-btn"
+                    aria-label={state.inquirySubmitting ? 'Submitting inquiry...' : 'Submit an inquiry'}
+                  >
+                    {state.inquirySubmitting ? 'Submitting Inquiry...' : 'Submit an Inquiry'}
+                  </button>
+                </span>
               </div>
 
               {/* Wishlist Toggle Button */}
@@ -340,66 +427,20 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
             </div>
           </div>
 
-          {/* Specifications Table */}
-          <div className="cc-cust-specs-card">
-            <h2 className="cc-cust-specs-card__heading">Vehicle Specifications</h2>
-            <dl className="cc-cust-specs-list">
-              <div className="cc-cust-specs-item">
-                <dt>Chassis No.</dt>
-                <dd>{vehicle.chassisNumber}</dd>
-              </div>
-              <div className="cc-cust-specs-item">
-                <dt>Year</dt>
-                <dd>{vehicle.year}</dd>
-              </div>
-              <div className="cc-cust-specs-item">
-                <dt>Make</dt>
-                <dd>{vehicle.make}</dd>
-              </div>
-              <div className="cc-cust-specs-item">
-                <dt>Model</dt>
-                <dd>{vehicle.model}</dd>
-              </div>
-              {vehicle.bodyStyle && (
-                <div className="cc-cust-specs-item">
-                  <dt>Body Style</dt>
-                  <dd>{vehicle.bodyStyle}</dd>
-                </div>
-              )}
-              {vehicle.fuelType && (
-                <div className="cc-cust-specs-item">
-                  <dt>Fuel Type</dt>
-                  <dd>{vehicle.fuelType}</dd>
-                </div>
-              )}
-              {vehicle.transmission && (
-                <div className="cc-cust-specs-item">
-                  <dt>Transmission</dt>
-                  <dd>{vehicle.transmission}</dd>
-                </div>
-              )}
-              {vehicle.driveTrain && (
-                <div className="cc-cust-specs-item">
-                  <dt>Drive Train</dt>
-                  <dd>{vehicle.driveTrain}</dd>
-                </div>
-              )}
-              {vehicle.mileage !== undefined && (
-                <div className="cc-cust-specs-item">
-                  <dt>Mileage</dt>
-                  <dd>{vehicle.mileage.toLocaleString()} km</dd>
-                </div>
-              )}
-              {vehicle.stockType && (
-                <div className="cc-cust-specs-item">
-                  <dt>Stock Type</dt>
-                  <dd>{vehicle.stockType === 'J' ? 'Japan Stock' : vehicle.stockType === 'CRFO' ? 'Cross-Regional Stock' : vehicle.stockType}</dd>
-                </div>
-              )}
-            </dl>
-          </div>
+          <CustomerVehicleSpecifications vehicle={vehicle} />
         </div>
       </div>
+
+      <CustomerInquiryModal
+        isOpen={inquiryModalOpen}
+        vehicleTitle={title}
+        customerName={customerName}
+        customerEmail={customerEmail}
+        submitting={state.inquirySubmitting}
+        error={state.inquiryError}
+        onClose={() => setInquiryModalOpen(false)}
+        onSubmit={handleSubmitInquiry}
+      />
     </div>
   );
 };

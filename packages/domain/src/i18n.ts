@@ -815,6 +815,53 @@ export const TRANSLATION_DICTIONARIES: Record<LanguageCode, TranslationDictionar
   },
 };
 
+/** Customer-app UI translations added independently from the public-web catalog. */
+export const CUSTOMER_APP_TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
+  en: {
+    'customer.profileSecurity': 'Profile & Security', 'customer.bulletinsAlerts': 'Bulletins & Alerts', 'customer.portalInventory': 'CUSTOMER PORTAL / INVENTORY',
+    'customer.vehicleInventory': 'Vehicle Inventory', 'customer.inventorySubtitle': 'Search and compare vehicles available to your account, then enquire or reserve the vehicle that fits your requirements.',
+    'customer.tierAccount': '{tier} Tier Account', 'customer.tierInfo': 'More information about {tier} tier pricing',
+    'customer.discount': 'Discount: {percent}%', 'customer.reservations': 'Reservations: {used}/{maximum} used · {remaining} remaining',
+    'customer.previous': 'Previous', 'customer.next': 'Next', 'customer.pageOf': 'Page {page} of {total}',
+    'customer.vehiclesCount': '{count} vehicles', 'customer.totalPurchased': 'Total Purchased', 'customer.commercialBills': 'Commercial Bills',
+    'customer.settlementRate': 'Settlement Rate', 'customer.availableFunds': 'Available Funds', 'customer.fleetLogistics': 'Fleet Logistics',
+    'customer.readyToShip': 'Ready to ship', 'customer.inTransit': 'In transit', 'customer.arrivedAtPort': 'Arrived at port', 'customer.delivered': 'Delivered', 'customer.grid': 'Grid', 'customer.list': 'List', 'customer.gridView': 'Grid view', 'customer.listView': 'List view',
+    'customer.searchStock': 'Search Stock', 'customer.resetFilters': 'Reset Filters', 'customer.loading': 'Loading...', 'customer.retry': 'Retry',
+  },
+  ja: {
+    'customer.profileSecurity': 'プロフィールとセキュリティ', 'customer.bulletinsAlerts': 'お知らせとアラート', 'customer.portalInventory': 'カスタマーポータル / 在庫',
+    'customer.vehicleInventory': '車両在庫', 'customer.inventorySubtitle': 'お客様のアカウントで利用できる車両を検索・比較し、ご希望の車両についてお問い合わせまたは予約ができます。',
+    'customer.tierAccount': '{tier}会員アカウント', 'customer.tierInfo': '{tier}会員価格の詳細',
+    'customer.discount': '割引: {percent}%', 'customer.reservations': '予約: {used}/{maximum}台使用中 · 残り{remaining}台',
+    'customer.previous': '前へ', 'customer.next': '次へ', 'customer.pageOf': '{page} / {total}ページ',
+    'customer.vehiclesCount': '{count}台', 'customer.totalPurchased': '購入車両数', 'customer.commercialBills': 'コマーシャルインボイス',
+    'customer.settlementRate': '決済率', 'customer.availableFunds': '利用可能残高', 'customer.fleetLogistics': '車両物流状況',
+    'customer.readyToShip': '出荷準備完了', 'customer.inTransit': '輸送中', 'customer.arrivedAtPort': '港に到着', 'customer.delivered': '納車済み', 'customer.grid': 'グリッド', 'customer.list': 'リスト', 'customer.gridView': 'グリッド表示', 'customer.listView': 'リスト表示',
+    'customer.searchStock': '在庫を検索', 'customer.resetFilters': 'フィルターをリセット', 'customer.loading': '読み込み中...', 'customer.retry': '再試行',
+  },
+  es: {
+    'customer.profileSecurity': 'Perfil y seguridad', 'customer.bulletinsAlerts': 'Boletines y alertas', 'customer.vehicleInventory': 'Inventario de vehículos',
+    'customer.inventorySubtitle': 'Busca y compara vehículos disponibles para tu cuenta y consulta o reserva el que necesitas.', 'customer.tierAccount': 'Cuenta de nivel {tier}', 'customer.tierInfo': 'Más información sobre los precios del nivel {tier}',
+    'customer.discount': 'Descuento: {percent}%', 'customer.reservations': 'Reservas: {used}/{maximum} usadas · {remaining} restantes', 'customer.previous': 'Anterior', 'customer.next': 'Siguiente', 'customer.pageOf': 'Página {page} de {total}', 'customer.vehiclesCount': '{count} vehículos',
+    'customer.totalPurchased': 'Total comprado', 'customer.commercialBills': 'Facturas comerciales', 'customer.settlementRate': 'Tasa de liquidación', 'customer.availableFunds': 'Fondos disponibles', 'customer.fleetLogistics': 'Logística de vehículos', 'customer.readyToShip': 'Listo para enviar', 'customer.inTransit': 'En tránsito', 'customer.arrivedAtPort': 'Llegó al puerto', 'customer.delivered': 'Entregado', 'customer.searchStock': 'Buscar stock', 'customer.resetFilters': 'Restablecer filtros', 'customer.loading': 'Cargando...', 'customer.retry': 'Reintentar',
+  },
+  fr: {
+    'customer.profileSecurity': 'Profil et sécurité', 'customer.bulletinsAlerts': 'Bulletins et alertes', 'customer.vehicleInventory': 'Inventaire des véhicules', 'customer.inventorySubtitle': 'Recherchez et comparez les véhicules disponibles pour votre compte, puis demandez ou réservez celui qui vous convient.', 'customer.tierAccount': 'Compte niveau {tier}', 'customer.tierInfo': 'Informations sur les prix du niveau {tier}', 'customer.discount': 'Remise : {percent} %', 'customer.reservations': 'Réservations : {used}/{maximum} utilisées · {remaining} restantes', 'customer.previous': 'Précédent', 'customer.next': 'Suivant', 'customer.pageOf': 'Page {page} sur {total}', 'customer.vehiclesCount': '{count} véhicules', 'customer.totalPurchased': 'Total acheté', 'customer.commercialBills': 'Factures commerciales', 'customer.settlementRate': 'Taux de règlement', 'customer.availableFunds': 'Fonds disponibles', 'customer.fleetLogistics': 'Logistique des véhicules', 'customer.readyToShip': 'Prêt à expédier', 'customer.inTransit': 'En transit', 'customer.arrivedAtPort': 'Arrivé au port', 'customer.delivered': 'Livré', 'customer.searchStock': 'Rechercher un stock', 'customer.resetFilters': 'Réinitialiser les filtres', 'customer.loading': 'Chargement...', 'customer.retry': 'Réessayer',
+  },
+  sw: {
+    'customer.profileSecurity': 'Wasifu na Usalama', 'customer.bulletinsAlerts': 'Taarifa na Tahadhari', 'customer.vehicleInventory': 'Orodha ya Magari', 'customer.inventorySubtitle': 'Tafuta na linganisha magari yanayopatikana kwenye akaunti yako, kisha uliza au weka nafasi.', 'customer.tierAccount': 'Akaunti ya kiwango cha {tier}', 'customer.tierInfo': 'Maelezo zaidi kuhusu bei ya kiwango cha {tier}', 'customer.discount': 'Punguzo: {percent}%', 'customer.reservations': 'Nafasi: {used}/{maximum} zimetumika · {remaining} zimesalia', 'customer.previous': 'Iliyotangulia', 'customer.next': 'Inayofuata', 'customer.pageOf': 'Ukurasa wa {page} kati ya {total}', 'customer.vehiclesCount': 'magari {count}', 'customer.totalPurchased': 'Jumla Iliyonunuliwa', 'customer.commercialBills': 'Ankara za Biashara', 'customer.settlementRate': 'Kiwango cha Malipo', 'customer.availableFunds': 'Fedha Zinazopatikana', 'customer.fleetLogistics': 'Usafirishaji wa Magari', 'customer.readyToShip': 'Tayari kusafirishwa', 'customer.inTransit': 'Zinasafirishwa', 'customer.arrivedAtPort': 'Zimefika bandarini', 'customer.delivered': 'Zimewasilishwa', 'customer.searchStock': 'Tafuta Magari', 'customer.resetFilters': 'Weka upya vichujio', 'customer.loading': 'Inapakia...', 'customer.retry': 'Jaribu tena',
+  },
+  pt: {
+    'customer.profileSecurity': 'Perfil e segurança', 'customer.bulletinsAlerts': 'Boletins e alertas', 'customer.vehicleInventory': 'Inventário de veículos', 'customer.inventorySubtitle': 'Pesquise e compare veículos disponíveis para a sua conta e consulte ou reserve o veículo ideal.', 'customer.tierAccount': 'Conta de nível {tier}', 'customer.tierInfo': 'Mais informações sobre os preços do nível {tier}', 'customer.discount': 'Desconto: {percent}%', 'customer.reservations': 'Reservas: {used}/{maximum} usadas · {remaining} restantes', 'customer.previous': 'Anterior', 'customer.next': 'Seguinte', 'customer.pageOf': 'Página {page} de {total}', 'customer.vehiclesCount': '{count} veículos', 'customer.totalPurchased': 'Total comprado', 'customer.commercialBills': 'Faturas comerciais', 'customer.settlementRate': 'Taxa de liquidação', 'customer.availableFunds': 'Fundos disponíveis', 'customer.fleetLogistics': 'Logística de veículos', 'customer.readyToShip': 'Pronto para envio', 'customer.inTransit': 'Em trânsito', 'customer.arrivedAtPort': 'Chegou ao porto', 'customer.delivered': 'Entregue', 'customer.searchStock': 'Pesquisar stock', 'customer.resetFilters': 'Repor filtros', 'customer.loading': 'A carregar...', 'customer.retry': 'Tentar novamente',
+  },
+  ru: {
+    'customer.profileSecurity': 'Профиль и безопасность', 'customer.bulletinsAlerts': 'Уведомления и оповещения', 'customer.vehicleInventory': 'Автомобильный инвентарь', 'customer.inventorySubtitle': 'Ищите и сравнивайте автомобили, доступные для вашего аккаунта, затем отправляйте запрос или бронируйте подходящий.', 'customer.tierAccount': 'Аккаунт уровня {tier}', 'customer.tierInfo': 'Подробнее о ценах уровня {tier}', 'customer.discount': 'Скидка: {percent}%', 'customer.reservations': 'Брони: {used}/{maximum} использовано · осталось {remaining}', 'customer.previous': 'Назад', 'customer.next': 'Далее', 'customer.pageOf': 'Страница {page} из {total}', 'customer.vehiclesCount': '{count} автомобилей', 'customer.totalPurchased': 'Всего куплено', 'customer.commercialBills': 'Коммерческие счета', 'customer.settlementRate': 'Процент расчётов', 'customer.availableFunds': 'Доступные средства', 'customer.fleetLogistics': 'Логистика автомобилей', 'customer.readyToShip': 'Готов к отправке', 'customer.inTransit': 'В пути', 'customer.arrivedAtPort': 'Прибыл в порт', 'customer.delivered': 'Доставлен', 'customer.searchStock': 'Поиск автомобилей', 'customer.resetFilters': 'Сбросить фильтры', 'customer.loading': 'Загрузка...', 'customer.retry': 'Повторить',
+  },
+  ar: {
+    'customer.profileSecurity': 'الملف الشخصي والأمان', 'customer.bulletinsAlerts': 'النشرات والتنبيهات', 'customer.vehicleInventory': 'مخزون المركبات', 'customer.inventorySubtitle': 'ابحث وقارن المركبات المتاحة لحسابك، ثم أرسل استفساراً أو احجز المركبة المناسبة.', 'customer.tierAccount': 'حساب الفئة {tier}', 'customer.tierInfo': 'معلومات أكثر عن أسعار الفئة {tier}', 'customer.discount': 'الخصم: {percent}%', 'customer.reservations': 'الحجوزات: {used}/{maximum} مستخدمة · المتبقي {remaining}', 'customer.previous': 'السابق', 'customer.next': 'التالي', 'customer.pageOf': 'الصفحة {page} من {total}', 'customer.vehiclesCount': '{count} مركبات', 'customer.totalPurchased': 'إجمالي المشتريات', 'customer.commercialBills': 'الفواتير التجارية', 'customer.settlementRate': 'نسبة التسوية', 'customer.availableFunds': 'الأموال المتاحة', 'customer.fleetLogistics': 'لوجستيات المركبات', 'customer.readyToShip': 'جاهز للشحن', 'customer.inTransit': 'قيد النقل', 'customer.arrivedAtPort': 'وصل إلى الميناء', 'customer.delivered': 'تم التسليم', 'customer.searchStock': 'بحث في المخزون', 'customer.resetFilters': 'إعادة ضبط المرشحات', 'customer.loading': 'جارٍ التحميل...', 'customer.retry': 'إعادة المحاولة',
+  },
+};
+
 /**
  * Replaces `{key}` placeholders in a template string with provided values.
  */
@@ -840,7 +887,7 @@ export function translateKey(
   const dict = TRANSLATION_DICTIONARIES[lang] || TRANSLATION_DICTIONARIES.en;
   const englishDict = TRANSLATION_DICTIONARIES.en;
 
-  const raw = dict[key] ?? englishDict[key] ?? defaultText ?? key;
+  const raw = CUSTOMER_APP_TRANSLATIONS[lang]?.[key] ?? CUSTOMER_APP_TRANSLATIONS.en[key] ?? dict[key] ?? englishDict[key] ?? defaultText ?? key;
   return formatTranslation(raw, params);
 }
 

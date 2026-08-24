@@ -1,17 +1,9 @@
-import type { CustomerDocument, CustomerDocumentList, CustomerShipment, CustomerShipmentList } from '../generated/schema.js';
+import type { CustomerDocument, CustomerDocumentList } from '../generated/schema.js';
 import type { HttpClient } from '../http.js';
 
 /** Customer-scoped shipment and released-document projections. */
 export class LogisticsService {
   constructor(private httpClient?: HttpClient) {}
-
-  public async listShipments(): Promise<CustomerShipmentList> {
-    return this.requireClient().request<CustomerShipmentList>('/customer/shipments');
-  }
-
-  public async getShipment(id: string): Promise<CustomerShipment> {
-    return this.requireClient().request<CustomerShipment>(`/customer/shipments/${encodeURIComponent(id)}`);
-  }
 
   public async listDocuments(): Promise<CustomerDocumentList> {
     return this.requireClient().request<CustomerDocumentList>('/customer/documents');

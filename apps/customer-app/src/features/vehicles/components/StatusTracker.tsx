@@ -77,7 +77,7 @@ export function calculateVehiclePipeline(
     statusStr = (vehicleOrStatus.status || '').toLowerCase();
     logisticsStr = (vehicleOrStatus.logisticsStatus || '').toUpperCase();
     shippingStr = (vehicleOrStatus.shippingStage || '').toUpperCase();
-    hasCommercialBill = Boolean((vehicleOrStatus as CustomerVehicleSummary).commercialBill);
+    hasCommercialBill = Boolean((vehicleOrStatus as CustomerVehicleSummary).commercialBill && (vehicleOrStatus as CustomerVehicleSummary).paymentStatus === 'Paid');
     hasProforma = Boolean((vehicleOrStatus as CustomerVehicleSummary).proformaInvoiceId);
   } else {
     statusStr = (vehicleOrStatus || '').toLowerCase();

@@ -1,4 +1,4 @@
-import type { CustomerInquiryListResponse } from '@carchief/domain';
+import type { CustomerPolymorphicInquiryListResponse } from '@carchief/domain';
 import type { HttpClient } from '../http.js';
 
 /**
@@ -15,11 +15,11 @@ export class CustomerInquiryService {
    * List all quote-request inquiries for the signed-in customer (CUST-34).
    * Returns the customer's own inquiries plus the per-vehicle inquirer-count aggregate.
    */
-  public async list(): Promise<CustomerInquiryListResponse> {
+  public async list(): Promise<CustomerPolymorphicInquiryListResponse> {
     if (!this.httpClient) {
       throw new Error('CustomerInquiryService.list requires an HttpClient');
     }
-    return this.httpClient.request<CustomerInquiryListResponse>('/api/v1/customer/inquiries');
+    return this.httpClient.request<CustomerPolymorphicInquiryListResponse>('/api/v1/customer/inquiries');
   }
 
 }

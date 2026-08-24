@@ -8,6 +8,7 @@ export interface PublicConfig {
   currency: string;
   contactPhone: string;
   liveAuctionUrl?: string;
+  tierDescriptions?: Partial<Record<'Platinum' | 'Gold' | 'Silver' | 'Standard', string>>;
 }
 
 export interface SessionClaims {
@@ -16,6 +17,7 @@ export interface SessionClaims {
   role: 'PublicVisitor' | 'CustomerBuyer' | 'Salesperson' | 'StockController' | 'FinanceManager' | 'SystemAdmin';
   permissions: string[];
   exp: number;
+  tier?: 'Platinum' | 'Gold' | 'Silver' | 'Standard';
 }
 
 // Phase 2.12: customer self-registration, credential handling and the
@@ -30,10 +32,20 @@ export interface CustomerAccount {
   dialCode: string;
   mobileNumber: string;
   email: string;
+  tier: 'Platinum' | 'Gold' | 'Silver' | 'Standard';
   status: string;
   verificationState: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface CustomerTierBenefits {
+  tier: 'Platinum' | 'Gold' | 'Silver' | 'Standard';
+  discountPercent: number;
+  maxActiveReservations: number;
+  activeReservations: number;
+  remainingReservations: number;
+  description: string;
 }
 
 export interface RegisterCustomerRequest {
@@ -117,6 +129,9 @@ export interface VehicleSummary {
   stockType?: 'J' | 'CRFO';
   destinationPort?: string;
   discountPercent?: number;
+  tierPricing?: VehicleTierPricing;
+  reservationEligibility?: VehicleReservationEligibility;
+  inquiryEligibility?: VehicleInquiryEligibility;
 }
 
 export interface CategorizedPublicMedia {
@@ -137,6 +152,9 @@ export interface VehicleDetail {
   model: string;
   year: number;
   status: 'Draft' | 'Available' | 'Pending' | 'Reserved' | 'ReservedWithPI' | 'InvoiceCreated' | 'Invoiced' | 'Sold';
+  statusLabel?: string;
+  statusLabelPlural?: string;
+  statusDescription?: string;
   priceState: 'priced' | 'request_price';
   priceUsd?: number;
   requestPrice: boolean;
@@ -167,7 +185,14 @@ export interface VehicleDetail {
   eta?: string;
   featured?: boolean;
   media: CategorizedPublicMedia;
+  tierPricing?: VehicleTierPricing;
+  reservationEligibility?: VehicleReservationEligibility;
+  inquiryEligibility?: VehicleInquiryEligibility;
 }
+
+export interface VehicleTierPricing { tier: 'Platinum' | 'Gold' | 'Silver' | 'Standard'; tierDiscountPercent: number; tierPriceUsd: number; originalPriceUsd: number; }
+export interface VehicleReservationEligibility { eligible: boolean; reason?: 'already_reserved_by_you' | 'reserved_by_other' | 'not_reservable' | 'price_on_request' | 'limit_exceeded'; holdExpiresAt?: string; isOwnHold?: boolean; }
+export interface VehicleInquiryEligibility { eligible: boolean; reason?: 'allocated_to_another_customer' | 'not_available'; }
 
 export interface ErrorResponse {
   statusCode: number;
@@ -509,25 +534,6 @@ export interface PartialFailureIndicators {
   notificationsFailed: boolean;
 }
 
-export interface CustomerShipment {
-  id: string;
-  vehicleId: string;
-  stage: 'Purchased' | 'Inspection' | 'Ready' | 'In Transit' | 'Delivered';
-  shippedAt: string;
-  deliveredAt?: string;
-  eta?: string;
-  location?: string;
-  freshness: 'fresh' | 'stale' | 'unknown';
-  shipOkStatus: 'Pending' | 'Approved' | 'Rejected';
-  shipOkRejectionReason?: string;
-  documentReleaseStatus: 'Pending' | 'Approved' | 'Rejected';
-  documentReleaseRejectionReason?: string;
-}
-
-export interface CustomerShipmentList {
-  items: CustomerShipment[];
-}
-
 export type PaymentProofFileType = 'PDF' | 'JPG' | 'PNG';
 export type PaymentProofScanStatus = 'Pending' | 'Passed' | 'Rejected';
 export interface CustomerPaymentProofMetadata {
@@ -539,23 +545,27 @@ export interface CustomerPaymentProofMetadata {
 export interface CustomerPayment {
   id: string;
   customerId: string;
-  invoiceId: string;
+  invoiceId?: string;
   reference: string;
   bankName: string;
   currency: string;
   amountUsd: number;
   allocatedAmountUsd?: number;
   remainingBalanceUsd?: number;
+  depositorName?: string;
+  customerName?: string;
+  approvedDate?: string;
+  financeNote?: string;
   paymentDate: string;
   remarks?: string;
-  status: 'Pending' | 'Approved' | 'Rejected';
+  status: 'Pending' | 'Held' | 'Resubmitted' | 'Approved' | 'Rejected';
   holdReason?: string;
   proof?: CustomerPaymentProofMetadata;
   idempotencyKey: string;
   createdAt: string;
 }
 export interface CreateCustomerPaymentRequest {
-  invoiceId: string;
+  invoiceId?: string;
   reference: string;
   bankName: string;
   currency: string;
@@ -566,6 +576,13 @@ export interface CreateCustomerPaymentRequest {
   idempotencyKey: string;
 }
 export interface CustomerPaymentListResponse { items: CustomerPayment[]; total: number; }
+export type CustomerPaymentPurpose = 'Advance' | 'Balance';
+export type CustomerPaymentAllocationStatus = 'Unallocated' | 'PartiallyAllocated' | 'FullyAllocated';
+export interface CustomerPaymentAllocationVehicle { id: string; slug: string; stockNumber: string; chassisNumber: string; make: string; model: string; year: number; primaryImage?: string; }
+export interface CustomerPaymentAllocationLine { id: string; vehicle: CustomerPaymentAllocationVehicle; invoiceId?: string; invoiceNumber?: string; amountUsd: number; purpose: CustomerPaymentPurpose; status: 'Approved' | 'Pending' | 'Rejected'; allocatedAt: string; }
+export interface CustomerPaymentAllocationInvoice { id: string; invoiceNumber: string; issuedAt: string; totalAmountUsd: number; paidAmountUsd: number; outstandingAmountUsd: number; status: string; vehicleCount: number; documentAvailable: boolean; }
+export interface CustomerPaymentAllocationSummary { id: string; reference: string; bankName: string; currency: string; amountUsd: number; paymentDate: string; paymentStatus: string; allocationStatus: CustomerPaymentAllocationStatus; allocatedAmountUsd: number; unallocatedAmountUsd: number; allocationPercent: number; vehicleCount: number; allocations: CustomerPaymentAllocationLine[]; invoice?: CustomerPaymentAllocationInvoice; }
+export interface CustomerPaymentAllocationListResponse { items: CustomerPaymentAllocationSummary[]; total: number; page: number; limit: number; totals: { totalAmountUsd: number; allocatedAmountUsd: number; unallocatedAmountUsd: number; invoiceCount: number; }; }
 export type CustomerPaymentNotificationEvent = 'FinanceReviewRequested' | 'PaymentHeld' | 'PaymentResubmitted' | 'PaymentApproved' | 'PaymentAllocated';
 export interface CustomerPaymentNotification {
   id: string;
@@ -639,6 +656,9 @@ export type CustomerVehicleStatus =
   | 'Expired'
   | 'Cancelled';
 
+export type VehicleStatus = 'Draft' | 'Available' | 'Pending' | 'Reserved' | 'ReservedWithPI' | 'InvoiceCreated' | 'Invoiced' | 'Sold';
+export interface VehicleStatusDefinition { code: VehicleStatus; singularLabel: string; pluralLabel: string; description: string; active: boolean; sortOrder: number; }
+
 export interface CustomerVehicleStatusHistoryItem {
   status: CustomerVehicleStatus;
   timestamp: string;
@@ -678,6 +698,10 @@ export interface CustomerVehicleSummary {
   priceUsd: number;
   totalAmountUsd: number;
   status: CustomerVehicleStatus;
+  vehicleStatusCode: VehicleStatus;
+  statusLabel: string;
+  statusLabelPlural: string;
+  statusDescription?: string;
   locationStatus?: 'In Japan' | 'In Transit' | 'In Port';
   destinationPort?: string;
   reservationExpiresAt?: string;
@@ -698,11 +722,28 @@ export interface CustomerVehicleSummary {
 
 export interface CustomerVehicleDetail extends CustomerVehicleSummary {
   images: string[];
+  stockType?: 'J' | 'CRFO';
   bodyStyle?: string;
   fuelType?: string;
   transmission?: string;
   driveTrain?: string;
   mileage?: number;
+  engineSize?: string;
+  modelCode?: string;
+  versionClass?: string;
+  registerYear?: string;
+  mfgYear?: string;
+  steering?: string;
+  seats?: number;
+  loadCapacity?: number;
+  doors?: number;
+  grossWeight?: number;
+  dimensions?: {
+    lengthMm?: number;
+    widthMm?: number;
+    heightMm?: number;
+    m3?: number;
+  };
   invoiceId?: string;
   shipmentId?: string;
   vesselName?: string;
@@ -726,6 +767,7 @@ export interface CustomerVehicleListResponse {
   items: CustomerVehicleSummary[];
   total: number;
   countsByStatus: CustomerVehicleCountsByStatus;
+  statusDefinitions: VehicleStatusDefinition[];
 }
 
 export type CustomerInvoiceType = 'Proforma' | 'Commercial';

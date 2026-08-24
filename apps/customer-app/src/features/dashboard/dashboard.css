@@ -1,6 +1,6 @@
 /*
  * dashboard.css
- * Enterprise Portal Overview Desk layout and KPI telemetry styles.
+ * Enterprise Portal Overview Desk layout and KPI summary styles.
  * Owned path: apps/customer-app/src/features/dashboard/
  *
  * Every value uses a semantic token emitted by packages/theme/src/provider.ts.
@@ -94,6 +94,8 @@
   align-items: center;
   gap: var(--spacing-sm);
   flex-wrap: wrap;
+  /* Reserve space for the fixed notification bell so the date badge never sits beneath it. */
+  margin-right: calc(42px + var(--spacing-md));
 }
 
 .cc-dash-date-badge {
@@ -133,67 +135,16 @@
   color: var(--color-text-secondary);
 }
 
-.cc-dash-account-selector-compact {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px var(--spacing-sm);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-pill);
-  box-shadow: var(--shadow-sm);
-}
-
-.cc-dash-account-selector-label {
-  font-family: var(--font-mono);
-  font-size: 0.65rem;
-  font-weight: 800;
-  color: var(--color-text-secondary);
-  letter-spacing: 0.06em;
-}
-
-.cc-dash-account-select {
-  padding: 4px var(--spacing-xs);
-  background: transparent;
-  border: none;
-  font-family: var(--font-display);
-  font-size: var(--font-size-xs);
-  font-weight: 700;
-  color: var(--color-primary);
-  cursor: pointer;
-  outline: none;
-}
-
 /* =========================================================================
-   2. 3-COLUMN MODERN AIRY GAUGES GRID (Matching Reference UI)
+   2. FINANCIAL & LOGISTICS SUMMARY
    ========================================================================= */
 
 .cc-dash-gauges-grid {
   display: grid;
   grid-template-columns: repeat(12, 1fr);
   gap: var(--spacing-md);
+  align-items: start;
   width: 100%;
-}
-
-.cc-dash-gauge-card--today {
-  grid-column: span 12;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: var(--spacing-md);
-  padding: var(--spacing-lg);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-  cursor: pointer;
-  transition: transform var(--motion-fast) ease, box-shadow var(--motion-fast) ease;
-}
-
-@media (min-width: 900px) {
-  .cc-dash-gauge-card--today {
-    grid-column: span 4;
-  }
 }
 
 .cc-dash-metric-quad-grid {
@@ -204,8 +155,12 @@
 }
 
 @media (min-width: 900px) {
+  .cc-dash-gauges-grid {
+    align-items: stretch;
+  }
+
   .cc-dash-metric-quad-grid {
-    grid-column: span 4;
+    grid-column: span 6;
   }
 }
 
@@ -213,27 +168,20 @@
   grid-column: span 12;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  gap: var(--spacing-md);
+  align-self: start;
+  gap: var(--spacing-sm);
   padding: var(--spacing-lg);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
-  cursor: pointer;
-  transition: transform var(--motion-fast) ease, box-shadow var(--motion-fast) ease;
 }
 
 @media (min-width: 900px) {
   .cc-dash-gauge-card--logistics {
-    grid-column: span 4;
+    grid-column: span 6;
+    align-self: stretch;
   }
-}
-
-.cc-dash-gauge-card--today:hover,
-.cc-dash-gauge-card--logistics:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
 }
 
 /* Card Header */
@@ -276,28 +224,10 @@
   background: currentColor;
 }
 
-.cc-dash-gauge-card__link-btn {
-  background: none;
-  border: none;
-  padding: 0;
-  font-family: var(--font-display);
-  font-size: var(--font-size-xs);
-  font-weight: 700;
-  color: var(--color-primary);
-  cursor: pointer;
-  transition: opacity var(--motion-fast) ease;
-}
-
-.cc-dash-gauge-card__link-btn:hover {
-  opacity: 0.8;
-  text-decoration: underline;
-}
-
 /* Card Body Split */
 .cc-dash-gauge-card__body {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: var(--spacing-md);
 }
 
@@ -338,71 +268,6 @@
   height: 14px;
   border-radius: var(--radius-pill);
   background: var(--color-warning);
-}
-
-/* Circular Donut Progress SVG */
-.cc-dash-donut-wrap {
-  position: relative;
-  width: 96px;
-  height: 96px;
-  flex-shrink: 0;
-}
-
-.cc-dash-donut-svg {
-  width: 100%;
-  height: 100%;
-  transform: rotate(-90deg);
-}
-
-.cc-dash-donut-bg {
-  fill: none;
-  stroke: var(--color-neutral-surface);
-  stroke-width: 8;
-}
-
-.cc-dash-donut-fill {
-  fill: none;
-  stroke-width: 8;
-  stroke-linecap: round;
-  transition: stroke-dashoffset var(--motion-slow) ease;
-}
-
-.cc-dash-donut-fill--green {
-  stroke: var(--color-success);
-}
-
-.cc-dash-donut-fill--primary {
-  stroke: var(--color-primary);
-}
-
-.cc-dash-donut-center {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-}
-
-.cc-dash-donut-percent {
-  font-family: var(--font-display);
-  font-size: 1.35rem;
-  font-weight: 900;
-  color: var(--color-text-primary);
-  line-height: 1;
-  letter-spacing: -0.02em;
-}
-
-.cc-dash-donut-caption {
-  font-size: 0.62rem;
-  font-weight: 600;
-  color: var(--color-text-secondary);
-  line-height: 1.1;
-  margin-top: 2px;
 }
 
 .cc-dash-gauge-card__action-btn {
@@ -541,27 +406,6 @@
   text-transform: capitalize;
 }
 
-.cc-dash-verification-banner {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px var(--spacing-sm);
-  background: var(--color-success-surface);
-  border: 1px solid color-mix(in srgb, var(--color-success) 20%, transparent);
-  border-radius: var(--radius-md);
-  font-size: 0.72rem;
-  color: var(--color-success);
-}
-
-.cc-dash-verification-icon {
-  font-weight: 900;
-}
-
-.cc-dash-verification-text {
-  font-family: var(--font-body);
-  font-weight: 600;
-}
-
 /* =========================================================================
    3. HORIZONTAL QUICK UTILITY & ACTION STRIP (Matching Bottom Bar)
    ========================================================================= */
@@ -694,7 +538,7 @@
 }
 
 /* =========================================================================
-   4. 4-WIDGET MATRIX GRID
+   4. DASHBOARD MATRIX GRID
    ========================================================================= */
 
 .cc-dash-summary-matrix {
@@ -706,12 +550,6 @@
 @media (min-width: 640px) {
   .cc-dash-summary-matrix {
     grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (min-width: 1024px) {
-  .cc-dash-summary-matrix {
-    grid-template-columns: repeat(4, 1fr);
   }
 }
 
@@ -932,9 +770,9 @@
 }
 
 .cc-dash-shipment-item {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  justify-content: space-between;
   gap: var(--spacing-sm);
   padding: var(--spacing-sm);
   border: 1px solid var(--color-border);
@@ -947,6 +785,11 @@
 .cc-dash-shipment-item:hover {
   background: var(--color-neutral-surface);
   border-color: var(--color-text-secondary);
+}
+
+.cc-dash-shipment-item:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .cc-dash-shipment-info {
@@ -982,27 +825,11 @@
   flex-direction: column;
   align-items: flex-end;
   gap: 2px;
+  justify-self: end;
 }
 
 .cc-dash-shipment-eta {
   font-family: var(--font-mono);
   font-size: 0.65rem;
   color: var(--color-text-secondary);
-}
-
-.cc-dash-shipment-view-btn {
-  padding: 4px 8px;
-  border-radius: var(--radius-sm);
-  background: var(--color-neutral-surface);
-  border: 1px solid var(--color-border);
-  font-family: var(--font-mono);
-  font-size: 0.65rem;
-  font-weight: 700;
-  color: var(--color-text-primary);
-  cursor: pointer;
-}
-
-.cc-dash-shipment-view-btn:hover {
-  background: var(--color-primary);
-  color: var(--color-text-on-primary);
 }

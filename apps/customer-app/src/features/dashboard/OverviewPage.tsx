@@ -1,5 +1,4 @@
-import React, { useState, useMemo } from 'react';
-import type { CustomerVehicleSummary } from '@carchief/domain';
+import React, { useMemo } from 'react';
 import { useDashboard } from './useDashboard.js';
 import { useCustomerShell } from '../shell/index.js';
 import { useCustomerVehicles } from '../vehicles/useCustomerVehicles.js';
@@ -8,20 +7,15 @@ import { useCustomerNotifications } from '../notifications/useCustomerNotificati
 import { useCustomerInquiries } from '../inquiries/useCustomerInquiries.js';
 import { useCustomerProfile } from '../profile/useCustomerProfile.js';
 import { useDocuments } from '../documents/useDocuments.js';
-import { useShipments } from '../shipments/useShipments.js';
-import { VehicleTrackingModal } from '../vehicles/components/VehicleTrackingModal.js';
+import { useTranslation } from '../../i18n/index.js';
 import {
   SecurityShieldIcon,
   BoughtCarsIcon,
-  InTransitShipIcon,
-  PortReadyBoxIcon,
-  DueBillsClockIcon,
-  PendingBalanceDollarIcon,
-  SearchGlassIcon,
 } from '../../components/Icons.js';
 
 export const OverviewPage: React.FC = () => {
-  const { user, pairedAccounts, switchAccount, setActiveRoute } = useCustomerShell();
+  const { t } = useTranslation();
+  const { user, setActiveRoute } = useCustomerShell();
   const { data: dashboard, isLoading, error } = useDashboard();
   const { data: vehiclesData } = useCustomerVehicles();
   const { data: invoicesData } = useCustomerInvoices();
@@ -29,9 +23,6 @@ export const OverviewPage: React.FC = () => {
   const { inquiries } = useCustomerInquiries();
   const { data: profile } = useCustomerProfile();
   const { data: documents } = useDocuments();
-  const { data: shipmentsData } = useShipments();
-
-  const [selectedTrackingVehicle, setSelectedTrackingVehicle] = useState<CustomerVehicleSummary | null>(null);
 
   const displayName = user?.name || profile?.name || 'Rameez';
   const firstName = displayName.split(' ')[0] || displayName;
@@ -67,7 +58,7 @@ export const OverviewPage: React.FC = () => {
 
   const isCreditBalance = outstandingBalance < 0;
 
-  // 4 Purchased Vehicles Statuses (FRD 2.9)
+  // Vehicle logistics status counts remain available from the customer vehicle projection.
   const allVehicles = vehiclesData?.items || [];
   const readyToShipCount = allVehicles.filter(
     (v) =>
@@ -91,19 +82,31 @@ export const OverviewPage: React.FC = () => {
     (v) => v.status === 'Delivered' || v.logisticsStatus === 'DELIVERED'
   ).length || 2;
 
-  const totalPurchasedVehiclesCount = allVehicles.length || 19;
+  const vehicleCounts = vehiclesData?.countsByStatus;
+  const reservedVehiclesCount = vehicleCounts?.underNegotiation ?? allVehicles.filter((v) => v.status === 'Under Negotiation').length;
+  const advancedPaidVehiclesCount = vehicleCounts?.underNegotiationWithPI ?? allVehicles.filter((v) => v.status === 'Under Negotiation With PI').length;
+  const totalPurchasedVehiclesCount = vehicleCounts
+    ? vehicleCounts.confirmed + vehicleCounts.inTransit + vehicleCounts.delivered
+    : allVehicles.filter((v) => ['Confirmed', 'In Transit', 'Delivered'].includes(v.status)).length;
 
   // Proforma and Invoices counts (FRD 2.10)
   const proformaCount = invoicesData?.items?.filter((i) => i.type === 'Proforma').length || 21;
   const invoiceCount = invoicesData?.items?.filter((i) => i.type === 'Commercial').length || 19;
 
+  const navigateToFleetTab = (tab: 'reserved' | 'withPI' | 'invoiced') => {
+    setActiveRoute(`/vehicles?tab=${tab}`);
+  };
+
+  const handleMetricKeyDown = (event: React.KeyboardEvent<HTMLDivElement>, tab: 'reserved' | 'withPI' | 'invoiced') => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      navigateToFleetTab(tab);
+    }
+  };
+
   // Inquiries counts (FRD 2.11)
   const totalInquiriesCount = inquiries.length || 15;
   const repliedInquiriesCount = inquiries.filter((i) => (i as unknown as { status?: string; replied?: boolean }).status === 'Replied' || (i as unknown as { replied?: boolean }).replied).length || 6;
-
-  // Wishlist & Price drops counts (FRD 2.12)
-  const wishlistStockCount = 15;
-  const wishlistPriceDropsCount = 3;
 
   // 6 Most Recent Purchases (FRD 2.16) - Sorted newest to oldest
   const recentPurchases = useMemo(() => {
@@ -156,7 +159,7 @@ export const OverviewPage: React.FC = () => {
     <div className="cc-dash-page" data-testid="customer-dashboard-page">
       {isLoading && (
         <div className="cc-dash-loading-bar" role="status" aria-live="polite">
-          <span>Refreshing operational live telemetry&hellip;</span>
+          <span>Refreshing dashboard data&hellip;</span>
         </div>
       )}
 
@@ -190,94 +193,18 @@ export const OverviewPage: React.FC = () => {
             </span>
           </div>
 
-          <div className="cc-dash-account-selector-compact">
-            <span className="cc-dash-account-selector-label">PAIRED ACCOUNT:</span>
-            <select
-              id="dash-account-switch"
-              className="cc-dash-account-select"
-              value={user?.id || pairedAccounts[0]?.id}
-              onChange={(e) => switchAccount(e.target.value)}
-              data-testid="dash-switch-account-dropdown"
-              aria-label="Switch paired dealer account"
-            >
-              {pairedAccounts.map((acc) => (
-                <option key={acc.id} value={acc.id}>
-                  {acc.name} ({acc.country || 'Kenya'})
-                </option>
-              ))}
-            </select>
-          </div>
         </div>
       </section>
 
-      {/* 2. MODERN AIRY KPI & CIRCULAR GAUGE GRID (3-Column layout matching Reference Image) */}
-      <section className="cc-dash-gauges-grid" aria-label="Executive Fleet & Operational Gauges">
-        {/* Card 1: Today / Fleet Operations Donut Gauge */}
-        <div
-          className="cc-dash-card cc-dash-gauge-card cc-dash-gauge-card--today"
-          onClick={() => setActiveRoute('/vehicles')}
-          role="button"
-          tabIndex={0}
-          data-testid="card-purchased-vehicles"
-        >
-          <div className="cc-dash-gauge-card__header">
-            <h2 className="cc-dash-gauge-card__title">Fleet Operations</h2>
-            <span className="cc-dash-tag-pill cc-dash-tag-pill--success">
-              <span className="cc-dash-tag-pill__dot" aria-hidden="true" />
-              Active
-            </span>
-          </div>
-
-          <div className="cc-dash-gauge-card__body">
-            <div className="cc-dash-gauge-card__meta">
-              <div className="cc-dash-gauge-meta-row">
-                <span className="cc-dash-gauge-meta-icon" aria-hidden="true">⏱</span>
-                <span className="cc-dash-gauge-meta-text">Telemetry active at 08:50</span>
-              </div>
-              <div className="cc-dash-gauge-meta-highlight">
-                <span className="cc-dash-gauge-meta-bar" />
-                <span>{totalPurchasedVehiclesCount} Invoiced fleet units</span>
-              </div>
-            </div>
-
-            {/* Circular Gauge Ring */}
-            <div className="cc-dash-donut-wrap" aria-label="90% fleet complete">
-              <svg className="cc-dash-donut-svg" viewBox="0 0 100 100">
-                <circle className="cc-dash-donut-bg" cx="50" cy="50" r="40" />
-                <circle
-                  className="cc-dash-donut-fill cc-dash-donut-fill--green"
-                  cx="50"
-                  cy="50"
-                  r="40"
-                  strokeDasharray="251.2"
-                  strokeDashoffset="25.12"
-                />
-              </svg>
-              <div className="cc-dash-donut-center">
-                <span className="cc-dash-donut-percent">90%</span>
-                <span className="cc-dash-donut-caption">fleet active</span>
-              </div>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            className="cc-dash-gauge-card__action-btn"
-            onClick={(e) => {
-              e.stopPropagation();
-              setActiveRoute('/vehicles');
-            }}
-          >
-            Open My Garage
-          </button>
-        </div>
-
-        {/* Card 2: Minimalist 2x2 Metric Tiles */}
+      {/* 2. KPI & OPERATIONAL SUMMARY */}
+      <section className="cc-dash-gauges-grid" aria-label="Financial and logistics summary">
+        {/* Financial & Fulfillment Metrics */}
         <div className="cc-dash-metric-quad-grid" aria-label="Key Financial & Fulfillment Metrics">
-          {/* Tile 1: Total Purchased */}
+          {/* Tile 1: Total Purchased Vehicles */}
           <div
             className="cc-dash-metric-tile"
-            onClick={() => setActiveRoute('/vehicles')}
+            onClick={() => navigateToFleetTab('invoiced')}
+            onKeyDown={(event) => handleMetricKeyDown(event, 'invoiced')}
             role="button"
             tabIndex={0}
           >
@@ -287,14 +214,15 @@ export const OverviewPage: React.FC = () => {
                 <polyline points="12 6 12 12 16 14" />
               </svg>
             </div>
-            <span className="cc-dash-metric-tile__label">Total Purchased</span>
+            <span className="cc-dash-metric-tile__label">{t('customer.totalPurchasedVehicles', undefined, 'Total Purchased Vehicles')}</span>
             <span className="cc-dash-metric-tile__val">{totalPurchasedVehiclesCount} Units</span>
           </div>
 
-          {/* Tile 2: Active Invoices */}
+          {/* Tile 2: Total Advance Paid Vehicles */}
           <div
             className="cc-dash-metric-tile"
-            onClick={() => setActiveRoute('/invoices')}
+            onClick={() => navigateToFleetTab('withPI')}
+            onKeyDown={(event) => handleMetricKeyDown(event, 'withPI')}
             role="button"
             tabIndex={0}
           >
@@ -305,26 +233,26 @@ export const OverviewPage: React.FC = () => {
                 <line x1="15" y1="12" x2="3" y2="12" />
               </svg>
             </div>
-            <span className="cc-dash-metric-tile__label">Commercial Bills</span>
-            <span className="cc-dash-metric-tile__val">{invoiceCount} Invoices</span>
+            <span className="cc-dash-metric-tile__label">Total Advance Paid Vehicles</span>
+            <span className="cc-dash-metric-tile__val">{advancedPaidVehiclesCount} Units</span>
           </div>
 
-          {/* Tile 3: Settlement Rate */}
+          {/* Tile 3: Total Reserved Vehicles */}
           <div
             className="cc-dash-metric-tile"
-            onClick={() => setActiveRoute('/statement')}
+            onClick={() => navigateToFleetTab('reserved')}
+            onKeyDown={(event) => handleMetricKeyDown(event, 'reserved')}
             role="button"
             tabIndex={0}
-            data-testid="card-account-balance"
           >
-            <div className="cc-dash-metric-tile__icon cc-dash-metric-tile__icon--green" aria-hidden="true">
+            <div className="cc-dash-metric-tile__icon cc-dash-metric-tile__icon--amber" aria-hidden="true">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                <polyline points="22 4 12 14.01 9 11.01" />
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 7v5l3 2" />
               </svg>
             </div>
-            <span className="cc-dash-metric-tile__label">Settlement Rate</span>
-            <span className="cc-dash-metric-tile__val">96%</span>
+            <span className="cc-dash-metric-tile__label">Total Reserved Vehicles</span>
+            <span className="cc-dash-metric-tile__val">{reservedVehiclesCount} Units</span>
           </div>
 
           {/* Tile 4: Available Funds */}
@@ -342,31 +270,18 @@ export const OverviewPage: React.FC = () => {
                 <line x1="21" y1="12" x2="9" y2="12" />
               </svg>
             </div>
-            <span className="cc-dash-metric-tile__label">Available Funds</span>
+            <span className="cc-dash-metric-tile__label">{t('customer.availableFunds', undefined, 'Available Funds')}</span>
             <span className="cc-dash-metric-tile__val">${(availablePaymentAmount / 1000).toFixed(0)}k TT</span>
           </div>
         </div>
 
-        {/* Card 3: Fleet Logistics & Donut Progress */}
+        {/* Fleet Logistics summary */}
         <div
           className="cc-dash-card cc-dash-gauge-card cc-dash-gauge-card--logistics"
-          onClick={() => setActiveRoute('/shipments')}
-          role="button"
-          tabIndex={0}
-          data-testid="card-current-payments"
+          data-testid="card-fleet-logistics"
         >
           <div className="cc-dash-gauge-card__header">
-            <h2 className="cc-dash-gauge-card__title">Fleet Logistics</h2>
-            <button
-              type="button"
-              className="cc-dash-gauge-card__link-btn"
-              onClick={(e) => {
-                e.stopPropagation();
-                setActiveRoute('/shipments');
-              }}
-            >
-              View stats
-            </button>
+            <h2 className="cc-dash-gauge-card__title">{t('customer.fleetLogistics', undefined, 'Fleet Logistics')}</h2>
           </div>
 
           <div className="cc-dash-gauge-card__body">
@@ -394,168 +309,13 @@ export const OverviewPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Circular Progress Gauge */}
-            <div className="cc-dash-donut-wrap" aria-label="96% on-time fulfillment rate">
-              <svg className="cc-dash-donut-svg" viewBox="0 0 100 100">
-                <circle className="cc-dash-donut-bg" cx="50" cy="50" r="40" />
-                <circle
-                  className="cc-dash-donut-fill cc-dash-donut-fill--green"
-                  cx="50"
-                  cy="50"
-                  r="40"
-                  strokeDasharray="251.2"
-                  strokeDashoffset="10.04"
-                />
-              </svg>
-              <div className="cc-dash-donut-center">
-                <span className="cc-dash-donut-percent">96%</span>
-                <span className="cc-dash-donut-caption">on-time rate</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="cc-dash-verification-banner">
-            <span className="cc-dash-verification-icon" aria-hidden="true">✓</span>
-            <span className="cc-dash-verification-text">Based on 23 active telemetry records from the last 30 days.</span>
           </div>
         </div>
       </section>
 
-      {/* 3. HORIZONTAL QUICK UTILITY & ACTION STRIP (Matching Bottom Bar in Reference Image) */}
-      <section className="cc-dash-quick-strip-container" aria-label="Quick Portal Actions and Status Strip">
-        {/* Upper Segmented Status Row */}
-        <div className="cc-dash-segmented-bar">
-          <div className="cc-dash-segmented-item">
-            <span className="cc-dash-segmented-icon" aria-hidden="true">⏱</span>
-            <span className="cc-dash-segmented-label">Fleet active</span>
-            <span className="cc-dash-segmented-val">· {totalPurchasedVehiclesCount} Units</span>
-          </div>
-          <div className="cc-dash-segmented-divider" aria-hidden="true" />
-          <div className="cc-dash-segmented-item">
-            <span className="cc-dash-segmented-icon" aria-hidden="true">💳</span>
-            <span className="cc-dash-segmented-label">Account Balance</span>
-            <span className="cc-dash-segmented-val">· ${Math.abs(outstandingBalance).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
-          </div>
-          <div className="cc-dash-segmented-divider" aria-hidden="true" />
-          <div className="cc-dash-segmented-item">
-            <span className="cc-dash-segmented-icon" aria-hidden="true">📄</span>
-            <span className="cc-dash-segmented-label">Documents</span>
-            <span className="cc-dash-segmented-val">· Up to date</span>
-          </div>
-          <div className="cc-dash-segmented-divider" aria-hidden="true" />
-          <div className="cc-dash-segmented-item">
-            <span className="cc-dash-segmented-icon" aria-hidden="true">✉</span>
-            <span className="cc-dash-segmented-label">Inquiries</span>
-            <span className="cc-dash-segmented-val">· {repliedInquiriesCount} Replied</span>
-          </div>
-        </div>
-
-        {/* Lower Quick Pill Actions Bar */}
-        <div className="cc-dash-quick-actions-bar">
-          <span className="cc-dash-quick-badge">QUICK</span>
-          <div className="cc-dash-quick-pills-row">
-            <button
-              type="button"
-              className="cc-dash-quick-pill cc-dash-quick-pill--primary"
-              onClick={() => setActiveRoute('/showroom')}
-            >
-              <span className="cc-dash-quick-pill__icon" aria-hidden="true">🔍</span>
-              <span>Search Stock</span>
-              <span className="cc-dash-quick-pill__subtag">Live</span>
-            </button>
-
-            <button
-              type="button"
-              className="cc-dash-quick-pill"
-              onClick={() => setActiveRoute('/vehicles')}
-            >
-              <span className="cc-dash-quick-pill__icon" aria-hidden="true">🚗</span>
-              <span>My Vehicles</span>
-            </button>
-
-            <button
-              type="button"
-              className="cc-dash-quick-pill"
-              onClick={() => setActiveRoute('/payments')}
-            >
-              <span className="cc-dash-quick-pill__icon" aria-hidden="true">💵</span>
-              <span>Make Payment</span>
-            </button>
-
-            <button
-              type="button"
-              className="cc-dash-quick-pill"
-              onClick={() => setActiveRoute('/invoices')}
-            >
-              <span className="cc-dash-quick-pill__icon" aria-hidden="true">📑</span>
-              <span>Purchased Vehicles</span>
-            </button>
-
-            <button
-              type="button"
-              className="cc-dash-quick-pill"
-              onClick={() => setActiveRoute('/vault')}
-            >
-              <span className="cc-dash-quick-pill__icon" aria-hidden="true">📁</span>
-              <span>Documents</span>
-            </button>
-
-            <button
-              type="button"
-              className="cc-dash-quick-pill"
-              onClick={() => setActiveRoute('/inquiries')}
-            >
-              <span className="cc-dash-quick-pill__icon" aria-hidden="true">💬</span>
-              <span>Inquiries</span>
-            </button>
-
-            <button
-              type="button"
-              className="cc-dash-quick-pill"
-              onClick={() => setActiveRoute('/profile')}
-            >
-              <span className="cc-dash-quick-pill__icon" aria-hidden="true">👤</span>
-              <span>Client Profile</span>
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* 4. 4-WIDGET DASHBOARD MATRIX (FRD 2.9, 2.10, 2.11, 2.12, 2.13) */}
+      {/* 4. DASHBOARD SUMMARY MATRIX */}
       <section className="cc-dash-summary-matrix" aria-label="Functional Subsystem Modules">
-        {/* Module 1: Purchased Vehicles (4 Statuses: Ready to ship, In Transit, Arrived to port, Delivered - FRD 2.9) */}
-        <div className="cc-dash-matrix-card">
-          <div className="cc-dash-matrix-card__header">
-            <h2 className="cc-dash-matrix-card__title">Purchased Vehicles</h2>
-            <button
-              type="button"
-              className="cc-dash-matrix-card__view-btn"
-              onClick={() => setActiveRoute('/vehicles')}
-            >
-              view
-            </button>
-          </div>
-          <div className="cc-dash-matrix-card__grid">
-            <div className="cc-dash-matrix-row">
-              <span className="cc-dash-matrix-row__label">Ready to ship:</span>
-              <span className="cc-dash-matrix-row__val">{String(readyToShipCount).padStart(2, '0')}</span>
-            </div>
-            <div className="cc-dash-matrix-row">
-              <span className="cc-dash-matrix-row__label">In Transit:</span>
-              <span className="cc-dash-matrix-row__val">{String(inTransitCount).padStart(2, '0')}</span>
-            </div>
-            <div className="cc-dash-matrix-row">
-              <span className="cc-dash-matrix-row__label">Arrived to Port:</span>
-              <span className="cc-dash-matrix-row__val">{String(arrivedToPortCount).padStart(2, '0')}</span>
-            </div>
-            <div className="cc-dash-matrix-row">
-              <span className="cc-dash-matrix-row__label">Delivered:</span>
-              <span className="cc-dash-matrix-row__val">{String(deliveredCount).padStart(2, '0')}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Module 2: My Ongoing Orders - Invoices (FRD 2.10) */}
+        {/* My Ongoing Orders - Invoices */}
         <div className="cc-dash-matrix-card">
           <div className="cc-dash-matrix-card__header">
             <h2 className="cc-dash-matrix-card__title">My Ongoing Orders</h2>
@@ -579,7 +339,7 @@ export const OverviewPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Module 3: My Inquiries (FRD 2.11) */}
+        {/* My Inquiries */}
         <div className="cc-dash-matrix-card">
           <div className="cc-dash-matrix-card__header">
             <h2 className="cc-dash-matrix-card__title">My Inquiries</h2>
@@ -603,33 +363,6 @@ export const OverviewPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Module 4: Wish List with Price Drops (FRD 2.12) & Bidding Details (FRD 2.13) */}
-        <div className="cc-dash-matrix-card">
-          <div className="cc-dash-matrix-card__header">
-            <h2 className="cc-dash-matrix-card__title">Wish List &amp; Bids</h2>
-            <button
-              type="button"
-              className="cc-dash-matrix-card__view-btn"
-              onClick={() => setActiveRoute('/wishlist')}
-            >
-              view
-            </button>
-          </div>
-          <div className="cc-dash-matrix-card__grid">
-            <div className="cc-dash-matrix-row">
-              <span className="cc-dash-matrix-row__label">Stock List:</span>
-              <span className="cc-dash-matrix-row__val">{wishlistStockCount}</span>
-            </div>
-            <div className="cc-dash-matrix-row">
-              <span className="cc-dash-matrix-row__label">Price Drops:</span>
-              <span className="cc-dash-matrix-row__val cc-dash-color-green">{wishlistPriceDropsCount}</span>
-            </div>
-            <div className="cc-dash-matrix-row">
-              <span className="cc-dash-matrix-row__label">Bidding Details:</span>
-              <span className="cc-dash-matrix-row__subtext">Next phase</span>
-            </div>
-          </div>
-        </div>
       </section>
 
       {/* 5. RECENT PURCHASES (6 UNITS) & RECENT SHIPMENT UPDATES (4 UNITS) (FRD 2.16 & 2.17) */}
@@ -701,7 +434,7 @@ export const OverviewPage: React.FC = () => {
               <button
                 type="button"
                 className="cc-dash-card-link"
-                onClick={() => setActiveRoute('/shipments')}
+                onClick={() => setActiveRoute('/vehicles')}
               >
                 TRACK ALL →
               </button>
@@ -713,6 +446,12 @@ export const OverviewPage: React.FC = () => {
                   key={ship.id}
                   className="cc-dash-shipment-item"
                   onClick={() => setActiveRoute(`/vehicles`)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      setActiveRoute('/vehicles');
+                    }
+                  }}
                   role="button"
                   tabIndex={0}
                 >
@@ -733,16 +472,6 @@ export const OverviewPage: React.FC = () => {
                     <span className="cc-dash-shipment-eta">{ship.updateDate}</span>
                   </div>
 
-                  <button
-                    type="button"
-                    className="cc-dash-shipment-view-btn"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setActiveRoute('/vehicles');
-                    }}
-                  >
-                    VIEW
-                  </button>
                 </div>
               ))}
             </div>
@@ -750,12 +479,6 @@ export const OverviewPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Vehicle Tracking Modal on Overview Desk */}
-      <VehicleTrackingModal
-        isOpen={Boolean(selectedTrackingVehicle)}
-        vehicle={selectedTrackingVehicle}
-        onClose={() => setSelectedTrackingVehicle(null)}
-      />
     </div>
   );
 };

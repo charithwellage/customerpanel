@@ -8,7 +8,7 @@ export const PUBLIC_NAV_ITEMS: NavItem[] = [
   { label: 'SHOWROOM', href: '/', i18nKey: 'nav.home' },
   { label: 'ALL STOCK', href: '/allstock', i18nKey: 'nav.inventory' },
   { label: 'Clearance Stock', href: '/clearance-stock', i18nKey: 'nav.clearance' },
-  { label: 'PREMIUM STOCK', href: '/#premium-stock' },
+  { label: 'PREMIUM STOCK', href: '/premium-stock' },
   { label: 'SERVICES', href: '/services', i18nKey: 'nav.services' },
   { label: 'HOW TO BUY', href: '/how-to-buy', i18nKey: 'nav.howToBuy' },
   { label: 'ABOUT US', href: '/about', i18nKey: 'nav.about' },

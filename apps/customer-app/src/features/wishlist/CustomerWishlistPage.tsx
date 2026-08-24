@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import type { WishlistItem } from '@carchief/domain';
 import { useCustomerShell } from '../shell/index.js';
 import { useCustomerWishlist } from './useCustomerWishlist.js';
+import { ViewModeToggle, type ViewMode } from '../../components/ViewModeToggle.js';
 import './wishlist.css';
 
 export interface WishlistStockItem {
@@ -25,18 +26,6 @@ export interface WishlistStockItem {
     transmission: string;
     color: string;
   };
-}
-
-export interface WishlistAuctionItem {
-  id: string;
-  lotNumber: string;
-  group: 'A' | 'B' | 'C' | 'D';
-  make: string;
-  model: string;
-  yom: string;
-  startPriceUsd: number;
-  auctionRemaining: string;
-  imageUrl: string;
 }
 
 export const SEED_STOCK_WISHLIST: WishlistStockItem[] = [
@@ -86,46 +75,17 @@ export const SEED_STOCK_WISHLIST: WishlistStockItem[] = [
   },
 ];
 
-export const SEED_AUCTION_WISHLIST: WishlistAuctionItem[] = [
-  {
-    id: 'w-auc-1',
-    lotNumber: '36071',
-    group: 'A',
-    make: 'Toyota',
-    model: 'Raize Z 4WD',
-    yom: '2024',
-    startPriceUsd: 1400,
-    auctionRemaining: '2 hr 45 min',
-    imageUrl: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=600',
-  },
-  {
-    id: 'w-auc-2',
-    lotNumber: '50912',
-    group: 'B',
-    make: 'Nissan',
-    model: 'X-Trail Hybrid',
-    yom: '2023',
-    startPriceUsd: 2200,
-    auctionRemaining: 'Finished',
-    imageUrl: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=600',
-  },
-];
-
 export const CustomerWishlistPage: React.FC = () => {
   const { setActiveRoute } = useCustomerShell();
   const { items: serverWishlistItems, removeItem } = useCustomerWishlist();
 
-  // Category selection (FRD 8.2: Stock List vs Auction)
-  const [activeCategory, setActiveCategory] = useState<'STOCK' | 'AUCTION'>('STOCK');
-  const [selectedAuctionGroup, setSelectedAuctionGroup] = useState<'ALL' | 'A' | 'B' | 'C' | 'D'>('ALL');
-
   // Filtering & Pagination (FRD 8.3 & 8.5)
   const [keyword, setKeyword] = useState('');
   const [perPage, setPerPage] = useState<number>(10);
+  const [viewMode, setViewMode] = useState<ViewMode>('grid');
 
-  // Local state for stock and auction wishlist items
+  // Local state for stock wishlist items
   const [stockList, setStockList] = useState<WishlistStockItem[]>(SEED_STOCK_WISHLIST);
-  const [auctionList, setAuctionList] = useState<WishlistAuctionItem[]>(SEED_AUCTION_WISHLIST);
 
   useEffect(() => {
     const combinedSlugs: string[] = [];
@@ -206,10 +166,6 @@ export const CustomerWishlistPage: React.FC = () => {
     }
   };
 
-  const handleRemoveAuction = (id: string) => {
-    setAuctionList((prev) => prev.filter((item) => item.id !== id));
-  };
-
   // Filtered Stock items
   const filteredStockItems = useMemo(() => {
     if (!keyword.trim()) return stockList;
@@ -223,76 +179,17 @@ export const CustomerWishlistPage: React.FC = () => {
     );
   }, [stockList, keyword]);
 
-  // Filtered Auction items
-  const filteredAuctionItems = useMemo(() => {
-    let result = auctionList;
-    if (selectedAuctionGroup !== 'ALL') {
-      result = result.filter((item) => item.group === selectedAuctionGroup);
-    }
-    if (keyword.trim()) {
-      const q = keyword.toLowerCase().trim();
-      result = result.filter(
-        (item) =>
-          item.make.toLowerCase().includes(q) ||
-          item.model.toLowerCase().includes(q) ||
-          item.lotNumber.toLowerCase().includes(q)
-      );
-    }
-    return result;
-  }, [auctionList, selectedAuctionGroup, keyword]);
-
-  const totalCount = activeCategory === 'STOCK' ? filteredStockItems.length : filteredAuctionItems.length;
+  const totalCount = filteredStockItems.length;
 
   return (
     <div className="cc-wishlist-page" data-testid="customer-wishlist-page">
-      {/* Category Tabs: Stock List vs Auction (FRD 8.2) */}
-      <div className="cc-wishlist-tabs" role="tablist" aria-label="Wishlist category selection">
-        <button
-          type="button"
-          role="tab"
-          aria-selected={activeCategory === 'STOCK'}
-          className={`cc-wishlist-tab-btn ${activeCategory === 'STOCK' ? 'cc-wishlist-tab-btn--active' : ''}`}
-          onClick={() => setActiveCategory('STOCK')}
-          data-testid="tab-stock-wishlist"
-        >
-          Stock List ({stockList.length})
-        </button>
-        <button
-          type="button"
-          role="tab"
-          aria-selected={activeCategory === 'AUCTION'}
-          className={`cc-wishlist-tab-btn ${activeCategory === 'AUCTION' ? 'cc-wishlist-tab-btn--active' : ''}`}
-          onClick={() => setActiveCategory('AUCTION')}
-          data-testid="tab-auction-wishlist"
-        >
-          Auction ({auctionList.length})
-        </button>
-      </div>
-
-      {/* Auction Group Filter Pills (FRD 8.2: Group A, B, C, D) */}
-      {activeCategory === 'AUCTION' && (
-        <div className="cc-wishlist-auction-groups" role="group" aria-label="Auction groups">
-          <span className="cc-wishlist-groups-label">Auction Groups:</span>
-          {(['ALL', 'A', 'B', 'C', 'D'] as const).map((grp) => (
-            <button
-              key={grp}
-              type="button"
-              className={`cc-wishlist-group-pill ${selectedAuctionGroup === grp ? 'cc-wishlist-group-pill--active' : ''}`}
-              onClick={() => setSelectedAuctionGroup(grp)}
-            >
-              {grp === 'ALL' ? 'All Groups' : `Group ${grp}`}
-            </button>
-          ))}
-        </div>
-      )}
-
       {/* Filter & Pagination Control Bar (FRD 8.3 & 8.5) */}
       <div className="cc-wishlist-controls-bar">
         <div className="cc-wishlist-search-box">
           <input
             type="search"
             className="cc-wishlist-search-input"
-            placeholder={activeCategory === 'STOCK' ? 'Search make, model, stock, chassis...' : 'Search auction lot, model...'}
+            placeholder="Search make, model, stock, chassis..."
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
             data-testid="wishlist-search-input"
@@ -321,12 +218,12 @@ export const CustomerWishlistPage: React.FC = () => {
               <option value={50}>50</option>
             </select>
           </div>
+          <ViewModeToggle value={viewMode} onChange={setViewMode} label="Wishlist vehicle view" />
         </div>
       </div>
 
       {/* Main Content: Stock List Cards (FRD 8.6) */}
-      {activeCategory === 'STOCK' ? (
-        <div className="cc-wishlist-cards-grid">
+      <div className={`cc-wishlist-cards-grid cc-wishlist-cards-grid--${viewMode}`}>
           {filteredStockItems.length === 0 ? (
             <div className="cc-wishlist-empty">
               <span className="cc-wishlist-empty-icon">❤️</span>
@@ -381,7 +278,7 @@ export const CustomerWishlistPage: React.FC = () => {
 
                   <div className="cc-wishlist-card__financials">
                     <div className="cc-wishlist-price-block">
-                      <span className="cc-wishlist-price-label">FOB Price:</span>
+                      <span className="cc-wishlist-price-label">Selling Price:</span>
                       <span className="cc-wishlist-price-val">${item.fobPriceUsd.toLocaleString()} USD</span>
                     </div>
                     <span className="cc-wishlist-inquirer-note">
@@ -389,102 +286,11 @@ export const CustomerWishlistPage: React.FC = () => {
                     </span>
                   </div>
 
-                  <div className="cc-wishlist-card__actions">
-                    {/* FRD 8.7: WhatsApp Now */}
-                    <button
-                      type="button"
-                      className="cc-wishlist-action-btn cc-wishlist-action-btn--whatsapp"
-                      onClick={() => {
-                        setActiveRoute(`/inventory/${item.vehicleSlug}`);
-                        window.open(`https://wa.me/94715991619?text=Inquiry%20for%20${encodeURIComponent(item.stockNumber)}`, '_blank');
-                      }}
-                      data-testid={`btn-whatsapp-${item.stockNumber}`}
-                    >
-                      💬 WhatsApp Now
-                    </button>
-
-                    {/* FRD 8.8: Get Free Quote */}
-                    <button
-                      type="button"
-                      className="cc-wishlist-action-btn cc-wishlist-action-btn--quote"
-                      onClick={() => {
-                        setActiveRoute(`/inventory/${item.vehicleSlug}`);
-                        setTimeout(() => {
-                          const quoteSection = document.getElementById('get-free-quote-section');
-                          if (quoteSection) quoteSection.scrollIntoView({ behavior: 'smooth' });
-                        }, 300);
-                      }}
-                      data-testid={`btn-quote-${item.stockNumber}`}
-                    >
-                      📋 Get Free Quote
-                    </button>
-                  </div>
                 </div>
               </article>
             ))
           )}
-        </div>
-      ) : (
-        /* Auction Cards List */
-        <div className="cc-wishlist-cards-grid">
-          {filteredAuctionItems.length === 0 ? (
-            <div className="cc-wishlist-empty">
-              <span className="cc-wishlist-empty-icon">🔨</span>
-              <h2 className="cc-wishlist-empty-title">No auction vehicles found</h2>
-              <p className="cc-wishlist-empty-text">No wishlisted auction items in the selected group.</p>
-            </div>
-          ) : (
-            filteredAuctionItems.slice(0, perPage).map((item) => (
-              <article key={item.id} className="cc-wishlist-card cc-wishlist-card--auction" data-testid={`wishlist-auc-${item.lotNumber}`}>
-                <div className="cc-wishlist-card__image-box">
-                  <img src={item.imageUrl} alt={`${item.make} ${item.model}`} className="cc-wishlist-card__image" loading="lazy" />
-                  <span className="cc-wishlist-group-tag">Group {item.group}</span>
-                </div>
-
-                <div className="cc-wishlist-card__body">
-                  <div className="cc-wishlist-card__header">
-                    <h2 className="cc-wishlist-card__title">
-                      {item.make} + {item.model} + {item.yom}
-                    </h2>
-                    <button
-                      type="button"
-                      className="cc-wishlist-remove-link"
-                      onClick={() => handleRemoveAuction(item.id)}
-                      aria-label="Remove auction vehicle from wishlist"
-                    >
-                      REMOVE ✕
-                    </button>
-                  </div>
-
-                  <div className="cc-wishlist-card__meta">
-                    <span className="cc-wishlist-meta-text">Lot No.: <strong>{item.lotNumber}</strong></span>
-                  </div>
-
-                  <div className="cc-wishlist-card__financials">
-                    <div className="cc-wishlist-price-block">
-                      <span className="cc-wishlist-price-label">Starting Price:</span>
-                      <span className="cc-wishlist-price-val">${item.startPriceUsd.toLocaleString()} USD</span>
-                    </div>
-                    <span className="cc-wishlist-auction-timer">
-                      {item.auctionRemaining}
-                    </span>
-                  </div>
-
-                  <div className="cc-wishlist-card__actions">
-                    <button
-                      type="button"
-                      className="cc-wishlist-action-btn cc-wishlist-action-btn--quote"
-                      onClick={() => setActiveRoute('/inventory')}
-                    >
-                      View Live Auction Bids
-                    </button>
-                  </div>
-                </div>
-              </article>
-            ))
-          )}
-        </div>
-      )}
+      </div>
     </div>
   );
 };

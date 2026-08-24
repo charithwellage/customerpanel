@@ -7,7 +7,6 @@ export interface VehicleFleetCardProps {
   onSelect: (vehicle: CustomerVehicleSummary) => void;
   onTrackShipment?: (vehicle: CustomerVehicleSummary) => void;
   onPayDeposit?: (vehicle: CustomerVehicleSummary) => void;
-  onViewDocuments?: (vehicle: CustomerVehicleSummary) => void;
 }
 
 export interface ContextualAction {
@@ -23,17 +22,21 @@ export const VehicleFleetCard: React.FC<VehicleFleetCardProps> = ({
   onSelect,
   onTrackShipment,
   onPayDeposit,
-  onViewDocuments,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const isPI = vehicle.status === 'Under Negotiation With PI' || Boolean(vehicle.proformaInvoiceId);
-  const isInvoiced = vehicle.status === 'Confirmed' || vehicle.status === 'In Transit' || vehicle.status === 'Delivered' || Boolean(vehicle.commercialBill);
+  const isPaid = vehicle.paymentStatus === 'Paid';
+  const hasOutstandingInvoice = Boolean(vehicle.invoiceId && !isPaid);
+  const isPI = vehicle.status === 'Under Negotiation With PI' || Boolean(vehicle.proformaInvoiceId) || hasOutstandingInvoice;
+  const isInvoiced = isPaid && (vehicle.status === 'Confirmed' || vehicle.status === 'In Transit' || vehicle.status === 'Delivered');
   const isReserved = vehicle.status === 'Under Negotiation' || (!isPI && !isInvoiced);
 
   const fallbackImage = 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=400';
   const stockDisplay = vehicle.stockNumber || `STK: ${vehicle.chassisNumber.slice(0, 6)}`;
   const price = vehicle.priceUsd || vehicle.totalAmountUsd || 0;
+  const advancedPaidAmount = vehicle.deposit?.paidAmountUsd ?? 0;
+  const advancedRemainingAmount = Math.max(0, price - advancedPaidAmount);
+  const paidPercent = price > 0 ? Math.round((advancedPaidAmount / price) * 100) : 0;
   const colorSpec = vehicle.colorSpec || vehicle.color || 'Silver';
   const mileageDisplay = vehicle.mileage !== undefined ? `${vehicle.mileage.toLocaleString()} km` : '113,000 km';
   const logisticsLabel = vehicle.logisticsStatus || (vehicle.status === 'Delivered' ? 'DELIVERED' : vehicle.status === 'In Transit' ? 'IN TRANSIT' : vehicle.status === 'Confirmed' ? 'INSPECTION' : 'RESERVED');
@@ -44,7 +47,6 @@ export const VehicleFleetCard: React.FC<VehicleFleetCardProps> = ({
   const balanceAmount = vehicle.commercialBill?.balanceAmountUsd ?? Math.max(0, soldAmount - paidAmount);
 
   // Deposit calculation
-  const depositReq = vehicle.deposit?.requiredAmountUsd ?? Math.round(price * 0.5);
   const piRefDisplay = vehicle.piRef || (stockDisplay ? `PI-${stockDisplay.replace(/^STK:\s*/i, '')}` : 'PI-63519');
 
   // Contextual actions calculation
@@ -68,17 +70,8 @@ export const VehicleFleetCard: React.FC<VehicleFleetCardProps> = ({
     }
   };
 
-  const handleDocsClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (onViewDocuments) {
-      onViewDocuments(vehicle);
-    } else {
-      onSelect(vehicle);
-    }
-  };
-
   const nextActionDescription = isReserved
-    ? 'Awaiting 50% initial deposit wire remittance to finalize sourcing reservation.'
+    ? 'Awaiting initial deposit wire remittance to finalize sourcing reservation.'
     : isPI
     ? `Proforma invoice ${piRefDisplay} issued. Complete remittance to initiate export prep.`
     : vehicle.status === 'Confirmed'
@@ -94,7 +87,7 @@ export const VehicleFleetCard: React.FC<VehicleFleetCardProps> = ({
       className={`cc-cust-fleet-card cc-cust-fleet-card--interactive ${isPI ? 'cc-cust-fleet-card--pi' : ''} ${isInvoiced ? 'cc-cust-fleet-card--invoiced' : ''} ${isExpanded ? 'cc-cust-fleet-card--expanded' : ''}`}
       tabIndex={0}
       role="region"
-      aria-label={`${vehicle.year} ${vehicle.make} ${vehicle.model} (${vehicle.status})`}
+      aria-label={`${vehicle.year} ${vehicle.make} ${vehicle.model} (${vehicle.statusLabel})`}
       onClick={() => onSelect(vehicle)}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
@@ -111,23 +104,28 @@ export const VehicleFleetCard: React.FC<VehicleFleetCardProps> = ({
           alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
           className="cc-cust-fleet-card__image"
           loading="lazy"
+          onError={(event) => {
+            if (event.currentTarget.src !== fallbackImage) {
+              event.currentTarget.src = fallbackImage;
+            }
+          }}
         />
 
         {/* Top Badges */}
         <div className="cc-cust-fleet-card__badges-row">
           {isPI && (
             <span className="cc-cust-fleet-badge cc-cust-fleet-badge--pi">
-              <span className="cc-cust-fleet-badge__dot cc-cust-fleet-badge__dot--pulse" aria-hidden="true">●</span> ADVANCED PAID (PI)
+              <span className="cc-cust-fleet-badge__dot cc-cust-fleet-badge__dot--pulse" aria-hidden="true">●</span> {vehicle.statusLabel}
             </span>
           )}
           {isInvoiced && (
             <span className="cc-cust-fleet-badge cc-cust-fleet-badge--invoiced">
-              <span className="cc-cust-fleet-badge__dot" aria-hidden="true">✓</span> PURCHASED
+              <span className="cc-cust-fleet-badge__dot" aria-hidden="true">✓</span> {vehicle.statusLabel}
             </span>
           )}
           {isReserved && (
             <span className="cc-cust-fleet-badge cc-cust-fleet-badge--reserved">
-              <span className="cc-cust-fleet-badge__dot cc-cust-fleet-badge__dot--pulse" aria-hidden="true">●</span> HOLD VEHICLE
+              <span className="cc-cust-fleet-badge__dot cc-cust-fleet-badge__dot--pulse" aria-hidden="true">●</span> {vehicle.statusLabel}
             </span>
           )}
 
@@ -140,6 +138,16 @@ export const VehicleFleetCard: React.FC<VehicleFleetCardProps> = ({
         <div className="cc-cust-fleet-card__logistics-banner">
           LOGISTICS: {logisticsLabel}
         </div>
+
+        <div className="cc-cust-fleet-card__list-price" aria-label={`Price ${price.toLocaleString()} dollars`}>
+          <span>PRICE</span>
+          <strong>${price.toLocaleString()}</strong>
+        </div>
+
+        <div className="cc-cust-fleet-card__list-meta">
+          <div><span>Mileage</span><strong>{mileageDisplay}</strong></div>
+        </div>
+
       </div>
 
       {/* Card Body */}
@@ -153,6 +161,15 @@ export const VehicleFleetCard: React.FC<VehicleFleetCardProps> = ({
             ${price.toLocaleString()}
           </span>
         </div>
+
+        {vehicle.invoiceId && (
+          <div className="cc-cust-fleet-card__list-commercial-bill" aria-label="Purchased commercial bill summary">
+            <div className="cc-cust-fleet-card__list-commercial-bill-title">{isPaid ? '✓ Purchased Commercial Bill' : 'Commercial Bill — Payment Due'}</div>
+            <div><span>Sold</span><strong>${soldAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></div>
+            <div><span>Paid</span><strong className="cc-cust-fleet-card__list-commercial-bill-paid">${paidAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></div>
+            <div><span>Balance</span><strong className="cc-cust-fleet-card__list-commercial-bill-balance">${balanceAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></div>
+          </div>
+        )}
 
         {/* Prominent Visual Status Tracker */}
         <div className="cc-cust-fleet-card__status-tracker-container">
@@ -185,34 +202,12 @@ export const VehicleFleetCard: React.FC<VehicleFleetCardProps> = ({
           <div className="cc-cust-fleet-card__spec-divider" />
 
           <div className="cc-cust-fleet-card__spec-row">
-            <span className="cc-cust-fleet-card__spec-label cc-cust-fleet-card__spec-label--fob">FOB Price:</span>
+            <span className="cc-cust-fleet-card__spec-label cc-cust-fleet-card__spec-label--fob">Selling Price:</span>
             <span className="cc-cust-fleet-card__spec-value cc-cust-fleet-card__spec-value--fob">
               ${price.toLocaleString()}
             </span>
           </div>
         </div>
-
-        {/* Highlight Summary Box */}
-        {isReserved && (
-          <div className="cc-cust-fleet-card__highlight cc-cust-fleet-card__highlight--amber">
-            <div className="cc-cust-fleet-card__highlight-title cc-cust-fleet-card__highlight-title--amber">
-              <svg className="cc-cust-fleet-card__highlight-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <circle cx="12" cy="12" r="10" />
-                <polyline points="12 6 12 12 16 14" />
-              </svg>
-              HOLD RESERVATION
-            </div>
-            <div className="cc-cust-fleet-card__bill-row">
-              <span className="cc-cust-fleet-card__bill-label">Status:</span>
-              <span className="cc-cust-fleet-card__bill-val cc-cust-fleet-card__bill-val--danger">ON HOLD</span>
-            </div>
-            <div className="cc-cust-fleet-card__bill-divider" />
-            <div className="cc-cust-fleet-card__bill-row">
-              <span className="cc-cust-fleet-card__bill-label">Deposit (50%):</span>
-              <span className="cc-cust-fleet-card__bill-val cc-cust-fleet-card__bill-val--bold">${depositReq.toLocaleString()}</span>
-            </div>
-          </div>
-        )}
 
         {isPI && (
           <div className="cc-cust-fleet-card__highlight cc-cust-fleet-card__highlight--purple">
@@ -231,8 +226,16 @@ export const VehicleFleetCard: React.FC<VehicleFleetCardProps> = ({
             </div>
             <div className="cc-cust-fleet-card__bill-divider" />
             <div className="cc-cust-fleet-card__bill-row">
-              <span className="cc-cust-fleet-card__bill-label">Deposit (50%):</span>
-              <span className="cc-cust-fleet-card__bill-val cc-cust-fleet-card__bill-val--bold">${depositReq.toLocaleString()}</span>
+              <span className="cc-cust-fleet-card__bill-label">Paid Amount ({paidPercent}%):</span>
+              <span className="cc-cust-fleet-card__bill-val cc-cust-fleet-card__bill-val--bold">
+                ${advancedPaidAmount.toLocaleString()}
+              </span>
+            </div>
+            <div className="cc-cust-fleet-card__bill-row">
+              <span className="cc-cust-fleet-card__bill-label">Remaining Amount:</span>
+              <span className="cc-cust-fleet-card__bill-val cc-cust-fleet-card__bill-val--danger">
+                ${advancedRemainingAmount.toLocaleString()}
+              </span>
             </div>
           </div>
         )}
@@ -342,13 +345,13 @@ export const VehicleFleetCard: React.FC<VehicleFleetCardProps> = ({
               className="cc-cust-fleet-card__action-btn cc-cust-fleet-card__action-btn--primary cc-cust-fleet-card__action-btn--amber"
               data-testid={`fleet-card-primary-cta-${vehicle.id || vehicle.chassisNumber}`}
               onClick={handlePayClick}
-              aria-label={`Pay deposit for ${vehicle.year} ${vehicle.make} ${vehicle.model}`}
+              aria-label={`Pay 30 percent deposit for ${vehicle.year} ${vehicle.make} ${vehicle.model}`}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <rect x="2" y="4" width="20" height="16" rx="2" />
                 <line x1="2" y1="10" x2="22" y2="10" />
               </svg>
-              PAY DEPOSIT (50%)
+              PAY DEPOSIT (30%)
             </button>
           )}
 
@@ -358,50 +361,17 @@ export const VehicleFleetCard: React.FC<VehicleFleetCardProps> = ({
               className="cc-cust-fleet-card__action-btn cc-cust-fleet-card__action-btn--primary cc-cust-fleet-card__action-btn--purple"
               data-testid={`fleet-card-primary-cta-${vehicle.id || vehicle.chassisNumber}`}
               onClick={handlePayClick}
-              aria-label={`View proforma and pay deposit for ${vehicle.year} ${vehicle.make} ${vehicle.model}`}
+              aria-label={`Make a payment for ${vehicle.year} ${vehicle.make} ${vehicle.model}`}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                 <polyline points="14 2 14 8 20 8" />
               </svg>
-              PAY ADVANCE DEPOSIT
+              MAKE A PAYMENT
             </button>
           )}
 
-          {isInvoiced && vehicle.status !== 'Delivered' && (
-            <button
-              type="button"
-              className="cc-cust-fleet-card__action-btn cc-cust-fleet-card__action-btn--primary cc-cust-fleet-card__action-btn--green"
-              data-testid={`fleet-card-primary-cta-${vehicle.id || vehicle.chassisNumber}`}
-              onClick={handleTrackClick}
-              aria-label={`Track live shipment for ${vehicle.year} ${vehicle.make} ${vehicle.model}`}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <circle cx="12" cy="12" r="10" />
-                <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
-              </svg>
-              TRACK SHIPMENT
-            </button>
-          )}
-
-          {vehicle.status === 'Delivered' && (
-            <button
-              type="button"
-              className="cc-cust-fleet-card__action-btn cc-cust-fleet-card__action-btn--primary cc-cust-fleet-card__action-btn--green"
-              data-testid={`fleet-card-primary-cta-${vehicle.id || vehicle.chassisNumber}`}
-              onClick={handleDocsClick}
-              aria-label={`View delivery & clearance documents for ${vehicle.year} ${vehicle.make} ${vehicle.model}`}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                <polyline points="14 2 14 8 20 8" />
-                <path d="M9 15l2 2 4-4" />
-              </svg>
-              VIEW CLEARANCE DOCS
-            </button>
-          )}
-
-          {/* Secondary Track / Details Action */}
+          {/* Track / Details Action */}
           <button
             type="button"
             className="cc-cust-fleet-card__track-btn"

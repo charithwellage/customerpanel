@@ -510,7 +510,7 @@ describe('VehicleGalleryPrimitive (shared package)', () => {
     expect(empty).toContain('No images available for this vehicle yet.');
   });
 
-  it('renders Customer Actions card with Get Free Quote, Add to Wishlist, and Specs Inquiry Form', async () => {
+  it('renders Customer Actions card with wishlist and Specs Inquiry Form but no quote CTAs', async () => {
     const React = await import('react');
     const { renderToStaticMarkup } = await import('react-dom/server');
 
@@ -518,8 +518,14 @@ describe('VehicleGalleryPrimitive (shared package)', () => {
       React.createElement(VehicleDetailPage, { vehicle: basePricedVehicle })
     );
 
-    expect(html).toContain('Customer Actions &amp; Free Quotation');
-    expect(html).toContain('GET FREE QUOTE');
+    expect(html).toContain('Customer Actions');
+    expect(html).not.toContain('GET FREE QUOTE');
+    expect(html).not.toContain('REQUEST PRICE QUOTATION &amp; FREE CIF QUOTE');
+    expect(html).not.toContain('data-testid="get-free-quote-btn"');
+    expect(html).not.toContain('data-testid="hero-get-quote-btn"');
+    expect(html).not.toContain('cc-quote-calculator-modal');
+    expect(html).not.toContain('cc-quote-request-wrapper');
+    expect(html).not.toContain('Get a Free Instant C&amp;F Quote');
     expect(html).toContain('ADD TO WISHLIST');
     expect(html).toContain('SPECS INQUIRY &amp; BOOKING FORM');
     expect(html).toContain('SUBMIT INQUIRY SPEC FILE');

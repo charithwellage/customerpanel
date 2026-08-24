@@ -9,6 +9,10 @@ export interface InvoiceLineItemsTableProps {
   outstandingAmountUsd?: number;
 }
 
+/** Keep the persisted/API wording stable while presenting customer-friendly labels. */
+const getDisplayDescription = (description: string): string =>
+  description.replace(/\bFOB Vehicle Price\b/gi, 'Selling Price');
+
 export const InvoiceLineItemsTable: React.FC<InvoiceLineItemsTableProps> = ({
   lineItems,
   totalAmountUsd,
@@ -37,7 +41,7 @@ export const InvoiceLineItemsTable: React.FC<InvoiceLineItemsTableProps> = ({
               </tr>
             ) : lineItems.map((item, idx) => (
               <tr key={item.id || `item-${idx}`} className="cc-invoice-items-tr">
-                <td className="cc-invoice-items-td cc-invoice-items-td--desc">{item.description}</td>
+                <td className="cc-invoice-items-td cc-invoice-items-td--desc">{getDisplayDescription(item.description)}</td>
                 <td className="cc-invoice-items-td cc-invoice-items-td--qty">{item.quantity}</td>
                 <td className="cc-invoice-items-td cc-invoice-items-td--unit">
                   {formatUsdAmount(item.unitPriceUsd)}

@@ -1,22 +1,29 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import type { CustomerVehicleSummary } from '@carchief/domain';
 import { useCustomerShell } from '../shell/index.js';
 import { useCustomerVehicles } from './useCustomerVehicles.js';
 import { VehicleFleetCard } from './components/VehicleFleetCard.js';
 import { VehicleTrackingModal } from './components/VehicleTrackingModal.js';
+import { ViewModeToggle, type ViewMode } from '../../components/ViewModeToggle.js';
+import { useTranslation } from '../../i18n/index.js';
 
 export interface CustomerFleetPageProps {
   onSelectVehicle: (vehicle: CustomerVehicleSummary) => void;
+  initialTab?: FleetTabKey;
 }
 
 export type FleetTabKey = 'reserved' | 'withPI' | 'invoiced' | 'all' | 'underNegotiation' | 'underNegotiationWithPI' | 'confirmed' | 'inTransit' | 'delivered';
 
-export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVehicle }) => {
+export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVehicle, initialTab = 'invoiced' }) => {
+  const { t } = useTranslation();
   const { setActiveRoute } = useCustomerShell();
-  const [activeTab, setActiveTab] = useState<FleetTabKey>('invoiced');
+  const [activeTab, setActiveTab] = useState<FleetTabKey>(initialTab);
   const [searchQuery, setSearchQuery] = useState('');
   const [shippingStatusFilter, setShippingStatusFilter] = useState('all');
   const [selectedTrackingVehicle, setSelectedTrackingVehicle] = useState<CustomerVehicleSummary | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 8;
 
   React.useEffect(() => {
     setActiveRoute('/vehicles');
@@ -57,6 +64,13 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
     });
   }, [data?.items, shippingStatusFilter]);
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeTab, searchQuery, shippingStatusFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(displayedVehicles.length / pageSize));
+  const pagedVehicles = displayedVehicles.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
   const counts = data?.countsByStatus || {
     all: 0,
     underNegotiation: 0,
@@ -69,12 +83,18 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
   const reservedCount = counts.underNegotiation;
   const withPICount = counts.underNegotiationWithPI;
   const invoicedCount = counts.confirmed + counts.inTransit + counts.delivered;
+  const reservedStatus = data?.statusDefinitions?.find((definition) => definition.code === 'Reserved');
+  const advancedPaidStatus = data?.statusDefinitions?.find((definition) => definition.code === 'ReservedWithPI');
+  const purchasedStatus = data?.statusDefinitions?.find((definition) => definition.code === 'Invoiced');
+  const reservedVehiclesLabel = reservedStatus?.pluralLabel || '';
+  const advancedPaidVehiclesLabel = advancedPaidStatus?.pluralLabel || '';
+  const purchasedVehiclesLabel = purchasedStatus?.pluralLabel || '';
 
   return (
     <div className="cc-cust-fleet" data-testid="customer-fleet-page">
       {/* Top 3 KPI Summary Cards */}
       <section className="cc-cust-kpi-grid" aria-label="Fleet Overview Summary" data-testid="fleet-kpi-summary">
-        {/* KPI 1: Hold Vehicles */}
+        {/* KPI 1: Reserved Vehicles */}
         <div
           role="button"
           tabIndex={0}
@@ -85,10 +105,10 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
         >
           <div className="cc-cust-kpi-card__content">
             <div className="cc-cust-kpi-card__header-row">
-              <span className="cc-cust-kpi-card__title">HOLD VEHICLES</span>
+              <span className="cc-cust-kpi-card__title">{reservedVehiclesLabel.toUpperCase()}</span>
             </div>
             <div className="cc-cust-kpi-card__count">{reservedCount} Units</div>
-            <p className="cc-cust-kpi-card__subtitle">Active vehicle holds</p>
+            <p className="cc-cust-kpi-card__subtitle">Active vehicle reservations</p>
           </div>
           <div className="cc-cust-kpi-card__icon-wrap cc-cust-kpi-card__icon-wrap--amber">
             <span className="cc-cust-kpi-card__icon" aria-hidden="true">⏱</span>
@@ -106,7 +126,7 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
         >
           <div className="cc-cust-kpi-card__content">
             <div className="cc-cust-kpi-card__header-row">
-              <span className="cc-cust-kpi-card__title">ADVANCED PAID VEHICLES</span>
+              <span className="cc-cust-kpi-card__title">{advancedPaidVehiclesLabel.toUpperCase()}</span>
             </div>
             <div className="cc-cust-kpi-card__count">{withPICount} Units</div>
             <p className="cc-cust-kpi-card__subtitle">Advance payment confirmed</p>
@@ -127,7 +147,7 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
         >
           <div className="cc-cust-kpi-card__content">
             <div className="cc-cust-kpi-card__header-row">
-              <span className="cc-cust-kpi-card__title">PURCHASED VEHICLES</span>
+              <span className="cc-cust-kpi-card__title">{purchasedVehiclesLabel.toUpperCase()}</span>
             </div>
             <div className="cc-cust-kpi-card__count">{invoicedCount} Units</div>
             <p className="cc-cust-kpi-card__subtitle">Fully purchased &amp; invoiced fleet</p>
@@ -138,66 +158,17 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
         </div>
       </section>
 
-      {/* Filter Bar: Status Pills on left, Search & Shipping Status dropdown on right */}
+      {/* Filter Bar: Search & Shipping Status dropdown */}
       <div className="cc-cust-fleet-filter-bar" data-testid="fleet-tabs">
-        {/* Status filter pills */}
-        <div className="cc-cust-fleet-pills" role="tablist" aria-label="Vehicle Status Filter">
-          <button
-            type="button"
-            role="tab"
-            data-testid="tab-reserved"
-            aria-selected={activeTab === 'reserved' || activeTab === 'underNegotiation'}
-            className={`cc-cust-fleet-pill cc-cust-fleet-pill--amber ${activeTab === 'reserved' || activeTab === 'underNegotiation' ? 'cc-cust-fleet-pill--active' : ''}`}
-            onClick={() => setActiveTab('reserved')}
-          >
-            <span className="cc-cust-fleet-pill__icon" aria-hidden="true">⏱</span> HOLD VEHICLES ({reservedCount})
-          </button>
-
-          <button
-            type="button"
-            role="tab"
-            data-testid="tab-with-pi"
-            aria-selected={activeTab === 'withPI' || activeTab === 'underNegotiationWithPI'}
-            className={`cc-cust-fleet-pill cc-cust-fleet-pill--purple ${activeTab === 'withPI' || activeTab === 'underNegotiationWithPI' ? 'cc-cust-fleet-pill--active' : ''}`}
-            onClick={() => setActiveTab('withPI')}
-          >
-            <span className="cc-cust-fleet-pill__icon" aria-hidden="true">📄</span> ADVANCED PAID ({withPICount})
-          </button>
-
-          <button
-            type="button"
-            role="tab"
-            data-testid="tab-invoiced"
-            aria-selected={activeTab === 'invoiced' || activeTab === 'confirmed' || activeTab === 'inTransit' || activeTab === 'delivered'}
-            className={`cc-cust-fleet-pill cc-cust-fleet-pill--green ${activeTab === 'invoiced' || activeTab === 'confirmed' || activeTab === 'inTransit' || activeTab === 'delivered' ? 'cc-cust-fleet-pill--active' : ''}`}
-            onClick={() => setActiveTab('invoiced')}
-          >
-            <span className="cc-cust-fleet-pill__icon" aria-hidden="true">✓</span> PURCHASED ({invoicedCount})
-          </button>
-
-          {activeTab === 'all' && (
-            <button
-              type="button"
-              role="tab"
-              data-testid="tab-all"
-              aria-selected={activeTab === 'all'}
-              className="cc-cust-fleet-pill cc-cust-fleet-pill--active"
-              onClick={() => setActiveTab('all')}
-            >
-              ALL ({counts.all})
-            </button>
-          )}
-        </div>
-
         {/* Search & Shipping Status Dropdown */}
         <div className="cc-cust-fleet-search-group">
-          <div className="cc-cust-fleet-search-input-wrap">
-            <span className="cc-cust-fleet-search-icon" aria-hidden="true">🔍</span>
+          <div className="cc-search-input-wrapper cc-cust-fleet-search-input-wrap">
+            <span className="cc-search-input-icon" aria-hidden="true">⌕</span>
             <input
               id="fleet-search-input"
               type="search"
               data-testid="fleet-search-input"
-              className="cc-cust-fleet-search-input"
+              className="cc-search-input"
               placeholder="Search make, model, chassis"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -219,7 +190,7 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
             <select
               id="fleet-shipping-status-select"
               data-testid="fleet-shipping-status-select"
-              className="cc-cust-fleet-select"
+              className="cc-filter-select"
               value={shippingStatusFilter}
               onChange={(e) => setShippingStatusFilter(e.target.value)}
               aria-label="Shipping Status"
@@ -232,6 +203,7 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
               <option value="Delivered">Delivered</option>
             </select>
           </div>
+          <ViewModeToggle value={viewMode} onChange={setViewMode} label={t('customer.myVehicles', undefined, 'My vehicles view')} />
         </div>
       </div>
 
@@ -283,16 +255,41 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
 
       {/* Vehicle 5-column Grid */}
       {!isLoading && !error && displayedVehicles.length > 0 && (
-        <div className="cc-cust-fleet-grid" data-testid="fleet-vehicles-grid">
-          {displayedVehicles.map((v) => (
+        <div className={`cc-cust-fleet-grid cc-cust-fleet-grid--${viewMode}`} data-testid="fleet-vehicles-grid">
+          {pagedVehicles.map((v) => (
             <VehicleFleetCard
               key={v.id}
               vehicle={v}
               onSelect={onSelectVehicle}
               onTrackShipment={(vehicle) => setSelectedTrackingVehicle(vehicle)}
+              onPayDeposit={() => setActiveRoute('/payments')}
             />
           ))}
         </div>
+      )}
+
+      {!isLoading && !error && displayedVehicles.length > 0 && (
+        <nav className="cc-cust-fleet-pagination" aria-label="My vehicle pages">
+          <button
+            type="button"
+            className="cc-cust-fleet-pagination__button"
+            onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+            disabled={currentPage === 1}
+          >
+            {t('customer.previous', undefined, 'Previous')}
+          </button>
+          <span className="cc-cust-fleet-pagination__status" aria-live="polite">
+            {t('customer.pageOf', { page: currentPage, total: totalPages }, `Page ${currentPage} of ${totalPages}`)} · {t('customer.vehiclesCount', { count: displayedVehicles.length }, `${displayedVehicles.length} vehicles`)}
+          </span>
+          <button
+            type="button"
+            className="cc-cust-fleet-pagination__button"
+            onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+            disabled={currentPage === totalPages}
+          >
+            {t('customer.next', undefined, 'Next')}
+          </button>
+        </nav>
       )}
 
       {/* Vehicle Logistics & Shipment Timeline Tracking Modal */}

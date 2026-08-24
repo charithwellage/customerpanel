@@ -7,8 +7,8 @@ import { createStore } from '../store.js';
 // authenticated change-password, always-202 reset requests, single-use and
 // expiring outbox tokens, and determinism after POST /api/v1/__reset.
 
-const SEED_EMAIL = 'demo.customer@carchief.com';
-const SEED_PASSWORD = 'CarChief#Fixture2026';
+const SEED_EMAIL = 'prabodha@carchief.com';
+const SEED_PASSWORD = 'Password@1234';
 const NOW = '2026-08-15T00:00:00.000Z';
 
 describe('Customer credentials (login, change-password, password reset)', () => {

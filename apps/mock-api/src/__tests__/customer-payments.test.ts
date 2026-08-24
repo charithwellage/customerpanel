@@ -28,6 +28,17 @@ describe('Customer TT payment journal contract (D02-P06-T001)', () => {
     expect(body.items.every((item: { customerId: string }) => item.customerId === 'cust-123')).toBe(true);
   });
 
+  it('returns distinct review, held, approved, and rejected payment statuses', async () => {
+    const response = await fetch(`${baseUrl}/api/v1/customer/payments`, { headers: { Authorization: `Bearer ${token()}` } });
+    const body = await response.json();
+    const statuses = new Set(body.items.map((item: { status: string }) => item.status));
+    expect(statuses).toEqual(new Set(['Approved', 'Pending', 'Held', 'Rejected']));
+    expect(body.items).toEqual(expect.arrayContaining([
+      expect.objectContaining({ status: 'Held', financeNote: expect.stringContaining('beneficiary bank confirmation') }),
+      expect.objectContaining({ status: 'Rejected', financeNote: expect.stringContaining('verifiable bank reference') }),
+    ]));
+  });
+
   it('creates valid proof metadata once and returns the same record for an idempotent retry', async () => {
     const request = {
       invoiceId: 'inv-003', reference: 'TT-NEW-001', bankName: 'Customer bank', currency: 'USD', amountUsd: 500,

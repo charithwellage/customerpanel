@@ -15,7 +15,7 @@ export function useCustomerInventory({
   apiBaseUrl = '',
   token,
   destinationCountry,
-  initialQuery = { page: 1, limit: 12, sortBy: 'newest' },
+  initialQuery = { page: 1, limit: 15, sortBy: 'newest' },
 }: UseCustomerInventoryOptions = {}) {
   const [query, setQuery] = useState<SearchVehiclesQuery>(() => ({
     ...initialQuery,
@@ -27,7 +27,7 @@ export function useCustomerInventory({
     items: [],
     total: 0,
     page: 1,
-    limit: 12,
+    limit: 15,
     totalPages: 0,
     facets: undefined,
     loading: true,
@@ -115,7 +115,7 @@ export function useCustomerInventory({
 
   const handleResetFilters = useCallback(() => {
     setNaturalPhrase('');
-    setQuery({ page: 1, limit: 12, sortBy: 'newest' });
+    setQuery({ page: 1, limit: 15, sortBy: 'newest' });
   }, []);
 
   const understoodTokens = parseNaturalSearchQuery(naturalPhrase).understoodTokens;

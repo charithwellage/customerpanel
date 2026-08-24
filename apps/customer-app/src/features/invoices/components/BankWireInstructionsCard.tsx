@@ -81,7 +81,7 @@ export const BankWireInstructionsCard: React.FC<BankWireInstructionsCardProps> =
         <div className="cc-bank-wire-card__deposit-notice" data-testid="pi-deposit-notice">
           <span className="cc-bank-wire-card__notice-icon">ℹ️</span>
           <div>
-            <strong>50% Minimum Deposit Required: </strong>
+            <strong>Minimum Deposit Required: </strong>
             <span>
               {formatUsdAmount(depositRequiredUsd)} USD must be received within 72 hours to confirm vehicle reservation.
             </span>

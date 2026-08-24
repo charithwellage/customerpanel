@@ -14,11 +14,35 @@ import {
   ProfileConflictError,
   AccountRequestError,
   AuthenticationError,
+  DatabaseRequiredError,
 } from './store.js';
 import { resolveCustomerScope } from './auth/customer-scope.js';
 
 export interface AuthenticatedRequest extends Request {
   user?: JwtClaims;
+}
+
+function createInvoicePdf(title: string, html: string): Buffer {
+  const text = `${title}\n\n${html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()}`.slice(0, 7000)
+    .replace(/([\\()])/g, '\\$1');
+  const lines = text.match(/.{1,92}(?:\s|$)/g) || [title];
+  const stream = [`BT /F1 10 Tf 48 760 Td 13 TL`, ...lines.map((line, index) => `${index ? 'T* ' : ''}(${line.trim()}) Tj`), 'ET'].join('\n');
+  const objects = [
+    '<< /Type /Catalog /Pages 2 0 R >>',
+    '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
+    '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>',
+    '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>',
+    `<< /Length ${Buffer.byteLength(stream)} >>\nstream\n${stream}\nendstream`,
+  ];
+  let pdf = '%PDF-1.4\n';
+  const offsets = [0];
+  for (let index = 0; index < objects.length; index += 1) {
+    offsets.push(Buffer.byteLength(pdf));
+    pdf += `${index + 1} 0 obj\n${objects[index]}\nendobj\n`;
+  }
+  const xref = Buffer.byteLength(pdf);
+  pdf += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n${offsets.slice(1).map((offset) => `${String(offset).padStart(10, '0')} 00000 n `).join('\n')}\ntrailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
+  return Buffer.from(pdf, 'utf8');
 }
 
 export function createMockApiApp(store: DemoStore = createStore()): Express {
@@ -63,11 +87,13 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
   // 3. Vehicle inventory with filtering, facets, pagination & sorting (Public & Customer-projected)
   app.get('/api/v1/vehicles', async (req: AuthenticatedRequest, res: Response) => {
     const audience = (req.query.audience as string) || (req.user?.role === 'CustomerBuyer' ? 'customer' : 'public');
-    const customerTier = (req.query.tier as any) || req.user?.tier;
+    const customerTier = req.user?.role === 'CustomerBuyer'
+      ? await store.getCustomerTier(resolveCustomerScope(req.user.sub))
+      : ((req.query.tier as any) || req.user?.tier);
     const destinationCountry = (req.query.destinationCountry as string) || req.user?.country || req.user?.countryCode;
     const context = {
       audience: audience as 'public' | 'customer' | 'salesperson',
-      customerId: req.user?.sub,
+      customerId: req.user ? resolveCustomerScope(req.user.sub) : undefined,
       customerTier,
       customerCountry: req.user?.country || req.user?.countryCode,
       destinationCountry,
@@ -80,11 +106,13 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
     const rawParam = req.params.idOrSlug;
     const idOrSlug = Array.isArray(rawParam) ? rawParam[0] : rawParam;
     const audience = (req.query.audience as string) || (req.user?.role === 'CustomerBuyer' ? 'customer' : 'public');
-    const customerTier = (req.query.tier as any) || req.user?.tier;
+    const customerTier = req.user?.role === 'CustomerBuyer'
+      ? await store.getCustomerTier(resolveCustomerScope(req.user.sub))
+      : ((req.query.tier as any) || req.user?.tier);
     const destinationCountry = (req.query.destinationCountry as string) || req.user?.country || req.user?.countryCode;
     const context = {
       audience: audience as 'public' | 'customer' | 'salesperson',
-      customerId: req.user?.sub,
+      customerId: req.user ? resolveCustomerScope(req.user.sub) : undefined,
       customerTier,
       customerCountry: req.user?.country || req.user?.countryCode,
       destinationCountry,
@@ -154,6 +182,7 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
           message: error.message,
           correlationId: `corr-${error.statusCode}-${Date.now()}`,
           ...(error.field ? { field: error.field } : {}),
+          ...(error.reason ? { reason: error.reason } : {}),
         });
         return;
       }
@@ -221,19 +250,17 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
     const customerId = resolveCustomerScope(req.user.sub);
     const fromDate = typeof req.query.fromDate === 'string' ? req.query.fromDate : undefined;
     const toDate = typeof req.query.toDate === 'string' ? req.query.toDate : undefined;
-    const statement = await store.getCustomerStatement(customerId, fromDate, toDate);
-    res.json(statement);
-  });
-
-  // 3k-dc. Customer debit, credit, refund transactions (FRD Section 5.9-5.14)
-  app.get('/api/v1/customer/debit-credit', async (req: AuthenticatedRequest, res: Response) => {
-    if (!req.user) {
-      res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
-      return;
+    try {
+      const statement = await store.getCustomerStatement(customerId, fromDate, toDate);
+      res.json(statement);
+    } catch (error) {
+      const statusCode = error instanceof DatabaseRequiredError ? 503 : 500;
+      res.status(statusCode).json({
+        statusCode,
+        message: error instanceof Error ? error.message : 'Unable to load customer statement',
+        correlationId: `corr-${statusCode}-${Date.now()}`,
+      });
     }
-    const customerId = resolveCustomerScope(req.user.sub);
-    const dcRecords = await store.getCustomerDebitCreditRefunds(customerId);
-    res.json(dcRecords);
   });
 
   // 3l. Wishlist operations (D02-P13-T002, CUST-36/CUST-37): list, add, remove
@@ -413,7 +440,13 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
         });
         return;
       }
-      throw error;
+      console.error('Reservation request failed', error);
+      res.status(500).json({
+        statusCode: 500,
+        message: 'Unable to create the reservation. Please try again.',
+        correlationId: `corr-500-${Date.now()}`,
+        reason: 'reservation_service_unavailable',
+      });
     }
   });
 
@@ -448,8 +481,8 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
   // `issueSessionToken` primitive internally — it stays an internal detail,
   // never a claim of a production identity provider
   // (DEC-CUST-IDENTITY-RECOVERY is unchanged).
-  function mintCustomerSessionToken(customerId: string, email: string) {
-    const token = mintDomainSessionToken('CustomerBuyer', customerId, email);
+  function mintCustomerSessionToken(customerId: string, email: string, tier: import('@carchief/domain').CustomerTier) {
+    const token = mintDomainSessionToken('CustomerBuyer', customerId, email, tier);
     const claims = parseSessionToken(token);
     return { token, claims };
   }
@@ -475,7 +508,7 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
   app.post('/api/v1/auth/login', async (req: Request, res: Response) => {
     try {
       const account = await store.authenticateCustomer(req.body ?? {});
-      const { token, claims } = mintCustomerSessionToken(account.customerId, account.email);
+      const { token, claims } = mintCustomerSessionToken(account.customerId, account.email, account.tier);
       if (!claims) {
         res.status(500).json({ statusCode: 500, message: 'Failed to mint session', correlationId: `corr-500-${Date.now()}` });
         return;
@@ -647,6 +680,12 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
     res.json(req.user);
   });
 
+  app.get('/api/v1/customer/tier-benefits', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) return void res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+    if (!hasPermission(req.user.role, 'read:customer')) return void res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
+    res.json(await store.getCustomerTierBenefits(resolveCustomerScope(req.user.sub), req.header('x-mock-now') || undefined));
+  });
+
   app.get('/api/v1/bank-accounts', async (_req: Request, res: Response) => {
     const accounts = await store.getBankAccounts();
     res.json(accounts);
@@ -689,39 +728,6 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
       const statusCode = error instanceof ProfileConflictError ? error.statusCode : 400;
       res.status(statusCode).json({ statusCode, message: error instanceof Error ? error.message : 'Invalid customer profile', correlationId: `corr-${statusCode}-${Date.now()}` });
     }
-  });
-
-  // 4b. Customer shipment timeline projection (D02-P07-T001, CUST-11).
-  // The server scopes records to the authenticated customer and exposes only
-  // the approved operational stages; carrier/ERP internals are not exposed.
-  app.get('/api/v1/customer/shipments', async (req: AuthenticatedRequest, res: Response) => {
-    if (!req.user) {
-      res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
-      return;
-    }
-    if (!hasPermission(req.user.role, 'read:customer')) {
-      res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
-      return;
-    }
-    res.json({ items: await store.listCustomerShipments(resolveCustomerScope(req.user.sub)) });
-  });
-
-  app.get('/api/v1/customer/shipments/:id', async (req: AuthenticatedRequest, res: Response) => {
-    if (!req.user) {
-      res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
-      return;
-    }
-    if (!hasPermission(req.user.role, 'read:customer')) {
-      res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
-      return;
-    }
-    const shipmentId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-    const shipment = await store.getCustomerShipment(resolveCustomerScope(req.user.sub), shipmentId);
-    if (!shipment) {
-      res.status(404).json({ statusCode: 404, message: 'Shipment not found', correlationId: `corr-404-${Date.now()}` });
-      return;
-    }
-    res.json(shipment);
   });
 
   // Documents are returned only after both Finance release and the
@@ -893,6 +899,30 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
       return;
     }
     res.json(doc);
+  });
+
+  app.get('/api/v1/customer/invoices/:id/document.pdf', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) return void res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+    if (!hasPermission(req.user.role, 'read:customer')) return void res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
+    const doc = await store.getCustomerInvoiceDocument(resolveCustomerScope(req.user.sub), req.params.id as string, req.header('x-mock-now') || undefined);
+    if (!doc) return void res.status(404).json({ statusCode: 404, message: 'Invoice document not found or not owned by customer', correlationId: `corr-404-${Date.now()}` });
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${doc.invoiceNumber.replace(/[^a-z0-9_-]/gi, '_')}.pdf"`);
+    res.send(createInvoicePdf(doc.title, doc.contentHtml));
+  });
+
+  app.get('/api/v1/customer/payment-allocations', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) return void res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+    if (!hasPermission(req.user.role, 'read:customer')) return void res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
+    res.json(await store.listCustomerPaymentAllocations(resolveCustomerScope(req.user.sub), req.query as Record<string, string>));
+  });
+
+  app.get('/api/v1/customer/payment-allocations/:paymentId', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) return void res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+    if (!hasPermission(req.user.role, 'read:customer')) return void res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
+    const allocation = await store.getCustomerPaymentAllocation(resolveCustomerScope(req.user.sub), req.params.paymentId as string);
+    if (!allocation) return void res.status(404).json({ statusCode: 404, message: 'TT payment not found or not owned by customer', correlationId: `corr-404-${Date.now()}` });
+    res.json(allocation);
   });
 
   // 4g. Customer TT journal and proof metadata (D02-P06-T001).

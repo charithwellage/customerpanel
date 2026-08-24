@@ -10,6 +10,7 @@ export interface PaymentDetailRecord {
   currency: string;
   ttAmount: number;
   approvedDate?: string;
+  financeNote?: string;
   documents?: Array<{ name: string; url: string }>;
 }
 
@@ -25,16 +26,6 @@ export const PaymentDetailModal: React.FC<PaymentDetailModalProps> = ({
   payment,
 }) => {
   if (!isOpen || !payment) return null;
-
-  const handleDownloadDoc = (docName: string) => {
-    const element = document.createElement('a');
-    const file = new Blob([`CarChief Banking Document: ${docName}`], { type: 'text/plain' });
-    element.href = URL.createObjectURL(file);
-    element.download = docName;
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
-  };
 
   return (
     <div
@@ -102,7 +93,7 @@ export const PaymentDetailModal: React.FC<PaymentDetailModalProps> = ({
             <div className="cc-pay-detail-item">
               <span className="cc-pay-detail-label">Approved Date:</span>
               <span className="cc-pay-detail-val cc-pay-detail-val--mono">
-                {payment.approvedDate || '2024-10-20'}
+                {payment.approvedDate || '—'}
               </span>
             </div>
           </div>
@@ -110,22 +101,22 @@ export const PaymentDetailModal: React.FC<PaymentDetailModalProps> = ({
           <div className="cc-pay-docs-section">
             <span className="cc-pay-detail-label">TT Documents Uploaded:</span>
             <div className="cc-pay-docs-list">
-              {(payment.documents && payment.documents.length > 0 ? payment.documents : [
-                { name: `${payment.reference}_Official_Swift.pdf`, url: '#' },
-                { name: `${payment.reference}_Bank_Advice.pdf`, url: '#' }
-              ]).map((doc, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  className="cc-pay-doc-download-chip"
-                  onClick={() => handleDownloadDoc(doc.name)}
-                  title="Click to download document"
-                >
+              {payment.documents && payment.documents.length > 0 ? payment.documents.map((doc) => (
+                <a key={doc.name} className="cc-pay-doc-download-chip" href={doc.url} download>
                   📄 {doc.name} 📥
-                </button>
-              ))}
+                </a>
+              )) : (
+                <span className="cc-pay-detail-val">No payment documents available.</span>
+              )}
             </div>
           </div>
+
+          {payment.financeNote && (
+            <div className="cc-pay-docs-section cc-pay-finance-note" role="note">
+              <span className="cc-pay-detail-label">Finance Note:</span>
+              <span className="cc-pay-detail-val">{payment.financeNote}</span>
+            </div>
+          )}
         </div>
       </div>
     </div>

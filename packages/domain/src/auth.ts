@@ -93,7 +93,7 @@ export function parseSessionToken(token: string): JwtClaims | null {
     ) {
       return {
         sub: 'cust-123',
-        email: 'demo.customer@carchief.com',
+        email: 'prabodha@carchief.com',
         role: 'CustomerBuyer',
         permissions: ROLE_PERMISSIONS.CustomerBuyer,
         exp: Math.floor(Date.now() / 1000) + 86400 * 30,

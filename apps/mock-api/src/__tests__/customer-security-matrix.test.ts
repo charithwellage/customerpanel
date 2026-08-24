@@ -25,12 +25,18 @@ describe('Customer security acceptance matrix (D02-P09-T002)', () => {
     Authorization: `Bearer ${issueSessionToken('CustomerBuyer', customerId)}`,
   });
 
+  it('does not expose the retired customer shipment page APIs', async () => {
+    for (const path of ['/api/v1/customer/shipments', '/api/v1/customer/shipments/ship-001']) {
+      const response = await fetch(`${baseUrl}${path}`, { headers: headers('cust-123') });
+      expect(response.status, path).toBe(404);
+    }
+  });
+
   it('never returns another customer’s vehicle, invoice, shipment, document, payment, notification, or profile', async () => {
     const foreign = headers('cust-exception-001');
     const ownedResources = [
       '/api/v1/customer/vehicles/veh-1',
       '/api/v1/customer/invoices/inv-001',
-      '/api/v1/customer/shipments/ship-001',
       '/api/v1/customer/documents/doc-001',
       '/api/v1/customer/payments/pay-004',
       '/api/v1/customer/notifications/notif-002',
@@ -48,7 +54,6 @@ describe('Customer security acceptance matrix (D02-P09-T002)', () => {
     const listChecks = [
       '/api/v1/customer/vehicles',
       '/api/v1/customer/invoices',
-      '/api/v1/customer/shipments',
       '/api/v1/customer/documents',
       '/api/v1/customer/payments',
       '/api/v1/customer/notifications',

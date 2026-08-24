@@ -17,6 +17,7 @@ export interface UseVehicleSearchOrchestrationOptions {
   baseUrl?: string;
   initialQuery?: SearchVehiclesQuery;
   lockedCollection?: string;
+  lockedCategory?: string;
 }
 
 export interface UseVehicleSearchOrchestrationReturn {
@@ -58,6 +59,7 @@ export function useVehicleSearchOrchestration(
       ...options.initialQuery,
       ...urlQuery,
       ...(options.lockedCollection ? { collection: options.lockedCollection } : {}),
+      ...(options.lockedCategory ? { category: options.lockedCategory } : {}),
     };
   });
 
@@ -75,8 +77,10 @@ export function useVehicleSearchOrchestration(
       const parsed = parseUrlSearchQuery(searchParams);
       setQuery((prev) => {
         const nextQuery = options.lockedCollection
-          ? { ...parsed, collection: options.lockedCollection }
-          : parsed;
+          ? { ...parsed, collection: options.lockedCollection, ...(options.lockedCategory ? { category: options.lockedCategory } : {}) }
+          : options.lockedCategory
+            ? { ...parsed, category: options.lockedCategory }
+            : parsed;
         if (JSON.stringify(prev) === JSON.stringify(nextQuery)) return prev;
         return nextQuery;
       });
@@ -84,7 +88,7 @@ export function useVehicleSearchOrchestration(
         setNaturalPhrase(parsed.searchQuery);
       }
     }
-  }, [searchParams]);
+  }, [options.lockedCategory, options.lockedCollection, searchParams]);
 
   // Native history navigation is handled without remounting the showroom.
   // This keeps Back/Forward shareable while avoiding a route transition for
@@ -92,13 +96,17 @@ export function useVehicleSearchOrchestration(
   useEffect(() => {
     const handlePopState = () => {
       const parsed = parseUrlSearchQuery(window.location.search);
-      setQuery(options.lockedCollection ? { ...parsed, collection: options.lockedCollection } : parsed);
+      setQuery(options.lockedCollection
+        ? { ...parsed, collection: options.lockedCollection, ...(options.lockedCategory ? { category: options.lockedCategory } : {}) }
+        : options.lockedCategory
+          ? { ...parsed, category: options.lockedCategory }
+          : parsed);
       setNaturalPhrase(parsed.searchQuery || '');
       setUnderstoodTokens([]);
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [options.lockedCollection]);
+  }, [options.lockedCategory, options.lockedCollection]);
 
   // Execute vehicle search request
   const fetchSearchResults = useCallback(
@@ -144,6 +152,7 @@ export function useVehicleSearchOrchestration(
         ...query,
         ...updates,
         ...(options.lockedCollection ? { collection: options.lockedCollection } : {}),
+        ...(options.lockedCategory ? { category: options.lockedCategory } : {}),
         page: updates.page ?? 1,
       };
       setQuery(updated);
@@ -163,6 +172,7 @@ export function useVehicleSearchOrchestration(
         ...query,
         ...parsed.parsedParams,
         ...(options.lockedCollection ? { collection: options.lockedCollection } : {}),
+        ...(options.lockedCategory ? { category: options.lockedCategory } : {}),
         page: 1,
       };
 
@@ -180,15 +190,16 @@ export function useVehicleSearchOrchestration(
       market: query.market,
       destinationPort: query.destinationPort,
       collection: options.lockedCollection || query.collection,
+      category: options.lockedCategory || query.category,
       page: 1,
-      limit: 12,
+      limit: 15,
       sortBy: 'newest',
     };
     setNaturalPhrase('');
     setUnderstoodTokens([]);
     setQuery(resetState);
     updateUrl(resetState);
-  }, [options.lockedCollection, query.market, query.destinationPort, query.collection, updateUrl]);
+  }, [options.lockedCategory, options.lockedCollection, query.market, query.destinationPort, query.collection, query.category, updateUrl]);
 
   const setPage = useCallback(
     (page: number) => {

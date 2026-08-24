@@ -10,8 +10,8 @@ import { CustomerFleetPage, CustomerFleetDetailPage } from '../features/vehicles
 import { DocumentsPage } from '../features/documents/index.js';
 import { CustomerInvoicesPage, CustomerInvoiceDetailPage } from '../features/invoices/index.js';
 import { PaymentsPage } from '../features/payments/index.js';
+import { PaymentAllocationsPage } from '../features/payment-allocations/index.js';
 import { NotificationsPage } from '../features/notifications/index.js';
-import { ShipmentPage } from '../features/shipments/index.js';
 import { ProfilePage } from '../features/profile/index.js';
 import { CustomerInquiriesPage } from '../features/inquiries/index.js';
 import { CustomerWishlistPage } from '../features/wishlist/index.js';
@@ -100,9 +100,13 @@ const AppContent: React.FC<{ session: CustomerSession; apiBaseUrl: string }> = (
     return <CustomerFavouritesPage />;
   }
 
-  if (activeRoute === '/vehicles') {
+  if (activeRoute === '/vehicles' || activeRoute.startsWith('/vehicles?')) {
+    const tab = new URLSearchParams(activeRoute.split('?')[1] || '').get('tab');
+    const initialTab = tab === 'reserved' || tab === 'withPI' || tab === 'invoiced' ? tab : undefined;
+
     return (
       <CustomerFleetPage
+        initialTab={initialTab}
         onSelectVehicle={(vehicle) => {
           setActiveRoute(`/vehicles/${vehicle.id || vehicle.slug}`);
         }}
@@ -140,8 +144,8 @@ const AppContent: React.FC<{ session: CustomerSession; apiBaseUrl: string }> = (
     return <PaymentsPage />;
   }
 
-  if (activeRoute === '/shipments') {
-    return <ShipmentPage />;
+  if (activeRoute === '/payment-allocations') {
+    return <PaymentAllocationsPage />;
   }
 
   if (activeRoute === '/notifications') {
@@ -172,7 +176,13 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = '' }) => (
     <AccountGuard apiBaseUrl={apiBaseUrl}>
       {(session, actions) => (
         <QueryClientProvider client={queryClient}>
-          <HttpClientProvider apiBaseUrl={apiBaseUrl}>
+          <HttpClientProvider
+            apiBaseUrl={apiBaseUrl}
+            onUnauthorized={() => {
+              queryClient.clear();
+              actions.signOut();
+            }}
+          >
             <CustomerShell
               initialUser={toShellUser(session)}
               onSignOut={() => {

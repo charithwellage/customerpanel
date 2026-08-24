@@ -79,6 +79,7 @@ describe('Customer theme provider integration', () => {
     const runtimeVariables = new Set([
       '--cc-invoice-progress-width',
       '--cc-utilisation-width',
+      '--cc-payment-allocation-percent',
       '--status-color',
     ]);
     const undefinedReferences: string[] = [];

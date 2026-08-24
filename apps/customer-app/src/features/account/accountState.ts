@@ -42,7 +42,7 @@ export function loadCustomerSession(): CustomerSession | null {
       try {
         const urlParams = new URLSearchParams(window.location.search);
         const queryToken = urlParams.get('token');
-        const queryEmail = urlParams.get('email') || 'demo.customer@carchief.com';
+        const queryEmail = urlParams.get('email') || 'prabodha@carchief.com';
         if (queryToken) {
           const claims = parseSessionToken(queryToken);
           const session: CustomerSession = {
@@ -81,7 +81,7 @@ export function loadCustomerSession(): CustomerSession | null {
             user: {
               id: parsed.claims.sub || 'cust-123',
               name: parsed.claims.email?.split('@')[0] || 'Customer',
-              email: parsed.claims.email || 'demo.customer@carchief.com',
+              email: parsed.claims.email || 'prabodha@carchief.com',
               role: parsed.claims.role || 'CustomerBuyer',
               permissions: parsed.claims.permissions || ['read:public', 'read:customer', 'create:inquiry', 'create:reservation', 'create:payment'],
             },

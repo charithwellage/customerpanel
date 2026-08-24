@@ -10,7 +10,7 @@ async function main() {
   await page.goto('http://localhost:3001/login', { waitUntil: 'networkidle' });
 
   await page.fill('input[type="email"]', 'r.a.rimazmoulana@gmail.com');
-  await page.fill('input[type="password"]', 'CarChief#Fixture2026');
+  await page.fill('input[type="password"]', 'Password@1234');
   await page.click('button[type="submit"]');
 
   await page.waitForSelector('nav, a[href*="invoices"], button:has-text("Overview")', { timeout: 15000 });
