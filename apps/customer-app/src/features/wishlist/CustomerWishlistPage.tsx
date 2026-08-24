@@ -183,19 +183,6 @@ export const CustomerWishlistPage: React.FC = () => {
 
   return (
     <div className="cc-wishlist-page" data-testid="customer-wishlist-page">
-      {/* Wishlist category */}
-      <div className="cc-wishlist-tabs" role="tablist" aria-label="Wishlist category selection">
-        <button
-          type="button"
-          role="tab"
-          aria-selected="true"
-          className="cc-wishlist-tab-btn cc-wishlist-tab-btn--active"
-          data-testid="tab-stock-wishlist"
-        >
-          Stock List ({stockList.length})
-        </button>
-      </div>
-
       {/* Filter & Pagination Control Bar (FRD 8.3 & 8.5) */}
       <div className="cc-wishlist-controls-bar">
         <div className="cc-wishlist-search-box">
@@ -299,36 +286,6 @@ export const CustomerWishlistPage: React.FC = () => {
                     </span>
                   </div>
 
-                  <div className="cc-wishlist-card__actions">
-                    {/* FRD 8.7: WhatsApp Now */}
-                    <button
-                      type="button"
-                      className="cc-wishlist-action-btn cc-wishlist-action-btn--whatsapp"
-                      onClick={() => {
-                        setActiveRoute(`/inventory/${item.vehicleSlug}`);
-                        window.open(`https://wa.me/94715991619?text=Inquiry%20for%20${encodeURIComponent(item.stockNumber)}`, '_blank');
-                      }}
-                      data-testid={`btn-whatsapp-${item.stockNumber}`}
-                    >
-                      💬 WhatsApp Now
-                    </button>
-
-                    {/* FRD 8.8: Get Free Quote */}
-                    <button
-                      type="button"
-                      className="cc-wishlist-action-btn cc-wishlist-action-btn--quote"
-                      onClick={() => {
-                        setActiveRoute(`/inventory/${item.vehicleSlug}`);
-                        setTimeout(() => {
-                          const quoteSection = document.getElementById('get-free-quote-section');
-                          if (quoteSection) quoteSection.scrollIntoView({ behavior: 'smooth' });
-                        }, 300);
-                      }}
-                      data-testid={`btn-quote-${item.stockNumber}`}
-                    >
-                      📋 Get Free Quote
-                    </button>
-                  </div>
                 </div>
               </article>
             ))

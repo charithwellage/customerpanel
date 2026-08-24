@@ -20,7 +20,7 @@ const MOCK_USER = {
 };
 
 describe('FRD Section 8: Customer Wishlist UI', () => {
-  it('renders the stock wishlist without the removed Auction tab', () => {
+  it('renders the stock wishlist directly without category tabs', () => {
     const html = renderToStaticMarkup(
       React.createElement(
         QueryClientProvider,
@@ -38,14 +38,16 @@ describe('FRD Section 8: Customer Wishlist UI', () => {
     );
 
     expect(html).toContain('data-testid="customer-wishlist-page"');
-    expect(html).toContain('data-testid="tab-stock-wishlist"');
+    expect(html).not.toContain('data-testid="tab-stock-wishlist"');
     expect(html).not.toContain('data-testid="tab-auction-wishlist"');
     expect(html).not.toContain('Auction');
     expect(html).toContain('Found:');
     expect(html).toContain('Per Page:');
     expect(html).toContain('data-testid="wishlist-card-J240111111"');
-    expect(html).toContain('data-testid="btn-whatsapp-J240111111"');
-    expect(html).toContain('data-testid="btn-quote-J240111111"');
+    expect(html).not.toContain('WhatsApp Now');
+    expect(html).not.toContain('Get Free Quote');
+    expect(html).not.toContain('data-testid="btn-whatsapp-J240111111"');
+    expect(html).not.toContain('data-testid="btn-quote-J240111111"');
     expect(html).toContain('data-testid="btn-remove-J240111111"');
     expect(html).toContain('4 people are inquiring');
   });
