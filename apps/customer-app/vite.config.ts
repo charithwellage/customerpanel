@@ -16,6 +16,13 @@ const CUSTOMER_APP_PORT = Number(process.env.PORT ?? 3001);
 const API_PROXY_TARGET = process.env.CUSTOMER_API_PROXY_TARGET ?? 'http://127.0.0.1:4000';
 
 /**
+ * ngrok assigns a different subdomain for each tunnel. Allow only its hosted
+ * subdomain suffix rather than disabling Vite's host-header protection for all
+ * arbitrary domains.
+ */
+const ALLOWED_PREVIEW_HOSTS = ['.ngrok-free.dev'];
+
+/**
  * Serves `/healthz` from the dev and preview servers so the customer app
  * exposes the same readiness URL that `public-web` and `mock-api` already do,
  * which is what the Compose healthcheck and the fresh-runtime gate in
@@ -60,6 +67,7 @@ export default defineConfig({
     // Fail loudly rather than silently moving to another port: runtime evidence
     // must name the port that was actually served.
     strictPort: true,
+    allowedHosts: ALLOWED_PREVIEW_HOSTS,
     proxy: apiProxy,
   },
   preview: {
@@ -67,6 +75,7 @@ export default defineConfig({
     strictPort: true,
     // Bind every interface so the published container port reaches the server.
     host: true,
+    allowedHosts: ALLOWED_PREVIEW_HOSTS,
     proxy: apiProxy,
   },
 });
