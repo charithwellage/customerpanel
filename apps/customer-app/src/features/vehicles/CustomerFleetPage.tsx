@@ -162,13 +162,13 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
       <div className="cc-cust-fleet-filter-bar" data-testid="fleet-tabs">
         {/* Search & Shipping Status Dropdown */}
         <div className="cc-cust-fleet-search-group">
-          <div className="cc-cust-fleet-search-input-wrap">
-            <span className="cc-cust-fleet-search-icon" aria-hidden="true">🔍</span>
+          <div className="cc-search-input-wrapper cc-cust-fleet-search-input-wrap">
+            <span className="cc-search-input-icon" aria-hidden="true">⌕</span>
             <input
               id="fleet-search-input"
               type="search"
               data-testid="fleet-search-input"
-              className="cc-cust-fleet-search-input"
+              className="cc-search-input"
               placeholder="Search make, model, chassis"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -190,7 +190,7 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
             <select
               id="fleet-shipping-status-select"
               data-testid="fleet-shipping-status-select"
-              className="cc-cust-fleet-select"
+              className="cc-filter-select"
               value={shippingStatusFilter}
               onChange={(e) => setShippingStatusFilter(e.target.value)}
               aria-label="Shipping Status"

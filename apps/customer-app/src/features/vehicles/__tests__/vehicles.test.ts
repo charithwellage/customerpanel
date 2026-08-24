@@ -352,6 +352,10 @@ describe('My Vehicles UI Components (D02-P04-T002 & D02-P14-T008)', () => {
       // Status labels are supplied by the API status catalogue once the query resolves.
       expect(html).toContain('data-testid="fleet-tabs"');
       expect(html).toContain('Shipping Status');
+      expect(html).toContain('class="cc-search-input"');
+      expect(html).toContain('class="cc-filter-select"');
+      expect(html).not.toContain('class="cc-cust-fleet-search-input"');
+      expect(html).not.toContain('class="cc-cust-fleet-select"');
       expect(html).not.toContain('data-testid="tab-reserved"');
       expect(html).not.toContain('data-testid="tab-with-pi"');
       expect(html).not.toContain('data-testid="tab-invoiced"');
