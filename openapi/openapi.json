@@ -1599,7 +1599,7 @@
     "/api/v1/customer/vehicles/{id}": {
       "get": {
         "summary": "Get customer vehicle detail and full transaction timeline (CUST-11, CUST-12, CUST-13, RULE-04)",
-        "description": "Returns full customer detail for a specific transaction vehicle, including technical specifications, status timeline history, deposit requirement (50% under RULE-07), invoice, shipment progress, and linked export documents. Scoped strictly to authenticated customer. Requires authentication.",
+        "description": "Returns full customer detail for a specific transaction vehicle, including technical specifications, status timeline history, deposit requirement (30% under RULE-07), invoice, shipment progress, and linked export documents. Scoped strictly to authenticated customer. Requires authentication.",
         "operationId": "getCustomerVehicleDetail",
         "tags": ["Customer APIs"],
         "security": [{"BearerAuth":[]}],
@@ -3330,7 +3330,7 @@
       },
       "CustomerVehicleDepositInfo": {
         "type": "object",
-        "description": "Server-computed 50% deposit requirement under RULE-07",
+        "description": "Server-computed 30% deposit requirement under RULE-07",
         "properties": {
           "requiredPercent": { "type": "number", "example": 50 },
           "requiredAmountUsd": { "type": "number", "example": 4250.00 },
@@ -3663,7 +3663,7 @@
               },
               "bankDetails": { "$ref": "#/components/schemas/CustomerInvoiceBankDetails" },
               "isExpired": { "type": "boolean", "example": false },
-              "notes": { "type": "string", "example": "Proforma invoice issued with 50% deposit requirement" }
+              "notes": { "type": "string", "example": "Proforma invoice issued with 30% deposit requirement" }
             },
             "required": ["vehicle", "lineItems", "allocations"]
           }

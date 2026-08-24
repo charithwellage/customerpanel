@@ -130,8 +130,8 @@ describe('Customer Vehicles & Status Projection Contract (D02-P04-T001)', () => 
     });
   });
 
-  describe('3. Server-Computed 50% Deposit Requirement (RULE-07)', () => {
-    it('computes 50% deposit requirement accurately via domain helper', () => {
+  describe('3. Server-Computed 30% Deposit Requirement (RULE-07)', () => {
+    it('computes 30% deposit requirement accurately via domain helper', () => {
       const totalAmountUsd = 10000;
       const deposit = calculateVehicleDeposit(totalAmountUsd, 2000);
       expect(deposit).toEqual({
@@ -160,7 +160,7 @@ describe('Customer Vehicles & Status Projection Contract (D02-P04-T001)', () => 
       expect(body.proformaInvoiceId).toBe('pi-001');
       expect(body.deposit).toBeDefined();
       expect(body.deposit?.requiredPercent).toBe(50);
-      expect(body.deposit?.requiredAmountUsd).toBe(Math.round(body.totalAmountUsd * 0.5));
+      expect(body.deposit?.requiredAmountUsd).toBe(Math.round(body.totalAmountUsd * 0.3));
     });
   });
 

@@ -4323,7 +4323,7 @@ const seedProformaInvoices: ProformaInvoiceRecord[] = [
  * Ensures:
  * 1. Strict customer scoping (RULE-04)
  * 2. Zero duplicate vehicle listings across categories (RULE-08)
- * 3. Server-computed 50% deposit calculations (RULE-07)
+ * 3. Server-computed 30% deposit calculations (RULE-07)
  * 4. 48-hour deterministic hold expiry (RULE-05)
  * 5. Full chronological status history (CUST-12)
  * 6. Linked export documents (CUST-13)
@@ -4377,7 +4377,7 @@ export function buildCustomerVehicleProjections(
       status = 'Delivered';
     } else if (shipment?.status === 'InTransit' || vehicle.locationStatus === 'In Transit') {
       status = 'In Transit';
-    } else if (inv || shipment?.status === 'Ready' || vehicle.status === 'InvoiceCreated' || vehicle.status === 'Invoiced' || (paidAmountUsd >= totalAmountUsd * 0.5 && totalAmountUsd > 0)) {
+    } else if (inv || shipment?.status === 'Ready' || vehicle.status === 'InvoiceCreated' || vehicle.status === 'Invoiced' || (paidAmountUsd >= totalAmountUsd * 0.3 && totalAmountUsd > 0)) {
       status = 'Confirmed';
     } else if (activePi || (vehicle.status === 'ReservedWithPI' && !piExpired)) {
       status = 'Under Negotiation With PI';
@@ -4418,7 +4418,7 @@ export function buildCustomerVehicleProjections(
       statusHistory.push({
         status: 'Under Negotiation With PI',
         timestamp: pi?.issuedAt || inv?.invoicedAt || '2026-08-10T10:00:00.000Z',
-        notes: piExpired ? '72-hour PI hold expired; vehicle returned to Now On Sale' : 'Proforma invoice issued with 50% deposit requirement',
+        notes: piExpired ? '72-hour PI hold expired; vehicle returned to Now On Sale' : 'Proforma invoice issued with 30% deposit requirement',
       });
     }
 
@@ -4794,7 +4794,7 @@ export function buildCustomerInvoiceProjections(
       totalAmountUsd,
       paidAmountUsd,
       outstandingAmountUsd,
-      depositRequiredUsd: Math.round(totalAmountUsd * 0.5),
+      depositRequiredUsd: Math.round(totalAmountUsd * 0.3),
       status,
       issuedAt: inv.invoicedAt,
       dueDate,

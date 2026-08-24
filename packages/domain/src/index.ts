@@ -1032,16 +1032,16 @@ export interface CustomerVehicleDocumentReference {
 }
 
 export interface CustomerVehicleDepositInfo {
-  requiredPercent: number; // 50 under RULE-07
+  requiredPercent: number; // 30 under RULE-07
   requiredAmountUsd: number;
   paidAmountUsd: number;
   remainingAmountUsd: number;
 }
 
-export const DEPOSIT_PERCENT_RULE_07 = 50;
+export const DEPOSIT_PERCENT_RULE_07 = 30;
 
 /**
- * Computes 50% deposit requirement for vehicles under negotiation with PI (RULE-07).
+ * Computes the 30% deposit requirement for vehicles under negotiation with PI (RULE-07).
  */
 export function calculateVehicleDeposit(totalAmountUsd: number, paidAmountUsd = 0): CustomerVehicleDepositInfo {
   const requiredAmountUsd = Math.round(totalAmountUsd * (DEPOSIT_PERCENT_RULE_07 / 100));

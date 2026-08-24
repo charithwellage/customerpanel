@@ -278,7 +278,7 @@ export const CustomerWishlistPage: React.FC = () => {
 
                   <div className="cc-wishlist-card__financials">
                     <div className="cc-wishlist-price-block">
-                      <span className="cc-wishlist-price-label">FOB Price:</span>
+                      <span className="cc-wishlist-price-label">Selling Price:</span>
                       <span className="cc-wishlist-price-val">${item.fobPriceUsd.toLocaleString()} USD</span>
                     </div>
                     <span className="cc-wishlist-inquirer-note">

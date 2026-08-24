@@ -91,8 +91,8 @@ const DEFAULT_NAV_ITEMS: NavigationItem[] = [
   },
   {
     id: 'payment-allocations',
-    label: 'TT Payments & Allocations',
-    altLabel: 'TT Payments & Allocations',
+    label: 'Payment Allocations',
+    altLabel: 'Payment Allocations',
     href: '/payment-allocations',
     icon: '🧾',
   },

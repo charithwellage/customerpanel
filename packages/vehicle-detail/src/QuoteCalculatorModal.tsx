@@ -466,7 +466,7 @@ export function QuoteCalculatorModal({
 
                 <div className="cc-qc-summary-lines">
                   <div className="cc-qc-line">
-                    <span className="cc-qc-line-label">Vehicle FOB Price:</span>
+                    <span className="cc-qc-line-label">Vehicle Selling Price:</span>
                     <span className="cc-qc-line-val" data-testid="qc-fob-price">${vehicleFobPrice.toLocaleString()} USD</span>
                   </div>
 

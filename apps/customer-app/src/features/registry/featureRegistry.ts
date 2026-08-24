@@ -83,7 +83,7 @@ export const CUSTOMER_FEATURE_REGISTRY: Record<string, FeatureOwnershipRecord> =
   payments: {
     id: 'payments',
     phase: 'Phase 2.6',
-    title: 'Telegraphic Transfers & Payment Allocations',
+    title: 'Payment Allocations',
     routePath: '/payments',
     openapiPrefix: '/api/v1/customer/payments',
     mockApiPrefix: '/api/v1/customer/payments',

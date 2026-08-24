@@ -383,7 +383,7 @@ export const CustomerInquiriesPage: React.FC = () => {
 
                   <div className="cc-inq-card__financials">
                     <div className="cc-inq-price-block">
-                      <span className="cc-inq-price-label">FOB Price:</span>
+                      <span className="cc-inq-price-label">Selling Price:</span>
                       <span className="cc-inq-price-val">${inq.fobPriceUsd?.toLocaleString()} USD</span>
                     </div>
                     <div className="cc-inq-price-block">
@@ -533,11 +533,11 @@ export const CustomerInquiriesPage: React.FC = () => {
 
                 <div className="cc-inq-card__financials">
                   <div className="cc-inq-price-block">
-                    <span className="cc-inq-price-label">Min FOB:</span>
+                    <span className="cc-inq-price-label">Min Selling Price:</span>
                     <span className="cc-inq-price-val">${inq.minFobUsd?.toLocaleString()} USD</span>
                   </div>
                   <div className="cc-inq-price-block">
-                    <span className="cc-inq-price-label">Max FOB:</span>
+                    <span className="cc-inq-price-label">Max Selling Price:</span>
                     <span className="cc-inq-price-val">${inq.maxFobUsd?.toLocaleString()} USD</span>
                   </div>
                   <div className="cc-inq-delivery-block">

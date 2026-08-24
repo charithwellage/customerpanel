@@ -187,7 +187,7 @@ describe('Customer Invoices UI Components (D02-P05-T002)', () => {
         })
       );
 
-      expect(html).toContain('FOB Vehicle Price');
+      expect(html).toContain('Selling Price');
       expect(html).toContain('$7,000.00');
       expect(html).toContain('Ocean Freight');
       expect(html).toContain('$1,500.00');

@@ -169,7 +169,7 @@ export const VehicleTrackingModal: React.FC<VehicleTrackingModalProps> = ({
                   <span className="cc-track-modal-row__value cc-track-modal-row__value--mono">{purchaseDate}</span>
                 </div>
                 <div className="cc-track-modal-row cc-track-modal-row--price">
-                  <span className="cc-track-modal-row__label">FOB Price:</span>
+                  <span className="cc-track-modal-row__label">Selling Price:</span>
                   <span className="cc-track-modal-row__value cc-track-modal-row__value--fob">{priceDisplay}</span>
                 </div>
               </div>

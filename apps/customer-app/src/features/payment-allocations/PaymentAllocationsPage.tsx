@@ -43,7 +43,7 @@ export const PaymentAllocationsPage: React.FC = () => {
       <header className="cc-payment-allocations-header">
         <div>
           <p className="cc-payment-allocations-eyebrow">CUSTOMER FINANCE</p>
-          <h1>TT Payments &amp; Allocations</h1>
+          <h1>Payment Allocations</h1>
           <p>Track each telegraphic transfer, its vehicle allocations, and the invoice generated for it.</p>
         </div>
       </header>

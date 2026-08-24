@@ -176,7 +176,7 @@ describe('Customer Invoices & PI Contract (D02-P05-T001)', () => {
       expect(body.bankDetails).toBeUndefined();
     });
 
-    it('returns full proforma invoice detail with 72h payment deadline and 50% deposit requirement (RULE-07)', async () => {
+    it('returns full proforma invoice detail with 72h payment deadline and 30% deposit requirement (RULE-07)', async () => {
       const token = issueSessionToken('CustomerBuyer');
       const res = await fetch(`${baseUrl}/api/v1/customer/invoices/pi-001`, {
         headers: {
@@ -192,7 +192,7 @@ describe('Customer Invoices & PI Contract (D02-P05-T001)', () => {
       expect(body.type).toBe('Proforma');
       expect(body.customerId).toBe('cust-123');
       expect(body.totalAmountUsd).toBe(10800.00);
-      expect(body.depositRequiredUsd).toBe(5400.00); // 50% of 10800 under RULE-07
+      expect(body.depositRequiredUsd).toBe(3240.00); // 30% of 10800 under RULE-07
       expect(body.paymentDeadline).toBeDefined();
       expect(body.isExpired).toBe(false);
 

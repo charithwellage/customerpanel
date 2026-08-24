@@ -700,7 +700,7 @@ function VehicleDetailPageInner({ vehicle }: VehicleDetailPageProps) {
 
             <div className="cc-detail-fob-box">
               <div className="cc-fob-col">
-                <span className="cc-fob-label">FOB PRICE</span>
+                <span className="cc-fob-label">SELLING PRICE</span>
                 <span className="cc-fob-val">
                   {priceText} {isRequestPrice ? '' : 'USD'}
                 </span>

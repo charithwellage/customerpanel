@@ -16,7 +16,7 @@ export const FaqPreview: React.FC = () => {
     },
     {
       q: 'WHAT IS INCLUDED IN THE SHOWN VEHICLE PRICE?',
-      a: 'FOB prices include vehicle acquisition, export preparation, and terminal documentation. CIF adds ocean freight and marine insurance calculated for your selected destination port.',
+      a: 'Selling prices include vehicle acquisition, export preparation, and terminal documentation. CIF adds ocean freight and marine insurance calculated for your selected destination port.',
     },
   ];
 

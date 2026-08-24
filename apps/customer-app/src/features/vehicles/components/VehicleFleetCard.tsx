@@ -42,7 +42,7 @@ export const VehicleFleetCard: React.FC<VehicleFleetCardProps> = ({
   const balanceAmount = vehicle.commercialBill?.balanceAmountUsd ?? Math.max(0, soldAmount - paidAmount);
 
   // Deposit calculation
-  const depositReq = vehicle.deposit?.requiredAmountUsd ?? Math.round(price * 0.5);
+  const depositReq = vehicle.deposit?.requiredAmountUsd;
   const piRefDisplay = vehicle.piRef || (stockDisplay ? `PI-${stockDisplay.replace(/^STK:\s*/i, '')}` : 'PI-63519');
 
   // Contextual actions calculation
@@ -67,7 +67,7 @@ export const VehicleFleetCard: React.FC<VehicleFleetCardProps> = ({
   };
 
   const nextActionDescription = isReserved
-    ? 'Awaiting 50% initial deposit wire remittance to finalize sourcing reservation.'
+    ? 'Awaiting initial deposit wire remittance to finalize sourcing reservation.'
     : isPI
     ? `Proforma invoice ${piRefDisplay} issued. Complete remittance to initiate export prep.`
     : vehicle.status === 'Confirmed'
@@ -198,34 +198,12 @@ export const VehicleFleetCard: React.FC<VehicleFleetCardProps> = ({
           <div className="cc-cust-fleet-card__spec-divider" />
 
           <div className="cc-cust-fleet-card__spec-row">
-            <span className="cc-cust-fleet-card__spec-label cc-cust-fleet-card__spec-label--fob">FOB Price:</span>
+            <span className="cc-cust-fleet-card__spec-label cc-cust-fleet-card__spec-label--fob">Selling Price:</span>
             <span className="cc-cust-fleet-card__spec-value cc-cust-fleet-card__spec-value--fob">
               ${price.toLocaleString()}
             </span>
           </div>
         </div>
-
-        {/* Highlight Summary Box */}
-        {isReserved && (
-          <div className="cc-cust-fleet-card__highlight cc-cust-fleet-card__highlight--amber">
-            <div className="cc-cust-fleet-card__highlight-title cc-cust-fleet-card__highlight-title--amber">
-              <svg className="cc-cust-fleet-card__highlight-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <circle cx="12" cy="12" r="10" />
-                <polyline points="12 6 12 12 16 14" />
-              </svg>
-              HOLD RESERVATION
-            </div>
-            <div className="cc-cust-fleet-card__bill-row">
-              <span className="cc-cust-fleet-card__bill-label">Status:</span>
-              <span className="cc-cust-fleet-card__bill-val cc-cust-fleet-card__bill-val--danger">ON HOLD</span>
-            </div>
-            <div className="cc-cust-fleet-card__bill-divider" />
-            <div className="cc-cust-fleet-card__bill-row">
-              <span className="cc-cust-fleet-card__bill-label">Deposit (50%):</span>
-              <span className="cc-cust-fleet-card__bill-val cc-cust-fleet-card__bill-val--bold">${depositReq.toLocaleString()}</span>
-            </div>
-          </div>
-        )}
 
         {isPI && (
           <div className="cc-cust-fleet-card__highlight cc-cust-fleet-card__highlight--purple">
@@ -244,8 +222,10 @@ export const VehicleFleetCard: React.FC<VehicleFleetCardProps> = ({
             </div>
             <div className="cc-cust-fleet-card__bill-divider" />
             <div className="cc-cust-fleet-card__bill-row">
-              <span className="cc-cust-fleet-card__bill-label">Deposit (50%):</span>
-              <span className="cc-cust-fleet-card__bill-val cc-cust-fleet-card__bill-val--bold">${depositReq.toLocaleString()}</span>
+              <span className="cc-cust-fleet-card__bill-label">Deposit ({vehicle.deposit?.requiredPercent ?? '—'}%):</span>
+              <span className="cc-cust-fleet-card__bill-val cc-cust-fleet-card__bill-val--bold">
+                {depositReq !== undefined ? `$${depositReq.toLocaleString()}` : '—'}
+              </span>
             </div>
           </div>
         )}

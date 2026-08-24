@@ -41,10 +41,10 @@ const MOCK_SUMMARY: CustomerVehicleSummary = {
   totalAmountUsd: 45000,
   currency: 'USD',
   deposit: {
-    requiredPercent: 50,
-    requiredAmountUsd: 22500,
+    requiredPercent: 30,
+    requiredAmountUsd: 13500,
     paidAmountUsd: 10000,
-    remainingAmountUsd: 12500,
+    remainingAmountUsd: 3500,
   },
   locationStatus: 'In Japan',
   destinationPort: 'Mombasa',
@@ -150,7 +150,7 @@ describe('My Vehicles UI Components (D02-P04-T002 & D02-P14-T008)', () => {
   });
 
   describe('VehicleFleetCard (D02-P14-T008)', () => {
-    it('renders vehicle information, 50% deposit breakdown (RULE-07), status pill, and status tracker', () => {
+    it('renders vehicle information, 30% deposit breakdown (RULE-07), status pill, and status tracker', () => {
       const html = renderToStaticMarkup(
         React.createElement(VehicleFleetCard, {
           vehicle: MOCK_SUMMARY,
@@ -162,8 +162,8 @@ describe('My Vehicles UI Components (D02-P04-T002 & D02-P14-T008)', () => {
       expect(html).toContain('TRJ150-0192834');
       expect(html).toContain('Advanced Paid Vehicle');
       expect(html).toContain('$45,000');
-      expect(html).toContain('Deposit (50%):');
-      expect(html).toContain('$22,500');
+      expect(html).toContain('Deposit (30%):');
+      expect(html).toContain('$13,500');
       expect(html).toContain('MAKE A PAYMENT');
       expect(html).toContain('cc-status-tracker');
       expect(html).toContain('View Status Logs &amp; Next Steps');
@@ -251,14 +251,14 @@ describe('My Vehicles UI Components (D02-P04-T002 & D02-P14-T008)', () => {
   });
 
   describe('DepositSummaryCard', () => {
-    it('renders 50% deposit requirement, paid amount, and remaining balance under RULE-07', () => {
+    it('renders 30% deposit requirement, paid amount, and remaining balance under RULE-07', () => {
       const html = renderToStaticMarkup(
         React.createElement(DepositSummaryCard, {
           totalAmountUsd: 50000,
           deposit: {
-            requiredPercent: 50,
-            requiredAmountUsd: 25000,
-            paidAmountUsd: 25000,
+            requiredPercent: 30,
+            requiredAmountUsd: 15000,
+            paidAmountUsd: 15000,
             remainingAmountUsd: 0,
           },
           proformaInvoiceId: 'pi-1001',
@@ -269,8 +269,8 @@ describe('My Vehicles UI Components (D02-P04-T002 & D02-P14-T008)', () => {
 
       expect(html).toContain('Financial &amp; Deposit Summary');
       expect(html).toContain('$50,000 USD');
-      expect(html).toContain('Required Deposit (50%)');
-      expect(html).toContain('$25,000 USD');
+      expect(html).toContain('Required Deposit (30%)');
+      expect(html).toContain('$15,000 USD');
       expect(html).toContain('PI-1001');
       expect(html).toContain('INV-2001');
     });
