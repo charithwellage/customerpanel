@@ -56,14 +56,17 @@ export const PaymentAllocationsPage: React.FC = () => {
       </section>
 
       <section className="cc-payment-allocation-filters" aria-label="Filter TT payments">
-        <input aria-label="Search TT payments" value={query.query || ''} placeholder="Search TT reference, vehicle, or invoice" onChange={(event) => apply({ query: event.target.value })} />
-        <select aria-label="Filter payment status" value={query.paymentStatus || ''} onChange={(event) => apply({ paymentStatus: event.target.value || undefined })}>
+        <div className="cc-search-input-wrapper cc-payment-allocation-search">
+          <span className="cc-search-input-icon" aria-hidden="true">⌕</span>
+          <input className="cc-search-input" aria-label="Search TT payments" value={query.query || ''} placeholder="Search TT reference, vehicle, or invoice" onChange={(event) => apply({ query: event.target.value })} />
+        </div>
+        <select className="cc-filter-select" aria-label="Filter payment status" value={query.paymentStatus || ''} onChange={(event) => apply({ paymentStatus: event.target.value || undefined })}>
           <option value="">All payment statuses</option><option>Pending</option><option>Approved</option><option>Held</option><option>Rejected</option>
         </select>
-        <select aria-label="Filter allocation status" value={query.allocationStatus || ''} onChange={(event) => apply({ allocationStatus: event.target.value || undefined })}>
+        <select className="cc-filter-select" aria-label="Filter allocation status" value={query.allocationStatus || ''} onChange={(event) => apply({ allocationStatus: event.target.value || undefined })}>
           <option value="">All allocation statuses</option><option>Unallocated</option><option>PartiallyAllocated</option><option>FullyAllocated</option>
         </select>
-        <select aria-label="Filter allocation scope" value={query.scope || ''} onChange={(event) => apply({ scope: event.target.value || undefined })}>
+        <select className="cc-filter-select" aria-label="Filter allocation scope" value={query.scope || ''} onChange={(event) => apply({ scope: event.target.value || undefined })}>
           <option value="">Single and bulk payments</option><option value="SingleVehicle">Single vehicle</option><option value="MultipleVehicles">Multiple vehicles</option>
         </select>
       </section>
@@ -72,8 +75,24 @@ export const PaymentAllocationsPage: React.FC = () => {
       {data.error && <p className="cc-payment-allocation-state cc-payment-allocation-state--error" role="alert">{data.error.message}</p>}
       {!data.isLoading && !data.error && data.data?.items.length === 0 && <p className="cc-payment-allocation-state">No TT payments match the selected filters.</p>}
 
-      <section className="cc-payment-allocation-list" aria-label="TT payment allocation list">
-        {data.data?.items.map((item) => {
+      <section className="cc-payment-allocation-table-wrap" aria-label="TT payment allocation list">
+        <table className="cc-payment-allocation-table">
+          <caption className="cc-sr-only">Telegraphic transfer payments and vehicle allocations</caption>
+          <thead>
+            <tr>
+              <th scope="col">TT Reference</th>
+              <th scope="col">Payment Date</th>
+              <th scope="col">Receiving Bank</th>
+              <th scope="col">Currency</th>
+              <th scope="col" className="cc-payment-allocation-number">TT Amount</th>
+              <th scope="col" className="cc-payment-allocation-number">Allocated Amount</th>
+              <th scope="col" className="cc-payment-allocation-number">Unallocated Amount</th>
+              <th scope="col" className="cc-payment-allocation-number">Vehicles</th>
+              <th scope="col">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+          {data.data?.items.map((item) => {
           const isOpen = expanded === item.id;
           const totalAmount = Math.max(item.amountUsd, 0);
           const allocatedAmount = Math.max(item.allocatedAmountUsd, 0);
@@ -81,49 +100,75 @@ export const PaymentAllocationsPage: React.FC = () => {
           const allocatedPercent = totalAmount > 0
             ? Math.min(100, Math.max(0, (allocatedAmount / totalAmount) * 100))
             : 0;
-          return <article className="cc-payment-allocation-card" key={item.id}>
-            <button type="button" className="cc-payment-allocation-card__header" aria-expanded={isOpen} onClick={() => setExpanded(isOpen ? null : item.id)}>
-              <span><strong>{item.reference}</strong><small>{item.bankName} · {new Date(item.paymentDate).toLocaleDateString()}</small></span>
-              <span><strong>{usd(item.amountUsd)} {item.currency}</strong><small>{item.vehicleCount > 1 ? `Allocated to ${item.vehicleCount} vehicles` : item.vehicleCount === 1 ? 'Single vehicle payment' : 'Awaiting allocation'}</small></span>
-              <span className={`cc-payment-allocation-status cc-payment-allocation-status--${item.allocationStatus}`}>{item.allocationStatus.replace(/([A-Z])/g, ' $1').trim()}</span>
-            </button>
-            <div
-              className={`cc-payment-allocation-bar cc-payment-allocation-bar--${totalAmount > 0 ? item.allocationStatus : 'ZeroValue'}`}
-              role="progressbar"
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-valuenow={allocatedPercent}
-              aria-label={`${usd(allocatedAmount)} allocated and ${usd(unallocatedAmount)} unallocated from ${usd(totalAmount)} total TT amount`}
+          const toggle = () => setExpanded(isOpen ? null : item.id);
+          const handleKeyDown = (event: React.KeyboardEvent<HTMLTableRowElement>) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault();
+              toggle();
+            }
+          };
+          const detailId = `payment-allocation-detail-${item.id}`;
+          return <React.Fragment key={item.id}>
+            <tr
+              className={`cc-payment-allocation-row${isOpen ? ' cc-payment-allocation-row--expanded' : ''}`}
+              tabIndex={0}
+              aria-expanded={isOpen}
+              aria-controls={detailId}
+              onClick={toggle}
+              onKeyDown={handleKeyDown}
             >
-              <span className="cc-payment-allocation-bar__allocated" style={{ width: `${allocatedPercent}%` }} />
-              <span className="cc-payment-allocation-bar__unallocated" style={{ width: `${totalAmount > 0 ? 100 - allocatedPercent : 100}%` }} />
-            </div>
-            <dl className="cc-payment-allocation-card__summary">
-              <div><dt>Total TT Amount</dt><dd>{usd(totalAmount)}</dd></div>
-              <div><dt>Allocated Amount</dt><dd className="cc-payment-allocation-positive">{usd(allocatedAmount)}</dd></div>
-              <div><dt>Unallocated Amount</dt><dd className="cc-payment-allocation-warning">{usd(unallocatedAmount)}</dd></div>
-            </dl>
-            {isOpen && <div className="cc-payment-allocation-card__detail">
-              <h2>Vehicle allocations</h2>
-              {item.allocations.length === 0 ? <p>This TT has been verified but has not yet been allocated by the sales team.</p> : <div className="cc-payment-allocation-lines">
-                {item.allocations.map((line) => <div className="cc-payment-allocation-line" key={line.id}>
-                  {line.vehicle.primaryImage ? <img src={line.vehicle.primaryImage} alt="" /> : <div className="cc-payment-allocation-line__image" />}
-                  <div><strong>{line.vehicle.year} {line.vehicle.make} {line.vehicle.model}</strong><small>{line.vehicle.stockNumber} · {line.vehicle.chassisNumber}</small></div>
-                  <div className="cc-payment-allocation-line__financials">
-                    <span>Total price<strong>{usd(line.vehicleTotalAmountUsd)}</strong></span>
-                    <span>Allocated<strong>{usd(line.vehicleAllocatedAmountUsd)}</strong></span>
-                    <span>Balance<strong className={line.vehicleBalanceAmountUsd > 0 ? 'cc-payment-allocation-warning' : 'cc-payment-allocation-positive'}>{usd(line.vehicleBalanceAmountUsd)}</strong></span>
-                  </div>
-                  <span>{line.purpose}<small>Current TT: {usd(line.amountUsd)}</small></span>
-                </div>)}
-              </div>}
-              {item.invoice && <div className="cc-payment-allocation-invoice">
-                <div><strong>{item.invoice.invoiceNumber}</strong><small>{item.invoice.vehicleCount} vehicle{item.invoice.vehicleCount === 1 ? '' : 's'} · {item.invoice.status}</small></div>
-                <div><button type="button" onClick={() => setInvoiceId(item.invoice!.id)}>View Invoice</button><button type="button" onClick={() => void download(item)}>Download Invoice</button></div>
-              </div>}
-            </div>}
-          </article>;
+              <th scope="row"><strong>{item.reference}</strong></th>
+              <td>{new Date(item.paymentDate).toLocaleDateString()}</td>
+              <td>{item.bankName}</td>
+              <td>{item.currency}</td>
+              <td className="cc-payment-allocation-money cc-payment-allocation-number">{usd(totalAmount)}</td>
+              <td className="cc-payment-allocation-money cc-payment-allocation-number cc-payment-allocation-positive">{usd(allocatedAmount)}</td>
+              <td className="cc-payment-allocation-money cc-payment-allocation-number cc-payment-allocation-warning">{usd(unallocatedAmount)}</td>
+              <td className="cc-payment-allocation-number">{item.vehicleCount}</td>
+              <td className="cc-payment-allocation-status-cell">
+                <strong className={`cc-payment-allocation-status cc-payment-allocation-status--${item.allocationStatus}`}>{item.allocationStatus.replace(/([A-Z])/g, ' $1').trim()}</strong>
+                <div
+                  className={`cc-payment-allocation-bar cc-payment-allocation-bar--${totalAmount > 0 ? item.allocationStatus : 'ZeroValue'}`}
+                  role="progressbar"
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={allocatedPercent}
+                  aria-label={`${usd(allocatedAmount)} allocated and ${usd(unallocatedAmount)} unallocated from ${usd(totalAmount)} total TT amount`}
+                >
+                  <span className="cc-payment-allocation-bar__allocated" style={{ width: `${allocatedPercent}%` }} />
+                  <span className="cc-payment-allocation-bar__unallocated" style={{ width: `${totalAmount > 0 ? 100 - allocatedPercent : 100}%` }} />
+                </div>
+              </td>
+            </tr>
+            {isOpen && <tr className="cc-payment-allocation-detail-row" id={detailId}>
+              <td colSpan={9}>
+                <div className="cc-payment-allocation-detail">
+                  <h2>Vehicle allocations</h2>
+                  {item.allocations.length === 0 ? <p>This TT has been verified but has not yet been allocated by the sales team.</p> : <div className="cc-payment-allocation-lines">
+                    {item.allocations.map((line) => <div className="cc-payment-allocation-line" key={line.id}>
+                      {line.vehicle.primaryImage ? <img src={line.vehicle.primaryImage} alt="" /> : <div className="cc-payment-allocation-line__image" />}
+                      <div><strong>{line.vehicle.year} {line.vehicle.make} {line.vehicle.model}</strong><small>{line.vehicle.stockNumber} · {line.vehicle.chassisNumber}</small></div>
+                      <div className="cc-payment-allocation-line__financials">
+                        <span>Total price<strong>{usd(line.vehicleTotalAmountUsd)}</strong></span>
+                        <span>Allocated<strong>{usd(line.vehicleAllocatedAmountUsd)}</strong></span>
+                        <span>Balance<strong className={line.vehicleBalanceAmountUsd > 0 ? 'cc-payment-allocation-warning' : 'cc-payment-allocation-positive'}>{usd(line.vehicleBalanceAmountUsd)}</strong></span>
+                      </div>
+                    </div>)}
+                  </div>}
+                  {item.invoice && <div className="cc-payment-allocation-invoice">
+                    <div><strong>{item.invoice.invoiceNumber}</strong><small>{item.invoice.vehicleCount} vehicle{item.invoice.vehicleCount === 1 ? '' : 's'} · {item.invoice.status}</small></div>
+                    <div>
+                      <button type="button" onClick={(event) => { event.stopPropagation(); setInvoiceId(item.invoice!.id); }}>View Invoice</button>
+                      <button type="button" onClick={(event) => { event.stopPropagation(); void download(item); }}>Download Invoice</button>
+                    </div>
+                  </div>}
+                </div>
+              </td>
+            </tr>}
+          </React.Fragment>;
         })}
+          </tbody>
+        </table>
       </section>
       {data.data && data.data.total > (query.limit || 10) && <nav className="cc-payment-allocation-pagination" aria-label="TT payment pages">
         <button disabled={(query.page || 1) <= 1} onClick={() => goToPage((query.page || 1) - 1)}>Previous</button>

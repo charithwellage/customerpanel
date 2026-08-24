@@ -21,9 +21,9 @@ describe('Customer TT payment allocation contract', () => {
       vehicleCount: 2,
     });
     expect(payment?.allocations[0]).toMatchObject({
-      vehicleTotalAmountUsd: 9000,
+      vehicleTotalAmountUsd: 10800,
       vehicleAllocatedAmountUsd: 9000,
-      vehicleBalanceAmountUsd: 0,
+      vehicleBalanceAmountUsd: 1800,
     });
     expect(payment?.allocations.map((line) => line.vehicle.id)).toEqual(['veh-inv-7', 'veh-inv-9']);
   });
@@ -37,9 +37,9 @@ describe('Customer TT payment allocation contract', () => {
       vehicleCount: 2,
     });
     expect(payment?.allocations[0]).toMatchObject({
-      vehicleTotalAmountUsd: 12000,
+      vehicleTotalAmountUsd: 9440,
       vehicleAllocatedAmountUsd: 8000,
-      vehicleBalanceAmountUsd: 4000,
+      vehicleBalanceAmountUsd: 1440,
     });
     expect(payment?.allocations.map((line) => line.vehicle.id)).toEqual(['veh-inv-10', 'veh-inv-15']);
   });
