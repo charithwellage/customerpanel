@@ -176,7 +176,13 @@ export const App: React.FC<AppProps> = ({ apiBaseUrl = '' }) => (
     <AccountGuard apiBaseUrl={apiBaseUrl}>
       {(session, actions) => (
         <QueryClientProvider client={queryClient}>
-          <HttpClientProvider apiBaseUrl={apiBaseUrl}>
+          <HttpClientProvider
+            apiBaseUrl={apiBaseUrl}
+            onUnauthorized={() => {
+              queryClient.clear();
+              actions.signOut();
+            }}
+          >
             <CustomerShell
               initialUser={toShellUser(session)}
               onSignOut={() => {

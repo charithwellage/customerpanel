@@ -555,6 +555,7 @@ export interface CustomerPayment {
   depositorName?: string;
   customerName?: string;
   approvedDate?: string;
+  financeNote?: string;
   paymentDate: string;
   remarks?: string;
   status: 'Pending' | 'Held' | 'Resubmitted' | 'Approved' | 'Rejected';

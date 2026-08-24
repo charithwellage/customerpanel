@@ -762,6 +762,13 @@
   border-top: 1px solid var(--color-border);
 }
 
+.cc-pay-finance-note {
+  padding: var(--spacing-md);
+  border: 1px solid color-mix(in srgb, var(--color-warning) 35%, var(--color-border));
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--color-warning) 10%, var(--color-surface));
+}
+
 .cc-pay-docs-list {
   display: flex;
   flex-wrap: wrap;

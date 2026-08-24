@@ -40,6 +40,29 @@ describe('API Client & Contract Boundary Tests', () => {
     }
   });
 
+  it('notifies the host app when an authenticated request returns 401', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 401,
+      statusText: 'Unauthorized',
+      headers: new Headers({ 'content-type': 'application/json' }),
+      json: async () => ({ statusCode: 401, message: 'Unauthenticated' }),
+    });
+    const onUnauthorized = vi.fn();
+    global.fetch = mockFetch;
+
+    const client = new HttpClient({
+      baseUrl: 'http://localhost:4000',
+      getAuthToken: () => 'expired-token',
+      onUnauthorized,
+    });
+
+    await expect(client.request('/api/v1/customer/payment-allocations')).rejects.toMatchObject({
+      statusCode: 401,
+    });
+    expect(onUnauthorized).toHaveBeenCalledOnce();
+  });
+
   it('injects authorization header when token hook is provided', async () => {
     let capturedHeaders: Headers | undefined;
     const mockFetch = vi.fn().mockImplementation(async (_url, options) => {

@@ -35,6 +35,7 @@ export interface RemittanceJournalEntry {
   depositorName: string;
   customerName: string;
   approvedDate?: string;
+  financeNote?: string;
   remarks?: string;
   status: 'APPROVED' | 'REJECTED' | 'UNDER REVIEW' | 'ON HOLD';
 }
@@ -103,6 +104,7 @@ export const PaymentsPage: React.FC = () => {
         depositorName: payment.depositorName || payment.customerName || payment.customerId,
         customerName: payment.customerName || payment.customerId,
         approvedDate: payment.approvedDate,
+        financeNote: payment.financeNote,
         remarks: payment.remarks,
         status: getRemittanceJournalStatus(payment.status),
       };
@@ -182,6 +184,7 @@ export const PaymentsPage: React.FC = () => {
       currency: entry.currency,
       ttAmount: entry.amountUsd,
       approvedDate: entry.approvedDate,
+      financeNote: entry.financeNote,
     });
   };
 

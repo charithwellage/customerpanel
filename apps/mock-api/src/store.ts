@@ -3791,6 +3791,7 @@ export interface PaymentRecord {
   paidAt: string;
   status: 'Pending' | 'Held' | 'Resubmitted' | 'Approved' | 'Rejected';
   holdReason?: string;
+  financeNote?: string;
   reference?: string;
   bankName?: string;
   currency?: string;
@@ -4044,6 +4045,7 @@ const seedPayments: PaymentRecord[] = [
     paidAt: '2026-08-14T10:30:00.000Z',
     status: 'Held',
     holdReason: 'Awaiting additional bank confirmation',
+    financeNote: 'Finance is verifying the beneficiary bank confirmation before releasing this payment.',
     reference: 'TT-2026-4200-HOLD',
     bankName: 'Standard Chartered Bank',
     currency: 'USD',
@@ -4057,6 +4059,7 @@ const seedPayments: PaymentRecord[] = [
     amountUsd: 2800.00,
     paidAt: '2026-08-15T11:15:00.000Z',
     status: 'Rejected',
+    financeNote: 'The uploaded payment proof did not include a verifiable bank reference. Please submit a corrected document.',
     reference: 'TT-2026-2800-REJECTED',
     bankName: 'MUFG Bank Tokyo',
     currency: 'USD',
@@ -5235,6 +5238,7 @@ function toCustomerPayment(record: PaymentRecord, invoices: InvoiceRecord[] = []
     customerName: record.customerName || customerName || record.customerId,
     depositorName: record.depositorName || customerName || record.customerId,
     ...(record.status === 'Approved' ? { approvedDate: record.paidAt } : {}),
+    ...(record.financeNote ? { financeNote: record.financeNote } : {}),
     paymentDate: record.paymentDate || record.paidAt,
     remarks: record.remarks,
     status: record.status,
@@ -5424,6 +5428,7 @@ function applyPaymentNotification(
     if (!['Pending', 'Resubmitted'].includes(current)) throw new PaymentWorkflowError(409, 'Only a pending payment can be held');
     payment.status = 'Held';
     payment.holdReason = request.reason.trim();
+    payment.financeNote = request.reason.trim();
   } else if (request.event === 'PaymentResubmitted') {
     if (current !== 'Held') throw new PaymentWorkflowError(409, 'Only a held payment can be resubmitted');
     payment.status = 'Resubmitted';
@@ -7302,6 +7307,7 @@ class PostgresStore implements DemoStore {
     await this.pool.query(`ALTER TABLE payments ADD COLUMN IF NOT EXISTS bank_name text;`);
     await this.pool.query(`ALTER TABLE payments ADD COLUMN IF NOT EXISTS currency text;`);
     await this.pool.query(`ALTER TABLE payments ADD COLUMN IF NOT EXISTS remarks text;`);
+    await this.pool.query(`ALTER TABLE payments ADD COLUMN IF NOT EXISTS finance_note text;`);
     await this.pool.query(`ALTER TABLE payments ALTER COLUMN invoice_id DROP NOT NULL;`);
     await this.pool.query(`ALTER TABLE payments DROP CONSTRAINT IF EXISTS payments_status_valid;`);
     await this.pool.query(`ALTER TABLE payments ADD CONSTRAINT payments_status_valid CHECK (status IN ('Pending', 'Held', 'Resubmitted', 'Approved', 'Rejected'));`);
@@ -7526,16 +7532,17 @@ class PostgresStore implements DemoStore {
        ON CONFLICT (id) DO NOTHING`,
     );
     await this.pool.query(
-      `INSERT INTO payments (id, customer_id, invoice_id, amount_usd, paid_at, status, reference, bank_name, currency, remarks)
+      `INSERT INTO payments (id, customer_id, invoice_id, amount_usd, paid_at, status, reference, bank_name, currency, remarks, finance_note)
        VALUES
-         ('pay-cust123-hold-001', 'cust-123', 'inv-003', 4200, '2026-08-14T10:30:00.000Z', 'Held', 'TT-2026-4200-HOLD', 'Standard Chartered Bank', 'USD', 'Payment temporarily held for finance review'),
-         ('pay-cust123-rejected-001', 'cust-123', 'inv-003', 2800, '2026-08-15T11:15:00.000Z', 'Rejected', 'TT-2026-2800-REJECTED', 'MUFG Bank Tokyo', 'USD', 'Payment proof rejected because the reference was incomplete')
+         ('pay-cust123-hold-001', 'cust-123', 'inv-003', 4200, '2026-08-14T10:30:00.000Z', 'Held', 'TT-2026-4200-HOLD', 'Standard Chartered Bank', 'USD', 'Payment temporarily held for finance review', 'Finance is verifying the beneficiary bank confirmation before releasing this payment.'),
+         ('pay-cust123-rejected-001', 'cust-123', 'inv-003', 2800, '2026-08-15T11:15:00.000Z', 'Rejected', 'TT-2026-2800-REJECTED', 'MUFG Bank Tokyo', 'USD', 'Payment proof rejected because the reference was incomplete', 'The uploaded payment proof did not include a verifiable bank reference. Please submit a corrected document.')
        ON CONFLICT (id) DO UPDATE SET
          status = EXCLUDED.status,
          reference = EXCLUDED.reference,
          bank_name = EXCLUDED.bank_name,
          currency = EXCLUDED.currency,
-         remarks = EXCLUDED.remarks`,
+         remarks = EXCLUDED.remarks,
+         finance_note = EXCLUDED.finance_note`,
     );
     await this.pool.query(
       `INSERT INTO payments (id, customer_id, invoice_id, amount_usd, paid_at, status, reference, bank_name, currency, remarks)
@@ -9035,7 +9042,7 @@ class PostgresStore implements DemoStore {
     const allocations = await this.getRawAllocations(customerId);
     const result = await this.pool.query(
       `SELECT p.id, p.customer_id, p.invoice_id, p.amount_usd, p.paid_at, p.status, p.reference,
-              p.bank_name, p.currency, p.remarks, ca.name_with_initials AS customer_name
+              p.bank_name, p.currency, p.remarks, p.finance_note, ca.name_with_initials AS customer_name
        FROM payments p
        LEFT JOIN customer_accounts ca ON ca.customer_id = p.customer_id
        WHERE p.customer_id = $1 ORDER BY p.paid_at DESC, p.id DESC`,
@@ -9060,6 +9067,7 @@ class PostgresStore implements DemoStore {
         bankName: row.bank_name || memoryMatch?.bankName || 'Sumitomo Mitsui Banking Corp (USD)',
         currency: row.currency || memoryMatch?.currency || 'USD',
         remarks: row.remarks || memoryMatch?.remarks || 'None',
+        financeNote: row.finance_note || memoryMatch?.financeNote,
         proof: memoryMatch?.proof,
         idempotencyKey: memoryMatch?.idempotencyKey,
         customerName: row.customer_name || undefined,
@@ -9090,6 +9098,7 @@ class PostgresStore implements DemoStore {
       bankName: payment.bankName,
       currency: payment.currency,
       remarks: payment.remarks,
+      financeNote: payment.financeNote,
       idempotencyKey: payment.idempotencyKey,
     }));
     return queryCustomerPaymentAllocations(buildCustomerPaymentAllocationSummaries(customerId, payments, allocations, invoices, vehicles), query);

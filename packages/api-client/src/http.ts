@@ -3,6 +3,7 @@ export interface HttpClientConfig {
   timeoutMs?: number;
   getAuthToken?: () => string | null | undefined;
   getCorrelationId?: () => string;
+  onUnauthorized?: () => void;
 }
 
 export class NormalizedApiError extends Error {
@@ -24,12 +25,14 @@ export class HttpClient {
   private timeoutMs: number;
   private getAuthToken?: () => string | null | undefined;
   private getCorrelationId?: () => string;
+  private onUnauthorized?: () => void;
 
   constructor(config: HttpClientConfig) {
     this.baseUrl = config.baseUrl.replace(/\/$/, '');
     this.timeoutMs = config.timeoutMs || 10000;
     this.getAuthToken = config.getAuthToken;
     this.getCorrelationId = config.getCorrelationId;
+    this.onUnauthorized = config.onUnauthorized;
   }
 
   public getBaseUrl(): string {
@@ -81,6 +84,7 @@ export class HttpClient {
           // ignore non-json error payloads
         }
 
+        if (response.status === 401) this.onUnauthorized?.();
         throw new NormalizedApiError(response.status, errorMessage, correlationId, parsedError);
       }
 
@@ -119,7 +123,10 @@ export class HttpClient {
     try {
       const response = await fetch(`${cleanBase}${finalPath}`, { ...options, headers, signal: controller.signal });
       clearTimeout(timeoutId);
-      if (!response.ok) throw new NormalizedApiError(response.status, `Unable to download document (${response.status})`, correlationId);
+      if (!response.ok) {
+        if (response.status === 401) this.onUnauthorized?.();
+        throw new NormalizedApiError(response.status, `Unable to download document (${response.status})`, correlationId);
+      }
       return await response.blob();
     } catch (err: unknown) {
       clearTimeout(timeoutId);

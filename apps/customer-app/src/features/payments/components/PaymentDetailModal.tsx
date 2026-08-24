@@ -10,6 +10,7 @@ export interface PaymentDetailRecord {
   currency: string;
   ttAmount: number;
   approvedDate?: string;
+  financeNote?: string;
   documents?: Array<{ name: string; url: string }>;
 }
 
@@ -109,6 +110,13 @@ export const PaymentDetailModal: React.FC<PaymentDetailModalProps> = ({
               )}
             </div>
           </div>
+
+          {payment.financeNote && (
+            <div className="cc-pay-docs-section cc-pay-finance-note" role="note">
+              <span className="cc-pay-detail-label">Finance Note:</span>
+              <span className="cc-pay-detail-val">{payment.financeNote}</span>
+            </div>
+          )}
         </div>
       </div>
     </div>

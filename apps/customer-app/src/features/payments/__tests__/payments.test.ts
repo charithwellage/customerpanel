@@ -107,8 +107,9 @@ describe('FRD Phase 4: My Payments', () => {
           depositorName: 'Depositor1',
           customerName: 'Charith Wellage',
           currency: 'USD',
-          ttAmount: 100000,
-          approvedDate: '2024-10-20',
+        ttAmount: 100000,
+        approvedDate: '2024-10-20',
+        financeNote: 'Finance is verifying the beneficiary bank confirmation before releasing this payment.',
         },
       })
     );
@@ -118,6 +119,7 @@ describe('FRD Phase 4: My Payments', () => {
     expect(html).toContain('Mizuho Bank Tokyo');
     expect(html).toContain('Charith Wellage');
     expect(html).toContain('$100,000.00 USD');
+    expect(html).toContain('Finance is verifying the beneficiary bank confirmation before releasing this payment.');
   });
 
 });

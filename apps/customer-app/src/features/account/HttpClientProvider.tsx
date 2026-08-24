@@ -11,6 +11,7 @@ const HttpClientContext = createContext<HttpClientContextValue | undefined>(unde
 export interface HttpClientProviderProps {
   children: ReactNode;
   apiBaseUrl?: string;
+  onUnauthorized?: () => void;
 }
 
 /**
@@ -20,6 +21,7 @@ export interface HttpClientProviderProps {
 export const HttpClientProvider: React.FC<HttpClientProviderProps> = ({
   children,
   apiBaseUrl = '',
+  onUnauthorized,
 }) => {
   const httpClient = useMemo(() => {
     const baseUrl = apiBaseUrl || (() => {
@@ -38,10 +40,11 @@ export const HttpClientProvider: React.FC<HttpClientProviderProps> = ({
         const session = loadCustomerSession();
         return session?.token || null;
       },
+      onUnauthorized,
     };
 
     return new HttpClient(config);
-  }, [apiBaseUrl]);
+  }, [apiBaseUrl, onUnauthorized]);
 
   return (
     <HttpClientContext.Provider value={{ httpClient }}>

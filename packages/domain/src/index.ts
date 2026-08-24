@@ -65,6 +65,7 @@ export interface CustomerPayment {
   receivingBank?: string;
   customerName?: string;
   approvedDate?: string;
+  financeNote?: string;
   allocations?: CustomerPaymentAllocation[];
   documents?: Array<{ name: string; url: string }>;
   paymentDate: string;

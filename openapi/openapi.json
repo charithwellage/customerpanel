@@ -3513,7 +3513,7 @@
         "properties": {
           "id": { "type": "string" }, "customerId": { "type": "string" }, "invoiceId": { "type": "string" },
           "reference": { "type": "string" }, "bankName": { "type": "string" }, "currency": { "type": "string" },
-          "amountUsd": { "type": "number" }, "allocatedAmountUsd": { "type": "number" }, "remainingBalanceUsd": { "type": "number" }, "depositorName": { "type": "string" }, "customerName": { "type": "string" }, "approvedDate": { "type": "string" }, "paymentDate": { "type": "string" }, "remarks": { "type": "string" },
+          "amountUsd": { "type": "number" }, "allocatedAmountUsd": { "type": "number" }, "remainingBalanceUsd": { "type": "number" }, "depositorName": { "type": "string" }, "customerName": { "type": "string" }, "approvedDate": { "type": "string" }, "financeNote": { "type": "string", "description": "Finance-provided reason shown to the customer for held or rejected payments." }, "paymentDate": { "type": "string" }, "remarks": { "type": "string" },
           "status": { "type": "string", "enum": ["Pending", "Held", "Resubmitted", "Approved", "Rejected"] },
           "holdReason": { "type": "string" }, "proof": { "$ref": "#/components/schemas/CustomerPaymentProofMetadata" },
           "idempotencyKey": { "type": "string" }, "createdAt": { "type": "string" }
