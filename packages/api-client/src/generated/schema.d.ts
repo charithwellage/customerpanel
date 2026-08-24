@@ -152,6 +152,9 @@ export interface VehicleDetail {
   model: string;
   year: number;
   status: 'Draft' | 'Available' | 'Pending' | 'Reserved' | 'ReservedWithPI' | 'InvoiceCreated' | 'Invoiced' | 'Sold';
+  statusLabel?: string;
+  statusLabelPlural?: string;
+  statusDescription?: string;
   priceState: 'priced' | 'request_price';
   priceUsd?: number;
   requestPrice: boolean;

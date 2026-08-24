@@ -84,7 +84,11 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
   const withPICount = counts.underNegotiationWithPI;
   const invoicedCount = counts.confirmed + counts.inTransit + counts.delivered;
   const reservedStatus = data?.statusDefinitions?.find((definition) => definition.code === 'Reserved');
-  const reservedVehiclesLabel = reservedStatus?.pluralLabel || 'Reserved Vehicles';
+  const advancedPaidStatus = data?.statusDefinitions?.find((definition) => definition.code === 'ReservedWithPI');
+  const purchasedStatus = data?.statusDefinitions?.find((definition) => definition.code === 'Invoiced');
+  const reservedVehiclesLabel = reservedStatus?.pluralLabel || '';
+  const advancedPaidVehiclesLabel = advancedPaidStatus?.pluralLabel || '';
+  const purchasedVehiclesLabel = purchasedStatus?.pluralLabel || '';
 
   return (
     <div className="cc-cust-fleet" data-testid="customer-fleet-page">
@@ -122,7 +126,7 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
         >
           <div className="cc-cust-kpi-card__content">
             <div className="cc-cust-kpi-card__header-row">
-              <span className="cc-cust-kpi-card__title">ADVANCED PAID VEHICLES</span>
+              <span className="cc-cust-kpi-card__title">{advancedPaidVehiclesLabel.toUpperCase()}</span>
             </div>
             <div className="cc-cust-kpi-card__count">{withPICount} Units</div>
             <p className="cc-cust-kpi-card__subtitle">Advance payment confirmed</p>
@@ -143,7 +147,7 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
         >
           <div className="cc-cust-kpi-card__content">
             <div className="cc-cust-kpi-card__header-row">
-              <span className="cc-cust-kpi-card__title">PURCHASED VEHICLES</span>
+              <span className="cc-cust-kpi-card__title">{purchasedVehiclesLabel.toUpperCase()}</span>
             </div>
             <div className="cc-cust-kpi-card__count">{invoicedCount} Units</div>
             <p className="cc-cust-kpi-card__subtitle">Fully purchased &amp; invoiced fleet</p>
@@ -177,7 +181,7 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
             className={`cc-cust-fleet-pill cc-cust-fleet-pill--purple ${activeTab === 'withPI' || activeTab === 'underNegotiationWithPI' ? 'cc-cust-fleet-pill--active' : ''}`}
             onClick={() => setActiveTab('withPI')}
           >
-            <span className="cc-cust-fleet-pill__icon" aria-hidden="true">📄</span> ADVANCED PAID ({withPICount})
+            <span className="cc-cust-fleet-pill__icon" aria-hidden="true">📄</span> {advancedPaidVehiclesLabel.toUpperCase()} ({withPICount})
           </button>
 
           <button
@@ -188,7 +192,7 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
             className={`cc-cust-fleet-pill cc-cust-fleet-pill--green ${activeTab === 'invoiced' || activeTab === 'confirmed' || activeTab === 'inTransit' || activeTab === 'delivered' ? 'cc-cust-fleet-pill--active' : ''}`}
             onClick={() => setActiveTab('invoiced')}
           >
-            <span className="cc-cust-fleet-pill__icon" aria-hidden="true">✓</span> PURCHASED ({invoicedCount})
+            <span className="cc-cust-fleet-pill__icon" aria-hidden="true">✓</span> {purchasedVehiclesLabel.toUpperCase()} ({invoicedCount})
           </button>
 
           {activeTab === 'all' && (

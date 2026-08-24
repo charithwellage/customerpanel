@@ -137,7 +137,7 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
           <VehicleGalleryPrimitive
             images={images}
             title={title}
-            badges={[{ label: vehicle.status, tone: vehicle.status === 'Available' ? ('success' as const) : ('warning' as const) }]}
+            badges={[{ label: vehicle.statusLabel || '', tone: vehicle.status === 'Available' ? ('success' as const) : ('warning' as const) }]}
           />
         </div>
 

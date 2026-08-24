@@ -283,10 +283,10 @@ export const seedVehicleStatusDefinitions: VehicleStatusDefinition[] = [
   { code: 'Available', singularLabel: 'Available Vehicle', pluralLabel: 'Available Vehicles', description: 'Vehicle is available for reservation.', active: true, sortOrder: 20 },
   { code: 'Pending', singularLabel: 'Pending Vehicle', pluralLabel: 'Pending Vehicles', description: 'Vehicle availability is pending confirmation.', active: true, sortOrder: 30 },
   { code: 'Reserved', singularLabel: 'Reserved Vehicle', pluralLabel: 'Reserved Vehicles', description: 'Vehicle has an active reservation hold.', active: true, sortOrder: 40 },
-  { code: 'ReservedWithPI', singularLabel: 'Reserved With PI Vehicle', pluralLabel: 'Reserved With PI Vehicles', description: 'Vehicle is reserved and has a proforma invoice.', active: true, sortOrder: 50 },
-  { code: 'InvoiceCreated', singularLabel: 'Invoice Created Vehicle', pluralLabel: 'Invoice Created Vehicles', description: 'An invoice has been created for the vehicle.', active: true, sortOrder: 60 },
-  { code: 'Invoiced', singularLabel: 'Invoiced Vehicle', pluralLabel: 'Invoiced Vehicles', description: 'An issued invoice is linked to the vehicle.', active: true, sortOrder: 70 },
-  { code: 'Sold', singularLabel: 'Sold Vehicle', pluralLabel: 'Sold Vehicles', description: 'Vehicle sale has been completed.', active: true, sortOrder: 80 },
+  { code: 'ReservedWithPI', singularLabel: 'Advanced Paid Vehicle', pluralLabel: 'Advanced Paid Vehicles', description: 'Vehicle has received its advance payment and has a proforma invoice.', active: true, sortOrder: 50 },
+  { code: 'InvoiceCreated', singularLabel: 'Purchased Vehicle', pluralLabel: 'Purchased Vehicles', description: 'A purchase invoice has been created for the vehicle.', active: true, sortOrder: 60 },
+  { code: 'Invoiced', singularLabel: 'Purchased Vehicle', pluralLabel: 'Purchased Vehicles', description: 'A purchase invoice has been issued for the vehicle.', active: true, sortOrder: 70 },
+  { code: 'Sold', singularLabel: 'Purchased Vehicle', pluralLabel: 'Purchased Vehicles', description: 'Vehicle purchase has been completed.', active: true, sortOrder: 80 },
 ];
 
 function resolveVehicleStatusDefinition(code: string, definitions: VehicleStatusDefinition[] = seedVehicleStatusDefinitions): VehicleStatusDefinition {
@@ -1281,6 +1281,7 @@ export interface VehicleQueryContext {
   reservations?: ReservationRecord[];
   tierRule?: CustomerTierRule;
   allocatedCustomerId?: string;
+  vehicleStatusDefinitions?: VehicleStatusDefinition[];
 }
 
 export interface DemoStore {
@@ -3038,6 +3039,9 @@ export function buildVehicleDetail(
     model: v.model,
     year: v.year,
     status: (v.status as VehicleStatus) || 'Available',
+    statusLabel: resolveVehicleStatusDefinition(v.status, context.vehicleStatusDefinitions).singularLabel,
+    statusLabelPlural: resolveVehicleStatusDefinition(v.status, context.vehicleStatusDefinitions).pluralLabel,
+    statusDescription: resolveVehicleStatusDefinition(v.status, context.vehicleStatusDefinitions).description,
     priceState,
     priceUsd,
     requestPrice: isRequestPrice,
@@ -4509,7 +4513,9 @@ export function buildCustomerVehicleProjections(
       ? 'Reserved'
       : status === 'Under Negotiation With PI'
         ? 'ReservedWithPI'
-        : vehicle.status;
+        : status === 'Confirmed' || status === 'In Transit' || status === 'Delivered'
+          ? 'Invoiced'
+          : vehicle.status;
     const statusDefinition = resolveVehicleStatusDefinition(displayStatusCode, vehicleStatusDefinitions);
 
     const detail: CustomerVehicleDetail = {
@@ -5490,6 +5496,7 @@ class MemoryStore implements DemoStore {
       reservations: this.reservations,
       customerTier: context?.customerId ? await this.getCustomerTier(context.customerId) : context?.customerTier,
       allocatedCustomerId: findAllocatedCustomerId(this.invoices, record.id),
+      vehicleStatusDefinitions: this.vehicleStatusDefinitions,
     };
     mergedContext.tierRule = mergedContext.customerTier ? this.tierRules.get(mergedContext.customerTier) : undefined;
     return buildVehicleDetail(record, mergedContext);
@@ -7389,7 +7396,7 @@ class PostgresStore implements DemoStore {
         await this.pool.query('INSERT INTO office_locations (id, name, city, country, address, phone, email, operating_hours, is_primary, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)', [office.id, office.name, office.city, office.country, office.address, office.phone, office.email, office.operatingHours, office.isPrimary, office.status]);
       }
       for (const branch of seedBranches) {
-        await this.pool.query('INSERT INTO branch_content (id, name, code, destination_port, introduction, welcome_banner, contact_banner, team_members, meet_and_greet_info, contact_details, content_owner, status, latest_arrivals_query, recently_discounted_query) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)', [branch.id, branch.name, branch.code, branch.destinationPort, branch.introduction, branch.welcomeBanner, branch.contactBanner, JSON.stringify(branch.teamMembers), branch.meetAndGreetInfo, JSON.stringify(branch.contactDetails), null, branch.status, null, null]);
+        await this.pool.query('INSERT INTO branch_content (id, name, code, destination_port, introduction, welcome_banner, contact_banner, team_members, meet_and_greet_info, contact_details, content_owner, status, latest_arrivals_query, recently_discounted_query) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)', [branch.id, branch.name, branch.code, branch.destinationPort, branch.introduction, branch.welcomeBanner, branch.contactBanner, JSON.stringify(branch.teamMembers), branch.meetAndGreetInfo, JSON.stringify(branch.contactDetails), 'BranchContentSeed', branch.status, null, null]);
       }
     }
     await this.pool.query(
@@ -7544,6 +7551,7 @@ class PostgresStore implements DemoStore {
           const id = customerId === 'cust-123' ? a.id : `alloc-${customerId}-${a.id.replace(/^alloc-/, '')}`;
           const invoiceId = customerId === 'cust-123' ? a.invoiceId : `inv-${customerId}-${a.invoiceId.replace(/^inv-/, '')}`;
           const paymentId = customerId === 'cust-123' ? a.paymentId : `pay-${customerId}-${a.paymentId.replace(/^pay-/, '')}`;
+          const paymentSeed = seedPayments.find((payment) => payment.id === a.paymentId);
           // Older databases may contain the invoice but not the payment rows
           // referenced by the allocation seed. Create the minimal payment
           // snapshot first so the payment FK is valid before inserting the
@@ -7552,7 +7560,7 @@ class PostgresStore implements DemoStore {
             `INSERT INTO payments (id, customer_id, invoice_id, amount_usd, paid_at, status, reference, bank_name, currency, remarks)
              VALUES ($1, $2, $3, $4, $5, 'Approved', $6, 'Direct Wire Transfer', 'USD', 'Seed allocation payment')
              ON CONFLICT (id) DO NOTHING;`,
-            [paymentId, customerId, invoiceId, a.amountUsd, a.allocatedAt, `SEED-${paymentId}`]
+            [paymentId, customerId, invoiceId, paymentSeed?.amountUsd ?? a.amountUsd, paymentSeed?.paymentDate ?? a.allocatedAt, paymentSeed?.reference ?? `SEED-${paymentId}`]
           );
           await this.pool.query(
           `INSERT INTO allocations (id, customer_id, payment_id, invoice_id, vehicle_id, purpose, amount_usd, allocated_at, status)
@@ -8147,6 +8155,7 @@ class PostgresStore implements DemoStore {
     }
     const reservations = await this.getRawReservations();
     const invoices = await this.getRawInvoices();
+    const vehicleStatusDefinitions = await this.getVehicleStatusDefinitions();
     const effectiveTier = context?.customerId ? await this.getCustomerTier(context.customerId) : context?.customerTier;
     const mergedContext: VehicleQueryContext = {
       ...context,
@@ -8154,6 +8163,7 @@ class PostgresStore implements DemoStore {
       customerTier: effectiveTier,
       tierRule: effectiveTier ? await this.getTierRule(effectiveTier) : undefined,
       allocatedCustomerId: findAllocatedCustomerId(invoices, record.id),
+      vehicleStatusDefinitions,
     };
     return buildVehicleDetail(record, mergedContext);
   }
@@ -9477,7 +9487,7 @@ class PostgresStore implements DemoStore {
         await client.query('INSERT INTO office_locations (id, name, city, country, address, phone, email, operating_hours, is_primary, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)', [office.id, office.name, office.city, office.country, office.address, office.phone, office.email, office.operatingHours, office.isPrimary, office.status]);
       }
       for (const branch of seedBranches) {
-        await client.query('INSERT INTO branch_content (id, name, code, destination_port, introduction, welcome_banner, contact_banner, team_members, meet_and_greet_info, contact_details, content_owner, status, latest_arrivals_query, recently_discounted_query) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)', [branch.id, branch.name, branch.code, branch.destinationPort, branch.introduction, branch.welcomeBanner, branch.contactBanner, JSON.stringify(branch.teamMembers), branch.meetAndGreetInfo, JSON.stringify(branch.contactDetails), null, branch.status, null, null]);
+        await client.query('INSERT INTO branch_content (id, name, code, destination_port, introduction, welcome_banner, contact_banner, team_members, meet_and_greet_info, contact_details, content_owner, status, latest_arrivals_query, recently_discounted_query) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)', [branch.id, branch.name, branch.code, branch.destinationPort, branch.introduction, branch.welcomeBanner, branch.contactBanner, JSON.stringify(branch.teamMembers), branch.meetAndGreetInfo, JSON.stringify(branch.contactDetails), 'BranchContentSeed', branch.status, null, null]);
       }
 
       await client.query('COMMIT');

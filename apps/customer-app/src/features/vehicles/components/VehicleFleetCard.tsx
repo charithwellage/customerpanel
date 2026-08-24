@@ -83,7 +83,7 @@ export const VehicleFleetCard: React.FC<VehicleFleetCardProps> = ({
       className={`cc-cust-fleet-card cc-cust-fleet-card--interactive ${isPI ? 'cc-cust-fleet-card--pi' : ''} ${isInvoiced ? 'cc-cust-fleet-card--invoiced' : ''} ${isExpanded ? 'cc-cust-fleet-card--expanded' : ''}`}
       tabIndex={0}
       role="region"
-      aria-label={`${vehicle.year} ${vehicle.make} ${vehicle.model} (${vehicle.status})`}
+      aria-label={`${vehicle.year} ${vehicle.make} ${vehicle.model} (${vehicle.statusLabel})`}
       onClick={() => onSelect(vehicle)}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
@@ -111,17 +111,17 @@ export const VehicleFleetCard: React.FC<VehicleFleetCardProps> = ({
         <div className="cc-cust-fleet-card__badges-row">
           {isPI && (
             <span className="cc-cust-fleet-badge cc-cust-fleet-badge--pi">
-              <span className="cc-cust-fleet-badge__dot cc-cust-fleet-badge__dot--pulse" aria-hidden="true">●</span> ADVANCED PAID (PI)
+              <span className="cc-cust-fleet-badge__dot cc-cust-fleet-badge__dot--pulse" aria-hidden="true">●</span> {vehicle.statusLabel}
             </span>
           )}
           {isInvoiced && (
             <span className="cc-cust-fleet-badge cc-cust-fleet-badge--invoiced">
-              <span className="cc-cust-fleet-badge__dot" aria-hidden="true">✓</span> PURCHASED
+              <span className="cc-cust-fleet-badge__dot" aria-hidden="true">✓</span> {vehicle.statusLabel}
             </span>
           )}
           {isReserved && (
             <span className="cc-cust-fleet-badge cc-cust-fleet-badge--reserved">
-              <span className="cc-cust-fleet-badge__dot cc-cust-fleet-badge__dot--pulse" aria-hidden="true">●</span> {vehicle.statusLabel || 'Reserved Vehicle'}
+              <span className="cc-cust-fleet-badge__dot cc-cust-fleet-badge__dot--pulse" aria-hidden="true">●</span> {vehicle.statusLabel}
             </span>
           )}
 

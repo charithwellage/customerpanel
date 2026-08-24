@@ -229,6 +229,8 @@ describe('Customer Inventory Projection & Tier Pricing Contract (D02-P03-T001)',
       expect(detailRes.status).toBe(200);
       const detail = (await detailRes.json()) as VehicleDetail;
       expect(detail.status).toBe('Invoiced');
+      expect(detail.statusLabel).toBe('Purchased Vehicle');
+      expect(detail.statusLabelPlural).toBe('Purchased Vehicles');
       expect(detail.reservationEligibility).toEqual({ eligible: false, reason: 'not_reservable' });
       expect(detail.inquiryEligibility).toEqual({ eligible: false, reason: 'allocated_to_another_customer' });
       expect(detail).not.toHaveProperty('customerId');

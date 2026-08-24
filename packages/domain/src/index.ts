@@ -443,6 +443,11 @@ export interface VehicleDetail {
   model: string;
   year: number;
   status: VehicleStatus;
+  /** Customer-facing label resolved by the server status catalogue. */
+  statusLabel?: string;
+  /** Customer-facing plural label resolved by the server status catalogue. */
+  statusLabelPlural?: string;
+  statusDescription?: string;
   priceState: 'priced' | 'request_price';
   priceUsd?: number;
   requestPrice: boolean;

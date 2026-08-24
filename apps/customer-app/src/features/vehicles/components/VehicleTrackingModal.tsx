@@ -94,7 +94,7 @@ export const VehicleTrackingModal: React.FC<VehicleTrackingModalProps> = ({
 
   const isPI = vehicle.status === 'Under Negotiation With PI' || Boolean(vehicle.proformaInvoiceId);
   const isInvoiced = vehicle.status === 'Confirmed' || vehicle.status === 'In Transit' || vehicle.status === 'Delivered' || Boolean(vehicle.commercialBill);
-  const badgeLabel = vehicle.status === 'Delivered' ? 'DELIVERED' : vehicle.status === 'In Transit' ? 'IN TRANSIT' : isInvoiced ? 'INVOICED' : isPI ? 'RESERVED (PI)' : 'RESERVED';
+  const badgeLabel = vehicle.statusLabel || '';
 
   return (
     <div

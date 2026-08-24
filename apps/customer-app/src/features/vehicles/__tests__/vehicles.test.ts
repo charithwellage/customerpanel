@@ -35,9 +35,9 @@ const MOCK_SUMMARY: CustomerVehicleSummary = {
   chassisNumber: 'TRJ150-0192834',
   status: 'Under Negotiation With PI',
   vehicleStatusCode: 'ReservedWithPI',
-  statusLabel: 'Reserved With PI Vehicle',
-  statusLabelPlural: 'Reserved With PI Vehicles',
-  statusDescription: 'Vehicle is reserved and has a proforma invoice.',
+  statusLabel: 'Advanced Paid Vehicle',
+  statusLabelPlural: 'Advanced Paid Vehicles',
+  statusDescription: 'Vehicle has received its advance payment and has a proforma invoice.',
   totalAmountUsd: 45000,
   currency: 'USD',
   deposit: {
@@ -160,7 +160,7 @@ describe('My Vehicles UI Components (D02-P04-T002 & D02-P14-T008)', () => {
 
       expect(html).toContain('2022 TOYOTA LAND CRUISER PRADO');
       expect(html).toContain('TRJ150-0192834');
-      expect(html).toContain('ADVANCED PAID (PI)');
+      expect(html).toContain('Advanced Paid Vehicle');
       expect(html).toContain('$45,000');
       expect(html).toContain('Deposit (50%):');
       expect(html).toContain('$22,500');
@@ -346,9 +346,8 @@ describe('My Vehicles UI Components (D02-P04-T002 & D02-P14-T008)', () => {
         )
       );
 
-      expect(html).toContain('RESERVED VEHICLES');
-      expect(html).toContain('ADVANCED PAID VEHICLES');
-      expect(html).toContain('PURCHASED VEHICLES');
+      // Status labels are supplied by the API status catalogue once the query resolves.
+      expect(html).toContain('data-testid="fleet-tabs"');
       expect(html).toContain('Shipping Status');
     });
 

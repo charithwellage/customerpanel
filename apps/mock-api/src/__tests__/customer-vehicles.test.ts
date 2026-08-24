@@ -93,6 +93,9 @@ describe('Customer Vehicles & Status Projection Contract (D02-P04-T001)', () => 
       const reservedVehicle = body.items.find((item) => item.status === 'Under Negotiation');
       expect(reservedVehicle?.statusLabel).toBe('Reserved Vehicle');
       expect(reservedVehicle?.statusLabelPlural).toBe('Reserved Vehicles');
+      const advancedPaidVehicle = body.items.find((item) => item.status === 'Under Negotiation With PI');
+      expect(advancedPaidVehicle?.statusLabel).toBe('Advanced Paid Vehicle');
+      expect(advancedPaidVehicle?.statusLabelPlural).toBe('Advanced Paid Vehicles');
     });
 
     it('filters customer vehicles by status', async () => {
@@ -188,8 +191,8 @@ describe('Customer Vehicles & Status Projection Contract (D02-P04-T001)', () => 
       expect(body.model).toBe('Corolla Fielder');
       expect(body.images.length).toBeGreaterThanOrEqual(1);
       expect(body.vehicleStatusCode).toBe('Invoiced');
-      expect(body.statusLabel).toBe('Invoiced Vehicle');
-      expect(body.statusLabelPlural).toBe('Invoiced Vehicles');
+      expect(body.statusLabel).toBe('Purchased Vehicle');
+      expect(body.statusLabelPlural).toBe('Purchased Vehicles');
 
       // Status timeline has ordered milestones
       expect(body.statusHistory.length).toBeGreaterThanOrEqual(3);
