@@ -15,7 +15,7 @@ import {
 
 export const OverviewPage: React.FC = () => {
   const { t } = useTranslation();
-  const { user, pairedAccounts, switchAccount, setActiveRoute } = useCustomerShell();
+  const { user, setActiveRoute } = useCustomerShell();
   const { data: dashboard, isLoading, error } = useDashboard();
   const { data: vehiclesData } = useCustomerVehicles();
   const { data: invoicesData } = useCustomerInvoices();
@@ -177,23 +177,6 @@ export const OverviewPage: React.FC = () => {
             </span>
           </div>
 
-          <div className="cc-dash-account-selector-compact">
-            <span className="cc-dash-account-selector-label">PAIRED ACCOUNT:</span>
-            <select
-              id="dash-account-switch"
-              className="cc-dash-account-select"
-              value={user?.id || pairedAccounts[0]?.id}
-              onChange={(e) => switchAccount(e.target.value)}
-              data-testid="dash-switch-account-dropdown"
-              aria-label="Switch paired dealer account"
-            >
-              {pairedAccounts.map((acc) => (
-                <option key={acc.id} value={acc.id}>
-                  {acc.name} ({acc.country || 'Kenya'})
-                </option>
-              ))}
-            </select>
-          </div>
         </div>
       </section>
 

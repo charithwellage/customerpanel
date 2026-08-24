@@ -1352,7 +1352,7 @@ export interface DemoStore {
   createFavourite(customerId: string, name: string, criteria: FavouriteSearchCriteria, nowISO?: string): Promise<FavouriteSearch>;
   deleteFavourite(customerId: string, id: string): Promise<void>;
   getFavouriteFacets(): Promise<FavouriteSearchFacets>;
-  // FRD Additions: Statement, Debit/Credit/Refunds, Polymorphic Inquiries, Paired Accounts
+  // FRD Additions: Statement, Debit/Credit/Refunds, Polymorphic Inquiries
   getCustomerStatement(customerId: string, fromDate?: string, toDate?: string): Promise<CustomerStatementSummary>;
   getCustomerDebitCreditRefunds(customerId: string): Promise<CustomerDebitCreditListResponse>;
   listCustomerPolymorphicInquiries(customerId: string): Promise<CustomerPolymorphicInquiryListResponse>;

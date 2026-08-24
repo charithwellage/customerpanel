@@ -58,7 +58,6 @@ customer session; this shared API applies to the authenticated pages below.
 | Shipments (`/shipments`) | `GET /api/v1/customer/shipments`; `GET /api/v1/customer/shipments/:id` | Shipment list and shipment tracking detail. |
 | Notifications (`/notifications`) | `GET /api/v1/customer/notifications`; `GET /api/v1/customer/notifications/:id`; `POST /api/v1/customer/notifications/:id/read`; `POST /api/v1/customer/notifications/read-all`; `DELETE /api/v1/customer/notifications/:id` | Notification listing, detail, read-state changes, and deletion. |
 | Profile (`/profile`) | `GET /api/v1/customer/profile`; `PUT /api/v1/customer/profile`; `POST /api/v1/auth/change-password`; `GET /api/v1/auth/me` | Customer profile display/update, password change, and refreshed session identity. |
-| Paired-account switcher | `GET /api/v1/customer/paired-accounts` | Loads customer-linked accounts available for account switching. |
 | Shared account guard/session | `GET /api/v1/auth/me` | Restores the authenticated customer session before protected pages render. |
 
 ## Notes

@@ -133,37 +133,6 @@
   color: var(--color-text-secondary);
 }
 
-.cc-dash-account-selector-compact {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px var(--spacing-sm);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-pill);
-  box-shadow: var(--shadow-sm);
-}
-
-.cc-dash-account-selector-label {
-  font-family: var(--font-mono);
-  font-size: 0.65rem;
-  font-weight: 800;
-  color: var(--color-text-secondary);
-  letter-spacing: 0.06em;
-}
-
-.cc-dash-account-select {
-  padding: 4px var(--spacing-xs);
-  background: transparent;
-  border: none;
-  font-family: var(--font-display);
-  font-size: var(--font-size-xs);
-  font-weight: 700;
-  color: var(--color-primary);
-  cursor: pointer;
-  outline: none;
-}
-
 /* =========================================================================
    2. FINANCIAL & LOGISTICS SUMMARY
    ========================================================================= */
