@@ -176,6 +176,7 @@
 .cc-remit-table tbody tr {
   border-bottom: 1px solid var(--color-border);
   transition: background-color var(--motion-fast) ease;
+  cursor: pointer;
 }
 
 .cc-remit-table tbody tr:last-child {
@@ -184,6 +185,11 @@
 
 .cc-remit-table tbody tr:hover {
   background: var(--color-neutral-surface);
+}
+
+.cc-remit-table tbody tr:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
 }
 
 .cc-remit-table td {

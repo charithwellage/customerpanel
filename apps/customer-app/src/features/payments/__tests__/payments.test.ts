@@ -7,7 +7,6 @@ import { CustomerShellProvider } from '../../shell/index.js';
 import { HttpClientProvider } from '../../account/index.js';
 import { getCustomerPaymentStatus, PaymentsPage } from '../PaymentsPage.js';
 import { PaymentDetailModal } from '../components/PaymentDetailModal.js';
-import { PaymentAllocationHistoryModal } from '../components/PaymentAllocationHistoryModal.js';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -84,8 +83,8 @@ describe('FRD Phase 4: My Payments', () => {
     expect(html).toContain('TOTAL ALLOCATED');
     expect(html).toContain('TOTAL AVAILABLE');
     expect(html).toContain('CUSTOMER TT REMITTANCE JOURNAL');
-    expect(html).toContain('data-testid="btn-detail-TT2400005"');
-    expect(html).toContain('data-testid="btn-history-TT2400005"');
+    expect(html).not.toContain('data-testid="btn-detail-TT2400005"');
+    expect(html).not.toContain('data-testid="btn-history-TT2400005"');
   });
 
   it('renders PaymentDetailModal (Eye icon pop up) with full banking metadata and downloads', () => {
@@ -112,21 +111,6 @@ describe('FRD Phase 4: My Payments', () => {
     expect(html).toContain('Mizuho Bank Tokyo');
     expect(html).toContain('Charith Wellage');
     expect(html).toContain('$100,000.00 USD');
-  });
-
-  it('renders PaymentAllocationHistoryModal (History icon pop up) with allocated stock list', () => {
-    const html = renderToStaticMarkup(
-      React.createElement(PaymentAllocationHistoryModal, {
-        isOpen: true,
-        onClose: () => {},
-        reference: 'TT2400005',
-      })
-    );
-
-    expect(html).toContain('data-testid="payment-allocation-history-modal"');
-    expect(html).toContain('Allocation History (TT2400005)');
-    expect(html).toContain('J24012345');
-    expect(html).toContain('$3,000.00 USD');
   });
 
 });

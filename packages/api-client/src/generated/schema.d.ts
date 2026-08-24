@@ -552,9 +552,12 @@ export interface CustomerPayment {
   amountUsd: number;
   allocatedAmountUsd?: number;
   remainingBalanceUsd?: number;
+  depositorName?: string;
+  customerName?: string;
+  approvedDate?: string;
   paymentDate: string;
   remarks?: string;
-  status: 'Pending' | 'Approved' | 'Rejected';
+  status: 'Pending' | 'Held' | 'Resubmitted' | 'Approved' | 'Rejected';
   holdReason?: string;
   proof?: CustomerPaymentProofMetadata;
   idempotencyKey: string;

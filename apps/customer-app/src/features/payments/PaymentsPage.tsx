@@ -9,11 +9,10 @@ import {
   type CustomerPaymentFormValues,
 } from '@carchief/validation';
 import { useCustomerShell } from '../shell/index.js';
-import { useCustomerPaymentNotifications, useCustomerPayments } from './useCustomerPayments.js';
+import { useCustomerPayments } from './useCustomerPayments.js';
 import { useCreateCustomerPayment } from './useCreateCustomerPayment.js';
 import { useCustomerOnlineStatus } from '../pwa/useCustomerOnlineStatus.js';
 import { PaymentDetailModal, type PaymentDetailRecord } from './components/PaymentDetailModal.js';
-import { PaymentAllocationHistoryModal } from './components/PaymentAllocationHistoryModal.js';
 import {
   CheckmarkCircleIcon,
   ClockCircleIcon,
@@ -37,7 +36,7 @@ export interface RemittanceJournalEntry {
   customerName: string;
   approvedDate?: string;
   remarks?: string;
-  status: 'APPROVED - AVAILABLE' | 'REJECTED' | 'UNDER REVIEW';
+  status: 'APPROVED' | 'REJECTED' | 'UNDER REVIEW';
 }
 
 export function getCustomerPaymentStatus(
@@ -54,15 +53,14 @@ export function getCustomerPaymentStatus(
 }
 
 export const PaymentsPage: React.FC = () => {
-  const { setActiveRoute, user } = useCustomerShell();
+  const { setActiveRoute } = useCustomerShell();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [proofFile, setProofFile] = useState<File | null>(null);
   const [submitMessage, setSubmitMessage] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  // Modals state (FRD 5.7 & 5.8)
+  // Detail modal state. The row itself is the detail-view trigger.
   const [selectedDetailPayment, setSelectedDetailPayment] = useState<PaymentDetailRecord | null>(null);
-  const [selectedHistoryRef, setSelectedHistoryRef] = useState<string | null>(null);
 
   // Filters state (FRD 5.3)
   const [searchKeyword, setSearchKeyword] = useState('');
@@ -74,104 +72,39 @@ export const PaymentsPage: React.FC = () => {
   const online = useCustomerOnlineStatus();
   const createPayment = useCreateCustomerPayment();
   const paymentsQuery = useCustomerPayments();
-  const notificationsQuery = useCustomerPaymentNotifications();
 
   const apiPayments = paymentsQuery.data?.items ?? [];
-  const notifications = notificationsQuery.data?.items ?? [];
 
   useEffect(() => {
     setActiveRoute('/payments');
   }, [setActiveRoute]);
 
-  // Map live payments from store and mock entries
+  // The API is the sole source for the payment journal. No browser fixtures or
+  // derived customer/payment records are added here.
   const allEntries = useMemo<RemittanceJournalEntry[]>(() => {
-    const raw: RemittanceJournalEntry[] = [
-      {
-        id: 'tt-seed-1',
-        reference: 'TT2400005',
-        paymentDate: '2024-10-20',
-        bankName: 'Mizuho Bank Tokyo (USD)',
-        currency: 'USD',
-        amountUsd: 100000,
-        allocatedAmountUsd: 40000,
-        remainingBalanceUsd: 60000,
-        depositorName: 'Depositor1',
-        customerName: user?.name || 'Charith Wellage',
-        approvedDate: '2024-10-20',
-        remarks: 'Main TT deposit',
-        status: 'APPROVED - AVAILABLE',
-      },
-      {
-        id: 'tt-seed-2',
-        reference: 'TT2400003',
-        paymentDate: '2024-10-20',
-        bankName: 'MUFG Bank Japan (JPY)',
-        currency: 'JPY',
-        amountUsd: 4000000,
-        allocatedAmountUsd: 0,
-        remainingBalanceUsd: 4000000,
-        depositorName: 'Depositor1',
-        customerName: user?.name || 'Charith Wellage',
-        approvedDate: '2024-10-20',
-        remarks: 'On Hold verification',
-        status: 'UNDER REVIEW',
-      },
-      {
-        id: 'tt-seed-3',
-        reference: 'TT2400001',
-        paymentDate: '2024-10-19',
-        bankName: 'Sumitomo Mitsui Banking (USD)',
-        currency: 'USD',
-        amountUsd: 70000,
-        allocatedAmountUsd: 4000,
-        remainingBalanceUsd: 66000,
-        depositorName: 'Depositor2',
-        customerName: user?.name || 'Charith Wellage',
-        approvedDate: '2024-10-19',
-        remarks: 'Pending swift validation',
-        status: 'UNDER REVIEW',
-      },
-    ];
-
-    if (apiPayments.length > 0) {
-      apiPayments.forEach((p) => {
-        if (!raw.some((r) => r.reference === p.reference)) {
-          const statusText = getCustomerPaymentStatus(p, notifications);
-          let statusType: RemittanceJournalEntry['status'] = 'APPROVED - AVAILABLE';
-          if (statusText === 'Rejected' || p.status === 'Rejected') {
-            statusType = 'REJECTED';
-          } else if (
-            statusText === 'Pending' ||
-            statusText === 'Held' ||
-            statusText === 'Resubmitted' ||
-            p.status === 'Pending' ||
-            p.status === 'Held' ||
-            p.status === 'Resubmitted'
-          ) {
-            statusType = 'UNDER REVIEW';
-          }
-
-          raw.unshift({
-            id: p.id,
-            reference: p.reference,
-            paymentDate: p.paymentDate,
-            bankName: p.bankName ? (p.bankName.includes('(') ? p.bankName : `${p.bankName} (${p.currency || 'USD'})`) : `Direct Wire (${p.currency || 'USD'})`,
-            currency: p.currency || 'USD',
-            amountUsd: p.amountUsd,
-            allocatedAmountUsd: p.amountUsd - (p.remainingBalanceUsd ?? p.amountUsd),
-            remainingBalanceUsd: p.remainingBalanceUsd ?? p.amountUsd,
-            depositorName: user?.name || 'Charith Wellage',
-            customerName: user?.name || 'Charith Wellage',
-            approvedDate: p.paymentDate,
-            remarks: p.remarks || 'None',
-            status: statusType,
-          });
-        }
-      });
-    }
-
-    return raw;
-  }, [apiPayments, notifications, user?.name]);
+    return apiPayments.map((payment) => {
+      const allocatedAmountUsd = Math.max(0, payment.allocatedAmountUsd ?? 0);
+      return {
+        id: payment.id,
+        reference: payment.reference,
+        paymentDate: payment.paymentDate,
+        bankName: payment.bankName,
+        currency: payment.currency,
+        amountUsd: payment.amountUsd,
+        allocatedAmountUsd,
+        remainingBalanceUsd: Math.max(payment.amountUsd - allocatedAmountUsd, 0),
+        depositorName: payment.depositorName || payment.customerName || payment.customerId,
+        customerName: payment.customerName || payment.customerId,
+        approvedDate: payment.approvedDate,
+        remarks: payment.remarks,
+        status: payment.status === 'Approved'
+          ? 'APPROVED'
+          : payment.status === 'Rejected'
+            ? 'REJECTED'
+            : 'UNDER REVIEW',
+      };
+    });
+  }, [apiPayments]);
 
   // Compute KPI totals (FRD 5.2)
   const { totalTtAmount, totalAllocatedAmount, totalAvailableAmount } = useMemo(() => {
@@ -182,7 +115,7 @@ export const PaymentsPage: React.FC = () => {
     for (const entry of allEntries) {
       tt += entry.amountUsd;
       allocated += entry.allocatedAmountUsd;
-      if (entry.status === 'APPROVED - AVAILABLE') {
+      if (entry.status === 'APPROVED') {
         available += entry.remainingBalanceUsd;
       }
     }
@@ -211,7 +144,7 @@ export const PaymentsPage: React.FC = () => {
       }
 
       if (approvalFilter !== 'ALL') {
-        if (approvalFilter === 'APPROVED' && entry.status !== 'APPROVED - AVAILABLE') return false;
+        if (approvalFilter === 'APPROVED' && entry.status !== 'APPROVED') return false;
         if (approvalFilter === 'UNDER_REVIEW' && entry.status !== 'UNDER REVIEW') return false;
         if (approvalFilter === 'REJECTED' && entry.status !== 'REJECTED') return false;
       }
@@ -233,6 +166,20 @@ export const PaymentsPage: React.FC = () => {
   useEffect(() => {
     if (currentPage > totalPages) setCurrentPage(totalPages);
   }, [currentPage, totalPages]);
+
+  const openPaymentDetail = (entry: RemittanceJournalEntry) => {
+    setSelectedDetailPayment({
+      id: entry.id,
+      reference: entry.reference,
+      createdDate: entry.paymentDate,
+      receivingBank: entry.bankName,
+      depositorName: entry.depositorName,
+      customerName: entry.customerName,
+      currency: entry.currency,
+      ttAmount: entry.amountUsd,
+      approvedDate: entry.approvedDate,
+    });
+  };
 
   const {
     register,
@@ -413,12 +360,11 @@ export const PaymentsPage: React.FC = () => {
             <h2 className="cc-remit-section-title">CUSTOMER TT REMITTANCE JOURNAL</h2>
           </div>
 
-          {/* Main Journal Table (FRD 5.5, 5.7, 5.8) */}
+          {/* Main Journal Table. Selecting a row opens its API-backed details. */}
           <div className="cc-remit-table-container" role="region" aria-label="Customer TT Remittance Journal">
             <table className="cc-remit-table">
               <thead>
                 <tr>
-                  <th scope="col">ACTION</th>
                   <th scope="col">TT REF NU</th>
                   <th scope="col">DEPOSITOR</th>
                   <th scope="col">CURRENCY</th>
@@ -432,51 +378,25 @@ export const PaymentsPage: React.FC = () => {
               <tbody>
                 {paginatedEntries.map((entry) => {
                   const statusClass =
-                    entry.status === 'APPROVED - AVAILABLE'
+                    entry.status === 'APPROVED'
                       ? 'cc-remit-status--approved'
                       : entry.status === 'REJECTED'
                         ? 'cc-remit-status--rejected'
                         : 'cc-remit-status--review';
 
                   return (
-                    <tr key={entry.id}>
-                      <td className="cc-remit-td--actions">
-                        <div className="cc-remit-action-icons-row">
-                          {/* Eye icon for Detailed View (FRD 5.7) */}
-                          <button
-                            type="button"
-                            className="cc-remit-icon-btn"
-                            onClick={() =>
-                              setSelectedDetailPayment({
-                                id: entry.id,
-                                reference: entry.reference,
-                                createdDate: entry.paymentDate,
-                                receivingBank: entry.bankName,
-                                depositorName: entry.depositorName,
-                                customerName: entry.customerName,
-                                currency: entry.currency,
-                                ttAmount: entry.amountUsd,
-                                approvedDate: entry.approvedDate,
-                              })
-                            }
-                            title="Detailed View (Eye icon)"
-                            data-testid={`btn-detail-${entry.reference}`}
-                          >
-                            👁️
-                          </button>
-
-                          {/* History icon for Allocation History (FRD 5.8) */}
-                          <button
-                            type="button"
-                            className="cc-remit-icon-btn"
-                            onClick={() => setSelectedHistoryRef(entry.reference)}
-                            title="Allocation History"
-                            data-testid={`btn-history-${entry.reference}`}
-                          >
-                            🕒
-                          </button>
-                        </div>
-                      </td>
+                    <tr
+                      key={entry.id}
+                      tabIndex={0}
+                      onClick={() => openPaymentDetail(entry)}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault();
+                          openPaymentDetail(entry);
+                        }
+                      }}
+                      data-testid={`payment-row-${entry.reference}`}
+                    >
                       <td className="cc-remit-td--ref">
                         <span className="cc-remit-ref-text">{entry.reference}</span>
                       </td>
@@ -496,7 +416,7 @@ export const PaymentsPage: React.FC = () => {
                       <td className="cc-remit-td--status">
                         <span className={`cc-remit-status-pill ${statusClass}`}>{entry.status}</span>
                       </td>
-                      <td className="cc-remit-td--date cc-remit-td-mono">{entry.approvedDate || entry.paymentDate}</td>
+                      <td className="cc-remit-td--date cc-remit-td-mono">{entry.approvedDate || '—'}</td>
                     </tr>
                   );
                 })}
@@ -535,12 +455,6 @@ export const PaymentsPage: React.FC = () => {
             payment={selectedDetailPayment}
           />
 
-          {/* Allocation History Modal (FRD 5.8) */}
-          <PaymentAllocationHistoryModal
-            isOpen={selectedHistoryRef !== null}
-            onClose={() => setSelectedHistoryRef(null)}
-            reference={selectedHistoryRef || ''}
-          />
       {/* Modal: UPLOAD CUSTOMER TT PROOF */}
       {isModalOpen && (
         <div

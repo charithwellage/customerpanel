@@ -3799,6 +3799,8 @@ export interface PaymentRecord {
   proof?: CreateCustomerPaymentRequest['proof'];
   idempotencyKey?: string;
   createdAt?: string;
+  customerName?: string;
+  depositorName?: string;
 }
 
 export interface ShipmentRecord {
@@ -5187,10 +5189,10 @@ function validateCustomerProfileRequest(request: UpdateCustomerProfileRequest): 
   if (request.expectedVersion !== undefined && (!Number.isInteger(request.expectedVersion) || request.expectedVersion < 1)) throw new Error('expectedVersion is invalid');
 }
 
-function toCustomerPayment(record: PaymentRecord, invoices: InvoiceRecord[] = [], allocations: AllocationRecord[] = []): CustomerPayment {
+function toCustomerPayment(record: PaymentRecord, invoices: InvoiceRecord[] = [], allocations: AllocationRecord[] = [], customerName?: string): CustomerPayment {
   const invoice = invoices.find((candidate) => candidate.id === record.invoiceId && candidate.customerId === record.customerId);
   const allocatedAmountUsd = allocations
-    .filter((allocation) => allocation.customerId === record.customerId && allocation.invoiceId === record.invoiceId && allocation.status === 'Approved')
+    .filter((allocation) => allocation.customerId === record.customerId && allocation.paymentId === record.id && allocation.status === 'Approved')
     .reduce((sum, allocation) => sum + allocation.amountUsd, 0);
   return {
     id: record.id,
@@ -5200,7 +5202,11 @@ function toCustomerPayment(record: PaymentRecord, invoices: InvoiceRecord[] = []
     bankName: record.bankName || 'Unspecified bank',
     currency: record.currency || 'USD',
     amountUsd: record.amountUsd,
-    ...(invoice ? { allocatedAmountUsd, remainingBalanceUsd: Math.max(invoice.totalAmountUsd - allocatedAmountUsd, 0) } : {}),
+    allocatedAmountUsd,
+    remainingBalanceUsd: Math.max(record.amountUsd - allocatedAmountUsd, 0),
+    customerName: record.customerName || customerName || record.customerId,
+    depositorName: record.depositorName || customerName || record.customerId,
+    ...(record.status === 'Approved' ? { approvedDate: record.paidAt } : {}),
     paymentDate: record.paymentDate || record.paidAt,
     remarks: record.remarks,
     status: record.status,
@@ -6102,7 +6108,8 @@ class MemoryStore implements DemoStore {
   }
 
   listCustomerPayments(customerId: string): Promise<CustomerPaymentListResponse> {
-    const items = this.payments.filter((payment) => payment.customerId === customerId).map((payment) => toCustomerPayment(payment, this.invoices, this.allocations));
+    const customerName = this.customerAccounts.find((account) => account.customerId === customerId)?.nameWithInitials;
+    const items = this.payments.filter((payment) => payment.customerId === customerId).map((payment) => toCustomerPayment(payment, this.invoices, this.allocations, customerName));
     return Promise.resolve({ items, total: items.length });
   }
 
@@ -8975,11 +8982,16 @@ class PostgresStore implements DemoStore {
     const invoices = await this.getRawInvoices(customerId);
     const allocations = await this.getRawAllocations(customerId);
     const result = await this.pool.query(
-      'SELECT id, customer_id, invoice_id, amount_usd, paid_at, status, reference, bank_name, currency, remarks FROM payments WHERE customer_id = $1 ORDER BY paid_at DESC, id DESC',
+      `SELECT p.id, p.customer_id, p.invoice_id, p.amount_usd, p.paid_at, p.status, p.reference,
+              p.bank_name, p.currency, p.remarks, ca.name_with_initials AS customer_name
+       FROM payments p
+       LEFT JOIN customer_accounts ca ON ca.customer_id = p.customer_id
+       WHERE p.customer_id = $1 ORDER BY p.paid_at DESC, p.id DESC`,
       [customerId]
     );
     if (result.rows.length === 0) {
-      const items = this.paymentRecords.filter((payment) => payment.customerId === customerId).map((payment) => toCustomerPayment(payment, invoices, allocations));
+      const customerName = this.paymentRecords.find((payment) => payment.customerId === customerId)?.customerName;
+      const items = this.paymentRecords.filter((payment) => payment.customerId === customerId).map((payment) => toCustomerPayment(payment, invoices, allocations, customerName));
       return { items, total: items.length };
     }
     const items = result.rows.map((row) => {
@@ -8998,8 +9010,10 @@ class PostgresStore implements DemoStore {
         remarks: row.remarks || memoryMatch?.remarks || 'None',
         proof: memoryMatch?.proof,
         idempotencyKey: memoryMatch?.idempotencyKey,
+        customerName: row.customer_name || undefined,
+        depositorName: row.customer_name || undefined,
       };
-      return toCustomerPayment(record, invoices, allocations);
+      return toCustomerPayment(record, invoices, allocations, row.customer_name || undefined);
     });
     return { items, total: items.length };
   }
