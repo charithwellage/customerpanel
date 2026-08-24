@@ -2,7 +2,6 @@ import React from 'react';
 import { useCustomerShell } from '../features/shell/index.js';
 import { CUSTOMER_FEATURE_REGISTRY } from '../features/registry/index.js';
 import { OverviewPage } from '../features/dashboard/index.js';
-import { ShipmentPage } from '../features/shipments/index.js';
 
 export interface PortalPlaceholderProps {
   /** Email from the active session, shown so the signed-in identity is unambiguous. */
@@ -26,10 +25,6 @@ export const PortalPlaceholder: React.FC<PortalPlaceholderProps> = ({ signedInAs
   // D02-P02-T002: Dashboard Overview page
   if (activeRoute === '/dashboard') {
     return <OverviewPage />;
-  }
-
-  if (activeRoute === '/shipments') {
-    return <ShipmentPage />;
   }
 
   return (

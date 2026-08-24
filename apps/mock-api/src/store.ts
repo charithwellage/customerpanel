@@ -1314,8 +1314,6 @@ export interface DemoStore {
   // Phase 2.4: customer vehicle projections (CUST-10, CUST-11, CUST-12, CUST-13, RULE-04, RULE-07, RULE-08)
   getCustomerVehicles(customerId: string, query?: ListCustomerVehiclesQuery, nowISO?: string): Promise<CustomerVehicleListResponse>;
   getCustomerVehicleById(customerId: string, idOrSlug: string, nowISO?: string): Promise<CustomerVehicleDetail | null>;
-  listCustomerShipments(customerId: string): Promise<CustomerShipment[]>;
-  getCustomerShipment(customerId: string, shipmentId: string): Promise<CustomerShipment | null>;
   listCustomerDocuments(customerId: string): Promise<CustomerDocument[]>;
   getCustomerDocument(customerId: string, documentId: string): Promise<CustomerDocument | null>;
   listCustomerNotifications(customerId: string, query?: { status?: 'all' | 'read' | 'unread'; q?: string }): Promise<CustomerNotificationListResponse>;
@@ -3810,21 +3808,6 @@ export interface DocumentRecord {
   visibleToCustomer?: boolean;
 }
 
-export interface CustomerShipment {
-  id: string;
-  vehicleId: string;
-  stage: 'Purchased' | 'Inspection' | 'Ready' | 'In Transit' | 'Delivered';
-  shippedAt: string;
-  deliveredAt?: string;
-  eta?: string;
-  location?: string;
-  freshness: 'fresh' | 'stale' | 'unknown';
-  shipOkStatus: 'Pending' | 'Approved' | 'Rejected';
-  shipOkRejectionReason?: string;
-  documentReleaseStatus: 'Pending' | 'Approved' | 'Rejected';
-  documentReleaseRejectionReason?: string;
-}
-
 export interface CustomerDocument {
   id: string;
   shipmentId?: string;
@@ -4185,7 +4168,7 @@ const seedNotifications: NotificationRecord[] = [
     type: 'Shipment',
     isRead: false,
     createdAt: '2026-08-13T10:00:00.000Z',
-    related: { kind: 'Shipment', id: 'ship-001', href: '/customer/shipments/ship-001' },
+    related: { kind: 'Shipment', id: 'ship-001', href: '/customer/vehicles' },
   },
   {
     id: 'notif-003',
@@ -5048,24 +5031,6 @@ function releaseExpiredReservationStatus(
   if (hasExpiredHold && !hasActiveHold) vehicle.status = 'Available';
 }
 
-function toCustomerShipment(record: ShipmentRecord): CustomerShipment {
-  const stage = record.status === 'InTransit' ? 'In Transit' : record.status;
-  return {
-    id: record.id,
-    vehicleId: record.vehicleId,
-    stage,
-    shippedAt: record.shippedAt,
-    deliveredAt: record.deliveredAt,
-    eta: record.eta,
-    location: record.location,
-    freshness: record.freshness ?? 'unknown',
-    shipOkStatus: record.shipOkStatus ?? 'Pending',
-    shipOkRejectionReason: record.shipOkRejectionReason,
-    documentReleaseStatus: record.documentReleaseStatus ?? 'Pending',
-    documentReleaseRejectionReason: record.documentReleaseRejectionReason,
-  };
-}
-
 function toCustomerDocument(record: DocumentRecord): CustomerDocument {
   return {
     id: record.id,
@@ -5924,17 +5889,6 @@ class MemoryStore implements DemoStore {
     );
     const target = all.find((v) => v.id === idOrSlug || v.vehicleId === idOrSlug || v.slug === idOrSlug);
     return Promise.resolve(target || null);
-  }
-
-  listCustomerShipments(customerId: string): Promise<CustomerShipment[]> {
-    return Promise.resolve(this.shipments
-      .filter((shipment) => shipment.customerId === customerId)
-      .map(toCustomerShipment));
-  }
-
-  async getCustomerShipment(customerId: string, shipmentId: string): Promise<CustomerShipment | null> {
-    const shipment = this.shipments.find((candidate) => candidate.id === shipmentId && candidate.customerId === customerId);
-    return shipment ? toCustomerShipment(shipment) : null;
   }
 
   listCustomerDocuments(customerId: string): Promise<CustomerDocument[]> {
@@ -8670,19 +8624,6 @@ class PostgresStore implements DemoStore {
     );
     const target = all.find((v) => v.id === idOrSlug || v.vehicleId === idOrSlug || v.slug === idOrSlug);
     return target || null;
-  }
-
-  async listCustomerShipments(customerId: string): Promise<CustomerShipment[]> {
-    await this.ensureCustomerFleetDataInPostgres(customerId);
-    const shipments = await this.getRawShipments(customerId);
-    return shipments.map(toCustomerShipment);
-  }
-
-  async getCustomerShipment(customerId: string, shipmentId: string): Promise<CustomerShipment | null> {
-    await this.ensureCustomerFleetDataInPostgres(customerId);
-    const shipments = await this.getRawShipments(customerId);
-    const shipment = shipments.find((candidate) => candidate.id === shipmentId);
-    return shipment ? toCustomerShipment(shipment) : null;
   }
 
   async listCustomerDocuments(customerId: string): Promise<CustomerDocument[]> {

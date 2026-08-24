@@ -531,25 +531,6 @@ export interface PartialFailureIndicators {
   notificationsFailed: boolean;
 }
 
-export interface CustomerShipment {
-  id: string;
-  vehicleId: string;
-  stage: 'Purchased' | 'Inspection' | 'Ready' | 'In Transit' | 'Delivered';
-  shippedAt: string;
-  deliveredAt?: string;
-  eta?: string;
-  location?: string;
-  freshness: 'fresh' | 'stale' | 'unknown';
-  shipOkStatus: 'Pending' | 'Approved' | 'Rejected';
-  shipOkRejectionReason?: string;
-  documentReleaseStatus: 'Pending' | 'Approved' | 'Rejected';
-  documentReleaseRejectionReason?: string;
-}
-
-export interface CustomerShipmentList {
-  items: CustomerShipment[];
-}
-
 export type PaymentProofFileType = 'PDF' | 'JPG' | 'PNG';
 export type PaymentProofScanStatus = 'Pending' | 'Passed' | 'Rejected';
 export interface CustomerPaymentProofMetadata {
@@ -591,7 +572,7 @@ export interface CustomerPaymentListResponse { items: CustomerPayment[]; total: 
 export type CustomerPaymentPurpose = 'Advance' | 'Balance';
 export type CustomerPaymentAllocationStatus = 'Unallocated' | 'PartiallyAllocated' | 'FullyAllocated';
 export interface CustomerPaymentAllocationVehicle { id: string; slug: string; stockNumber: string; chassisNumber: string; make: string; model: string; year: number; primaryImage?: string; }
-export interface CustomerPaymentAllocationLine { id: string; vehicle: CustomerPaymentAllocationVehicle; invoiceId?: string; invoiceNumber?: string; amountUsd: number; vehicleTotalAmountUsd: number; vehicleAllocatedAmountUsd: number; vehicleBalanceAmountUsd: number; purpose: CustomerPaymentPurpose; status: 'Approved' | 'Pending' | 'Rejected'; allocatedAt: string; }
+export interface CustomerPaymentAllocationLine { id: string; vehicle: CustomerPaymentAllocationVehicle; invoiceId?: string; invoiceNumber?: string; amountUsd: number; purpose: CustomerPaymentPurpose; status: 'Approved' | 'Pending' | 'Rejected'; allocatedAt: string; }
 export interface CustomerPaymentAllocationInvoice { id: string; invoiceNumber: string; issuedAt: string; totalAmountUsd: number; paidAmountUsd: number; outstandingAmountUsd: number; status: string; vehicleCount: number; documentAvailable: boolean; }
 export interface CustomerPaymentAllocationSummary { id: string; reference: string; bankName: string; currency: string; amountUsd: number; paymentDate: string; paymentStatus: string; allocationStatus: CustomerPaymentAllocationStatus; allocatedAmountUsd: number; unallocatedAmountUsd: number; allocationPercent: number; vehicleCount: number; allocations: CustomerPaymentAllocationLine[]; invoice?: CustomerPaymentAllocationInvoice; }
 export interface CustomerPaymentAllocationListResponse { items: CustomerPaymentAllocationSummary[]; total: number; page: number; limit: number; totals: { totalAmountUsd: number; allocatedAmountUsd: number; unallocatedAmountUsd: number; invoiceCount: number; }; }

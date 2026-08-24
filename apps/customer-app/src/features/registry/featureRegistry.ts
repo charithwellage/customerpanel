@@ -90,16 +90,6 @@ export const CUSTOMER_FEATURE_REGISTRY: Record<string, FeatureOwnershipRecord> =
     fixtureNamespace: 'customer_payment',
     e2eSpecPath: 'tests/e2e/customer/payments.spec.ts',
   },
-  shipments: {
-    id: 'shipments',
-    phase: 'Phase 2.7',
-    title: 'Shipments & Tracking Operations',
-    routePath: '/shipments',
-    openapiPrefix: '/api/v1/customer/shipments',
-    mockApiPrefix: '/api/v1/customer/shipments',
-    fixtureNamespace: 'customer_shipment',
-    e2eSpecPath: 'tests/e2e/customer/shipments.spec.ts',
-  },
   documents: {
     id: 'documents',
     phase: 'Phase 2.8',

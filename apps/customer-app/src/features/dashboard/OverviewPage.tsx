@@ -1,5 +1,4 @@
-import React, { useState, useMemo } from 'react';
-import type { CustomerVehicleSummary } from '@carchief/domain';
+import React, { useMemo } from 'react';
 import { useDashboard } from './useDashboard.js';
 import { useCustomerShell } from '../shell/index.js';
 import { useCustomerVehicles } from '../vehicles/useCustomerVehicles.js';
@@ -8,17 +7,10 @@ import { useCustomerNotifications } from '../notifications/useCustomerNotificati
 import { useCustomerInquiries } from '../inquiries/useCustomerInquiries.js';
 import { useCustomerProfile } from '../profile/useCustomerProfile.js';
 import { useDocuments } from '../documents/useDocuments.js';
-import { useShipments } from '../shipments/useShipments.js';
-import { VehicleTrackingModal } from '../vehicles/components/VehicleTrackingModal.js';
 import { useTranslation } from '../../i18n/index.js';
 import {
   SecurityShieldIcon,
   BoughtCarsIcon,
-  InTransitShipIcon,
-  PortReadyBoxIcon,
-  DueBillsClockIcon,
-  PendingBalanceDollarIcon,
-  SearchGlassIcon,
 } from '../../components/Icons.js';
 
 export const OverviewPage: React.FC = () => {
@@ -31,9 +23,6 @@ export const OverviewPage: React.FC = () => {
   const { inquiries } = useCustomerInquiries();
   const { data: profile } = useCustomerProfile();
   const { data: documents } = useDocuments();
-  const { data: shipmentsData } = useShipments();
-
-  const [selectedTrackingVehicle, setSelectedTrackingVehicle] = useState<CustomerVehicleSummary | null>(null);
 
   const displayName = user?.name || profile?.name || 'Rameez';
   const firstName = displayName.split(' ')[0] || displayName;
@@ -69,7 +58,7 @@ export const OverviewPage: React.FC = () => {
 
   const isCreditBalance = outstandingBalance < 0;
 
-  // 4 Purchased Vehicles Statuses (FRD 2.9)
+  // Vehicle logistics status counts remain available from the customer vehicle projection.
   const allVehicles = vehiclesData?.items || [];
   const readyToShipCount = allVehicles.filter(
     (v) =>
@@ -102,10 +91,6 @@ export const OverviewPage: React.FC = () => {
   // Inquiries counts (FRD 2.11)
   const totalInquiriesCount = inquiries.length || 15;
   const repliedInquiriesCount = inquiries.filter((i) => (i as unknown as { status?: string; replied?: boolean }).status === 'Replied' || (i as unknown as { replied?: boolean }).replied).length || 6;
-
-  // Wishlist & Price drops counts (FRD 2.12)
-  const wishlistStockCount = 15;
-  const wishlistPriceDropsCount = 3;
 
   // 6 Most Recent Purchases (FRD 2.16) - Sorted newest to oldest
   const recentPurchases = useMemo(() => {
@@ -158,7 +143,7 @@ export const OverviewPage: React.FC = () => {
     <div className="cc-dash-page" data-testid="customer-dashboard-page">
       {isLoading && (
         <div className="cc-dash-loading-bar" role="status" aria-live="polite">
-          <span>Refreshing operational live telemetry&hellip;</span>
+          <span>Refreshing dashboard data&hellip;</span>
         </div>
       )}
 
@@ -219,7 +204,7 @@ export const OverviewPage: React.FC = () => {
           {/* Tile 1: Total Purchased */}
           <div
             className="cc-dash-metric-tile"
-            onClick={() => setActiveRoute('/vehicles')}
+            onClick={() => setActiveRoute('/vehicles?tab=invoiced')}
             role="button"
             tabIndex={0}
           >
@@ -236,7 +221,7 @@ export const OverviewPage: React.FC = () => {
           {/* Tile 2: Active Invoices */}
           <div
             className="cc-dash-metric-tile"
-            onClick={() => setActiveRoute('/invoices')}
+            onClick={() => setActiveRoute('/vehicles?tab=withPI')}
             role="button"
             tabIndex={0}
           >
@@ -289,26 +274,13 @@ export const OverviewPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Card 3: Fleet Logistics & Donut Progress */}
+        {/* Fleet Logistics summary */}
         <div
           className="cc-dash-card cc-dash-gauge-card cc-dash-gauge-card--logistics"
-          onClick={() => setActiveRoute('/shipments')}
-          role="button"
-          tabIndex={0}
-          data-testid="card-current-payments"
+          data-testid="card-fleet-logistics"
         >
           <div className="cc-dash-gauge-card__header">
             <h2 className="cc-dash-gauge-card__title">{t('customer.fleetLogistics', undefined, 'Fleet Logistics')}</h2>
-            <button
-              type="button"
-              className="cc-dash-gauge-card__link-btn"
-              onClick={(e) => {
-                e.stopPropagation();
-                setActiveRoute('/shipments');
-              }}
-            >
-              View stats
-            </button>
           </div>
 
           <div className="cc-dash-gauge-card__body">
@@ -336,68 +308,13 @@ export const OverviewPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Circular Progress Gauge */}
-            <div className="cc-dash-donut-wrap" aria-label="96% on-time fulfillment rate">
-              <svg className="cc-dash-donut-svg" viewBox="0 0 100 100">
-                <circle className="cc-dash-donut-bg" cx="50" cy="50" r="40" />
-                <circle
-                  className="cc-dash-donut-fill cc-dash-donut-fill--green"
-                  cx="50"
-                  cy="50"
-                  r="40"
-                  strokeDasharray="251.2"
-                  strokeDashoffset="10.04"
-                />
-              </svg>
-              <div className="cc-dash-donut-center">
-                <span className="cc-dash-donut-percent">96%</span>
-                <span className="cc-dash-donut-caption">on-time rate</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="cc-dash-verification-banner">
-            <span className="cc-dash-verification-icon" aria-hidden="true">✓</span>
-            <span className="cc-dash-verification-text">Based on 23 active telemetry records from the last 30 days.</span>
           </div>
         </div>
       </section>
 
-      {/* 4. 4-WIDGET DASHBOARD MATRIX (FRD 2.9, 2.10, 2.11, 2.12, 2.13) */}
+      {/* 4. DASHBOARD SUMMARY MATRIX */}
       <section className="cc-dash-summary-matrix" aria-label="Functional Subsystem Modules">
-        {/* Module 1: Purchased Vehicles (4 Statuses: Ready to ship, In Transit, Arrived to port, Delivered - FRD 2.9) */}
-        <div className="cc-dash-matrix-card">
-          <div className="cc-dash-matrix-card__header">
-            <h2 className="cc-dash-matrix-card__title">Purchased Vehicles</h2>
-            <button
-              type="button"
-              className="cc-dash-matrix-card__view-btn"
-              onClick={() => setActiveRoute('/vehicles')}
-            >
-              view
-            </button>
-          </div>
-          <div className="cc-dash-matrix-card__grid">
-            <div className="cc-dash-matrix-row">
-              <span className="cc-dash-matrix-row__label">Ready to ship:</span>
-              <span className="cc-dash-matrix-row__val">{String(readyToShipCount).padStart(2, '0')}</span>
-            </div>
-            <div className="cc-dash-matrix-row">
-              <span className="cc-dash-matrix-row__label">In Transit:</span>
-              <span className="cc-dash-matrix-row__val">{String(inTransitCount).padStart(2, '0')}</span>
-            </div>
-            <div className="cc-dash-matrix-row">
-              <span className="cc-dash-matrix-row__label">Arrived to Port:</span>
-              <span className="cc-dash-matrix-row__val">{String(arrivedToPortCount).padStart(2, '0')}</span>
-            </div>
-            <div className="cc-dash-matrix-row">
-              <span className="cc-dash-matrix-row__label">Delivered:</span>
-              <span className="cc-dash-matrix-row__val">{String(deliveredCount).padStart(2, '0')}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Module 2: My Ongoing Orders - Invoices (FRD 2.10) */}
+        {/* My Ongoing Orders - Invoices */}
         <div className="cc-dash-matrix-card">
           <div className="cc-dash-matrix-card__header">
             <h2 className="cc-dash-matrix-card__title">My Ongoing Orders</h2>
@@ -421,7 +338,7 @@ export const OverviewPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Module 3: My Inquiries (FRD 2.11) */}
+        {/* My Inquiries */}
         <div className="cc-dash-matrix-card">
           <div className="cc-dash-matrix-card__header">
             <h2 className="cc-dash-matrix-card__title">My Inquiries</h2>
@@ -445,33 +362,6 @@ export const OverviewPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Module 4: Wish List with Price Drops (FRD 2.12) & Bidding Details (FRD 2.13) */}
-        <div className="cc-dash-matrix-card">
-          <div className="cc-dash-matrix-card__header">
-            <h2 className="cc-dash-matrix-card__title">Wish List &amp; Bids</h2>
-            <button
-              type="button"
-              className="cc-dash-matrix-card__view-btn"
-              onClick={() => setActiveRoute('/wishlist')}
-            >
-              view
-            </button>
-          </div>
-          <div className="cc-dash-matrix-card__grid">
-            <div className="cc-dash-matrix-row">
-              <span className="cc-dash-matrix-row__label">Stock List:</span>
-              <span className="cc-dash-matrix-row__val">{wishlistStockCount}</span>
-            </div>
-            <div className="cc-dash-matrix-row">
-              <span className="cc-dash-matrix-row__label">Price Drops:</span>
-              <span className="cc-dash-matrix-row__val cc-dash-color-green">{wishlistPriceDropsCount}</span>
-            </div>
-            <div className="cc-dash-matrix-row">
-              <span className="cc-dash-matrix-row__label">Bidding Details:</span>
-              <span className="cc-dash-matrix-row__subtext">Next phase</span>
-            </div>
-          </div>
-        </div>
       </section>
 
       {/* 5. RECENT PURCHASES (6 UNITS) & RECENT SHIPMENT UPDATES (4 UNITS) (FRD 2.16 & 2.17) */}
@@ -543,7 +433,7 @@ export const OverviewPage: React.FC = () => {
               <button
                 type="button"
                 className="cc-dash-card-link"
-                onClick={() => setActiveRoute('/shipments')}
+                onClick={() => setActiveRoute('/vehicles')}
               >
                 TRACK ALL →
               </button>
@@ -592,12 +482,6 @@ export const OverviewPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Vehicle Tracking Modal on Overview Desk */}
-      <VehicleTrackingModal
-        isOpen={Boolean(selectedTrackingVehicle)}
-        vehicle={selectedTrackingVehicle}
-        onClose={() => setSelectedTrackingVehicle(null)}
-      />
     </div>
   );
 };

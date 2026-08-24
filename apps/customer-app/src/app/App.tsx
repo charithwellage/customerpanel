@@ -12,7 +12,6 @@ import { CustomerInvoicesPage, CustomerInvoiceDetailPage } from '../features/inv
 import { PaymentsPage } from '../features/payments/index.js';
 import { PaymentAllocationsPage } from '../features/payment-allocations/index.js';
 import { NotificationsPage } from '../features/notifications/index.js';
-import { ShipmentPage } from '../features/shipments/index.js';
 import { ProfilePage } from '../features/profile/index.js';
 import { CustomerInquiriesPage } from '../features/inquiries/index.js';
 import { CustomerWishlistPage } from '../features/wishlist/index.js';
@@ -101,9 +100,13 @@ const AppContent: React.FC<{ session: CustomerSession; apiBaseUrl: string }> = (
     return <CustomerFavouritesPage />;
   }
 
-  if (activeRoute === '/vehicles') {
+  if (activeRoute === '/vehicles' || activeRoute.startsWith('/vehicles?')) {
+    const tab = new URLSearchParams(activeRoute.split('?')[1] || '').get('tab');
+    const initialTab = tab === 'withPI' || tab === 'invoiced' ? tab : undefined;
+
     return (
       <CustomerFleetPage
+        initialTab={initialTab}
         onSelectVehicle={(vehicle) => {
           setActiveRoute(`/vehicles/${vehicle.id || vehicle.slug}`);
         }}
@@ -143,10 +146,6 @@ const AppContent: React.FC<{ session: CustomerSession; apiBaseUrl: string }> = (
 
   if (activeRoute === '/payment-allocations') {
     return <PaymentAllocationsPage />;
-  }
-
-  if (activeRoute === '/shipments') {
-    return <ShipmentPage />;
   }
 
   if (activeRoute === '/notifications') {

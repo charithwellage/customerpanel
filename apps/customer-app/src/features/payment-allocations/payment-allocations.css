@@ -1,5 +1,5 @@
 .cc-payment-allocations-page { max-width: 1440px; margin: 0 auto; padding: 28px; }
-.cc-payment-allocations-header h1 { margin: 0; font-size: var(--font-size-3xl); }
+.cc-payment-allocations-header h1 { margin: 0; font-size: var(--font-size-2xl); }
 .cc-payment-allocations-header p { color: var(--color-text-secondary); margin: 6px 0 0; }
 .cc-payment-allocations-eyebrow { color: var(--color-primary) !important; font-size: var(--font-size-xs); font-weight: 800; letter-spacing: .12em; }
 .cc-payment-allocation-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin: 24px 0; }

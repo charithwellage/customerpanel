@@ -12,7 +12,6 @@ import {
   WishlistHeartIcon,
   FavouritesStarIcon,
   VehiclesSideCarIcon,
-  StopwatchClockIcon,
   InvoiceDocumentIcon,
   WireRemittanceDollarIcon,
   VaultShieldIcon,
@@ -39,6 +38,33 @@ const LiveNotificationBadgeWrapper: React.FC<{ fallbackBadge?: string | number }
   return <LiveNotificationBadge />;
 };
 
+const GlobalBulletinBell: React.FC = () => {
+  const { setActiveRoute } = useCustomerShell();
+  const queryClient = React.useContext(QueryClientContext);
+
+  if (!queryClient) return null;
+
+  return <GlobalBulletinBellLive onOpen={() => setActiveRoute('/notifications')} />;
+};
+
+const GlobalBulletinBellLive: React.FC<{ onOpen: () => void }> = ({ onOpen }) => {
+  const { data } = useCustomerNotifications('all', '');
+  const unreadCount = data?.unreadCount ?? 0;
+
+  return (
+    <button
+      type="button"
+      className="cc-cust-shell-global-bell"
+      aria-label={unreadCount > 0 ? `Bulletins and alerts, ${unreadCount} unread` : 'Bulletins and alerts'}
+      title="Bulletins & Alerts"
+      onClick={onOpen}
+    >
+      <BulletinsBellIcon size={20} />
+      {unreadCount > 0 && <span className="cc-cust-shell-global-bell__badge">{unreadCount}</span>}
+    </button>
+  );
+};
+
 /** Returns the translated label for a top-level nav group. */
 function getGroupLabel(item: NavigationItem, t: (key: string, params?: Record<string, string | number>, fallback?: string) => string): string {
   switch (item.id) {
@@ -63,7 +89,6 @@ function getSubItemLabel(item: SubNavigationItem, t: (key: string, params?: Reco
     case 'wishlist':      return t('customer.wishlist', undefined, item.label);
     case 'favourites':    return t('customer.favourites', undefined, item.label);
     case 'vehicles':      return t('customer.myVehicles', undefined, item.label);
-    case 'shipments':     return t('customer.holdVehicles', undefined, item.label);
     case 'statement':     return t('customer.statement', undefined, item.label);
     case 'invoices':      return t('customer.purchasedVehicles', undefined, item.label);
     case 'payments':      return t('customer.wireRemittance', undefined, item.label);
@@ -87,7 +112,6 @@ const renderNavIcon = (itemId: string, fallbackIcon?: string): React.ReactNode =
     case 'wishlist':      return <WishlistHeartIcon size={18} />;
     case 'favourites':    return <FavouritesStarIcon size={18} />;
     case 'vehicles':      return <VehiclesSideCarIcon size={18} />;
-    case 'shipments':     return <StopwatchClockIcon size={18} />;
     case 'invoices':      return <InvoiceDocumentIcon size={18} />;
     case 'payments':      return <WireRemittanceDollarIcon size={18} />;
     case 'documents':     return <VaultShieldIcon size={18} />;
@@ -391,6 +415,8 @@ export const CustomerNav: React.FC = () => {
           </div>
         </nav>
       )}
+
+      <GlobalBulletinBell />
     </aside>
   );
 };

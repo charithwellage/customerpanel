@@ -1750,34 +1750,6 @@
         }
       }
     },
-    "/api/v1/customer/shipments": {
-      "get": {
-        "summary": "List shipments visible to the authenticated customer",
-        "operationId": "listCustomerShipments",
-        "tags": ["Customer APIs"],
-        "security": [{"BearerAuth":[]}],
-        "responses": {
-          "200": { "description": "Customer shipment timeline projections", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CustomerShipmentList" } } } },
-          "401": { "description": "Unauthenticated", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
-          "403": { "description": "Forbidden", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
-        }
-      }
-    },
-    "/api/v1/customer/shipments/{id}": {
-      "get": {
-        "summary": "Get one customer-owned shipment timeline",
-        "operationId": "getCustomerShipment",
-        "tags": ["Customer APIs"],
-        "security": [{"BearerAuth":[]}],
-        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
-        "responses": {
-          "200": { "description": "Shipment timeline", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CustomerShipment" } } } },
-          "401": { "description": "Unauthenticated", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
-          "403": { "description": "Forbidden", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
-          "404": { "description": "Shipment not found", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
-        }
-      }
-    },
     "/api/v1/customer/documents": {
       "get": {
         "summary": "List released documents visible to the authenticated customer",
@@ -3242,29 +3214,6 @@
           "status": { "type": "string", "enum": ["Approved", "Pending", "Rejected"], "example": "Approved" }
         },
         "required": ["id", "customerId", "paymentId", "invoiceId", "amountUsd", "allocatedAt", "status"]
-      },
-      "CustomerShipment": {
-        "type": "object",
-        "properties": {
-          "id": { "type": "string" },
-          "vehicleId": { "type": "string" },
-          "stage": { "type": "string", "enum": ["Purchased", "Inspection", "Ready", "In Transit", "Delivered"] },
-          "shippedAt": { "type": "string" },
-          "deliveredAt": { "type": "string" },
-          "eta": { "type": "string" },
-          "location": { "type": "string" },
-          "freshness": { "type": "string", "enum": ["fresh", "stale", "unknown"] },
-          "shipOkStatus": { "type": "string", "enum": ["Pending", "Approved", "Rejected"] },
-          "shipOkRejectionReason": { "type": "string" },
-          "documentReleaseStatus": { "type": "string", "enum": ["Pending", "Approved", "Rejected"] },
-          "documentReleaseRejectionReason": { "type": "string" }
-        },
-        "required": ["id", "vehicleId", "stage", "shippedAt", "freshness", "shipOkStatus", "documentReleaseStatus"]
-      },
-      "CustomerShipmentList": {
-        "type": "object",
-        "properties": { "items": { "type": "array", "items": { "$ref": "#/components/schemas/CustomerShipment" } } },
-        "required": ["items"]
       },
       "CustomerDocument": {
         "type": "object",

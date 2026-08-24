@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { CUSTOMER_FEATURE_REGISTRY, validateCustomerFeatureRegistry } from '../index.js';
 
 describe('Customer Feature Ownership Registry Unit Tests', () => {
-  it('registers all 12 required Customer Application feature slots', () => {
+  it('registers all 11 active Customer Application feature slots', () => {
     const keys = Object.keys(CUSTOMER_FEATURE_REGISTRY);
     expect(keys).toContain('dashboard');
     expect(keys).toContain('inventory');
@@ -12,7 +12,7 @@ describe('Customer Feature Ownership Registry Unit Tests', () => {
     expect(keys).toContain('vehicles');
     expect(keys).toContain('invoices');
     expect(keys).toContain('payments');
-    expect(keys).toContain('shipments');
+    expect(keys).not.toContain('shipments');
     expect(keys).toContain('documents');
     expect(keys).toContain('profile');
     expect(keys).toContain('auth');
@@ -22,7 +22,7 @@ describe('Customer Feature Ownership Registry Unit Tests', () => {
     const validation = validateCustomerFeatureRegistry();
     expect(validation.valid).toBe(true);
     expect(validation.errors).toHaveLength(0);
-    expect(validation.totalFeatures).toBe(12);
+    expect(validation.totalFeatures).toBe(11);
   });
 
   it('ensures each feature record contains phase, title, route, openapi, and spec paths', () => {

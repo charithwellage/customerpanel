@@ -546,25 +546,6 @@ export interface PartialFailureIndicators {
   notificationsFailed: boolean;
 }
 
-export interface CustomerShipment {
-  id: string;
-  vehicleId: string;
-  stage: 'Purchased' | 'Inspection' | 'Ready' | 'In Transit' | 'Delivered';
-  shippedAt: string;
-  deliveredAt?: string;
-  eta?: string;
-  location?: string;
-  freshness: 'fresh' | 'stale' | 'unknown';
-  shipOkStatus: 'Pending' | 'Approved' | 'Rejected';
-  shipOkRejectionReason?: string;
-  documentReleaseStatus: 'Pending' | 'Approved' | 'Rejected';
-  documentReleaseRejectionReason?: string;
-}
-
-export interface CustomerShipmentList {
-  items: CustomerShipment[];
-}
-
 export type PaymentProofFileType = 'PDF' | 'JPG' | 'PNG';
 export type PaymentProofScanStatus = 'Pending' | 'Passed' | 'Rejected';
 export interface CustomerPaymentProofMetadata {

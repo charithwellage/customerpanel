@@ -9,14 +9,15 @@ import { useTranslation } from '../../i18n/index.js';
 
 export interface CustomerFleetPageProps {
   onSelectVehicle: (vehicle: CustomerVehicleSummary) => void;
+  initialTab?: FleetTabKey;
 }
 
 export type FleetTabKey = 'reserved' | 'withPI' | 'invoiced' | 'all' | 'underNegotiation' | 'underNegotiationWithPI' | 'confirmed' | 'inTransit' | 'delivered';
 
-export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVehicle }) => {
+export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVehicle, initialTab = 'invoiced' }) => {
   const { t } = useTranslation();
   const { setActiveRoute } = useCustomerShell();
-  const [activeTab, setActiveTab] = useState<FleetTabKey>('invoiced');
+  const [activeTab, setActiveTab] = useState<FleetTabKey>(initialTab);
   const [searchQuery, setSearchQuery] = useState('');
   const [shippingStatusFilter, setShippingStatusFilter] = useState('all');
   const [selectedTrackingVehicle, setSelectedTrackingVehicle] = useState<CustomerVehicleSummary | null>(null);

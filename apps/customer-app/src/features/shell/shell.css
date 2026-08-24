@@ -194,6 +194,54 @@
   font-weight: 800;
 }
 
+.cc-cust-shell-global-bell {
+  position: fixed;
+  top: var(--spacing-md);
+  right: var(--spacing-md);
+  z-index: 40;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-elevated);
+  color: var(--color-text-secondary);
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
+  transition: background-color var(--motion-fast) ease, color var(--motion-fast) ease, transform var(--motion-fast) ease;
+}
+
+.cc-cust-shell-global-bell:hover {
+  background: var(--color-primary);
+  color: var(--color-text-on-primary);
+  transform: translateY(-1px);
+}
+
+.cc-cust-shell-global-bell:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+.cc-cust-shell-global-bell__badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  padding: 1px 4px;
+  border: 2px solid var(--color-background);
+  border-radius: var(--radius-pill);
+  background: var(--color-primary);
+  color: var(--color-text-on-primary);
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 800;
+  line-height: 14px;
+  text-align: center;
+}
+
 .cc-cust-shell-nav__link--active .cc-cust-shell-nav__badge {
   background: var(--color-surface);
   color: var(--color-primary);
