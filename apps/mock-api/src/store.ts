@@ -5356,6 +5356,7 @@ function buildCustomerPaymentAllocationSummaries(
       return {
         id: payment.id,
         reference: payment.reference || payment.id.toUpperCase(),
+        paymentMethod: payment.paymentMethod || 'WireTransfer',
         bankName: payment.bankName || 'Unspecified bank',
         currency: payment.currency || 'USD',
         amountUsd: payment.amountUsd,
@@ -9281,6 +9282,7 @@ class PostgresStore implements DemoStore {
       paidAt: payment.paymentDate,
       paymentDate: payment.paymentDate,
       status: payment.status,
+      paymentMethod: payment.paymentMethod || 'WireTransfer',
       reference: payment.reference,
       bankName: payment.bankName,
       currency: payment.currency,

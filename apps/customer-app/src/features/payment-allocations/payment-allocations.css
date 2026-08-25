@@ -25,12 +25,14 @@
 .cc-payment-allocation-filters .cc-search-input,
 .cc-payment-allocation-filters .cc-filter-select { width: 100%; }
 
-.cc-payment-allocation-table-wrap { overflow-x: auto; }
-.cc-payment-allocation-table { width: 100%; min-width: 900px; border-collapse: separate; border-spacing: 0; font-family: var(--font-body); font-size: var(--font-size-xs); }
+.cc-payment-allocation-table-wrap { overflow-x: hidden; }
+.cc-payment-allocation-table { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 0; font-family: var(--font-body); font-size: var(--font-size-xs); }
 .cc-payment-allocation-table th,
-.cc-payment-allocation-table td { padding: var(--spacing-sm) var(--spacing-md); border-bottom: 1px solid var(--color-border); text-align: left; vertical-align: middle; white-space: nowrap; }
-.cc-payment-allocation-table th { padding: var(--spacing-sm) var(--spacing-md); border-bottom: 1px solid var(--color-border); text-align: left; vertical-align: middle; white-space: nowrap; }
-.cc-payment-allocation-table thead th { background: var(--color-surface-elevated); color: var(--color-text-secondary); font-size: var(--font-size-xs); font-weight: 800; letter-spacing: .05em; text-transform: uppercase; }
+.cc-payment-allocation-table td { padding: 9px 7px; border-bottom: 1px solid var(--color-border); text-align: left; vertical-align: middle; overflow-wrap: anywhere; }
+.cc-payment-allocation-table th { padding: 9px 7px; border-bottom: 1px solid var(--color-border); text-align: left; vertical-align: middle; }
+.cc-payment-allocation-table thead { background: var(--color-neutral-surface); }
+.cc-payment-allocation-table thead th { background: var(--color-neutral-surface); color: var(--color-text-secondary); font-family: var(--font-mono); font-size: var(--font-size-xs); font-weight: 700; letter-spacing: .04em; line-height: 1.2; border-bottom: 2px solid var(--color-border); text-transform: uppercase; white-space: normal; }
+.cc-payment-allocation-table thead th > span { display: block; }
 .cc-payment-allocation-table thead th:first-child { border-top-left-radius: var(--radius-lg); }
 .cc-payment-allocation-table thead th:last-child { border-top-right-radius: var(--radius-lg); }
 .cc-payment-allocation-table tbody tr:last-child > th,
@@ -43,13 +45,22 @@
 .cc-payment-allocation-row th strong { font-family: var(--font-mono); letter-spacing: .02em; }
 .cc-payment-allocation-money { font-family: var(--font-mono); font-weight: 700; }
 .cc-payment-allocation-number { text-align: right !important; }
-.cc-payment-allocation-table td:nth-child(3) { max-width: 190px; white-space: normal; }
-.cc-payment-allocation-status-cell { min-width: 190px; white-space: normal !important; }
+.cc-payment-allocation-table th:nth-child(1), .cc-payment-allocation-table td:nth-child(1) { width: 8%; }
+.cc-payment-allocation-table th:nth-child(2), .cc-payment-allocation-table td:nth-child(2) { width: 10%; }
+.cc-payment-allocation-table th:nth-child(3), .cc-payment-allocation-table td:nth-child(3) { width: 9%; }
+.cc-payment-allocation-table th:nth-child(4), .cc-payment-allocation-table td:nth-child(4) { width: 14%; }
+.cc-payment-allocation-table th:nth-child(5), .cc-payment-allocation-table td:nth-child(5) { width: 6%; }
+.cc-payment-allocation-table th:nth-child(6), .cc-payment-allocation-table td:nth-child(6) { width: 10%; }
+.cc-payment-allocation-table th:nth-child(7), .cc-payment-allocation-table td:nth-child(7) { width: 10%; }
+.cc-payment-allocation-table th:nth-child(8), .cc-payment-allocation-table td:nth-child(8) { width: 11%; }
+.cc-payment-allocation-table th:nth-child(9), .cc-payment-allocation-table td:nth-child(9) { width: 6%; }
+.cc-payment-allocation-table th:nth-child(10), .cc-payment-allocation-table td:nth-child(10) { width: 13%; }
+.cc-payment-allocation-status-cell { white-space: normal !important; }
 .cc-payment-allocation-status { display: block; width: max-content; padding: 5px 9px; border-radius: var(--radius-pill); background: var(--color-surface-elevated); font-size: var(--font-size-xs); font-weight: 700; }
 .cc-payment-allocation-status--FullyAllocated { color: var(--color-success); }
 .cc-payment-allocation-status--PartiallyAllocated { color: var(--color-warning); }
 
-.cc-payment-allocation-bar { display: flex; width: 100%; height: 10px; margin-top: 8px; overflow: hidden; border: 1px solid var(--color-border); border-radius: var(--radius-pill); background: var(--color-surface-elevated); }
+.cc-payment-allocation-bar { display: flex; width: 100%; height: 8px; margin-top: 6px; overflow: hidden; border: 1px solid var(--color-border); border-radius: var(--radius-pill); background: var(--color-surface-elevated); }
 .cc-payment-allocation-bar__allocated,
 .cc-payment-allocation-bar__unallocated { display: block; height: 100%; transition: width var(--motion-fast); }
 .cc-payment-allocation-bar__allocated { background: var(--color-success); }
@@ -99,6 +110,8 @@
   .cc-payment-allocations-page { padding: 18px; }
   .cc-payment-allocation-kpis { grid-template-columns: repeat(2, 1fr); }
   .cc-payment-allocation-filters { grid-template-columns: 1fr; }
+  .cc-payment-allocation-table-wrap { overflow-x: auto; }
+  .cc-payment-allocation-table { min-width: 900px; table-layout: auto; }
   .cc-payment-allocation-line { grid-template-columns: 48px 1fr; }
   .cc-payment-allocation-line__financials,
   .cc-payment-allocation-line > span { grid-column: 2; }

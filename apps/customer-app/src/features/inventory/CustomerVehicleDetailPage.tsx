@@ -139,6 +139,7 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
             title={title}
             badges={[{ label: vehicle.statusLabel || '', tone: vehicle.status === 'Available' ? ('success' as const) : ('warning' as const) }]}
           />
+          <CustomerVehicleSpecifications vehicle={vehicle} />
         </div>
 
         {/* Info & Action Section */}
@@ -427,7 +428,6 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
             </div>
           </div>
 
-          <CustomerVehicleSpecifications vehicle={vehicle} />
         </div>
       </div>
 

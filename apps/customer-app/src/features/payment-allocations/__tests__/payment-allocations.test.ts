@@ -10,6 +10,7 @@ const response: CustomerPaymentAllocationListResponse = {
   items: [{
     id: 'payment-1',
     reference: 'TT-001',
+    paymentMethod: 'WireTransfer',
     bankName: 'Demo Bank',
     currency: 'USD',
     amountUsd: 10000,
@@ -66,7 +67,14 @@ describe('PaymentAllocationsPage table view', () => {
     );
 
     expect(html).toContain('<table class="cc-payment-allocation-table">');
-    expect(html).toContain('TT Reference');
+    expect(html).toContain('Ref.No');
+    expect(html).toContain('Payment Type');
+    expect(html).toContain('Received');
+    expect(html).toContain('Amount');
+    expect(html).toContain('No.of');
+    expect(html).toContain('Vehicles');
+    expect(html).not.toContain('>TT Amount</th>');
+    expect(html).toContain('>TT</td>');
     expect(html).toContain('Unallocated Amount');
     expect(html).toContain('Partially Allocated');
     expect(html).toContain('role="progressbar"');

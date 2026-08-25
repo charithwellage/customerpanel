@@ -173,6 +173,7 @@ export interface CustomerPaymentAllocationInvoice {
 export interface CustomerPaymentAllocationSummary {
   id: string;
   reference: string;
+  paymentMethod: CustomerPaymentMethod;
   bankName: string;
   currency: string;
   amountUsd: number;

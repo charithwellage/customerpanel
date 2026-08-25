@@ -269,12 +269,30 @@ export const CustomerWishlistPage: React.FC = () => {
                     <span className="cc-wishlist-meta-text">Chassis: <strong>{item.chassisNumber}</strong></span>
                   </div>
 
-                  <div className="cc-wishlist-card__specs">
-                    <span className="cc-wishlist-spec-tag">⚙️ {item.specs.engineCc}</span>
-                    <span className="cc-wishlist-spec-tag">⚡ {item.specs.mileage}</span>
-                    <span className="cc-wishlist-spec-tag">⛽ {item.specs.fuel}</span>
-                    <span className="cc-wishlist-spec-tag">🕹️ {item.specs.transmission}</span>
-                    <span className="cc-wishlist-spec-tag">🎨 {item.specs.color}</span>
+                  <div className="cc-cust-fleet-card__specs-table" aria-label="Vehicle specifications">
+                    <div className="cc-cust-fleet-card__spec-row">
+                      <span className="cc-cust-fleet-card__spec-label">Chassis No:</span>
+                      <span className="cc-cust-fleet-card__spec-value cc-cust-fleet-card__spec-value--mono">
+                        {item.chassisNumber}
+                      </span>
+                    </div>
+                    <div className="cc-cust-fleet-card__spec-row">
+                      <span className="cc-cust-fleet-card__spec-label">Color / Spec:</span>
+                      <span className="cc-cust-fleet-card__spec-value" title={item.specs.color}>
+                        {item.specs.color}
+                      </span>
+                    </div>
+                    <div className="cc-cust-fleet-card__spec-row">
+                      <span className="cc-cust-fleet-card__spec-label">Mileage:</span>
+                      <span className="cc-cust-fleet-card__spec-value">{item.specs.mileage}</span>
+                    </div>
+                    <div className="cc-cust-fleet-card__spec-divider" />
+                    <div className="cc-cust-fleet-card__spec-row">
+                      <span className="cc-cust-fleet-card__spec-label cc-cust-fleet-card__spec-label--fob">Selling Price:</span>
+                      <span className="cc-cust-fleet-card__spec-value cc-cust-fleet-card__spec-value--fob">
+                        ${item.fobPriceUsd.toLocaleString()}
+                      </span>
+                    </div>
                   </div>
 
                   <div className="cc-wishlist-card__financials">
