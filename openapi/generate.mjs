@@ -548,6 +548,7 @@ export interface PartialFailureIndicators {
 
 export type PaymentProofFileType = 'PDF' | 'JPG' | 'PNG';
 export type PaymentProofScanStatus = 'Pending' | 'Passed' | 'Rejected';
+export type CustomerPaymentMethod = 'WireTransfer' | 'Card';
 export interface CustomerPaymentProofMetadata {
   fileName: string;
   fileType: PaymentProofFileType;
@@ -571,6 +572,32 @@ export interface CustomerPayment {
   proof?: CustomerPaymentProofMetadata;
   idempotencyKey: string;
   createdAt: string;
+  paymentMethod: CustomerPaymentMethod;
+  vehicleId?: string;
+  vehicleName?: string;
+  proformaInvoiceId?: string;
+  gatewayProvider?: string;
+  gatewayTransactionId?: string;
+  cardBrand?: string;
+  cardLast4?: string;
+}
+export interface CreateCustomerCardPaymentRequest {
+  vehicleId: string;
+  amountUsd: number;
+  cardholderName: string;
+  cardNumber: string;
+  expiryMonth: number;
+  expiryYear: number;
+  cvv: string;
+  idempotencyKey: string;
+}
+export interface CustomerCardPaymentEligibility {
+  eligible: boolean;
+  reason?: 'no_payment_target' | 'fully_paid' | 'no_outstanding_balance';
+  outstandingAmountUsd: number;
+  currency: 'USD';
+  targetType?: 'ProformaInvoice' | 'CommercialInvoice';
+  targetId?: string;
 }
 export interface CreateCustomerPaymentRequest {
   invoiceId?: string;
@@ -624,6 +651,7 @@ export interface CustomerProfile {
   deliveryAddress: string;
   version: number;
   updatedAt: string;
+  cardPaymentEligibility?: CustomerCardPaymentEligibility;
 }
 export interface UpdateCustomerProfileRequest { companyName: string; phone: string; deliveryAddress: string; expectedVersion?: number; }
 

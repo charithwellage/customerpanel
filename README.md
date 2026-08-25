@@ -58,6 +58,28 @@ This account is a development fixture for local testing. It is separate from
 the POC account above. The Public Web registration page is available at
 [http://127.0.0.1:3000/register](http://127.0.0.1:3000/register).
 
+### Mock card payment test details
+
+The customer portal includes a mock card gateway for local/demo testing. These
+cards do not charge a real account and must never be used as production card
+details:
+
+| Card brand | Card number | Expiry | CVV |
+|---|---|---|---|
+| Visa | `4111 1111 1111 1111` | `12/2030` | `123` |
+| Mastercard | `5555 5555 5555 4444` | `12/2030` | `123` |
+
+Use the cardholder name `Demo Customer`, or any non-empty test name. The
+payment amount must be greater than zero and no greater than the vehicle’s
+outstanding balance shown by the portal. A unique idempotency key is required;
+reusing the same key safely returns the original mock payment instead of
+creating a duplicate.
+
+Submitted card payments are stored as `Pending` and appear as **Under Review**
+on the Payments page. Only the card brand and last four digits are retained;
+the full card number and CVV are never persisted or returned. These details are
+for the Mock API only and are not valid credentials for a real payment gateway.
+
 ### Customer tier test accounts
 
 The Mock API database also contains deterministic accounts for testing

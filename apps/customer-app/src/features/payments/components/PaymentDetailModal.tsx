@@ -12,6 +12,11 @@ export interface PaymentDetailRecord {
   approvedDate?: string;
   financeNote?: string;
   documents?: Array<{ name: string; url: string }>;
+  paymentMethod: 'WireTransfer' | 'Card';
+  vehicleName?: string;
+  cardBrand?: string;
+  cardLast4?: string;
+  gatewayTransactionId?: string;
 }
 
 export interface PaymentDetailModalProps {
@@ -53,6 +58,9 @@ export const PaymentDetailModal: React.FC<PaymentDetailModalProps> = ({
 
         <div className="cc-pay-modal-body">
           <div className="cc-pay-detail-grid">
+            <div className="cc-pay-detail-item"><span className="cc-pay-detail-label">Payment Method:</span><span className="cc-pay-detail-val">{payment.paymentMethod === 'Card' ? 'Card' : 'Wire Transfer'}</span></div>
+            {payment.vehicleName && <div className="cc-pay-detail-item"><span className="cc-pay-detail-label">Vehicle:</span><span className="cc-pay-detail-val">{payment.vehicleName}</span></div>}
+            {payment.paymentMethod === 'Card' && <div className="cc-pay-detail-item"><span className="cc-pay-detail-label">Card:</span><span className="cc-pay-detail-val">{payment.cardBrand || 'Card'} ending {payment.cardLast4 || '****'}</span></div>}
             <div className="cc-pay-detail-item">
               <span className="cc-pay-detail-label">TT Ref Nu:</span>
               <span className="cc-pay-detail-val cc-pay-detail-val--mono">{payment.reference}</span>

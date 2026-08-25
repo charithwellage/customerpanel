@@ -38,6 +38,12 @@ export interface RemittanceJournalEntry {
   financeNote?: string;
   remarks?: string;
   status: 'APPROVED' | 'REJECTED' | 'UNDER REVIEW' | 'ON HOLD';
+  paymentMethod: CustomerPayment['paymentMethod'];
+  vehicleId?: string;
+  vehicleName?: string;
+  cardBrand?: string;
+  cardLast4?: string;
+  gatewayTransactionId?: string;
 }
 
 export function getRemittanceJournalStatus(status: CustomerPayment['status']): RemittanceJournalEntry['status'] {
@@ -107,6 +113,12 @@ export const PaymentsPage: React.FC = () => {
         financeNote: payment.financeNote,
         remarks: payment.remarks,
         status: getRemittanceJournalStatus(payment.status),
+        paymentMethod: payment.paymentMethod,
+        vehicleId: payment.vehicleId,
+        vehicleName: payment.vehicleName,
+        cardBrand: payment.cardBrand,
+        cardLast4: payment.cardLast4,
+        gatewayTransactionId: payment.gatewayTransactionId,
       };
     });
   }, [apiPayments]);
@@ -185,6 +197,11 @@ export const PaymentsPage: React.FC = () => {
       ttAmount: entry.amountUsd,
       approvedDate: entry.approvedDate,
       financeNote: entry.financeNote,
+      paymentMethod: entry.paymentMethod,
+      vehicleName: entry.vehicleName,
+      cardBrand: entry.cardBrand,
+      cardLast4: entry.cardLast4,
+      gatewayTransactionId: entry.gatewayTransactionId,
     });
   };
 

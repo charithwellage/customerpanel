@@ -2024,6 +2024,23 @@
         }
       }
     },
+    "/api/v1/customer/card-payments": {
+      "post": {
+        "operationId": "createCustomerCardPayment",
+        "summary": "Submit a mock card payment for an owned vehicle",
+        "description": "Valid demo card details create a Pending payment for finance review. Raw card numbers and CVV values are never persisted or returned.",
+        "tags": ["Customer APIs"],
+        "security": [{"BearerAuth":[]}],
+        "requestBody": {"required": true, "content": {"application/json": {"schema": {"$ref": "#/components/schemas/CreateCustomerCardPaymentRequest"}}}},
+        "responses": {
+          "201": {"description": "Card payment submitted for review", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/CustomerPayment"}}}},
+          "400": {"description": "Invalid card or payment amount", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ErrorResponse"}}}},
+          "401": {"description": "Unauthenticated"},
+          "403": {"description": "Forbidden"},
+          "404": {"description": "Vehicle not found or not owned"}
+        }
+      }
+    },
     "/api/v1/customer/payments/{id}/resubmit": {
       "post": {
         "operationId": "resubmitCustomerPayment",
@@ -3094,6 +3111,7 @@
           "owner": { "type": "string", "example": "ContentTeam" },
           "status": { "type": "string", "enum": ["approved", "pending", "draft", "unavailable", "rejected"], "example": "approved" },
           "updatedAt": { "type": "string", "example": "2026-08-10T10:00:00.000Z" }
+          ,"cardPaymentEligibility": { "$ref": "#/components/schemas/CustomerCardPaymentEligibility" }
         },
         "required": ["id", "categoryId", "categoryName", "question", "answer", "slug", "owner", "status", "updatedAt"]
       },
@@ -3560,9 +3578,20 @@
           "amountUsd": { "type": "number" }, "allocatedAmountUsd": { "type": "number" }, "remainingBalanceUsd": { "type": "number" }, "depositorName": { "type": "string" }, "customerName": { "type": "string" }, "approvedDate": { "type": "string" }, "financeNote": { "type": "string", "description": "Finance-provided reason shown to the customer for held or rejected payments." }, "paymentDate": { "type": "string" }, "remarks": { "type": "string" },
           "status": { "type": "string", "enum": ["Pending", "Held", "Resubmitted", "Approved", "Rejected"] },
           "holdReason": { "type": "string" }, "proof": { "$ref": "#/components/schemas/CustomerPaymentProofMetadata" },
-          "idempotencyKey": { "type": "string" }, "createdAt": { "type": "string" }
+          "idempotencyKey": { "type": "string" }, "createdAt": { "type": "string" },
+          "paymentMethod": { "type": "string", "enum": ["WireTransfer", "Card"] }, "vehicleId": { "type": "string" }, "vehicleName": { "type": "string" }, "proformaInvoiceId": { "type": "string" }, "gatewayProvider": { "type": "string" }, "gatewayTransactionId": { "type": "string" }, "cardBrand": { "type": "string" }, "cardLast4": { "type": "string", "minLength": 4, "maxLength": 4 }
         },
-        "required": ["id", "customerId", "reference", "bankName", "currency", "amountUsd", "paymentDate", "status", "idempotencyKey", "createdAt"]
+        "required": ["id", "customerId", "reference", "bankName", "currency", "amountUsd", "paymentDate", "status", "idempotencyKey", "createdAt", "paymentMethod"]
+      },
+      "CustomerCardPaymentEligibility": {
+        "type": "object",
+        "properties": {"eligible": {"type": "boolean"}, "reason": {"type": "string", "enum": ["no_payment_target", "fully_paid", "no_outstanding_balance"]}, "outstandingAmountUsd": {"type": "number", "minimum": 0}, "currency": {"type": "string", "enum": ["USD"]}, "targetType": {"type": "string", "enum": ["ProformaInvoice", "CommercialInvoice"]}, "targetId": {"type": "string"}},
+        "required": ["eligible", "outstandingAmountUsd", "currency"]
+      },
+      "CreateCustomerCardPaymentRequest": {
+        "type": "object",
+        "properties": {"vehicleId": {"type": "string"}, "amountUsd": {"type": "number", "exclusiveMinimum": 0}, "cardholderName": {"type": "string"}, "cardNumber": {"type": "string", "writeOnly": true}, "expiryMonth": {"type": "integer", "minimum": 1, "maximum": 12, "writeOnly": true}, "expiryYear": {"type": "integer", "writeOnly": true}, "cvv": {"type": "string", "writeOnly": true}, "idempotencyKey": {"type": "string"}},
+        "required": ["vehicleId", "amountUsd", "cardholderName", "cardNumber", "expiryMonth", "expiryYear", "cvv", "idempotencyKey"]
       },
       "CreateCustomerPaymentRequest": {
         "type": "object",

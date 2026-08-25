@@ -152,9 +152,6 @@ export interface VehicleDetail {
   model: string;
   year: number;
   status: 'Draft' | 'Available' | 'Pending' | 'Reserved' | 'ReservedWithPI' | 'InvoiceCreated' | 'Invoiced' | 'Sold';
-  statusLabel?: string;
-  statusLabelPlural?: string;
-  statusDescription?: string;
   priceState: 'priced' | 'request_price';
   priceUsd?: number;
   requestPrice: boolean;
@@ -536,6 +533,7 @@ export interface PartialFailureIndicators {
 
 export type PaymentProofFileType = 'PDF' | 'JPG' | 'PNG';
 export type PaymentProofScanStatus = 'Pending' | 'Passed' | 'Rejected';
+export type CustomerPaymentMethod = 'WireTransfer' | 'Card';
 export interface CustomerPaymentProofMetadata {
   fileName: string;
   fileType: PaymentProofFileType;
@@ -552,17 +550,39 @@ export interface CustomerPayment {
   amountUsd: number;
   allocatedAmountUsd?: number;
   remainingBalanceUsd?: number;
-  depositorName?: string;
-  customerName?: string;
-  approvedDate?: string;
-  financeNote?: string;
   paymentDate: string;
   remarks?: string;
-  status: 'Pending' | 'Held' | 'Resubmitted' | 'Approved' | 'Rejected';
+  status: 'Pending' | 'Approved' | 'Rejected';
   holdReason?: string;
   proof?: CustomerPaymentProofMetadata;
   idempotencyKey: string;
   createdAt: string;
+  paymentMethod: CustomerPaymentMethod;
+  vehicleId?: string;
+  vehicleName?: string;
+  proformaInvoiceId?: string;
+  gatewayProvider?: string;
+  gatewayTransactionId?: string;
+  cardBrand?: string;
+  cardLast4?: string;
+}
+export interface CreateCustomerCardPaymentRequest {
+  vehicleId: string;
+  amountUsd: number;
+  cardholderName: string;
+  cardNumber: string;
+  expiryMonth: number;
+  expiryYear: number;
+  cvv: string;
+  idempotencyKey: string;
+}
+export interface CustomerCardPaymentEligibility {
+  eligible: boolean;
+  reason?: 'no_payment_target' | 'fully_paid' | 'no_outstanding_balance';
+  outstandingAmountUsd: number;
+  currency: 'USD';
+  targetType?: 'ProformaInvoice' | 'CommercialInvoice';
+  targetId?: string;
 }
 export interface CreateCustomerPaymentRequest {
   invoiceId?: string;
@@ -616,6 +636,7 @@ export interface CustomerProfile {
   deliveryAddress: string;
   version: number;
   updatedAt: string;
+  cardPaymentEligibility?: CustomerCardPaymentEligibility;
 }
 export interface UpdateCustomerProfileRequest { companyName: string; phone: string; deliveryAddress: string; expectedVersion?: number; }
 
@@ -722,28 +743,11 @@ export interface CustomerVehicleSummary {
 
 export interface CustomerVehicleDetail extends CustomerVehicleSummary {
   images: string[];
-  stockType?: 'J' | 'CRFO';
   bodyStyle?: string;
   fuelType?: string;
   transmission?: string;
   driveTrain?: string;
   mileage?: number;
-  engineSize?: string;
-  modelCode?: string;
-  versionClass?: string;
-  registerYear?: string;
-  mfgYear?: string;
-  steering?: string;
-  seats?: number;
-  loadCapacity?: number;
-  doors?: number;
-  grossWeight?: number;
-  dimensions?: {
-    lengthMm?: number;
-    widthMm?: number;
-    heightMm?: number;
-    m3?: number;
-  };
   invoiceId?: string;
   shipmentId?: string;
   vesselName?: string;
