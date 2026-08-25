@@ -2468,9 +2468,9 @@
 }
 
 .cc-card-payment-action p { color: var(--color-text-secondary); margin: 0 0 12px; }
-.cc-card-payment-success { padding: 12px 16px; border-radius: var(--radius-md); color: var(--color-success); background: var(--color-success-surface, #e8f7ee); font-weight: 700; }
+.cc-card-payment-success { padding: 12px 16px; border-radius: var(--radius-md); color: var(--color-success); background: var(--color-success-surface); font-weight: 700; }
 .cc-card-payment-modal { position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; padding: var(--spacing-md); font-family: var(--font-body); font-size: var(--font-size-sm); }
-.cc-card-payment-modal__backdrop { position: absolute; inset: 0; background: rgb(0 0 0 / 0.55); }
+.cc-card-payment-modal__backdrop { position: absolute; inset: 0; background: color-mix(in srgb, var(--color-text-primary) 55%, transparent); }
 .cc-card-payment-modal__dialog { position: relative; box-sizing: border-box; width: min(560px, calc(100vw - 32px)); max-height: 90vh; overflow: auto; margin: 0; padding: var(--spacing-xl); border-radius: var(--radius-lg); background: var(--color-surface); box-shadow: var(--shadow-lg); color: var(--color-text-primary); }
 .cc-card-payment-modal__dialog header, .cc-card-payment-modal__dialog footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .cc-card-payment-modal__dialog header { border-bottom: 1px solid var(--color-border); margin-bottom: 16px; padding-bottom: 12px; }

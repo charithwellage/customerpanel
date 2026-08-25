@@ -94,7 +94,7 @@ export function useCustomerVehicleDetail({
       const wishlistService = new WishlistService(httpClient);
 
       const response = await wishlistService.list();
-      const isWishlisted = response.items.some((item) => item.vehicleSlug === idOrSlug);
+      const isWishlisted = response.items.some((item) => item.vehicleSlug === idOrSlug || item.vehicleId === idOrSlug);
 
       setState((prev) => ({
         ...prev,

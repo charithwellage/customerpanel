@@ -108,6 +108,7 @@ export const CustomerWishlistPage: React.FC = () => {
     if (combinedSlugs.length > 0) {
       const newItems: WishlistStockItem[] = combinedSlugs.map((slug, idx) => {
         const existing = SEED_STOCK_WISHLIST.find((s) => s.vehicleSlug === slug);
+        const serverItem = serverWishlistItems?.find((item) => item.vehicleSlug === slug);
         if (existing) return existing;
 
         const parts = slug.split('-');
@@ -118,7 +119,7 @@ export const CustomerWishlistPage: React.FC = () => {
         return {
           id: `w-dynamic-${idx}-${slug}`,
           vehicleSlug: slug,
-          vehicleId: `veh-${idx + 10}`,
+          vehicleId: serverItem?.vehicleId || `veh-${idx + 10}`,
           make,
           model: model.toUpperCase(),
           yom: year,
@@ -238,7 +239,7 @@ export const CustomerWishlistPage: React.FC = () => {
               <article key={item.id} className="cc-wishlist-card" data-testid={`wishlist-card-${item.stockNumber}`}>
                 <div
                   className="cc-wishlist-card__image-box"
-                  onClick={() => setActiveRoute(`/inventory/${item.vehicleSlug}`)}
+                  onClick={() => setActiveRoute(`/inventory/${encodeURIComponent(item.vehicleId || item.vehicleSlug)}`)}
                   role="button"
                   tabIndex={0}
                 >
