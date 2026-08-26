@@ -87,9 +87,9 @@ export const PaymentAllocationsPage: React.FC = () => {
               <th scope="col">Receiving Bank</th>
               <th scope="col">Currency</th>
               <th scope="col" className="cc-payment-allocation-number"><span>Received</span><span>Amount</span></th>
-              <th scope="col" className="cc-payment-allocation-number">Allocated Amount</th>
-              <th scope="col" className="cc-payment-allocation-number">Unallocated Amount</th>
-              <th scope="col" className="cc-payment-allocation-number"><span>No.of</span><span>Vehicles</span></th>
+              <th scope="col" className="cc-payment-allocation-number"><span>Allocated</span><span>Amount</span></th>
+              <th scope="col" className="cc-payment-allocation-number"><span>Unallocated</span><span>Amount</span></th>
+              <th scope="col" className="cc-payment-allocation-number"><span>No. Of</span><span>Vehicles</span></th>
               <th scope="col">Status</th>
             </tr>
           </thead>

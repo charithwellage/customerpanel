@@ -47,14 +47,15 @@
 .cc-payment-allocation-number { text-align: right !important; }
 .cc-payment-allocation-table th:nth-child(1), .cc-payment-allocation-table td:nth-child(1) { width: 8%; }
 .cc-payment-allocation-table th:nth-child(2), .cc-payment-allocation-table td:nth-child(2) { width: 10%; }
-.cc-payment-allocation-table th:nth-child(3), .cc-payment-allocation-table td:nth-child(3) { width: 9%; }
-.cc-payment-allocation-table th:nth-child(4), .cc-payment-allocation-table td:nth-child(4) { width: 14%; }
-.cc-payment-allocation-table th:nth-child(5), .cc-payment-allocation-table td:nth-child(5) { width: 6%; }
-.cc-payment-allocation-table th:nth-child(6), .cc-payment-allocation-table td:nth-child(6) { width: 10%; }
-.cc-payment-allocation-table th:nth-child(7), .cc-payment-allocation-table td:nth-child(7) { width: 10%; }
-.cc-payment-allocation-table th:nth-child(8), .cc-payment-allocation-table td:nth-child(8) { width: 11%; }
-.cc-payment-allocation-table th:nth-child(9), .cc-payment-allocation-table td:nth-child(9) { width: 6%; }
-.cc-payment-allocation-table th:nth-child(10), .cc-payment-allocation-table td:nth-child(10) { width: 13%; }
+.cc-payment-allocation-table th:nth-child(3), .cc-payment-allocation-table td:nth-child(3) { width: 10%; }
+.cc-payment-allocation-table th:nth-child(4), .cc-payment-allocation-table td:nth-child(4) { width: 15%; }
+.cc-payment-allocation-table th:nth-child(5), .cc-payment-allocation-table td:nth-child(5) { width: 4%; }
+.cc-payment-allocation-table thead th:nth-child(5) { white-space: nowrap; }
+.cc-payment-allocation-table th:nth-child(6), .cc-payment-allocation-table td:nth-child(6) { width: 11%; }
+.cc-payment-allocation-table th:nth-child(7), .cc-payment-allocation-table td:nth-child(7) { width: 11%; }
+.cc-payment-allocation-table th:nth-child(8), .cc-payment-allocation-table td:nth-child(8) { width: 12%; }
+.cc-payment-allocation-table th:nth-child(9), .cc-payment-allocation-table td:nth-child(9) { width: 7%; }
+.cc-payment-allocation-table th:nth-child(10), .cc-payment-allocation-table td:nth-child(10) { width: 10%; }
 .cc-payment-allocation-status-cell { white-space: normal !important; }
 .cc-payment-allocation-status { display: block; width: max-content; padding: 5px 9px; border-radius: var(--radius-pill); background: var(--color-surface-elevated); font-size: var(--font-size-xs); font-weight: 700; }
 .cc-payment-allocation-status--FullyAllocated { color: var(--color-success); }

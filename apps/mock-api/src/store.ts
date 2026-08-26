@@ -9369,17 +9369,23 @@ class PostgresStore implements DemoStore {
 
   private async persistApprovedPaymentStatementEntry(payment: PaymentRecord): Promise<void> {
     if (payment.status !== 'Approved') return;
+    const paymentTarget = payment.vehicleName || (payment.invoiceId ? `invoice ${payment.invoiceId}` : 'customer account');
+    const paymentPurpose = /balance/i.test(payment.remarks || '') ? 'Balance' : 'Advanced';
+    const description = payment.paymentMethod === 'Card'
+      ? `Online payment for ${paymentTarget}`
+      : `${paymentPurpose} payment for ${paymentTarget}`;
     await this.pool.query(
       `INSERT INTO customer_statement_transactions
         (id, customer_id, entry_date, entry_type, description, reference_no, debit_usd, credit_usd,
          source_type, source_id, created_at)
-       VALUES ($1, $2, $3::date, 'Payment', 'Payment received', $4, 0, $5, 'payment', $6, $7)
+       VALUES ($1, $2, $3::date, 'Payment', $4, $5, 0, $6, 'payment', $7, $8)
        ON CONFLICT (id) DO UPDATE SET
          entry_date = EXCLUDED.entry_date,
+         description = EXCLUDED.description,
          reference_no = EXCLUDED.reference_no,
          credit_usd = EXCLUDED.credit_usd`,
       [`stmt-payment-${payment.id}`, payment.customerId, (payment.paymentDate || payment.paidAt).slice(0, 10),
-        payment.reference || payment.id.toUpperCase(), payment.amountUsd, payment.id, payment.createdAt || payment.paidAt],
+        description, payment.reference || payment.id.toUpperCase(), payment.amountUsd, payment.id, payment.createdAt || payment.paidAt],
     );
   }
 

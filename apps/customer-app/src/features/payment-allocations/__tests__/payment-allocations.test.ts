@@ -71,11 +71,11 @@ describe('PaymentAllocationsPage table view', () => {
     expect(html).toContain('Payment Type');
     expect(html).toContain('Received');
     expect(html).toContain('Amount');
-    expect(html).toContain('No.of');
+    expect(html).toContain('No. Of');
     expect(html).toContain('Vehicles');
     expect(html).not.toContain('>TT Amount</th>');
     expect(html).toContain('>TT</td>');
-    expect(html).toContain('Unallocated Amount');
+    expect(html).toContain('Unallocated');
     expect(html).toContain('Partially Allocated');
     expect(html).toContain('role="progressbar"');
     expect(html).toContain('width:60%');
