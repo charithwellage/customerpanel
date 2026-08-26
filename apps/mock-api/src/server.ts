@@ -955,6 +955,18 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
     }
   });
 
+  app.post('/api/v1/customer/card-payments', async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) return void res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+    if (!hasPermission(req.user.role, 'create:payment')) return void res.status(403).json({ statusCode: 403, message: 'Forbidden: payment permission required', correlationId: 'corr-403' });
+    try {
+      const payment = await store.createCustomerCardPayment(resolveCustomerScope(req.user.sub), req.body, req.header('x-mock-now') || undefined);
+      res.status(201).json(payment);
+    } catch (error) {
+      const statusCode = error instanceof PaymentWorkflowError ? error.statusCode : 400;
+      res.status(statusCode).json({ statusCode, message: error instanceof Error ? error.message : 'Invalid card payment submission', correlationId: `corr-${statusCode}-${Date.now()}` });
+    }
+  });
+
   // 4h. Payment notification outbox. Finance records events; customers only read their own projection.
   app.get('/api/v1/customer/payment-notifications', async (req: AuthenticatedRequest, res: Response) => {
     if (!req.user) return void res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });

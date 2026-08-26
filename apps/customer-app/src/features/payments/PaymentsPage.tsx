@@ -13,6 +13,7 @@ import { useCustomerPayments } from './useCustomerPayments.js';
 import { useCreateCustomerPayment } from './useCreateCustomerPayment.js';
 import { useCustomerOnlineStatus } from '../pwa/useCustomerOnlineStatus.js';
 import { PaymentDetailModal, type PaymentDetailRecord } from './components/PaymentDetailModal.js';
+import { getPaymentTypeLabel } from './paymentLabels.js';
 import {
   CheckmarkCircleIcon,
   ClockCircleIcon,
@@ -38,6 +39,12 @@ export interface RemittanceJournalEntry {
   financeNote?: string;
   remarks?: string;
   status: 'APPROVED' | 'REJECTED' | 'UNDER REVIEW' | 'ON HOLD';
+  paymentMethod: CustomerPayment['paymentMethod'];
+  vehicleId?: string;
+  vehicleName?: string;
+  cardBrand?: string;
+  cardLast4?: string;
+  gatewayTransactionId?: string;
 }
 
 export function getRemittanceJournalStatus(status: CustomerPayment['status']): RemittanceJournalEntry['status'] {
@@ -46,6 +53,8 @@ export function getRemittanceJournalStatus(status: CustomerPayment['status']): R
   if (status === 'Held') return 'ON HOLD';
   return 'UNDER REVIEW';
 }
+
+export const getPaymentType = getPaymentTypeLabel;
 
 export function getCustomerPaymentStatus(
   payment: CustomerPayment,
@@ -107,6 +116,12 @@ export const PaymentsPage: React.FC = () => {
         financeNote: payment.financeNote,
         remarks: payment.remarks,
         status: getRemittanceJournalStatus(payment.status),
+        paymentMethod: payment.paymentMethod,
+        vehicleId: payment.vehicleId,
+        vehicleName: payment.vehicleName,
+        cardBrand: payment.cardBrand,
+        cardLast4: payment.cardLast4,
+        gatewayTransactionId: payment.gatewayTransactionId,
       };
     });
   }, [apiPayments]);
@@ -185,6 +200,11 @@ export const PaymentsPage: React.FC = () => {
       ttAmount: entry.amountUsd,
       approvedDate: entry.approvedDate,
       financeNote: entry.financeNote,
+      paymentMethod: entry.paymentMethod,
+      vehicleName: entry.vehicleName,
+      cardBrand: entry.cardBrand,
+      cardLast4: entry.cardLast4,
+      gatewayTransactionId: entry.gatewayTransactionId,
     });
   };
 
@@ -373,8 +393,8 @@ export const PaymentsPage: React.FC = () => {
             <table className="cc-remit-table">
               <thead>
                 <tr>
-                  <th scope="col">TT REF NU</th>
-                  <th scope="col">DEPOSITOR</th>
+                  <th scope="col">REF.NO</th>
+                  <th scope="col">PAYMENT TYPE</th>
                   <th scope="col">CURRENCY</th>
                   <th scope="col">TT AMOUNT</th>
                   <th scope="col">ALLOCATED</th>
@@ -408,7 +428,7 @@ export const PaymentsPage: React.FC = () => {
                       <td className="cc-remit-td--ref">
                         <span className="cc-remit-ref-text">{entry.reference}</span>
                       </td>
-                      <td className="cc-remit-td--depositor">{entry.depositorName}</td>
+                      <td className="cc-remit-td--payment-type">{getPaymentTypeLabel(entry.paymentMethod)}</td>
                       <td className="cc-remit-td--currency cc-remit-td-mono">{entry.currency}</td>
                       <td className="cc-remit-td--amount cc-remit-td-mono cc-remit-td-bold">
                         ${entry.amountUsd.toLocaleString(undefined, { minimumFractionDigits: 0 })}

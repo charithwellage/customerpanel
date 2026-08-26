@@ -290,7 +290,7 @@ Never set `VITE_API_BASE_URL` to `http://mock-api:4000`. `VITE_*` values are bak
 | `NODE_ENV` | `production` |
 | `PORT` | `3000` |
 | `API_BASE_URL` | `http://mock-api:4000` |
-| `NEXT_PUBLIC_CUSTOMER_APP_URL` | The complete Customer App Application URL copied in Step 8, including `https://` |
+| `NEXT_PUBLIC_CUSTOMER_APP_URL` | Build-time Docker/ACR argument containing the complete Customer App URL, including `https://` |
 
 5. On **Ingress**, enable it, select **Accepting traffic from anywhere**, and set Target port to `3000`.
 6. Select **Review + create**, then **Create**.
@@ -526,6 +526,7 @@ az acr build \
 az acr build \
   --registry "$ACR_NAME" \
   --image "carchief/public-web:${IMAGE_TAG}" \
+  --build-arg "NEXT_PUBLIC_CUSTOMER_APP_URL=${CUSTOMER_APP_URL}" \
   --file apps/public-web/Dockerfile \
   .
 
@@ -619,11 +620,10 @@ az containerapp create \
   --env-vars \
     NODE_ENV=production \
     PORT=3000 \
-    API_BASE_URL=http://mock-api:4000 \
-    NEXT_PUBLIC_CUSTOMER_APP_URL="https://<CUSTOMER_APP_FQDN>"
+    API_BASE_URL=http://mock-api:4000
 ```
 
-The `<CUSTOMER_APP_FQDN>` value is not known until the customer app is created. You can deploy with a temporary value, deploy the customer app, then update this variable and create a new revision.
+The customer portal URL is a `NEXT_PUBLIC_*` value and is embedded during the public-web image build. Pass it with `--build-arg NEXT_PUBLIC_CUSTOMER_APP_URL=...` when building the image; do not rely on a Container App runtime variable for this value.
 
 Get the public website URL:
 
@@ -674,16 +674,7 @@ echo "$CUSTOMER_APP_URL"
 curl -fsS "$CUSTOMER_APP_URL/healthz"
 ```
 
-Now update Public Web with the real customer URL:
-
-```bash
-az containerapp update \
-  --name public-web \
-  --resource-group "$RESOURCE_GROUP" \
-  --set-env-vars "NEXT_PUBLIC_CUSTOMER_APP_URL=${CUSTOMER_APP_URL}"
-```
-
-`az containerapp update` creates a new revision. Wait until the new revision is running before testing the public account links.
+Rebuild the public-web image with the real customer URL after obtaining `CUSTOMER_APP_URL`, then deploy that new image. Updating only Container App runtime variables will not change the already-built browser bundle.
 
 ### A.9 Verify the complete deployment
 
@@ -818,7 +809,7 @@ Check the new revision before sending all traffic to it. Container Apps revision
 | Demo data is missing | Mock API startup logs and database row counts | Wait for initialization; verify the API is connected to the intended database, not a new/empty server with a typo in its URL. |
 | ACR image pull fails | Container App revision events and registry settings | Verify image tag, registry server, username/password, or configure managed-identity ACR pull. |
 | App returns 502/503 | `az containerapp show` running status and logs | Check whether the process listens on 0.0.0.0 and the configured target port: 4000, 3000, or 3001. |
-| Public account links point to the wrong host | `NEXT_PUBLIC_CUSTOMER_APP_URL` on public-web | Update the environment variable and wait for the new revision. |
+| Public account links point to the wrong host | `NEXT_PUBLIC_CUSTOMER_APP_URL` in the public-web browser bundle | Rebuild with `--build-arg NEXT_PUBLIC_CUSTOMER_APP_URL=...` and deploy a new image tag. |
 
 ### A.15 Cleanup
 

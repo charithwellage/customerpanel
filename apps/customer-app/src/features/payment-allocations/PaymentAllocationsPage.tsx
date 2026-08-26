@@ -6,6 +6,7 @@ import { useHttpClient } from '../account/index.js';
 import { useCustomerInvoiceDocument } from '../invoices/useCustomerInvoiceDocument.js';
 import { PrintableInvoiceModal } from '../invoices/components/PrintableInvoiceModal.js';
 import { useCustomerPaymentAllocations } from './useCustomerPaymentAllocations.js';
+import { getPaymentTypeLabel } from '../payments/paymentLabels.js';
 
 const usd = (amount: number) => `$${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
@@ -80,14 +81,15 @@ export const PaymentAllocationsPage: React.FC = () => {
           <caption className="cc-sr-only">Telegraphic transfer payments and vehicle allocations</caption>
           <thead>
             <tr>
-              <th scope="col">TT Reference</th>
+              <th scope="col">Ref.No</th>
+              <th scope="col">Payment Type</th>
               <th scope="col">Payment Date</th>
               <th scope="col">Receiving Bank</th>
               <th scope="col">Currency</th>
-              <th scope="col" className="cc-payment-allocation-number">TT Amount</th>
-              <th scope="col" className="cc-payment-allocation-number">Allocated Amount</th>
-              <th scope="col" className="cc-payment-allocation-number">Unallocated Amount</th>
-              <th scope="col" className="cc-payment-allocation-number">Vehicles</th>
+              <th scope="col" className="cc-payment-allocation-number"><span>Received</span><span>Amount</span></th>
+              <th scope="col" className="cc-payment-allocation-number"><span>Allocated</span><span>Amount</span></th>
+              <th scope="col" className="cc-payment-allocation-number"><span>Unallocated</span><span>Amount</span></th>
+              <th scope="col" className="cc-payment-allocation-number"><span>No. Of</span><span>Vehicles</span></th>
               <th scope="col">Status</th>
             </tr>
           </thead>
@@ -118,6 +120,7 @@ export const PaymentAllocationsPage: React.FC = () => {
               onKeyDown={handleKeyDown}
             >
               <th scope="row"><strong>{item.reference}</strong></th>
+              <td>{getPaymentTypeLabel(item.paymentMethod)}</td>
               <td>{new Date(item.paymentDate).toLocaleDateString()}</td>
               <td>{item.bankName}</td>
               <td>{item.currency}</td>
@@ -141,7 +144,7 @@ export const PaymentAllocationsPage: React.FC = () => {
               </td>
             </tr>
             {isOpen && <tr className="cc-payment-allocation-detail-row" id={detailId}>
-              <td colSpan={9}>
+              <td colSpan={10}>
                 <div className="cc-payment-allocation-detail">
                   <h2>Vehicle allocations</h2>
                   {item.allocations.length === 0 ? <p>This TT has been verified but has not yet been allocated by the sales team.</p> : <div className="cc-payment-allocation-lines">

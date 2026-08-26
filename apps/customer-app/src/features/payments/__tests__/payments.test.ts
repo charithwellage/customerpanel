@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { CustomerPayment, CustomerPaymentNotification } from '@carchief/domain';
 import { CustomerShellProvider } from '../../shell/index.js';
 import { HttpClientProvider } from '../../account/index.js';
-import { getCustomerPaymentStatus, getRemittanceJournalStatus, PaymentsPage } from '../PaymentsPage.js';
+import { getCustomerPaymentStatus, getPaymentType, getRemittanceJournalStatus, PaymentsPage } from '../PaymentsPage.js';
 import { PaymentDetailModal } from '../components/PaymentDetailModal.js';
 
 const queryClient = new QueryClient({
@@ -45,6 +45,11 @@ const event = (name: CustomerPaymentNotification['event']): CustomerPaymentNotif
 });
 
 describe('customer payment status projection', () => {
+  it('projects payment methods to the customer-facing payment type labels', () => {
+    expect(getPaymentType('WireTransfer')).toBe('TT');
+    expect(getPaymentType('Card')).toBe('Online Payment');
+  });
+
   it('keeps under review and on hold as separate journal statuses', () => {
     expect(getRemittanceJournalStatus('Pending')).toBe('UNDER REVIEW');
     expect(getRemittanceJournalStatus('Resubmitted')).toBe('UNDER REVIEW');
@@ -90,6 +95,9 @@ describe('FRD Phase 4: My Payments', () => {
     expect(html).toContain('TOTAL ALLOCATED');
     expect(html).toContain('TOTAL AVAILABLE');
     expect(html).toContain('CUSTOMER TT REMITTANCE JOURNAL');
+    expect(html).toContain('REF.NO');
+    expect(html).toContain('PAYMENT TYPE');
+    expect(html).not.toContain('<th scope="col">DEPOSITOR</th>');
     expect(html).not.toContain('data-testid="btn-detail-TT2400005"');
     expect(html).not.toContain('data-testid="btn-history-TT2400005"');
   });

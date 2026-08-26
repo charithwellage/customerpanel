@@ -1,4 +1,4 @@
-import type { CreateCustomerPaymentRequest, CustomerPayment, CustomerPaymentListResponse, CustomerPaymentNotificationListResponse, CustomerPaymentNotification, RecordPaymentNotificationRequest, CustomerPaymentAllocationListResponse, CustomerPaymentAllocationSummary, ListCustomerPaymentAllocationsQuery } from '@carchief/domain';
+import type { CreateCustomerPaymentRequest, CreateCustomerCardPaymentRequest, CustomerPayment, CustomerPaymentListResponse, CustomerPaymentNotificationListResponse, CustomerPaymentNotification, RecordPaymentNotificationRequest, CustomerPaymentAllocationListResponse, CustomerPaymentAllocationSummary, ListCustomerPaymentAllocationsQuery } from '@carchief/domain';
 import type { HttpClient } from '../http.js';
 
 export class CustomerPaymentService {
@@ -40,6 +40,15 @@ export class CustomerPaymentService {
   async createCustomerPayment(request: CreateCustomerPaymentRequest): Promise<CustomerPayment> {
     if (!this.httpClient) throw new Error('CustomerPaymentService requires an HttpClient');
     return this.httpClient.request<CustomerPayment>('/customer/payments', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(request),
+    });
+  }
+
+  async createCustomerCardPayment(request: CreateCustomerCardPaymentRequest): Promise<CustomerPayment> {
+    if (!this.httpClient) throw new Error('CustomerPaymentService requires an HttpClient');
+    return this.httpClient.request<CustomerPayment>('/customer/card-payments', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(request),

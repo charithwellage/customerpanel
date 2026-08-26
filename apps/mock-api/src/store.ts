@@ -76,8 +76,11 @@ import type {
   ListCustomerInvoicesQuery,
   CustomerInvoiceDocument,
   CustomerPayment,
+  CustomerPaymentMethod,
   CustomerPaymentListResponse,
   CreateCustomerPaymentRequest,
+  CreateCustomerCardPaymentRequest,
+  CustomerCardPaymentEligibility,
   CustomerPaymentNotification,
   CustomerPaymentNotificationEvent,
   CustomerPaymentNotificationListResponse,
@@ -1331,6 +1334,7 @@ export interface DemoStore {
   getCustomerPaymentAllocation(customerId: string, paymentId: string): Promise<CustomerPaymentAllocationSummary | null>;
   listCustomerPayments(customerId: string): Promise<CustomerPaymentListResponse>;
   createCustomerPayment(customerId: string, request: CreateCustomerPaymentRequest, nowISO?: string): Promise<CustomerPayment>;
+  createCustomerCardPayment(customerId: string, request: CreateCustomerCardPaymentRequest, nowISO?: string): Promise<CustomerPayment>;
   listCustomerPaymentNotifications(customerId: string, paymentId?: string): Promise<CustomerPaymentNotificationListResponse>;
   resubmitCustomerPayment(customerId: string, paymentId: string, nowISO?: string): Promise<CustomerPayment>;
   recordPaymentNotification(paymentId: string, request: RecordPaymentNotificationRequest, nowISO?: string): Promise<CustomerPaymentNotification | null>;
@@ -3803,6 +3807,14 @@ export interface PaymentRecord {
   createdAt?: string;
   customerName?: string;
   depositorName?: string;
+  paymentMethod?: CustomerPaymentMethod;
+  vehicleId?: string;
+  vehicleName?: string;
+  proformaInvoiceId?: string;
+  gatewayProvider?: string;
+  gatewayTransactionId?: string;
+  cardBrand?: string;
+  cardLast4?: string;
 }
 
 export interface ShipmentRecord {
@@ -4495,6 +4507,16 @@ export function buildCustomerVehicleProjections(
         ? 'PartiallyPaid'
         : 'Paid';
     const invoiceFullyPaid = Boolean(inv && invoiceTotalAmountUsd > 0 && paymentStatus === 'Paid');
+    const cardPaymentEligibility: CustomerCardPaymentEligibility = {
+      eligible: Boolean((inv || activePi || r) && balanceAmountUsd > 0),
+      ...(inv || activePi || r ? {} : { reason: 'no_payment_target' as const }),
+      ...(inv || activePi || r ? (balanceAmountUsd > 0
+        ? {}
+        : { reason: 'no_outstanding_balance' as const }) : {}),
+      outstandingAmountUsd: balanceAmountUsd,
+      currency: 'USD',
+      ...(inv ? { targetType: 'CommercialInvoice' as const, targetId: inv.id } : activePi ? { targetType: 'ProformaInvoice' as const, targetId: activePi.id } : {}),
+    };
 
     // Determine status
     let status: CustomerVehicleStatus;
@@ -4696,6 +4718,7 @@ export function buildCustomerVehicleProjections(
       documents: docs,
       createdAt: vehicle.createdAt || '2026-08-09T10:00:00.000Z',
       updatedAt: vehicle.createdAt || '2026-08-09T10:00:00.000Z',
+      cardPaymentEligibility,
     };
 
     result.push(detail);
@@ -4787,6 +4810,7 @@ export function queryCustomerVehicles(
     shippingStage: d.shippingStage,
     createdAt: d.createdAt,
     updatedAt: d.updatedAt,
+    cardPaymentEligibility: d.cardPaymentEligibility,
   }));
 
   return {
@@ -5256,6 +5280,14 @@ function toCustomerPayment(record: PaymentRecord, invoices: InvoiceRecord[] = []
     proof: record.proof,
     idempotencyKey: record.idempotencyKey || record.id,
     createdAt: record.createdAt || record.paidAt,
+    paymentMethod: record.paymentMethod || 'WireTransfer',
+    vehicleId: record.vehicleId,
+    vehicleName: record.vehicleName,
+    proformaInvoiceId: record.proformaInvoiceId,
+    gatewayProvider: record.gatewayProvider,
+    gatewayTransactionId: record.gatewayTransactionId,
+    cardBrand: record.cardBrand,
+    cardLast4: record.cardLast4,
   };
 }
 
@@ -5324,6 +5356,7 @@ function buildCustomerPaymentAllocationSummaries(
       return {
         id: payment.id,
         reference: payment.reference || payment.id.toUpperCase(),
+        paymentMethod: payment.paymentMethod || 'WireTransfer',
         bankName: payment.bankName || 'Unspecified bank',
         currency: payment.currency || 'USD',
         amountUsd: payment.amountUsd,
@@ -5525,6 +5558,72 @@ function createPaymentRecord(
   };
   existing.push(record);
   return record;
+}
+
+function passesLuhn(value: string): boolean {
+  let sum = 0;
+  let doubleDigit = false;
+  for (let i = value.length - 1; i >= 0; i -= 1) {
+    let digit = Number(value[i]);
+    if (doubleDigit) { digit *= 2; if (digit > 9) digit -= 9; }
+    sum += digit;
+    doubleDigit = !doubleDigit;
+  }
+  return sum % 10 === 0;
+}
+
+function resolveMockCardBrand(cardNumber: string): string {
+  if (/^4/.test(cardNumber)) return 'Visa';
+  if (/^(5[1-5]|2[2-7])/.test(cardNumber)) return 'Mastercard';
+  if (/^3[47]/.test(cardNumber)) return 'American Express';
+  return 'Card';
+}
+
+function createCardPaymentRecord(
+  customerId: string,
+  request: CreateCustomerCardPaymentRequest,
+  vehicle: CustomerVehicleDetail,
+  nowISO: string,
+  existing: PaymentRecord[],
+): PaymentRecord {
+  if (!request || !request.idempotencyKey) throw new Error('idempotencyKey is required');
+  const duplicate = existing.find((payment) => payment.customerId === customerId && payment.idempotencyKey === request.idempotencyKey);
+  if (duplicate) return duplicate;
+  const cardNumber = String(request.cardNumber || '').replace(/\s+/g, '');
+  if (!/^\d{13,19}$/.test(cardNumber) || !passesLuhn(cardNumber)) throw new Error('Card number is invalid');
+  if (!request.cardholderName || request.cardholderName.trim().length < 2) throw new Error('Cardholder name is required');
+  if (!Number.isInteger(request.expiryMonth) || request.expiryMonth < 1 || request.expiryMonth > 12 || !Number.isInteger(request.expiryYear)) throw new Error('Card expiry is invalid');
+  const expiry = new Date(Date.UTC(request.expiryYear, request.expiryMonth, 0, 23, 59, 59));
+  if (expiry.getTime() < new Date(nowISO).getTime()) throw new Error('Card has expired');
+  if (!/^\d{3,4}$/.test(String(request.cvv || ''))) throw new Error('Card security code is invalid');
+  if (!Number.isFinite(request.amountUsd) || request.amountUsd <= 0) throw new Error('amountUsd must be greater than zero');
+  if (request.amountUsd > vehicle.balanceAmountUsd) throw new Error('Payment amount cannot exceed the outstanding vehicle balance');
+  if (!vehicle.cardPaymentEligibility?.eligible) throw new Error('This vehicle is not eligible for card payment');
+
+  const id = `card-pay-${Date.now()}-${existing.length + 1}`;
+  return {
+    id,
+    customerId,
+    invoiceId: vehicle.invoiceId,
+    proformaInvoiceId: vehicle.proformaInvoiceId,
+    vehicleId: vehicle.vehicleId,
+    vehicleName: `${vehicle.year} ${vehicle.make} ${vehicle.model}`,
+    amountUsd: request.amountUsd,
+    paidAt: nowISO,
+    paymentDate: nowISO.slice(0, 10),
+    status: 'Pending',
+    paymentMethod: 'Card',
+    currency: 'USD',
+    reference: `CARD-${id.replace(/^card-pay-/, '').toUpperCase()}`,
+    bankName: 'Mock Card Gateway',
+    gatewayProvider: 'MockCardGateway',
+    gatewayTransactionId: `mock-txn-${id.replace(/^card-pay-/, '')}`,
+    cardBrand: resolveMockCardBrand(cardNumber),
+    cardLast4: cardNumber.slice(-4),
+    idempotencyKey: request.idempotencyKey,
+    createdAt: nowISO,
+    remarks: 'Online card payment submitted for finance review',
+  };
 }
 
 class MemoryStore implements DemoStore {
@@ -6188,6 +6287,15 @@ class MemoryStore implements DemoStore {
 
   createCustomerPayment(customerId: string, request: CreateCustomerPaymentRequest, nowISO = new Date().toISOString()): Promise<CustomerPayment> {
     return Promise.resolve(toCustomerPayment(createPaymentRecord(customerId, request, nowISO, this.payments, this.invoices), this.invoices, this.allocations));
+  }
+
+  async createCustomerCardPayment(customerId: string, request: CreateCustomerCardPaymentRequest, nowISO = new Date().toISOString()): Promise<CustomerPayment> {
+    const detail = buildCustomerVehicleProjections(customerId, this.vehicles, this.reservations, this.proformaInvoices, this.invoices, this.allocations, this.shipments, this.documents, nowISO, this.vehicleStatusDefinitions)
+      .find((vehicle) => vehicle.vehicleId === request.vehicleId || vehicle.id === request.vehicleId);
+    if (!detail) throw new PaymentWorkflowError(404, 'Vehicle not found or not owned by customer');
+    const record = createCardPaymentRecord(customerId, request, detail, nowISO, this.payments);
+    if (!this.payments.some((payment) => payment.id === record.id)) this.payments.push(record);
+    return toCustomerPayment(record, this.invoices, this.allocations);
   }
 
   resubmitCustomerPayment(customerId: string, paymentId: string, nowISO = new Date().toISOString()): Promise<CustomerPayment> {
@@ -7291,6 +7399,19 @@ class PostgresStore implements DemoStore {
     await this.pool.query(`ALTER TABLE payments ADD COLUMN IF NOT EXISTS currency text;`);
     await this.pool.query(`ALTER TABLE payments ADD COLUMN IF NOT EXISTS remarks text;`);
     await this.pool.query(`ALTER TABLE payments ADD COLUMN IF NOT EXISTS finance_note text;`);
+    await this.pool.query(`ALTER TABLE payments ADD COLUMN IF NOT EXISTS payment_method text NOT NULL DEFAULT 'WireTransfer';`);
+    await this.pool.query(`ALTER TABLE payments ADD COLUMN IF NOT EXISTS vehicle_id text;`);
+    await this.pool.query(`ALTER TABLE payments ADD COLUMN IF NOT EXISTS proforma_invoice_id text;`);
+    await this.pool.query(`ALTER TABLE payments ADD COLUMN IF NOT EXISTS gateway_provider text;`);
+    await this.pool.query(`ALTER TABLE payments ADD COLUMN IF NOT EXISTS gateway_transaction_id text;`);
+    await this.pool.query(`ALTER TABLE payments ADD COLUMN IF NOT EXISTS card_brand text;`);
+    await this.pool.query(`ALTER TABLE payments ADD COLUMN IF NOT EXISTS card_last4 text;`);
+    await this.pool.query(`ALTER TABLE payments ADD COLUMN IF NOT EXISTS idempotency_key text;`);
+    await this.pool.query(`ALTER TABLE payments DROP CONSTRAINT IF EXISTS payments_payment_method_valid;`);
+    await this.pool.query(`ALTER TABLE payments ADD CONSTRAINT payments_payment_method_valid CHECK (payment_method IN ('WireTransfer', 'Card'));`);
+    await this.pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS payments_gateway_transaction_unique ON payments (gateway_transaction_id) WHERE gateway_transaction_id IS NOT NULL;`);
+    await this.pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS payments_customer_idempotency_unique ON payments (customer_id, idempotency_key) WHERE idempotency_key IS NOT NULL;`);
+    await this.pool.query(`CREATE INDEX IF NOT EXISTS payments_vehicle_idx ON payments (vehicle_id) WHERE vehicle_id IS NOT NULL;`);
     await this.pool.query(`ALTER TABLE payments ALTER COLUMN invoice_id DROP NOT NULL;`);
     await this.pool.query(`ALTER TABLE payments DROP CONSTRAINT IF EXISTS payments_status_valid;`);
     await this.pool.query(`ALTER TABLE payments ADD CONSTRAINT payments_status_valid CHECK (status IN ('Pending', 'Held', 'Resubmitted', 'Approved', 'Rejected'));`);
@@ -9097,8 +9218,12 @@ class PostgresStore implements DemoStore {
     const allocations = await this.getRawAllocations(customerId);
     const result = await this.pool.query(
       `SELECT p.id, p.customer_id, p.invoice_id, p.amount_usd, p.paid_at, p.status, p.reference,
-              p.bank_name, p.currency, p.remarks, p.finance_note, ca.name_with_initials AS customer_name
+              p.bank_name, p.currency, p.remarks, p.finance_note, p.payment_method, p.vehicle_id,
+              p.proforma_invoice_id, p.gateway_provider, p.gateway_transaction_id, p.card_brand, p.card_last4, p.idempotency_key,
+              CASE WHEN v.id IS NOT NULL THEN CONCAT(v.year, ' ', v.make, ' ', v.model) END AS vehicle_name,
+              ca.name_with_initials AS customer_name
        FROM payments p
+       LEFT JOIN vehicles v ON v.id = p.vehicle_id
        LEFT JOIN customer_accounts ca ON ca.customer_id = p.customer_id
        WHERE p.customer_id = $1 ORDER BY p.paid_at DESC, p.id DESC`,
       [customerId]
@@ -9123,8 +9248,16 @@ class PostgresStore implements DemoStore {
         currency: row.currency || memoryMatch?.currency || 'USD',
         remarks: row.remarks || memoryMatch?.remarks || 'None',
         financeNote: row.finance_note || memoryMatch?.financeNote,
+        paymentMethod: row.payment_method || memoryMatch?.paymentMethod || 'WireTransfer',
+        vehicleId: row.vehicle_id || memoryMatch?.vehicleId,
+        vehicleName: row.vehicle_name || memoryMatch?.vehicleName,
+        proformaInvoiceId: row.proforma_invoice_id || memoryMatch?.proformaInvoiceId,
+        gatewayProvider: row.gateway_provider || memoryMatch?.gatewayProvider,
+        gatewayTransactionId: row.gateway_transaction_id || memoryMatch?.gatewayTransactionId,
+        cardBrand: row.card_brand || memoryMatch?.cardBrand,
+        cardLast4: row.card_last4 || memoryMatch?.cardLast4,
+        idempotencyKey: row.idempotency_key || memoryMatch?.idempotencyKey,
         proof: memoryMatch?.proof,
-        idempotencyKey: memoryMatch?.idempotencyKey,
         customerName: row.customer_name || undefined,
         depositorName: row.customer_name || undefined,
       };
@@ -9149,6 +9282,7 @@ class PostgresStore implements DemoStore {
       paidAt: payment.paymentDate,
       paymentDate: payment.paymentDate,
       status: payment.status,
+      paymentMethod: payment.paymentMethod || 'WireTransfer',
       reference: payment.reference,
       bankName: payment.bankName,
       currency: payment.currency,
@@ -9200,19 +9334,58 @@ class PostgresStore implements DemoStore {
     return toCustomerPayment(record, invoices, allocations);
   }
 
+  async createCustomerCardPayment(customerId: string, request: CreateCustomerCardPaymentRequest, nowISO = new Date().toISOString()): Promise<CustomerPayment> {
+    await this.ensureCustomerFleetDataInPostgres(customerId);
+    const vehicle = await this.getCustomerVehicleById(customerId, request.vehicleId, nowISO);
+    if (!vehicle) throw new PaymentWorkflowError(404, 'Vehicle not found or not owned by customer');
+    const existing = (await this.listCustomerPayments(customerId)).items.map((payment) => ({
+      ...payment,
+      paidAt: payment.paymentDate,
+      paymentMethod: payment.paymentMethod,
+      vehicleId: payment.vehicleId,
+      proformaInvoiceId: payment.proformaInvoiceId,
+      gatewayProvider: payment.gatewayProvider,
+      gatewayTransactionId: payment.gatewayTransactionId,
+      cardBrand: payment.cardBrand,
+      cardLast4: payment.cardLast4,
+    } as PaymentRecord));
+    const record = createCardPaymentRecord(customerId, request, vehicle, nowISO, existing);
+    await this.pool.query(
+      `INSERT INTO payments (id, customer_id, invoice_id, amount_usd, paid_at, status, reference, bank_name, currency, remarks,
+         payment_method, vehicle_id, proforma_invoice_id, gateway_provider, gateway_transaction_id, card_brand, card_last4, idempotency_key)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18)
+       ON CONFLICT (id) DO NOTHING`,
+      [record.id, record.customerId, record.invoiceId || null, record.amountUsd, record.paidAt, record.status, record.reference,
+        record.bankName, record.currency, record.remarks, record.paymentMethod, record.vehicleId, record.proformaInvoiceId || null,
+        record.gatewayProvider, record.gatewayTransactionId, record.cardBrand, record.cardLast4, record.idempotencyKey],
+    );
+    await this.pool.query(
+      `INSERT INTO notifications (id, customer_id, title, message, type, is_read, created_at, related_kind, related_id, related_href)
+       VALUES ($1,$2,$3,$4,$5,false,$6,$7,$8,$9) ON CONFLICT (id) DO NOTHING`,
+      [`notif-${record.id}`, customerId, 'CARD PAYMENT SUBMITTED', `Your card payment ${record.reference} is under finance review.`, 'Payment', nowISO, 'Payment', record.id, '/customer/payments'],
+    );
+    return toCustomerPayment(record, await this.getRawInvoices(customerId), await this.getRawAllocations(customerId));
+  }
+
   private async persistApprovedPaymentStatementEntry(payment: PaymentRecord): Promise<void> {
     if (payment.status !== 'Approved') return;
+    const paymentTarget = payment.vehicleName || (payment.invoiceId ? `invoice ${payment.invoiceId}` : 'customer account');
+    const paymentPurpose = /balance/i.test(payment.remarks || '') ? 'Balance' : 'Advanced';
+    const description = payment.paymentMethod === 'Card'
+      ? `Online payment for ${paymentTarget}`
+      : `${paymentPurpose} payment for ${paymentTarget}`;
     await this.pool.query(
       `INSERT INTO customer_statement_transactions
         (id, customer_id, entry_date, entry_type, description, reference_no, debit_usd, credit_usd,
          source_type, source_id, created_at)
-       VALUES ($1, $2, $3::date, 'Payment', 'Payment received', $4, 0, $5, 'payment', $6, $7)
+       VALUES ($1, $2, $3::date, 'Payment', $4, $5, 0, $6, 'payment', $7, $8)
        ON CONFLICT (id) DO UPDATE SET
          entry_date = EXCLUDED.entry_date,
+         description = EXCLUDED.description,
          reference_no = EXCLUDED.reference_no,
          credit_usd = EXCLUDED.credit_usd`,
       [`stmt-payment-${payment.id}`, payment.customerId, (payment.paymentDate || payment.paidAt).slice(0, 10),
-        payment.reference || payment.id.toUpperCase(), payment.amountUsd, payment.id, payment.createdAt || payment.paidAt],
+        description, payment.reference || payment.id.toUpperCase(), payment.amountUsd, payment.id, payment.createdAt || payment.paidAt],
     );
   }
 

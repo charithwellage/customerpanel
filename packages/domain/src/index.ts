@@ -18,6 +18,7 @@ export type LeadStatus =
   | 'Archived';
 
 export type PaymentStatus = 'Pending' | 'Held' | 'Resubmitted' | 'Approved' | 'Rejected';
+export type CustomerPaymentMethod = 'WireTransfer' | 'Card';
 export type PaymentProofFileType = 'PDF' | 'JPG' | 'PNG';
 export type PaymentProofScanStatus = 'Pending' | 'Passed' | 'Rejected';
 
@@ -75,6 +76,34 @@ export interface CustomerPayment {
   proof?: CustomerPaymentProofMetadata;
   idempotencyKey: string;
   createdAt: string;
+  paymentMethod: CustomerPaymentMethod;
+  vehicleId?: string;
+  vehicleName?: string;
+  proformaInvoiceId?: string;
+  gatewayProvider?: string;
+  gatewayTransactionId?: string;
+  cardBrand?: string;
+  cardLast4?: string;
+}
+
+export interface CreateCustomerCardPaymentRequest {
+  vehicleId: string;
+  amountUsd: number;
+  cardholderName: string;
+  cardNumber: string;
+  expiryMonth: number;
+  expiryYear: number;
+  cvv: string;
+  idempotencyKey: string;
+}
+
+export interface CustomerCardPaymentEligibility {
+  eligible: boolean;
+  reason?: 'no_payment_target' | 'fully_paid' | 'no_outstanding_balance';
+  outstandingAmountUsd: number;
+  currency: 'USD';
+  targetType?: 'ProformaInvoice' | 'CommercialInvoice';
+  targetId?: string;
 }
 
 export interface CreateCustomerPaymentRequest {
@@ -144,6 +173,7 @@ export interface CustomerPaymentAllocationInvoice {
 export interface CustomerPaymentAllocationSummary {
   id: string;
   reference: string;
+  paymentMethod: CustomerPaymentMethod;
   bankName: string;
   currency: string;
   amountUsd: number;
@@ -1111,6 +1141,7 @@ export interface CustomerVehicleSummary {
   shippingStage?: 'Reserved' | 'Inspection' | 'In Transit' | 'Delivered' | string;
   createdAt: string;
   updatedAt: string;
+  cardPaymentEligibility?: CustomerCardPaymentEligibility;
 }
 
 export interface CustomerVehicleDetail extends CustomerVehicleSummary {

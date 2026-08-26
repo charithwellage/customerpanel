@@ -7,6 +7,8 @@ import { ShippingTrackingCard } from './components/ShippingTrackingCard.js';
 import { ExportDocumentsCard } from './components/ExportDocumentsCard.js';
 import { VehicleGalleryPrimitive } from '@carchief/vehicle-detail';
 import { CustomerVehicleSpecifications } from '../../components/CustomerVehicleSpecifications.js';
+import { CardPaymentModal } from './components/CardPaymentModal.js';
+import { useCreateCustomerCardPayment } from './useCreateCustomerCardPayment.js';
 
 export interface CustomerFleetDetailPageProps {
   vehicleId: string;
@@ -19,6 +21,9 @@ export const CustomerFleetDetailPage: React.FC<CustomerFleetDetailPageProps> = (
 }) => {
   const { setActiveRoute } = useCustomerShell();
   const { data: vehicle, isLoading, error, refetch } = useCustomerVehicleDetail(vehicleId);
+  const [cardPaymentOpen, setCardPaymentOpen] = React.useState(false);
+  const [cardPaymentSuccess, setCardPaymentSuccess] = React.useState(false);
+  const cardPayment = useCreateCustomerCardPayment();
 
   React.useEffect(() => {
     setActiveRoute(`/vehicles/${vehicleId}`);
@@ -212,6 +217,16 @@ export const CustomerFleetDetailPage: React.FC<CustomerFleetDetailPageProps> = (
             proformaInvoiceId={vehicle.proformaInvoiceId}
             paymentDeadline={vehicle.paymentDeadline}
           />
+          {vehicle.cardPaymentEligibility?.eligible && (
+            <section className="cc-cust-fleet-card cc-card-payment-action" aria-label="Online card payment">
+              <h3 className="cc-cust-fleet-section-title">Online Payment</h3>
+              <p>Pay any amount toward this vehicle balance by debit or credit card.</p>
+              <button type="button" className="cc-cust-fleet-btn cc-cust-fleet-btn--primary" onClick={() => { setCardPaymentSuccess(false); setCardPaymentOpen(true); }}>
+                Pay by Card
+              </button>
+            </section>
+          )}
+          {cardPaymentSuccess && <p className="cc-card-payment-success" role="status">Your card payment was submitted and is under Finance review.</p>}
 
           {/* Shipping & Tracking */}
           <ShippingTrackingCard
@@ -227,6 +242,14 @@ export const CustomerFleetDetailPage: React.FC<CustomerFleetDetailPageProps> = (
           <ExportDocumentsCard documents={vehicle.documents} />
         </aside>
       </div>
+      <CardPaymentModal
+        vehicle={vehicle}
+        isOpen={cardPaymentOpen}
+        isSubmitting={cardPayment.isPending}
+        error={cardPayment.error instanceof Error ? cardPayment.error.message : undefined}
+        onClose={() => { if (!cardPayment.isPending) setCardPaymentOpen(false); }}
+        onSubmit={(request) => cardPayment.mutate(request, { onSuccess: () => { setCardPaymentOpen(false); setCardPaymentSuccess(true); void refetch(); } })}
+      />
     </div>
   );
 };

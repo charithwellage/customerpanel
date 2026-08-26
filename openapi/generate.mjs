@@ -548,6 +548,7 @@ export interface PartialFailureIndicators {
 
 export type PaymentProofFileType = 'PDF' | 'JPG' | 'PNG';
 export type PaymentProofScanStatus = 'Pending' | 'Passed' | 'Rejected';
+export type CustomerPaymentMethod = 'WireTransfer' | 'Card';
 export interface CustomerPaymentProofMetadata {
   fileName: string;
   fileType: PaymentProofFileType;
@@ -571,6 +572,32 @@ export interface CustomerPayment {
   proof?: CustomerPaymentProofMetadata;
   idempotencyKey: string;
   createdAt: string;
+  paymentMethod: CustomerPaymentMethod;
+  vehicleId?: string;
+  vehicleName?: string;
+  proformaInvoiceId?: string;
+  gatewayProvider?: string;
+  gatewayTransactionId?: string;
+  cardBrand?: string;
+  cardLast4?: string;
+}
+export interface CreateCustomerCardPaymentRequest {
+  vehicleId: string;
+  amountUsd: number;
+  cardholderName: string;
+  cardNumber: string;
+  expiryMonth: number;
+  expiryYear: number;
+  cvv: string;
+  idempotencyKey: string;
+}
+export interface CustomerCardPaymentEligibility {
+  eligible: boolean;
+  reason?: 'no_payment_target' | 'fully_paid' | 'no_outstanding_balance';
+  outstandingAmountUsd: number;
+  currency: 'USD';
+  targetType?: 'ProformaInvoice' | 'CommercialInvoice';
+  targetId?: string;
 }
 export interface CreateCustomerPaymentRequest {
   invoiceId?: string;
@@ -589,7 +616,7 @@ export type CustomerPaymentAllocationStatus = 'Unallocated' | 'PartiallyAllocate
 export interface CustomerPaymentAllocationVehicle { id: string; slug: string; stockNumber: string; chassisNumber: string; make: string; model: string; year: number; primaryImage?: string; }
 export interface CustomerPaymentAllocationLine { id: string; vehicle: CustomerPaymentAllocationVehicle; invoiceId?: string; invoiceNumber?: string; amountUsd: number; purpose: CustomerPaymentPurpose; status: 'Approved' | 'Pending' | 'Rejected'; allocatedAt: string; }
 export interface CustomerPaymentAllocationInvoice { id: string; invoiceNumber: string; issuedAt: string; totalAmountUsd: number; paidAmountUsd: number; outstandingAmountUsd: number; status: string; vehicleCount: number; documentAvailable: boolean; }
-export interface CustomerPaymentAllocationSummary { id: string; reference: string; bankName: string; currency: string; amountUsd: number; paymentDate: string; paymentStatus: string; allocationStatus: CustomerPaymentAllocationStatus; allocatedAmountUsd: number; unallocatedAmountUsd: number; allocationPercent: number; vehicleCount: number; allocations: CustomerPaymentAllocationLine[]; invoice?: CustomerPaymentAllocationInvoice; }
+export interface CustomerPaymentAllocationSummary { id: string; reference: string; bankName: string; currency: string; amountUsd: number; paymentDate: string; paymentStatus: string; paymentMethod: CustomerPaymentMethod; allocationStatus: CustomerPaymentAllocationStatus; allocatedAmountUsd: number; unallocatedAmountUsd: number; allocationPercent: number; vehicleCount: number; allocations: CustomerPaymentAllocationLine[]; invoice?: CustomerPaymentAllocationInvoice; }
 export interface CustomerPaymentAllocationListResponse { items: CustomerPaymentAllocationSummary[]; total: number; page: number; limit: number; totals: { totalAmountUsd: number; allocatedAmountUsd: number; unallocatedAmountUsd: number; invoiceCount: number; }; }
 export type CustomerPaymentNotificationEvent = 'FinanceReviewRequested' | 'PaymentHeld' | 'PaymentResubmitted' | 'PaymentApproved' | 'PaymentAllocated';
 export interface CustomerPaymentNotification {
@@ -624,6 +651,7 @@ export interface CustomerProfile {
   deliveryAddress: string;
   version: number;
   updatedAt: string;
+  cardPaymentEligibility?: CustomerCardPaymentEligibility;
 }
 export interface UpdateCustomerProfileRequest { companyName: string; phone: string; deliveryAddress: string; expectedVersion?: number; }
 
