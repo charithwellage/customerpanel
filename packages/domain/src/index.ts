@@ -411,6 +411,54 @@ export interface VehicleSearchResult {
   facets: VehicleFacets;
 }
 
+/** Search surfaces supported by the AutoPulse AI vehicle-search adapter. */
+export type AiVehicleSearchScope =
+  | 'publicInventory'
+  | 'customerInventory'
+  | 'customerFleet'
+  | 'customerWishlist';
+
+export type AiVehicleSearchConstraintValue = string | number | boolean | string[];
+
+/**
+ * Natural-language vehicle-search request. Customer ownership is always
+ * resolved from the bearer token; constraints are search hints, not an
+ * authorization boundary.
+ */
+export interface AiVehicleSearchRequest {
+  query: string;
+  scope: AiVehicleSearchScope;
+  page?: number;
+  limit?: number;
+  sortBy?: SearchVehiclesQuery['sortBy'];
+  filters?: Partial<SearchVehiclesQuery>;
+  constraints?: Record<string, AiVehicleSearchConstraintValue | undefined>;
+}
+
+export interface AiVehicleSearchInterpretation {
+  summary: string;
+  appliedConstraints: string[];
+}
+
+/**
+ * Scope-discriminated AI search result. Inventory and wishlist scopes use
+ * normal inventory summaries; the customer-fleet scope uses its richer
+ * customer-owned vehicle projection.
+ */
+export interface AiVehicleSearchResponse {
+  scope: AiVehicleSearchScope;
+  query: string;
+  interpretation: AiVehicleSearchInterpretation;
+  items: Array<VehicleDomainSummary | CustomerVehicleSummary>;
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+  facets?: VehicleFacets;
+}
+
 export interface SearchVehiclesQuery {
   searchQuery?: string;
   make?: string;

@@ -1,0 +1,27 @@
+{
+  "name": "@carchief/i18n",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "lint": "echo \"i18n lint ok\"",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@carchief/domain": "workspace:*",
+    "i18next": "^25.3.2",
+    "react": "19.1.1",
+    "react-i18next": "^15.6.1"
+  },
+  "devDependencies": {
+    "@carchief/config": "workspace:*",
+    "@types/node": "^22.10.0",
+    "@types/react": "19.1.10",
+    "typescript": "^5.7.2",
+    "vitest": "^3.0.0"
+  }
+}

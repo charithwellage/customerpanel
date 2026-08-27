@@ -38,6 +38,8 @@ describe('FRD Section 8: Customer Wishlist UI', () => {
     );
 
     expect(html).toContain('data-testid="customer-wishlist-page"');
+    expect(html).toContain('customer-wishlist-ai-search');
+    expect(html).toContain('Search with AI');
     expect(html).not.toContain('data-testid="tab-stock-wishlist"');
     expect(html).not.toContain('data-testid="tab-auction-wishlist"');
     expect(html).not.toContain('Auction');

@@ -101,6 +101,31 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
     res.json(await store.getVehicles(req.query as Record<string, string>, context));
   });
 
+  // AutoPulse-compatible AI vehicle-search contract. The mock deliberately
+  // does not emulate AI or MCP orchestration; it only exposes the integration
+  // boundary so both frontends can implement and verify their 501 behavior.
+  app.post('/api/v1/vehicles/ai-search', (req: AuthenticatedRequest, res: Response) => {
+    const customerScopes = new Set(['customerInventory', 'customerFleet', 'customerWishlist']);
+    const scope = typeof req.body?.scope === 'string' ? req.body.scope : '';
+    if (customerScopes.has(scope)) {
+      if (!req.user) {
+        res.status(401).json({ statusCode: 401, message: 'Unauthenticated', correlationId: 'corr-401' });
+        return;
+      }
+      if (!hasPermission(req.user.role, 'read:customer')) {
+        res.status(403).json({ statusCode: 403, message: 'Forbidden: insufficient role permissions', correlationId: 'corr-403' });
+        return;
+      }
+    }
+
+    res.status(501).json({
+      statusCode: 501,
+      code: 'AI_SEARCH_NOT_IMPLEMENTED',
+      message: 'AI vehicle search is not implemented in the mock API.',
+      correlationId: req.header('x-correlation-id') || `corr-501-${Date.now()}`,
+    });
+  });
+
   // 4. Vehicle detail lookup by ID, chassis, or slug (Public & Customer-projected)
   app.get('/api/v1/vehicles/:idOrSlug', async (req: AuthenticatedRequest, res: Response) => {
     const rawParam = req.params.idOrSlug;

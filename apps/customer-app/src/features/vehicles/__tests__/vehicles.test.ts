@@ -55,6 +55,14 @@ const MOCK_SUMMARY: CustomerVehicleSummary = {
 import { StatusTracker, calculateVehiclePipeline } from '../components/StatusTracker.js';
 
 describe('My Vehicles UI Components (D02-P04-T002 & D02-P14-T008)', () => {
+  it('includes customer-scoped AI search without replacing fleet filters', async () => {
+    const { readFile } = await import('node:fs/promises');
+    const source = await readFile(new URL('../CustomerFleetPage.tsx', import.meta.url), 'utf8');
+    expect(source).toContain('customer-fleet-ai-search');
+    expect(source).toContain("scope: 'customerFleet'");
+    expect(source).toContain('fleet-search-input');
+    expect(source).toContain('fleet-shipping-status-select');
+  });
   it('keeps vehicle progress and cards in CSS rather than static inline styles', async () => {
     const { readFile } = await import('node:fs/promises');
     const source = await readFile(new URL('../vehicles.css', import.meta.url), 'utf8');

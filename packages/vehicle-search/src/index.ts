@@ -26,3 +26,5 @@ export * from './SearchResultsHeader.js';
 export * from './SearchEmptyState.js';
 export * from './SearchErrorState.js';
 export * from './SearchPagination.js';
+export * from './AiVehicleSearch.js';
+export * from './useAiVehicleSearch.js';

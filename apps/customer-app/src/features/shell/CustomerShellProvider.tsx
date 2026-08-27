@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { ThemeId, resolveThemeId } from '@carchief/theme';
 import { applyCustomerTheme, ThemeMode } from '../../theme.js';
-import { I18nProvider, CustomerGoogleTranslateWidget } from '../../i18n/index.js';
+import { I18nProvider } from '../../i18n/index.js';
 
 export interface CustomerUser {
   id: string;
@@ -217,7 +217,6 @@ export const CustomerShellProvider: React.FC<CustomerShellProviderProps> = ({
         }}
       >
         {children}
-        <CustomerGoogleTranslateWidget />
       </CustomerShellContext.Provider>
     </I18nProvider>
   );

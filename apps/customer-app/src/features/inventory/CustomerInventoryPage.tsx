@@ -7,6 +7,7 @@ import {
   SearchPagination,
   SearchResultsHeader,
   VehicleCollectionPrimitive,
+  AiVehicleSearch,
 } from '@carchief/vehicle-search';
 import { useCustomerShell } from '../shell/index.js';
 import { useCustomerProfile } from '../profile/index.js';
@@ -42,6 +43,7 @@ export const CustomerInventoryPage: React.FC<CustomerInventoryPageProps> = ({
     resetFilters,
     refetch,
     setPage,
+    ai,
   } = useCustomerInventory({
     apiBaseUrl,
     token,
@@ -96,6 +98,28 @@ export const CustomerInventoryPage: React.FC<CustomerInventoryPageProps> = ({
       </header>
 
       <div className="cc-cust-inventory-content">
+        <AiVehicleSearch
+          id="customer-inventory-ai-search"
+          value={ai.prompt}
+          onChange={ai.setPrompt}
+          onSubmit={() => { void ai.search(); }}
+          onClear={ai.clear}
+          isLoading={ai.isLoading}
+          isActive={ai.isActive}
+          unavailable={ai.unavailable}
+          error={ai.error}
+          summary={ai.result?.interpretation.summary}
+          appliedConstraints={ai.result?.interpretation.appliedConstraints}
+          copy={{
+            label: t('aiSearch.label', undefined, 'AI Search'),
+            placeholder: t('aiSearch.placeholder', undefined, 'Ask AI to find a vehicle, e.g. a hybrid SUV under $20,000'),
+            submit: t('aiSearch.submit', undefined, 'Search with AI'),
+            submitting: t('aiSearch.submitting', undefined, 'Searching…'),
+            clear: t('aiSearch.clear', undefined, 'Clear AI search'),
+            unavailable: t('aiSearch.unavailable', undefined, 'AI search is not yet available in this environment. Try the regular vehicle search and filters.'),
+            resultsLabel: t('aiSearch.results', undefined, 'AI search results'),
+          }}
+        />
         <SearchFilterBar
           query={query}
           facets={state.facets}

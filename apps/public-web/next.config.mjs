@@ -2,7 +2,7 @@
 const nextConfig = {
   output: 'standalone',
   transpilePackages: [
-    '@carchief/api-client', '@carchief/domain', '@carchief/pwa', '@carchief/theme',
+    '@carchief/api-client', '@carchief/domain', '@carchief/i18n', '@carchief/pwa', '@carchief/theme',
     '@carchief/ui', '@carchief/validation', '@carchief/vehicle-detail', '@carchief/vehicle-search',
   ],
   async redirects() {

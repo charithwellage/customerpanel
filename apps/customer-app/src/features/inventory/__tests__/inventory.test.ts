@@ -64,6 +64,8 @@ describe('Customer Inventory & Vehicle Detail Components (D02-P03-T003)', () => 
       expect(html).not.toContain('FULL INVENTORY CATALOG');
       expect(html).toContain('sort-by-select');
       expect(html).toContain('Reset All');
+      expect(html).toContain('customer-inventory-ai-search');
+      expect(html).toContain('Search with AI');
     });
 
     it('renders customer tier status banner for Standard tier with standard stock terms', () => {

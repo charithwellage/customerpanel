@@ -52,5 +52,6 @@ describe('OpenAPI public/customer security classification', () => {
     expect(openapi.paths['/api/v1/customer/notifications/{id}']?.delete?.tags).toEqual(['Customer APIs']);
     expect(openapi.paths['/api/v1/customer/payments/{id}']).toBeUndefined();
     expect(openapi.paths['/api/v1/vehicles/{idOrSlug}/inquiry-count']).toBeUndefined();
+    expect(openapi.paths['/api/v1/vehicles/ai-search']?.post?.tags).toEqual(['Public APIs']);
   });
 });

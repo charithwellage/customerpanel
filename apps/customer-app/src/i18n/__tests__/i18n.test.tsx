@@ -3,7 +3,6 @@ import { describe, it, expect } from 'vitest';
 import { renderToString } from 'react-dom/server';
 import { I18nProvider, useTranslation } from '../I18nContext.js';
 import { CustomerLanguageSwitcher } from '../LanguageSwitcher.js';
-import { CustomerGoogleTranslateWidget } from '../GoogleTranslateWidget.js';
 
 const TestCustomerConsumer: React.FC = () => {
   const { language, t } = useTranslation();
@@ -22,7 +21,6 @@ describe('Customer App i18n & Language Switcher', () => {
       <I18nProvider initialLanguage="en">
         <TestCustomerConsumer />
         <CustomerLanguageSwitcher />
-        <CustomerGoogleTranslateWidget />
       </I18nProvider>
     );
 
@@ -30,7 +28,7 @@ describe('Customer App i18n & Language Switcher', () => {
     expect(html).toContain('Dashboard');
     expect(html).toContain('Search Stock');
     expect(html).toContain('data-testid="customer-language-switcher"');
-    expect(html).toContain('customer_google_translate_element');
+    expect(html).not.toContain('google_translate');
   });
 
   it('renders Spanish strings when initialLanguage is es', () => {
@@ -41,8 +39,8 @@ describe('Customer App i18n & Language Switcher', () => {
     );
 
     expect(html).toContain('es');
-    expect(html).toContain('Panel Principal');
-    expect(html).toContain('Buscar Stock');
+    expect(html).toContain('Panel');
+    expect(html).toContain('Buscar stock');
   });
 
   it('renders Swahili strings when initialLanguage is sw', () => {
@@ -54,6 +52,6 @@ describe('Customer App i18n & Language Switcher', () => {
 
     expect(html).toContain('sw');
     expect(html).toContain('Dashibodi');
-    expect(html).toContain('Tafuta Magari');
+    expect(html).toContain('Tafuta stoku');
   });
 });

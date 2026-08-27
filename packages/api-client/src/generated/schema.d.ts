@@ -134,6 +134,35 @@ export interface VehicleSummary {
   inquiryEligibility?: VehicleInquiryEligibility;
 }
 
+export type AiVehicleSearchScope = 'publicInventory' | 'customerInventory' | 'customerFleet' | 'customerWishlist';
+export interface AiVehicleSearchRequest {
+  query: string;
+  scope: AiVehicleSearchScope;
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  filters?: Record<string, unknown>;
+  constraints?: Record<string, unknown>;
+}
+export interface AiVehicleSearchInterpretation { summary: string; appliedConstraints: string[]; }
+export interface AiVehicleSearchResponse {
+  scope: AiVehicleSearchScope;
+  query: string;
+  interpretation: AiVehicleSearchInterpretation;
+  items: Array<VehicleSummary | CustomerVehicleSummary>;
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+  facets?: Record<string, unknown>;
+}
+export interface AiSearchNotImplementedError extends ErrorResponse {
+  statusCode: 501;
+  code: 'AI_SEARCH_NOT_IMPLEMENTED';
+}
+
 export interface CategorizedPublicMedia {
   gallery: string[];
   auctionPictures?: string[];
