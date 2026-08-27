@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import type { VehicleDomainSummary } from '@carchief/domain';
 import { HomeShowroom } from '../features/home';
 
 export const metadata: Metadata = {
@@ -22,25 +21,11 @@ export const metadata: Metadata = {
   },
 };
 
-async function getInitialVehicles(): Promise<VehicleDomainSummary[]> {
-  const baseUrl = process.env.API_BASE_URL || 'http://localhost:4000';
-  try {
-    const response = await fetch(`${baseUrl}/api/v1/vehicles?collection=browse`, { cache: 'no-store' });
-    if (!response.ok) return [];
-    const result = (await response.json()) as { items?: VehicleDomainSummary[] };
-    return result.items || [];
-  } catch {
-    return [];
-  }
-}
-
 export default async function HomePage() {
-  const initialVehicles = await getInitialVehicles();
-
   return (
     <main id="main-content" tabIndex={-1}>
       <Hero />
-      <HomeShowroom initialVehicles={initialVehicles} />
+      <HomeShowroom />
     </main>
   );
 }

@@ -4,12 +4,13 @@ import { VehicleCollection } from '../../vehicles/components/VehicleCollection';
 
 export interface PremiumTeaserSectionProps {
   vehicles: VehicleDomainSummary[];
+  total?: number;
   isLoading?: boolean;
   error?: string | null;
   onRetry?: () => void;
 }
 
-export const PremiumTeaserSection: React.FC<PremiumTeaserSectionProps> = ({ vehicles, isLoading, error, onRetry }) => {
+export const PremiumTeaserSection: React.FC<PremiumTeaserSectionProps> = ({ vehicles, total = vehicles.length, isLoading, error, onRetry }) => {
   return (
     <section id="premium-stock" aria-labelledby="premium-banner-heading" className="premium-teaser-banner">
       <div className="home-section-header premium-section-header">
@@ -35,11 +36,12 @@ export const PremiumTeaserSection: React.FC<PremiumTeaserSectionProps> = ({ vehi
       />
 
       <div className="premium-teaser-footer">
-        <a href="/premium-stock" className="button primary premium-teaser-link">
-          <span>Explore All Premium Stock ({vehicles.length > 0 ? `${vehicles.length} Available` : 'View Inventory'})</span>
-          <span aria-hidden="true">→</span>
-        </a>
-
+        {total > 10 && (
+          <a href="/premium-stock" className="button primary premium-teaser-link" aria-label="View all premium stock">
+            <span>View All</span>
+            <span aria-hidden="true">→</span>
+          </a>
+        )}
         <div className="premium-teaser-contact">
           <a
             href="https://wa.me/817092101426?text=Hello%20CarChief,%20I%20am%20interested%20in%20Premium%20Stock"

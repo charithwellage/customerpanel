@@ -206,6 +206,18 @@ describe('Vehicle Query, Dynamic Filters, Sorting, and Pagination Tests (PUB-04.
     ids2.forEach((id) => expect(ids1).not.toContain(id));
   });
 
+  it('preserves collection totals when preview limits are applied', async () => {
+    const collections = ['discounted', 'latest_arrivals', 'premium_teaser'] as const;
+    for (const collection of collections) {
+      const preview = await store.getVehicles({ collection, market: 'UG', limit: 10 });
+      const complete = await store.getVehicles({ collection, market: 'UG', limit: 100 });
+
+      expect(preview.items.length).toBeLessThanOrEqual(10);
+      expect(preview.total).toBe(complete.total);
+      expect(preview.totalPages).toBe(Math.max(1, Math.ceil(preview.total / 10)));
+    }
+  });
+
   it('calculates dynamic facets matching current result universe (PUB-07)', async () => {
     const res = await store.getVehicles({ make: 'Toyota' });
     expect(res.facets.makes.length).toBeGreaterThan(0);

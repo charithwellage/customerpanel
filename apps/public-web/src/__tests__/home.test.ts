@@ -24,6 +24,16 @@ describe('Home Experience & Showroom Integration Tests', () => {
     expect(limit).toBeLessThanOrEqual(10);
   });
 
+  it('loads each home collection with a ten-vehicle preview and removes Browse All Stock', () => {
+    const showroomPath = path.resolve(__dirname, '../features/home/components/HomeShowroom.tsx');
+    const showroomSource = fs.readFileSync(showroomPath, 'utf-8');
+    expect(showroomSource.match(/limit: 10/g)).toHaveLength(3);
+    expect(showroomSource).not.toContain('Browse All Stock');
+    expect(showroomSource).toContain('discountedTotal > 10');
+    expect(showroomSource).toContain('latestTotal > 10');
+    expect(showroomSource).toContain('total={premiumTotal}');
+  });
+
   it('renders showroom stock sections in the intended order', () => {
     const showroomPath = path.resolve(__dirname, '../features/home/components/HomeShowroom.tsx');
     const showroomSource = fs.readFileSync(showroomPath, 'utf-8');
