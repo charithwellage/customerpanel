@@ -3,7 +3,6 @@ import { describe, it, expect } from 'vitest';
 import { renderToString } from 'react-dom/server';
 import { I18nProvider, useTranslation } from '../i18n/I18nContext';
 import { LanguageSwitcher } from '../i18n/LanguageSwitcher';
-import { GoogleTranslateWidget } from '../i18n/GoogleTranslateWidget';
 
 const TestConsumer: React.FC = () => {
   const { language, t, isRTL } = useTranslation();
@@ -23,8 +22,7 @@ describe('Public Web i18n Provider & LanguageSwitcher', () => {
         I18nProvider,
         { initialLanguage: 'en' },
         React.createElement(TestConsumer, null),
-        React.createElement(LanguageSwitcher, null),
-        React.createElement(GoogleTranslateWidget, null)
+        React.createElement(LanguageSwitcher, null)
       )
     );
 
@@ -32,7 +30,7 @@ describe('Public Web i18n Provider & LanguageSwitcher', () => {
     expect(html).toContain('Home');
     expect(html).toContain('LTR');
     expect(html).toContain('data-testid="language-switcher"');
-    expect(html).toContain('google_translate_element');
+    expect(html).not.toContain('google_translate');
   });
 
   it('renders Japanese translation when initialLanguage is ja', () => {

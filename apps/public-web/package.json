@@ -12,6 +12,7 @@
   "dependencies": {
     "@carchief/api-client": "workspace:*",
     "@carchief/domain": "workspace:*",
+    "@carchief/i18n": "workspace:*",
     "@carchief/pwa": "workspace:*",
     "@carchief/theme": "workspace:*",
     "@carchief/ui": "workspace:*",

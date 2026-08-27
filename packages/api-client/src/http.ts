@@ -4,6 +4,8 @@ export interface HttpClientConfig {
   getAuthToken?: () => string | null | undefined;
   getCorrelationId?: () => string;
   onUnauthorized?: () => void;
+  /** Optional locale resolver used for localized public and customer content. */
+  getLanguage?: () => string | null | undefined;
 }
 
 export class NormalizedApiError extends Error {
@@ -26,6 +28,7 @@ export class HttpClient {
   private getAuthToken?: () => string | null | undefined;
   private getCorrelationId?: () => string;
   private onUnauthorized?: () => void;
+  private getLanguage?: () => string | null | undefined;
 
   constructor(config: HttpClientConfig) {
     this.baseUrl = config.baseUrl.replace(/\/$/, '');
@@ -33,6 +36,7 @@ export class HttpClient {
     this.getAuthToken = config.getAuthToken;
     this.getCorrelationId = config.getCorrelationId;
     this.onUnauthorized = config.onUnauthorized;
+    this.getLanguage = config.getLanguage;
   }
 
   public getBaseUrl(): string {
@@ -43,11 +47,19 @@ export class HttpClient {
     return this.getCorrelationId ? this.getCorrelationId() : `corr-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
   }
 
+  private resolveLanguage(): string {
+    const configured = this.getLanguage?.();
+    if (configured) return configured;
+    if (typeof document !== 'undefined') return document.documentElement.lang || 'en';
+    return 'en';
+  }
+
   public async request<T>(path: string, options: RequestInit = {}): Promise<T> {
     const correlationId = this.generateCorrelationId();
     const headers = new Headers(options.headers || {});
     headers.set('X-Correlation-ID', correlationId);
     headers.set('Accept', 'application/json');
+    headers.set('Accept-Language', this.resolveLanguage());
 
     const token = this.getAuthToken ? this.getAuthToken() : null;
     if (token) {
@@ -112,6 +124,7 @@ export class HttpClient {
     const headers = new Headers(options.headers || {});
     headers.set('X-Correlation-ID', correlationId);
     headers.set('Accept', 'application/pdf');
+    headers.set('Accept-Language', this.resolveLanguage());
     const token = this.getAuthToken ? this.getAuthToken() : null;
     if (token) headers.set('Authorization', `Bearer ${token}`);
 

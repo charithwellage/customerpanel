@@ -14,6 +14,7 @@ COPY apps/salesperson-app/package.json apps/salesperson-app/package.json
 COPY packages/api-client/package.json packages/api-client/package.json
 COPY packages/config/package.json packages/config/package.json
 COPY packages/domain/package.json packages/domain/package.json
+COPY packages/i18n/package.json packages/i18n/package.json
 COPY packages/pwa/package.json packages/pwa/package.json
 COPY packages/testing/package.json packages/testing/package.json
 COPY packages/theme/package.json packages/theme/package.json
