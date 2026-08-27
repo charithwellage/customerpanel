@@ -3,33 +3,38 @@ import { test, expect } from '@playwright/test';
 test.describe('Public Content & Information Pages E2E Suite (PUB-17..PUB-35, D01-P07-T002)', () => {
   test('renders About Us page with title, badge and sections', async ({ page }) => {
     await page.goto('/about');
-    await expect(page.locator('h1')).toHaveText('About CarChief');
-    await expect(page.getByText('Company Information')).toBeVisible();
-    await expect(page.getByRole('heading', { level: 2, name: 'Our Mission' })).toBeVisible();
-    await expect(page.getByRole('heading', { level: 2, name: 'Quality Standards' })).toBeVisible();
+    await expect(page.locator('h1')).toHaveText('WELCOME TO CARCHIEF!');
+    await expect(page.getByText('GLOBAL OPERATIONS HERITAGE')).toBeVisible();
+    await expect(page.getByRole('heading', { level: 3, name: 'OUR VISION' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 3, name: 'OUR MISSION' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 2, name: 'CARCHIEF OPERATIONS' })).toBeVisible();
   });
 
   test('renders How to Buy guide page with steps', async ({ page }) => {
     await page.goto('/how-to-buy');
-    await expect(page.locator('h1')).toHaveText('How to Buy a Vehicle Step-by-Step');
-    await expect(page.getByRole('heading', { level: 2, name: 'Step 1: Select Your Vehicle' })).toBeVisible();
-    await expect(page.getByRole('heading', { level: 2, name: 'Step 4: Shipping & Customs' })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Browse Vehicles' })).toHaveAttribute('href', '/vehicles');
+    await expect(page.locator('h1')).toHaveText('5 EASY STEPS TO BUY VEHICLES & MACHINERY FROM OUR STOCK');
+    await expect(page.getByRole('button', { name: 'SELECT A CAR' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'SHIPMENT' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'BROWSE STOCK' })).toHaveAttribute('href', '/allstock');
   });
 
-  test('renders Contact page with office cards and WhatsApp link', async ({ page }) => {
+  test('renders Contact page with office cards', async ({ page }) => {
     await page.goto('/contact');
-    await expect(page.locator('h1')).toHaveText('Contact Us');
-    await expect(page.getByRole('heading', { level: 2, name: 'Global Customer Support' })).toBeVisible();
-    await expect(page.getByRole('heading', { level: 3, name: 'Tokyo Head Office' })).toBeVisible();
-    await expect(page.getByText('Headquarters')).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Contact via WhatsApp' })).toBeVisible();
+    await expect(page.locator('h1')).toHaveText('CONNECT WITH OUR OPERATIONS AGENTS');
+    await expect(page.getByRole('heading', { level: 2, name: 'INTERNATIONAL OFFICES' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 3, name: 'MUNICH HEADQUARTERS' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 2, name: 'DIRECT LEAD SUBMISSION' })).toBeVisible();
   });
 
-  test('renders Company Services page', async ({ page }) => {
+  test('renders Company Services page with shipping, clearing, warranty and border logistics', async ({ page }) => {
     await page.goto('/services');
-    await expect(page.locator('h1')).toHaveText('CarChief Company Services');
-    await expect(page.getByText('OperationsTeam')).toBeVisible();
+    await expect(page.locator('h1')).toContainText('Global Vehicle Services');
+    await expect(page.getByRole('heading', { level: 3, name: 'Vehicle Shipment & Fast-Track Logistics' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 3, name: 'Additional Services & CarChief Warranty' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 3, name: 'Destination Port Clearing Services' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 2, name: 'Border Delivery Logistics & Inland Partnerships' })).toBeVisible();
+    await expect(page.getByRole('tab', { name: 'Zimbabwe' })).toBeVisible();
+    await expect(page.getByRole('tab', { name: 'Zambia' })).toBeVisible();
   });
 
   test('renders Auction Services page', async ({ page }) => {
@@ -103,11 +108,12 @@ test.describe('Public Content & Information Pages E2E Suite (PUB-17..PUB-35, D01
 
   test('renders FAQ page with 12 categories, keyword search and grounded no-answer escalation (PUB-20)', async ({ page }) => {
     await page.goto('/faq');
-    await expect(page.locator('h1')).toHaveText('Frequently Asked Questions');
+    await expect(page.locator('h1')).toHaveText('AI-POWERED LOGISTICS KNOWLEDGE BASE');
     await expect(page.getByText('Category Count: 12 Categories')).toBeVisible();
 
-    // Verify category tab
-    await expect(page.getByRole('tab', { name: /Auction Services/ })).toBeVisible();
+    // Verify category filter control (scoped to the sidebar nav, since the
+    // accordion question list below can also contain matching answer text)
+    await expect(page.locator('.faq-categories-nav').getByRole('button', { name: /Auction Services/ })).toBeVisible();
 
     // Search for non-existent keyword to trigger grounded no-answer state
     await page.fill('#faq-search-input', 'xyzunmatchedquery999');

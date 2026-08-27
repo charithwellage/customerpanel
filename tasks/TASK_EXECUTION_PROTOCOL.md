@@ -91,13 +91,13 @@ Two layers with different jobs; neither substitutes for the other.
 | Automated Playwright Test | Deterministic, repeatable proof | Viewport matrix via the existing `chromium`, `mobile-chromium` and `tablet-chromium` projects (desktop `1440x900`, phone `390x844`, tablet `768x1024`) |
 | Interactive MCP browser | Agent-driven inspection and correction | One desktop acceptance journey, plus accessibility/keyboard/focus behaviour, console messages and failed network requests |
 
-Run the automated suite against the exact recorded target. **The full suite is the gate:**
+Run the automated suite against the exact recorded target. Delivery 01 and Delivery 02 Phases 2.9–2.10 use the full suite as their gate. Normal Delivery 02 Phases 2.1–2.8 use the named feature spec and dependency-closure build in [`delivery_02/D02_TEST_MATRIX.md`](delivery_02/D02_TEST_MATRIX.md):
 
 ```bash
 PLAYWRIGHT_BASE_URL=http://127.0.0.1:3000 corepack pnpm exec playwright test --project=chromium --project=mobile-chromium --project=tablet-chromium
 ```
 
-Appending a `<spec>` filter is an inner-loop convenience while iterating on one area. **It never satisfies a gate** — not for a task's completion evidence, not for a container gate, and not for a phase review. Only the unfiltered suite proves a change did not break behaviour delivered by an earlier task or phase.
+For normal Delivery 02 feature work, the named `<spec>` is the completion gate and runs headlessly with `--workers=50%`; serial reset tests explicitly opt out. The unfiltered suite is required only for final acceptance, reconciliation or a review that changes shared tooling/configuration.
 
 This is not a theoretical rule. In Phase 1.7 every task and the first six review passes ran only `tests/e2e/public-content.spec.ts`. A route rewritten by one task had silently deleted a quotation form delivered two phases earlier, breaking 21 tests in specs nobody ran; the seventh review pass found it only by running the whole suite. Record the outcome as:
 
@@ -109,9 +109,9 @@ Full suite result: <passed>/<total> passed across chromium, mobile-chromium, tab
 
 Required MCP browser capabilities: navigate, accessibility snapshot, resize viewport, read console messages, read network requests, capture a screenshot. Any MCP-capable client is acceptable; per-client setup is documented in [`DEVELOPER_USER_GUIDE.md`](../DEVELOPER_USER_GUIDE.md) §"Playwright MCP setup and UI-validation workflow". If those capabilities are unavailable, stop and resolve `INF-P00-T006`; a server process check, an unrelated screenshot or the automated suite alone does not satisfy the MCP gate.
 
-**Themes.** Per-task UI validation covers the default `carchief` theme only. Alternate-theme (`ocean`) parity for the whole Public Website is verified once in Phase 1.9, not per task. The design rules are unchanged: both themes share the same semantic tokens, component markup and behaviour, and no page or component is forked by theme.
+**Themes.** Per-task UI validation covers the default `carchief` theme only. Public Website alternate-theme (`ocean`) parity is verified in Phase 1.9; Customer alternate-theme work is optional Phase 2.11; mandatory Phase 2.12 validates the default `carchief` theme only. The design rules are unchanged: both themes share semantic tokens, component markup and behaviour, and no page or component is forked by theme.
 
-**Re-validation after a correction.** Always re-run the automated suite. Re-run the MCP walkthrough only when the correction changed layout, semantic tokens, CSS or markup structure; for a logic-, copy- or test-only correction, record that the MCP walkthrough was not affected and why. Always repeat the AI code review after any source correction.
+**Re-validation after a correction.** Always re-run the task's matrix-assigned automated suite. Re-run the MCP walkthrough only when the correction changed layout, semantic tokens, CSS or markup structure; for a logic-, copy- or test-only correction, record that the MCP walkthrough was not affected and why. Always repeat the AI code review after any source correction.
 
 ## 5. Evidence blocks
 
@@ -150,7 +150,7 @@ For a task with `ui_validation: "playwright_mcp"`:
 ## 6. Review and completion
 
 1. Review only the task-owned diff and its named dependencies against [CODE_REVIEW_RULES.md](CODE_REVIEW_RULES.md); for frontend work apply [COMMON_FRONTEND_RULES.md](COMMON_FRONTEND_RULES.md). Fix every in-scope finding and repeat until the result is **PASS**.
-2. Only after PASS, run the task's tests plus `corepack pnpm lint`, `corepack pnpm typecheck` and `corepack pnpm -r build`.
+2. Only after PASS, run the task's named validation. Delivery 02 Phases 2.1–2.8 use `D02_TEST_MATRIX.md`; root lint, typecheck and recursive build remain final-acceptance/reconciliation gates.
 3. Record commands and results in the execution log, then run `taskctl complete <ID> --review-agent "<name>"`.
 4. If a finding needs a decision, a prerequisite, or another task's owned path, record a blocker instead of expanding scope.
 
@@ -162,7 +162,7 @@ A phase review runs as three passes, regardless of how many defects it finds:
 
 1. **Review** — work the whole checklist, catalogue **every** finding in the review log's `## Findings` table, then reopen all responsible tasks in one batch. Never stop at the first defect. Prompt: [SAMPLE_MASTER_PROMPT_PR_REVIEW.md](SAMPLE_MASTER_PROMPT_PR_REVIEW.md).
 2. **Batched fix** — close every catalogued finding in one pass, grouped by defect class, then re-run the full gate. A content or fixture change usually invalidates a test assertion elsewhere; reconcile those in the same pass. Prompt: [SAMPLE_MASTER_PROMPT_BATCH_FIX.md](SAMPLE_MASTER_PROMPT_BATCH_FIX.md).
-3. **Verification** — re-run the deterministic gate and full suite, confirm each finding is genuinely closed, then record `Result: PASS` and `submit`.
+3. **Verification** — re-run the deterministic gate and the required suite, confirm each finding is genuinely closed, then record `Result: PASS` and `submit`. Delivery 02 Phases 2.1–2.8 use their focused matrix suite; final, reconciliation and shared-tooling reviews use the full suite.
 
 Completion evidence is an invariant of being `COMPLETE`, not a check that runs only at the moment `complete` executes: `taskctl validate` re-asserts it for every completed task, so hand-writing a log to `COMPLETE` fails the next validate rather than shipping.
 

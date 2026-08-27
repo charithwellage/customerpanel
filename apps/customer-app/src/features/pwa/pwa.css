@@ -1,0 +1,108 @@
+/*
+ * pwa.css
+ * Feature-level styles for the offline notice and the install/refresh banner
+ * (D02-P01-T003).
+ * Owned path: apps/customer-app/src/features/pwa/
+ *
+ * Every value uses a semantic token emitted by packages/theme/src/provider.ts.
+ * No literal colours, no fallback palettes.
+ */
+
+.cc-pwa-offline-banner {
+  background: var(--color-warning-surface);
+  border-bottom: 1px solid var(--color-warning);
+  color: var(--color-text-primary);
+}
+
+.cc-pwa-offline-banner__container {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: var(--spacing-sm) var(--spacing-md);
+}
+
+.cc-pwa-offline-banner__icon {
+  font-size: var(--font-size-lg);
+}
+
+.cc-pwa-offline-banner__text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+}
+
+.cc-pwa-banner {
+  display: block;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.cc-pwa-banner__container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg);
+}
+
+.cc-pwa-banner__info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.cc-pwa-banner__badge {
+  align-self: flex-start;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: var(--color-neutral-surface);
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-pill);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.cc-pwa-banner__title {
+  font-family: var(--font-display);
+  font-size: var(--font-size-lg);
+  color: var(--color-text-primary);
+}
+
+.cc-pwa-banner__subtitle {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+.cc-pwa-banner__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.cc-pwa-banner__close {
+  min-width: var(--min-touch-target);
+  min-height: var(--min-touch-target);
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-base);
+  cursor: pointer;
+}
+
+@media (min-width: 1024px) {
+  .cc-pwa-banner__container {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}

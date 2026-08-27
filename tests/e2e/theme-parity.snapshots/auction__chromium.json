@@ -26,20 +26,20 @@
     {
       "tag": "a",
       "role": "link",
-      "name": "HOME",
+      "name": "SHOWROOM",
       "href": "/"
     },
     {
       "tag": "a",
       "role": "link",
-      "name": "INVENTORY",
-      "href": "/inventory"
+      "name": "ALL STOCK",
+      "href": "/allstock"
     },
     {
       "tag": "a",
       "role": "link",
       "name": "PREMIUM STOCK",
-      "href": "/inventory?category=premium"
+      "href": "/#premium-stock"
     },
     {
       "tag": "a",
@@ -56,14 +56,32 @@
     {
       "tag": "a",
       "role": "link",
-      "name": "CONTACT US",
+      "name": "TESTIMONIALS",
+      "href": "/testimonials"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "FAQ",
+      "href": "/faq"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "CONTACT",
       "href": "/contact"
     },
     {
       "tag": "a",
       "role": "link",
-      "name": "Sign in or create an account",
-      "href": "/account?returnTo=%2Fauction"
+      "name": "LOGIN",
+      "href": "http://127.0.0.1:3001"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "REGISTER",
+      "href": "/register"
     },
     {
       "tag": "button",
@@ -164,5 +182,5 @@
       "level": 4
     }
   ],
-  "text": "Skip to main content CC CARCHIEF ONLINE HOME INVENTORY PREMIUM STOCK HOW TO BUY ABOUT US CONTACT US SIGN IN Auction Sourcing Service Japanese Auto Auction Services CarChief’s Japanese auction-sourcing service: buying guidance, translated inspection sheets and account-gated bidding access. Owner: AuctionTeam Updated: Aug 10, 2026 Status: Approved REQUEST BIDDING ACCESS AUCTION BUYING GUIDE CarChief’s team sources vehicles found at major Japanese auto auctions on behalf of buyers, reviewing translated inspection sheets and coordinating the purchase process. Live bidding access on the auction sites themselves is account-gated for registered clients and is not provided directly through this public website. Auction Sourcing Service Contact a sales representative to discuss vehicle sourcing from Japanese auto auctions and, where account-gated, to activate bidding access. Auction Terms Bids placed through an activated account require a refundable bidding deposit. Inspection sheets are translated by our staff before a purchase decision is made. CC CARCHIEF PREMIUM GLOBAL VEHICLE EXPORTERS CarChief is a high-end showcase portal providing direct ocean-cargo logistics, certified pre-owned inspections, and custom spec tracking. LOGISTICS CORE PORTALS Showroom Catalog How to Buy About Us Testimonials FAQ Contact Us SECURE VERIFICATION CarChief utilizes highly secure cloud-replicated server architectures for real-time transaction records and client logs. 🔒 SECURED CLOUD ENVELOPE © 2026 CARCHIEF AUTO GROUP. ALL RIGHTS RESERVED. CLOUDRUN ENVIRONMENT · REGISTRY SECURITY PROTOCOL SHIELD-V2"
+  "text": "Skip to main content C CAR CHIEF ONLINE SHOWROOM ALL STOCK PREMIUM STOCK HOW TO BUY ABOUT US TESTIMONIALS FAQ CONTACT LOGIN REGISTER Auction Sourcing Service Japanese Auto Auction Services CarChief’s Japanese auction-sourcing service: buying guidance, translated inspection sheets and account-gated bidding access. Owner: AuctionTeam Updated: Aug 10, 2026 Status: Approved REQUEST BIDDING ACCESS AUCTION BUYING GUIDE CarChief’s team sources vehicles found at major Japanese auto auctions on behalf of buyers, reviewing translated inspection sheets and coordinating the purchase process. Live bidding access on the auction sites themselves is account-gated for registered clients and is not provided directly through this public website. Auction Sourcing Service Contact a sales representative to discuss vehicle sourcing from Japanese auto auctions and, where account-gated, to activate bidding access. Auction Terms Bids placed through an activated account require a refundable bidding deposit. Inspection sheets are translated by our staff before a purchase decision is made. CC CARCHIEF PREMIUM GLOBAL VEHICLE EXPORTERS CarChief is a high-end showcase portal providing direct ocean-cargo logistics, certified pre-owned inspections, and custom spec tracking. LOGISTICS CORE PORTALS Showroom Catalog How to Buy About Us Testimonials FAQ Contact Us SECURE VERIFICATION CarChief utilizes highly secure cloud-replicated server architectures for real-time transaction records and client logs. 🔒 SECURED CLOUD ENVELOPE © 2026 CARCHIEF AUTO GROUP. ALL RIGHTS RESERVED. CLOUDRUN ENVIRONMENT · REGISTRY SECURITY PROTOCOL SHIELD-V2"
 }

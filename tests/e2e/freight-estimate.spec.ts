@@ -13,7 +13,7 @@ const detailSlug = '2021-toyota-corolla-axio-veh-1';
  */
 test.describe('Freight estimate section on the vehicle detail page', () => {
   test('renders the destination/port selection form with an idle result panel', async ({ page }) => {
-    await page.goto(`/vehicles/${detailSlug}`);
+    await page.goto(`/allstock/${detailSlug}`);
 
     const section = page.locator('[aria-label="Shipping cost estimate"]');
     await expect(section.getByRole('heading', { name: 'Estimate Shipping Cost' })).toBeVisible();
@@ -24,7 +24,7 @@ test.describe('Freight estimate section on the vehicle detail page', () => {
   });
 
   test('shows accessible field validation when submitted without a destination or port', async ({ page }) => {
-    await page.goto(`/vehicles/${detailSlug}`);
+    await page.goto(`/allstock/${detailSlug}`);
     const section = page.locator('[aria-label="Shipping cost estimate"]');
 
     await section.getByRole('button', { name: 'Get shipping estimate' }).click();
@@ -37,7 +37,7 @@ test.describe('Freight estimate section on the vehicle detail page', () => {
   test('renders the first-class "estimate unavailable" state with no fabricated total after a valid submission', async ({
     page,
   }) => {
-    await page.goto(`/vehicles/${detailSlug}`);
+    await page.goto(`/allstock/${detailSlug}`);
     const section = page.locator('[aria-label="Shipping cost estimate"]');
 
     await section.getByLabel('Destination country').selectOption({ label: 'Uganda (Uganda)' });
@@ -61,7 +61,7 @@ test.describe('Freight estimate section on the vehicle detail page', () => {
   });
 
   test('the enquiry link declares the vehicle and topic without claiming a quotation was sent', async ({ page }) => {
-    await page.goto(`/vehicles/${detailSlug}`);
+    await page.goto(`/allstock/${detailSlug}`);
     const section = page.locator('[aria-label="Shipping cost estimate"]');
 
     await section.getByLabel('Destination country').selectOption({ label: 'Uganda (Uganda)' });

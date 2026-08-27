@@ -4,6 +4,7 @@ import React, { useId } from 'react';
 import { EnquiryForm } from './components/EnquiryForm';
 import { EnquiryConfirmation } from './components/EnquiryConfirmation';
 import { useEnquiryForm, type EnquiryContext, type UseEnquiryFormOptions } from './hooks/useEnquiryForm';
+import { useSession } from '../account-entry';
 
 export interface EnquirySectionProps {
   context?: EnquiryContext;
@@ -31,7 +32,8 @@ const ENQUIRY_HEADINGS: Record<string, string> = {
  */
 export function EnquirySection({ context = {}, headingLevel = 'h1', serviceOptions }: EnquirySectionProps) {
   const headingId = useId();
-  const enquiry = useEnquiryForm(context, serviceOptions);
+  const session = useSession();
+  const enquiry = useEnquiryForm(context, { ...serviceOptions, token: session.token });
 
   const heading = context.destinationCode
     ? 'Request a Formal Quotation'
@@ -49,7 +51,14 @@ export function EnquirySection({ context = {}, headingLevel = 'h1', serviceOptio
         send an automatic price or shipping quote.
       </p>
 
-      {enquiry.result ? (
+      {session.status !== 'active' ? (
+        <div role="status" className="cc-enquiry__sign-in">
+          <p>You need to sign in or create an account before sending an enquiry.</p>
+          <a href={`/account?returnTo=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname + window.location.search : '/contact')}`}>
+            Sign in or create an account
+          </a>
+        </div>
+      ) : enquiry.result ? (
         <EnquiryConfirmation result={enquiry.result} onStartNewEnquiry={enquiry.startNewEnquiry} />
       ) : (
         <EnquiryForm

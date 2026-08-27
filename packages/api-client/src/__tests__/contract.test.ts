@@ -40,6 +40,29 @@ describe('API Client & Contract Boundary Tests', () => {
     }
   });
 
+  it('notifies the host app when an authenticated request returns 401', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 401,
+      statusText: 'Unauthorized',
+      headers: new Headers({ 'content-type': 'application/json' }),
+      json: async () => ({ statusCode: 401, message: 'Unauthenticated' }),
+    });
+    const onUnauthorized = vi.fn();
+    global.fetch = mockFetch;
+
+    const client = new HttpClient({
+      baseUrl: 'http://localhost:4000',
+      getAuthToken: () => 'expired-token',
+      onUnauthorized,
+    });
+
+    await expect(client.request('/api/v1/customer/payment-allocations')).rejects.toMatchObject({
+      statusCode: 401,
+    });
+    expect(onUnauthorized).toHaveBeenCalledOnce();
+  });
+
   it('injects authorization header when token hook is provided', async () => {
     let capturedHeaders: Headers | undefined;
     const mockFetch = vi.fn().mockImplementation(async (_url, options) => {
@@ -69,7 +92,7 @@ describe('API Client & Contract Boundary Tests', () => {
       return {
         ok: true,
         headers: new Headers({ 'content-type': 'application/json' }),
-        json: async () => [
+        json: async () => ({ items: [
           {
             id: 'veh-1',
             chassisNumber: 'NZE141-1234567',
@@ -82,7 +105,7 @@ describe('API Client & Contract Boundary Tests', () => {
             category: 'arrival,premium',
             createdAt: '2026-08-09T10:00:00.000Z',
           },
-        ],
+        ], total: 1, page: 1, limit: 10, totalPages: 1, hasNextPage: false, hasPrevPage: false, facets: {} }),
       };
     });
     global.fetch = mockFetch;
@@ -93,11 +116,11 @@ describe('API Client & Contract Boundary Tests', () => {
 
     const result = await service.getVehicles({ collection: 'latest_arrivals', limit: 10 });
     expect(capturedUrl).toContain('/api/v1/vehicles?collection=latest_arrivals&limit=10');
-    expect(result.length).toBe(1);
-    expect(result[0].locationStatus).toBe('In Japan');
+    expect(result.items.length).toBe(1);
+    expect(result.items[0].locationStatus).toBe('In Japan');
   });
 
-  it('builds VehicleService searchVehicles query with filters, sorting and pagination', async () => {
+  it('builds VehicleService getVehicles query with filters, sorting and pagination', async () => {
     let capturedUrl: string | undefined;
     const mockFetch = vi.fn().mockImplementation(async (url) => {
       capturedUrl = url;
@@ -127,8 +150,21 @@ describe('API Client & Contract Boundary Tests', () => {
             makes: [{ name: 'Toyota', count: 1 }],
             bodyStyles: [{ name: 'Sedan', count: 1 }],
             fuelTypes: [{ name: 'Petrol', count: 1 }],
+            transmissions: [],
+            driveTrains: [],
+            models: [],
+            modelCodes: [],
+            vehicleTypes: [],
+            vehicleSubTypes: [],
+            locationStatuses: [],
+            destinationPorts: [],
+            overdrives: [],
+            colors: [],
+            exteriorGrades: [],
             yearRange: { min: 2021, max: 2021 },
             priceRange: { min: 8500, max: 8500 },
+            mileageRange: { min: 0, max: 0 },
+            engineCcRange: { min: 0, max: 0 },
           },
         }),
       };
@@ -139,7 +175,7 @@ describe('API Client & Contract Boundary Tests', () => {
     const { VehicleService } = await import('../services/vehicles.js');
     const service = new VehicleService(client);
 
-    const res = await service.searchVehicles({
+    const res = await service.getVehicles({
       searchQuery: 'Toyota',
       make: 'Toyota',
       bodyStyle: 'Sedan',
@@ -148,7 +184,7 @@ describe('API Client & Contract Boundary Tests', () => {
       limit: 12,
     });
 
-    expect(capturedUrl).toContain('/api/v1/vehicles/search?searchQuery=Toyota&make=Toyota&bodyStyle=Sedan&sortBy=price_asc&page=1&limit=12');
+    expect(capturedUrl).toContain('/api/v1/vehicles?searchQuery=Toyota&make=Toyota&bodyStyle=Sedan&sortBy=price_asc&page=1&limit=12');
     expect(res.total).toBe(1);
     expect(res.facets.makes[0].name).toBe('Toyota');
   });
@@ -157,7 +193,7 @@ describe('API Client & Contract Boundary Tests', () => {
     const mockFetch = vi.fn().mockResolvedValue({
       ok: true,
       headers: new Headers({ 'content-type': 'application/json' }),
-      json: async () => [
+      json: async () => ({ items: [
         {
           id: 'veh-1',
           chassisNumber: 'NZE141-1234567',
@@ -169,7 +205,7 @@ describe('API Client & Contract Boundary Tests', () => {
           locationStatus: 'In Japan',
           createdAt: '2026-08-09T10:00:00.000Z',
         },
-      ],
+      ], total: 1, page: 1, limit: 12, totalPages: 1, hasNextPage: false, hasPrevPage: false, facets: { makes: [{ name: 'Toyota', count: 1 }] } }),
     });
     global.fetch = mockFetch;
 
@@ -178,15 +214,15 @@ describe('API Client & Contract Boundary Tests', () => {
     const service = new VehicleService(client);
 
     const vehicles = await service.getVehicles();
-    expect(vehicles[0]).not.toHaveProperty('internalNotes');
-    expect(vehicles[0]).not.toHaveProperty('staffOwnerId');
+    expect(vehicles.items[0]).not.toHaveProperty('internalNotes');
+    expect(vehicles.items[0]).not.toHaveProperty('staffOwnerId');
   });
 
   it('verifies category results exclude legacy "New" tag', async () => {
     const mockFetch = vi.fn().mockResolvedValue({
       ok: true,
       headers: new Headers({ 'content-type': 'application/json' }),
-      json: async () => [
+      json: async () => ({ items: [
         {
           id: 'veh-1',
           chassisNumber: 'NZE141-1234567',
@@ -197,7 +233,7 @@ describe('API Client & Contract Boundary Tests', () => {
           status: 'Available',
           category: 'arrival,premium',
         },
-      ],
+      ], total: 1, page: 1, limit: 12, totalPages: 1, hasNextPage: false, hasPrevPage: false, facets: {} }),
     });
     global.fetch = mockFetch;
 
@@ -206,7 +242,7 @@ describe('API Client & Contract Boundary Tests', () => {
     const service = new VehicleService(client);
 
     const vehicles = await service.getVehicles({ collection: 'latest_arrivals' });
-    const categories = vehicles.map((v) => v.category).filter(Boolean);
+    const categories = vehicles.items.map((v) => v.category).filter(Boolean);
     categories.forEach((cat) => {
       expect(cat).not.toContain('New');
     });
@@ -232,7 +268,6 @@ describe('API Client & Contract Boundary Tests', () => {
           requestPrice: false,
           media: {
             gallery: ['https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?w=400'],
-            totalPicturesCount: 1,
           },
         }),
       };
@@ -708,36 +743,10 @@ describe('API Client & Contract Boundary Tests', () => {
   });
 
   describe('SessionService (PUB-22, DEC-PUB-AUTH-BOUNDARY, D01-P06-T003)', () => {
-    it('mints a demo session via SessionService.startDemoSession, always labelled non-production', async () => {
-      let capturedUrl: string | undefined;
-      let capturedMethod: string | undefined;
-      const mockFetch = vi.fn().mockImplementation(async (url, options) => {
-        capturedUrl = url;
-        capturedMethod = options?.method;
-        return {
-          ok: true,
-          status: 201,
-          headers: new Headers({ 'content-type': 'application/json' }),
-          json: async () => ({
-            token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.demo.demo-signature',
-            claims: { sub: 'user-123', email: 'user@carchief.com', role: 'CustomerBuyer', permissions: ['read:public'], exp: 9999999999 },
-            nonProduction: true,
-          }),
-        };
-      });
-      global.fetch = mockFetch;
-
-      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
-      const { SessionService } = await import('../services/session.js');
-      const service = new SessionService(client);
-
-      const session = await service.startDemoSession();
-      expect(capturedUrl).toContain('/api/v1/auth/demo-session');
-      expect(capturedMethod).toBe('POST');
-      expect(session.nonProduction).toBe(true);
-      expect(session.claims.role).toBe('CustomerBuyer');
-    });
-
+    // `startDemoSession` was removed (D02-P12-T002, CUST-30): the Mock API
+    // no longer mints a no-input demo session. Real registration/sign-in
+    // coverage lives in the `AuthService`/`CountryService` describe blocks
+    // below.
     it('returns the current claims via SessionService.getCurrentSession when authenticated', async () => {
       const mockFetch = vi.fn().mockResolvedValue({
         ok: true,
@@ -933,6 +942,35 @@ describe('API Client & Contract Boundary Tests', () => {
     });
   });
 
+  describe('CustomerTierBenefitsService', () => {
+    it('requests the authenticated customer tier benefits endpoint', async () => {
+      let capturedUrl: string | undefined;
+      const mockFetch = vi.fn().mockImplementation(async (url) => {
+        capturedUrl = url;
+        return {
+          ok: true,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: async () => ({
+            tier: 'Gold',
+            discountPercent: 10,
+            maxActiveReservations: 3,
+            activeReservations: 1,
+            remainingReservations: 2,
+            description: 'Gold benefits',
+          }),
+        };
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000', getAuthToken: () => 'customer-token' });
+      const { CustomerTierBenefitsService } = await import('../services/customerTierBenefits.js');
+      const benefits = await new CustomerTierBenefitsService(client).get();
+
+      expect(capturedUrl).toBe('http://localhost:4000/api/v1/customer/tier-benefits');
+      expect(benefits.remainingReservations).toBe(2);
+    });
+  });
+
   describe('ContentService (D01-P07-T001)', () => {
     it('calls getFaqs with category and query parameters', async () => {
       let capturedUrl: string | undefined;
@@ -945,7 +983,6 @@ describe('API Client & Contract Boundary Tests', () => {
             categories: [{ id: 'cat-buying-process', name: 'Buying Process', order: 1 }],
             items: [],
             total: 1,
-            matchedCount: 0,
             groundedNoAnswer: false,
           }),
         };
@@ -1037,5 +1074,1006 @@ describe('API Client & Contract Boundary Tests', () => {
       expect(branches.items).toEqual([]);
     });
   });
-});
 
+  // Phase 2.2: customer dashboard KPI baseline (D02-ASM-001).
+  // Non-blocking aggregate: outstanding balance = issued invoice total - approved allocations;
+  // credit utilisation = outstanding balance ÷ credit limit; vehicle counts use canonical IDs + status.
+  describe('CustomerDashboard Service (D02-ASM-001)', () => {
+    it('fetches customer dashboard with reconciled KPI values', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => ({
+          customerId: 'cust-123',
+          customerEmail: 'customer@example.com',
+          creditLimitUsd: 500000,
+          outstandingBalanceUsd: 29700,
+          creditUtilisationPercent: 5.94,
+          vehicleCountReserved: 2,
+          vehicleCountInvoiced: 3,
+          vehicleCountDelivered: 0,
+          lastUpdated: '2026-08-14T10:00:00.000Z',
+        }),
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({
+        baseUrl: 'http://localhost:4000',
+        getAuthToken: () => 'demo-token',
+      });
+
+      const dashboard = await client.request<any>('/api/v1/customer/dashboard');
+
+      expect(dashboard.customerId).toBe('cust-123');
+      expect(dashboard.outstandingBalanceUsd).toBe(29700);
+      expect(dashboard.creditUtilisationPercent).toBe(5.94);
+      expect(dashboard.vehicleCountInvoiced).toBe(3);
+      expect(dashboard.vehicleCountReserved).toBe(2);
+      expect(dashboard.vehicleCountDelivered).toBe(0);
+    });
+
+    it('validates CustomerDashboard payload schema', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => ({
+          customerId: 'cust-123',
+          customerEmail: 'customer@example.com',
+          creditLimitUsd: 500000,
+          outstandingBalanceUsd: 0,
+          creditUtilisationPercent: 0,
+          vehicleCountReserved: 0,
+          vehicleCountInvoiced: 0,
+          vehicleCountDelivered: 0,
+          lastUpdated: '2026-08-14T10:00:00.000Z',
+        }),
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({
+        baseUrl: 'http://localhost:4000',
+        getAuthToken: () => 'demo-token',
+      });
+
+      const dashboard = await client.request<any>('/api/v1/customer/dashboard');
+
+      // Verify all required fields are present
+      expect(dashboard).toHaveProperty('customerId');
+      expect(dashboard).toHaveProperty('customerEmail');
+      expect(dashboard).toHaveProperty('creditLimitUsd');
+      expect(dashboard).toHaveProperty('outstandingBalanceUsd');
+      expect(dashboard).toHaveProperty('creditUtilisationPercent');
+      expect(dashboard).toHaveProperty('vehicleCountReserved');
+      expect(dashboard).toHaveProperty('vehicleCountInvoiced');
+      expect(dashboard).toHaveProperty('vehicleCountDelivered');
+      expect(dashboard).toHaveProperty('lastUpdated');
+
+      // Verify types
+      expect(typeof dashboard.customerId).toBe('string');
+      expect(typeof dashboard.creditLimitUsd).toBe('number');
+      expect(typeof dashboard.outstandingBalanceUsd).toBe('number');
+      expect(typeof dashboard.creditUtilisationPercent).toBe('number');
+      expect(typeof dashboard.vehicleCountReserved).toBe('number');
+      expect(typeof dashboard.vehicleCountInvoiced).toBe('number');
+      expect(typeof dashboard.vehicleCountDelivered).toBe('number');
+    });
+
+    it('prohibits browser-side calculation: returns server-derived values only', async () => {
+      // This test verifies that the contract never exposes raw invoice/allocation data
+      // that would tempt browser-side recalculation
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => ({
+          customerId: 'cust-123',
+          customerEmail: 'customer@example.com',
+          creditLimitUsd: 500000,
+          outstandingBalanceUsd: 42200, // Server-computed, not browser-computed
+          creditUtilisationPercent: 8.44, // Server-computed percentage
+          vehicleCountReserved: 1,
+          vehicleCountInvoiced: 2,
+          vehicleCountDelivered: 0,
+          lastUpdated: '2026-08-14T10:00:00.000Z',
+          paymentStatusSummary: { approved: 2, pending: 0, rejected: 0 },
+          shipmentStatusSummary: { ready: 1, inTransit: 1, delivered: 0, other: 0 },
+          documentAvailabilityCount: { available: 3, pending: 0, unavailable: 0 },
+          notificationUnreadCount: 1,
+          partialFailureIndicators: { paymentsFailed: false, shipmentsFailed: false, documentsFailed: false, notificationsFailed: false },
+        }),
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({
+        baseUrl: 'http://localhost:4000',
+        getAuthToken: () => 'demo-token',
+      });
+
+      const dashboard = await client.request<any>('/api/v1/customer/dashboard');
+
+      // Verify no raw invoice list is exposed (which would enable browser calculation)
+      expect(dashboard).not.toHaveProperty('invoices');
+      expect(dashboard).not.toHaveProperty('allocations');
+      expect(dashboard).not.toHaveProperty('payments');
+      expect(dashboard).not.toHaveProperty('shipments');
+      expect(dashboard).not.toHaveProperty('documents');
+
+      // Verify reconciled totals only
+      expect(typeof dashboard.outstandingBalanceUsd).toBe('number');
+      expect(typeof dashboard.creditUtilisationPercent).toBe('number');
+    });
+
+    it('includes linked record aggregates: payment/shipment/document/notification summaries (D02-P02-T001)', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => ({
+          customerId: 'cust-123',
+          customerEmail: 'customer@example.com',
+          creditLimitUsd: 500000,
+          outstandingBalanceUsd: 29700,
+          creditUtilisationPercent: 5.94,
+          vehicleCountReserved: 2,
+          vehicleCountInvoiced: 3,
+          vehicleCountDelivered: 0,
+          lastUpdated: '2026-08-14T10:00:00.000Z',
+          paymentStatusSummary: { approved: 3, pending: 1, rejected: 0 },
+          shipmentStatusSummary: { ready: 1, inTransit: 1, delivered: 1, other: 0 },
+          documentAvailabilityCount: { available: 3, pending: 1, unavailable: 0 },
+          notificationUnreadCount: 2,
+          partialFailureIndicators: { paymentsFailed: false, shipmentsFailed: false, documentsFailed: false, notificationsFailed: false },
+        }),
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({
+        baseUrl: 'http://localhost:4000',
+        getAuthToken: () => 'demo-token',
+      });
+
+      const dashboard = await client.request<any>('/api/v1/customer/dashboard');
+
+      // Verify linked record aggregates are present
+      expect(dashboard).toHaveProperty('paymentStatusSummary');
+      expect(dashboard).toHaveProperty('shipmentStatusSummary');
+      expect(dashboard).toHaveProperty('documentAvailabilityCount');
+      expect(dashboard).toHaveProperty('notificationUnreadCount');
+      expect(dashboard).toHaveProperty('partialFailureIndicators');
+
+      // Verify payment status summary structure and values
+      expect(dashboard.paymentStatusSummary).toEqual({ approved: 3, pending: 1, rejected: 0 });
+      expect(typeof dashboard.paymentStatusSummary.approved).toBe('number');
+      expect(typeof dashboard.paymentStatusSummary.pending).toBe('number');
+      expect(typeof dashboard.paymentStatusSummary.rejected).toBe('number');
+
+      // Verify shipment status summary structure
+      expect(dashboard.shipmentStatusSummary).toEqual({ ready: 1, inTransit: 1, delivered: 1, other: 0 });
+      expect(typeof dashboard.shipmentStatusSummary.ready).toBe('number');
+      expect(typeof dashboard.shipmentStatusSummary.inTransit).toBe('number');
+      expect(typeof dashboard.shipmentStatusSummary.delivered).toBe('number');
+      expect(typeof dashboard.shipmentStatusSummary.other).toBe('number');
+
+      // Verify document availability summary structure
+      expect(dashboard.documentAvailabilityCount).toEqual({ available: 3, pending: 1, unavailable: 0 });
+      expect(typeof dashboard.documentAvailabilityCount.available).toBe('number');
+      expect(typeof dashboard.documentAvailabilityCount.pending).toBe('number');
+      expect(typeof dashboard.documentAvailabilityCount.unavailable).toBe('number');
+
+      // Verify notification unread count
+      expect(dashboard.notificationUnreadCount).toBe(2);
+      expect(typeof dashboard.notificationUnreadCount).toBe('number');
+    });
+
+    it('validates partial failure indicators in response', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => ({
+          customerId: 'cust-exception-001',
+          customerEmail: 'exception@example.com',
+          creditLimitUsd: 500000,
+          outstandingBalanceUsd: 9500,
+          creditUtilisationPercent: 1.9,
+          vehicleCountReserved: 0,
+          vehicleCountInvoiced: 1,
+          vehicleCountDelivered: 0,
+          lastUpdated: '2026-08-14T10:00:00.000Z',
+          paymentStatusSummary: { approved: 0, pending: 0, rejected: 1 },
+          shipmentStatusSummary: { ready: 0, inTransit: 0, delivered: 0, other: 1 },
+          documentAvailabilityCount: { available: 0, pending: 0, unavailable: 1 },
+          notificationUnreadCount: 0,
+          partialFailureIndicators: { paymentsFailed: false, shipmentsFailed: false, documentsFailed: false, notificationsFailed: false },
+        }),
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({
+        baseUrl: 'http://localhost:4000',
+        getAuthToken: () => 'demo-token',
+      });
+
+      const dashboard = await client.request<any>('/api/v1/customer/dashboard');
+
+      // Verify partial failure indicators structure and types
+      expect(dashboard.partialFailureIndicators).toBeDefined();
+      expect(dashboard.partialFailureIndicators).toHaveProperty('paymentsFailed');
+      expect(dashboard.partialFailureIndicators).toHaveProperty('shipmentsFailed');
+      expect(dashboard.partialFailureIndicators).toHaveProperty('documentsFailed');
+      expect(dashboard.partialFailureIndicators).toHaveProperty('notificationsFailed');
+
+      // Verify all indicators are booleans
+      expect(typeof dashboard.partialFailureIndicators.paymentsFailed).toBe('boolean');
+      expect(typeof dashboard.partialFailureIndicators.shipmentsFailed).toBe('boolean');
+      expect(typeof dashboard.partialFailureIndicators.documentsFailed).toBe('boolean');
+      expect(typeof dashboard.partialFailureIndicators.notificationsFailed).toBe('boolean');
+    });
+  });
+
+  describe('Customer Vehicle Service & Contracts (D02-P04-T001)', () => {
+    it('lists customer fleet vehicles via CustomerVehicleService', async () => {
+      let capturedUrl: string | undefined;
+      const mockFetch = vi.fn().mockImplementation(async (url) => {
+        capturedUrl = url;
+        return {
+          ok: true,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: async () => ({
+            items: [
+              {
+                id: 'veh-1',
+                vehicleId: 'veh-1',
+                chassisNumber: 'NZE141-1234567',
+                make: 'Toyota',
+                model: 'Corolla Axio',
+                year: 2021,
+                slug: '2021-toyota-corolla-axio-veh-1',
+                priceUsd: 8500,
+                totalAmountUsd: 8500,
+                status: 'Confirmed',
+                vehicleStatusCode: 'Invoiced',
+                statusLabel: 'Purchased Vehicle',
+                statusLabelPlural: 'Purchased Vehicles',
+                createdAt: '2026-08-10T10:00:00.000Z',
+                updatedAt: '2026-08-10T10:00:00.000Z',
+              },
+            ],
+            total: 1,
+            countsByStatus: {
+              underNegotiation: 0,
+              underNegotiationWithPI: 0,
+              confirmed: 1,
+              inTransit: 0,
+              delivered: 0,
+              all: 1,
+            },
+            statusDefinitions: [],
+          }),
+        };
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { CustomerVehicleService } = await import('../services/customerVehicles.js');
+      const service = new CustomerVehicleService(client);
+
+      const res = await service.listCustomerVehicles({ status: 'Confirmed', query: 'Corolla', page: 1, limit: 10 });
+      expect(capturedUrl).toBe('http://localhost:4000/customer/vehicles?status=Confirmed&query=Corolla&page=1&limit=10');
+      expect(res.total).toBe(1);
+      expect(res.items[0].make).toBe('Toyota');
+      expect(res.countsByStatus.confirmed).toBe(1);
+    });
+
+    it('fetches customer vehicle detail via CustomerVehicleService', async () => {
+      let capturedUrl: string | undefined;
+      const mockFetch = vi.fn().mockImplementation(async (url) => {
+        capturedUrl = url;
+        return {
+          ok: true,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: async () => ({
+            id: 'veh-1',
+            vehicleId: 'veh-1',
+            chassisNumber: 'NZE141-1234567',
+            make: 'Toyota',
+            model: 'Corolla Axio',
+            year: 2021,
+            slug: '2021-toyota-corolla-axio-veh-1',
+            priceUsd: 8500,
+            totalAmountUsd: 8500,
+            status: 'Confirmed',
+            vehicleStatusCode: 'Invoiced',
+            statusLabel: 'Purchased Vehicle',
+            statusLabelPlural: 'Purchased Vehicles',
+            images: ['https://example.com/veh-1.jpg'],
+            statusHistory: [
+              { status: 'Under Negotiation', timestamp: '2026-08-09T10:00:00.000Z' },
+              { status: 'Confirmed', timestamp: '2026-08-11T10:00:00.000Z' },
+            ],
+            documents: [
+              { id: 'doc-inv-1', type: 'CommercialInvoice', title: 'Commercial Invoice INV-001', status: 'Available' },
+            ],
+            createdAt: '2026-08-10T10:00:00.000Z',
+            updatedAt: '2026-08-10T10:00:00.000Z',
+          }),
+        };
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { CustomerVehicleService } = await import('../services/customerVehicles.js');
+      const service = new CustomerVehicleService(client);
+
+      const detail = await service.getCustomerVehicleDetail('veh-1');
+      expect(capturedUrl).toBe('http://localhost:4000/customer/vehicles/veh-1');
+      expect(detail).not.toBeNull();
+      expect(detail?.id).toBe('veh-1');
+      expect(detail?.status).toBe('Confirmed');
+      expect(detail?.statusHistory.length).toBe(2);
+      expect(detail?.documents.length).toBe(1);
+    });
+
+    it('returns null on 404 from getCustomerVehicleDetail', async () => {
+      const mockFetch = vi.fn().mockImplementation(async () => {
+        return {
+          ok: false,
+          status: 404,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: async () => ({
+            statusCode: 404,
+            message: 'Vehicle not found',
+          }),
+        };
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { CustomerVehicleService } = await import('../services/customerVehicles.js');
+      const service = new CustomerVehicleService(client);
+
+      const detail = await service.getCustomerVehicleDetail('non-existent');
+      expect(detail).toBeNull();
+    });
+  });
+
+  describe('CustomerInvoiceService (D02-P05-T001)', () => {
+    it('calls listCustomerInvoices with query parameters', async () => {
+      let capturedUrl = '';
+      const mockFetch = vi.fn().mockImplementation(async (url: string) => {
+        capturedUrl = url;
+        return {
+          ok: true,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: async () => ({
+            items: [
+              {
+                id: 'inv-001',
+                invoiceNumber: 'INV-0001',
+                type: 'Commercial',
+                customerId: 'cust-123',
+                vehicleId: 'veh-1',
+                vehicleSlug: '2021-toyota-corolla-axio-veh-1',
+                make: 'Toyota',
+                model: 'Corolla Axio',
+                year: 2021,
+                totalAmountUsd: 8500,
+                paidAmountUsd: 5500,
+                outstandingAmountUsd: 3000,
+                status: 'PartiallyPaid',
+                issuedAt: '2026-08-10T10:00:00.000Z',
+                dueDate: '2026-08-17T10:00:00.000Z',
+                documentStatus: 'Available',
+                currency: 'USD',
+              },
+            ],
+            total: 1,
+            page: 1,
+            limit: 20,
+            countsByType: { all: 1, proforma: 0, commercial: 1 },
+            totals: { totalInvoicedUsd: 8500, totalPaidUsd: 5500, totalOutstandingUsd: 3000 },
+          }),
+        };
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { CustomerInvoiceService } = await import('../services/customerInvoices.js');
+      const service = new CustomerInvoiceService(client);
+
+      const res = await service.listCustomerInvoices({ type: 'Commercial', query: 'Corolla' });
+      expect(capturedUrl).toContain('/customer/invoices?type=Commercial&query=Corolla');
+      expect(res.total).toBe(1);
+      expect(res.items[0].invoiceNumber).toBe('INV-0001');
+      expect(res.countsByType.commercial).toBe(1);
+      expect(res.totals.totalOutstandingUsd).toBe(3000);
+    });
+
+    it('fetches customer invoice detail', async () => {
+      let capturedUrl = '';
+      const mockFetch = vi.fn().mockImplementation(async (url: string) => {
+        capturedUrl = url;
+        return {
+          ok: true,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: async () => ({
+            id: 'inv-001',
+            invoiceNumber: 'INV-0001',
+            type: 'Commercial',
+            customerId: 'cust-123',
+            vehicleId: 'veh-1',
+            vehicleSlug: '2021-toyota-corolla-axio-veh-1',
+            make: 'Toyota',
+            model: 'Corolla Axio',
+            year: 2021,
+            totalAmountUsd: 8500,
+            paidAmountUsd: 5500,
+            outstandingAmountUsd: 3000,
+            status: 'PartiallyPaid',
+            issuedAt: '2026-08-10T10:00:00.000Z',
+            dueDate: '2026-08-17T10:00:00.000Z',
+            documentStatus: 'Available',
+            currency: 'USD',
+            vehicle: {
+              id: 'veh-1',
+              chassisNumber: 'NZE141-1234567',
+              make: 'Toyota',
+              model: 'Corolla Axio',
+              year: 2021,
+              slug: '2021-toyota-corolla-axio-veh-1',
+            },
+            lineItems: [
+              { id: 'li-1', description: 'FOB Vehicle Price', quantity: 1, unitPriceUsd: 7000, amountUsd: 7000 },
+              { id: 'li-2', description: 'Ocean Freight', quantity: 1, unitPriceUsd: 1500, amountUsd: 1500 },
+            ],
+            allocations: [
+              { id: 'alloc-1', paymentId: 'pay-1', amountUsd: 5500, allocatedAt: '2026-08-11T10:00:00.000Z', status: 'Approved' },
+            ],
+            bankDetails: {
+              bankName: 'MUFG Bank, Ltd.',
+              swiftCode: 'BOTKJPJT',
+              accountName: 'CarChief International Co., Ltd.',
+              accountNumber: '123-4567890',
+              branchName: 'Tokyo Head Office',
+              bankAddress: 'Tokyo, Japan',
+              reference: 'INV-0001',
+            },
+          }),
+        };
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { CustomerInvoiceService } = await import('../services/customerInvoices.js');
+      const service = new CustomerInvoiceService(client);
+
+      const detail = await service.getCustomerInvoiceDetail('inv-001');
+      expect(capturedUrl).toBe('http://localhost:4000/customer/invoices/inv-001');
+      expect(detail).not.toBeNull();
+      expect(detail?.invoiceNumber).toBe('INV-0001');
+      expect(detail?.lineItems.length).toBe(2);
+      expect(detail?.allocations.length).toBe(1);
+    });
+
+    it('fetches customer invoice document projection', async () => {
+      let capturedUrl = '';
+      const mockFetch = vi.fn().mockImplementation(async (url: string) => {
+        capturedUrl = url;
+        return {
+          ok: true,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: async () => ({
+            documentId: 'doc-inv-001',
+            invoiceId: 'inv-001',
+            invoiceNumber: 'INV-0001',
+            type: 'Commercial',
+            title: 'Commercial Invoice INV-0001',
+            contentHtml: '<div>Invoice Content</div>',
+            status: 'Available',
+            generatedAt: '2026-08-10T10:00:00.000Z',
+          }),
+        };
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { CustomerInvoiceService } = await import('../services/customerInvoices.js');
+      const service = new CustomerInvoiceService(client);
+
+      const doc = await service.getCustomerInvoiceDocument('inv-001');
+      expect(capturedUrl).toBe('http://localhost:4000/customer/invoices/inv-001/document');
+      expect(doc).not.toBeNull();
+      expect(doc?.documentId).toBe('doc-inv-001');
+      expect(doc?.title).toBe('Commercial Invoice INV-0001');
+    });
+
+    it('returns null on 404 from getCustomerInvoiceDetail and getCustomerInvoiceDocument', async () => {
+      const mockFetch = vi.fn().mockImplementation(async () => {
+        return {
+          ok: false,
+          status: 404,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: async () => ({
+            statusCode: 404,
+            message: 'Invoice not found',
+          }),
+        };
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { CustomerInvoiceService } = await import('../services/customerInvoices.js');
+      const service = new CustomerInvoiceService(client);
+
+      const detail = await service.getCustomerInvoiceDetail('non-existent');
+      expect(detail).toBeNull();
+
+      const doc = await service.getCustomerInvoiceDocument('non-existent');
+      expect(doc).toBeNull();
+    });
+  });
+
+  describe('AuthService (CUST-26..29, D02-P12-T001/T002)', () => {
+    it('submits registration and returns the created CustomerAccount, never carrying a password', async () => {
+      let capturedUrl: string | undefined;
+      let capturedBody: string | undefined;
+      const mockFetch = vi.fn().mockImplementation(async (url, options) => {
+        capturedUrl = url;
+        capturedBody = options?.body;
+        return {
+          ok: true,
+          status: 201,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: async () => ({
+            id: 'acct-1',
+            customerId: 'cust-new-1',
+            nameWithInitials: 'J. Doe',
+            countryCode: 'UG',
+            dialCode: '+256',
+            mobileNumber: '700000000',
+            email: 'j.doe@example.com',
+            status: 'Active',
+            verificationState: 'unverified',
+            createdAt: '2026-01-01T00:00:00.000Z',
+            updatedAt: '2026-01-01T00:00:00.000Z',
+          }),
+        };
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { AuthService } = await import('../services/auth.js');
+      const service = new AuthService(client);
+
+      const account = await service.register({
+        nameWithInitials: 'J. Doe',
+        countryCode: 'UG',
+        mobileNumber: '700000000',
+        email: 'j.doe@example.com',
+        password: 'a-strong-password1',
+        confirmPassword: 'a-strong-password1',
+      });
+
+      expect(capturedUrl).toBe('http://localhost:4000/api/v1/auth/register');
+      expect(capturedBody).toContain('"email":"j.doe@example.com"');
+      expect(account.customerId).toBe('cust-new-1');
+      expect(JSON.stringify(account)).not.toMatch(/password|hash|salt/i);
+    });
+
+    it('passes a field-bearing 400 through intact so a form can attach the error to that input', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 400,
+        statusText: 'Bad Request',
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => ({
+          statusCode: 400,
+          message: 'A valid email address is required',
+          correlationId: 'corr-400-1',
+          field: 'email',
+        }),
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { AuthService } = await import('../services/auth.js');
+      const service = new AuthService(client);
+
+      try {
+        await service.register({
+          nameWithInitials: 'J. Doe',
+          countryCode: 'UG',
+          mobileNumber: '700000000',
+          email: 'not-an-email',
+          password: 'a-strong-password1',
+          confirmPassword: 'a-strong-password1',
+        });
+        expect.fail('Should have thrown NormalizedApiError');
+      } catch (err: unknown) {
+        expect(err).toBeInstanceOf(NormalizedApiError);
+        const apiErr = err as NormalizedApiError;
+        expect(apiErr.statusCode).toBe(400);
+        expect((apiErr.rawError as { field?: string })?.field).toBe('email');
+      }
+    });
+
+    it('returns a normalized 401 error from login, never null, on invalid credentials', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 401,
+        statusText: 'Unauthorized',
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: async () => ({
+          statusCode: 401,
+          message: 'Invalid email or password',
+          correlationId: 'corr-401-1',
+        }),
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { AuthService } = await import('../services/auth.js');
+      const service = new AuthService(client);
+
+      await expect(service.login({ email: 'nobody@example.com', password: 'wrong-password1' })).rejects.toBeInstanceOf(
+        NormalizedApiError
+      );
+    });
+
+    it('mints a CustomerBuyer session via login on valid credentials', async () => {
+      let capturedUrl: string | undefined;
+      const mockFetch = vi.fn().mockImplementation(async (url) => {
+        capturedUrl = url;
+        return {
+          ok: true,
+          status: 200,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: async () => ({
+            token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.demo.demo-signature',
+            claims: { sub: 'cust-1', email: 'j.doe@example.com', role: 'CustomerBuyer', permissions: ['read:customer'], exp: 9999999999 },
+          }),
+        };
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { AuthService } = await import('../services/auth.js');
+      const service = new AuthService(client);
+
+      const result = await service.login({ email: 'j.doe@example.com', password: 'a-strong-password1' });
+      expect(capturedUrl).toBe('http://localhost:4000/api/v1/auth/login');
+      expect(result.claims.role).toBe('CustomerBuyer');
+    });
+
+    it('submits change-password and requests/confirms a password reset', async () => {
+      const mockFetch = vi.fn().mockImplementation(async (url) => {
+        if (String(url).endsWith('/auth/change-password')) {
+          return {
+            ok: true,
+            status: 200,
+            headers: new Headers({ 'content-type': 'application/json' }),
+            json: async () => ({ success: true }),
+          };
+        }
+        if (String(url).endsWith('/auth/password-reset')) {
+          return {
+            ok: true,
+            status: 202,
+            headers: new Headers({ 'content-type': 'application/json' }),
+            json: async () => ({ message: 'If an account exists for that email, a password reset token has been issued to the mock outbox.' }),
+          };
+        }
+        return {
+          ok: true,
+          status: 200,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: async () => ({ success: true }),
+        };
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000', getAuthToken: () => 'session-token' });
+      const { AuthService } = await import('../services/auth.js');
+      const service = new AuthService(client);
+
+      const changed = await service.changePassword({
+        currentPassword: 'old-password1',
+        newPassword: 'new-strong-password1',
+        confirmNewPassword: 'new-strong-password1',
+      });
+      expect(changed.success).toBe(true);
+
+      const reset = await service.requestPasswordReset({ email: 'j.doe@example.com' });
+      expect(reset.message).toContain('mock outbox');
+
+      const confirmed = await service.confirmPasswordReset({
+        token: 'reset-token-1',
+        newPassword: 'new-strong-password1',
+        confirmNewPassword: 'new-strong-password1',
+      });
+      expect(confirmed.success).toBe(true);
+    });
+  });
+
+  describe('CountryService (CUST-26, D02-P12-T002)', () => {
+    it('fetches the shared ISO/dial-code country catalog', async () => {
+      let capturedUrl: string | undefined;
+      const mockFetch = vi.fn().mockImplementation(async (url) => {
+        capturedUrl = url;
+        return {
+          ok: true,
+          status: 200,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: async () => ({ items: [{ isoCode: 'UG', name: 'Uganda', dialCode: '+256' }] }),
+        };
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000' });
+      const { CountryService } = await import('../services/country.js');
+      const service = new CountryService(client);
+
+      const result = await service.getCountries();
+      expect(capturedUrl).toBe('http://localhost:4000/api/v1/config/countries');
+      expect(result.items[0]).toEqual({ isoCode: 'UG', name: 'Uganda', dialCode: '+256' });
+    });
+  });
+
+  describe('CustomerInquiryService (D02-P13-T001, CUST-34/CUST-35)', () => {
+    it('lists the signed-in customer\'s quote-request inquiries', async () => {
+      let capturedUrl: string | undefined;
+      const mockFetch = vi.fn().mockImplementation(async (url) => {
+        capturedUrl = url;
+        return {
+          ok: true,
+          status: 200,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: async () => ({
+            items: [
+              {
+                vehicleSlug: 'toyota-corolla-2020',
+                vehicleId: 'veh-1',
+                vehicleTitle: '2020 Toyota Corolla',
+                requestedAt: '2026-08-17T10:00:00.000Z',
+                inquirerCount: 2,
+              },
+            ],
+          }),
+        };
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000', getAuthToken: () => 'auth-token' });
+      const { CustomerInquiryService } = await import('../services/customerInquiries.js');
+      const service = new CustomerInquiryService(client);
+
+      const result = await service.list();
+      expect(capturedUrl).toBe('http://localhost:4000/api/v1/customer/inquiries');
+      expect(result.items[0].vehicleSlug).toBe('toyota-corolla-2020');
+      expect(result.items[0].inquirerCount).toBe(2);
+    });
+
+  });
+
+  describe('WishlistService (D02-P13-T002, CUST-36/CUST-37)', () => {
+    it('lists wishlisted vehicles for the signed-in customer', async () => {
+      let capturedUrl: string | undefined;
+      const mockFetch = vi.fn().mockImplementation(async (url) => {
+        capturedUrl = url;
+        return {
+          ok: true,
+          status: 200,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: async () => ({
+            items: [
+              {
+                id: 'wish-1',
+                customerId: 'cust-1',
+                vehicleId: 'veh-1',
+                vehicleSlug: 'toyota-corolla-2020',
+                createdAt: '2026-08-17T10:00:00.000Z',
+              },
+            ],
+          }),
+        };
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000', getAuthToken: () => 'auth-token' });
+      const { WishlistService } = await import('../services/wishlist.js');
+      const service = new WishlistService(client);
+
+      const result = await service.list();
+      expect(capturedUrl).toBe('http://localhost:4000/api/v1/customer/wishlist');
+      expect(result.items[0].vehicleSlug).toBe('toyota-corolla-2020');
+    });
+
+    it('adds a vehicle to the wishlist', async () => {
+      let capturedUrl: string | undefined;
+      let capturedBody: string | undefined;
+      const mockFetch = vi.fn().mockImplementation(async (url, options) => {
+        capturedUrl = url;
+        capturedBody = options.body;
+        return {
+          ok: true,
+          status: 200,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: async () => ({
+            wishlisted: true,
+            item: {
+              id: 'wish-1',
+              customerId: 'cust-1',
+              vehicleId: 'veh-1',
+              vehicleSlug: 'toyota-corolla-2020',
+              createdAt: '2026-08-17T10:00:00.000Z',
+            },
+          }),
+        };
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000', getAuthToken: () => 'auth-token' });
+      const { WishlistService } = await import('../services/wishlist.js');
+      const service = new WishlistService(client);
+
+      const result = await service.add('toyota-corolla-2020');
+      expect(capturedUrl).toBe('http://localhost:4000/api/v1/customer/wishlist');
+      expect(capturedBody).toContain('toyota-corolla-2020');
+      expect(result.wishlisted).toBe(true);
+    });
+
+    it('removes a vehicle from the wishlist', async () => {
+      let capturedUrl: string | undefined;
+      const mockFetch = vi.fn().mockImplementation(async (url) => {
+        capturedUrl = url;
+        return {
+          ok: true,
+          status: 200,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: async () => ({
+            wishlisted: false,
+          }),
+        };
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000', getAuthToken: () => 'auth-token' });
+      const { WishlistService } = await import('../services/wishlist.js');
+      const service = new WishlistService(client);
+
+      const result = await service.remove('toyota-corolla-2020');
+      expect(capturedUrl).toContain('/api/v1/customer/wishlist/toyota-corolla-2020');
+      expect(result.wishlisted).toBe(false);
+    });
+  });
+
+  describe('FavouritesService (D02-P13-T002, CUST-38/CUST-39/CUST-40)', () => {
+    it('lists saved search-criteria profiles for the signed-in customer', async () => {
+      let capturedUrl: string | undefined;
+      const mockFetch = vi.fn().mockImplementation(async (url) => {
+        capturedUrl = url;
+        return {
+          ok: true,
+          status: 200,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: async () => ({
+            items: [
+              {
+                id: 'fav-1',
+                customerId: 'cust-1',
+                name: 'My Toyota Search',
+                criteria: { make: 'Toyota', yearFrom: 2015 },
+                createdAt: '2026-08-17T10:00:00.000Z',
+              },
+            ],
+            limit: 25,
+          }),
+        };
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000', getAuthToken: () => 'auth-token' });
+      const { FavouritesService } = await import('../services/favourites.js');
+      const service = new FavouritesService(client);
+
+      const result = await service.list();
+      expect(capturedUrl).toBe('http://localhost:4000/api/v1/customer/favourites');
+      expect(result.items[0].name).toBe('My Toyota Search');
+      expect(result.limit).toBe(25);
+    });
+
+    it('creates a new saved search-criteria profile', async () => {
+      let capturedUrl: string | undefined;
+      let capturedBody: string | undefined;
+      const mockFetch = vi.fn().mockImplementation(async (url, options) => {
+        capturedUrl = url;
+        capturedBody = options.body;
+        return {
+          ok: true,
+          status: 201,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: async () => ({
+            id: 'fav-2',
+            customerId: 'cust-1',
+            name: 'Honda Accord 2015+',
+            criteria: { make: 'Honda', model: 'Accord', yearFrom: 2015 },
+            createdAt: '2026-08-17T10:00:00.000Z',
+          }),
+        };
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000', getAuthToken: () => 'auth-token' });
+      const { FavouritesService } = await import('../services/favourites.js');
+      const service = new FavouritesService(client);
+
+      const result = await service.create('Honda Accord 2015+', { make: 'Honda', model: 'Accord', yearFrom: 2015 });
+      expect(capturedUrl).toBe('http://localhost:4000/api/v1/customer/favourites');
+      expect(capturedBody).toContain('Honda Accord 2015+');
+      expect(result.name).toBe('Honda Accord 2015+');
+    });
+
+    it('removes a saved search-criteria profile by ID', async () => {
+      let capturedUrl: string | undefined;
+      let methodUsed: string | undefined;
+      const mockFetch = vi.fn().mockImplementation(async (url, options) => {
+        capturedUrl = url;
+        methodUsed = options.method;
+        return {
+          ok: true,
+          status: 200,
+          statusText: 'OK',
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: async () => ({}),
+        };
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000', getAuthToken: () => 'auth-token' });
+      const { FavouritesService } = await import('../services/favourites.js');
+      const service = new FavouritesService(client);
+
+      await service.remove('fav-1');
+      expect(capturedUrl).toContain('/api/v1/customer/favourites/fav-1');
+      expect(methodUsed).toBe('DELETE');
+    });
+
+    it('gets distinct values available for each favourite search field', async () => {
+      let capturedUrl: string | undefined;
+      const mockFetch = vi.fn().mockImplementation(async (url) => {
+        capturedUrl = url;
+        return {
+          ok: true,
+          status: 200,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: async () => ({
+            makes: [
+              { name: 'Toyota', count: 50 },
+              { name: 'Honda', count: 30 },
+            ],
+            models: [{ name: 'Corolla', count: 20 }],
+            fuelTypes: [{ name: 'Petrol', count: 60 }],
+            driveTrains: [{ name: 'FWD', count: 40 }],
+            transmissions: [{ name: 'Automatic', count: 45 }],
+            yearRange: { min: 2000, max: 2024 },
+            priceRange: { min: 5000, max: 100000 },
+            mileageRange: { min: 0, max: 200000 },
+            modelCodes: [], // D02-ASM-008: no backing column
+            engineCcOptions: [], // D02-ASM-008: no backing column
+            colors: [], // D02-ASM-008: no backing column
+            steeringOptions: [], // D02-ASM-008: no backing column
+          }),
+        };
+      });
+      global.fetch = mockFetch;
+
+      const client = new HttpClient({ baseUrl: 'http://localhost:4000', getAuthToken: () => 'auth-token' });
+      const { FavouritesService } = await import('../services/favourites.js');
+      const service = new FavouritesService(client);
+
+      const result = await service.getFacets();
+      expect(capturedUrl).toBe('http://localhost:4000/api/v1/customer/favourites/facets');
+      expect(result.makes[0].name).toBe('Toyota');
+      expect(result.yearRange.min).toBe(2000);
+      expect(result.modelCodes).toEqual([]); // D02-ASM-008
+      expect(result.engineCcOptions).toEqual([]); // D02-ASM-008
+    });
+  });
+});

@@ -1,0 +1,133 @@
+import { describe, expect, it } from 'vitest';
+import React from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import type { CustomerPayment, CustomerPaymentNotification } from '@carchief/domain';
+import { CustomerShellProvider } from '../../shell/index.js';
+import { HttpClientProvider } from '../../account/index.js';
+import { getCustomerPaymentStatus, getPaymentType, getRemittanceJournalStatus, PaymentsPage } from '../PaymentsPage.js';
+import { PaymentDetailModal } from '../components/PaymentDetailModal.js';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: { retry: false },
+  },
+});
+
+const MOCK_USER = {
+  id: 'cust-123',
+  name: 'Charith Wellage',
+  email: 'charith.wellage@carchief.com',
+  role: 'CUSTOMER' as const,
+};
+
+const payment: CustomerPayment = {
+  id: 'pay-test',
+  customerId: 'cust-123',
+  invoiceId: 'inv-003',
+  reference: 'TT-TEST',
+  bankName: 'Customer bank',
+  currency: 'USD',
+  amountUsd: 500,
+  paymentDate: '2026-08-14',
+  status: 'Pending',
+  idempotencyKey: 'idem-test',
+  createdAt: '2026-08-14T00:00:00.000Z',
+};
+
+const event = (name: CustomerPaymentNotification['event']): CustomerPaymentNotification => ({
+  id: `event-${name}`,
+  customerId: 'cust-123',
+  paymentId: 'pay-test',
+  invoiceId: 'inv-003',
+  event: name,
+  createdAt: '2026-08-14T00:00:00.000Z',
+});
+
+describe('customer payment status projection', () => {
+  it('projects payment methods to the customer-facing payment type labels', () => {
+    expect(getPaymentType('WireTransfer')).toBe('TT');
+    expect(getPaymentType('Card')).toBe('Online Payment');
+  });
+
+  it('keeps under review and on hold as separate journal statuses', () => {
+    expect(getRemittanceJournalStatus('Pending')).toBe('UNDER REVIEW');
+    expect(getRemittanceJournalStatus('Resubmitted')).toBe('UNDER REVIEW');
+    expect(getRemittanceJournalStatus('Held')).toBe('ON HOLD');
+    expect(getRemittanceJournalStatus('Rejected')).toBe('REJECTED');
+  });
+
+  it('maps server events to held, resubmitted, approved and allocated states', () => {
+    expect(getCustomerPaymentStatus(payment, [event('PaymentHeld')])).toBe('Held');
+    expect(getCustomerPaymentStatus(payment, [event('PaymentResubmitted')])).toBe('Resubmitted');
+    expect(getCustomerPaymentStatus(payment, [event('PaymentApproved')])).toBe('Approved');
+    expect(getCustomerPaymentStatus(payment, [event('PaymentAllocated')])).toBe('Allocated');
+  });
+
+  it('does not expose an event belonging to another payment', () => {
+    expect(getCustomerPaymentStatus(payment, [{ ...event('PaymentHeld'), paymentId: 'pay-other' }])).toBe('Pending');
+  });
+});
+
+describe('FRD Phase 4: My Payments', () => {
+  it('renders the single Payments page with KPI cards and TT Remittance table', () => {
+    const html = renderToStaticMarkup(
+      React.createElement(
+        QueryClientProvider,
+        { client: queryClient },
+        React.createElement(
+          CustomerShellProvider,
+          { initialUser: MOCK_USER, initialRoute: '/payments' },
+          React.createElement(
+            HttpClientProvider,
+            { apiBaseUrl: 'http://127.0.0.1:4000' },
+            React.createElement(PaymentsPage)
+          )
+        )
+      )
+    );
+
+    expect(html).toContain('data-testid="customer-payments-page"');
+    expect(html).not.toContain('role="tablist"');
+    expect(html).not.toContain('Debit / Credit / Refunds');
+    expect(html).not.toContain('Payments (TT)');
+    expect(html).toContain('TOTAL TT AMOUNT');
+    expect(html).toContain('TOTAL ALLOCATED');
+    expect(html).toContain('TOTAL AVAILABLE');
+    expect(html).toContain('CUSTOMER TT REMITTANCE JOURNAL');
+    expect(html).toContain('REF.NO');
+    expect(html).toContain('PAYMENT TYPE');
+    expect(html).not.toContain('<th scope="col">DEPOSITOR</th>');
+    expect(html).not.toContain('data-testid="btn-detail-TT2400005"');
+    expect(html).not.toContain('data-testid="btn-history-TT2400005"');
+  });
+
+  it('renders PaymentDetailModal (Eye icon pop up) with full banking metadata and downloads', () => {
+    const html = renderToStaticMarkup(
+      React.createElement(PaymentDetailModal, {
+        isOpen: true,
+        onClose: () => {},
+        payment: {
+          id: 'pay-detail-1',
+          reference: 'TT2400005',
+          createdDate: '2024-10-20',
+          receivingBank: 'Mizuho Bank Tokyo',
+          depositorName: 'Depositor1',
+          customerName: 'Charith Wellage',
+          currency: 'USD',
+        ttAmount: 100000,
+        approvedDate: '2024-10-20',
+        financeNote: 'Finance is verifying the beneficiary bank confirmation before releasing this payment.',
+        },
+      })
+    );
+
+    expect(html).toContain('data-testid="payment-detail-modal"');
+    expect(html).toContain('TT2400005');
+    expect(html).toContain('Mizuho Bank Tokyo');
+    expect(html).toContain('Charith Wellage');
+    expect(html).toContain('$100,000.00 USD');
+    expect(html).toContain('Finance is verifying the beneficiary bank confirmation before releasing this payment.');
+  });
+
+});

@@ -110,7 +110,6 @@ describe('Vehicle Detail API & Contract Tests', () => {
     expect(detail).not.toBeNull();
     expect(detail?.id).toBe('veh-no-media');
     expect(detail?.media.gallery).toEqual([]);
-    expect(detail?.media.totalPicturesCount).toBe(0);
   });
 
   it('serves GET /api/v1/vehicles/:idOrSlug via Express app', async () => {

@@ -2,16 +2,16 @@
 const nextConfig = {
   output: 'standalone',
   transpilePackages: [
-    '@carchief/api-client', '@carchief/domain', '@carchief/pwa', '@carchief/theme',
+    '@carchief/api-client', '@carchief/domain', '@carchief/i18n', '@carchief/pwa', '@carchief/theme',
     '@carchief/ui', '@carchief/validation', '@carchief/vehicle-detail', '@carchief/vehicle-search',
   ],
   async redirects() {
     return [
       { source: '/index.php', destination: '/', permanent: true },
-      { source: '/stock.php', destination: '/vehicles', permanent: true },
-      { source: '/stock_list.php', destination: '/vehicles', permanent: true },
-      { source: '/search.php', destination: '/vehicles', permanent: true },
-      { source: '/stock_detail.php', destination: '/vehicles', permanent: true },
+      { source: '/stock.php', destination: '/allstock', permanent: true },
+      { source: '/stock_list.php', destination: '/allstock', permanent: true },
+      { source: '/search.php', destination: '/allstock', permanent: true },
+      { source: '/stock_detail.php', destination: '/allstock', permanent: true },
       { source: '/shipping.php', destination: '/shipping-schedule', permanent: true },
       { source: '/schedule.php', destination: '/shipping-schedule', permanent: true },
       { source: '/auction.php', destination: '/auction', permanent: true },

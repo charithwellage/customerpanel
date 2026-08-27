@@ -1,18 +1,83 @@
 # CarChief Task Execution Order
 
-Scope: Phase 0, Delivery 01 Public Website and Delivery 02 Customer Application. The immutable delivery sequence is infrastructure → Public phases 1.1–1.10 → Customer phases 2.1–2.10. Salesperson tasks remain intentionally absent; complete public SEO is included in Delivery 01.
+Scope: Phase 0, Delivery 01 Public Website and Delivery 02 Customer Application. Delivery 02 begins after accepted Public Phase 1.9; Public Phase 1.10 then runs as an independent reconciliation lane. Customer Phase 2.1 is its shared foundation, followed by protected parallel lanes and convergence in Phase 2.9. Salesperson tasks remain intentionally absent; complete public SEO is included in Delivery 01.
 
 Execution is sequential by default. A normal implementation task uses `self_ai` review: implementation → AI review/fixes → required MCP inspection/fixes for UI tasks → automated tests → `COMPLETE`. Each phase ends with one `phase_manual` code-review task. That task reviews only its phase branch PR against the matching delivery integration branch; a tech lead performs the only required manual code review before the PR can merge.
 
-Task agents never run `git commit`, `git push`, create pull requests, merge, rewrite history or self-approve. The human owner performs those Git operations manually. The global execution frontier prevents Delivery 02 from starting until `D01-P10-CODE_REVIEW` is `COMPLETE` and the Public delivery is merged. `D01-P09-CODE_REVIEW` remains functional Public acceptance; Phase 1.10 then reconciles the recorded requirement gaps before the Customer delivery begins.
+Task agents never run `git commit`, `git push`, create pull requests, merge, rewrite history or self-approve. The human owner performs those Git operations manually. Delivery 02 starts after `D01-P09-CODE_REVIEW` is `COMPLETE` and the accepted Public delivery base is merged. Delivery 01 Phase 1.10 is an independent Public reconciliation lane and may run in parallel; its changes are not automatically copied into Delivery 02.
 
 ## Branch sequence
 
 Phase 0 is branch-neutral. Every Delivery 01 phase uses `feat_delivery01_phase_NN`, created from the current `delivery_01_public_website` branch. After every normal phase task is COMPLETE, the human owner commits the phase work and creates or updates a PR targeting `delivery_01_public_website`. The matching phase code-review task records AI review, awaits tech-lead approval, and becomes COMPLETE before the human merges the PR.
 
-Delivery 02 uses integration branch `delivery_02_customer_application`, created once by a human from the fully accepted and updated `delivery_01_public_website`. Its phase branches are `feat_delivery02_phase_01` through `feat_delivery02_phase_10`, each created from the latest `delivery_02_customer_application`. Customer tasks work directly on their phase branch and use the same self-AI and phase PR-review lifecycle.
+Delivery 02 uses integration branch `delivery_02_customer_application`, created once by a human from the fully accepted and updated `delivery_01_public_website`. Its phase branches are `feat_delivery02_phase_01` through `feat_delivery02_phase_13`, each created from the latest `delivery_02_customer_application`. Customer tasks work directly on their phase branch and use the same self-AI and phase PR-review lifecycle.
 
 The one-time Delivery 02 branch bootstrap is a human action after Delivery 01 is merged: switch to and fast-forward `delivery_01_public_website`, confirm `git status --porcelain=v1 --untracked-files=all` is empty, then run `git switch -c delivery_02_customer_application`. Do not start `D02-P01-G001` before that branch exists. Requirement gaps are recorded in `delivery_02/REQUIREMENT_GAPS_AND_ASSUMPTIONS.md` and do not block Customer Phases 2.1–2.9.
+
+## Delivery 02 protected parallel lanes
+
+Phase 2.1 is the only shared foundation PR. Its `D02-P01-T004` task pre-registers every Customer route, contract/client fragment, Mock API module, fixture/reset namespace and Playwright spec owner. After that PR merges, two engineers may work independently:
+
+```mermaid
+flowchart TB
+    BASE[delivery_01_public_website] --> INT[delivery_02_customer_application<br/>integration branch]
+
+    INT --> P21[Phase 2.1 — foundation<br/>Branch: feat_delivery02_phase_01<br/>Review: D02-P01-CODE_REVIEW]
+    P21 --> M21[MERGE PR → delivery_02_customer_application]
+
+    subgraph COMMERCE[Engineer A — Commerce lane: sequential]
+      M21 --> P23[Phase 2.3 — showroom/search<br/>Branch: feat_delivery02_phase_03<br/>Review: D02-P03-CODE_REVIEW]
+      P23 --> M23[MERGE PR → delivery_02_customer_application]
+      M23 --> P24[Phase 2.4 — My Vehicles<br/>Branch: feat_delivery02_phase_04<br/>Review: D02-P04-CODE_REVIEW]
+      P24 --> M24[MERGE PR → delivery_02_customer_application]
+      M24 --> P25[Phase 2.5 — quotes/invoices<br/>Branch: feat_delivery02_phase_05<br/>Review: D02-P05-CODE_REVIEW]
+      P25 --> M25[MERGE PR → delivery_02_customer_application]
+      M25 --> P26[Phase 2.6 — payments/TT/PI<br/>Branch: feat_delivery02_phase_06<br/>Review: D02-P06-CODE_REVIEW]
+      P26 --> M26[MERGE PR → delivery_02_customer_application]
+    end
+
+    subgraph LOGISTICS[Engineer B — Dashboard/logistics lane: sequential]
+      M21 --> P22[Phase 2.2 — dashboard<br/>Branch: feat_delivery02_phase_02<br/>Review: D02-P02-CODE_REVIEW]
+      P22 --> M22[MERGE PR → delivery_02_customer_application]
+      M22 --> P27[Phase 2.7 — shipment/documents<br/>Branch: feat_delivery02_phase_07<br/>Review: D02-P07-CODE_REVIEW]
+      P27 --> M27[MERGE PR → delivery_02_customer_application]
+      M27 --> P28[Phase 2.8 — notifications/profile<br/>Branch: feat_delivery02_phase_08<br/>Review: D02-P08-CODE_REVIEW]
+      P28 --> M28[MERGE PR → delivery_02_customer_application]
+    end
+
+    M26 --> CONVERGE[CONVERGENCE GATE<br/>Both lane PRs/reviews merged]
+    M28 --> CONVERGE
+    CONVERGE --> P29[Phase 2.9 — Customer acceptance<br/>Branch: feat_delivery02_phase_09<br/>Review: D02-P09-CODE_REVIEW]
+    P29 --> M29[MERGE PR → delivery_02_customer_application]
+    M29 --> P210[Phase 2.10 — assumption reconciliation<br/>Branch: feat_delivery02_phase_10<br/>Review: D02-P10-CODE_REVIEW]
+    P210 --> M210[MERGE PR → delivery_02_customer_application]
+    M210 -. optional opt-in .-> P211[Phase 2.11 — multi-theme<br/>Branch: feat_delivery02_phase_11<br/>Review: D02-P11-CODE_REVIEW]
+    P211 -. optional PR merge .-> M211[OPTIONAL MERGE PR → delivery_02_customer_application]
+    M210 --> P212[Phase 2.12 — self-registration and real authentication<br/>Branch: feat_delivery02_phase_12<br/>Review: D02-P12-CODE_REVIEW]
+    P212 --> M212[MERGE PR → delivery_02_customer_application]
+    M212 --> P213[Phase 2.13 — quotes, inquiries, wishlist and favourites<br/>Branch: feat_delivery02_phase_13<br/>Review: D02-P13-CODE_REVIEW]
+    P213 --> M213[MERGE PR → delivery_02_customer_application]
+```
+
+**How to read this diagram:** each phase box is a separate branch and a separate PR into `delivery_02_customer_application`; each adjacent `MERGE PR` box is a required human merge before the next phase in that lane starts. Engineer A and Engineer B work in parallel only across the two lanes; phases inside one lane remain sequential. Every phase branch is created from the latest merged `delivery_02_customer_application`, never from another unmerged phase branch. Phase 2.9 cannot start until both lane merge/review paths reach the convergence gate. Phase 2.11 is optional and does not block Customer MVP completion. Phase 2.12 is mandatory, branches from the merged Phase 2.10 result and runs independently of the optional theme phase. Phase 2.13 is mandatory, branches from the merged Phase 2.12 result and adds the quote-request, inquiries, wishlist and favourites capabilities.
+
+**Legend:** phase boxes = implementation branch; `Review:` = phase AI/tech-lead review task; `MERGE PR` boxes = human PR merge into the integration branch; subgraphs = protected parallel lanes; `CONVERGENCE GATE` = both lanes must be merged; dotted arrows/boxes = optional work. The human owner performs branch creation, commit, push, PR creation, rebase and merge. A shared-file or shared-registry need pauses lane work for a serialized platform PR.
+
+| Lane | Branch sequence | Exclusive ownership |
+|---|---|---|
+| Commerce | `P03 (feat_delivery02_phase_03) → merge → P04 (feat_delivery02_phase_04) → merge → P05 (feat_delivery02_phase_05) → merge → P06 (feat_delivery02_phase_06) → merge` | customer inventory, vehicles, invoices and payments feature/module/fixture/spec namespaces |
+| Dashboard / logistics | `P02 (feat_delivery02_phase_02) → merge → P07 (feat_delivery02_phase_07) → merge → P08 (feat_delivery02_phase_08) → merge` | dashboard, shipment/documents, notifications and profile feature/module/fixture/spec namespaces |
+| Final convergence | `P09 (feat_delivery02_phase_09) → merge → P10 (feat_delivery02_phase_10) → merge → optional P11 (feat_delivery02_phase_11)` | final acceptance, assumptions and optional theme support |
+| Account lifecycle | `P12 (feat_delivery02_phase_12)` from the merged `delivery_02_customer_application` | customer accounts, credentials, registration/sign-in surfaces and demo-mode removal |
+| Inquiries / wishlist | `P13 (feat_delivery02_phase_13)` from the merged Phase 2.12 result | quote requests, My Inquiries, Wishlist and Favourites feature/module/fixture/spec namespaces |
+
+Each phase branch starts from the latest `delivery_02_customer_application`, targets that same branch in its own PR, and is rebased before PR update. A lane task must not change route registries, generated-client barrels, Mock API bootstrap, package manifests, lockfiles, Docker files, shared theme/vehicle packages or another lane's namespace. A shared need is a short serialized platform PR before lane work resumes. Phase 2.9 waits for both `D02-P06-CODE_REVIEW` and `D02-P08-CODE_REVIEW`.
+
+Phase 2.11 is optional: it is excluded from the normal frontier and starts only with `taskctl start ... --opt-in theme`; it never blocks Delivery 03.
+
+Phase 2.12 is **not** optional. It follows Phase 2.10 in its own `D02-ACCOUNT` lane, depends on `D02-P10-CODE_REVIEW` rather than the optional theme phase, and replaces the demo identity with real customer accounts before Delivery 03.
+
+Phase 2.13 is **not** optional. It follows Phase 2.12 in its own `D02-INQUIRIES-WISHLIST` lane, depends on `D02-P12-CODE_REVIEW`, and adds the quote-request/My Inquiries, Wishlist and Favourites capabilities before Delivery 03.
 
 ## Phase review gates
 
@@ -28,17 +93,20 @@ The one-time Delivery 02 branch bootstrap is a human action after Delivery 01 is
 | Phase 1.7 — Public information and content | `feat_delivery01_phase_07` | [D01-P07-T001](delivery_01/phase_07/D01-P07-T001.md), [D01-P07-T002](delivery_01/phase_07/D01-P07-T002.md), [D01-P07-T003](delivery_01/phase_07/D01-P07-T003.md), [D01-P07-T004](delivery_01/phase_07/D01-P07-T004.md), [D01-P07-CODE_REVIEW](delivery_01/phase_07/D01-P07-CODE_REVIEW.md) | P07-A → P07-B → P07-C → P07-REVIEW | D01-P07-CODE_REVIEW is the tech-lead PR gate |
 | Phase 1.8 — Public SEO, acceptance and release readiness | `feat_delivery01_phase_08` | [D01-P08-T005](delivery_01/phase_08/D01-P08-T005.md), [D01-P08-T001](delivery_01/phase_08/D01-P08-T001.md), [D01-P08-T002](delivery_01/phase_08/D01-P08-T002.md), [D01-P08-T003](delivery_01/phase_08/D01-P08-T003.md), [D01-P08-T004](delivery_01/phase_08/D01-P08-T004.md), [D01-P08-CODE_REVIEW](delivery_01/phase_08/D01-P08-CODE_REVIEW.md) | P08-PRE → P08-A → P08-B → P08-REVIEW | D01-P08-CODE_REVIEW is the tech-lead PR gate; D01-P08-T005 runs first, restoring a Phase 1.7 regression before the phase's other acceptance sweeps |
 | Phase 1.9 — Alternate theme parity | `feat_delivery01_phase_09` | [D01-P09-T001](delivery_01/phase_09/D01-P09-T001.md), [D01-P09-T002](delivery_01/phase_09/D01-P09-T002.md), [D01-P09-CODE_REVIEW](delivery_01/phase_09/D01-P09-CODE_REVIEW.md) | P09-A → P09-B → P09-REVIEW | D01-P09-CODE_REVIEW is the tech-lead PR gate and functional Public acceptance |
-| Phase 1.10 — Assumption reconciliation and MVP closure | `feat_delivery01_phase_10` | [D01-P10-T001](delivery_01/phase_10/D01-P10-T001.md), [D01-P10-T002](delivery_01/phase_10/D01-P10-T002.md), [D01-P10-T003](delivery_01/phase_10/D01-P10-T003.md), [D01-P10-CODE_REVIEW](delivery_01/phase_10/D01-P10-CODE_REVIEW.md) | Reconcile → adjust → re-verify → review | D01-P10-CODE_REVIEW is the tech-lead PR gate and the Delivery 02 start gate |
-| Phase 2.1 — Customer scope, shell and account access | `feat_delivery02_phase_01` | G001, T001–T003, CODE_REVIEW | Gate → sequential implementation → review | D02-P01-CODE_REVIEW |
+| Phase 1.10 — Assumption reconciliation and MVP closure | `feat_delivery01_phase_10` | [D01-P10-T001](delivery_01/phase_10/D01-P10-T001.md), [D01-P10-T002](delivery_01/phase_10/D01-P10-T002.md), [D01-P10-T003](delivery_01/phase_10/D01-P10-T003.md), [D01-P10-CODE_REVIEW](delivery_01/phase_10/D01-P10-CODE_REVIEW.md) | Reconcile → adjust → re-verify → review | Independent Public lane; Delivery 02 records any later compatibility adjustment in Phase 2.10 |
+| Phase 2.1 — Customer scope, shell and account access | `feat_delivery02_phase_01` | G001, T001–T004, CODE_REVIEW | Gate → foundation → review | D02-P01-CODE_REVIEW |
 | Phase 2.2 — Customer dashboard | `feat_delivery02_phase_02` | G001, T001–T002, CODE_REVIEW | Gate → sequential implementation → review | D02-P02-CODE_REVIEW |
 | Phase 2.3 — Customer showroom and vehicle search | `feat_delivery02_phase_03` | T001–T003, CODE_REVIEW | Sequential implementation → review | D02-P03-CODE_REVIEW |
 | Phase 2.4 — My Vehicles | `feat_delivery02_phase_04` | T001–T003, CODE_REVIEW | Sequential implementation → review | D02-P04-CODE_REVIEW |
 | Phase 2.5 — Quotes and invoices | `feat_delivery02_phase_05` | T001–T003, CODE_REVIEW | Sequential implementation → review | D02-P05-CODE_REVIEW |
-| Phase 2.6 — Payments, TT remittance and PI deadline | `feat_delivery02_phase_06` | G001, T001–T004, CODE_REVIEW | Gate → sequential implementation → review | D02-P06-CODE_REVIEW |
-| Phase 2.7 — Shipment tracking and secure documents | `feat_delivery02_phase_07` | G001, T001–T004, CODE_REVIEW | Gate → sequential implementation → review | D02-P07-CODE_REVIEW |
-| Phase 2.8 — Notifications and profile | `feat_delivery02_phase_08` | T001–T003, CODE_REVIEW | Sequential implementation → review | D02-P08-CODE_REVIEW |
+| Phase 2.6 — Payments, TT remittance and PI deadline | `feat_delivery02_phase_06` | G001, T001–T005, CODE_REVIEW | Gate → sequential implementation → review | D02-P06-CODE_REVIEW |
+| Phase 2.7 — Shipment tracking and secure documents | `feat_delivery02_phase_07` | G001, T001–T005, CODE_REVIEW | Gate → sequential implementation → review | D02-P07-CODE_REVIEW |
+| Phase 2.8 — Notifications and profile | `feat_delivery02_phase_08` | T001–T004, CODE_REVIEW | Sequential implementation → review | D02-P08-CODE_REVIEW |
 | Phase 2.9 — Customer Application acceptance | `feat_delivery02_phase_09` | T001–T004, CODE_REVIEW | Sequential acceptance → review | D02-P09-CODE_REVIEW |
 | Phase 2.10 — Assumption reconciliation and MVP closure | `feat_delivery02_phase_10` | T001–T003, CODE_REVIEW | Reconcile → adjust → final acceptance → review | D02-P10-CODE_REVIEW |
+| Phase 2.11 — Optional Customer multi-theme support | `feat_delivery02_phase_11` | T001–T002, CODE_REVIEW | Opt-in theme configuration → alternate-theme verification → review | D02-P11-CODE_REVIEW; optional and non-blocking |
+| Phase 2.12 — Customer self-registration and real authentication | `feat_delivery02_phase_12` | T001–T007, CODE_REVIEW | Mock accounts/credentials → shared packages → public-web register/login → demo removal → customer sign-in/recovery → profile password management → acceptance → review | D02-P12-CODE_REVIEW; mandatory, depends on D02-P10-CODE_REVIEW |
+| Phase 2.13 — Quote requests, My Inquiries, Wishlist and Favourites | `feat_delivery02_phase_13` | T001–T008, CODE_REVIEW | Enquiries/inquiries contract → wishlist/favourites contract → shared packages → public-web quote → customer-app quote/wishlist → My Inquiries → My Wishlist/Favourites → acceptance → review | D02-P13-CODE_REVIEW; mandatory, depends on D02-P12-CODE_REVIEW |
 
 ## Verification and review policy
 
@@ -50,13 +118,13 @@ Each `phase_manual` task reviews its delivery integration branch against its pha
 
 The Docker gates remain the existing phase acceptance tasks plus the Phase 1.2 visual remediation validation: `D01-P01-T010`, `D01-P01-T012`, `D01-P02-T002`, `D01-P02-T004`, `D01-P02-T006`, `D01-P03-T004`, `D01-P04-T003`, `D01-P05-T004`, `D01-P06-T005`, `D01-P07-T004` and `D01-P08-T004`. They rebuild/start the target Compose stack, run container Playwright checks, record manual smoke evidence, verify local Swagger where applicable, and shut down cleanly.
 
-Delivery 02 Docker gates are `D02-P01-T003`, `D02-P02-T002`, `D02-P03-T003`, `D02-P04-T003`, `D02-P05-T003`, `D02-P06-T004`, `D02-P07-T004`, `D02-P08-T003`, `D02-P09-T004` and `D02-P10-T003`. They rebuild the customer app, mock API and PostgreSQL stack, verify local Swagger/OpenAPI, run container Playwright and record the phase supervisor smoke scenario.
+Delivery 02 Docker gates are `D02-P01-T003`, `D02-P02-T002`, `D02-P03-T003`, `D02-P04-T003`, `D02-P05-T003`, `D02-P06-T004`, `D02-P07-T004`, `D02-P08-T003`, `D02-P09-T004`, `D02-P10-T003`, `D02-P12-T007` and `D02-P13-T008`. They rebuild the customer app, mock API and PostgreSQL stack, verify local Swagger/OpenAPI, run container Playwright and record the phase supervisor smoke scenario.
 
 ## Capacity baseline
 
 The corrective Phase 1.2 POC visual-parity task is **1.25 delivery days**, the final UI-validation task is **0.5 delivery day**, the reusable-style remediation is **0.75 delivery day**, the mixed-PR hygiene correction is **0.5 delivery day**, and the late Playwright MCP infrastructure gate is **0.25 delivery day**. Remaining task estimates already include testing and review, so their estimates are unchanged. The recalculated Delivery 01 task inventory totals **34.25 working days**, while infrastructure readiness remains **1.5 days**.
 
-Delivery 02 contains **27.75 delivery days** of gate, implementation, acceptance and phase-review capacity. A 15% review/correction allowance produces approximately **32 working days**, presented as a **6–7 calendar-week baseline** with two experienced engineers coordinating bounded AI work. Requirement ambiguity no longer pauses Phases 2.1–2.9; Phase 2.10 reconciles the recorded MVP assumptions.
+Delivery 02 contains **47.75 delivery days** of gate, implementation, acceptance and phase-review capacity, including the **8.75 days** added by Phase 2.12 and the **11.25 days** added by Phase 2.13. A 15% review/correction allowance produces approximately **55 working days**, presented as a **10–11 calendar-week baseline** with two experienced engineers coordinating bounded AI work. Requirement ambiguity no longer pauses Phases 2.1–2.9; Phase 2.10 reconciles the recorded MVP assumptions.
 
 ## Complete ordered inventory
 
@@ -127,16 +195,17 @@ Delivery 02 contains **27.75 delivery days** of gate, implementation, acceptance
 | 60.2 | [D01-P10-T002](delivery_01/phase_10/D01-P10-T002.md) | Apply approved Delivery 01 assumption adjustments | D01-P10-T001 | D01-P10-SEQUENTIAL | self_ai | playwright_mcp | 1 day |
 | 60.3 | [D01-P10-T003](delivery_01/phase_10/D01-P10-T003.md) | Re-verify theme parity and close Delivery 01 MVP acceptance | D01-P10-T002 | D01-P10-SEQUENTIAL | self_ai | playwright_mcp | 0.5 days |
 | 60.4 | [D01-P10-CODE_REVIEW](delivery_01/phase_10/D01-P10-CODE_REVIEW.md) | Phase 1.10 PR code review and tech-lead approval | D01-P10-T003 | D01-P10-REVIEW | phase_manual | not_applicable | 0.25 day |
-| 61 | [D02-P01-G001](delivery_02/phase_01/D02-P01-G001.md) | Record Customer scope, BA workflow ownership and Keycloak identity baseline | D01-P10-CODE_REVIEW | D02-P01-GATE | self_ai | not_applicable | 0.25 days |
+| 61 | [D02-P01-G001](delivery_02/phase_01/D02-P01-G001.md) | Record Customer scope, BA workflow ownership and Keycloak identity baseline | D01-P09-CODE_REVIEW | D02-P01-GATE | self_ai | not_applicable | 0.25 days |
 | 62 | [D02-P01-T001](delivery_02/phase_01/D02-P01-T001.md) | Complete the customer application shell and responsive navigation | D02-P01-G001 | D02-P01-SEQUENTIAL | self_ai | playwright_mcp | 0.75 days |
 | 63 | [D02-P01-T002](delivery_02/phase_01/D02-P01-T002.md) | Add customer session, account states and protected access | D02-P01-T001 | D02-P01-SEQUENTIAL | self_ai | playwright_mcp | 1 day |
 | 64 | [D02-P01-T003](delivery_02/phase_01/D02-P01-T003.md) | Accept customer themes, PWA shell, accessibility and Docker deployment | D02-P01-T002 | D02-P01-SEQUENTIAL | self_ai | playwright_mcp | 0.75 days |
-| 65 | [D02-P01-CODE_REVIEW](delivery_02/phase_01/D02-P01-CODE_REVIEW.md) | Phase 2.1 PR code review and tech-lead approval | D02-P01-T003 | D02-P01-REVIEW | phase_manual | not_applicable | 0.25 day |
+| 64.5 | [D02-P01-T004](delivery_02/phase_01/D02-P01-T004.md) | Establish Customer feature extension points and ownership registry | D02-P01-T003 | D02-P01-SEQUENTIAL | self_ai | not_applicable | 0.5 day |
+| 65 | [D02-P01-CODE_REVIEW](delivery_02/phase_01/D02-P01-CODE_REVIEW.md) | Phase 2.1 PR code review and tech-lead approval | D02-P01-T004 | D02-P01-REVIEW | phase_manual | not_applicable | 0.25 day |
 | 66 | [D02-P02-G001](delivery_02/phase_02/D02-P02-G001.md) | Establish non-blocking customer dashboard KPI baseline | D02-P01-CODE_REVIEW | D02-P02-GATE | self_ai | not_applicable | 0.25 days |
 | 67 | [D02-P02-T001](delivery_02/phase_02/D02-P02-T001.md) | Add customer dashboard aggregate contracts and linked mock scenarios | D02-P02-G001 | D02-P02-SEQUENTIAL | self_ai | not_applicable | 0.5 days |
 | 68 | [D02-P02-T002](delivery_02/phase_02/D02-P02-T002.md) | Build and accept the customer Overview page | D02-P02-T001 | D02-P02-SEQUENTIAL | self_ai | playwright_mcp | 0.5 days |
 | 69 | [D02-P02-CODE_REVIEW](delivery_02/phase_02/D02-P02-CODE_REVIEW.md) | Phase 2.2 PR code review and tech-lead approval | D02-P02-T002 | D02-P02-REVIEW | phase_manual | not_applicable | 0.25 day |
-| 70 | [D02-P03-T001](delivery_02/phase_03/D02-P03-T001.md) | Add customer inventory projection, tier pricing and reservation eligibility | D02-P02-CODE_REVIEW | D02-P03-SEQUENTIAL | self_ai | not_applicable | 0.5 days |
+| 70 | [D02-P03-T001](delivery_02/phase_03/D02-P03-T001.md) | Add customer inventory projection, tier pricing and reservation eligibility | D02-P01-CODE_REVIEW | D02-P03-SEQUENTIAL | self_ai | not_applicable | 0.5 days |
 | 71 | [D02-P03-T002](delivery_02/phase_03/D02-P03-T002.md) | Integrate shared vehicle search and detail for the customer audience | D02-P03-T001 | D02-P03-SEQUENTIAL | self_ai | playwright_mcp | 0.75 days |
 | 72 | [D02-P03-T003](delivery_02/phase_03/D02-P03-T003.md) | Add customer reservation actions and showroom acceptance | D02-P03-T002 | D02-P03-SEQUENTIAL | self_ai | playwright_mcp | 0.75 days |
 | 73 | [D02-P03-CODE_REVIEW](delivery_02/phase_03/D02-P03-CODE_REVIEW.md) | Phase 2.3 PR code review and tech-lead approval | D02-P03-T003 | D02-P03-REVIEW | phase_manual | not_applicable | 0.25 day |
@@ -150,21 +219,24 @@ Delivery 02 contains **27.75 delivery days** of gate, implementation, acceptance
 | 81 | [D02-P05-CODE_REVIEW](delivery_02/phase_05/D02-P05-CODE_REVIEW.md) | Phase 2.5 PR code review and tech-lead approval | D02-P05-T003 | D02-P05-REVIEW | phase_manual | not_applicable | 0.25 day |
 | 82 | [D02-P06-G001](delivery_02/phase_06/D02-P06-G001.md) | Approve PI deadline, payment proof and customer payment vocabulary | D02-P05-CODE_REVIEW | D02-P06-GATE | self_ai | not_applicable | 0.25 days |
 | 83 | [D02-P06-T001](delivery_02/phase_06/D02-P06-T001.md) | Add customer TT journal, creation and proof metadata mock operations | D02-P06-G001 | D02-P06-SEQUENTIAL | self_ai | not_applicable | 0.75 days |
-| 84 | [D02-P06-T002](delivery_02/phase_06/D02-P06-T002.md) | Build customer payment journal and status detail | D02-P06-T001 | D02-P06-SEQUENTIAL | self_ai | playwright_mcp | 0.75 days |
+| 83.5 | [D02-P06-T005](delivery_02/phase_06/D02-P06-T005.md) | Add payment notification outbox and allocation acceptance | D02-P06-T001 | D02-P06-SEQUENTIAL | self_ai | not_applicable | 0.5 day |
+| 84 | [D02-P06-T002](delivery_02/phase_06/D02-P06-T002.md) | Build customer payment journal and status detail | D02-P06-T005 | D02-P06-SEQUENTIAL | self_ai | playwright_mcp | 0.75 days |
 | 85 | [D02-P06-T003](delivery_02/phase_06/D02-P06-T003.md) | Build secure TT submission and retry behavior | D02-P06-T002 | D02-P06-SEQUENTIAL | self_ai | playwright_mcp | 0.75 days |
 | 86 | [D02-P06-T004](delivery_02/phase_06/D02-P06-T004.md) | Add PI deadline, hold, resubmission and allocation acceptance | D02-P06-T003 | D02-P06-SEQUENTIAL | self_ai | playwright_mcp | 1.25 days |
-| 87 | [D02-P06-CODE_REVIEW](delivery_02/phase_06/D02-P06-CODE_REVIEW.md) | Phase 2.6 PR code review and tech-lead approval | D02-P06-T004 | D02-P06-REVIEW | phase_manual | not_applicable | 0.25 day |
-| 88 | [D02-P07-G001](delivery_02/phase_07/D02-P07-G001.md) | Approve shipment, Ship OK and customer document policy | D02-P06-CODE_REVIEW | D02-P07-GATE | self_ai | not_applicable | 0.25 days |
+| 87 | [D02-P06-CODE_REVIEW](delivery_02/phase_06/D02-P06-CODE_REVIEW.md) | Phase 2.6 PR code review and tech-lead approval | D02-P06-T004, D02-P06-T005 | D02-P06-REVIEW | phase_manual | not_applicable | 0.25 day |
+| 88 | [D02-P07-G001](delivery_02/phase_07/D02-P07-G001.md) | Establish customer shipment/document baseline | D02-P01-CODE_REVIEW | D02-P07-GATE | self_ai | not_applicable | 0.25 days |
 | 89 | [D02-P07-T001](delivery_02/phase_07/D02-P07-T001.md) | Add customer shipment timeline and secure-document mock operations | D02-P07-G001 | D02-P07-SEQUENTIAL | self_ai | not_applicable | 0.5 days |
 | 90 | [D02-P07-T002](delivery_02/phase_07/D02-P07-T002.md) | Build customer shipment tracking and exception states | D02-P07-T001 | D02-P07-SEQUENTIAL | self_ai | playwright_mcp | 0.75 days |
 | 91 | [D02-P07-T003](delivery_02/phase_07/D02-P07-T003.md) | Build the ten-category customer Secure Vault | D02-P07-T002 | D02-P07-SEQUENTIAL | self_ai | playwright_mcp | 1 day |
-| 92 | [D02-P07-T004](delivery_02/phase_07/D02-P07-T004.md) | Add Ship OK, document release and shipment/document acceptance | D02-P07-T003 | D02-P07-SEQUENTIAL | self_ai | playwright_mcp | 1.25 days |
-| 93 | [D02-P07-CODE_REVIEW](delivery_02/phase_07/D02-P07-CODE_REVIEW.md) | Phase 2.7 PR code review and tech-lead approval | D02-P07-T004 | D02-P07-REVIEW | phase_manual | not_applicable | 0.25 day |
-| 94 | [D02-P08-T001](delivery_02/phase_08/D02-P08-T001.md) | Add customer notification and profile mock operations | D02-P07-CODE_REVIEW | D02-P08-SEQUENTIAL | self_ai | not_applicable | 0.5 days |
+| 91.5 | [D02-P07-T005](delivery_02/phase_07/D02-P07-T005.md) | Enforce secure document access and customer visibility | D02-P07-T003 | D02-P07-SEQUENTIAL | self_ai | playwright_mcp | 0.5 day |
+| 92 | [D02-P07-T004](delivery_02/phase_07/D02-P07-T004.md) | Add Ship OK, document release and shipment/document acceptance | D02-P07-T005 | D02-P07-SEQUENTIAL | self_ai | playwright_mcp | 1.25 days |
+| 93 | [D02-P07-CODE_REVIEW](delivery_02/phase_07/D02-P07-CODE_REVIEW.md) | Phase 2.7 PR code review and tech-lead approval | D02-P07-T004, D02-P07-T005 | D02-P07-REVIEW | phase_manual | not_applicable | 0.25 day |
+| 94 | [D02-P08-T001](delivery_02/phase_08/D02-P08-T001.md) | Add customer notification mock operations | D02-P07-CODE_REVIEW | D02-P08-SEQUENTIAL | self_ai | not_applicable | 0.5 days |
 | 95 | [D02-P08-T002](delivery_02/phase_08/D02-P08-T002.md) | Build customer notifications and linked transaction navigation | D02-P08-T001 | D02-P08-SEQUENTIAL | self_ai | playwright_mcp | 0.5 days |
-| 96 | [D02-P08-T003](delivery_02/phase_08/D02-P08-T003.md) | Build customer profile, identity handoff and phase acceptance | D02-P08-T002 | D02-P08-SEQUENTIAL | self_ai | playwright_mcp | 0.75 days |
-| 97 | [D02-P08-CODE_REVIEW](delivery_02/phase_08/D02-P08-CODE_REVIEW.md) | Phase 2.8 PR code review and tech-lead approval | D02-P08-T003 | D02-P08-REVIEW | phase_manual | not_applicable | 0.25 day |
-| 98 | [D02-P09-T001](delivery_02/phase_09/D02-P09-T001.md) | Complete Customer requirement and compiled-behavior traceability | D02-P08-CODE_REVIEW | D02-P09-SEQUENTIAL | self_ai | not_applicable | 0.5 days |
+| 95.5 | [D02-P08-T004](delivery_02/phase_08/D02-P08-T004.md) | Add customer profile mock operations independently | D02-P08-T001 | D02-P08-SEQUENTIAL | self_ai | not_applicable | 0.25 day |
+| 96 | [D02-P08-T003](delivery_02/phase_08/D02-P08-T003.md) | Build customer profile, identity handoff and phase acceptance | D02-P08-T002, D02-P08-T004 | D02-P08-SEQUENTIAL | self_ai | playwright_mcp | 0.75 days |
+| 97 | [D02-P08-CODE_REVIEW](delivery_02/phase_08/D02-P08-CODE_REVIEW.md) | Phase 2.8 PR code review and tech-lead approval | D02-P08-T003, D02-P08-T004 | D02-P08-REVIEW | phase_manual | not_applicable | 0.25 day |
+| 98 | [D02-P09-T001](delivery_02/phase_09/D02-P09-T001.md) | Complete Customer requirement and compiled-behavior traceability | D02-P06-CODE_REVIEW, D02-P08-CODE_REVIEW | D02-P09-SEQUENTIAL | self_ai | not_applicable | 0.5 days |
 | 99 | [D02-P09-T002](delivery_02/phase_09/D02-P09-T002.md) | Complete customer security, isolation and offline-safety acceptance | D02-P09-T001 | D02-P09-SEQUENTIAL | self_ai | not_applicable | 0.75 days |
 | 100 | [D02-P09-T003](delivery_02/phase_09/D02-P09-T003.md) | Complete responsive, accessibility, theme, PWA and performance acceptance | D02-P09-T002 | D02-P09-SEQUENTIAL | self_ai | playwright_mcp | 1 day |
 | 101 | [D02-P09-T004](delivery_02/phase_09/D02-P09-T004.md) | Run Customer Docker UAT and produce Delivery 03 handoff | D02-P09-T003 | D02-P09-SEQUENTIAL | self_ai | playwright_mcp | 1.5 days |
@@ -173,6 +245,26 @@ Delivery 02 contains **27.75 delivery days** of gate, implementation, acceptance
 | 104 | [D02-P10-T002](delivery_02/phase_10/D02-P10-T002.md) | Apply approved Delivery 02 assumption adjustments | D02-P10-T001 | D02-P10-SEQUENTIAL | self_ai | playwright_mcp | 1 day |
 | 105 | [D02-P10-T003](delivery_02/phase_10/D02-P10-T003.md) | Run final Customer assumption, Docker and golden-journey acceptance | D02-P10-T002 | D02-P10-SEQUENTIAL | self_ai | playwright_mcp | 1 day |
 | 106 | [D02-P10-CODE_REVIEW](delivery_02/phase_10/D02-P10-CODE_REVIEW.md) | Phase 2.10 PR code review and tech-lead approval | D02-P10-T003 | D02-P10-REVIEW | phase_manual | not_applicable | 0.25 day |
+| 106.1 | [D02-P11-T001](delivery_02/phase_11/D02-P11-T001.md) | Add optional Customer theme configuration and provider integration | D02-P10-CODE_REVIEW | D02-P11-OPTIONAL | self_ai | playwright_mcp | 0.5 day |
+| 106.2 | [D02-P11-T002](delivery_02/phase_11/D02-P11-T002.md) | Enable and verify the optional ocean Customer theme | D02-P11-T001 | D02-P11-OPTIONAL | self_ai | playwright_mcp | 0.5 day |
+| 106.3 | [D02-P11-CODE_REVIEW](delivery_02/phase_11/D02-P11-CODE_REVIEW.md) | Optional Customer multi-theme PR code review and tech-lead approval | D02-P11-T002 | D02-P11-OPTIONAL | phase_manual | not_applicable | 0.25 day |
+| 107 | [D02-P12-T001](delivery_02/phase_12/D02-P12-T001.md) | Build the Mock API customer account store, credential handling and authentication contract | D02-P10-CODE_REVIEW | D02-P12-SEQUENTIAL | self_ai | not_applicable | 1.5 days |
+| 108 | [D02-P12-T002](delivery_02/phase_12/D02-P12-T002.md) | Add shared country, credential validation and authentication client capabilities | D02-P12-T001 | D02-P12-SEQUENTIAL | self_ai | not_applicable | 0.75 days |
+| 109 | [D02-P12-T003](delivery_02/phase_12/D02-P12-T003.md) | Replace the public-web Customer Portal action with Register and Login and build the registration page | D02-P12-T002 | D02-P12-SEQUENTIAL | self_ai | playwright_mcp | 1.5 days |
+| 110 | [D02-P12-T004](delivery_02/phase_12/D02-P12-T004.md) | Remove demo-mode identity from the public website | D02-P12-T003 | D02-P12-SEQUENTIAL | self_ai | playwright_mcp | 1 day |
+| 111 | [D02-P12-T005](delivery_02/phase_12/D02-P12-T005.md) | Deliver real credential sign-in and password recovery in the Customer application | D02-P12-T004 | D02-P12-SEQUENTIAL | self_ai | playwright_mcp | 1.5 days |
+| 112 | [D02-P12-T006](delivery_02/phase_12/D02-P12-T006.md) | Rebuild the Customer profile page with working password management and remove residual demo copy | D02-P12-T005 | D02-P12-SEQUENTIAL | self_ai | playwright_mcp | 1 day |
+| 113 | [D02-P12-T007](delivery_02/phase_12/D02-P12-T007.md) | Verify the end-to-end account journey, container gate and Phase 2.12 acceptance | D02-P12-T006 | D02-P12-SEQUENTIAL | self_ai | playwright_mcp | 1 day |
+| 114 | [D02-P12-CODE_REVIEW](delivery_02/phase_12/D02-P12-CODE_REVIEW.md) | Phase 2.12 PR code review and tech-lead approval | D02-P12-T007 | D02-P12-REVIEW | phase_manual | not_applicable | 0.5 days |
+| 115 | [D02-P13-T001](delivery_02/phase_13/D02-P13-T001.md) | Extend the enquiries contract to link quote requests to customers and expose an inquirer-count aggregate | D02-P12-CODE_REVIEW | D02-P13-SEQUENTIAL | self_ai | not_applicable | 1.5 days |
+| 116 | [D02-P13-T002](delivery_02/phase_13/D02-P13-T002.md) | Add the Wishlist and Favourites Mock API entities, routes and facets endpoint | D02-P13-T001 | D02-P13-SEQUENTIAL | self_ai | not_applicable | 1.5 days |
+| 117 | [D02-P13-T003](delivery_02/phase_13/D02-P13-T003.md) | Add shared validation schemas and api-client services for quotes, inquiries, wishlist and favourites | D02-P13-T002 | D02-P13-SEQUENTIAL | self_ai | not_applicable | 0.75 days |
+| 118 | [D02-P13-T004](delivery_02/phase_13/D02-P13-T004.md) | Add Get Free Quote to the public-web vehicle detail page | D02-P13-T003 | D02-P13-SEQUENTIAL | self_ai | playwright_mcp | 1.5 days |
+| 119 | [D02-P13-T005](delivery_02/phase_13/D02-P13-T005.md) | Add Get Free Quote and Add to Wishlist to the customer-app vehicle detail page | D02-P13-T004 | D02-P13-SEQUENTIAL | self_ai | playwright_mcp | 1.5 days |
+| 120 | [D02-P13-T006](delivery_02/phase_13/D02-P13-T006.md) | Build the customer-app My Inquiries page and nav entry | D02-P13-T005 | D02-P13-SEQUENTIAL | self_ai | playwright_mcp | 1 day |
+| 121 | [D02-P13-T007](delivery_02/phase_13/D02-P13-T007.md) | Build the customer-app My Wishlist and Favourites pages with nav entries and 25-cap UX | D02-P13-T006 | D02-P13-SEQUENTIAL | self_ai | playwright_mcp | 2 days |
+| 122 | [D02-P13-T008](delivery_02/phase_13/D02-P13-T008.md) | Verify cross-feature integration, customer isolation, container gate and Phase 2.13 acceptance | D02-P13-T007 | D02-P13-SEQUENTIAL | self_ai | playwright_mcp | 1 day |
+| 123 | [D02-P13-CODE_REVIEW](delivery_02/phase_13/D02-P13-CODE_REVIEW.md) | Phase 2.13 PR code review and tech-lead approval | D02-P13-T008 | D02-P13-REVIEW | phase_manual | not_applicable | 0.5 days |
 
 ## Merge and continuation protocol
 
@@ -180,7 +272,7 @@ Delivery 02 contains **27.75 delivery days** of gate, implementation, acceptance
 2. After all normal tasks in a phase are COMPLETE, the human owner manually commits phase work and creates/updates the PR to that delivery's integration branch (`delivery_01_public_website` for Delivery 01; `delivery_02_customer_application` for Delivery 02).
 3. The phase code-review task performs AI review of that exact branch comparison and moves to IN_REVIEW.
 4. The tech lead manually reviews the PR and approves the phase code-review task.
-5. The human owner merges the approved PR. Only then may the next phase begin from the synchronized delivery branch.
+5. The human owner merges the approved PR. The next phase in that same lane begins from the synchronized delivery branch. The other protected Delivery 02 lane may proceed whenever its explicit dependencies permit it.
 
 ## BA workflow follow-on order
 

@@ -14,6 +14,7 @@
     "build": "pnpm --recursive --sort run build",
     "api:generate": "node openapi/generate.mjs",
     "mock:reset": "node apps/mock-api/scripts/reset.mjs",
+    "audit:mock-api-contract": "node scripts/check-mock-api-contract.mjs",
     "test:boundaries": "node scripts/check-boundaries.mjs",
     "quality": "pnpm lint && pnpm typecheck && pnpm test:boundaries",
     "test": "vitest run",

@@ -1,5 +1,5 @@
 {
-  "title": "About CarChief | Japanese Used Vehicle Exporters",
+  "title": "About CarChief | Welcome to CarChief",
   "entries": [
     {
       "tag": "header",
@@ -26,20 +26,20 @@
     {
       "tag": "a",
       "role": "link",
-      "name": "HOME",
+      "name": "SHOWROOM",
       "href": "/"
     },
     {
       "tag": "a",
       "role": "link",
-      "name": "INVENTORY",
-      "href": "/inventory"
+      "name": "ALL STOCK",
+      "href": "/allstock"
     },
     {
       "tag": "a",
       "role": "link",
       "name": "PREMIUM STOCK",
-      "href": "/inventory?category=premium"
+      "href": "/#premium-stock"
     },
     {
       "tag": "a",
@@ -56,14 +56,32 @@
     {
       "tag": "a",
       "role": "link",
-      "name": "CONTACT US",
+      "name": "TESTIMONIALS",
+      "href": "/testimonials"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "FAQ",
+      "href": "/faq"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "CONTACT",
       "href": "/contact"
     },
     {
       "tag": "a",
       "role": "link",
-      "name": "Sign in or create an account",
-      "href": "/account?returnTo=%2Fabout"
+      "name": "LOGIN",
+      "href": "http://127.0.0.1:3001"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "REGISTER",
+      "href": "/register"
     },
     {
       "tag": "button",
@@ -76,39 +94,58 @@
       "name": ""
     },
     {
-      "tag": "header",
-      "role": "banner",
-      "name": ""
-    },
-    {
       "tag": "h1",
       "role": "heading",
-      "name": "About CarChief",
+      "name": "WELCOME TO CARCHIEF!",
       "level": 1
     },
     {
-      "tag": "a",
-      "role": "link",
-      "name": "HOW TO BUY GUIDE",
-      "href": "/how-to-buy"
+      "tag": "h2",
+      "role": "heading",
+      "name": "CARCHIEF OPERATIONS",
+      "level": 2
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "OUR VISION",
+      "level": 3
+    },
+    {
+      "tag": "h4",
+      "role": "heading",
+      "name": "TO TRANSFORM DREAMS INTO REALITY",
+      "level": 4
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "OUR MISSION",
+      "level": 3
+    },
+    {
+      "tag": "h4",
+      "role": "heading",
+      "name": "CONVENIENCE, HAPPINESS, AND DISTINCTION",
+      "level": 4
+    },
+    {
+      "tag": "h2",
+      "role": "heading",
+      "name": "REDEFINING ONLINE CAR PROCUREMENT",
+      "level": 2
     },
     {
       "tag": "a",
       "role": "link",
-      "name": "CONTACT SUPPORT",
+      "name": "INQUIRE WITH AN AGENT",
       "href": "/contact"
     },
     {
-      "tag": "h2",
-      "role": "heading",
-      "name": "Our Mission",
-      "level": 2
-    },
-    {
-      "tag": "h2",
-      "role": "heading",
-      "name": "Quality Standards",
-      "level": 2
+      "tag": "a",
+      "role": "link",
+      "name": "BROWSE STOCK LIST",
+      "href": "/allstock"
     },
     {
       "tag": "footer",
@@ -164,5 +201,5 @@
       "level": 4
     }
   ],
-  "text": "Skip to main content CC CARCHIEF ONLINE HOME INVENTORY PREMIUM STOCK HOW TO BUY ABOUT US CONTACT US SIGN IN Company Information About CarChief Leading Japanese vehicle export specialist connecting global buyers with certified quality stock. Owner: ExecutiveTeam Updated: Aug 10, 2026 Status: Approved HOW TO BUY GUIDE CONTACT SUPPORT CarChief is a premier Japanese vehicle export dealer headquartered in Tokyo, Japan. We specialize in supplying high-quality Japanese used vehicles to importers, dealers, and individual buyers across East Africa, Southern Africa, the Caribbean, and Oceania. Our Mission Delivering transparent, reliable, and accessible vehicle purchasing directly from Japan to your local port. Quality Standards Every vehicle in our stock undergoes rigorous pre-shipment multi-point inspections by certified inspectors. CC CARCHIEF PREMIUM GLOBAL VEHICLE EXPORTERS CarChief is a high-end showcase portal providing direct ocean-cargo logistics, certified pre-owned inspections, and custom spec tracking. LOGISTICS CORE PORTALS Showroom Catalog How to Buy About Us Testimonials FAQ Contact Us SECURE VERIFICATION CarChief utilizes highly secure cloud-replicated server architectures for real-time transaction records and client logs. 🔒 SECURED CLOUD ENVELOPE © 2026 CARCHIEF AUTO GROUP. ALL RIGHTS RESERVED. CLOUDRUN ENVIRONMENT · REGISTRY SECURITY PROTOCOL SHIELD-V2"
+  "text": "Skip to main content C CAR CHIEF ONLINE SHOWROOM ALL STOCK PREMIUM STOCK HOW TO BUY ABOUT US TESTIMONIALS FAQ CONTACT LOGIN REGISTER GLOBAL OPERATIONS HERITAGE WELCOME TO CARCHIEF! We are the premier global automotive curators and logistics broker network, specializing in seamless intercontinental vehicle export and dealer empowerment. GLOBAL INFRASTRUCTURE CARCHIEF OPERATIONS 🚩 35 YEARS 🌐 14 COUNTRIES 🧭 4 CONTINENTS 🏢 9 OFFICES 🎯 STRATEGIC PILLAR OUR VISION TO TRANSFORM DREAMS INTO REALITY Our vision is to become the trusted partner of choice for dealers, known for our reliability and integrity. We are committed to creating a seamless and transparent experience that empowers dealers to grow their businesses confidently. Through exceptional service, innovative solutions, and unwavering integrity, we aim to be the trusted ally for dealers seeking long-term success. \"We aim to establish ourselves as a trusted ally for dealers looking to achieve long-term success.\" EST. OPERATIONS GLOBAL ALLY REGISTERED 🧡 OPERATIONS MANDATE OUR MISSION CONVENIENCE, HAPPINESS, AND DISTINCTION Our mission is to be the industry leaders in online car sales, constantly adapting to market trends. We aim to surpass expectations by offering a wide range of cars and reliable, secure delivery through our dedicated fleet. By doing so, we strive to set new standards both online and offline. Our mission is driven by our commitment to dealers, providing them with unmatched opportunities for success in the automotive industry. Together, let's redefine the online car buying experience and empower dealers for long-term growth. UNIFIED FLEET DEALER DEDICATED REDEFINING ONLINE CAR PROCUREMENT Connect directly with one of our operations coordinators for professional dealer services. We manage the entire loop from export diagnostics to container offloading. INQUIRE WITH AN AGENT BROWSE STOCK LIST CC CARCHIEF PREMIUM GLOBAL VEHICLE EXPORTERS CarChief is a high-end showcase portal providing direct ocean-cargo logistics, certified pre-owned inspections, and custom spec tracking. LOGISTICS CORE PORTALS Showroom Catalog How to Buy About Us Testimonials FAQ Contact Us SECURE VERIFICATION CarChief utilizes highly secure cloud-replicated server architectures for real-time transaction records and client logs. 🔒 SECURED CLOUD ENVELOPE © 2026 CARCHIEF AUTO GROUP. ALL RIGHTS RESERVED. CLOUDRUN ENVIRONMENT · REGISTRY SECURITY PROTOCOL SHIELD-V2"
 }

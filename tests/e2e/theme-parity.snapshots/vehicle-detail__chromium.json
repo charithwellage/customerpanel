@@ -26,20 +26,20 @@
     {
       "tag": "a",
       "role": "link",
-      "name": "HOME",
+      "name": "SHOWROOM",
       "href": "/"
     },
     {
       "tag": "a",
       "role": "link",
-      "name": "INVENTORY",
-      "href": "/inventory"
+      "name": "ALL STOCK",
+      "href": "/allstock"
     },
     {
       "tag": "a",
       "role": "link",
       "name": "PREMIUM STOCK",
-      "href": "/inventory?category=premium"
+      "href": "/#premium-stock"
     },
     {
       "tag": "a",
@@ -56,14 +56,32 @@
     {
       "tag": "a",
       "role": "link",
-      "name": "CONTACT US",
+      "name": "TESTIMONIALS",
+      "href": "/testimonials"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "FAQ",
+      "href": "/faq"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "CONTACT",
       "href": "/contact"
     },
     {
       "tag": "a",
       "role": "link",
-      "name": "Sign in or create an account",
-      "href": "/account?returnTo=%2Fvehicles%2F2021-toyota-corolla-axio-veh-1"
+      "name": "LOGIN",
+      "href": "http://127.0.0.1:3001"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "REGISTER",
+      "href": "/register"
     },
     {
       "tag": "button",
@@ -175,7 +193,7 @@
       "tag": "a",
       "role": "link",
       "name": "SIGN IN TO RESERVE",
-      "href": "/account?returnTo=%2Fvehicles%2F2021-toyota-corolla-axio-veh-1"
+      "href": "/account?returnTo=%2Fallstock%2F2021-toyota-corolla-axio-veh-1"
     },
     {
       "tag": "h2",
@@ -283,5 +301,5 @@
       "level": 4
     }
   ],
-  "text": "Skip to main content CC CARCHIEF ONLINE HOME INVENTORY PREMIUM STOCK HOW TO BUY ABOUT US CONTACT US SIGN IN 2021 TOYOTA COROLLA AXIO $8,500 AVAILABLE SHARE PRINT SPEC SHEET Media Gallery ‹ › GENERAL ENQUIRY WHATSAPP INTENT EMAIL INTENT Sign in to reserve this vehicle You need to sign in or create an account before reserving 2021 Toyota Corolla Axio. Nothing has been reserved yet. SIGN IN TO RESERVE SPECIFICATIONS Body Style SEDAN Fuel Type PETROL Transmission AUTOMATIC Drive Train 2WD Mileage 32,000 KM Stock Type J Location IN JAPAN Destination MOMBASA ETD 2026-08-20T00:00:00.000Z ETA 2026-09-10T00:00:00.000Z Estimate Shipping Cost Select where you would like this vehicle shipped to see what shipping information is currently available for that route. Destination country * Select a destination… Uganda (Uganda) Kenya (Kenya) Tanzania (Tanzania) Rwanda (Rwanda) South Sudan (South Sudan) Arrival port * Select an arrival port… Mombasa (Kenya) Dar es Salaam (Tanzania) Vehicle dimensions (optional, millimetres) Length Width Height City delivery and insurance options will appear here once a confirmed shipping rate is available. GET SHIPPING ESTIMATE Select a destination and arrival port, then request an estimate to see shipping information for this route. CC CARCHIEF PREMIUM GLOBAL VEHICLE EXPORTERS CarChief is a high-end showcase portal providing direct ocean-cargo logistics, certified pre-owned inspections, and custom spec tracking. LOGISTICS CORE PORTALS Showroom Catalog How to Buy About Us Testimonials FAQ Contact Us SECURE VERIFICATION CarChief utilizes highly secure cloud-replicated server architectures for real-time transaction records and client logs. 🔒 SECURED CLOUD ENVELOPE © 2026 CARCHIEF AUTO GROUP. ALL RIGHTS RESERVED. CLOUDRUN ENVIRONMENT · REGISTRY SECURITY PROTOCOL SHIELD-V2"
+  "text": "Skip to main content C CAR CHIEF ONLINE SHOWROOM ALL STOCK PREMIUM STOCK HOW TO BUY ABOUT US TESTIMONIALS FAQ CONTACT LOGIN REGISTER 2021 TOYOTA COROLLA AXIO $8,500 AVAILABLE SHARE PRINT SPEC SHEET Media Gallery ‹ › GENERAL ENQUIRY WHATSAPP INTENT EMAIL INTENT Sign in to reserve this vehicle You need to sign in or create an account before reserving 2021 Toyota Corolla Axio. Nothing has been reserved yet. SIGN IN TO RESERVE SPECIFICATIONS Body Style SEDAN Fuel Type PETROL Transmission AUTOMATIC Drive Train 2WD Mileage 32,000 KM Stock Type J Location IN JAPAN Destination MOMBASA ETD 2026-08-20T00:00:00.000Z ETA 2026-09-10T00:00:00.000Z Estimate Shipping Cost Select where you would like this vehicle shipped to see what shipping information is currently available for that route. Destination country * Select a destination… Uganda (Uganda) Kenya (Kenya) Tanzania (Tanzania) Rwanda (Rwanda) South Sudan (South Sudan) Arrival port * Select an arrival port… Mombasa (Kenya) Dar es Salaam (Tanzania) Vehicle dimensions (optional, millimetres) Length Width Height City delivery and insurance options will appear here once a confirmed shipping rate is available. GET SHIPPING ESTIMATE Select a destination and arrival port, then request an estimate to see shipping information for this route. CC CARCHIEF PREMIUM GLOBAL VEHICLE EXPORTERS CarChief is a high-end showcase portal providing direct ocean-cargo logistics, certified pre-owned inspections, and custom spec tracking. LOGISTICS CORE PORTALS Showroom Catalog How to Buy About Us Testimonials FAQ Contact Us SECURE VERIFICATION CarChief utilizes highly secure cloud-replicated server architectures for real-time transaction records and client logs. 🔒 SECURED CLOUD ENVELOPE © 2026 CARCHIEF AUTO GROUP. ALL RIGHTS RESERVED. CLOUDRUN ENVIRONMENT · REGISTRY SECURITY PROTOCOL SHIELD-V2"
 }

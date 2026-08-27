@@ -33,6 +33,7 @@ ui_validation: "not_applicable"
 - Only requirements, architecture sections and evidence explicitly named by those completed tasks.
 
 ## Requirements and rules
+**Delivery 02 execution policy:** Read [D02_TEST_MATRIX.md](../D02_TEST_MATRIX.md) before implementing. Use only the default `carchief` theme in Phases 2.1–2.10. Run only task-owned tests and the dependency-closure build listed in the matrix; full regression belongs to Phases 2.9–2.10. Do not edit another protected lane's owned paths or shared registries.
 
 Apply every shared code-review rule and specifically verify CUST/UI/PWA/BA traceability, IDOR/privacy/security, responsive accessibility, themes, PWA, performance, Docker UAT and Delivery 03 readiness.
 
@@ -102,7 +103,7 @@ No contract, mock, database or product change is owned; review conformance only.
 
 For every completed task marked `ui_validation: "playwright_mcp"`, verify its execution log proves a fresh current-worktree runtime: `Fresh-runtime verification: PASS`, `Runtime provenance:`, `Service readiness: PASS`, a recorded target URL, and Playwright MCP/automated results against that same URL. Treat a stale-image, stale-server, missing health/API/reset check, or a browser failure deferred from the implementation task as a **blocking** finding. Reopen the responsible task; do not approve the phase on earlier or source-only evidence.
 
-Review the phase diff for shared package boundaries, both themes, phone/tablet/desktop behavior, keyboard/focus/contrast/zoom/reduced motion, customer isolation, sensitive-cache/PWA safety and honest external labels.
+Review the phase diff for shared package boundaries, the default theme, phone/tablet/desktop behavior, keyboard/focus/contrast/zoom/reduced motion, customer isolation, sensitive-cache/PWA safety and honest external labels.
 
 ## Automated tests to add
 

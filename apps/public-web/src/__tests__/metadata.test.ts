@@ -5,6 +5,8 @@ import { metadata as contactMetadata } from '../app/contact/page';
 import { metadata as aboutMetadata } from '../app/about/page';
 import { metadata as freightMetadata } from '../app/freight-calculator/page';
 import { metadata as accountMetadata } from '../app/account/layout';
+import { metadata as clearanceMetadata } from '../app/clearance-stock/page';
+import { metadata as premiumMetadata } from '../app/premium-stock/page';
 import { generateMetadata as generateVehicleDetailMetadata } from '../app/allstock/[slug]/page';
 import * as loadVehicleDetailModule from '../features/vehicle-detail/loadVehicleDetail';
 
@@ -20,6 +22,20 @@ describe('Public Route Metadata (PUB-11, DEC-PUB-SEO-SCOPE)', () => {
     expect(vehiclesMetadata.title).toContain('Inventory Search');
     expect(vehiclesMetadata.description).toContain('Japanese used vehicles');
     expect(vehiclesMetadata.alternates?.canonical).toBeDefined();
+  });
+
+  it('exports clearance-specific metadata for the Clearance Stock search page', () => {
+    expect(clearanceMetadata.title).toContain('Clearance Stock');
+    expect(clearanceMetadata.description).toContain('clearance stock');
+    expect(clearanceMetadata.alternates?.canonical).toContain('/clearance-stock');
+    expect(clearanceMetadata.openGraph?.url).toContain('/clearance-stock');
+  });
+
+  it('exports premium-specific metadata for the Premium Stock search page', () => {
+    expect(premiumMetadata.title).toContain('Premium Stock');
+    expect(premiumMetadata.description).toContain('premium stock');
+    expect(premiumMetadata.alternates?.canonical).toContain('/premium-stock');
+    expect(premiumMetadata.openGraph?.url).toContain('/premium-stock');
   });
 
   it('exports valid metadata for Contact and About content pages', () => {
@@ -47,7 +63,7 @@ describe('Public Route Metadata (PUB-11, DEC-PUB-SEO-SCOPE)', () => {
       status: 'Available',
       priceState: 'priced',
       priceUsd: 28500,
-      media: { gallery: ['https://example.com/rav4.jpg'], totalPicturesCount: 1 },
+  media: { gallery: ['https://example.com/rav4.jpg'] },
       locationStatus: 'In Japan',
       bodyStyle: 'SUV',
     });

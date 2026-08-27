@@ -26,44 +26,62 @@
     {
       "tag": "a",
       "role": "link",
-      "name": "Home",
+      "name": "SHOWROOM",
       "href": "/"
     },
     {
       "tag": "a",
       "role": "link",
-      "name": "Inventory",
-      "href": "/inventory"
+      "name": "ALL STOCK",
+      "href": "/allstock"
     },
     {
       "tag": "a",
       "role": "link",
-      "name": "Premium Stock",
-      "href": "/inventory?category=premium"
+      "name": "PREMIUM STOCK",
+      "href": "/#premium-stock"
     },
     {
       "tag": "a",
       "role": "link",
-      "name": "How to Buy",
+      "name": "HOW TO BUY",
       "href": "/how-to-buy"
     },
     {
       "tag": "a",
       "role": "link",
-      "name": "About Us",
+      "name": "ABOUT US",
       "href": "/about"
     },
     {
       "tag": "a",
       "role": "link",
-      "name": "Contact Us",
+      "name": "TESTIMONIALS",
+      "href": "/testimonials"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "FAQ",
+      "href": "/faq"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "CONTACT",
       "href": "/contact"
     },
     {
       "tag": "a",
       "role": "link",
-      "name": "Sign in or create an account",
-      "href": "/account?returnTo=%2Fservices"
+      "name": "Login",
+      "href": "http://127.0.0.1:3001"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "Register",
+      "href": "/register"
     },
     {
       "tag": "button",
@@ -176,5 +194,5 @@
       "level": 4
     }
   ],
-  "text": "Skip to main content CC CARCHIEF ONLINE ☰ Why Choose CarChief CarChief Company Services Comprehensive auto export, inspection, marine insurance, and logistics management. Owner: OperationsTeam Updated: Aug 10, 2026 Status: Approved AUCTION SERVICES SHIPPING SCHEDULES CarChief offers end-to-end vehicle sourcing, pre-export mechanical inspections, custom container packing, marine insurance, and port handling services. Japanese Auto Auction Sourcing Our team sources vehicles found at major Japanese auto auctions on your behalf, reviewing authentic condition grading and inspection sheets before purchase. Pre-Shipment Inspections (JAVIC / QISJ) Every vehicle is thoroughly inspected for roadworthiness, mileage verification, and structural integrity before export. RORO & Container Logistics Management Efficient vessel booking and container consolidation from Yokohama and Kobe ports to East/Southern Africa & Caribbean. Marine Transit Insurance Coverage Optional comprehensive transit insurance covering vehicle loss or damage during ocean transit. CC CARCHIEF PREMIUM GLOBAL VEHICLE EXPORTERS CarChief is a high-end showcase portal providing direct ocean-cargo logistics, certified pre-owned inspections, and custom spec tracking. LOGISTICS CORE PORTALS Showroom Catalog How to Buy About Us Testimonials FAQ Contact Us SECURE VERIFICATION CarChief utilizes highly secure cloud-replicated server architectures for real-time transaction records and client logs. 🔒 SECURED CLOUD ENVELOPE © 2026 CARCHIEF AUTO GROUP. ALL RIGHTS RESERVED. CLOUDRUN ENVIRONMENT · REGISTRY SECURITY PROTOCOL SHIELD-V2"
+  "text": "Skip to main content C CAR CHIEF ONLINE ☰ Why Choose CarChief CarChief Company Services Comprehensive auto export, inspection, marine insurance, and logistics management. Owner: OperationsTeam Updated: Aug 10, 2026 Status: Approved AUCTION SERVICES SHIPPING SCHEDULES CarChief offers end-to-end vehicle sourcing, pre-export mechanical inspections, custom container packing, marine insurance, and port handling services. Japanese Auto Auction Sourcing Our team sources vehicles found at major Japanese auto auctions on your behalf, reviewing authentic condition grading and inspection sheets before purchase. Pre-Shipment Inspections (JAVIC / QISJ) Every vehicle is thoroughly inspected for roadworthiness, mileage verification, and structural integrity before export. RORO & Container Logistics Management Efficient vessel booking and container consolidation from Yokohama and Kobe ports to East/Southern Africa & Caribbean. Marine Transit Insurance Coverage Optional comprehensive transit insurance covering vehicle loss or damage during ocean transit. CC CARCHIEF PREMIUM GLOBAL VEHICLE EXPORTERS CarChief is a high-end showcase portal providing direct ocean-cargo logistics, certified pre-owned inspections, and custom spec tracking. LOGISTICS CORE PORTALS Showroom Catalog How to Buy About Us Testimonials FAQ Contact Us SECURE VERIFICATION CarChief utilizes highly secure cloud-replicated server architectures for real-time transaction records and client logs. 🔒 SECURED CLOUD ENVELOPE © 2026 CARCHIEF AUTO GROUP. ALL RIGHTS RESERVED. CLOUDRUN ENVIRONMENT · REGISTRY SECURITY PROTOCOL SHIELD-V2"
 }

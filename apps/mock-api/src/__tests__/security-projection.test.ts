@@ -10,7 +10,7 @@ import { createMockApiApp } from '../server.js';
 async function startServer(store: ReturnType<typeof createStore>) {
   const app = createMockApiApp(store);
   const server: Server = await new Promise((resolve) => {
-    const s = app.listen(0, () => resolve(s));
+    const s = app.listen(0, '127.0.0.1', () => resolve(s));
   });
   const port = (server.address() as { port: number }).port;
   return { server, port };
@@ -18,7 +18,7 @@ async function startServer(store: ReturnType<typeof createStore>) {
 
 describe('Mock API Security & Projection Guard (RULE-08, RULE-09)', () => {
   it('projects public vehicle details without exposing internal cost or supplier fields', async () => {
-    const store = createStore();
+    const store = createStore('');
     await store.ready();
 
     const vehicle = await store.getVehicleDetail('2021-toyota-corolla-axio-veh-1');
@@ -41,17 +41,18 @@ describe('Mock API Security & Projection Guard (RULE-08, RULE-09)', () => {
     process.env.NODE_ENV = 'production';
     delete process.env.ENABLE_MOCK_RESET;
 
-    const store = createStore();
+    const store = createStore('');
     await store.ready();
     const { server, port } = await startServer(store);
 
     try {
-      const res = await fetch(`http://localhost:${port}/api/v1/__reset`, { method: 'POST' });
+      const res = await fetch(`http://127.0.0.1:${port}/api/v1/__reset`, { method: 'POST' });
       expect(res.status).toBe(403);
 
       const body = await res.json();
       expect(body.message).toContain('disabled in production environment');
     } finally {
+      server.closeAllConnections?.();
       await new Promise((resolve) => server.close(resolve));
       process.env.NODE_ENV = originalNodeEnv;
       if (originalResetFlag === undefined) {
@@ -62,23 +63,24 @@ describe('Mock API Security & Projection Guard (RULE-08, RULE-09)', () => {
     }
   });
 
-  it('allows reset execution over the real HTTP route when ENABLE_MOCK_RESET=true overrides production', async () => {
+  it('keeps reset disabled in production even when a mock override is supplied', async () => {
     const originalNodeEnv = process.env.NODE_ENV;
     const originalResetFlag = process.env.ENABLE_MOCK_RESET;
     process.env.NODE_ENV = 'production';
     process.env.ENABLE_MOCK_RESET = 'true';
 
-    const store = createStore();
+    const store = createStore('');
     await store.ready();
     const { server, port } = await startServer(store);
 
     try {
-      const res = await fetch(`http://localhost:${port}/api/v1/__reset`, { method: 'POST' });
-      expect(res.status).toBe(200);
+      const res = await fetch(`http://127.0.0.1:${port}/api/v1/__reset`, { method: 'POST' });
+      expect(res.status).toBe(403);
 
       const body = await res.json();
-      expect(body.success).toBe(true);
+      expect(body.message).toContain('disabled in production environment');
     } finally {
+      server.closeAllConnections?.();
       await new Promise((resolve) => server.close(resolve));
       process.env.NODE_ENV = originalNodeEnv;
       if (originalResetFlag === undefined) {

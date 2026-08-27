@@ -1,0 +1,787 @@
+/*
+ * shell.css
+ * Feature-level styles for the Customer Application shell: sidebar, navigation,
+ * page container, loading/empty/error surfaces, error boundary and footer.
+ * Owned path: apps/customer-app/src/features/shell/
+ *
+ * Every value uses a semantic token emitted by packages/theme/src/provider.ts.
+ * No literal colours, no fallback palettes. Media-query widths are the only
+ * literals, because CSS cannot evaluate a custom property inside `@media`;
+ * they mirror the breakpoint tokens in packages/theme/src/tokens.ts.
+ */
+
+.cc-cust-shell-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--color-background);
+}
+
+@media (min-width: 1024px) {
+  .cc-cust-shell-layout {
+    flex-direction: row;
+  }
+}
+
+.cc-cust-shell-skip-link {
+  position: absolute;
+  left: var(--spacing-md);
+  top: -100px;
+  z-index: 100;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-primary);
+  color: var(--color-text-on-primary);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.cc-cust-shell-skip-link:focus {
+  top: var(--spacing-md);
+}
+
+/* ---------- Sidebar & Desktop Brand ---------- */
+
+.cc-cust-shell-sidebar {
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  z-index: 30;
+}
+
+.cc-cust-shell-sidebar__inner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.cc-cust-shell-sidebar__brand {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-lg) var(--spacing-md) var(--spacing-md);
+}
+
+.cc-cust-shell-sidebar__logo-link {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: inherit;
+}
+
+.cc-cust-shell-sidebar__logo-wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.cc-cust-shell-sidebar__logo-icon {
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.cc-cust-shell-sidebar__logo-badge {
+  font-family: var(--font-display);
+  font-size: var(--font-size-base);
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: var(--color-text-primary);
+}
+
+.cc-cust-shell-sidebar__portal-pill {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+  padding: 1px 7px;
+  border-radius: var(--radius-sm);
+  background: var(--color-neutral-surface);
+}
+
+/* Header backward-compat classes for unit tests */
+.cc-cust-shell-header {
+  display: contents;
+}
+
+.cc-cust-shell-header__logo-badge {
+  font-family: var(--font-display);
+  font-size: var(--font-size-lg);
+  font-weight: 800;
+  color: var(--color-text-primary);
+}
+
+.cc-cust-shell-header__logo-sub {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+/* ---------- Navigation items ---------- */
+
+.cc-cust-shell-nav--desktop {
+  display: none;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: var(--spacing-xs) var(--spacing-md);
+}
+
+.cc-cust-shell-nav__list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.cc-cust-shell-nav__item {
+  width: 100%;
+}
+
+.cc-cust-shell-nav__link {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: 11px 16px;
+  min-height: 42px;
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  font-family: var(--font-display);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  transition: all var(--motion-fast) ease;
+}
+
+.cc-cust-shell-nav__link:hover {
+  background: var(--color-neutral-surface);
+  color: var(--color-text-primary);
+}
+
+.cc-cust-shell-nav__link--active,
+.cc-cust-shell-nav__link--active:hover {
+  background-color: var(--color-primary);
+  color: var(--color-text-on-primary);
+  font-weight: 700;
+  box-shadow: var(--shadow-sm);
+}
+
+.cc-cust-shell-nav__icon {
+  font-size: 1.15rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cc-cust-shell-nav__label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cc-cust-shell-nav__badge {
+  margin-left: auto;
+  padding: 2px 8px;
+  background: var(--color-primary);
+  color: var(--color-text-on-primary);
+  border-radius: var(--radius-pill);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.cc-cust-shell-global-bell {
+  position: fixed;
+  top: var(--spacing-md);
+  right: var(--spacing-md);
+  z-index: 40;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-elevated);
+  color: var(--color-text-secondary);
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
+  transition: background-color var(--motion-fast) ease, color var(--motion-fast) ease, transform var(--motion-fast) ease;
+}
+
+.cc-cust-shell-global-bell:hover {
+  background: var(--color-primary);
+  color: var(--color-text-on-primary);
+  transform: translateY(-1px);
+}
+
+.cc-cust-shell-global-bell:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+.cc-cust-shell-global-bell__badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  padding: 1px 4px;
+  border: 2px solid var(--color-background);
+  border-radius: var(--radius-pill);
+  background: var(--color-primary);
+  color: var(--color-text-on-primary);
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 800;
+  line-height: 14px;
+  text-align: center;
+}
+
+.cc-cust-shell-nav__link--active .cc-cust-shell-nav__badge {
+  background: var(--color-surface);
+  color: var(--color-primary);
+}
+
+/* ---------- Collapsible Nav Groups (D02-P14-T007) ---------- */
+
+.cc-cust-nav-group {
+  width: 100%;
+}
+
+.cc-cust-nav-group__toggle {
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+/* Keep an expanded group visibly active when one of its child routes is selected. */
+.cc-cust-nav-group__toggle.cc-cust-shell-nav__link--active {
+  background-color: var(--color-primary);
+  color: var(--color-text-on-primary);
+}
+
+.cc-cust-nav-group__toggle .cc-cust-shell-nav__label {
+  flex: 1 1 auto;
+}
+
+.cc-cust-nav-chevron {
+  flex-shrink: 0;
+  margin-left: auto;
+  color: currentColor;
+  opacity: 0.6;
+  transition: transform var(--motion-fast) ease;
+}
+
+.cc-cust-nav-chevron--open {
+  transform: rotate(180deg);
+}
+
+.cc-cust-nav-group__sub-list {
+  list-style: none;
+  margin: 4px 0 4px 28px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-left: 2px solid var(--color-border);
+  padding-left: 8px;
+  animation: cc-subnav-reveal var(--motion-fast) ease;
+}
+
+@keyframes cc-subnav-reveal {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.cc-cust-nav-group__sub-item {
+  width: 100%;
+}
+
+.cc-cust-nav-group__sub-link {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-weight: 500;
+  transition: all var(--motion-fast) ease;
+}
+
+.cc-cust-nav-group__sub-link:hover {
+  background: var(--color-neutral-surface);
+  color: var(--color-text-primary);
+}
+
+.cc-cust-nav-group__sub-link--active {
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  color: var(--color-primary);
+  font-weight: 700;
+  border-left: 2px solid var(--color-primary);
+  margin-left: -10px;
+  padding-left: 20px;
+}
+
+.cc-cust-nav-group__sub-icon {
+  font-size: 0.9rem;
+  opacity: 0.7;
+}
+
+/* ---------- Sidebar Footer Utilities & Auth ---------- */
+
+.cc-cust-shell-sidebar__footer {
+  display: none;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) var(--spacing-md) var(--spacing-lg);
+  border-top: 1px solid var(--color-border);
+  margin-top: auto;
+}
+
+.cc-cust-shell-sidebar__tools {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+/* ---------- Language Switcher (D02-P14-T006) ---------- */
+
+.cc-cust-lang-switcher {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: 6px 12px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--spacing-xs);
+}
+
+.cc-cust-lang-switcher__icon {
+  font-size: var(--font-size-sm);
+}
+
+.cc-cust-lang-switcher__select {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--color-text-primary);
+  font-family: var(--font-display);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+}
+
+.cc-cust-sidebar-tool-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: 9px 14px;
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  font-family: var(--font-display);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  text-align: left;
+  transition: all var(--motion-fast) ease;
+}
+
+.cc-cust-sidebar-tool-btn:hover {
+  background: var(--color-neutral-surface);
+  color: var(--color-text-primary);
+}
+
+.cc-cust-tool-icon {
+  font-size: 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cc-cust-shell-sidebar__auth-action {
+  padding-top: var(--spacing-xs);
+}
+
+.cc-cust-shell-signout-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
+  width: 100%;
+  padding: 10px var(--spacing-md);
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in srgb, var(--color-error) 40%, var(--color-border));
+  background: var(--color-error-surface);
+  color: var(--color-error);
+  font-family: var(--font-display);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--motion-fast) ease;
+}
+
+.cc-cust-shell-signout-btn:hover {
+  background: var(--color-error);
+  color: var(--color-text-on-primary);
+  border-color: var(--color-error);
+}
+
+.cc-cust-shell-signout-btn:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.cc-cust-shell-login-btn {
+  display: block;
+  text-align: center;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-md);
+  background: var(--color-neutral-surface);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+}
+
+/* ---------- Mobile Drawer Navigation ---------- */
+
+.cc-cust-shell-mobile-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--min-touch-target);
+  min-height: var(--min-touch-target);
+  background: transparent;
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: var(--font-size-lg);
+}
+
+.cc-cust-shell-nav--mobile {
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
+  padding: var(--spacing-sm) 0;
+}
+
+.cc-cust-shell-nav__list--mobile {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  list-style: none;
+  margin: 0;
+  padding: var(--spacing-sm) var(--spacing-md);
+}
+
+.cc-cust-shell-nav__link--mobile {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  min-height: var(--min-touch-target);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+  text-decoration: none;
+  font-family: var(--font-display);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  transition: background-color var(--motion-fast) ease;
+}
+
+.cc-cust-shell-nav__link--mobile:hover {
+  background: var(--color-neutral-surface);
+}
+
+.cc-cust-shell-nav__link--mobile.cc-cust-shell-nav__link--active {
+  background: var(--color-primary);
+  color: var(--color-text-on-primary);
+  font-weight: 700;
+}
+
+.cc-cust-shell-nav__mobile-footer {
+  padding: var(--spacing-sm) var(--spacing-md) var(--spacing-md);
+}
+
+.cc-cust-shell-signout-btn--mobile {
+  margin-top: var(--spacing-sm);
+}
+
+/* ---------- Main Content Wrapper Region ---------- */
+
+.cc-cust-shell-main-wrapper {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--color-background);
+}
+
+.cc-cust-shell-main {
+  flex: 1 0 auto;
+}
+
+.cc-cust-shell-main:focus {
+  outline: none;
+}
+
+.cc-cust-shell-page-header {
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.cc-cust-shell-page-header__container,
+.cc-cust-shell-container {
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: var(--spacing-lg) var(--spacing-lg);
+  box-sizing: border-box;
+}
+
+.cc-cust-shell-page-header__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--font-size-2xl);
+  color: var(--color-text-primary);
+}
+
+.cc-cust-shell-page-header__subtitle {
+  margin: var(--spacing-xs) 0 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+/* Screen reader utility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* ---------- Loading / empty / error surfaces ---------- */
+
+.cc-cust-shell-loading {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  padding: var(--spacing-xl);
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+}
+
+.cc-cust-shell-spinner {
+  width: var(--spacing-lg);
+  height: var(--spacing-lg);
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: var(--radius-pill);
+  animation: cc-cust-shell-spin var(--motion-slow) linear infinite;
+}
+
+@keyframes cc-cust-shell-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.cc-cust-shell-error-banner {
+  padding: var(--spacing-lg);
+  background: var(--color-error-surface);
+  border: 1px solid var(--color-error);
+  border-radius: var(--radius-lg);
+  color: var(--color-text-primary);
+}
+
+.cc-cust-shell-empty {
+  padding: var(--spacing-xl);
+  background: var(--color-neutral-surface);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+  color: var(--color-text-secondary);
+  text-align: center;
+}
+
+.cc-cust-shell-error-surface {
+  padding: var(--spacing-lg);
+}
+
+.cc-cust-shell-error-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  max-width: 640px;
+  padding: var(--spacing-lg);
+  background: var(--color-surface);
+  border: 1px solid var(--color-error);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.cc-cust-shell-error-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--font-size-xl);
+  color: var(--color-error);
+}
+
+.cc-cust-shell-error-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.cc-cust-shell-error-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+}
+
+/* ---------- Buttons ---------- */
+
+.cc-cust-shell-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--min-touch-target);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color var(--motion-fast) ease;
+}
+
+.cc-cust-shell-btn--primary {
+  background: var(--color-primary);
+  color: var(--color-text-on-primary);
+}
+
+.cc-cust-shell-btn--primary:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+}
+
+.cc-cust-shell-btn--primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.cc-cust-shell-btn--secondary {
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  border-color: var(--color-border);
+}
+
+/* ---------- Footer ---------- */
+
+.cc-cust-shell-footer {
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  border-top: 1px solid var(--color-border);
+  margin-top: auto;
+}
+
+.cc-cust-shell-footer__container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: var(--spacing-md) var(--spacing-lg);
+  font-size: var(--font-size-xs);
+  box-sizing: border-box;
+}
+
+.cc-cust-shell-footer__container p {
+  margin: 0;
+}
+
+.cc-cust-shell-footer__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+}
+
+.cc-cust-shell-footer__badge {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: var(--color-neutral-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  color: var(--color-text-secondary);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+}
+
+/* ---------- Responsive Desktop Sidebar (min-width: 1024px) ---------- */
+
+@media (min-width: 1024px) {
+  .cc-cust-shell-sidebar {
+    width: 280px;
+    min-width: 280px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    border-bottom: none;
+    border-right: 1px solid var(--color-border);
+  }
+
+  .cc-cust-shell-nav--desktop {
+    display: block;
+  }
+
+  .cc-cust-shell-sidebar__footer {
+    display: flex;
+  }
+
+  .cc-cust-shell-mobile-toggle {
+    display: none;
+  }
+
+  .cc-cust-shell-page-header__container,
+  .cc-cust-shell-container,
+  .cc-cust-shell-footer__container {
+    padding-left: var(--spacing-2xl);
+    padding-right: var(--spacing-2xl);
+    padding-top: var(--spacing-xl);
+    padding-bottom: var(--spacing-xl);
+  }
+
+  .cc-cust-shell-footer__container {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: var(--spacing-md);
+    padding-bottom: var(--spacing-md);
+  }
+}

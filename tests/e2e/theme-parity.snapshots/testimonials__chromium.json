@@ -26,20 +26,20 @@
     {
       "tag": "a",
       "role": "link",
-      "name": "HOME",
+      "name": "SHOWROOM",
       "href": "/"
     },
     {
       "tag": "a",
       "role": "link",
-      "name": "INVENTORY",
-      "href": "/inventory"
+      "name": "ALL STOCK",
+      "href": "/allstock"
     },
     {
       "tag": "a",
       "role": "link",
       "name": "PREMIUM STOCK",
-      "href": "/inventory?category=premium"
+      "href": "/#premium-stock"
     },
     {
       "tag": "a",
@@ -56,14 +56,32 @@
     {
       "tag": "a",
       "role": "link",
-      "name": "CONTACT US",
+      "name": "TESTIMONIALS",
+      "href": "/testimonials"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "FAQ",
+      "href": "/faq"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "CONTACT",
       "href": "/contact"
     },
     {
       "tag": "a",
       "role": "link",
-      "name": "Sign in or create an account",
-      "href": "/account?returnTo=%2Ftestimonials"
+      "name": "LOGIN",
+      "href": "http://127.0.0.1:3001"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "REGISTER",
+      "href": "/register"
     },
     {
       "tag": "button",
@@ -76,9 +94,10 @@
       "name": ""
     },
     {
-      "tag": "header",
-      "role": "banner",
-      "name": ""
+      "tag": "h1",
+      "role": "heading",
+      "name": "TRUSTED BY WORLD CLASS COLLECTORS & FRANCHISES",
+      "level": 1
     },
     {
       "tag": "h2",
@@ -124,7 +143,7 @@
     {
       "tag": "h2",
       "role": "heading",
-      "name": "Share Your Import Experience",
+      "name": "SHARE YOUR IMPORT EXPERIENCE",
       "level": 2
     },
     {
@@ -135,27 +154,27 @@
     {
       "tag": "input",
       "role": "textbox",
-      "name": "Your Name *"
+      "name": "YOUR FULL NAME *"
     },
     {
       "tag": "input",
       "role": "textbox",
-      "name": "Location (City & Country) *"
+      "name": "LOCATION (CITY, COUNTRY) *"
     },
     {
       "tag": "input",
       "role": "textbox",
-      "name": "Purchased Vehicle (Optional)"
+      "name": "VEHICLE MODEL SOURCED"
     },
     {
       "tag": "select",
       "role": "combobox",
-      "name": "Overall Rating *"
+      "name": "OPERATIONAL RATING *"
     },
     {
       "tag": "textarea",
       "role": "textbox",
-      "name": "Your Review & Feedback *"
+      "name": "REVIEW COMMENTS *"
     },
     {
       "tag": "input",
@@ -221,5 +240,5 @@
       "level": 4
     }
   ],
-  "text": "Skip to main content CC CARCHIEF ONLINE HOME INVENTORY PREMIUM STOCK HOW TO BUY ABOUT US CONTACT US SIGN IN Verified Buyer Reviews Customer Testimonials & Success Stories Read real experiences from vehicle importers across East Africa, Southern Africa, the Caribbean, and global ports. 5.0 ★★★★★ Based on 3 verified reviews ★★★★★ 2021 Toyota Corolla Axio “Seamless import process! My Toyota Axio arrived at Durban port on schedule and in excellent condition.” John K. Harare, Zimbabwe Aug 1, 2026 ★★★★★ 2020 Mazda CX-5 “Highly professional service. Clear freight updates and accurate auction inspection sheets made buying easy.” Amina M. Mombasa, Kenya Aug 3, 2026 ★★★★★ 2019 Mercedes-Benz C200 “Transparent pricing, no hidden costs. The team guided me step-by-step from Yokohama port to my door.” David O. Kampala, Uganda Aug 5, 2026 Share Your Import Experience Purchased a vehicle with CarChief? Submit your review below. All submissions are moderated before publication. Your Name * Location (City & Country) * Purchased Vehicle (Optional) Overall Rating * ★★★★★ (5 - Excellent) ★★★★☆ (4 - Good) ★★★☆☆ (3 - Satisfactory) ★★☆☆☆ (2 - Fair) ★☆☆☆☆ (1 - Poor) Your Review & Feedback * I agree to allow CarChief to publish my name, location, vehicle model, and feedback publicly upon moderation approval. * SUBMIT TESTIMONIAL FOR MODERATION CC CARCHIEF PREMIUM GLOBAL VEHICLE EXPORTERS CarChief is a high-end showcase portal providing direct ocean-cargo logistics, certified pre-owned inspections, and custom spec tracking. LOGISTICS CORE PORTALS Showroom Catalog How to Buy About Us Testimonials FAQ Contact Us SECURE VERIFICATION CarChief utilizes highly secure cloud-replicated server architectures for real-time transaction records and client logs. 🔒 SECURED CLOUD ENVELOPE © 2026 CARCHIEF AUTO GROUP. ALL RIGHTS RESERVED. CLOUDRUN ENVIRONMENT · REGISTRY SECURITY PROTOCOL SHIELD-V2"
+  "text": "Skip to main content C CAR CHIEF ONLINE SHOWROOM ALL STOCK PREMIUM STOCK HOW TO BUY ABOUT US TESTIMONIALS FAQ CONTACT LOGIN REGISTER 🔖 VETTED SOURCING LOGS TRUSTED BY WORLD CLASS COLLECTORS & FRANCHISES Verified logs and experiences from leading dealers, prestige vehicle buyers, and fleet networks globally. 🌐 14+ Export Countries ⭐ 5.0 Average Sourcing Score (Based on 3 verified reviews) Customer Testimonials & Success Stories ★★★★★ ❝ “Seamless import process! My Toyota Axio arrived at Durban port on schedule and in excellent condition.” JK JOHN K. Harare, Zimbabwe 2021 TOYOTA COROLLA AXIO ★★★★★ ❝ “Highly professional service. Clear freight updates and accurate auction inspection sheets made buying easy.” AM AMINA M. Mombasa, Kenya 2020 MAZDA CX-5 ★★★★★ ❝ “Transparent pricing, no hidden costs. The team guided me step-by-step from Yokohama port to my door.” DO DAVID O. Kampala, Uganda 2019 MERCEDES-BENZ C200 💬 PUBLISH YOUR EXPERIENCE SHARE YOUR IMPORT EXPERIENCE Have you recently imported a high-end vehicle through CarChief? Share your logistics speed, pricing clarity, and quality metrics with global dealer networks. YOUR FULL NAME * LOCATION (CITY, COUNTRY) * VEHICLE MODEL SOURCED OPERATIONAL RATING * ⭐⭐⭐⭐⭐ (5/5 Perfect Sourcing) ⭐⭐⭐⭐☆ (4/5 Great Experience) ⭐⭐⭐☆☆ (3/5 Satisfactory) ⭐⭐☆☆☆ (2/5 Fair) ⭐☆☆☆☆ (1/5 Poor) REVIEW COMMENTS * I agree to allow CarChief to publish my name, location, vehicle model, and feedback publicly upon moderation approval. * 🛡️ VERIFIED SOURCING NETWORK SUBMIT TESTIMONIAL FOR MODERATION CC CARCHIEF PREMIUM GLOBAL VEHICLE EXPORTERS CarChief is a high-end showcase portal providing direct ocean-cargo logistics, certified pre-owned inspections, and custom spec tracking. LOGISTICS CORE PORTALS Showroom Catalog How to Buy About Us Testimonials FAQ Contact Us SECURE VERIFICATION CarChief utilizes highly secure cloud-replicated server architectures for real-time transaction records and client logs. 🔒 SECURED CLOUD ENVELOPE © 2026 CARCHIEF AUTO GROUP. ALL RIGHTS RESERVED. CLOUDRUN ENVIRONMENT · REGISTRY SECURITY PROTOCOL SHIELD-V2"
 }

@@ -8,7 +8,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const staticRoutes = [
     '',
-    '/vehicles',
+    '/allstock',
+    '/premium-stock',
     '/freight-calculator',
     '/contact',
     '/about',
@@ -25,8 +26,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const routes: MetadataRoute.Sitemap = staticRoutes.map((route) => ({
     url: `${siteUrl}${route}`,
     lastModified: now,
-    changeFrequency: route === '' || route === '/vehicles' ? 'daily' : 'weekly',
-    priority: route === '' ? 1.0 : route === '/vehicles' ? 0.9 : 0.7,
+    changeFrequency: route === '' || route === '/allstock' ? 'daily' : 'weekly',
+    priority: route === '' ? 1.0 : route === '/allstock' ? 0.9 : 0.7,
   }));
 
   return routes;

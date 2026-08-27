@@ -26,44 +26,62 @@
     {
       "tag": "a",
       "role": "link",
-      "name": "Home",
+      "name": "SHOWROOM",
       "href": "/"
     },
     {
       "tag": "a",
       "role": "link",
-      "name": "Inventory",
-      "href": "/inventory"
+      "name": "ALL STOCK",
+      "href": "/allstock"
     },
     {
       "tag": "a",
       "role": "link",
-      "name": "Premium Stock",
-      "href": "/inventory?category=premium"
+      "name": "PREMIUM STOCK",
+      "href": "/#premium-stock"
     },
     {
       "tag": "a",
       "role": "link",
-      "name": "How to Buy",
+      "name": "HOW TO BUY",
       "href": "/how-to-buy"
     },
     {
       "tag": "a",
       "role": "link",
-      "name": "About Us",
+      "name": "ABOUT US",
       "href": "/about"
     },
     {
       "tag": "a",
       "role": "link",
-      "name": "Contact Us",
+      "name": "TESTIMONIALS",
+      "href": "/testimonials"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "FAQ",
+      "href": "/faq"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "CONTACT",
       "href": "/contact"
     },
     {
       "tag": "a",
       "role": "link",
-      "name": "Sign in or create an account",
-      "href": "/account?returnTo=%2Fcontact"
+      "name": "Login",
+      "href": "http://127.0.0.1:3001"
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "Register",
+      "href": "/register"
     },
     {
       "tag": "button",
@@ -76,15 +94,71 @@
       "name": ""
     },
     {
+      "tag": "h1",
+      "role": "heading",
+      "name": "CONNECT WITH OUR OPERATIONS AGENTS",
+      "level": 1
+    },
+    {
+      "tag": "h2",
+      "role": "heading",
+      "name": "INTERNATIONAL OFFICES",
+      "level": 2
+    },
+    {
       "tag": "header",
       "role": "banner",
       "name": ""
     },
     {
-      "tag": "h1",
+      "tag": "h3",
       "role": "heading",
-      "name": "Contact Us",
-      "level": 1
+      "name": "MUNICH HEADQUARTERS",
+      "level": 3
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "munich@carchief.com",
+      "href": "mailto:munich@carchief.com"
+    },
+    {
+      "tag": "header",
+      "role": "banner",
+      "name": ""
+    },
+    {
+      "tag": "h3",
+      "role": "heading",
+      "name": "ROTTERDAM LOGISTICS GATE",
+      "level": 3
+    },
+    {
+      "tag": "a",
+      "role": "link",
+      "name": "rotterdam@carchief.com",
+      "href": "mailto:rotterdam@carchief.com"
+    },
+    {
+      "tag": "header",
+      "role": "banner",
+      "name": ""
+    },
+    {
+      "tag": "main",
+      "role": "main",
+      "name": ""
+    },
+    {
+      "tag": "header",
+      "role": "banner",
+      "name": ""
+    },
+    {
+      "tag": "h2",
+      "role": "heading",
+      "name": "DIRECT LEAD SUBMISSION",
+      "level": 2
     },
     {
       "tag": "h2",
@@ -100,32 +174,32 @@
     {
       "tag": "input",
       "role": "textbox",
-      "name": "Name *"
+      "name": "YOUR FULL NAME / Name *"
     },
     {
       "tag": "input",
       "role": "textbox",
-      "name": "Email *"
+      "name": "WORK EMAIL ADDRESS / Email *"
     },
     {
       "tag": "input",
       "role": "textbox",
-      "name": "Phone number *"
+      "name": "MOBILE PHONE NUMBER / Phone number *"
+    },
+    {
+      "tag": "textarea",
+      "role": "textbox",
+      "name": "DETAILED MESSAGE / SPECIFICATIONS SOUGHT / Message *"
+    },
+    {
+      "tag": "input",
+      "role": "textbox",
+      "name": "I agree to be contacted by CarChief about this enquiry. *"
     },
     {
       "tag": "select",
       "role": "combobox",
       "name": "Preferred contact method"
-    },
-    {
-      "tag": "select",
-      "role": "combobox",
-      "name": "Destination country"
-    },
-    {
-      "tag": "select",
-      "role": "combobox",
-      "name": "Arrival port"
     },
     {
       "tag": "input",
@@ -153,88 +227,25 @@
       "name": "Target price (USD)"
     },
     {
-      "tag": "textarea",
-      "role": "textbox",
-      "name": "Message *"
+      "tag": "select",
+      "role": "combobox",
+      "name": "Destination country"
     },
     {
-      "tag": "input",
-      "role": "textbox",
-      "name": "I agree to be contacted by CarChief about this enquiry. *"
+      "tag": "select",
+      "role": "combobox",
+      "name": "Arrival port"
     },
     {
       "tag": "button",
       "role": "button",
-      "name": "SEND ENQUIRY"
-    },
-    {
-      "tag": "h2",
-      "role": "heading",
-      "name": "Global Customer Support",
-      "level": 2
+      "name": "SEND INQUIRY 🚀"
     },
     {
       "tag": "a",
       "role": "link",
-      "name": "support@carchief.com",
-      "href": "mailto:support@carchief.com"
-    },
-    {
-      "tag": "a",
-      "role": "link",
-      "name": "+256 700 000 000 (demo number — pending approval)",
-      "href": "tel:+256700000000"
-    },
-    {
-      "tag": "a",
-      "role": "link",
-      "name": "CONTACT VIA WHATSAPP",
-      "href": "https://wa.me/256700000000"
-    },
-    {
-      "tag": "a",
-      "role": "link",
-      "name": "HOW TO BUY GUIDE",
-      "href": "/how-to-buy"
-    },
-    {
-      "tag": "h2",
-      "role": "heading",
-      "name": "Regional Office Locations",
-      "level": 2
-    },
-    {
-      "tag": "header",
-      "role": "banner",
-      "name": ""
-    },
-    {
-      "tag": "h3",
-      "role": "heading",
-      "name": "Tokyo Head Office (demo)",
-      "level": 3
-    },
-    {
-      "tag": "header",
-      "role": "banner",
-      "name": ""
-    },
-    {
-      "tag": "h3",
-      "role": "heading",
-      "name": "Durban Regional Hub (demo)",
-      "level": 3
-    },
-    {
-      "tag": "header",
-      "role": "banner",
-      "name": ""
-    },
-    {
-      "tag": "h3",
-      "role": "heading",
-      "name": "Harare Representative Office (demo)",
-      "level": 3
+      "name": "Read our full FAQ portal",
+      "href": "/faq"
     },
     {
       "tag": "footer",
@@ -290,5 +301,5 @@
       "level": 4
     }
   ],
-  "text": "Skip to main content CC CARCHIEF ONLINE ☰ Global Contact Hubs Contact Us Connect with our regional sales specialists and support hubs worldwide. Owner: SupportTeam Updated: Aug 10, 2026 Status: Approved Our international customer service team is available Monday through Friday. Reach out via email, phone, or visit our regional branch hubs. Contact Us Tell us about your enquiry and how to reach you. We record every enquiry and follow up directly — this form does not send an automatic price or shipping quote. Name * Email * Phone number * Preferred contact method This form / email Phone call WhatsApp Email Shipping destination (optional) Destination country Select a destination… Uganda (Uganda) Kenya (Kenya) Tanzania (Tanzania) Rwanda (Rwanda) South Sudan (South Sudan) Arrival port Select an arrival port… Mombasa (Kenya) Dar es Salaam (Tanzania) Tell us what you’re looking for (optional) No specific vehicle in mind yet? Share a few preferences and we’ll follow up directly — this is not a saved search or an automatic match. Make Model Drive side No preference Left-hand drive Right-hand drive Preferred year Target price (USD) Message * I agree to be contacted by CarChief about this enquiry. * SEND ENQUIRY Global Customer Support Our international sales specialists and logistics advisors are available Monday through Friday. EMAIL ASSISTANCE support@carchief.com HOTLINE & WHATSAPP +256 700 000 000 (demo number — pending approval) BUSINESS HOURS Monday – Friday: 08:00 – 18:00 (Local Time) CONTACT VIA WHATSAPP HOW TO BUY GUIDE Regional Office Locations Tokyo Head Office (demo) Headquarters Location: Tokyo, Japan Address: Tokyo, Japan — exact office address pending approval Phone: +81 3 0000 0000 Email: japan@carchief.com Operating Hours: Mon-Fri 09:00 - 18:00 JST Durban Regional Hub (demo) Location: Durban, South Africa Address: Durban, South Africa — exact office address pending approval Phone: +27 31 000 0000 Email: durban@carchief.com Operating Hours: Mon-Fri 08:00 - 17:00 SAST Harare Representative Office (demo) Location: Harare, Zimbabwe Address: Harare, Zimbabwe — exact office address pending approval Phone: +263 24 000 0000 Email: harare@carchief.com Operating Hours: Mon-Fri 08:30 - 16:30 CAT CC CARCHIEF PREMIUM GLOBAL VEHICLE EXPORTERS CarChief is a high-end showcase portal providing direct ocean-cargo logistics, certified pre-owned inspections, and custom spec tracking. LOGISTICS CORE PORTALS Showroom Catalog How to Buy About Us Testimonials FAQ Contact Us SECURE VERIFICATION CarChief utilizes highly secure cloud-replicated server architectures for real-time transaction records and client logs. 🔒 SECURED CLOUD ENVELOPE © 2026 CARCHIEF AUTO GROUP. ALL RIGHTS RESERVED. CLOUDRUN ENVIRONMENT · REGISTRY SECURITY PROTOCOL SHIELD-V2"
+  "text": "Skip to main content C CAR CHIEF ONLINE ☰ GLOBAL COMMUNICATIONS CONNECT WITH OUR OPERATIONS AGENTS Have questions regarding deep-sea shipping, custom container locks, currency conversions, or certified pre-sealing? Submit an inquiry below. CONTACT DIRECTORY INTERNATIONAL OFFICES Direct communication links to our regional hubs. Visited strictly by pre-scheduled custom consultations. MUNICH HEADQUARTERS 📍 📍 Maximilianstraße 45, 80539 München, Germany 📞 +49 89 2424 990 ✉ munich@carchief.com ROTTERDAM LOGISTICS GATE 📍 📍 Boompjes 40, 3011 XB Rotterdam, Netherlands 📞 +31 10 440 2201 ✉ rotterdam@carchief.com ⏰ OPERATING HOURS Monday – Friday 08:00 – 18:00 CET Saturday 09:00 – 14:00 CET Sunday PORT OPERATIONS CLOSED DIRECT LEAD SUBMISSION Submitting this form dispatches a real operational record straight to our logistics backend ledger. Contact Us YOUR FULL NAME / NAME * 👤 WORK EMAIL ADDRESS / EMAIL * ✉ MOBILE PHONE NUMBER / PHONE NUMBER * 📞 DETAILED MESSAGE / SPECIFICATIONS SOUGHT / MESSAGE * I agree to be contacted by CarChief about this enquiry. * 🛡️ SECURE INTEGRATED PIPELINE SEND INQUIRY 🚀 ❓ Have standard logistics questions? Read our full FAQ portal CC CARCHIEF PREMIUM GLOBAL VEHICLE EXPORTERS CarChief is a high-end showcase portal providing direct ocean-cargo logistics, certified pre-owned inspections, and custom spec tracking. LOGISTICS CORE PORTALS Showroom Catalog How to Buy About Us Testimonials FAQ Contact Us SECURE VERIFICATION CarChief utilizes highly secure cloud-replicated server architectures for real-time transaction records and client logs. 🔒 SECURED CLOUD ENVELOPE © 2026 CARCHIEF AUTO GROUP. ALL RIGHTS RESERVED. CLOUDRUN ENVIRONMENT · REGISTRY SECURITY PROTOCOL SHIELD-V2"
 }

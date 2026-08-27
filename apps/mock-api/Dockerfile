@@ -4,6 +4,7 @@ RUN corepack enable
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 COPY apps ./apps
 COPY packages ./packages
+COPY openapi ./openapi
 RUN pnpm install --frozen-lockfile
 RUN pnpm --filter @carchief/mock-api build
 EXPOSE 4000

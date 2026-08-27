@@ -1,8 +1,11 @@
 import type { Metadata } from 'next';
 import type { CSSProperties, ReactNode } from 'react';
+import { cookies } from 'next/headers';
+import { getLanguageInfo, resolveLanguageCode } from '@carchief/domain';
 import { getThemeCssVariables, getThemeDefinition, resolveThemeId } from '@carchief/theme';
 import { ThemeSwitcher } from '../theme-switcher';
 import { HeaderComponent, FooterComponent } from '../shell';
+import { I18nProvider, PublicLocaleRefresh } from '../i18n';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -24,13 +27,16 @@ export function isThemeSwitcherEnabled(nodeEnv: string | undefined = process.env
   return nodeEnv !== 'production';
 }
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  const localeCookie = (await cookies()).get('carchief_lang')?.value;
+  const language = resolveLanguageCode(localeCookie);
+  const languageInfo = getLanguageInfo(language);
   const themeId = resolveThemeId(process.env.NEXT_PUBLIC_THEME_ID);
   const themeVariables = getThemeCssVariables(getThemeDefinition(themeId).tokens) as CSSProperties;
   const isDevelopment = isThemeSwitcherEnabled();
 
   return (
-    <html lang="en" data-theme={themeId} style={themeVariables}>
+    <html lang={language} dir={languageInfo.direction} data-theme={themeId} style={themeVariables}>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -40,10 +46,13 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         />
       </head>
       <body>
-        {isDevelopment ? <ThemeSwitcher initialThemeId={themeId} /> : null}
-        <HeaderComponent />
-        {children}
-        <FooterComponent />
+        <I18nProvider initialLanguage={language}>
+          <PublicLocaleRefresh />
+          {isDevelopment ? <ThemeSwitcher initialThemeId={themeId} /> : null}
+          <HeaderComponent />
+          {children}
+          <FooterComponent />
+        </I18nProvider>
       </body>
     </html>
   );

@@ -82,16 +82,10 @@ coverage/
 .idea/
 .playwright-mcp/
 test-results/
-
-# AI phase-review task prompts (kept local to the review workflow)
-tasks/SAMPLE_MASTER_PROMPT_PR_REVIEW.md
-tasks/delivery_01/phase_01/D01-P01-CODE_REVIEW.md
-tasks/delivery_01/phase_02/D01-P02-CODE_REVIEW.md
-tasks/delivery_01/phase_03/D01-P03-CODE_REVIEW.md
-tasks/delivery_01/phase_04/D01-P04-CODE_REVIEW.md
-tasks/delivery_01/phase_05/D01-P05-CODE_REVIEW.md
-tasks/delivery_01/phase_06/D01-P06-CODE_REVIEW.md
-tasks/delivery_01/phase_07/D01-P07-CODE_REVIEW.md
-tasks/delivery_01/phase_08/D01-P08-CODE_REVIEW.md
 .pnpm-store/
-node_modules
+
+# TypeScript build metadata and local Codex configuration
+*.tsbuildinfo
+**/tsconfig*.tsbuildinfo
+
+.claude/settings.local.json

@@ -3,6 +3,7 @@ import React from 'react';
 export interface VehicleGalleryPrimitiveProps {
   images: string[];
   title: string;
+  badges?: Array<{ label: string; tone?: 'neutral' | 'success' | 'warning' | 'error' | 'info' }>;
   /** Minimum horizontal travel, in pixels, before a touch gesture counts as a swipe. */
   swipeThresholdPx?: number;
 }
@@ -20,9 +21,11 @@ const DEFAULT_SWIPE_THRESHOLD_PX = 40;
 export function VehicleGalleryPrimitive({
   images,
   title,
+  badges,
   swipeThresholdPx = DEFAULT_SWIPE_THRESHOLD_PX,
 }: VehicleGalleryPrimitiveProps) {
   const [galleryIndex, setGalleryIndex] = React.useState(0);
+  const [failedImages, setFailedImages] = React.useState<Set<number>>(new Set());
   const touchStartX = React.useRef<number | null>(null);
 
   const totalImages = images.length;
@@ -84,12 +87,28 @@ export function VehicleGalleryPrimitive({
       onTouchEnd={handleTouchEnd}
     >
       <div className="cc-gallery__main">
-        <img
-          src={images[activeIndex]}
-          alt={`${title} — image ${activeIndex + 1} of ${totalImages}`}
-          className="cc-gallery__image"
-          loading="eager"
-        />
+        {badges && badges.length > 0 && (
+          <div className="cc-gallery__badges" aria-label="Vehicle status">
+            {badges.map((badge) => (
+              <span key={`${badge.label}-${badge.tone ?? 'neutral'}`} className={`cc-gallery__badge cc-gallery__badge--${badge.tone ?? 'neutral'}`}>
+                {badge.label}
+              </span>
+            ))}
+          </div>
+        )}
+        {failedImages.has(activeIndex) ? (
+          <div className="cc-gallery__image-fallback" role="img" aria-label={`${title} image unavailable`}>
+            <span>Vehicle image unavailable</span>
+          </div>
+        ) : (
+          <img
+            src={images[activeIndex]}
+            alt={`${title} — image ${activeIndex + 1} of ${totalImages}`}
+            className="cc-gallery__image"
+            loading="eager"
+            onError={() => setFailedImages((current) => new Set(current).add(activeIndex))}
+          />
+        )}
         {totalImages > 1 && (
           <>
             <button
@@ -108,6 +127,22 @@ export function VehicleGalleryPrimitive({
             >
               <span aria-hidden="true">&rsaquo;</span>
             </button>
+            <div className="cc-gallery__dots" role="tablist" aria-label="Slide indicators">
+              {images.map((_, idx) => (
+                <button
+                  key={`slide-dot-${idx}`}
+                  type="button"
+                  role="tab"
+                  className={`cc-gallery__dot${idx === activeIndex ? ' cc-gallery__dot--active' : ''}`}
+                  aria-label={`Slide to image ${idx + 1}`}
+                  aria-selected={idx === activeIndex}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setGalleryIndex(idx);
+                  }}
+                />
+              ))}
+            </div>
           </>
         )}
       </div>
@@ -119,6 +154,7 @@ export function VehicleGalleryPrimitive({
               type="button"
               role="tab"
               aria-selected={idx === activeIndex}
+              aria-current={idx === activeIndex ? 'true' : undefined}
               aria-label={`Image ${idx + 1}`}
               className={`cc-gallery__thumb${idx === activeIndex ? ' cc-gallery__thumb--active' : ''}`}
               onClick={() => setGalleryIndex(idx)}
@@ -128,6 +164,7 @@ export function VehicleGalleryPrimitive({
                 alt={`${title} thumbnail ${idx + 1}`}
                 className="cc-gallery__thumb-img"
                 loading="lazy"
+                onError={() => setFailedImages((current) => new Set(current).add(idx))}
               />
             </button>
           ))}

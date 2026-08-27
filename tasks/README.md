@@ -22,7 +22,7 @@ The BA workflow reconciliation backlog is in `tasks/workflow/`. It is decision-g
 ## Starting or continuing work
 
 1. Read `TASK_EXECUTION_TRACKER.md` and the latest applicable phase summary.
-2. Run `node tasks/scripts/taskctl.mjs next`, then select the execution-frontier task from `EXECUTION_ORDER.md`. Work is sequential by default; an optional same-`parallel_group` task is available only after the first task in that group is active.
+2. Run `node tasks/scripts/taskctl.mjs next`, then select the eligible task from `EXECUTION_ORDER.md`. Delivery 01 remains sequential by phase. After Delivery 02 Phase 2.1, work is sequential within each protected lane and dependency-based across lanes; the report shows one frontier per lane. An optional same-`parallel_group` task is available only after the first task in that group is active.
 3. Read that single task file and only its named evidence/context. For Delivery 02 also read `delivery_02/REQUIREMENT_GAPS_AND_ASSUMPTIONS.md`.
 4. Before doing anything else, run `git status --porcelain=v1 --untracked-files=all`. If it prints anything, stop and ask the user to commit the changes first. Do not change branches or task state.
 5. Run the read-only `node tasks/scripts/taskctl.mjs precheck <ID>`.
@@ -30,8 +30,8 @@ The BA workflow reconciliation backlog is in `tasks/workflow/`. It is decision-g
 7. Run `node tasks/scripts/taskctl.mjs check <ID>`, report `Blockers: None`, then run `start` with an owner.
 8. Implement exactly the stated scope and its missing feature tests. For a Delivery 02 requirement gap, record a safe MVP default or skip only the unsafe capability; do not use `taskctl block` for requirement ambiguity alone.
 9. For a frontend task, read `COMMON_FRONTEND_RULES.md` before coding. For a `self_ai` task, review the owned diff against `CODE_REVIEW_RULES.md` and fix every in-scope finding.
-10. If frontmatter says `ui_validation: "playwright_mcp"`, first build/recreate a controlled runtime from the current worktree. Record the target URL, exact build/recreate command, process/container identity, and health/API readiness. Do not reuse an unknown server or image already listening on a standard port. Use a runtime profile from `TASK_EXECUTION_PROTOCOL.md` §3 — Profile A (local, no Docker) unless the task is a container gate. Run one desktop MCP walkthrough under the default `carchief` theme, take phone/tablet/desktop coverage from the automated Playwright projects, inspect console/network behavior and fix in-scope findings. Repeat the code review after any correction, and repeat the MCP walkthrough only when the correction changed layout, tokens, CSS or markup structure. Alternate-theme (`ocean`) parity is verified once in Phase 1.9.
-11. Run feature tests plus `corepack pnpm lint`, `corepack pnpm typecheck` and `corepack pnpm -r build`. A UI task must also record `Playwright MCP Result: PASS` and `Automated Playwright Test Result: PASS`.
+10. If frontmatter says `ui_validation: "playwright_mcp"`, before claiming the task run `node tasks/scripts/mcp-doctor.mjs` and prove in the **current new local AI session** that navigation, accessibility snapshot, resize, interaction, screenshot, console and network browser tools work. A configured server or editor reload is not proof that the current session received tools. Then build/recreate a controlled runtime from the current worktree. Record the target URL, exact build/recreate command, process/container identity, and health/API readiness. Do not reuse an unknown server or image already listening on a standard port. Use a runtime profile from `TASK_EXECUTION_PROTOCOL.md` §3 — Profile A (local, no Docker) unless the task is a container gate. Run one desktop MCP walkthrough under the default `carchief` theme, take phone/tablet/desktop coverage from the automated Playwright projects, inspect console/network behavior and fix in-scope findings. Repeat the code review after any correction, and repeat the MCP walkthrough only when the correction changed layout, tokens, CSS or markup structure. Alternate-theme (`ocean`) parity is verified once in Phase 1.9.
+11. Run the task-owned test and dependency-closure build named by the task. Delivery 02 Phases 2.1–2.8 use `delivery_02/D02_TEST_MATRIX.md`; root lint, typecheck and recursive builds are reserved for its Phase 2.9/2.10 acceptance gates or shared-tooling changes. A UI task must also record `Playwright MCP Result: PASS` and `Automated Playwright Test Result: PASS`.
 12. After passing tests, run `taskctl complete <ID> --review-agent "<name>"`. Normal tasks do not require manual task-level PR review.
 13. A `phase_manual` code-review task is the one human review gate: the owner creates/updates the phase PR, AI records the phase-diff review, and the tech lead runs `approve` only after manual PR review.
 14. At phase acceptance, update the phase summary; after merges, run `render` instead of resolving tracker rows manually.
@@ -54,7 +54,7 @@ Phase 0 may change only task logs, summaries and the generated tracker inside th
 
 ## Build and container verification policy
 
-Every Delivery 01 and Delivery 02 implementation task includes root lint, TypeScript typecheck and recursive workspace build commands. These checks are required even for a small UI task so compiler errors cannot accumulate unnoticed. A missing shared test harness or target workspace is a prerequisite failure; do not silently skip it.
+Delivery 01 implementation tasks retain their stated quality commands. Delivery 02 Phases 2.1–2.8 use the focused test/spec and dependency-closure build in `delivery_02/D02_TEST_MATRIX.md`; repository-wide lint, typecheck and recursive builds run at Phase 2.9/2.10 acceptance or when a change affects shared tooling. A missing shared test harness or target workspace is a prerequisite failure; do not silently skip it.
 
 Responsive behavior and reuse are mandatory task concerns: UI tasks test phone/tablet/desktop behavior, and any feature shared by Public, Customer and Salesperson applications is implemented once in a reusable `packages/` feature package. The vehicle search module is the first required example (`packages/vehicle-search`); consuming apps configure it rather than copying it.
 
@@ -74,7 +74,7 @@ Delivery 02 repeats that container gate at the last implementation task in every
 - Delivery integration branch: `delivery_01_public_website`.
 - Public phase branches: `feat_delivery01_phase_01` through `feat_delivery01_phase_09`. Phase 1.9 verifies alternate-theme (`ocean`) parity across the whole Public Website; per-task UI validation in earlier phases covers the default `carchief` theme only.
 - Customer integration branch: `delivery_02_customer_application`, created by a human from the fully accepted updated Public delivery branch.
-- Customer phase branches: `feat_delivery02_phase_01` through `feat_delivery02_phase_10`.
+- Customer phase branches: `feat_delivery02_phase_01` through `feat_delivery02_phase_13`; Phase 2.11 is explicitly optional and requires `--opt-in theme`, Phase 2.12 is mandatory and depends on `D02-P10-CODE_REVIEW`, and Phase 2.13 is mandatory and depends on `D02-P12-CODE_REVIEW`.
 - Tasks do not create child branches. Every task works directly on its phase branch, for example `feat_delivery01_phase_01`; parallel groups are coordination lanes on that same branch, not separate Git branches.
 - A phase branch is created only from its latest local delivery integration branch after the task's `git pull --ff-only` succeeds.
 - After phase acceptance, the human owner reviews the phase diff, commits its tracker/summary and creates a PR from the phase branch into its delivery integration branch manually. Agents do not perform these actions.
@@ -91,11 +91,11 @@ Publishing the delivery branch is an explicitly authorized human action. If `del
 
 ## Commands
 
-`node tasks/scripts/taskctl.mjs validate` validates 106 task/gate files, UI-validation metadata, shared-frontend-rule references, Delivery 02 assumption-register references, decisions, delivery-specific branches, requirement coverage and the dependency DAG.
+`node tasks/scripts/taskctl.mjs validate` validates 127 task/gate files, UI-validation metadata, shared-frontend-rule references, Delivery 02 assumption-register references, decisions, delivery-specific branches, requirement coverage and the dependency DAG.
 
-`node tasks/scripts/taskctl.mjs next` reports the current execution frontier and permitted same-group parallel tasks.
+`node tasks/scripts/taskctl.mjs next` reports the current execution frontier for each eligible lane and permitted same-group parallel tasks.
 
-`node tasks/scripts/taskctl.mjs sequence <ID>` explains whether a task is sequentially eligible or blocked by an earlier tracker task.
+`node tasks/scripts/taskctl.mjs sequence <ID>` explains whether a task is eligible in its lane or blocked by an earlier same-lane task, explicit dependency or gate.
 
 `node tasks/scripts/taskctl.mjs precheck <ID>` performs a read-only clean-tree, prerequisite, decision, execution-frontier and delivery-branch check before any branch operation. It blocks skipped tasks and reports the exact earlier task that must be completed.
 
@@ -114,9 +114,9 @@ Use the delivery integration branch named in the task, then its `feat_deliveryNN
 
 The task files can be reviewed now, but implementation begins only after all of the following are true:
 
-1. `D01-P10-CODE_REVIEW` is `COMPLETE` and the complete Public Website PR is merged. Phase 1.9 is functional Public acceptance and Phase 1.10 then reconciles the recorded requirement gaps; neither `D01-P08-CODE_REVIEW` nor `D01-P09-CODE_REVIEW` alone is sufficient.
+1. `D01-P09-CODE_REVIEW` is `COMPLETE` and the accepted Public Website base has been merged. Delivery 01 Phase 1.10 may then proceed independently on `feat_delivery01_phase_10`; it is not a Delivery 02 start gate.
 2. A human synchronizes `delivery_01_public_website` and creates `delivery_02_customer_application` from that exact commit.
-3. `D02-P01-G001` is the global execution frontier. Requirement gaps use the Delivery 02 assumption register and do not block Phases 2.1–2.9.
+3. `D02-P01-G001` is the Delivery 02 foundation frontier. Requirement gaps use the Delivery 02 assumption register and do not block Phases 2.1–2.9. After Phase 2.1 merges, Dashboard/Logistics and Commerce are protected independent lanes; see `tasks/delivery_02/D02_TEST_MATRIX.md` and `EXECUTION_ORDER.md`.
 4. The Customer compiled/runtime scope is treated as provisional and the negative POC evidence is not copied.
 
 After the Public PR is merged and the working tree is clean, an authorized human creates the one-time Customer integration branch manually:

@@ -5,9 +5,10 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: 0,
-  workers: 1,
+  workers: process.env.PLAYWRIGHT_WORKERS || '50%',
   reporter: 'list',
   use: {
+    headless: true,
     baseURL: process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000',
     trace: 'on-first-retry',
   },

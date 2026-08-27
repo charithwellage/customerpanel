@@ -45,7 +45,7 @@ Review the diff against every applicable rule in tasks/CODE_REVIEW_RULES.md and 
 
 For every completed task marked `ui_validation: "playwright_mcp"`, verify its execution log proves a fresh runtime was built/recreated from the task's current worktree before browser validation. The evidence must identify the build/start commands, runtime profile, target URL, runtime process/container identity, health/readiness results, the default `carchief` theme, the phone/tablet/desktop viewports covered by the automated Playwright projects, console/network result, and both MCP and automated Playwright PASS outcomes. Treat stale-image/unknown-server evidence, missing API readiness evidence, or browser tests aimed at a different target as a blocking finding; reopen the responsible task rather than approving the phase.
 
-Alternate-theme (`ocean`) evidence is not expected per task: it is verified once for the whole Public Website in Phase 1.9. The Phase 1.9 review is the exception — there, evidence for both themes is required, with the served `data-theme` value confirmed for each.
+Alternate-theme (`ocean`) evidence is not expected per task: it is verified once for the whole Public Website in Phase 1.9. The Phase 1.9 review and optional Delivery 02 Phase 2.11 review are the exceptions — there, evidence for both themes is required, with the served `data-theme` value confirmed for each.
 
 ## Complete the whole review before stopping
 
@@ -53,10 +53,10 @@ Alternate-theme (`ocean`) evidence is not expected per task: it is verified once
 
 Run the checks in this order so the cheap ones fail fast and the expensive ones run once:
 
-1. **Deterministic gate** — `node tasks/scripts/taskctl.mjs validate`, `corepack pnpm quality`, `corepack pnpm -r build`, `corepack pnpm test`, `git diff --check <range>`, `git diff <range> -- POC`. Record each result; do not abort on the first failure, collect them.
+1. **Deterministic gate** — run `node tasks/scripts/taskctl.mjs validate`, `git diff --check <range>` and `git diff <range> -- POC`, plus the phase task's dependency-closure build/typecheck. Delivery 02 Phases 2.1–2.8 use their focused suite from `tasks/delivery_02/D02_TEST_MATRIX.md`; final/reconciliation or shared-tooling reviews also run `corepack pnpm quality`, recursive build and the full suite. Record each result; do not abort on the first failure, collect them.
 2. **Static sweep** of the diff against `CODE_REVIEW_RULES.md` and `COMMON_FRONTEND_RULES.md`.
 3. **One runtime build**, reused for everything that follows.
-4. **The full Playwright suite** (see below) against that runtime.
+4. **The required Playwright suite** (focused or full; see below) against that runtime.
 5. **MCP inspection** last, since it is the most expensive step.
 
 Only genuinely unavailable infrastructure — cannot build, cannot start a runtime — justifies aborting early. Report that as a blocker.
@@ -69,19 +69,23 @@ Apply this in particular to:
 
 - **Invented content** — statistics, prices, dates, schedules, regulations, certifications, named people, addresses and phone numbers. Sweep all fixtures *and* all page-level fallback copy; the same fabricated value is often duplicated in both, and fixing only one leaves the rendered page wrong.
 - **Evidence quality** — check every task declaring `ui_validation: "playwright_mcp"`, not a sample.
-- **Behaviour removal** — a route rewritten wholesale may have dropped capability delivered in an earlier phase. The full suite is what catches this.
+- **Behaviour removal** — a route rewritten wholesale may have dropped capability delivered in an earlier phase. Run the full suite whenever the review changes shared tooling or route assembly; otherwise run the focused matrix suite.
 
-## The full suite is the gate
+## The required browser suite is the gate
 
-Run the whole Playwright suite across all three viewport projects against the recorded target:
+For Delivery 02 Phase 2.1–2.8 reviews, run only the focused spec(s) and dependency-closure build assigned in `tasks/delivery_02/D02_TEST_MATRIX.md`, headlessly with `--workers=50%`. Record:
+
+Focused suite result: <passed>/<total> passed; <named specs>
+
+For Delivery 01, Delivery 02 Phases 2.9–2.10, optional Phase 2.11, or a review changing shared tooling/configuration, run the whole Playwright suite across all three viewport projects against the recorded target:
 
 PLAYWRIGHT_BASE_URL=<recorded-target-url> corepack pnpm exec playwright test --project=chromium --project=mobile-chromium --project=tablet-chromium
 
-A spec-scoped run never satisfies this gate. Phase 1.7's most serious defect — a deleted quotation form that broke 21 tests — survived six review passes because every pass ran one narrow spec. Record the outcome in the review log as:
+A spec-scoped run never satisfies the full-regression gate. Record its outcome in the review log as:
 
 Full suite result: <passed>/<total> passed across chromium, mobile-chromium, tablet-chromium
 
-`taskctl submit` requires that line.
+`taskctl submit` requires the applicable `Focused suite result:` or `Full suite result:` line.
 
 ## Record findings, then batch the reopens
 
@@ -101,11 +105,11 @@ Then stop and report:
 Blocking findings identified: <count>. Responsible tasks reopened: <ids>.
 No implementation started.
 
-If nothing blocking was found, record `## Findings` (with `None.` or the non-blocking list), the exact comparison range, files reviewed, rules checked, remaining concerns, test evidence including the full-suite line, and:
+If nothing blocking was found, record `## Findings` (with `None.` or the non-blocking list), the exact comparison range, files reviewed, rules checked, remaining concerns, and the applicable focused- or full-suite result, then:
 
 Result: PASS
 
-Run the phase review validation commands listed in the task file, plus the deterministic gate and full suite above, whether or not the task file happens to name them. Do not invent missing tests or business rules.
+Run the phase review validation commands listed in the task file plus the applicable deterministic gate and browser suite above. Do not invent missing tests or business rules.
 
 After the AI review passes, run:
 

@@ -48,7 +48,7 @@ export default async function ShippingSchedulePage() {
           <a href="/contact" className="cc-btn cc-btn--primary">
             Logistics Support
           </a>
-          <a href="/vehicles" className="cc-btn cc-btn--secondary">
+          <a href="/allstock" className="cc-btn cc-btn--secondary">
             Browse Stock
           </a>
         </div>

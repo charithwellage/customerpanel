@@ -4,6 +4,12 @@ import VehicleDetailPage from '../../../features/vehicle-detail/VehicleDetailPag
 import { loadVehicleDetail } from '../../../features/vehicle-detail/loadVehicleDetail';
 import { formatVehicleTitle, getVisibleGalleryImages } from '@carchief/vehicle-detail';
 
+// Vehicle availability and reservation state are mutable Mock API data. The
+// detail route must resolve it per request so a deterministic reset and a
+// newly-created reservation are reflected instead of serving a stale build
+// snapshot.
+export const dynamic = 'force-dynamic';
+
 const DEFAULT_SITE_URL = 'http://127.0.0.1:3000';
 
 /**

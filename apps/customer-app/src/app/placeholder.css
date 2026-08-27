@@ -1,0 +1,47 @@
+/*
+ * placeholder.css
+ * Styles for the honest "section not built yet" surface rendered inside the
+ * authenticated shell while Phases 2.2-2.8 are outstanding.
+ * Owned path: apps/customer-app/src/app/
+ *
+ * Every value uses a semantic token emitted by packages/theme/src/provider.ts.
+ */
+
+.cc-cust-placeholder {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  max-width: 640px;
+  padding: var(--spacing-xl);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.cc-cust-placeholder__badge {
+  align-self: flex-start;
+  margin: 0;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: var(--color-neutral-surface);
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-pill);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.cc-cust-placeholder__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--font-size-xl);
+  color: var(--color-text-primary);
+}
+
+.cc-cust-placeholder__body {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}

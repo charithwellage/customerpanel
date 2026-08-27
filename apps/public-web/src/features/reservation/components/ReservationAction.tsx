@@ -15,7 +15,7 @@ export interface ReservationActionProps {
 /**
  * The actual "Reserve" action once a visitor is signed in with an eligible
  * vehicle (PUB-23). Presentational and prop-driven, matching
- * `DemoSignInPanel`/`SessionStatusPanel`'s shape — no hook usage inside.
+ * `AccountAccessPanel`/`SessionStatusPanel`'s shape — no hook usage inside.
  * Never claims an automatic release happens after the hold expires
  * (`DEC-PUB-RESERVATION-EXPIRY-ACTION` stays OPEN, RULE-10); only the
  * `expiresAt` fact the mock returns is shown.

@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import type { VehicleDomainSummary } from '@carchief/domain';
 import { HomeShowroom } from '../features/home';
 
 export const metadata: Metadata = {
@@ -22,23 +21,11 @@ export const metadata: Metadata = {
   },
 };
 
-async function getInitialVehicles(): Promise<VehicleDomainSummary[]> {
-  const baseUrl = process.env.API_BASE_URL || 'http://localhost:4000';
-  try {
-    const response = await fetch(`${baseUrl}/api/v1/vehicles?collection=browse`, { cache: 'no-store' });
-    return response.ok ? ((await response.json()) as VehicleDomainSummary[]) : [];
-  } catch {
-    return [];
-  }
-}
-
 export default async function HomePage() {
-  const initialVehicles = await getInitialVehicles();
-
   return (
     <main id="main-content" tabIndex={-1}>
       <Hero />
-      <HomeShowroom initialVehicles={initialVehicles} />
+      <HomeShowroom />
     </main>
   );
 }
@@ -69,32 +56,6 @@ function Hero() {
           </a>
         </div>
 
-        {/* 3-Column Value Proposition Strip */}
-        <div className="hero-value-strip">
-          <div className="value-strip-item">
-            <div className="value-strip-icon">🛡️</div>
-            <div>
-              <div className="value-strip-title">ELITE QUALITY SOURCING</div>
-              <div className="value-strip-text">Strict inspection & technical logs for every chassis.</div>
-            </div>
-          </div>
-
-          <div className="value-strip-item">
-            <div className="value-strip-icon">🚢</div>
-            <div>
-              <div className="value-strip-title">CONTAINER OCEAN FREIGHT</div>
-              <div className="value-strip-text">Secure maritime container pipelines & customs clearing.</div>
-            </div>
-          </div>
-
-          <div className="value-strip-item">
-            <div className="value-strip-icon">🔒</div>
-            <div>
-              <div className="value-strip-title">DEDICATED SECURE PORTAL</div>
-              <div className="value-strip-text">Track order pipelines, invoices & documents live.</div>
-            </div>
-          </div>
-        </div>
       </div>
     </section>
   );

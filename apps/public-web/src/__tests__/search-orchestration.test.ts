@@ -80,6 +80,38 @@ describe('Search Orchestration, Deterministic Parser & URL State Tests', () => {
       expect(restored.destinationPort).toBe('Mombasa');
     });
 
+    it('preserves category and collection parameters across URL updates', () => {
+      const originalQuery = {
+        category: 'premium',
+        collection: 'premium_teaser',
+      };
+
+      const params = serializeSearchQuery(originalQuery);
+      expect(params.get('category')).toBe('premium');
+      expect(params.get('collection')).toBe('premium_teaser');
+
+      const restored = parseUrlSearchQuery(params);
+      expect(restored.category).toBe('premium');
+      expect(restored.collection).toBe('premium_teaser');
+    });
+
+    it('preserves database-backed vehicle filter parameters across URL updates', () => {
+      const originalQuery = {
+        model: 'Forester',
+        locationStatus: 'In Port',
+        destinationPort: 'Mombasa',
+        yearMin: 2018,
+        yearMax: 2022,
+        priceMin: 8000,
+        priceMax: 25000,
+        mileageMin: 10000,
+        mileageMax: 90000,
+      };
+
+      const restored = parseUrlSearchQuery(serializeSearchQuery(originalQuery));
+      expect(restored).toMatchObject(originalQuery);
+    });
+
     it('omits default parameters (page=1, sortBy=newest) from URL to keep URLs clean', () => {
       const params = serializeSearchQuery({
         make: 'Toyota',

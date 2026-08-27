@@ -1,0 +1,130 @@
+.cc-payment-allocations-page {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 28px;
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+}
+
+.cc-payment-allocations-header h1 { margin: 0; font-family: var(--font-display); font-size: var(--font-size-xl); letter-spacing: -0.02em; }
+.cc-payment-allocations-header p { color: var(--color-text-secondary); margin: var(--spacing-xs) 0 0; }
+.cc-payment-allocations-eyebrow { color: var(--color-primary) !important; font-size: var(--font-size-xs); font-weight: 800; letter-spacing: .12em; }
+
+.cc-payment-allocation-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin: 24px 0; }
+.cc-payment-allocation-kpis > div,
+.cc-payment-allocation-filters,
+.cc-payment-allocation-table-wrap { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); }
+.cc-payment-allocation-kpis > div { display: grid; gap: 5px; padding: 18px; }
+.cc-payment-allocation-kpis span { color: var(--color-text-secondary); }
+.cc-payment-allocation-kpis strong { font-size: var(--font-size-2xl); }
+.cc-payment-allocation-positive { color: var(--color-success) !important; }
+.cc-payment-allocation-warning { color: var(--color-warning) !important; }
+
+.cc-payment-allocation-filters { display: grid; grid-template-columns: 2fr repeat(3, 1fr); gap: 12px; margin-bottom: 18px; padding: 16px; }
+.cc-payment-allocation-search { min-width: 0; }
+.cc-payment-allocation-filters .cc-search-input,
+.cc-payment-allocation-filters .cc-filter-select { width: 100%; }
+
+.cc-payment-allocation-table-wrap { overflow-x: hidden; }
+.cc-payment-allocation-table { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 0; font-family: var(--font-body); font-size: var(--font-size-xs); }
+.cc-payment-allocation-table th,
+.cc-payment-allocation-table td { padding: 9px 7px; border-bottom: 1px solid var(--color-border); text-align: left; vertical-align: middle; overflow-wrap: anywhere; }
+.cc-payment-allocation-table th { padding: 9px 7px; border-bottom: 1px solid var(--color-border); text-align: left; vertical-align: middle; }
+.cc-payment-allocation-table thead { background: var(--color-neutral-surface); }
+.cc-payment-allocation-table thead th { background: var(--color-neutral-surface); color: var(--color-text-secondary); font-family: var(--font-mono); font-size: var(--font-size-xs); font-weight: 700; letter-spacing: .04em; line-height: 1.2; border-bottom: 2px solid var(--color-border); text-transform: uppercase; white-space: normal; }
+.cc-payment-allocation-table thead th > span { display: block; }
+.cc-payment-allocation-table thead th:first-child { border-top-left-radius: var(--radius-lg); }
+.cc-payment-allocation-table thead th:last-child { border-top-right-radius: var(--radius-lg); }
+.cc-payment-allocation-table tbody tr:last-child > th,
+.cc-payment-allocation-table tbody tr:last-child > td { border-bottom: 0; }
+.cc-payment-allocation-row { cursor: pointer; outline: none; }
+.cc-payment-allocation-row:hover,
+.cc-payment-allocation-row:focus-visible,
+.cc-payment-allocation-row--expanded { background: var(--color-neutral-surface); }
+.cc-payment-allocation-row:focus-visible { box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--color-primary) 28%, transparent); }
+.cc-payment-allocation-row th strong { font-family: var(--font-mono); letter-spacing: .02em; }
+.cc-payment-allocation-money { font-family: var(--font-mono); font-weight: 700; }
+.cc-payment-allocation-number { text-align: right !important; }
+.cc-payment-allocation-table th:nth-child(1), .cc-payment-allocation-table td:nth-child(1) { width: 8%; }
+.cc-payment-allocation-table th:nth-child(2), .cc-payment-allocation-table td:nth-child(2) { width: 10%; }
+.cc-payment-allocation-table th:nth-child(3), .cc-payment-allocation-table td:nth-child(3) { width: 10%; }
+.cc-payment-allocation-table th:nth-child(4), .cc-payment-allocation-table td:nth-child(4) { width: 15%; }
+.cc-payment-allocation-table th:nth-child(5), .cc-payment-allocation-table td:nth-child(5) { width: 4%; }
+.cc-payment-allocation-table thead th:nth-child(5) { white-space: nowrap; }
+.cc-payment-allocation-table th:nth-child(6), .cc-payment-allocation-table td:nth-child(6) { width: 11%; }
+.cc-payment-allocation-table th:nth-child(7), .cc-payment-allocation-table td:nth-child(7) { width: 11%; }
+.cc-payment-allocation-table th:nth-child(8), .cc-payment-allocation-table td:nth-child(8) { width: 12%; }
+.cc-payment-allocation-table th:nth-child(9), .cc-payment-allocation-table td:nth-child(9) { width: 7%; }
+.cc-payment-allocation-table th:nth-child(10), .cc-payment-allocation-table td:nth-child(10) { width: 10%; }
+.cc-payment-allocation-status-cell { white-space: normal !important; }
+.cc-payment-allocation-status { display: block; width: max-content; padding: 5px 9px; border-radius: var(--radius-pill); background: var(--color-surface-elevated); font-size: var(--font-size-xs); font-weight: 700; }
+.cc-payment-allocation-status--FullyAllocated { color: var(--color-success); }
+.cc-payment-allocation-status--PartiallyAllocated { color: var(--color-warning); }
+
+.cc-payment-allocation-bar { display: flex; width: 100%; height: 8px; margin-top: 6px; overflow: hidden; border: 1px solid var(--color-border); border-radius: var(--radius-pill); background: var(--color-surface-elevated); }
+.cc-payment-allocation-bar__allocated,
+.cc-payment-allocation-bar__unallocated { display: block; height: 100%; transition: width var(--motion-fast); }
+.cc-payment-allocation-bar__allocated { background: var(--color-success); }
+.cc-payment-allocation-bar__unallocated { background: var(--color-error); }
+.cc-payment-allocation-bar--ZeroValue { background: var(--color-border); }
+.cc-payment-allocation-bar--ZeroValue .cc-payment-allocation-bar__allocated,
+.cc-payment-allocation-bar--ZeroValue .cc-payment-allocation-bar__unallocated { background: var(--color-border); }
+
+.cc-payment-allocation-detail-row > td { padding: 0; background: var(--color-surface-elevated); }
+.cc-payment-allocation-detail { padding: 20px; border-bottom: 1px solid var(--color-border); }
+.cc-payment-allocation-detail h2 { margin: 0 0 12px; font-family: var(--font-display); font-size: var(--font-size-lg); letter-spacing: -0.02em; }
+.cc-payment-allocation-detail > p { margin: 0 0 var(--spacing-lg); color: var(--color-text-secondary); font-size: var(--font-size-sm); line-height: 1.5; }
+.cc-payment-allocation-lines { display: grid; gap: 8px; }
+.cc-payment-allocation-line { display: grid; grid-template-columns: 56px 1fr auto; align-items: center; gap: 12px; padding: 10px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); box-shadow: var(--shadow-sm); }
+.cc-payment-allocation-line img,
+.cc-payment-allocation-line__image { width: 56px; height: 42px; object-fit: cover; border-radius: var(--radius-sm); background: var(--color-surface-elevated); }
+.cc-payment-allocation-line > div { display: grid; gap: 3px; }
+.cc-payment-allocation-line strong { font-size: var(--font-size-sm); font-weight: 700; }
+.cc-payment-allocation-line small { color: var(--color-text-secondary); font-size: var(--font-size-xs); line-height: 1.45; }
+.cc-payment-allocation-line > span { display: grid; gap: 3px; color: var(--color-text-secondary); font-size: var(--font-size-sm); text-align: right; white-space: nowrap; }
+.cc-payment-allocation-line__financials { display: grid !important; grid-template-columns: repeat(3, minmax(90px, 1fr)); gap: var(--spacing-sm) !important; min-width: 300px; }
+.cc-payment-allocation-line__financials span { display: grid; gap: 2px; color: var(--color-text-secondary); font-size: var(--font-size-xs); }
+.cc-payment-allocation-line__financials strong { color: var(--color-text-primary); font-family: var(--font-mono); font-size: var(--font-size-xs); white-space: nowrap; }
+
+.cc-payment-allocation-invoice { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; padding: 14px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-neutral-surface); }
+.cc-payment-allocation-invoice > div { display: grid; gap: 3px; }
+.cc-payment-allocation-invoice > div:last-child { display: flex; }
+.cc-payment-allocation-invoice strong { font-family: var(--font-mono); font-size: var(--font-size-sm); letter-spacing: .02em; }
+.cc-payment-allocation-invoice button,
+.cc-payment-allocation-pagination button { min-height: 40px; padding: 0 var(--spacing-md); border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); color: var(--color-primary); font: inherit; font-size: var(--font-size-sm); font-weight: 700; line-height: 1; cursor: pointer; transition: background-color var(--motion-fast), border-color var(--motion-fast), color var(--motion-fast), transform var(--motion-fast); }
+.cc-payment-allocation-invoice button + button { margin-left: 8px; }
+.cc-payment-allocation-invoice button:hover,
+.cc-payment-allocation-pagination button:hover:not(:disabled) { border-color: var(--color-primary); background: var(--color-primary); color: var(--color-text-on-primary); }
+.cc-payment-allocation-invoice button:focus-visible,
+.cc-payment-allocation-pagination button:focus-visible { outline: 3px solid color-mix(in srgb, var(--color-primary) 30%, transparent); outline-offset: 1px; }
+.cc-payment-allocation-invoice button:active,
+.cc-payment-allocation-pagination button:active:not(:disabled) { transform: translateY(1px); }
+.cc-payment-allocation-invoice button:disabled,
+.cc-payment-allocation-pagination button:disabled { cursor: not-allowed; opacity: .55; }
+
+.cc-payment-allocation-pagination { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 22px; }
+.cc-payment-allocation-state { padding: 26px; color: var(--color-text-secondary); text-align: center; }
+.cc-payment-allocation-state--error { color: var(--color-error); }
+.cc-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+@media (max-width: 860px) {
+  .cc-payment-allocations-page { padding: 18px; }
+  .cc-payment-allocation-kpis { grid-template-columns: repeat(2, 1fr); }
+  .cc-payment-allocation-filters { grid-template-columns: 1fr; }
+  .cc-payment-allocation-table-wrap { overflow-x: auto; }
+  .cc-payment-allocation-table { min-width: 900px; table-layout: auto; }
+  .cc-payment-allocation-line { grid-template-columns: 48px 1fr; }
+  .cc-payment-allocation-line__financials,
+  .cc-payment-allocation-line > span { grid-column: 2; }
+  .cc-payment-allocation-line > span { text-align: left; }
+  .cc-payment-allocation-invoice { align-items: flex-start; flex-direction: column; }
+  .cc-payment-allocation-invoice > div:last-child { width: 100%; }
+  .cc-payment-allocation-invoice button { flex: 1; }
+  .cc-payment-allocation-invoice button + button { margin-left: 8px; }
+}
+
+@media (max-width: 520px) {
+  .cc-payment-allocation-kpis { grid-template-columns: 1fr; }
+  .cc-payment-allocation-invoice > div:last-child { display: grid; grid-template-columns: 1fr; gap: 8px; }
+  .cc-payment-allocation-invoice button + button { margin-left: 0; }
+}

@@ -27,7 +27,6 @@ import VehicleDetailPage from '../features/vehicle-detail/VehicleDetailPage';
 
 const makeMedia = (gallery: string[] = []): CategorizedPublicMedia => ({
   gallery,
-  totalPicturesCount: gallery.length,
 });
 
 const basePricedVehicle: VehicleDetail = {
@@ -197,7 +196,6 @@ describe('CategorizedPublicMedia gallery array', () => {
   it('returns empty gallery array for no-media vehicle', () => {
     const gallery = noMediaVehicle.media.gallery;
     expect(gallery).toEqual([]);
-    expect(noMediaVehicle.media.totalPicturesCount).toBe(0);
   });
 
   it('sold vehicle has empty gallery in no-media scenario', () => {
@@ -415,7 +413,7 @@ describe('VehicleDetailPage Component Presentation & Integration', () => {
 
     const noMedia: VehicleDetail = {
       ...basePricedVehicle,
-      media: { gallery: [], totalPicturesCount: 0 },
+      media: { gallery: [] },
     };
 
     const html = renderToStaticMarkup(React.createElement(VehicleDetailPage, { vehicle: noMedia }));
@@ -483,5 +481,78 @@ describe('VehicleGalleryPrimitive (shared package)', () => {
     expect(multiple).toContain('aria-label="Next image"');
     expect(multiple).toContain('role="tablist"');
     expect(multiple).toContain('aria-label="Image 1 of 2"');
+  });
+
+  it('renders shared status badges and an accessible image fallback contract', async () => {
+    const React = await import('react');
+    const { renderToStaticMarkup } = await import('react-dom/server');
+    const { VehicleGalleryPrimitive } = await import('@carchief/vehicle-detail');
+
+    const html = renderToStaticMarkup(
+      React.createElement(VehicleGalleryPrimitive, {
+        images: ['https://example.com/1.jpg', 'https://example.com/2.jpg'],
+        title: '2024 Toyota Corolla',
+        badges: [
+          { label: 'Stock', tone: 'neutral' },
+          { label: 'Available', tone: 'success' },
+        ],
+      }),
+    );
+
+    expect(html).toContain('Vehicle status');
+    expect(html).toContain('Stock');
+    expect(html).toContain('Available');
+    expect(html).toContain('aria-current="true"');
+    expect(html).toContain('loading="lazy"');
+    const empty = renderToStaticMarkup(
+      React.createElement(VehicleGalleryPrimitive, { images: [], title: '2024 Toyota Corolla' }),
+    );
+    expect(empty).toContain('No images available for this vehicle yet.');
+  });
+
+  it('renders Customer Actions card with wishlist and Specs Inquiry Form but no quote CTAs', async () => {
+    const React = await import('react');
+    const { renderToStaticMarkup } = await import('react-dom/server');
+
+    const html = renderToStaticMarkup(
+      React.createElement(VehicleDetailPage, { vehicle: basePricedVehicle })
+    );
+
+    expect(html).toContain('Customer Actions');
+    expect(html).not.toContain('GET FREE QUOTE');
+    expect(html).not.toContain('REQUEST PRICE QUOTATION &amp; FREE CIF QUOTE');
+    expect(html).not.toContain('data-testid="get-free-quote-btn"');
+    expect(html).not.toContain('data-testid="hero-get-quote-btn"');
+    expect(html).not.toContain('cc-quote-calculator-modal');
+    expect(html).not.toContain('cc-quote-request-wrapper');
+    expect(html).not.toContain('Get a Free Instant C&amp;F Quote');
+    expect(html).toContain('ADD TO WISHLIST');
+    expect(html).toContain('SPECS INQUIRY &amp; BOOKING FORM');
+    expect(html).toContain('SUBMIT INQUIRY SPEC FILE');
+    expect(html).toContain('Verified customer account required');
+    expect(html).toContain('C&amp;F CALCULATOR');
+  });
+
+  it('renders EnterpriseLoginModal when open with all enterprise SSO providers', async () => {
+    const React = await import('react');
+    const { renderToStaticMarkup } = await import('react-dom/server');
+    const { EnterpriseLoginModal } = await import('../features/account-entry/index.js');
+
+    const html = renderToStaticMarkup(
+      React.createElement(EnterpriseLoginModal, {
+        isOpen: true,
+        onClose: () => {},
+        title: 'Sign In to Add to Wishlist',
+        subtitle: 'Save this vehicle to your wishlist.',
+      })
+    );
+
+    expect(html).toContain('Sign In to Add to Wishlist');
+    expect(html).toContain('Continue with Google');
+    expect(html).toContain('Continue with Apple');
+    expect(html).toContain('Continue with Microsoft / Outlook');
+    expect(html).toContain('EMAIL ADDRESS');
+    expect(html).toContain('PASSWORD');
+    expect(html).toContain('SIGN IN TO CUSTOMER PORTAL');
   });
 });

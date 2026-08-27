@@ -23,6 +23,7 @@ export interface PublicConfig {
   currency: string;
   contactPhone: string;
   liveAuctionUrl?: string;
+  tierDescriptions?: Partial<Record<'Platinum' | 'Gold' | 'Silver' | 'Standard', string>>;
 }
 
 export interface SessionClaims {
@@ -31,12 +32,100 @@ export interface SessionClaims {
   role: 'PublicVisitor' | 'CustomerBuyer' | 'Salesperson' | 'StockController' | 'FinanceManager' | 'SystemAdmin';
   permissions: string[];
   exp: number;
+  tier?: 'Platinum' | 'Gold' | 'Silver' | 'Standard';
 }
 
-export interface DemoSessionResponse {
+// Phase 2.12: customer self-registration, credential handling and the
+// password-reset contract (CUST-26..30, D02-ASM-005/006/007). No response
+// ever carries a password, hash or salt.
+
+export interface CustomerAccount {
+  id: string;
+  customerId: string;
+  nameWithInitials: string;
+  countryCode: string;
+  dialCode: string;
+  mobileNumber: string;
+  email: string;
+  tier: 'Platinum' | 'Gold' | 'Silver' | 'Standard';
+  status: string;
+  verificationState: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CustomerTierBenefits {
+  tier: 'Platinum' | 'Gold' | 'Silver' | 'Standard';
+  discountPercent: number;
+  maxActiveReservations: number;
+  activeReservations: number;
+  remainingReservations: number;
+  description: string;
+}
+
+export interface RegisterCustomerRequest {
+  nameWithInitials: string;
+  countryCode: string;
+  mobileNumber: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface LoginResponse {
   token: string;
   claims: SessionClaims;
-  nonProduction: boolean;
+}
+
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+  confirmNewPassword: string;
+}
+
+export interface SuccessResponse {
+  success: boolean;
+}
+
+export interface PasswordResetRequest {
+  email: string;
+}
+
+export interface PasswordResetAcceptedResponse {
+  message: string;
+}
+
+export interface ConfirmPasswordResetRequest {
+  token: string;
+  newPassword: string;
+  confirmNewPassword: string;
+}
+
+export interface PasswordResetOutboxEntry {
+  token: string;
+  email: string;
+  issuedAt: string;
+  expiresAt: string;
+  consumed: boolean;
+}
+
+export interface PasswordResetOutboxListResponse {
+  items: PasswordResetOutboxEntry[];
+}
+
+export interface CountryOption {
+  isoCode: string;
+  name: string;
+  dialCode: string;
+}
+
+export interface CountriesResponse {
+  items: CountryOption[];
 }
 
 export interface VehicleSummary {
@@ -55,18 +144,48 @@ export interface VehicleSummary {
   stockType?: 'J' | 'CRFO';
   destinationPort?: string;
   discountPercent?: number;
+  tierPricing?: VehicleTierPricing;
+  reservationEligibility?: VehicleReservationEligibility;
+  inquiryEligibility?: VehicleInquiryEligibility;
+}
+
+export type AiVehicleSearchScope = 'publicInventory' | 'customerInventory' | 'customerFleet' | 'customerWishlist';
+export interface AiVehicleSearchRequest {
+  query: string;
+  scope: AiVehicleSearchScope;
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  filters?: Record<string, unknown>;
+  constraints?: Record<string, unknown>;
+}
+export interface AiVehicleSearchInterpretation { summary: string; appliedConstraints: string[]; }
+export interface AiVehicleSearchResponse {
+  scope: AiVehicleSearchScope;
+  query: string;
+  interpretation: AiVehicleSearchInterpretation;
+  items: Array<VehicleSummary | CustomerVehicleSummary>;
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+  facets?: Record<string, unknown>;
+}
+export interface AiSearchNotImplementedError extends ErrorResponse {
+  statusCode: 501;
+  code: 'AI_SEARCH_NOT_IMPLEMENTED';
 }
 
 export interface CategorizedPublicMedia {
   gallery: string[];
   auctionPictures?: string[];
-  auctionSheet?: string[];
   japanPictures?: string[];
   durbanPictures?: string[];
   showAuctionPictures?: boolean;
   showJapanPictures?: boolean;
   showDurbanPictures?: boolean;
-  totalPicturesCount: number;
 }
 
 export interface VehicleDetail {
@@ -106,9 +225,15 @@ export interface VehicleDetail {
   etd?: string;
   eta?: string;
   featured?: boolean;
-  countryEligibility?: string[];
   media: CategorizedPublicMedia;
+  tierPricing?: VehicleTierPricing;
+  reservationEligibility?: VehicleReservationEligibility;
+  inquiryEligibility?: VehicleInquiryEligibility;
 }
+
+export interface VehicleTierPricing { tier: 'Platinum' | 'Gold' | 'Silver' | 'Standard'; tierDiscountPercent: number; tierPriceUsd: number; originalPriceUsd: number; }
+export interface VehicleReservationEligibility { eligible: boolean; reason?: 'already_reserved_by_you' | 'reserved_by_other' | 'not_reservable' | 'price_on_request' | 'limit_exceeded'; holdExpiresAt?: string; isOwnHold?: boolean; }
+export interface VehicleInquiryEligibility { eligible: boolean; reason?: 'allocated_to_another_customer' | 'not_available'; }
 
 export interface ErrorResponse {
   statusCode: number;
@@ -181,9 +306,6 @@ export interface EnquiryEstimateSnapshot {
 }
 
 export interface EnquiryRequest {
-  name: string;
-  email: string;
-  phone: string;
   message: string;
   consent: boolean;
   vehicleSlug?: string;
@@ -203,6 +325,7 @@ export interface EnquiryResponse {
   receivedAt: string;
   status: 'received';
   duplicate: boolean;
+  customerId: string;
   enquiryType: 'general' | 'vehicle' | 'price-request' | 'premium-vehicle';
   source: 'form' | 'whatsapp' | 'email' | 'call';
   vehicleSlug?: string;
@@ -220,6 +343,7 @@ export interface LeadRecord {
   status: 'New' | 'Contacted' | 'InProgress' | 'Sold' | 'Archived';
   enquiryType: 'general' | 'vehicle' | 'price-request' | 'premium-vehicle';
   source: 'form' | 'whatsapp' | 'email' | 'call';
+  customerId: string;
   name: string;
   email: string;
   phone: string;
@@ -290,7 +414,6 @@ export interface FaqQueryResponse {
   categories: FaqCategory[];
   items: FaqItem[];
   total: number;
-  matchedCount: number;
   groundedNoAnswer: boolean;
   message?: string;
 }
@@ -368,7 +491,6 @@ export interface OfficeListResponse {
 export interface BranchTeamMember {
   name: string;
   role: string;
-  photoUrl?: string;
   contactEmail?: string;
 }
 
@@ -390,15 +512,410 @@ export interface BranchContent {
   teamMembers: BranchTeamMember[];
   meetAndGreetInfo: string;
   contactDetails: BranchContactDetails;
-  contentOwner: string;
   status: ContentApprovalStatus;
-  latestArrivalsQuery?: { destinationPort?: string; limit?: number };
-  recentlyDiscountedQuery?: { destinationPort?: string; limit?: number };
 }
 
 export interface BranchListResponse {
   items: BranchContent[];
   total: number;
+}
+
+// Phase 2.2: customer dashboard KPI baseline (D02-ASM-001). Non-blocking
+// aggregate derived from linked mock records: outstanding balance = issued
+// invoice total - approved allocations; credit utilisation = outstanding
+// balance ÷ credit limit; vehicle counts use canonical IDs and server status.
+// Server-authoritative; no browser calculation or fabrication.
+
+export interface Invoice {
+  id: string;
+  customerId: string;
+  vehicleId: string;
+  vehicleSlug: string;
+  make: string;
+  model: string;
+  year: number;
+  totalAmountUsd: number;
+  invoicedAt: string;
+  status: 'Draft' | 'Issued' | 'Paid' | 'Overdue';
+}
+
+export interface Allocation {
+  id: string;
+  customerId: string;
+  paymentId: string;
+  invoiceId: string;
+  amountUsd: number;
+  allocatedAt: string;
+  status: 'Approved' | 'Pending' | 'Rejected';
+}
+
+export interface PaymentStatusSummary {
+  approved: number;
+  pending: number;
+  rejected: number;
+}
+
+export interface ShipmentStatusSummary {
+  ready: number;
+  inTransit: number;
+  delivered: number;
+  other: number;
+}
+
+export interface DocumentAvailabilityCount {
+  available: number;
+  pending: number;
+  unavailable: number;
+}
+
+export interface PartialFailureIndicators {
+  paymentsFailed: boolean;
+  shipmentsFailed: boolean;
+  documentsFailed: boolean;
+  notificationsFailed: boolean;
+}
+
+export type PaymentProofFileType = 'PDF' | 'JPG' | 'PNG';
+export type PaymentProofScanStatus = 'Pending' | 'Passed' | 'Rejected';
+export type CustomerPaymentMethod = 'WireTransfer' | 'Card';
+export interface CustomerPaymentProofMetadata {
+  fileName: string;
+  fileType: PaymentProofFileType;
+  sizeBytes: number;
+  scanStatus: PaymentProofScanStatus;
+}
+export interface CustomerPayment {
+  id: string;
+  customerId: string;
+  invoiceId?: string;
+  reference: string;
+  bankName: string;
+  currency: string;
+  amountUsd: number;
+  allocatedAmountUsd?: number;
+  remainingBalanceUsd?: number;
+  paymentDate: string;
+  remarks?: string;
+  status: 'Pending' | 'Approved' | 'Rejected';
+  holdReason?: string;
+  proof?: CustomerPaymentProofMetadata;
+  idempotencyKey: string;
+  createdAt: string;
+  paymentMethod: CustomerPaymentMethod;
+  vehicleId?: string;
+  vehicleName?: string;
+  proformaInvoiceId?: string;
+  gatewayProvider?: string;
+  gatewayTransactionId?: string;
+  cardBrand?: string;
+  cardLast4?: string;
+}
+export interface CreateCustomerCardPaymentRequest {
+  vehicleId: string;
+  amountUsd: number;
+  cardholderName: string;
+  cardNumber: string;
+  expiryMonth: number;
+  expiryYear: number;
+  cvv: string;
+  idempotencyKey: string;
+}
+export interface CustomerCardPaymentEligibility {
+  eligible: boolean;
+  reason?: 'no_payment_target' | 'fully_paid' | 'no_outstanding_balance';
+  outstandingAmountUsd: number;
+  currency: 'USD';
+  targetType?: 'ProformaInvoice' | 'CommercialInvoice';
+  targetId?: string;
+}
+export interface CreateCustomerPaymentRequest {
+  invoiceId?: string;
+  reference: string;
+  bankName: string;
+  currency: string;
+  amountUsd: number;
+  paymentDate: string;
+  remarks?: string;
+  proof: CustomerPaymentProofMetadata;
+  idempotencyKey: string;
+}
+export interface CustomerPaymentListResponse { items: CustomerPayment[]; total: number; }
+export type CustomerPaymentPurpose = 'Advance' | 'Balance';
+export type CustomerPaymentAllocationStatus = 'Unallocated' | 'PartiallyAllocated' | 'FullyAllocated';
+export interface CustomerPaymentAllocationVehicle { id: string; slug: string; stockNumber: string; chassisNumber: string; make: string; model: string; year: number; primaryImage?: string; }
+export interface CustomerPaymentAllocationLine { id: string; vehicle: CustomerPaymentAllocationVehicle; invoiceId?: string; invoiceNumber?: string; amountUsd: number; purpose: CustomerPaymentPurpose; status: 'Approved' | 'Pending' | 'Rejected'; allocatedAt: string; }
+export interface CustomerPaymentAllocationInvoice { id: string; invoiceNumber: string; issuedAt: string; totalAmountUsd: number; paidAmountUsd: number; outstandingAmountUsd: number; status: string; vehicleCount: number; documentAvailable: boolean; }
+export interface CustomerPaymentAllocationSummary { id: string; reference: string; bankName: string; currency: string; amountUsd: number; paymentDate: string; paymentStatus: string; paymentMethod: CustomerPaymentMethod; allocationStatus: CustomerPaymentAllocationStatus; allocatedAmountUsd: number; unallocatedAmountUsd: number; allocationPercent: number; vehicleCount: number; allocations: CustomerPaymentAllocationLine[]; invoice?: CustomerPaymentAllocationInvoice; }
+export interface CustomerPaymentAllocationListResponse { items: CustomerPaymentAllocationSummary[]; total: number; page: number; limit: number; totals: { totalAmountUsd: number; allocatedAmountUsd: number; unallocatedAmountUsd: number; invoiceCount: number; }; }
+export type CustomerPaymentNotificationEvent = 'FinanceReviewRequested' | 'PaymentHeld' | 'PaymentResubmitted' | 'PaymentApproved' | 'PaymentAllocated';
+export interface CustomerPaymentNotification {
+  id: string;
+  customerId: string;
+  paymentId: string;
+  invoiceId: string;
+  event: CustomerPaymentNotificationEvent;
+  createdAt: string;
+}
+export interface CustomerPaymentNotificationListResponse { items: CustomerPaymentNotification[]; total: number; }
+export interface RecordPaymentNotificationRequest { event: CustomerPaymentNotificationEvent; }
+
+export interface Notification {
+  id: string;
+  customerId: string;
+  title?: string;
+  message: string;
+  type: 'Payment' | 'Shipment' | 'Document' | 'Vehicle' | 'Promotion';
+  isRead: boolean;
+  createdAt: string;
+  related?: { kind: 'Vehicle' | 'ProformaInvoice' | 'Invoice' | 'Payment' | 'Shipment' | 'Document' | 'ShipOk' | 'DocumentRelease'; id: string; href: string; };
+}
+export interface CustomerNotificationListResponse { items: Notification[]; total: number; unreadCount: number; }
+export interface MarkNotificationsReadResponse { updatedCount: number; unreadCount: number; }
+export interface CustomerProfile {
+  customerId: string;
+  name: string;
+  email: string;
+  companyName: string;
+  phone: string;
+  deliveryAddress: string;
+  version: number;
+  updatedAt: string;
+  cardPaymentEligibility?: CustomerCardPaymentEligibility;
+}
+export interface UpdateCustomerProfileRequest { companyName: string; phone: string; deliveryAddress: string; expectedVersion?: number; }
+
+export interface CustomerDocument {
+  id: string;
+  shipmentId?: string;
+  vehicleId?: string;
+  type: 'Invoice' | 'PaymentProof' | 'ShippingLabel' | 'DeliveryProof' | 'Other';
+  status: 'Available' | 'Pending' | 'Unavailable';
+  createdAt: string;
+}
+
+export interface CustomerDocumentList {
+  items: CustomerDocument[];
+}
+
+export interface CustomerDashboard {
+  customerId: string;
+  customerEmail: string;
+  creditLimitUsd: number;
+  outstandingBalanceUsd: number;
+  creditUtilisationPercent: number;
+  vehicleCountReserved: number;
+  vehicleCountInvoiced: number;
+  vehicleCountDelivered: number;
+  paymentStatusSummary: PaymentStatusSummary;
+  shipmentStatusSummary: ShipmentStatusSummary;
+  documentAvailabilityCount: DocumentAvailabilityCount;
+  notificationUnreadCount: number;
+}
+
+export type CustomerVehicleStatus =
+  | 'Under Negotiation'
+  | 'Under Negotiation With PI'
+  | 'Confirmed'
+  | 'In Transit'
+  | 'Delivered'
+  | 'Expired'
+  | 'Cancelled';
+
+export type VehicleStatus = 'Draft' | 'Available' | 'Pending' | 'Reserved' | 'ReservedWithPI' | 'InvoiceCreated' | 'Invoiced' | 'Sold';
+export interface VehicleStatusDefinition { code: VehicleStatus; singularLabel: string; pluralLabel: string; description: string; active: boolean; sortOrder: number; }
+
+export interface CustomerVehicleStatusHistoryItem {
+  status: CustomerVehicleStatus;
+  timestamp: string;
+  notes?: string;
+}
+
+export interface CustomerVehicleDocumentReference {
+  id: string;
+  type: string;
+  title: string;
+  status: 'Available' | 'Pending' | 'Draft';
+  issuedAt?: string;
+}
+
+export interface CustomerVehicleDepositInfo {
+  requiredPercent: number;
+  requiredAmountUsd: number;
+  paidAmountUsd: number;
+  remainingAmountUsd: number;
+}
+
+export interface CustomerCommercialBillInfo {
+  soldAmountUsd: number;
+  paidAmountUsd: number;
+  balanceAmountUsd: number;
+}
+
+export interface CustomerVehicleSummary {
+  id: string;
+  vehicleId: string;
+  chassisNumber: string;
+  make: string;
+  model: string;
+  year: number;
+  slug: string;
+  primaryImage?: string;
+  priceUsd: number;
+  totalAmountUsd: number;
+  status: CustomerVehicleStatus;
+  vehicleStatusCode: VehicleStatus;
+  statusLabel: string;
+  statusLabelPlural: string;
+  statusDescription?: string;
+  locationStatus?: 'In Japan' | 'In Transit' | 'In Port';
+  destinationPort?: string;
+  reservationExpiresAt?: string;
+  proformaInvoiceId?: string;
+  paymentDeadline?: string;
+  deposit?: CustomerVehicleDepositInfo;
+  stockNumber?: string;
+  color?: string;
+  colorSpec?: string;
+  mileage?: number;
+  logisticsStatus?: string;
+  piRef?: string;
+  commercialBill?: CustomerCommercialBillInfo;
+  shippingStage?: 'Reserved' | 'Inspection' | 'In Transit' | 'Delivered' | string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CustomerVehicleDetail extends CustomerVehicleSummary {
+  images: string[];
+  bodyStyle?: string;
+  fuelType?: string;
+  transmission?: string;
+  driveTrain?: string;
+  mileage?: number;
+  invoiceId?: string;
+  shipmentId?: string;
+  vesselName?: string;
+  etd?: string;
+  eta?: string;
+  billOfLadingNo?: string;
+  statusHistory: CustomerVehicleStatusHistoryItem[];
+  documents: CustomerVehicleDocumentReference[];
+}
+
+export interface CustomerVehicleCountsByStatus {
+  underNegotiation: number;
+  underNegotiationWithPI: number;
+  confirmed: number;
+  inTransit: number;
+  delivered: number;
+  all: number;
+}
+
+export interface CustomerVehicleListResponse {
+  items: CustomerVehicleSummary[];
+  total: number;
+  countsByStatus: CustomerVehicleCountsByStatus;
+  statusDefinitions: VehicleStatusDefinition[];
+}
+
+export type CustomerInvoiceType = 'Proforma' | 'Commercial';
+
+export type CustomerInvoiceStatus =
+  | 'Draft'
+  | 'Issued'
+  | 'PartiallyPaid'
+  | 'Paid'
+  | 'Overdue'
+  | 'Expired'
+  | 'Cancelled';
+
+export interface CustomerInvoiceLineItem {
+  id: string;
+  description: string;
+  quantity: number;
+  unitPriceUsd: number;
+  amountUsd: number;
+}
+
+export interface CustomerInvoiceAllocationItem {
+  id: string;
+  paymentId: string;
+  amountUsd: number;
+  allocatedAt: string;
+  status: 'Approved' | 'Pending' | 'Rejected';
+}
+
+export interface CustomerInvoiceBankDetails {
+  bankName: string;
+  swiftCode: string;
+  accountName: string;
+  accountNumber: string;
+  branchName: string;
+  bankAddress: string;
+  reference: string;
+}
+
+export interface CustomerInvoiceSummary {
+  id: string;
+  invoiceNumber: string;
+  type: CustomerInvoiceType;
+  customerId: string;
+  vehicleId: string;
+  vehicleSlug: string;
+  make: string;
+  model: string;
+  year: number;
+  totalAmountUsd: number;
+  paidAmountUsd: number;
+  outstandingAmountUsd: number;
+  depositRequiredUsd?: number;
+  status: CustomerInvoiceStatus;
+  issuedAt: string;
+  dueDate: string;
+  paymentDeadline?: string;
+  currency: string;
+}
+
+export interface CustomerInvoiceDetailVehicle {
+  id: string;
+  chassisNumber: string;
+  make: string;
+  model: string;
+  year: number;
+  slug: string;
+  primaryImage?: string;
+}
+
+export interface CustomerInvoiceDetail extends CustomerInvoiceSummary {
+  vehicle: CustomerInvoiceDetailVehicle;
+  lineItems: CustomerInvoiceLineItem[];
+  allocations: CustomerInvoiceAllocationItem[];
+  bankDetails?: CustomerInvoiceBankDetails;
+  isExpired?: boolean;
+  notes?: string;
+}
+
+export interface CustomerInvoiceTotals {
+  totalInvoicedUsd: number;
+  totalPaidUsd: number;
+  totalOutstandingUsd: number;
+}
+
+export interface CustomerInvoiceListResponse {
+  items: CustomerInvoiceSummary[];
+  total: number;
+  page: number;
+  limit: number;
+  totals: CustomerInvoiceTotals;
+}
+
+export interface CustomerInvoiceDocument {
+  invoiceId: string;
+  invoiceNumber: string;
+  type: CustomerInvoiceType;
+  title: string;
+  contentHtml: string;
+  status: 'Available' | 'Unavailable';
 }
 `;
 

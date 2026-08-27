@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { cpSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -27,10 +27,10 @@ function taskIds(root, throughOrder) {
     env: { ...process.env, TASKCTL_ROOT: root },
     encoding: 'utf8',
   });
-  assert.match(output, /Validated 106 task\/gate files/);
+  assert.match(output, /Validated 127 task\/gate files/);
   const ordered = readFileSync(join(root, 'tasks/EXECUTION_ORDER.md'), 'utf8')
     .split('\n')
-    .map((line) => line.match(/^\|\s*(\d+)\s*\|\s*\[([^\]]+)\]/))
+    .map((line) => line.match(/^\|\s*(\d+(?:\.\d+)?)\s*\|\s*\[([^\]]+)\]/))
     .filter(Boolean)
     .map((match) => ({ order: Number(match[1]), id: match[2] }));
   return ordered.filter((item) => item.order < throughOrder).map((item) => item.id);
@@ -39,8 +39,25 @@ function taskIds(root, throughOrder) {
 function seedComplete(root, ids) {
   const logs = join(root, 'tasks/execution_logs');
   mkdirSync(logs, { recursive: true });
+  const findTask = (directory, id) => {
+    for (const entry of readdirSync(directory, { withFileTypes: true })) {
+      const path = join(directory, entry.name);
+      if (entry.isDirectory()) {
+        const found = findTask(path, id);
+        if (found) return found;
+      } else if (entry.name === `${id}.md`) return path;
+    }
+    return null;
+  };
   for (const id of ids) {
-    writeFileSync(join(logs, `${id}.md`), `---\ntask_id: "${id}"\nstatus: "COMPLETE"\nowner: "seed"\nreviewer: "seed"\nreview_agent: "seed"\nreview_mode: "self_ai"\nphase_branch: ""\ntask_branch: ""\nstarted_at: ""\nupdated_at: ""\nblocker: ""\n---\n\n# ${id}\n`);
+    const task = readFileSync(findTask(join(root, 'tasks'), id), 'utf8');
+    const ui = /ui_validation: "playwright_mcp"/.test(task);
+    const infraMcp = id === 'INF-P00-T006';
+    const gaps = /^D(?:01|02)-P10-T/.test(id);
+    const mcp = ui ? `\n## Playwright MCP UI validation\n\n- AI client: Seed\n- Target URL: http://127.0.0.1:3000\n- Fresh-runtime verification: PASS\n- Runtime provenance: docker compose seed-service-1\n- Service readiness: PASS\n- Viewports: 390x844; 768x1024; 1440x900\n- Themes: carchief\n- Console/network result: PASS\n- Findings and corrections: None\n- Playwright MCP Result: PASS\n- Automated Playwright Test Result: PASS\n` : '';
+    const mcpInfra = infraMcp ? `\n- Active AI client: Seed\n- MCP configuration source: workspace\n- MCP session started at: 2026-08-14T00:00:00.000Z\n- MCP server process: PASS\n- MCP browser navigation: PASS\n- MCP accessibility snapshot: PASS\n- MCP viewport resize: PASS\n- MCP interaction: PASS\n- MCP screenshot: PASS\n- MCP console inspection: PASS\n- MCP network inspection: PASS\n` : '';
+    const gapEvidence = gaps ? `\n- Requirement-gap register: Seed.\n- Phase ${id.startsWith('D01') ? '1.10' : '2.10'} disposition: Seed.\n` : '';
+    writeFileSync(join(logs, `${id}.md`), `---\ntask_id: "${id}"\nstatus: "COMPLETE"\nowner: "seed"\nreviewer: "seed"\nreview_agent: "seed"\nphase_branch: ""\ntask_branch: ""\nstarted_at: ""\nupdated_at: ""\nblocker: ""\n---\n\n# ${id}\n\n## AI code review\n\n- Result: PASS\n${mcpInfra}${mcp}\n## Tests executed\n\n- Seed validation passed.\n${gapEvidence}\n## Blockers\n\nNone.\n`);
   }
 }
 
@@ -57,6 +74,11 @@ function setup(phaseBranch) {
   shell(root, 'git', 'branch', 'delivery_02_customer_application');
   shell(root, 'git', 'checkout', '-qb', phaseBranch);
   return root;
+}
+
+function recordPhaseReview(root, id, resultMarker = 'Full suite result: PASS') {
+  const path = join(root, 'tasks/execution_logs', `${id}.md`);
+  writeFileSync(path, `---\ntask_id: "${id}"\nstatus: "IN_PROGRESS"\nowner: "review-agent"\nreviewer: ""\nreview_agent: ""\nreview_mode: "phase_manual"\nphase_branch: ""\ntask_branch: ""\nstarted_at: ""\nupdated_at: ""\nblocker: ""\n---\n\n# ${id}\n\n## Findings\n\nNone.\n\nResult: PASS\n\n${resultMarker}\n\n## Tests executed\n\n- Focused review checks passed.\n`);
 }
 
 test('self-AI completion accepts legacy IN_REVIEW after recorded review and tests', () => {
@@ -92,6 +114,7 @@ test('Delivery 02 phase review uses its customer integration branch', () => {
     shell(root, 'git', 'commit', '-qm', 'seed customer phase');
     const start = run(root, 'start', 'D02-P01-CODE_REVIEW', '--owner', 'review-agent');
     assert.equal(start.status, 0, start.stderr);
+    recordPhaseReview(root, 'D02-P01-CODE_REVIEW', 'Focused suite result: PASS');
     assert.equal(run(root, 'submit', 'D02-P01-CODE_REVIEW').status, 0);
     const approve = run(root, 'approve', 'D02-P01-CODE_REVIEW', '--reviewer', 'tech-lead');
     assert.equal(approve.status, 0, approve.stderr);
@@ -190,6 +213,7 @@ test('phase review is the only task type submitted and approved by a tech lead',
     shell(root, 'git', 'add', '.');
     shell(root, 'git', 'commit', '-qm', 'seed phase');
     assert.equal(run(root, 'start', 'D01-P01-CODE_REVIEW', '--owner', 'review-agent').status, 0);
+    recordPhaseReview(root, 'D01-P01-CODE_REVIEW');
     const submit = run(root, 'submit', 'D01-P01-CODE_REVIEW');
     assert.equal(submit.status, 0, submit.stderr);
     const approve = run(root, 'approve', 'D01-P01-CODE_REVIEW', '--reviewer', 'tech-lead');

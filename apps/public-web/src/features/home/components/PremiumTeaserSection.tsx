@@ -4,21 +4,25 @@ import { VehicleCollection } from '../../vehicles/components/VehicleCollection';
 
 export interface PremiumTeaserSectionProps {
   vehicles: VehicleDomainSummary[];
+  total?: number;
   isLoading?: boolean;
   error?: string | null;
   onRetry?: () => void;
 }
 
-export const PremiumTeaserSection: React.FC<PremiumTeaserSectionProps> = ({ vehicles, isLoading, error, onRetry }) => {
+export const PremiumTeaserSection: React.FC<PremiumTeaserSectionProps> = ({ vehicles, total = vehicles.length, isLoading, error, onRetry }) => {
   return (
     <section id="premium-stock" aria-labelledby="premium-banner-heading" className="premium-teaser-banner">
-      <div className="home-section-header">
-        <span className="home-section-eyebrow">Exclusive Collection</span>
-        <h2 id="premium-banner-heading" className="home-section-title-lg">
-          Premium Stock Teaser
+      <div className="home-section-header premium-section-header">
+        <div className="premium-badge-tag">
+          <span className="premium-badge-star" aria-hidden="true">👑</span>
+          <span className="premium-badge-text">EXCLUSIVE VIP &amp; PERFORMANCE COLLECTION</span>
+        </div>
+        <h2 id="premium-banner-heading" className="home-section-title-lg premium-heading">
+          Premium Stock Showcase
         </h2>
-        <p className="home-section-subtitle">
-          Browse up to 10 curated high-grade vehicles available for immediate reservation.
+        <p className="home-section-subtitle premium-subtitle">
+          Hand-picked, certified luxury SUVs, bespoke sports coupes, and executive flagship vehicles available for immediate international shipping.
         </p>
       </div>
 
@@ -32,18 +36,21 @@ export const PremiumTeaserSection: React.FC<PremiumTeaserSectionProps> = ({ vehi
       />
 
       <div className="premium-teaser-footer">
-        <a href="/inventory?category=premium" className="button primary premium-teaser-link">
-          Browse all Premium Stock
-        </a>
-
+        {total > 10 && (
+          <a href="/premium-stock" className="button primary premium-teaser-link" aria-label="View all premium stock">
+            <span>View All</span>
+            <span aria-hidden="true">→</span>
+          </a>
+        )}
         <div className="premium-teaser-contact">
           <a
-            href="https://wa.me/256700000000?text=Hello%20CarChief,%20I%20am%20interested%20in%20Premium%20Stock"
+            href="https://wa.me/817092101426?text=Hello%20CarChief,%20I%20am%20interested%20in%20Premium%20Stock"
             target="_blank"
             rel="noopener noreferrer"
-            className="whatsapp-link"
+            className="whatsapp-link premium-whatsapp-btn"
           >
-            💬 Chat with Sales on WhatsApp
+            <span aria-hidden="true">💬</span>
+            <span>VIP Sales Concierge (+81-70-9210-1426)</span>
           </a>
         </div>
       </div>

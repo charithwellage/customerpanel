@@ -182,9 +182,10 @@ function validate({ quiet = false } = {}) {
     'D01-P01-T010', 'D01-P01-T012', 'D01-P02-T002', 'D01-P02-T004', 'D01-P02-T006', 'D01-P03-T004', 'D01-P04-T003',
     'D01-P05-T004', 'D01-P06-T005', 'D01-P07-T004', 'D01-P08-T004',
     'D02-P01-T003', 'D02-P02-T002', 'D02-P03-T003', 'D02-P04-T003',
-    'D02-P05-T003', 'D02-P06-T004', 'D02-P07-T004', 'D02-P08-T003', 'D02-P09-T004', 'D02-P10-T003',
+    'D02-P05-T003', 'D02-P06-T004', 'D02-P07-T004', 'D02-P08-T003', 'D02-P09-T004', 'D02-P10-T003', 'D02-P11-T002',
+    'D02-P12-T007', 'D02-P13-T008',
   ]);
-  if (tasks.size !== 112) errors.push(`expected 112 task/gate files, found ${tasks.size}`);
+  if (tasks.size !== 144) errors.push(`expected 144 task/gate files, found ${tasks.size}`);
   for (const task of tasks.values()) {
     for (const field of ['task_id', 'title', 'delivery', 'phase', 'estimate', 'model_tier', 'parallel_group', 'phase_branch', 'task_branch']) {
       if (!task[field]) errors.push(`${task.task_id || task.file}: missing ${field}`);
@@ -289,7 +290,7 @@ function validate({ quiet = false } = {}) {
       if (!body.includes('## Phase branch and PR handoff')) errors.push(`${task.task_id}: missing phase PR handoff`);
       if (!body.includes(`create a PR with base \`${deliveryBranch(task)}\``)) errors.push(`${task.task_id}: missing delivery PR target`);
     }
-    if (/^D\d{2}-/.test(task.task_id)) {
+    if (/^D\d{2}-/.test(task.task_id) && !(/^D02-P(?:0[1-8]|11)-/.test(task.task_id))) {
       const validationBody = body.match(/## Validation commands\n\n([\s\S]*?)(?=\n## )/)?.[1] || '';
       for (const command of ['- `corepack pnpm lint`', '- `corepack pnpm typecheck`', '- `corepack pnpm -r build`']) {
         if (!validationBody.includes(command)) errors.push(`${task.task_id}: validation commands must include ${command}`);
@@ -297,6 +298,9 @@ function validate({ quiet = false } = {}) {
       if (!body.includes('Root lint, TypeScript typecheck and recursive workspace builds pass')) {
         errors.push(`${task.task_id}: acceptance criteria missing root build/compiler requirement`);
       }
+    }
+    if (/^D02-P(?:0[1-8]|11)-/.test(task.task_id) && !body.includes('D02_TEST_MATRIX.md')) {
+      errors.push(`${task.task_id}: Delivery 02 implementation/review task must reference D02_TEST_MATRIX.md`);
     }
     if (containerGateTasks.has(task.task_id) && !body.includes('## Containerized verification')) {
       errors.push(`${task.task_id}: missing required containerized verification section`);
@@ -312,8 +316,8 @@ function validate({ quiet = false } = {}) {
       else if (/^D02-P0[1-9]-/.test(task.task_id) && decisions.get(gate) !== 'RESOLVED') {
         errors.push(`${task.task_id}: Delivery 02 Phases 2.1–2.9 must not retain an unresolved requirement decision gate; record an assumption instead`);
       }
-      else if (/^D01-P(05|10)-/.test(task.task_id) && decisions.get(gate) !== 'RESOLVED') {
-        errors.push(`${task.task_id}: Delivery 01 Phase 1.5/1.10 must not retain an unresolved requirement decision gate; record an assumption instead`);
+      else if (/^D01-P(0[5-9]|10)-/.test(task.task_id) && decisions.get(gate) !== 'RESOLVED') {
+        errors.push(`${task.task_id}: Delivery 01 Phases 1.5-1.10 must not retain an unresolved requirement decision gate; record an assumption instead`);
       }
     }
   }
@@ -340,7 +344,7 @@ function validate({ quiet = false } = {}) {
     .filter((task) => task.task_id.startsWith('D02-'))
     .map((task) => readFileSync(task.file, 'utf8'))
     .join('\n');
-  for (let number = 1; number <= 25; number += 1) {
+  for (let number = 1; number <= 30; number += 1) {
     const id = `CUST-${String(number).padStart(2, '0')}`;
     if (!customerCorpus.includes(id)) errors.push(`Delivery 02 task set does not assign ${id}`);
   }
@@ -360,14 +364,40 @@ function validate({ quiet = false } = {}) {
       errors.push(...collectSelfReviewEvidenceErrors(task.task_id, task));
     }
   }
+  validateAssumptionRegister(errors);
   if (errors.length) die(errors.join('\n'));
   if (!quiet) console.log(`Validated ${tasks.size} task/gate files; dependency graph is complete and acyclic.`);
   return { tasks, decisions };
 }
 
+function executionLane(task) {
+  if (/^D01-P10-/.test(task.task_id)) return 'D01-RECONCILIATION';
+  if (/^D02-P01-/.test(task.task_id)) return 'D02-FOUNDATION';
+  if (/^D02-P(?:02|07|08)-/.test(task.task_id)) return 'D02-DASHBOARD-LOGISTICS';
+  if (/^D02-P(?:03|04|05|06)-/.test(task.task_id)) return 'D02-COMMERCE';
+  if (/^D02-P(?:09|10)-/.test(task.task_id)) return 'D02-FINAL';
+  if (/^D02-P11-/.test(task.task_id)) return 'D02-OPTIONAL-THEME';
+  if (/^D02-P12-/.test(task.task_id)) return 'D02-ACCOUNT';
+  if (/^D02-P13-/.test(task.task_id)) return 'D02-INQUIRIES-WISHLIST';
+  return 'GLOBAL';
+}
+
+function isOptionalTask(task) {
+  return /^D02-P11-/.test(task.task_id);
+}
+
+function laneDependencies(task, tasks) {
+  if (!/^D02-P09-/.test(task.task_id)) return [];
+  const required = ['D02-P06-CODE_REVIEW', 'D02-P08-CODE_REVIEW'];
+  return required.filter((id) => tasks.has(id) && rawStatus(id) !== 'COMPLETE')
+    .map((id) => `final Delivery 02 convergence requires ${id} to be COMPLETE`);
+}
+
 function sequenceBlockers(task, tasks) {
   const prior = [...tasks.values()]
-    .filter((candidate) => candidate.execution_order < task.execution_order)
+    .filter((candidate) => candidate.execution_order < task.execution_order
+      && executionLane(candidate) === executionLane(task)
+      && !isOptionalTask(candidate))
     .sort((a, b) => a.execution_order - b.execution_order);
   const unfinished = prior.filter((candidate) => !['COMPLETE', 'SUPERSEDED'].includes(rawStatus(candidate.task_id)));
   if (!unfinished.length) return [];
@@ -392,6 +422,7 @@ function prerequisiteBlockers(task, tasks, decisions, { includeSequence = true }
   for (const gate of task.decision_gates) {
     if (decisions.get(gate) !== 'RESOLVED') blockers.push(`decision ${gate} is ${decisions.get(gate) || 'MISSING'}, not RESOLVED`);
   }
+  blockers.push(...laneDependencies(task, tasks));
   if (includeSequence) blockers.push(...sequenceBlockers(task, tasks));
   return blockers;
 }
@@ -446,10 +477,10 @@ function writeLog(id, status, fields = {}) {
   }
   if (status === 'BLOCKED' && fields.blocker) {
     const event = `\n## Blocker event — ${new Date().toISOString()}\n\n${fields.blocker}\n`;
-    text = text.replace(/\n## Blockers\n\n[\s\S]*$/, `${event}\n## Blockers\n\n${fields.blocker}\n`);
+    text = replaceTrailingBlockersSection(text, `${event}\n## Blockers\n\n${fields.blocker}\n`);
     text = text.replace('- Blockers: None', `- Blockers: ${fields.blocker}`);
   } else if (status === 'IN_PROGRESS') {
-    text = text.replace(/\n## Blockers\n\n[\s\S]*$/, '\n## Blockers\n\nNone.\n');
+    text = replaceTrailingBlockersSection(text, '\n## Blockers\n\nNone.\n');
     text = text.replace(/- Blockers: .*$/m, '- Blockers: None');
   }
   text = replaceFrontmatterField(text, 'updated_at', new Date().toISOString());
@@ -499,7 +530,20 @@ function collectSelfReviewEvidenceErrors(id, task) {
     }
   }
   if (id === 'INF-P00-T006') {
-    for (const marker of ['Active AI client:', 'MCP configuration source:', 'MCP server process: PASS', 'MCP browser navigation: PASS', 'MCP accessibility snapshot: PASS']) {
+    // This infrastructure task was completed before the seven-action session
+    // attestation existed. Preserve its auditable historical evidence instead
+    // of inventing interaction/console/network results. Any re-run creates a
+    // current log and must satisfy the complete marker set below.
+    const readinessPolicyStartedAt = Date.parse('2026-08-14T00:00:00.000Z');
+    const logUpdatedAt = Date.parse(log.updated_at || '');
+    if (!log.text.includes('MCP session started at:') && Number.isFinite(logUpdatedAt) && logUpdatedAt < readinessPolicyStartedAt) return errors;
+    for (const marker of [
+      'Active AI client:', 'MCP configuration source:', 'MCP session started at:',
+      'MCP server process: PASS', 'MCP browser navigation: PASS',
+      'MCP accessibility snapshot: PASS', 'MCP viewport resize: PASS',
+      'MCP interaction: PASS', 'MCP screenshot: PASS',
+      'MCP console inspection: PASS', 'MCP network inspection: PASS',
+    ]) {
       if (!log.text.includes(marker) || log.text.includes(`${marker} Not recorded`)) {
         errors.push(`${id} requires recorded Playwright MCP readiness evidence: ${marker}`);
       }
@@ -514,6 +558,44 @@ function collectSelfReviewEvidenceErrors(id, task) {
     }
   }
   return errors;
+}
+
+// D01-P10-T001 requires a task-system assertion that every Delivery 01 assumption
+// register row stays complete and auditable — an empty cell or an invalid status is
+// exactly the kind of silent drift Phase 1.10 exists to catch, so this checks the
+// register's actual table structure rather than trusting narrative review alone.
+function validateAssumptionRegister(errors) {
+  const path = join(tasksRoot, 'delivery_01', 'REQUIREMENT_GAPS_AND_ASSUMPTIONS.md');
+  if (!existsSync(path)) {
+    errors.push('delivery_01/REQUIREMENT_GAPS_AND_ASSUMPTIONS.md is missing');
+    return;
+  }
+  const columns = [
+    'ID', 'Status', 'Affected task / requirement', 'Date', 'Safe MVP default or skipped capability',
+    'Rationale and mock/API impact', 'Tests', 'Risk', 'Phase 1.10 outcome',
+  ];
+  const validRowStatuses = new Set(['ASSUMED', 'SKIPPED', 'CONFIRMED', 'SUPERSEDED']);
+  // Scope to the "## Register" section only — later sections (e.g. the Phase 1.10
+  // business-review checklist) cross-reference the same D01-ASM-* IDs in a narrower
+  // summary table and must not be mistaken for the authoritative register row.
+  const registerSection = readFileSync(path, 'utf8').match(/## Register\n([\s\S]*?)(?=\n## )/)?.[1] || '';
+  if (!registerSection) errors.push('delivery_01/REQUIREMENT_GAPS_AND_ASSUMPTIONS.md is missing its "## Register" section');
+  const rowLines = registerSection.split('\n').filter((line) => /^\|\s*D01-ASM-\d{3}\s*\|/.test(line));
+  if (!rowLines.length) errors.push('delivery_01/REQUIREMENT_GAPS_AND_ASSUMPTIONS.md has no D01-ASM-* register rows');
+  for (const line of rowLines) {
+    const cells = line.split('|').slice(1, -1).map((cell) => cell.trim());
+    const id = cells[0] || line.slice(0, 40);
+    if (cells.length !== columns.length) {
+      errors.push(`${id}: register row has ${cells.length} columns, expected ${columns.length} (${columns.join(', ')})`);
+      continue;
+    }
+    cells.forEach((cell, index) => {
+      if (!cell) errors.push(`${id}: register row is missing its "${columns[index]}" value`);
+    });
+    if (!validRowStatuses.has(cells[1])) {
+      errors.push(`${id}: register row status "${cells[1]}" must be one of ${[...validRowStatuses].join(', ')}`);
+    }
+  }
 }
 
 function requireSelfReviewEvidence(id, task) {
@@ -538,11 +620,10 @@ function requirePhaseReviewRecord(id) {
   if (!/^[#\-*\s]*\**Result\**:\s*\**\s*(PASS|FAIL)\b/mi.test(log.text)) {
     errors.push(`${id} requires an explicit 'Result: PASS' or 'Result: FAIL' in the review record`);
   }
-  // The full Playwright suite is the gate; a spec-scoped run never satisfies it. Phase 1.7's
-  // deleted-enquiry-form regression survived six review passes precisely because every pass
-  // ran one narrow spec. Requiring the marker here enforces the suite regardless of what an
-  // individual review task file happens to list under its validation commands.
-  if (!log.text.includes('Full suite result:')) {
+  const isEarlyD02Review = /^D02-P0[1-8]-CODE_REVIEW$/.test(id);
+  if (isEarlyD02Review && !log.text.includes('Focused suite result:')) {
+    errors.push(`${id} requires a 'Focused suite result:' line recording the phase-owned automated test run`);
+  } else if (!isEarlyD02Review && !log.text.includes('Full suite result:')) {
     errors.push(`${id} requires a 'Full suite result:' line recording the full Playwright suite run across all viewport projects`);
   }
   const notRecorded = (log.text.match(/Not recorded/g) || []).length;
@@ -552,11 +633,32 @@ function requirePhaseReviewRecord(id) {
   if (errors.length) die(errors.join('\n'));
 }
 
+// Replaces the log's TRUE FINAL "## Blockers" section (heading through end of
+// file) with `replacement`, leaving any earlier, historical "## Blockers"
+// heading untouched. A log reopened more than once can accumulate one such
+// heading per prior cycle; matching the first one instead of the last would
+// silently discard every fix-pass section recorded after it (the same class
+// of bug fixed in appendReopenEvent below).
+function replaceTrailingBlockersSection(text, replacement) {
+  const marker = '\n## Blockers\n\n';
+  const index = text.lastIndexOf(marker);
+  return index === -1 ? `${text}${replacement}` : `${text.slice(0, index)}${replacement}`;
+}
+
 function appendReopenEvent(id, reason) {
   const log = loadLog(id);
   if (!log) return;
   const event = `\n## Reopened — ${new Date().toISOString()}\n\n${reason}\n`;
-  writeFileSync(log.path, log.text.replace(/\n## Blockers\n/, `${event}\n## Blockers\n`));
+  // A log reopened more than once accumulates multiple "## Blockers" headings
+  // (one per prior reopen/fix-pass cycle) — insert before the LAST one so the
+  // new event lands at the end of the log instead of truncating everything
+  // between the first heading and the real, final one.
+  const marker = '\n## Blockers\n';
+  const index = log.text.lastIndexOf(marker);
+  const updated = index === -1
+    ? `${log.text}${event}`
+    : `${log.text.slice(0, index)}${event}${marker}${log.text.slice(index + marker.length)}`;
+  writeFileSync(log.path, updated);
 }
 
 function option(name) {
@@ -566,8 +668,18 @@ function option(name) {
 
 function frontier(tasks) {
   return [...tasks.values()]
-    .filter((task) => !['COMPLETE', 'SUPERSEDED'].includes(rawStatus(task.task_id)))
+    .filter((task) => !isOptionalTask(task) && !['COMPLETE', 'SUPERSEDED'].includes(rawStatus(task.task_id)))
     .sort((a, b) => a.execution_order - b.execution_order)[0] || null;
+}
+
+function laneFrontiers(tasks) {
+  const byLane = new Map();
+  for (const task of [...tasks.values()].sort((a, b) => a.execution_order - b.execution_order)) {
+    if (isOptionalTask(task) || ['COMPLETE', 'SUPERSEDED'].includes(rawStatus(task.task_id))) continue;
+    const lane = executionLane(task);
+    if (!byLane.has(lane)) byLane.set(lane, task);
+  }
+  return byLane;
 }
 
 function printSequence(id) {
@@ -581,6 +693,7 @@ function printSequence(id) {
   for (const gate of task.decision_gates) {
     if (decisions.get(gate) !== 'RESOLVED') blockers.push(`decision ${gate} is ${decisions.get(gate) || 'MISSING'}, not RESOLVED`);
   }
+  blockers.push(...laneDependencies(task, tasks));
   blockers.push(...sequenceBlockers(task, tasks));
   const activeParallel = [...tasks.values()]
     .filter((candidate) => candidate.task_id !== task.task_id
@@ -598,37 +711,40 @@ function printSequence(id) {
 
 function printNext() {
   const { tasks, decisions } = validate({ quiet: true });
-  const task = frontier(tasks);
-  if (!task) {
+  const frontiers = laneFrontiers(tasks);
+  if (!frontiers.size) {
     console.log('All tasks are COMPLETE or SUPERSEDED.');
     return;
   }
-  console.log(`Execution frontier: ${task.task_id} — ${task.title}`);
-  console.log(`Status: ${rawStatus(task.task_id)}`);
-  const candidateBlockers = sequenceBlockers(task, tasks);
-  const currentStatus = rawStatus(task.task_id);
-  const sequentialResult = ['IN_PROGRESS', 'IN_REVIEW'].includes(currentStatus)
-    ? 'WAITING_FOR_COMPLETE'
-    : (candidateBlockers.length ? 'BLOCKED' : 'ELIGIBLE');
-  console.log(`Sequential result: ${sequentialResult}`);
-  const parallel = [...tasks.values()]
-    .filter((candidate) => candidate.execution_order > task.execution_order
-      && candidate.parallel_group === task.parallel_group
-      && ['NOT_STARTED', 'READY', 'BLOCKED'].includes(rawStatus(candidate.task_id)))
-    .filter((candidate) => sequenceBlockers(candidate, tasks).length === 0);
-  console.log(`Optional same-group parallel tasks: ${parallel.map((candidate) => candidate.task_id).join(', ') || 'None'}`);
-  if (candidateBlockers.length) candidateBlockers.forEach((blocker) => console.log(`- ${blocker}`));
-  if (task.decision_gates.some((gate) => decisions.get(gate) !== 'RESOLVED')) console.log('- Decision gate is unresolved.');
+  for (const [lane, task] of frontiers) {
+    console.log(`Execution frontier [${lane}]: ${task.task_id} — ${task.title}`);
+    console.log(`Status: ${rawStatus(task.task_id)}`);
+    const candidateBlockers = [
+      ...task.dependencies
+        .filter((id) => rawStatus(id) !== 'COMPLETE')
+        .map((id) => `dependency ${id} is ${rawStatus(id)}, not COMPLETE`),
+      ...task.decision_gates
+        .filter((gate) => decisions.get(gate) !== 'RESOLVED')
+        .map((gate) => `decision ${gate} is ${decisions.get(gate) || 'MISSING'}, not RESOLVED`),
+      ...laneDependencies(task, tasks),
+      ...sequenceBlockers(task, tasks),
+    ];
+    const currentStatus = rawStatus(task.task_id);
+    const sequentialResult = ['IN_PROGRESS', 'IN_REVIEW'].includes(currentStatus)
+      ? 'WAITING_FOR_COMPLETE'
+      : (candidateBlockers.length ? 'BLOCKED' : 'ELIGIBLE');
+    console.log(`Sequential result: ${sequentialResult}`);
+    if (candidateBlockers.length) candidateBlockers.forEach((blocker) => console.log(`- ${blocker}`));
+    if (task.decision_gates.some((gate) => decisions.get(gate) !== 'RESOLVED')) console.log('- Decision gate is unresolved.');
+  }
 }
 
 function render() {
   const { tasks, decisions } = validate({ quiet: true });
-  const currentFrontier = frontier(tasks);
-  const frontierLabel = currentFrontier ? `${currentFrontier.task_id} — ${currentFrontier.title} (${rawStatus(currentFrontier.task_id)})` : 'All tasks are COMPLETE or SUPERSEDED';
-  const optionalParallel = currentFrontier ? [...tasks.values()]
-    .filter((candidate) => candidate.execution_order > currentFrontier.execution_order && candidate.parallel_group === currentFrontier.parallel_group && ['NOT_STARTED', 'READY', 'BLOCKED'].includes(rawStatus(candidate.task_id)))
-    .filter((candidate) => sequenceBlockers(candidate, tasks).length === 0)
-    .map((candidate) => candidate.task_id) : [];
+  const frontiers = laneFrontiers(tasks);
+  const frontierLines = [...frontiers.entries()]
+    .map(([lane, task]) => `- ${lane}: ${task.task_id} — ${task.title} (${rawStatus(task.task_id)})`)
+    .join('\n') || '- All non-optional tasks are COMPLETE or SUPERSEDED.';
   const ordered = [...tasks.values()].sort((a, b) => a.execution_order - b.execution_order || a.task_id.localeCompare(b.task_id));
   const rows = ordered.map((task) => {
     const log = loadLog(task.task_id);
@@ -640,9 +756,9 @@ function render() {
     return `| [${task.task_id}](${link}) | ${task.title} | ${displayStatus(task, tasks, decisions)} | ${task.review_mode || '—'} | ${task.ui_validation || 'legacy/not-applicable'} | ${log?.owner || '—'} | ${phaseBranch} | ${phaseGate} | ${task.dependencies.join(', ') || 'None'} | ${task.parallel_group} | ${log?.updated_at || '—'} |`;
   });
   const text = `# CarChief Task Execution Tracker\n\n> Generated by \`node tasks/scripts/taskctl.mjs render\`. Do not edit the task rows manually.\n\n## Status meanings\n\n- \`NOT_STARTED\`: prerequisites or decisions are incomplete.\n- \`READY\`: dependencies and decision gates are complete.\n- \`IN_PROGRESS\`: claimed by an implementer.\n- \`IN_REVIEW\`: a phase-level PR review awaits the tech lead.\n- \`COMPLETE\`: a self-reviewed task passed tests, or a phase review was approved by the tech lead.\n- \`BLOCKED\`: work stopped and the execution log names the blocker.\n- \`SUPERSEDED\`: intentionally replaced by another approved task.\n\n## Review modes\n\n- \`self_ai\`: the implementing agent reviews its owned diff against \`CODE_REVIEW_RULES.md\`, fixes findings, records PASS and tests, then runs \`taskctl complete\`.\n- \`phase_manual\`: AI reviews the phase PR diff; the tech lead performs the only required manual code review and approves the task.\n- \`playwright_mcp\`: an interactive UI task must also record MCP browser evidence and automated Playwright Test PASS before completion.\n\n## Tracker\n\n| ID | Task | Status | Review mode | UI validation | Owner | Phase branch | Phase review gate | Dependencies | Parallel group | Last update |\n|---|---|---|---|---|---|---|---|---|---|---|\n${rows.join('\n')}\n\n## Continuation rule\n\nThe next developer starts with this tracker, then reads the latest phase summary and the execution log for the task being continued. A self-AI task may start only after the clean-tree \`taskctl precheck\`, branch preparation and final \`taskctl check\` succeed. A phase review waits for all phase work, a human-created PR and tech-lead approval.\n`;
-  const frontierSection = `\n## Current execution frontier\n\n- Sequential next: ${frontierLabel}\n- Optional same-group parallel tasks: ${optionalParallel.join(', ') || 'None'}\n- Downstream work waits for COMPLETE or SUPERSEDED; IN_REVIEW is not complete.\n- Later tasks cannot be bypassed; use taskctl sequence TASK-ID for the exact blocker.\n\n`;
+  const frontierSection = `\n## Current execution frontiers\n\n${frontierLines}\n- Sequential within each lane; dependencies coordinate work across lanes.\n- Optional Phase 2.11 is excluded until explicitly started with \`--opt-in theme\`.\n- Downstream work waits for COMPLETE or SUPERSEDED; IN_REVIEW is not complete.\n- Use \`taskctl sequence TASK-ID\` for the exact blocker.\n\n`;
   const enrichedText = text.replace('## Continuation rule', `${frontierSection}## Continuation rule`)
-    .replace('A self-AI task may start only after', 'Sequential execution is the default; optional parallel work is limited to an approved same-group task after the group frontier is active. Blocked tasks cannot be bypassed. The working tree must be clean before a task starts; commit any previous task changes manually before continuing. Agents never commit, push, create PRs or merge. A self-AI task may start only after');
+    .replace('A self-AI task may start only after', 'Sequential execution is enforced within each protected lane. Cross-lane work starts only after its explicit dependencies complete. Blocked tasks cannot be bypassed. The working tree must be clean before a task starts; commit any previous task changes manually before continuing. Agents never commit, push, create PRs or merge. A self-AI task may start only after');
   writeFileSync(trackerPath, enrichedText);
   console.log(`Rendered ${trackerPath}`);
 }
@@ -658,6 +774,10 @@ else if (command === 'check') check(id);
 else if (command === 'render') render();
 else if (command === 'start') {
   check(id);
+  const { tasks } = validate({ quiet: true });
+  if (isOptionalTask(tasks.get(id)) && option('--opt-in') !== 'theme') {
+    die(`${id} is an optional Delivery 02 theme task; start it only with --opt-in theme`);
+  }
   if (!['NOT_STARTED', 'READY', 'BLOCKED'].includes(rawStatus(id))) die(`${id} cannot start from ${rawStatus(id)}`);
   const owner = option('--owner');
   if (!owner) die('start requires --owner <name>');

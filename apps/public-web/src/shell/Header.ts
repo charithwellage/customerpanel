@@ -1,34 +1,40 @@
 export interface NavItem {
   label: string;
   href: string;
+  i18nKey?: string;
 }
 
 export const PUBLIC_NAV_ITEMS: NavItem[] = [
-  { label: 'SHOWROOM', href: '/' },
-  { label: 'ALL STOCK', href: '/allstock' },
-  { label: 'PREMIUM STOCK', href: '/#premium-stock' },
-  { label: 'HOW TO BUY', href: '/how-to-buy' },
-  { label: 'ABOUT US', href: '/about' },
-  { label: 'TESTIMONIALS', href: '/testimonials' },
-  { label: 'FAQ', href: '/faq' },
-  { label: 'CONTACT', href: '/contact' },
+  { label: 'SHOWROOM', href: '/', i18nKey: 'nav.home' },
+  { label: 'ALL STOCK', href: '/allstock', i18nKey: 'nav.inventory' },
+  { label: 'Clearance Stock', href: '/clearance-stock', i18nKey: 'nav.clearance' },
+  { label: 'PREMIUM STOCK', href: '/premium-stock' },
+  { label: 'SERVICES', href: '/services', i18nKey: 'nav.services' },
+  { label: 'HOW TO BUY', href: '/how-to-buy', i18nKey: 'nav.howToBuy' },
+  { label: 'ABOUT US', href: '/about', i18nKey: 'nav.about' },
+  { label: 'TESTIMONIALS', href: '/testimonials', i18nKey: 'nav.testimonials' },
+  { label: 'FAQ', href: '/faq', i18nKey: 'nav.faq' },
+  { label: 'CONTACT', href: '/contact', i18nKey: 'nav.contact' },
 ];
 
-export interface HeaderProps {
-  siteName?: string;
-  navItems?: NavItem[];
-  isMobileOpen?: boolean;
-}
-
-export function renderHeaderConfig(props: HeaderProps = {}) {
-  const siteName = props.siteName || 'CarChief';
-  const navItems = props.navItems || PUBLIC_NAV_ITEMS;
-
-  return {
-    landmark: 'header',
-    siteName,
-    navItems,
-    isMobileOpen: !!props.isMobileOpen,
-    skipLinkId: 'skip-to-main',
-  };
+/**
+ * Resolves the Customer application's sign-in entry point (D02-P12-T003,
+ * CUST-27) from configuration, never a hard-coded host. Customer-app has no
+ * router (its `App.tsx` is a `pathname`-driven chain and pre-authentication
+ * screens are gated by `AccountGuard`, not a route — see this phase's
+ * `CONTEXT.md` §5), so its own root path renders the sign-in form whenever
+ * no session is stored. `NEXT_PUBLIC_CUSTOMER_APP_URL` follows the same
+ * build-time `NEXT_PUBLIC_*` convention already used for
+ * `NEXT_PUBLIC_SITE_URL`/`NEXT_PUBLIC_THEME_ID`; it carries only a base URL,
+ * never a secret. The `127.0.0.1:3001` fallback matches this repo's default
+ * Profile A/B customer-app port (`docker-compose.frontend.yml`,
+ * `TASK_EXECUTION_PROTOCOL.md` §3).
+ */
+export function resolveCustomerAppUrl(): string {
+  const configured = process.env.NEXT_PUBLIC_CUSTOMER_APP_URL;
+  const browserFallback = typeof window !== 'undefined'
+    ? `${window.location.protocol}//${window.location.hostname}:3001`
+    : 'http://127.0.0.1:3001';
+  const base = configured && configured.trim() ? configured.trim() : browserFallback;
+  return base.replace(/\/$/, '');
 }

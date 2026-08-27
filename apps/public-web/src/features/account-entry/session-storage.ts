@@ -1,14 +1,17 @@
 import type { JwtClaims } from '@carchief/domain';
 
 /**
- * Browser storage helpers for the stand-in demo session (DEC-PUB-AUTH-BOUNDARY,
- * PUB-22, D01-P06-T003). Kept as pure functions taking `Storage`-shaped
- * callbacks (rather than reading `window.localStorage` directly) so they are
- * unit-testable under this repo's `environment: 'node'` Vitest config, with
- * no DOM/jsdom dependency.
+ * Browser storage helpers for a public-web session (DEC-PUB-AUTH-BOUNDARY,
+ * PUB-22, D01-P06-T003, CUST-30). A public-web session is always a real
+ * registered credential's token/claims, obtained through the Customer
+ * application's sign-in — no code path in this app mints a token locally.
+ * Kept as pure functions taking `Storage`-shaped callbacks (rather than
+ * reading `window.localStorage` directly) so they are unit-testable under
+ * this repo's `environment: 'node'` Vitest config, with no DOM/jsdom
+ * dependency.
  */
 
-export const SESSION_STORAGE_KEY = 'carchief.demoSession.v1';
+export const SESSION_STORAGE_KEY = 'carchief.session.v1';
 
 export interface StoredSession {
   token: string;
@@ -42,7 +45,7 @@ export function clearStoredSession(removeItem: (key: string) => void): void {
  * True once `claims.exp` (Unix seconds) has passed `nowSeconds`. Deliberately
  * reimplemented here rather than importing `@carchief/domain`'s
  * `isJwtExpired` at runtime: `@carchief/domain/auth.js` imports `node:buffer`
- * (for `createDemoJwtToken`/`parseDemoJwtToken`) at module scope, which
+ * (for `issueSessionToken`/`parseSessionToken`) at module scope, which
  * Next.js's client webpack bundle cannot resolve — this module stays a pure,
  * browser-safe leaf so a client component can import it directly. `JwtClaims`
  * is imported with `import type`, which is erased at compile time and never
@@ -68,8 +71,8 @@ export function resolveReturnTarget(returnTo: string | null | undefined, fallbac
   return returnTo;
 }
 
-/** Extracts a vehicle slug from a `/vehicles/{slug}` return target, for contextual guidance copy only — never used for authorization. */
+/** Extracts a vehicle slug from an `/allstock/{slug}` return target, for contextual guidance copy only — never used for authorization. */
 export function extractVehicleSlug(returnTarget: string): string | undefined {
-  const match = /^\/vehicles\/([^/?#]+)/.exec(returnTarget);
+  const match = /^\/allstock\/([^/?#]+)/.exec(returnTarget);
   return match ? decodeURIComponent(match[1]) : undefined;
 }

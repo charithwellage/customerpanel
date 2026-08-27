@@ -47,7 +47,6 @@ describe('Vehicle Detail Package Unit Tests', () => {
       showAuctionPictures: false,
       showJapanPictures: true,
       showDurbanPictures: true,
-      totalPicturesCount: 3,
     };
 
     expect(getVisibleGalleryImages(media)).toEqual(['https://example.com/japan1.jpg']);
@@ -72,7 +71,7 @@ describe('Vehicle Detail Package Unit Tests', () => {
       priceUsd: 10000,
       requestPrice: false,
       discountedPriceUsd: 9500,
-      media: { gallery: [], totalPicturesCount: 0 },
+      media: { gallery: [] },
     };
     expect(getEffectivePrice(pricedVehicle)).toEqual({ priceText: '$9,500', isRequestPrice: false });
 
@@ -86,7 +85,7 @@ describe('Vehicle Detail Package Unit Tests', () => {
       status: 'Available',
       priceState: 'request_price',
       requestPrice: true,
-      media: { gallery: [], totalPicturesCount: 0 },
+      media: { gallery: [] },
     };
     expect(getEffectivePrice(requestPriceVehicle)).toEqual({ priceText: 'Request Price', isRequestPrice: true });
   });
@@ -95,13 +94,11 @@ describe('Vehicle Detail Package Unit Tests', () => {
     const media: CategorizedPublicMedia = {
       gallery: [],
       auctionPictures: ['https://example.com/auction1.jpg'],
-      auctionSheet: [],
       japanPictures: ['https://example.com/japan1.jpg'],
       durbanPictures: ['https://example.com/durban1.jpg'],
       showAuctionPictures: false,
       showJapanPictures: true,
       showDurbanPictures: true,
-      totalPicturesCount: 3,
     };
 
     expect(getVisibleGalleryImages(media)).toEqual(['https://example.com/japan1.jpg']);
