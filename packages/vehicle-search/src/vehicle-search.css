@@ -2,6 +2,49 @@
   width: 100%;
 }
 
+/* Shared AI-assisted vehicle search */
+.cc-ai-search {
+  width: 100%;
+  margin-block: 0 1rem;
+  padding: 1rem;
+  color: var(--color-text, #111827);
+  font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.055), rgba(59, 130, 246, 0.045));
+  border: 1px solid rgba(220, 38, 38, 0.22);
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(17, 24, 39, 0.04);
+}
+
+.cc-ai-search--active { border-color: rgba(220, 38, 38, 0.55); }
+.cc-ai-search__heading { display: flex; align-items: center; gap: 0.5rem; margin-block-end: 0.7rem; }
+.cc-ai-search__icon { display: inline-flex; width: 1.25rem; height: 1.25rem; color: var(--color-primary, #dc2626); }
+.cc-ai-search__icon svg { width: 100%; height: 100%; fill: currentColor; }
+.cc-ai-search__label { font-size: 0.9rem; font-weight: 800; }
+.cc-ai-search__badge { padding: 0.12rem 0.42rem; color: #fff; font-size: 0.65rem; font-weight: 800; letter-spacing: 0.06em; background: #111827; border-radius: 999px; }
+.cc-ai-search__controls { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 0.65rem; }
+.cc-ai-search__input { min-width: 0; height: 44px; padding: 0 0.9rem; color: #111827; font: inherit; font-size: 0.88rem; background: #fff; border: 1px solid #d1d5db; border-radius: 8px; }
+.cc-ai-search__input:focus { outline: none; border-color: #dc2626; box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12); }
+.cc-ai-search__input::placeholder { color: #9ca3af; }
+.cc-ai-search__submit,
+.cc-ai-search__clear { min-height: 44px; padding: 0.55rem 1rem; font: inherit; font-size: 0.82rem; font-weight: 800; cursor: pointer; border-radius: 8px; }
+.cc-ai-search__submit { color: #fff; background: var(--color-primary, #dc2626); border: 1px solid var(--color-primary, #dc2626); }
+.cc-ai-search__clear { color: #374151; background: #fff; border: 1px solid #d1d5db; }
+.cc-ai-search__submit:disabled,
+.cc-ai-search__clear:disabled { cursor: not-allowed; opacity: 0.55; }
+.cc-ai-search__feedback:empty { display: none; }
+.cc-ai-search__feedback { margin-block-start: 0.65rem; font-size: 0.8rem; line-height: 1.45; }
+.cc-ai-search__notice { display: block; padding: 0.6rem 0.75rem; color: #92400e; background: #fffbeb; border: 1px solid #fde68a; border-radius: 7px; }
+.cc-ai-search__error { display: block; padding: 0.6rem 0.75rem; color: #991b1b; background: #fef2f2; border: 1px solid #fecaca; border-radius: 7px; }
+.cc-ai-search__result-summary { color: #374151; }
+.cc-ai-search__constraints { display: flex; flex-wrap: wrap; gap: 0.35rem; margin: 0.45rem 0 0; padding: 0; list-style: none; }
+.cc-ai-search__constraints li { padding: 0.2rem 0.55rem; color: #991b1b; font-size: 0.72rem; font-weight: 700; background: #fee2e2; border-radius: 999px; }
+
+@media (max-width: 640px) {
+  .cc-ai-search__controls { grid-template-columns: 1fr; }
+  .cc-ai-search__submit,
+  .cc-ai-search__clear { width: 100%; }
+}
+
 .cc-vehicle-collection__header {
   margin-block-end: 1.5rem;
 }

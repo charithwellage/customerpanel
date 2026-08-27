@@ -1,9 +1,13 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import type { WishlistItem } from '@carchief/domain';
+import type { VehicleDomainSummary, WishlistItem } from '@carchief/domain';
+import { AiVehicleSearchService } from '@carchief/api-client';
+import { AiVehicleSearch, useAiVehicleSearch } from '@carchief/vehicle-search';
 import { useCustomerShell } from '../shell/index.js';
+import { useHttpClient } from '../account/index.js';
 import { useCustomerWishlist } from './useCustomerWishlist.js';
 import { ViewModeToggle, type ViewMode } from '../../components/ViewModeToggle.js';
 import './wishlist.css';
+import { useTranslation } from '../../i18n/index.js';
 
 export interface WishlistStockItem {
   id: string;
@@ -76,16 +80,29 @@ export const SEED_STOCK_WISHLIST: WishlistStockItem[] = [
 ];
 
 export const CustomerWishlistPage: React.FC = () => {
+  const { t } = useTranslation();
   const { setActiveRoute } = useCustomerShell();
+  const httpClient = useHttpClient();
   const { items: serverWishlistItems, removeItem } = useCustomerWishlist();
 
   // Filtering & Pagination (FRD 8.3 & 8.5)
   const [keyword, setKeyword] = useState('');
   const [perPage, setPerPage] = useState<number>(10);
+  const [currentPage, setCurrentPage] = useState(1);
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
 
   // Local state for stock wishlist items
   const [stockList, setStockList] = useState<WishlistStockItem[]>(SEED_STOCK_WISHLIST);
+  const aiService = useMemo(() => httpClient ? new AiVehicleSearchService(httpClient) : null, [httpClient]);
+  const ai = useAiVehicleSearch({
+    service: aiService,
+    request: {
+      scope: 'customerWishlist',
+      page: currentPage,
+      limit: perPage,
+      constraints: { vehicleIds: stockList.map((item) => item.vehicleId) },
+    },
+  });
 
   useEffect(() => {
     const combinedSlugs: string[] = [];
@@ -150,6 +167,7 @@ export const CustomerWishlistPage: React.FC = () => {
   }, [serverWishlistItems]);
 
   const handleRemoveStock = async (id: string, slug: string) => {
+    ai.clear();
     setStockList((prev) => prev.filter((item) => item.id !== id && item.vehicleSlug !== slug));
     if (typeof window !== 'undefined') {
       try {
@@ -168,22 +186,62 @@ export const CustomerWishlistPage: React.FC = () => {
   };
 
   // Filtered Stock items
+  const aiStockItems = useMemo(() => {
+    if (ai.result?.scope !== 'customerWishlist') return null;
+    return (ai.result.items as VehicleDomainSummary[]).map(mapAiVehicleToWishlistItem);
+  }, [ai.result]);
+
   const filteredStockItems = useMemo(() => {
-    if (!keyword.trim()) return stockList;
+    const source = aiStockItems || stockList;
+    if (aiStockItems || !keyword.trim()) return source;
     const q = keyword.toLowerCase().trim();
-    return stockList.filter(
+    return source.filter(
       (item) =>
         item.make.toLowerCase().includes(q) ||
         item.model.toLowerCase().includes(q) ||
         item.stockNumber.toLowerCase().includes(q) ||
         item.chassisNumber.toLowerCase().includes(q)
     );
-  }, [stockList, keyword]);
+  }, [aiStockItems, stockList, keyword]);
 
-  const totalCount = filteredStockItems.length;
+  const totalCount = ai.isActive ? ai.result?.total || 0 : filteredStockItems.length;
+  const totalPages = Math.max(1, ai.isActive
+    ? ai.result?.totalPages || 1
+    : Math.ceil(totalCount / perPage));
+  const visibleStockItems = ai.isActive
+    ? filteredStockItems
+    : filteredStockItems.slice((currentPage - 1) * perPage, currentPage * perPage);
+
+  const changePage = (page: number) => {
+    const nextPage = Math.max(1, Math.min(totalPages, page));
+    setCurrentPage(nextPage);
+    if (ai.isActive) void ai.search({ page: nextPage, limit: perPage });
+  };
 
   return (
     <div className="cc-wishlist-page" data-testid="customer-wishlist-page">
+      <AiVehicleSearch
+        id="customer-wishlist-ai-search"
+        value={ai.prompt}
+        onChange={ai.setPrompt}
+        onSubmit={() => { setCurrentPage(1); void ai.search({ page: 1, limit: perPage }); }}
+        onClear={() => { setCurrentPage(1); ai.clear(); }}
+        isLoading={ai.isLoading}
+        isActive={ai.isActive}
+        unavailable={ai.unavailable}
+        error={ai.error}
+        summary={ai.result?.interpretation.summary}
+        appliedConstraints={ai.result?.interpretation.appliedConstraints}
+        copy={{
+          label: t('aiSearch.label', undefined, 'AI Search'),
+          placeholder: t('aiSearch.wishlistPlaceholder', undefined, 'Ask AI to find a vehicle in your wishlist'),
+          submit: t('aiSearch.submit', undefined, 'Search with AI'),
+          submitting: t('aiSearch.submitting', undefined, 'Searching…'),
+          clear: t('aiSearch.clear', undefined, 'Clear AI search'),
+          unavailable: t('aiSearch.unavailable', undefined, 'AI search is not yet available in this environment. Try the regular vehicle search and filters.'),
+          resultsLabel: t('aiSearch.results', undefined, 'AI search results'),
+        }}
+      />
       {/* Filter & Pagination Control Bar (FRD 8.3 & 8.5) */}
       <div className="cc-wishlist-controls-bar">
         <div className="cc-wishlist-search-box">
@@ -192,7 +250,7 @@ export const CustomerWishlistPage: React.FC = () => {
             className="cc-wishlist-search-input"
             placeholder="Search make, model, stock, chassis..."
             value={keyword}
-            onChange={(e) => setKeyword(e.target.value)}
+            onChange={(e) => { ai.clear(); setCurrentPage(1); setKeyword(e.target.value); }}
             data-testid="wishlist-search-input"
           />
         </div>
@@ -212,7 +270,7 @@ export const CustomerWishlistPage: React.FC = () => {
               id="wishlist-per-page-select"
               className="cc-wishlist-per-page-select"
               value={perPage}
-              onChange={(e) => setPerPage(Number(e.target.value))}
+              onChange={(e) => { ai.clear(); setCurrentPage(1); setPerPage(Number(e.target.value)); }}
             >
               <option value={10}>10</option>
               <option value={20}>20</option>
@@ -235,7 +293,7 @@ export const CustomerWishlistPage: React.FC = () => {
               </button>
             </div>
           ) : (
-            filteredStockItems.slice(0, perPage).map((item) => (
+            visibleStockItems.map((item) => (
               <article key={item.id} className="cc-wishlist-card" data-testid={`wishlist-card-${item.stockNumber}`}>
                 <div
                   className="cc-wishlist-card__image-box"
@@ -310,6 +368,43 @@ export const CustomerWishlistPage: React.FC = () => {
             ))
           )}
       </div>
+      {totalPages > 1 && (
+        <nav className="cc-wishlist-pagination" aria-label="Wishlist pagination">
+          <button type="button" onClick={() => changePage(currentPage - 1)} disabled={currentPage === 1}>
+            {t('customer.previous', undefined, 'Previous')}
+          </button>
+          <span aria-live="polite">
+            {t('customer.pageOf', { page: currentPage, total: totalPages }, `Page ${currentPage} of ${totalPages}`)}
+          </span>
+          <button type="button" onClick={() => changePage(currentPage + 1)} disabled={currentPage === totalPages}>
+            {t('customer.next', undefined, 'Next')}
+          </button>
+        </nav>
+      )}
     </div>
   );
 };
+
+function mapAiVehicleToWishlistItem(vehicle: VehicleDomainSummary): WishlistStockItem {
+  return {
+    id: vehicle.id,
+    vehicleId: vehicle.id,
+    vehicleSlug: vehicle.slug || vehicle.id,
+    make: vehicle.make,
+    model: vehicle.model,
+    yom: String(vehicle.year),
+    stockNumber: vehicle.stockLocation || vehicle.id,
+    chassisNumber: vehicle.chassisNumber,
+    viewsCount: 0,
+    fobPriceUsd: vehicle.tierPricing?.tierPriceUsd ?? vehicle.priceUsd,
+    inquirerCount: 0,
+    imageUrl: vehicle.images?.[0] || '',
+    specs: {
+      engineCc: vehicle.engineCc ? `${vehicle.engineCc.toLocaleString()}CC` : '—',
+      mileage: vehicle.mileage !== undefined ? `${vehicle.mileage.toLocaleString()} KM` : '—',
+      fuel: vehicle.fuelType || '—',
+      transmission: vehicle.transmission || '—',
+      color: vehicle.color || '—',
+    },
+  };
+}

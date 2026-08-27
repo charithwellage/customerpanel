@@ -3,17 +3,19 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams, usePathname } from 'next/navigation';
 import type { SearchVehiclesQuery, VehicleSearchResult } from '@carchief/domain';
-import { VehicleService, HttpClient } from '@carchief/api-client';
+import { AiVehicleSearchService, VehicleService, HttpClient } from '@carchief/api-client';
 import {
   parseNaturalSearchQuery,
   parseUrlSearchQuery,
   serializeSearchQuery,
   type UnderstoodToken,
   type ParsedNaturalQueryResult,
+  useAiVehicleSearch,
 } from '@carchief/vehicle-search';
 
 export interface UseVehicleSearchOrchestrationOptions {
   service?: VehicleService;
+  aiService?: AiVehicleSearchService;
   baseUrl?: string;
   initialQuery?: SearchVehiclesQuery;
   lockedCollection?: string;
@@ -35,6 +37,16 @@ export interface UseVehicleSearchOrchestrationReturn {
   setPage: (page: number) => void;
   setSortBy: (sortBy: SearchVehiclesQuery['sortBy']) => void;
   refetch: () => Promise<void>;
+  aiPrompt: string;
+  setAiPrompt: (prompt: string) => void;
+  applyAiSearch: () => Promise<unknown>;
+  clearAiSearch: () => void;
+  isAiLoading: boolean;
+  isAiActive: boolean;
+  isAiUnavailable: boolean;
+  aiError: string | null;
+  aiSummary?: string;
+  aiConstraints: string[];
 }
 
 export function useVehicleSearchOrchestration(
@@ -51,6 +63,11 @@ export function useVehicleSearchOrchestration(
         // public-web /api/v1 proxy instead of resolving 127.0.0.1 locally.
         baseUrl: options.baseUrl || (typeof window !== 'undefined' ? '' : process.env.API_BASE_URL || 'http://127.0.0.1:4000'),
       }))
+  );
+  const [aiService] = useState<AiVehicleSearchService>(
+    () => options.aiService || new AiVehicleSearchService(new HttpClient({
+      baseUrl: options.baseUrl || (typeof window !== 'undefined' ? '' : process.env.API_BASE_URL || 'http://127.0.0.1:4000'),
+    }))
   );
 
   const [query, setQuery] = useState<SearchVehiclesQuery>(() => {
@@ -70,6 +87,33 @@ export function useVehicleSearchOrchestration(
 
   const [naturalPhrase, setNaturalPhrase] = useState<string>(query.searchQuery || '');
   const [understoodTokens, setUnderstoodTokens] = useState<UnderstoodToken[]>([]);
+  const ai = useAiVehicleSearch({
+    service: aiService,
+    request: {
+      scope: 'publicInventory',
+      page: query.page,
+      limit: query.limit,
+      sortBy: query.sortBy,
+      filters: query,
+      constraints: {
+        ...(options.lockedCollection ? { collection: options.lockedCollection } : {}),
+        ...(options.lockedCategory ? { category: options.lockedCategory } : {}),
+      },
+    },
+  });
+
+  const displayedResult: VehicleSearchResult | null = ai.result && ai.result.scope === 'publicInventory'
+    ? {
+        items: ai.result.items as VehicleSearchResult['items'],
+        total: ai.result.total,
+        page: ai.result.page,
+        limit: ai.result.limit,
+        totalPages: ai.result.totalPages,
+        hasNextPage: ai.result.hasNextPage,
+        hasPrevPage: ai.result.hasPrevPage,
+        facets: ai.result.facets || result?.facets || emptyFacets(),
+      }
+    : result;
 
   // Sync state with URL search parameters
   useEffect(() => {
@@ -148,6 +192,7 @@ export function useVehicleSearchOrchestration(
 
   const updateQuery = useCallback(
     (updates: Partial<SearchVehiclesQuery>) => {
+      ai.clear();
       const updated = {
         ...query,
         ...updates,
@@ -158,12 +203,13 @@ export function useVehicleSearchOrchestration(
       setQuery(updated);
       updateUrl(updated);
     },
-    [query, updateUrl]
+    [ai.clear, query, updateUrl]
   );
 
   const applyNaturalSearch = useCallback(
     (phrase?: string): ParsedNaturalQueryResult => {
       const targetPhrase = phrase !== undefined ? phrase : naturalPhrase;
+      ai.clear();
       const parsed = parseNaturalSearchQuery(targetPhrase);
 
       setUnderstoodTokens(parsed.understoodTokens);
@@ -181,10 +227,11 @@ export function useVehicleSearchOrchestration(
 
       return parsed;
     },
-    [naturalPhrase, query, updateUrl]
+    [ai.clear, naturalPhrase, query, updateUrl]
   );
 
   const resetFilters = useCallback(() => {
+    ai.clear();
     // Preserve market, destinationPort and collection context during reset
     const resetState: SearchVehiclesQuery = {
       market: query.market,
@@ -199,13 +246,14 @@ export function useVehicleSearchOrchestration(
     setUnderstoodTokens([]);
     setQuery(resetState);
     updateUrl(resetState);
-  }, [options.lockedCategory, options.lockedCollection, query.market, query.destinationPort, query.collection, query.category, updateUrl]);
+  }, [ai.clear, options.lockedCategory, options.lockedCollection, query.market, query.destinationPort, query.collection, query.category, updateUrl]);
 
   const setPage = useCallback(
     (page: number) => {
-      updateQuery({ page });
+      if (ai.isActive) void ai.search({ page });
+      else updateQuery({ page });
     },
-    [updateQuery]
+    [ai.isActive, ai.search, updateQuery]
   );
 
   const setSortBy = useCallback(
@@ -215,24 +263,49 @@ export function useVehicleSearchOrchestration(
     [updateQuery]
   );
 
+  const handleNaturalPhraseChange = useCallback((value: string) => {
+    ai.clear();
+    setNaturalPhrase(value);
+  }, [ai.clear]);
+
   const refetch = useCallback(async () => {
     await fetchSearchResults(query);
   }, [fetchSearchResults, query]);
 
   return {
     query,
-    result,
+    result: displayedResult,
     isLoading,
     isPending: false,
     error,
     understoodTokens,
     naturalPhrase,
-    setNaturalPhrase,
+    setNaturalPhrase: handleNaturalPhraseChange,
     applyNaturalSearch,
     updateQuery,
     resetFilters,
     setPage,
     setSortBy,
     refetch,
+    aiPrompt: ai.prompt,
+    setAiPrompt: ai.setPrompt,
+    applyAiSearch: ai.search,
+    clearAiSearch: ai.clear,
+    isAiLoading: ai.isLoading,
+    isAiActive: ai.isActive,
+    isAiUnavailable: ai.unavailable,
+    aiError: ai.error,
+    aiSummary: ai.result?.interpretation.summary,
+    aiConstraints: ai.result?.interpretation.appliedConstraints || [],
+  };
+}
+
+function emptyFacets(): VehicleSearchResult['facets'] {
+  const range = { min: 0, max: 0 };
+  return {
+    makes: [], bodyStyles: [], fuelTypes: [], transmissions: [], driveTrains: [], models: [], modelCodes: [],
+    vehicleTypes: [], vehicleSubTypes: [], locationStatuses: [], destinationPorts: [], overdrives: [], colors: [],
+    exteriorGrades: [], steerings: [], stockCountries: [], stockLocations: [], features: [], yearRange: range,
+    priceRange: range, mileageRange: range, engineCcRange: range, seatsRange: range, loadCapacityRange: range,
   };
 }

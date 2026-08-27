@@ -1,6 +1,9 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import type { CustomerVehicleSummary } from '@carchief/domain';
+import { AiVehicleSearchService } from '@carchief/api-client';
+import { AiVehicleSearch, useAiVehicleSearch } from '@carchief/vehicle-search';
 import { useCustomerShell } from '../shell/index.js';
+import { useHttpClient } from '../account/index.js';
 import { useCustomerVehicles } from './useCustomerVehicles.js';
 import { VehicleFleetCard } from './components/VehicleFleetCard.js';
 import { VehicleTrackingModal } from './components/VehicleTrackingModal.js';
@@ -17,6 +20,7 @@ export type FleetTabKey = 'reserved' | 'withPI' | 'invoiced' | 'all' | 'underNeg
 export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVehicle, initialTab = 'invoiced' }) => {
   const { t } = useTranslation();
   const { setActiveRoute } = useCustomerShell();
+  const httpClient = useHttpClient();
   const [activeTab, setActiveTab] = useState<FleetTabKey>(initialTab);
   const [searchQuery, setSearchQuery] = useState('');
   const [shippingStatusFilter, setShippingStatusFilter] = useState('all');
@@ -24,6 +28,7 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 8;
+  const aiService = useMemo(() => httpClient ? new AiVehicleSearchService(httpClient) : null, [httpClient]);
 
   React.useEffect(() => {
     setActiveRoute('/vehicles');
@@ -53,23 +58,41 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
   }, [activeTab, searchQuery]);
 
   const { data, isLoading, error, refetch } = useCustomerVehicles(queryParams);
+  const ai = useAiVehicleSearch({
+    service: aiService,
+    request: {
+      scope: 'customerFleet',
+      page: currentPage,
+      limit: pageSize,
+      filters: { searchQuery: searchQuery || undefined },
+      constraints: {
+        activeTab,
+        ...(queryParams.status ? { status: queryParams.status } : {}),
+        ...(shippingStatusFilter !== 'all' ? { shippingStatus: shippingStatusFilter } : {}),
+      },
+    },
+  });
+
+  const sourceVehicles = ai.result?.scope === 'customerFleet'
+    ? ai.result.items as CustomerVehicleSummary[]
+    : data?.items;
 
   const displayedVehicles = useMemo(() => {
-    if (!data?.items) return [];
-    if (shippingStatusFilter === 'all') return data.items;
-    return data.items.filter((v) => {
+    if (!sourceVehicles) return [];
+    if (shippingStatusFilter === 'all' || ai.isActive) return sourceVehicles;
+    return sourceVehicles.filter((v) => {
       const stage = (v.shippingStage || v.logisticsStatus || v.locationStatus || '').toLowerCase();
       const filterLower = shippingStatusFilter.toLowerCase();
       return stage.includes(filterLower);
     });
-  }, [data?.items, shippingStatusFilter]);
+  }, [ai.isActive, shippingStatusFilter, sourceVehicles]);
 
   useEffect(() => {
     setCurrentPage(1);
   }, [activeTab, searchQuery, shippingStatusFilter]);
 
-  const totalPages = Math.max(1, Math.ceil(displayedVehicles.length / pageSize));
-  const pagedVehicles = displayedVehicles.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const totalPages = ai.isActive ? Math.max(1, ai.result?.totalPages || 1) : Math.max(1, Math.ceil(displayedVehicles.length / pageSize));
+  const pagedVehicles = ai.isActive ? displayedVehicles : displayedVehicles.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   const counts = data?.countsByStatus || {
     all: 0,
@@ -100,8 +123,8 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
           tabIndex={0}
           data-testid="kpi-reserved"
           className={`cc-cust-kpi-card cc-cust-kpi-card--reserved ${activeTab === 'reserved' || activeTab === 'underNegotiation' ? 'cc-cust-kpi-card--active-amber' : ''}`}
-          onClick={() => setActiveTab('reserved')}
-          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveTab('reserved'); } }}
+          onClick={() => { ai.clear(); setActiveTab('reserved'); }}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); ai.clear(); setActiveTab('reserved'); } }}
         >
           <div className="cc-cust-kpi-card__content">
             <div className="cc-cust-kpi-card__header-row">
@@ -121,8 +144,8 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
           tabIndex={0}
           data-testid="kpi-with-pi"
           className={`cc-cust-kpi-card cc-cust-kpi-card--with-pi ${activeTab === 'withPI' || activeTab === 'underNegotiationWithPI' ? 'cc-cust-kpi-card--active-purple' : ''}`}
-          onClick={() => setActiveTab('withPI')}
-          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveTab('withPI'); } }}
+          onClick={() => { ai.clear(); setActiveTab('withPI'); }}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); ai.clear(); setActiveTab('withPI'); } }}
         >
           <div className="cc-cust-kpi-card__content">
             <div className="cc-cust-kpi-card__header-row">
@@ -142,8 +165,8 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
           tabIndex={0}
           data-testid="kpi-invoiced"
           className={`cc-cust-kpi-card cc-cust-kpi-card--invoiced ${activeTab === 'invoiced' || activeTab === 'confirmed' || activeTab === 'inTransit' || activeTab === 'delivered' ? 'cc-cust-kpi-card--active-green' : ''}`}
-          onClick={() => setActiveTab('invoiced')}
-          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveTab('invoiced'); } }}
+          onClick={() => { ai.clear(); setActiveTab('invoiced'); }}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); ai.clear(); setActiveTab('invoiced'); } }}
         >
           <div className="cc-cust-kpi-card__content">
             <div className="cc-cust-kpi-card__header-row">
@@ -158,6 +181,29 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
         </div>
       </section>
 
+      <AiVehicleSearch
+        id="customer-fleet-ai-search"
+        value={ai.prompt}
+        onChange={ai.setPrompt}
+        onSubmit={() => { void ai.search({ page: 1 }); setCurrentPage(1); }}
+        onClear={ai.clear}
+        isLoading={ai.isLoading}
+        isActive={ai.isActive}
+        unavailable={ai.unavailable}
+        error={ai.error}
+        summary={ai.result?.interpretation.summary}
+        appliedConstraints={ai.result?.interpretation.appliedConstraints}
+        copy={{
+          label: t('aiSearch.label', undefined, 'AI Search'),
+          placeholder: t('aiSearch.fleetPlaceholder', undefined, 'Ask AI to search your vehicles by status, model, payment, or logistics stage'),
+          submit: t('aiSearch.submit', undefined, 'Search with AI'),
+          submitting: t('aiSearch.submitting', undefined, 'Searching…'),
+          clear: t('aiSearch.clear', undefined, 'Clear AI search'),
+          unavailable: t('aiSearch.unavailable', undefined, 'AI search is not yet available in this environment. Try the regular vehicle search and filters.'),
+          resultsLabel: t('aiSearch.results', undefined, 'AI search results'),
+        }}
+      />
+
       {/* Filter Bar: Search & Shipping Status dropdown */}
       <div className="cc-cust-fleet-filter-bar" data-testid="fleet-tabs">
         {/* Search & Shipping Status Dropdown */}
@@ -171,14 +217,14 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
               className="cc-search-input"
               placeholder="Search make, model, chassis"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => { ai.clear(); setSearchQuery(e.target.value); }}
             />
             {searchQuery && (
               <button
                 type="button"
                 data-testid="fleet-search-clear"
                 className="cc-cust-fleet-search-clear"
-                onClick={() => setSearchQuery('')}
+                onClick={() => { ai.clear(); setSearchQuery(''); }}
                 aria-label="Clear search query"
               >
                 ✕
@@ -192,7 +238,7 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
               data-testid="fleet-shipping-status-select"
               className="cc-filter-select"
               value={shippingStatusFilter}
-              onChange={(e) => setShippingStatusFilter(e.target.value)}
+              onChange={(e) => { ai.clear(); setShippingStatusFilter(e.target.value); }}
               aria-label="Shipping Status"
             >
               <option value="all">Shipping Status</option>
@@ -273,18 +319,26 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({ onSelectVe
           <button
             type="button"
             className="cc-cust-fleet-pagination__button"
-            onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+            onClick={() => {
+              const page = Math.max(1, currentPage - 1);
+              setCurrentPage(page);
+              if (ai.isActive) void ai.search({ page });
+            }}
             disabled={currentPage === 1}
           >
             {t('customer.previous', undefined, 'Previous')}
           </button>
           <span className="cc-cust-fleet-pagination__status" aria-live="polite">
-            {t('customer.pageOf', { page: currentPage, total: totalPages }, `Page ${currentPage} of ${totalPages}`)} · {t('customer.vehiclesCount', { count: displayedVehicles.length }, `${displayedVehicles.length} vehicles`)}
+            {t('customer.pageOf', { page: currentPage, total: totalPages }, `Page ${currentPage} of ${totalPages}`)} · {t('customer.vehiclesCount', { count: ai.isActive ? ai.result?.total || 0 : displayedVehicles.length }, `${ai.isActive ? ai.result?.total || 0 : displayedVehicles.length} vehicles`)}
           </span>
           <button
             type="button"
             className="cc-cust-fleet-pagination__button"
-            onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+            onClick={() => {
+              const page = Math.min(totalPages, currentPage + 1);
+              setCurrentPage(page);
+              if (ai.isActive) void ai.search({ page });
+            }}
             disabled={currentPage === totalPages}
           >
             {t('customer.next', undefined, 'Next')}

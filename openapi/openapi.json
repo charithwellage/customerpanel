@@ -596,6 +596,37 @@
         }
       }
     },
+    "/api/v1/vehicles/ai-search": {
+      "post": {
+        "summary": "Search vehicles using AutoPulse AI orchestration",
+        "description": "Public inventory scope is anonymous. Customer inventory, fleet, and wishlist scopes require a customer bearer token. The mock implementation always returns 501 after authorization; production AutoPulse will provide MCP-backed results.",
+        "operationId": "searchVehiclesWithAi",
+        "tags": ["Public APIs"],
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/AiVehicleSearchRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Scope-compatible paginated AI vehicle-search result",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AiVehicleSearchResponse" } } }
+          },
+          "401": {
+            "description": "Customer scope requested without a valid customer session",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } }
+          },
+          "501": {
+            "description": "AI search is intentionally unavailable in the mock API",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AiSearchNotImplementedError" } } }
+          }
+        }
+      }
+    },
     "/api/v1/vehicles/{idOrSlug}": {
       "get": {
         "summary": "Get vehicle detail by ID, chassis number, or stable slug",
@@ -2607,6 +2638,66 @@
           "facets": { "$ref": "#/components/schemas/VehicleFacets" }
         },
         "required": ["items", "total", "page", "limit", "totalPages", "hasNextPage", "hasPrevPage", "facets"]
+      },
+      "AiVehicleSearchScope": {
+        "type": "string",
+        "enum": ["publicInventory", "customerInventory", "customerFleet", "customerWishlist"]
+      },
+      "AiVehicleSearchRequest": {
+        "type": "object",
+        "properties": {
+          "query": { "type": "string", "minLength": 1, "example": "Find a hybrid SUV under 20000 USD" },
+          "scope": { "$ref": "#/components/schemas/AiVehicleSearchScope" },
+          "page": { "type": "integer", "minimum": 1 },
+          "limit": { "type": "integer", "minimum": 1, "maximum": 100 },
+          "sortBy": { "type": "string" },
+          "filters": { "type": "object", "additionalProperties": true },
+          "constraints": { "type": "object", "additionalProperties": true }
+        },
+        "required": ["query", "scope"]
+      },
+      "AiVehicleSearchInterpretation": {
+        "type": "object",
+        "properties": {
+          "summary": { "type": "string" },
+          "appliedConstraints": { "type": "array", "items": { "type": "string" } }
+        },
+        "required": ["summary", "appliedConstraints"]
+      },
+      "AiVehicleSearchResponse": {
+        "type": "object",
+        "properties": {
+          "scope": { "$ref": "#/components/schemas/AiVehicleSearchScope" },
+          "query": { "type": "string" },
+          "interpretation": { "$ref": "#/components/schemas/AiVehicleSearchInterpretation" },
+          "items": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                { "$ref": "#/components/schemas/VehicleSummary" },
+                { "$ref": "#/components/schemas/CustomerVehicleSummary" }
+              ]
+            }
+          },
+          "total": { "type": "integer" },
+          "page": { "type": "integer" },
+          "limit": { "type": "integer" },
+          "totalPages": { "type": "integer" },
+          "hasNextPage": { "type": "boolean" },
+          "hasPrevPage": { "type": "boolean" },
+          "facets": { "$ref": "#/components/schemas/VehicleFacets" }
+        },
+        "required": ["scope", "query", "interpretation", "items", "total", "page", "limit", "totalPages", "hasNextPage", "hasPrevPage"]
+      },
+      "AiSearchNotImplementedError": {
+        "type": "object",
+        "properties": {
+          "statusCode": { "type": "integer", "enum": [501] },
+          "code": { "type": "string", "enum": ["AI_SEARCH_NOT_IMPLEMENTED"] },
+          "message": { "type": "string" },
+          "correlationId": { "type": "string" }
+        },
+        "required": ["statusCode", "code", "message", "correlationId"]
       },
       "ErrorResponse": {
         "type": "object",

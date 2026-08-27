@@ -8,7 +8,7 @@ import { SearchResultsHeader } from '../features/vehicle-search/components/Searc
 import { SearchEmptyState } from '../features/vehicle-search/components/SearchEmptyState.js';
 import { SearchErrorState } from '../features/vehicle-search/components/SearchErrorState.js';
 import { SearchPagination } from '../features/vehicle-search/components/SearchPagination.js';
-import { VehicleCardPrimitive } from '@carchief/vehicle-search';
+import { AiVehicleSearch, VehicleCardPrimitive } from '@carchief/vehicle-search';
 
 describe('Search Components & Presentation Tests (PUB-04, PUB-07, RULE-09)', () => {
   const dummyFacets = {
@@ -37,6 +37,17 @@ describe('Search Components & Presentation Tests (PUB-04, PUB-07, RULE-09)', () 
     seatsRange: { min: 5, max: 7 },
     loadCapacityRange: { min: 500, max: 1250 },
   };
+
+  it('renders an accessible AI search control and non-destructive unavailable notice', () => {
+    const html = renderToStaticMarkup(React.createElement(AiVehicleSearch, {
+      value: 'hybrid SUV', onChange: vi.fn(), onSubmit: vi.fn(), onClear: vi.fn(), unavailable: true,
+    }));
+    expect(html).toContain('AI Search');
+    expect(html).toContain('Search with AI');
+    expect(html).toContain('<svg');
+    expect(html).toContain('AI search is not yet available in this environment');
+    expect(html).toContain('aria-live="polite"');
+  });
 
   it('renders SearchFilterBar with search input and reset button', () => {
     const html = renderToStaticMarkup(

@@ -1,4 +1,10 @@
-import type { VehicleSearchResult, SearchVehiclesQuery, VehicleDetail } from '@carchief/domain';
+import type {
+  AiVehicleSearchRequest,
+  AiVehicleSearchResponse,
+  VehicleSearchResult,
+  SearchVehiclesQuery,
+  VehicleDetail,
+} from '@carchief/domain';
 import type { HttpClient } from '../http.js';
 
 export interface GetVehiclesOptions extends SearchVehiclesQuery {}
@@ -36,6 +42,21 @@ export class VehicleService {
       }
       throw err;
     }
+  }
+}
+
+export class AiVehicleSearchService {
+  constructor(private httpClient?: HttpClient) {}
+
+  public async search(request: AiVehicleSearchRequest): Promise<AiVehicleSearchResponse> {
+    if (!this.httpClient) {
+      throw new Error('AiVehicleSearchService.search requires an HttpClient');
+    }
+    return this.httpClient.request<AiVehicleSearchResponse>('/api/v1/vehicles/ai-search', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(request),
+    });
   }
 }
 
