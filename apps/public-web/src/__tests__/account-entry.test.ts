@@ -357,6 +357,23 @@ describe('HeaderComponent source (Enterprise Login + Customer Portal dynamic act
     expect(headerSource).toContain('resolveCustomerAppUrl');
     expect(headerSource).not.toMatch(/href=\{`https?:\/\//);
   });
+
+  it('redirects successful top-bar login to the configured customer app with only the session token', () => {
+    expect(headerSource).toContain('onSuccessAuth={({ token }) =>');
+    expect(headerSource).toContain('window.location.assign');
+    expect(headerSource).toContain('resolveCustomerAppUrl()');
+    expect(headerSource).toContain('encodeURIComponent(token)');
+    expect(headerSource).toContain('/?token=');
+  });
+
+  it('keeps contextual vehicle-detail authentication on the current public page', () => {
+    const vehicleDetailSource = fs.readFileSync(
+      path.resolve(__dirname, '../features/vehicle-detail/VehicleDetailPage.tsx'),
+      'utf-8'
+    );
+    expect(vehicleDetailSource).toContain('onSuccessAuth={handleAuthSuccess}');
+    expect(vehicleDetailSource).not.toContain('window.location.assign');
+  });
 });
 
 /* --------------------------------------------------------------------------

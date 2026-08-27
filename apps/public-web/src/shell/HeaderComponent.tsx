@@ -324,6 +324,11 @@ export const HeaderComponent: React.FC<HeaderComponentProps> = ({ activePath: pr
       <EnterpriseLoginModal
         isOpen={isLoginModalOpen}
         onClose={() => setIsLoginModalOpen(false)}
+        onSuccessAuth={({ token }) => {
+          if (typeof window === 'undefined') return;
+          const customerAppUrl = resolveCustomerAppUrl();
+          window.location.assign(`${customerAppUrl}/?token=${encodeURIComponent(token)}`);
+        }}
         title="Enterprise Customer Sign In"
         subtitle="Sign in to access your CarChief Customer Portal, live ocean freight calculations, wishlist, and verified vehicle bookings."
       />

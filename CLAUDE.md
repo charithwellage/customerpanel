@@ -87,7 +87,7 @@ Package roles:
 
 Applications:
 
-- `apps/public-web` — Next.js 15 App Router, React 19, `output: 'standalone'`, `transpilePackages` for every `@carchief/*`. Server components fetch the mock directly via `API_BASE_URL`; the browser reaches it through the `src/app/api/v1/[...path]/route.ts` proxy. Theme CSS variables are applied on `<body>` in `layout.tsx`; the dev-only `ThemeSwitcher` never renders in production. `src/server.ts` is an older plain-Node renderer kept for tests — new work goes in `src/app` and `src/features`.
+- `apps/public-web` — Next.js 15 App Router, React 19, `output: 'standalone'`, `transpilePackages` for every `@carchief/*`. Server components fetch the mock directly via `API_BASE_URL`; the browser reaches it through the `src/app/api/v1/[...path]/route.ts` proxy. Theme CSS variables are applied on `<body>` in `layout.tsx`; the dev-only `ThemeSwitcher` never renders in production. Application work belongs in `src/app` and `src/features`.
 - `apps/mock-api` — Express app factory `createMockApiApp(store)` with `/healthz`, `/api/v1/config/public`, `/api/v1/vehicles`, `/api/v1/auth/me`, `POST /api/v1/__reset`, `/openapi.json`, `/swagger`. `src/store.ts` owns the PostgreSQL schema, seed and query logic. `CREATE TABLE IF NOT EXISTS` does not add columns — a schema change means recreating the `carchief-postgres-data` volume locally.
 - `apps/customer-app`, `apps/salesperson-app` — Vite-based shells, still skeletal.
 

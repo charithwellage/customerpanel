@@ -3354,9 +3354,7 @@ function filterAndSortVehicles(
         break;
       }
       case 'premium_teaser': {
-        const premium = list.filter((v) => v.category?.split(',').includes('premium'));
-        const limitNum = Math.min(query.limit ? Number(query.limit) : 10, 10);
-        list = premium.slice(0, limitNum);
+        list = list.filter((v) => v.category?.split(',').includes('premium'));
         break;
       }
       case 'discounted': {
@@ -3545,13 +3543,6 @@ function filterAndSortVehicles(
       default:
         list.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
         break;
-    }
-  }
-
-  if (query?.limit && query.collection !== 'premium_teaser' && !query.page) {
-    const limitNum = Number(query.limit);
-    if (!isNaN(limitNum) && limitNum > 0) {
-      list = list.slice(0, limitNum);
     }
   }
 

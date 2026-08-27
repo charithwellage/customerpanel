@@ -38,22 +38,3 @@ export function resolveCustomerAppUrl(): string {
   const base = configured && configured.trim() ? configured.trim() : browserFallback;
   return base.replace(/\/$/, '');
 }
-
-export interface HeaderProps {
-  siteName?: string;
-  navItems?: NavItem[];
-  isMobileOpen?: boolean;
-}
-
-export function renderHeaderConfig(props: HeaderProps = {}) {
-  const siteName = props.siteName || 'CarChief';
-  const navItems = props.navItems || PUBLIC_NAV_ITEMS;
-
-  return {
-    landmark: 'header',
-    siteName,
-    navItems,
-    isMobileOpen: !!props.isMobileOpen,
-    skipLinkId: 'skip-to-main',
-  };
-}
