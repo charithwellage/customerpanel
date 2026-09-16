@@ -2784,7 +2784,7 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({
           aria-labelledby="view-review-modal-title"
         >
           <div
-            className="cc-modal-dialog cc-view-review-modal"
+            className="cc-modal-content cc-modal-dialog cc-view-review-modal"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="cc-modal-header cc-view-review-header">
@@ -2849,7 +2849,7 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({
                   </span>
                 </div>
                 <div className="cc-view-review-verified-badge">
-                  ✓ Verified Customer Review
+                  ✓ Verified
                 </div>
               </div>
 
@@ -3080,7 +3080,7 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({
           aria-labelledby="view-feedback-modal-title"
         >
           <div
-            className="cc-modal-dialog cc-view-review-modal cc-view-feedback-modal"
+            className="cc-modal-content cc-modal-dialog cc-view-review-modal cc-view-feedback-modal"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="cc-modal-header cc-view-review-header cc-view-feedback-header">
@@ -3089,7 +3089,7 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({
                 <div>
                   <h2 id="view-feedback-modal-title">CarChief Service Feedback</h2>
                   <span className="cc-view-review-meta-sub">
-                    Verified Customer Service Feedback • {viewFeedbackVehicle.serviceFeedback.feedbackAt}
+                    Service Feedback • {viewFeedbackVehicle.serviceFeedback.feedbackAt}
                   </span>
                 </div>
               </div>
@@ -3141,32 +3141,21 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({
                     ))}
                   </div>
                   <span className="cc-view-review-score-num">
-                    {viewFeedbackVehicle.serviceFeedback.rating}.0 / 5.0 Service Score
+                    {viewFeedbackVehicle.serviceFeedback.rating}.0 / 5.0
                   </span>
                 </div>
                 <div className="cc-view-review-verified-badge cc-view-feedback-verified-badge">
-                  ✓ Verified Service Feedback
+                  ✓ Verified
                 </div>
               </div>
 
               {/* Service Aspects Chips (if present) */}
               {viewFeedbackVehicle.serviceFeedback.aspects && viewFeedbackVehicle.serviceFeedback.aspects.length > 0 && (
-                <div className="cc-view-review-comment-box" style={{ marginBottom: 12 }}>
-                  <h4 className="cc-view-review-comment-title" style={{ marginBottom: 8 }}>Highlights:</h4>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                <div className="cc-view-feedback-aspects-card">
+                  <h4 className="cc-view-feedback-card-title">Highlights:</h4>
+                  <div className="cc-view-feedback-chips-wrap">
                     {viewFeedbackVehicle.serviceFeedback.aspects.map((aspect, idx) => (
-                      <span
-                        key={idx}
-                        style={{
-                          background: '#f0fdf4',
-                          border: '1px solid #bbf7d0',
-                          color: '#166534',
-                          fontSize: '11.5px',
-                          padding: '3px 9px',
-                          borderRadius: '12px',
-                          fontWeight: 600,
-                        }}
-                      >
+                      <span key={idx} className="cc-view-feedback-aspect-chip">
                         {aspect}
                       </span>
                     ))}
@@ -3175,9 +3164,9 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({
               )}
 
               {/* Comments Section */}
-              <div className="cc-view-review-comment-box">
-                <h4 className="cc-view-review-comment-title">Customer Feedback:</h4>
-                <p className="cc-view-review-comment-body">
+              <div className="cc-view-feedback-comment-card">
+                <h4 className="cc-view-feedback-card-title">Customer Feedback:</h4>
+                <p className="cc-view-feedback-comment-body">
                   "{viewFeedbackVehicle.serviceFeedback.comment}"
                 </p>
               </div>
