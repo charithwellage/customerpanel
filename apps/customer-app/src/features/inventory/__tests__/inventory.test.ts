@@ -57,13 +57,13 @@ describe('Customer Inventory & Vehicle Detail Components (D02-P03-T003)', () => 
       expect(html).toContain('Platinum Tier Account');
       expect(html).toContain('customer-tier-summary');
       expect(html).toContain('More information about Platinum tier pricing');
-      expect(html).toContain('Vehicle Inventory');
-      expect(html).toContain('CUSTOMER PORTAL / INVENTORY');
-      expect(html).toContain('Search by keyword');
+      expect(html).toContain('ALL INVENTORY');
+      expect(html).toContain('CARCHIEF ALL INVENTORY');
+      expect(html).toContain('Search by Keyword, Make, Model, Stock #...');
       expect(html).not.toContain('cc-allstock-hero');
       expect(html).not.toContain('FULL INVENTORY CATALOG');
       expect(html).toContain('sort-by-select');
-      expect(html).toContain('Reset All');
+      expect(html).toContain('Reset');
       expect(html).toContain('customer-inventory-ai-search');
       expect(html).toContain('Search with AI');
     });

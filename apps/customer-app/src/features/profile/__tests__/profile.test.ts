@@ -74,6 +74,34 @@ describe('Customer profile — markup and copy (D02-P12-T006)', () => {
     expect(source).toContain('isMutationBlockedOffline()');
   });
 
+  it('provides password visibility toggle buttons for current, new, and confirm password fields', async () => {
+    const { readFile } = await import('node:fs/promises');
+    const source = await readFile(new URL('../ProfilePage.tsx', import.meta.url), 'utf8');
+    expect(source).toContain('showCurrentPassword');
+    expect(source).toContain('showNewPassword');
+    expect(source).toContain('showConfirmNewPassword');
+    expect(source).toContain('cc-profile-password-toggle-btn');
+  });
+
+  it('renders rich profile features: quick metrics ribbon, password strength meter, 2FA, active sessions, and notification preferences', async () => {
+    const { readFile } = await import('node:fs/promises');
+    const { getPasswordStrength } = await import('../ProfilePage.js');
+    const source = await readFile(new URL('../ProfilePage.tsx', import.meta.url), 'utf8');
+
+    // Test password strength calculation
+    expect(getPasswordStrength('')).toEqual({ label: '', score: 0, className: '' });
+    expect(getPasswordStrength('abc')).toEqual({ label: 'Weak', score: 1, className: 'cc-profile-strength--weak' });
+    expect(getPasswordStrength('Abcdef123')).toEqual({ label: 'Medium', score: 2, className: 'cc-profile-strength--medium' });
+    expect(getPasswordStrength('Abcdef123!@#')).toEqual({ label: 'Strong', score: 3, className: 'cc-profile-strength--strong' });
+
+    // Test source markup for rich modules
+    expect(source).toContain('cc-profile-metrics-ribbon');
+    expect(source).toContain('password-strength-meter');
+    expect(source).toContain('MULTI-FACTOR AUTHENTICATION (2FA)');
+    expect(source).toContain('NOTIFICATION &amp; ALERT PREFERENCES');
+    expect(source).toContain('ACTIVE DEVICE SESSIONS');
+  });
+
   it('does not render any residual demo copy', async () => {
     const { readFile } = await import('node:fs/promises');
     const source = await readFile(new URL('../ProfilePage.tsx', import.meta.url), 'utf8');

@@ -88,7 +88,8 @@ describe('FRD Phase 4: My Payments', () => {
     );
 
     expect(html).toContain('data-testid="customer-payments-page"');
-    expect(html).not.toContain('role="tablist"');
+    expect(html).toContain('Transaction Date:');
+    expect(html).toContain('role="tablist"');
     expect(html).not.toContain('Debit / Credit / Refunds');
     expect(html).not.toContain('Payments (TT)');
     expect(html).toContain('TOTAL TT AMOUNT');
@@ -97,6 +98,10 @@ describe('FRD Phase 4: My Payments', () => {
     expect(html).toContain('CUSTOMER TT REMITTANCE JOURNAL');
     expect(html).toContain('REF.NO');
     expect(html).toContain('PAYMENT TYPE');
+    expect(html).toContain('CREATED BY');
+    expect(html).toContain('Allocation Status:');
+    expect(html).toContain('Pending Allocation');
+    expect(html).toContain('Allocation Done');
     expect(html).not.toContain('<th scope="col">DEPOSITOR</th>');
     expect(html).not.toContain('data-testid="btn-detail-TT2400005"');
     expect(html).not.toContain('data-testid="btn-history-TT2400005"');

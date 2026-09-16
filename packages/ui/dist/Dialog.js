@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.getDialogAccessibilityAttributes = getDialogAccessibilityAttributes;
-function getDialogAccessibilityAttributes(props) {
+export function getDialogAccessibilityAttributes(props) {
     return {
         role: 'dialog',
         'aria-modal': true,

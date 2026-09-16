@@ -35,10 +35,14 @@ export interface NavigationItem {
 export interface CustomerShellContextValue {
   user: CustomerUser | null;
   activeRoute: string;
+  previousRoute?: string;
   setActiveRoute: (route: string) => void;
   isMobileMenuOpen: boolean;
   toggleMobileMenu: () => void;
   closeMobileMenu: () => void;
+  isNavCollapsed: boolean;
+  toggleNavCollapsed: () => void;
+  setNavCollapsed: (collapsed: boolean) => void;
   themeId: ThemeId;
   themeMode: ThemeMode;
   toggleThemeMode: () => void;
@@ -47,6 +51,7 @@ export interface CustomerShellContextValue {
   /** Signs the customer out. Absent when the shell is rendered without a live session (for example an isolated component test). */
   onSignOut?: () => void;
 }
+
 
 const DEFAULT_NAV_ITEMS: NavigationItem[] = [
   {
@@ -64,13 +69,20 @@ const DEFAULT_NAV_ITEMS: NavigationItem[] = [
     icon: '🚗',
   },
   {
+    id: 'demand',
+    label: 'Demand Management',
+    altLabel: 'Vehicle Demand & Sourcing',
+    href: '/demand',
+    icon: '🎯',
+  },
+  {
     id: 'garage',
     label: 'My Vehicles',
     altLabel: 'My Vehicles & Sourcing',
     href: '/vehicles',
     icon: '🚙',
     children: [
-      { id: 'vehicles', label: 'My Vehicles', altLabel: 'My Vehicles', href: '/vehicles', icon: '🚙' },
+      { id: 'vehicles', label: 'My Orders', altLabel: 'My Orders', href: '/vehicles', icon: '🚙' },
       { id: 'wishlist', label: 'My Wishlist', altLabel: 'Wishlist', href: '/wishlist', icon: '❤️' },
       { id: 'inquiries', label: 'Inquiries & Quotes', altLabel: 'Inquiries & Quotes', href: '/inquiries', icon: '💬' },
     ],
@@ -89,6 +101,7 @@ const DEFAULT_NAV_ITEMS: NavigationItem[] = [
     href: '/payments',
     icon: '💲',
   },
+  /* Section PAYMENT ALLOCATIONS hidden and commented out from both web and mobile
   {
     id: 'payment-allocations',
     label: 'Payment Allocations',
@@ -96,6 +109,7 @@ const DEFAULT_NAV_ITEMS: NavigationItem[] = [
     href: '/payment-allocations',
     icon: '🧾',
   },
+  */
   {
     id: 'profile',
     label: 'Profile & Security',
@@ -111,6 +125,7 @@ export interface CustomerShellProviderProps {
   children: ReactNode;
   initialUser?: CustomerUser | null;
   initialRoute?: string;
+  initialNavCollapsed?: boolean;
   themeId?: string;
   initialThemeMode?: ThemeMode;
   navItems?: NavigationItem[];
@@ -121,6 +136,7 @@ export const CustomerShellProvider: React.FC<CustomerShellProviderProps> = ({
   children,
   initialUser = null,
   initialRoute,
+  initialNavCollapsed,
   themeId,
   initialThemeMode,
   navItems = DEFAULT_NAV_ITEMS,
@@ -129,14 +145,56 @@ export const CustomerShellProvider: React.FC<CustomerShellProviderProps> = ({
   const getInitialPath = () => {
     if (initialRoute) return initialRoute;
     if (typeof window !== 'undefined' && window.location.pathname && window.location.pathname !== '/') {
-      return window.location.pathname;
+      return (window.location.pathname || '') + (window.location.search || '') + (window.location.hash || '');
     }
     return '/dashboard';
   };
 
   const [currentUser, setCurrentUser] = useState<CustomerUser | null>(initialUser ?? null);
   const [activeRoute, setActiveRouteState] = useState<string>(getInitialPath);
+  const [previousRoute, setPreviousRoute] = useState<string>(() => {
+    const init = getInitialPath();
+    return init !== '/notifications' ? init : '/dashboard';
+  });
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
+  const [isNavCollapsed, setIsNavCollapsed] = useState<boolean>(() => {
+    if (typeof initialNavCollapsed === 'boolean') return initialNavCollapsed;
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('carchief_nav_collapsed');
+        if (saved === 'true') return true;
+        if (saved === 'false') return false;
+      } catch {
+        // Ignore storage exceptions
+      }
+    }
+    return false;
+  });
+
+  const toggleNavCollapsed = () => {
+    setIsNavCollapsed((prev) => {
+      const next = !prev;
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem('carchief_nav_collapsed', String(next));
+        } catch {
+          // Ignore storage exceptions
+        }
+      }
+      return next;
+    });
+  };
+
+  const setNavCollapsed = (collapsed: boolean) => {
+    setIsNavCollapsed(collapsed);
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('carchief_nav_collapsed', String(collapsed));
+      } catch {
+        // Ignore storage exceptions
+      }
+    }
+  };
 
   const [themeMode, setThemeModeState] = useState<ThemeMode>(() => {
     if (initialThemeMode) return initialThemeMode;
@@ -179,17 +237,32 @@ export const CustomerShellProvider: React.FC<CustomerShellProviderProps> = ({
     }
   }, [resolvedTheme, themeMode]);
 
-  const setActiveRoute = (route: string) => {
-    setActiveRouteState(route);
-    if (typeof window !== 'undefined' && window.location.pathname !== route) {
-      window.history.pushState(null, '', route);
+  const setActiveRoute = React.useCallback((route: string) => {
+    setActiveRouteState((prev) => {
+      if (prev !== route && prev !== '/notifications') {
+        setPreviousRoute(prev);
+      }
+      return route;
+    });
+    if (typeof window !== 'undefined') {
+      const currentFull = (window.location.pathname || '') + (window.location.search || '') + (window.location.hash || '');
+      if (currentFull !== route) {
+        window.history.pushState(null, '', route);
+      }
     }
-  };
+  }, []);
 
   React.useEffect(() => {
     if (typeof window === 'undefined') return;
     const handlePopState = () => {
-      setActiveRouteState(window.location.pathname || '/dashboard');
+      const fullPath = (window.location.pathname || '') + (window.location.search || '') + (window.location.hash || '');
+      const nextRoute = fullPath || '/dashboard';
+      setActiveRouteState((prev) => {
+        if (prev !== nextRoute && prev !== '/notifications') {
+          setPreviousRoute(prev);
+        }
+        return nextRoute;
+      });
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
@@ -197,6 +270,17 @@ export const CustomerShellProvider: React.FC<CustomerShellProviderProps> = ({
 
   const toggleMobileMenu = () => setIsMobileMenuOpen((prev) => !prev);
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
+  const handleSignOut = () => {
+    setActiveRouteState('/dashboard');
+    if (typeof window !== 'undefined') {
+      try {
+        window.history.replaceState(null, '', '/');
+      } catch {
+        // Ignore history exceptions
+      }
+    }
+    onSignOut?.();
+  };
 
   return (
     <I18nProvider>
@@ -204,16 +288,20 @@ export const CustomerShellProvider: React.FC<CustomerShellProviderProps> = ({
         value={{
           user: currentUser,
           activeRoute,
+          previousRoute,
           setActiveRoute,
           isMobileMenuOpen,
           toggleMobileMenu,
           closeMobileMenu,
+          isNavCollapsed,
+          toggleNavCollapsed,
+          setNavCollapsed,
           themeId: resolvedTheme,
           themeMode,
           toggleThemeMode,
           setThemeMode,
           navigationItems: navItems,
-          onSignOut,
+          onSignOut: onSignOut ? handleSignOut : undefined,
         }}
       >
         {children}

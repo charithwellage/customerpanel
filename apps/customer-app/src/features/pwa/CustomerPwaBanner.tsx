@@ -15,8 +15,13 @@ export const CustomerPwaBanner: React.FC<CustomerPwaBannerProps> = ({ onInstall,
     <aside className="cc-pwa-banner" aria-label="App Installation Prompt">
       <div className="cc-pwa-banner__container">
         <div className="cc-pwa-banner__info">
-          <span className="cc-pwa-banner__badge">⚡ PWA READY</span>
-          <strong className="cc-pwa-banner__title">Install {CUSTOMER_PWA_CONFIG.appName}</strong>
+          <div className="cc-pwa-banner__header-line">
+            <span className="cc-pwa-banner__badge">⚡ PWA READY</span>
+            <strong className="cc-pwa-banner__title">
+              <span className="cc-pwa-banner__title-full">Install {CUSTOMER_PWA_CONFIG.appName}</span>
+              <span className="cc-pwa-banner__title-short">Install {CUSTOMER_PWA_CONFIG.shortName}</span>
+            </strong>
+          </div>
           <p className="cc-pwa-banner__subtitle">
             Add CarChief to your home screen or desktop for fast offline fleet tracking and instant document access.
           </p>

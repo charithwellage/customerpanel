@@ -3644,36 +3644,77 @@ export const seedReservations: ReservationRecord[] = [
   },
 ];
 
+// Studio automotive photography on pure white backgrounds across diverse colors
+const SEED_STUDIO_CAR_BY_COLOR: Record<string, string> = {
+  white: '/images/cars/car-white.jpg',
+  pearl: '/images/cars/car-pearl.jpg',
+  black: '/images/cars/car-black.jpg',
+  red: '/images/cars/car-red.jpg',
+  blue: '/images/cars/car-blue.jpg',
+  silver: '/images/cars/car-silver.jpg',
+  gray: '/images/cars/car-gray.jpg',
+  grey: '/images/cars/car-gray.jpg',
+  charcoal: '/images/cars/car-gray.jpg',
+  gunmetal: '/images/cars/car-gray.jpg',
+  green: '/images/cars/car-green.jpg',
+};
+
+const SEED_STUDIO_CAR_PALETTE = [
+  '/images/cars/car-white.jpg',
+  '/images/cars/car-silver.jpg',
+  '/images/cars/car-blue.jpg',
+  '/images/cars/car-red.jpg',
+  '/images/cars/car-gray.jpg',
+  '/images/cars/car-black.jpg',
+  '/images/cars/car-pearl.jpg',
+  '/images/cars/car-green.jpg',
+];
+
+const SEED_COLOR_ROTATION = ['White', 'Silver', 'Blue', 'Red', 'Gray', 'Black', 'Pearl', 'Green'];
+
 // Legacy-search sample attributes are materialized for every seed vehicle so
 // both the in-memory and PostgreSQL stores expose complete facet data.
-const preparedSeedVehicles = seedVehicles.map((vehicle, index) => ({
-  ...vehicle,
-  modelCode: vehicle.modelCode || `${vehicle.make.slice(0, 3).toUpperCase()}-${String(index + 1).padStart(3, '0')}`,
-  vehicleSubType: vehicle.vehicleSubType || vehicle.bodyStyle,
-  engineCc: vehicle.engineCc || 1500 + (index % 5) * 500,
-  overdrive: vehicle.overdrive || (index % 2 === 0 ? 'Yes' : 'No'),
-  color: vehicle.color || 'White',
-  exteriorGrade: vehicle.exteriorGrade || (index % 3 === 0 ? '4.5' : '4'),
-  steering: vehicle.steering || (index % 2 === 0 ? 'Right' : 'Left'),
-  stockCountry: vehicle.stockCountry || 'Japan',
-  stockLocation: vehicle.stockLocation || vehicle.locationStatus || 'In Japan',
-  seats: vehicle.seats || (index % 3 === 0 ? 7 : 5),
-  loadCapacity: vehicle.loadCapacity || 500 + (index % 4) * 250,
-  features: vehicle.features || {
-    abs: index % 2 === 0,
-    airbag: true,
-    sunRoof: index % 3 === 0,
-    leatherSeat: index % 4 === 0,
-    alloyWheels: index % 2 === 0,
-    powerWindow: true,
-    airConditioning: true,
-    backCamera: index % 2 === 0,
-    navigation: index % 3 === 0,
-    turbo: index % 4 === 0,
-    oneOwner: index % 5 !== 0,
-    nonSmoker: true,
-  },
-}));
+const preparedSeedVehicles = seedVehicles.map((vehicle, index) => {
+  const vehicleColor = vehicle.color || SEED_COLOR_ROTATION[index % SEED_COLOR_ROTATION.length];
+  const colorKey = vehicleColor.toLowerCase();
+  const primaryStudioImage =
+    Object.entries(SEED_STUDIO_CAR_BY_COLOR).find(([k]) => colorKey.includes(k))?.[1] ||
+    SEED_STUDIO_CAR_PALETTE[index % SEED_STUDIO_CAR_PALETTE.length];
+  const galleryImages = [
+    primaryStudioImage,
+    ...SEED_STUDIO_CAR_PALETTE.filter((img) => img !== primaryStudioImage),
+  ];
+
+  return {
+    ...vehicle,
+    images: galleryImages,
+    modelCode: vehicle.modelCode || `${vehicle.make.slice(0, 3).toUpperCase()}-${String(index + 1).padStart(3, '0')}`,
+    vehicleSubType: vehicle.vehicleSubType || vehicle.bodyStyle,
+    engineCc: vehicle.engineCc || 1500 + (index % 5) * 500,
+    overdrive: vehicle.overdrive || (index % 2 === 0 ? 'Yes' : 'No'),
+    color: vehicleColor,
+    exteriorGrade: vehicle.exteriorGrade || (index % 3 === 0 ? '4.5' : '4'),
+    steering: vehicle.steering || (index % 2 === 0 ? 'Right' : 'Left'),
+    stockCountry: vehicle.stockCountry || 'Japan',
+    stockLocation: vehicle.stockLocation || vehicle.locationStatus || 'In Japan',
+    seats: vehicle.seats || (index % 3 === 0 ? 7 : 5),
+    loadCapacity: vehicle.loadCapacity || 500 + (index % 4) * 250,
+    features: vehicle.features || {
+      abs: index % 2 === 0,
+      airbag: true,
+      sunRoof: index % 3 === 0,
+      leatherSeat: index % 4 === 0,
+      alloyWheels: index % 2 === 0,
+      powerWindow: true,
+      airConditioning: true,
+      backCamera: index % 2 === 0,
+      navigation: index % 3 === 0,
+      turbo: index % 4 === 0,
+      oneOwner: index % 5 !== 0,
+      nonSmoker: true,
+    },
+  };
+});
 
 function computeReservationStatus(record: Pick<ReservationRecord, 'expiresAt'>, nowISO: string): ReservationStatus {
   return new Date(record.expiresAt).getTime() > new Date(nowISO).getTime() ? 'active' : 'expired';
@@ -6545,7 +6586,7 @@ class MemoryStore implements DemoStore {
         cfPriceUsd: 2400,
         deliveryLocation: 'Kenya-Mombasa',
         inquirerCount: 4,
-        imageUrl: 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=600',
+        imageUrl: '/images/cars/car-white.jpg',
       },
       {
         id: 'inq-2',
@@ -6559,8 +6600,10 @@ class MemoryStore implements DemoStore {
         yom: '2024',
         vehicleSlug: '2024-toyota-raize-veh-7',
         vehicleId: 'veh-7',
+        stockNumber: 'J240111112',
         lotNumber: '36071',
         chassisModel: 'A210A',
+        chassisNumber: 'A210A-0048192',
         viewsCount: 8,
         message: 'Inspection grade request and maximum auction bidding cap confirmation.',
         replyMessage: 'Grade 5.0 A condition verified. Starting bid placed at JAAI Yokohama.',
@@ -6569,7 +6612,7 @@ class MemoryStore implements DemoStore {
         auctionRemaining: '2 hr 45 min',
         auctionFinished: false,
         deliveryLocation: 'Kenya',
-        imageUrl: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=600',
+        imageUrl: '/images/cars/car-red.jpg',
       },
       {
         id: 'inq-3',
@@ -6591,6 +6634,7 @@ class MemoryStore implements DemoStore {
         minFobUsd: 1400,
         maxFobUsd: 3400,
         deliveryLocation: 'Kenya',
+        imageUrl: '/images/cars/car-black.jpg',
       },
     ];
 

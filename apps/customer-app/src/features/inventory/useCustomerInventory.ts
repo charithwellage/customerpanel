@@ -15,7 +15,7 @@ export function useCustomerInventory({
   apiBaseUrl = '',
   token,
   destinationCountry,
-  initialQuery = { page: 1, limit: 15, sortBy: 'newest' },
+  initialQuery = { page: 1, limit: 20, sortBy: 'newest' },
 }: UseCustomerInventoryOptions = {}) {
   const [query, setQuery] = useState<SearchVehiclesQuery>(() => ({
     ...initialQuery,
@@ -27,7 +27,7 @@ export function useCustomerInventory({
     items: [],
     total: 0,
     page: 1,
-    limit: 15,
+    limit: initialQuery.limit || 20,
     totalPages: 0,
     facets: undefined,
     loading: true,
@@ -103,7 +103,7 @@ export function useCustomerInventory({
         }
       }
     },
-    [apiBaseUrl, token]
+    [apiBaseUrl, token, destinationCountry]
   );
 
   useEffect(() => {
@@ -156,8 +156,50 @@ export function useCustomerInventory({
   const handleResetFilters = useCallback(() => {
     ai.clear();
     setNaturalPhrase('');
-    setQuery({ page: 1, limit: 15, sortBy: 'newest' });
+    setQuery((prev) => ({ page: 1, limit: prev.limit || 20, sortBy: 'newest' }));
   }, [ai.clear]);
+
+  const handleAiSearch = useCallback(async (promptOverride?: string) => {
+    const rawPrompt = (promptOverride !== undefined ? promptOverride : ai.prompt).trim();
+    const promptText = rawPrompt || 'Hybrid SUV under $20,000';
+    if (!ai.prompt && !promptOverride) {
+      ai.setPrompt(promptText);
+    }
+
+    try {
+      const apiResult = await ai.search();
+      if (apiResult && apiResult.items && apiResult.items.length > 0) {
+        return;
+      }
+    } catch {
+      // Remote AI endpoint not configured / returns 501
+    }
+
+    // Natural Language Query fallback execution:
+    const parsed = parseNaturalSearchQuery(promptText);
+    setNaturalPhrase(promptText);
+    setQuery((prev) => ({
+      ...prev,
+      page: 1,
+      searchQuery: parsed.unparsedQuery || (Object.keys(parsed.parsedParams).length === 0 ? promptText : undefined),
+      make: parsed.parsedParams.make || undefined,
+      bodyStyle: parsed.parsedParams.bodyStyle || undefined,
+      fuelType: parsed.parsedParams.fuelType || undefined,
+      transmission: parsed.parsedParams.transmission || undefined,
+      driveTrain: parsed.parsedParams.driveTrain || undefined,
+      priceMin: parsed.parsedParams.priceMin || undefined,
+      priceMax: parsed.parsedParams.priceMax || undefined,
+      yearMin: parsed.parsedParams.yearMin || undefined,
+      yearMax: parsed.parsedParams.yearMax || undefined,
+      mileageMax: parsed.parsedParams.mileageMax || undefined,
+    }));
+  }, [ai]);
+
+  const handleAiClear = useCallback(() => {
+    ai.clear();
+    setNaturalPhrase('');
+    setQuery((prev) => ({ page: 1, limit: prev.limit || 20, sortBy: 'newest' }));
+  }, [ai]);
 
   const understoodTokens = parseNaturalSearchQuery(naturalPhrase).understoodTokens;
 
@@ -176,5 +218,7 @@ export function useCustomerInventory({
       else setQuery((prev) => ({ ...prev, page }));
     },
     ai,
+    handleAiSearch,
+    handleAiClear,
   };
 }

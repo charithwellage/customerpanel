@@ -3,10 +3,10 @@ import { defaultSemanticTheme, getThemeCssVariables, formatCssVariableString, ca
 
 describe('Theme Package Unit & Accessibility Tests', () => {
   it('defines all required semantic tokens', () => {
-    expect(defaultSemanticTheme.colors.primary).toBe('#dc2626');
-    expect(defaultSemanticTheme.colors.surfaceDark).toBe('#171717');
-    expect(defaultSemanticTheme.typography.fontDisplay).toContain('Space Grotesk');
-    expect(defaultSemanticTheme.typography.fontMono).toContain('JetBrains Mono');
+    expect(defaultSemanticTheme.colors.primary).toBe('#c8102e');
+    expect(defaultSemanticTheme.colors.surfaceDark).toBe('#0f172a');
+    expect(defaultSemanticTheme.typography.fontDisplay).toContain('-apple-system');
+    expect(defaultSemanticTheme.typography.fontMono).toContain('SF Mono');
     expect(defaultSemanticTheme.spacing.md).toBe('1rem');
     expect(defaultSemanticTheme.breakpoints.desktop).toBe('1024px');
     expect(defaultSemanticTheme.motion.durationNormal).toBe('300ms');
@@ -16,15 +16,15 @@ describe('Theme Package Unit & Accessibility Tests', () => {
 
   it('generates valid CSS custom property mappings', () => {
     const vars = getThemeCssVariables();
-    expect(vars['--color-primary']).toBe('#dc2626');
-    expect(vars['--color-background']).toBe('#fafafa');
-    expect(vars['--font-display']).toContain('Space Grotesk');
+    expect(vars['--color-primary']).toBe('#c8102e');
+    expect(vars['--color-background']).toBe('#f8fafc');
+    expect(vars['--font-display']).toContain('-apple-system');
     expect(vars['--radius-lg']).toBe('0.75rem');
     expect(vars['--focus-ring-width']).toBe('3px');
     expect(Object.keys(vars)).toHaveLength(51);
 
     const formatted = formatCssVariableString();
-    expect(formatted).toContain('--color-primary: #dc2626;');
+    expect(formatted).toContain('--color-primary: #c8102e;');
   });
 
   it('verifies WCAG AA contrast ratio standards for core colors', () => {

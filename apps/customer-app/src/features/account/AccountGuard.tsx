@@ -49,6 +49,13 @@ export const AccountGuard: React.FC<AccountGuardProps> = ({
   const handleSignOut = () => {
     clearCustomerSession();
     void clearCustomerSensitiveCachesOnLogout();
+    if (typeof window !== 'undefined') {
+      try {
+        window.history.replaceState(null, '', '/');
+      } catch {
+        // Ignore history exceptions in SSR/restricted environments
+      }
+    }
     setSession(null);
     setShowRecovery(false);
   };
@@ -83,6 +90,13 @@ export const AccountGuard: React.FC<AccountGuardProps> = ({
           onAction={() => {
             clearCustomerSession();
             void clearCustomerSensitiveCachesOnLogout();
+            if (typeof window !== 'undefined') {
+              try {
+                window.history.replaceState(null, '', '/');
+              } catch {
+                // Ignore
+              }
+            }
             setSession(null);
             setShowRecovery(false);
           }}

@@ -1,7 +1,8 @@
 import React, { ReactNode } from 'react';
 import { CustomerShellProvider, CustomerShellProviderProps, useCustomerShell } from './CustomerShellProvider.js';
-import { CustomerNav } from './CustomerNav.js';
+import { CustomerNav, CustomerTopCornerActions } from './CustomerNav.js';
 import { CustomerErrorBoundary } from './CustomerErrorBoundary.js';
+import { SidebarExpandIcon } from '../../components/Icons.js';
 
 export interface CustomerShellInnerProps {
   children: ReactNode;
@@ -24,16 +25,42 @@ const CustomerShellInner: React.FC<CustomerShellInnerProps> = ({
   error = null,
   onRetry,
 }) => {
-  const { activeRoute } = useCustomerShell();
+  const { activeRoute, isNavCollapsed, toggleNavCollapsed } = useCustomerShell();
 
   return (
-    <div className="cc-cust-shell-layout" data-active-route={activeRoute}>
+    <div
+      className={`cc-cust-shell-layout ${isNavCollapsed ? 'cc-cust-shell-layout--nav-collapsed' : ''}`}
+      data-active-route={activeRoute}
+    >
       <a className="cc-cust-shell-skip-link" href="#main-content">
         Skip to main content
       </a>
+
+      {isNavCollapsed && (
+        <button
+          type="button"
+          className="cc-cust-shell-nav-unhide-floating-btn"
+          onClick={toggleNavCollapsed}
+          aria-label="Show navigation bar"
+          title="Show navigation bar"
+          data-testid="cust-nav-unhide"
+        >
+          <SidebarExpandIcon size={18} />
+          <span className="cc-cust-shell-nav-unhide-label">NAVIGATION</span>
+        </button>
+      )}
+
       <CustomerNav />
 
       <div className="cc-cust-shell-main-wrapper">
+        <header className="cc-cust-shell-topbar" aria-label="Portal top navigation">
+          <div className="cc-cust-shell-topbar__inner">
+            <div className="cc-cust-shell-topbar__right">
+              <CustomerTopCornerActions />
+            </div>
+          </div>
+        </header>
+
         <main className="cc-cust-shell-main" id="main-content" tabIndex={-1}>
           {(pageTitle || pageSubtitle) && (
             <header className={`cc-cust-shell-page-header ${activeRoute === '/dashboard' ? 'cc-cust-shell-page-header--overview sr-only' : ''}`}>
@@ -75,9 +102,6 @@ const CustomerShellInner: React.FC<CustomerShellInnerProps> = ({
         <footer className="cc-cust-shell-footer">
           <div className="cc-cust-shell-footer__container">
             <p>&copy; {new Date().getFullYear()} CarChief Operations Portal. All rights reserved.</p>
-            <div className="cc-cust-shell-footer__links">
-              <span className="cc-cust-shell-footer__badge">⚡ Mock API Enabled</span>
-            </div>
           </div>
         </footer>
       </div>
@@ -90,6 +114,7 @@ export interface CustomerShellProps extends CustomerShellInnerProps, CustomerShe
 export const CustomerShell: React.FC<CustomerShellProps> = ({
   initialUser,
   initialRoute,
+  initialNavCollapsed,
   themeId,
   navItems,
   onSignOut,
@@ -99,6 +124,7 @@ export const CustomerShell: React.FC<CustomerShellProps> = ({
     <CustomerShellProvider
       initialUser={initialUser}
       initialRoute={initialRoute}
+      initialNavCollapsed={initialNavCollapsed}
       themeId={themeId}
       navItems={navItems}
       onSignOut={onSignOut}

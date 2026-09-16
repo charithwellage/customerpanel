@@ -46,7 +46,7 @@ export const CustomerFleetDetailPage: React.FC<CustomerFleetDetailPageProps> = (
         </p>
         <div className="cc-cust-fleet-detail__error-actions">
           <button type="button" className="cc-cust-fleet-btn cc-cust-fleet-btn--primary" onClick={onBack}>
-            ← Back to My Vehicles
+            ← Back to My Orders
           </button>
           {error && (
             <button type="button" className="cc-cust-fleet-btn cc-cust-fleet-btn--secondary" onClick={() => refetch()}>
@@ -75,7 +75,7 @@ export const CustomerFleetDetailPage: React.FC<CustomerFleetDetailPageProps> = (
           onClick={onBack}
           aria-label="Return to vehicle fleet list"
         >
-          ← Back to My Vehicles
+          ← Back to My Orders
         </button>
       </nav>
 

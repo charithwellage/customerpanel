@@ -19,7 +19,7 @@ describe('Customer App Shell & Navigation Unit Tests', () => {
     expect(html).toContain('Overview of operations');
     expect(html).toContain('Dashboard Content');
     expect(html).toContain('cc-cust-shell-footer');
-    expect(html).toContain('Mock API Enabled');
+    expect(html).not.toContain('Mock API Enabled');
     expect(html).not.toMatch(/demo session/i);
   });
 
@@ -230,4 +230,57 @@ describe('Customer App Shell & Navigation Unit Tests', () => {
     expect(html).toContain('Portal Surface Error');
     expect(html).toContain('Simulated runtime error');
   });
+
+  it('renders a navigation hide/collapse toggle button in the brand header', () => {
+    const html = renderToStaticMarkup(
+      React.createElement(
+        CustomerShellProvider,
+        { initialRoute: '/dashboard' },
+        React.createElement(CustomerNav)
+      )
+    );
+
+    expect(html).toContain('data-testid="cust-nav-toggle"');
+    expect(html).toContain('aria-label="Hide navigation bar"');
+    expect(html).toContain('role="switch"');
+    expect(html).toContain('aria-checked="true"');
+    expect(html).toContain('cc-cust-shell-toggle-switch');
+  });
+
+  it('renders unhide toggle button and applies collapsed layout class when navigation is collapsed', () => {
+    const html = renderToStaticMarkup(
+      React.createElement(
+        CustomerShell,
+        { initialRoute: '/dashboard', initialNavCollapsed: true },
+        React.createElement('div', null, 'Main content')
+      )
+    );
+
+    expect(html).toContain('cc-cust-shell-layout--nav-collapsed');
+    expect(html).toContain('data-testid="cust-nav-unhide"');
+    expect(html).toContain('aria-label="Show navigation bar"');
+    expect(html).toContain('aria-checked="false"');
+  });
+
+  it('renders all navigation icons in black using text primary color token without rainbow hexes', () => {
+    const html = renderToStaticMarkup(
+      React.createElement(
+        CustomerShellProvider,
+        { initialRoute: '/dashboard' },
+        React.createElement(CustomerNav)
+      )
+    );
+
+    // Nav icons use the black primary text color variable
+    expect(html).toContain('cc-cust-nav-icon-wrapper');
+    expect(html).toContain('color:var(--color-text-primary)');
+
+    // Ensure rainbow color map hex literals are not applied to nav icons
+    expect(html).not.toMatch(/color:#c8102e/i);
+    expect(html).not.toMatch(/color:#2563eb/i);
+    expect(html).not.toMatch(/color:#059669/i);
+    expect(html).not.toMatch(/color:#d97706/i);
+    expect(html).not.toMatch(/color:#7c3aed/i);
+  });
 });
+

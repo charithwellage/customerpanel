@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.renderInputFieldSkeleton = renderInputFieldSkeleton;
-function renderInputFieldSkeleton(props) {
+export function renderInputFieldSkeleton(props) {
     return {
         id: props.id,
         labelId: `${props.id}-label`,

@@ -1,6 +1,10 @@
 export interface VehicleGalleryPrimitiveProps {
     images: string[];
     title: string;
+    badges?: Array<{
+        label: string;
+        tone?: 'neutral' | 'success' | 'warning' | 'error' | 'info';
+    }>;
     /** Minimum horizontal travel, in pixels, before a touch gesture counts as a swipe. */
     swipeThresholdPx?: number;
 }
@@ -12,5 +16,5 @@ export interface VehicleGalleryPrimitiveProps {
  * and nests no interactive controls, so it is safe to render more than once on a
  * page.
  */
-export declare function VehicleGalleryPrimitive({ images, title, swipeThresholdPx, }: VehicleGalleryPrimitiveProps): import("react/jsx-runtime").JSX.Element;
+export declare function VehicleGalleryPrimitive({ images, title, badges, swipeThresholdPx, }: VehicleGalleryPrimitiveProps): import("react/jsx-runtime").JSX.Element;
 //# sourceMappingURL=VehicleGalleryPrimitive.d.ts.map

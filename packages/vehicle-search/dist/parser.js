@@ -1,6 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.parseNaturalSearchQuery = parseNaturalSearchQuery;
 const KNOWN_MAKES = [
     'Toyota', 'Nissan', 'Honda', 'Subaru', 'Mitsubishi',
     'Lexus', 'Mazda', 'Mercedes-Benz', 'BMW', 'Audi', 'Land Rover', 'Isuzu', 'Hino'
@@ -43,7 +40,7 @@ const KNOWN_DRIVE_TRAINS = {
  * Deterministic natural language query parser for vehicle search.
  * Parses user input into structured search parameters without invoking AI APIs.
  */
-function parseNaturalSearchQuery(query) {
+export function parseNaturalSearchQuery(query) {
     const cleanQuery = query.trim();
     if (!cleanQuery) {
         return {

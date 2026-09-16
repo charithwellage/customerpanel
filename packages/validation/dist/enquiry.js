@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.enquiryFormSchema = void 0;
-const zod_1 = require("zod");
+import { z } from 'zod';
 // Duplicated from this package's own `validateEmail` (not imported, to avoid
 // a circular module reference between `enquiry.ts` and `index.ts`) — a
 // `packages/validation/src/__tests__` test asserts the two patterns match.
@@ -22,30 +19,30 @@ const ENQUIRY_PREFERRED_DRIVE_SIDE_VALUES = ['left', 'right'];
  * `field` value maps directly onto a `setError(field, ...)` call with no
  * translation table.
  */
-exports.enquiryFormSchema = zod_1.z
+export const enquiryFormSchema = z
     .object({
-    name: zod_1.z.string().trim().min(1, 'Enter your name.'),
-    email: zod_1.z
+    name: z.string().trim().min(1, 'Enter your name.'),
+    email: z
         .string()
         .trim()
         .min(1, 'Enter your email address.')
         .refine((value) => EMAIL_PATTERN.test(value), 'Enter a valid email address.'),
-    phone: zod_1.z.string().trim().min(1, 'Enter your phone number.'),
-    message: zod_1.z.string().trim().min(1, 'Enter your enquiry message.'),
-    consent: zod_1.z.boolean().refine((value) => value === true, {
+    phone: z.string().trim().min(1, 'Enter your phone number.'),
+    message: z.string().trim().min(1, 'Enter your enquiry message.'),
+    consent: z.boolean().refine((value) => value === true, {
         message: 'You must agree to be contacted before sending this enquiry.',
     }),
-    destinationCode: zod_1.z.string().trim().optional().default(''),
-    portCode: zod_1.z.string().trim().optional().default(''),
-    source: zod_1.z.enum(ENQUIRY_SOURCE_VALUES).optional().default('form'),
-    preferredMake: zod_1.z.string().trim().optional().default(''),
-    preferredModel: zod_1.z.string().trim().optional().default(''),
-    preferredDriveSide: zod_1.z
-        .union([zod_1.z.enum(ENQUIRY_PREFERRED_DRIVE_SIDE_VALUES), zod_1.z.literal('')])
+    destinationCode: z.string().trim().optional().default(''),
+    portCode: z.string().trim().optional().default(''),
+    source: z.enum(ENQUIRY_SOURCE_VALUES).optional().default('form'),
+    preferredMake: z.string().trim().optional().default(''),
+    preferredModel: z.string().trim().optional().default(''),
+    preferredDriveSide: z
+        .union([z.enum(ENQUIRY_PREFERRED_DRIVE_SIDE_VALUES), z.literal('')])
         .optional()
         .default(''),
-    preferredYear: zod_1.z.string().trim().optional().default(''),
-    targetPriceUsd: zod_1.z.string().trim().optional().default(''),
+    preferredYear: z.string().trim().optional().default(''),
+    targetPriceUsd: z.string().trim().optional().default(''),
 })
     .superRefine((values, ctx) => {
     const hasDestination = values.destinationCode !== '';

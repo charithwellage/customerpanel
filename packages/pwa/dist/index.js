@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.isOnline = isOnline;
-function isOnline() {
+export function isOnline() {
     if (typeof navigator !== 'undefined' && typeof navigator.onLine === 'boolean') {
         return navigator.onLine;
     }

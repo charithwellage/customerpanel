@@ -1,7 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.calculateContrastRatio = calculateContrastRatio;
-exports.isWcagAaCompliant = isWcagAaCompliant;
 function hexToRgb(hex) {
     const cleanHex = hex.replace('#', '');
     const num = parseInt(cleanHex, 16);
@@ -14,7 +10,7 @@ function getLuminance(r, g, b) {
     });
     return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs;
 }
-function calculateContrastRatio(hex1, hex2) {
+export function calculateContrastRatio(hex1, hex2) {
     const rgb1 = hexToRgb(hex1);
     const rgb2 = hexToRgb(hex2);
     const lum1 = getLuminance(...rgb1);
@@ -23,7 +19,7 @@ function calculateContrastRatio(hex1, hex2) {
     const darkest = Math.min(lum1, lum2);
     return (brightest + 0.05) / (darkest + 0.05);
 }
-function isWcagAaCompliant(foregroundHex, backgroundHex, isLargeText = false) {
+export function isWcagAaCompliant(foregroundHex, backgroundHex, isLargeText = false) {
     const ratio = calculateContrastRatio(foregroundHex, backgroundHex);
     const minRatio = isLargeText ? 3.0 : 4.5;
     return ratio >= minRatio;

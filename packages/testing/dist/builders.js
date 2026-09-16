@@ -1,8 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.createMockVehicle = createMockVehicle;
-exports.createMockCustomer = createMockCustomer;
-function createMockVehicle(overrides) {
+export function createMockVehicle(overrides) {
     return {
         id: 'veh-mock-1',
         chassisNumber: 'NZE141-1234567',
@@ -21,7 +17,7 @@ function createMockVehicle(overrides) {
         ...overrides,
     };
 }
-function createMockCustomer(overrides) {
+export function createMockCustomer(overrides) {
     return {
         id: 'cust-mock-1',
         name: 'Kampala Auto Traders',

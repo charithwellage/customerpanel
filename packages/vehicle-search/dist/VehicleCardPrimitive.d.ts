@@ -7,5 +7,6 @@ export interface VehicleCardPrimitiveProps {
     actionLabel?: string;
     showDiscount?: boolean;
 }
+export declare function resolveVehicleStudioThumbnail(vehicle: VehicleDomainSummary): string;
 export declare const VehicleCardPrimitive: React.FC<VehicleCardPrimitiveProps>;
 //# sourceMappingURL=VehicleCardPrimitive.d.ts.map

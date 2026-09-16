@@ -28,7 +28,7 @@ test.describe('Customer Fleet & Vehicle Detail E2E (D02-P04-T003)', () => {
     const nav = page.locator(isDesktop ? '.cc-cust-shell-nav--desktop' : '.cc-cust-shell-nav--mobile');
 
     // Click My Vehicles link
-    await nav.getByRole('link', { name: /My Vehicles/ }).click();
+    await nav.getByRole('link', { name: /My Orders|My Vehicles/ }).click();
 
     // Verify fleet page is rendered
     await expect(page.getByTestId('customer-fleet-page')).toBeVisible();
@@ -64,7 +64,7 @@ test.describe('Customer Fleet & Vehicle Detail E2E (D02-P04-T003)', () => {
       await page.getByTestId('cust-mobile-toggle').click();
     }
     const nav = page.locator(isDesktop ? '.cc-cust-shell-nav--desktop' : '.cc-cust-shell-nav--mobile');
-    await nav.getByRole('link', { name: /My Vehicles/ }).click();
+    await nav.getByRole('link', { name: /My Orders|My Vehicles/ }).click();
 
     await expect(page.getByTestId('customer-fleet-page')).toBeVisible();
 
@@ -91,7 +91,7 @@ test.describe('Customer Fleet & Vehicle Detail E2E (D02-P04-T003)', () => {
       await page.getByTestId('cust-mobile-toggle').click();
     }
     const nav = page.locator(isDesktop ? '.cc-cust-shell-nav--desktop' : '.cc-cust-shell-nav--mobile');
-    await nav.getByRole('link', { name: /My Vehicles/ }).click();
+    await nav.getByRole('link', { name: /My Orders|My Vehicles/ }).click();
 
     await expect(page.getByTestId('customer-fleet-page')).toBeVisible();
 

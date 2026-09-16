@@ -5,11 +5,13 @@ import type { LanguageCode } from '@carchief/domain';
 export interface CustomerLanguageSwitcherProps {
   className?: string;
   id?: string;
+  compact?: boolean;
 }
 
 export const CustomerLanguageSwitcher: React.FC<CustomerLanguageSwitcherProps> = ({
   className = '',
   id = 'customer-language-switcher',
+  compact = false,
 }) => {
   const { language, setLanguage, supportedLanguages, t } = useTranslation();
 
@@ -18,8 +20,8 @@ export const CustomerLanguageSwitcher: React.FC<CustomerLanguageSwitcherProps> =
   };
 
   return (
-    <div className={`cc-cust-lang-switcher ${className}`} data-testid="customer-language-switcher-wrap">
-      <span className="cc-cust-lang-switcher__icon" aria-hidden="true">🌐</span>
+    <div className={`cc-cust-lang-switcher ${compact ? 'cc-cust-lang-switcher--compact' : ''} ${className}`} data-testid="customer-language-switcher-wrap">
+      {!compact && <span className="cc-cust-lang-switcher__icon" aria-hidden="true">🌐</span>}
       <select
         id={id}
         className="cc-cust-lang-switcher__select"
@@ -30,7 +32,7 @@ export const CustomerLanguageSwitcher: React.FC<CustomerLanguageSwitcherProps> =
       >
         {supportedLanguages.map((lang) => (
           <option key={lang.code} value={lang.code}>
-            {lang.flag} {lang.nativeLabel}
+            {lang.nativeLabel}
           </option>
         ))}
       </select>

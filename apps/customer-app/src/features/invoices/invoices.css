@@ -22,7 +22,7 @@
 
 .cc-cust-invoices-title {
   font-size: var(--font-size-2xl);
-  font-weight: 700;
+  font-weight: 600;
   color: var(--color-text-primary);
   margin: 0;
   line-height: 1.2;
@@ -75,7 +75,7 @@
 .cc-invoice-kpi-card__title {
   font-family: var(--font-mono);
   font-size: 0.70rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--color-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -85,7 +85,7 @@
 .cc-invoice-kpi-card__value {
   font-family: var(--font-mono);
   font-size: var(--font-size-2xl);
-  font-weight: 800;
+  font-weight: 600;
   line-height: 1.1;
   letter-spacing: -0.01em;
   font-variant-numeric: tabular-nums;
@@ -162,7 +162,7 @@
   margin: 0;
   font-family: var(--font-mono);
   font-size: var(--font-size-sm);
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.08em;
   color: var(--color-text-primary);
   text-transform: uppercase;
@@ -202,10 +202,11 @@
   transition: border-color var(--motion-fast) ease, box-shadow var(--motion-fast) ease;
 }
 
-.cc-inv-search-input:focus {
-  outline: none;
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 var(--focus-ring-width) var(--color-focus);
+.cc-inv-search-input:focus,
+.cc-inv-search-input:focus-visible {
+  outline: none !important;
+  border-color: #0f172a;
+  box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.06);
 }
 
 .cc-inv-search-clear {
@@ -241,7 +242,7 @@
   padding: var(--spacing-sm) var(--spacing-md);
   font-family: var(--font-mono);
   font-size: var(--font-size-xs);
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.06em;
   color: var(--color-text-on-dark);
   text-transform: uppercase;
@@ -282,7 +283,7 @@
 
 .cc-inv-number-text {
   font-family: var(--font-mono);
-  font-weight: 700;
+  font-weight: 600;
   color: var(--color-text-primary);
 }
 
@@ -307,26 +308,26 @@
 
 .cc-inv-td--total {
   font-family: var(--font-mono);
-  font-weight: 700;
+  font-weight: 600;
   color: var(--color-text-primary);
   white-space: nowrap;
 }
 
 .cc-inv-paid-green {
   font-family: var(--font-mono);
-  font-weight: 700;
+  font-weight: 600;
   color: var(--color-success);
 }
 
 .cc-inv-zero-green {
   font-family: var(--font-mono);
-  font-weight: 700;
+  font-weight: 600;
   color: var(--color-success);
 }
 
 .cc-inv-outstanding-red {
   font-family: var(--font-mono);
-  font-weight: 700;
+  font-weight: 600;
   color: var(--color-primary);
 }
 
@@ -348,7 +349,7 @@
   padding: 3px var(--spacing-sm);
   font-family: var(--font-mono);
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.06em;
   color: var(--color-text-secondary);
   cursor: pointer;
@@ -400,7 +401,7 @@
   margin: 0;
   font-family: var(--font-mono);
   font-size: var(--font-size-sm);
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.08em;
   color: var(--color-text-primary);
   text-transform: uppercase;
@@ -420,7 +421,7 @@
   color: var(--color-primary);
   font-family: var(--font-mono);
   font-size: var(--font-size-xs);
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.04em;
   white-space: nowrap;
 }
@@ -482,7 +483,7 @@
   border-radius: var(--radius-sm);
   font-family: var(--font-mono);
   font-size: 10px;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
@@ -526,7 +527,7 @@
   margin: 0;
   font-family: var(--font-display);
   font-size: var(--font-size-sm);
-  font-weight: 800;
+  font-weight: 600;
   color: var(--color-text-primary);
   letter-spacing: 0.02em;
 }
@@ -576,7 +577,7 @@
 
 .cc-inv-veh-card__fin-val {
   font-family: var(--font-mono);
-  font-weight: 700;
+  font-weight: 600;
   color: var(--color-text-primary);
 }
 
@@ -600,14 +601,14 @@
 .cc-inv-veh-card__footer-text {
   font-family: var(--font-mono);
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.06em;
   color: var(--color-text-secondary);
 }
 
 .cc-inv-veh-card__footer-check {
   color: var(--color-success);
-  font-weight: 800;
+  font-weight: 600;
   font-size: var(--font-size-xs);
 }
 
@@ -653,7 +654,7 @@
   border-radius: var(--radius-pill);
   padding: 0.125rem 0.5rem;
   font-size: var(--font-size-xs);
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .cc-cust-invoices-tab--active .cc-cust-invoices-tab__count {
@@ -713,9 +714,11 @@
   font-size: var(--font-size-sm);
 }
 
-.cc-cust-invoices-input:focus {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 1px;
+.cc-cust-invoices-input:focus,
+.cc-cust-invoices-input:focus-visible {
+  outline: none !important;
+  border-color: #0f172a;
+  box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.06);
 }
 
 .cc-cust-invoices-search-clear {
@@ -815,7 +818,7 @@
 
 .cc-invoice-badge {
   font-size: var(--font-size-xs);
-  font-weight: 700;
+  font-weight: 600;
   padding: 0.125rem 0.5rem;
   border-radius: var(--radius-pill);
 }
@@ -856,7 +859,7 @@
 
 .cc-invoice-card__number {
   font-family: var(--font-mono);
-  font-weight: 700;
+  font-weight: 600;
   font-size: var(--font-size-base);
   color: var(--color-text-primary);
 }
@@ -911,7 +914,7 @@
 
 .cc-invoice-card__amount-val {
   font-size: var(--font-size-sm);
-  font-weight: 700;
+  font-weight: 600;
   color: var(--color-text-primary);
 }
 
@@ -988,7 +991,7 @@
 }
 
 .cc-invoice-card__date-row--pi .cc-invoice-card__deadline-val {
-  font-weight: 700;
+  font-weight: 600;
   color: var(--color-warning);
 }
 
@@ -1168,7 +1171,7 @@
 
 .cc-invoice-detail-title {
   font-size: var(--font-size-2xl);
-  font-weight: 700;
+  font-weight: 600;
   font-family: var(--font-mono);
   color: var(--color-text-primary);
   margin: 0;
@@ -1229,7 +1232,7 @@
 
 .cc-invoice-detail-kpi-val {
   font-size: var(--font-size-2xl);
-  font-weight: 700;
+  font-weight: 600;
   color: var(--color-text-primary);
 }
 
@@ -1275,7 +1278,7 @@
 
 .cc-invoice-pi-banner__expired {
   margin-top: 0.5rem !important;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--color-error) !important;
 }
 
@@ -1317,7 +1320,7 @@
 .cc-invoice-items-card__title,
 .cc-invoice-allocations-card__title {
   font-size: var(--font-size-lg);
-  font-weight: 700;
+  font-weight: 600;
   color: var(--color-text-primary);
   margin: 0 0 var(--spacing-md) 0;
 }
@@ -1383,7 +1386,7 @@
 .cc-alloc-tfoot-val {
   text-align: right;
   padding: var(--spacing-sm);
-  font-weight: 700;
+  font-weight: 600;
   color: var(--color-text-primary);
 }
 
@@ -1409,7 +1412,7 @@
   background-color: var(--color-success-surface);
   color: var(--color-success);
   font-size: var(--font-size-xs);
-  font-weight: 700;
+  font-weight: 600;
   padding: 0.125rem 0.5rem;
   border-radius: var(--radius-pill);
 }
@@ -1472,7 +1475,7 @@
 
 .cc-bank-wire-card__title {
   font-size: var(--font-size-base);
-  font-weight: 700;
+  font-weight: 600;
   color: var(--color-text-primary);
   margin: 0;
 }
@@ -1602,7 +1605,7 @@
 
 .cc-invoice-meta-card__title {
   font-size: var(--font-size-sm);
-  font-weight: 700;
+  font-weight: 600;
   color: var(--color-text-primary);
   margin: 0 0 var(--spacing-sm) 0;
   text-transform: uppercase;
@@ -1678,7 +1681,7 @@
 
 .cc-invoice-modal-title {
   font-size: var(--font-size-lg);
-  font-weight: 700;
+  font-weight: 600;
   color: var(--color-text-primary);
   margin: 0;
 }
@@ -1819,7 +1822,7 @@
   color: var(--color-primary);
   font-family: var(--font-mono);
   font-size: var(--font-size-xs);
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -1842,7 +1845,7 @@
 .cc-invoice-document-render .carchief-invoice-document__meta strong {
   color: var(--color-text-secondary);
   font-size: var(--font-size-xs);
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
@@ -1890,7 +1893,7 @@
   color: var(--color-text-secondary);
   font-family: var(--font-mono);
   font-size: var(--font-size-xs);
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
@@ -1916,7 +1919,7 @@
 
 .cc-invoice-document-render .carchief-invoice-document__table tfoot tr:last-child td {
   color: var(--color-primary);
-  font-weight: 800;
+  font-weight: 600;
 }
 
 .cc-invoice-document-render .carchief-invoice-document__banking {
@@ -2055,7 +2058,7 @@
 
 .cc-ledger-header-title {
   font-size: var(--font-size-xs);
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 1px;
   color: var(--color-text-secondary);
   text-transform: uppercase;
@@ -2115,7 +2118,7 @@
 .cc-ledger-sheet__brand {
   margin: 0 0 var(--spacing-xs) 0;
   font-size: var(--font-size-xl);
-  font-weight: 800;
+  font-weight: 600;
   color: var(--color-text-primary);
   letter-spacing: -0.5px;
 }
@@ -2142,7 +2145,7 @@
 
 .cc-ledger-sheet__doc-badge {
   font-size: var(--font-size-xs);
-  font-weight: 800;
+  font-weight: 600;
   padding: 2px var(--spacing-sm);
   border-radius: var(--radius-sm);
   background-color: var(--color-neutral-surface);
@@ -2153,7 +2156,7 @@
 
 .cc-ledger-sheet__doc-number {
   font-size: var(--font-size-2xl);
-  font-weight: 800;
+  font-weight: 600;
   color: var(--color-text-primary);
   letter-spacing: 0.5px;
   line-height: 1;
@@ -2181,7 +2184,7 @@
 .cc-ledger-sheet__section-label {
   display: block;
   font-size: var(--font-size-xs);
-  font-weight: 700;
+  font-weight: 600;
   color: var(--color-text-secondary);
   letter-spacing: 0.5px;
   text-transform: uppercase;
@@ -2191,7 +2194,7 @@
 
 .cc-ledger-sheet__client-name {
   font-size: var(--font-size-base);
-  font-weight: 800;
+  font-weight: 600;
   color: var(--color-text-primary);
 }
 
@@ -2230,7 +2233,7 @@
 
 .cc-ledger-sheet__sched-val--due {
   color: var(--color-primary);
-  font-weight: 800;
+  font-weight: 600;
 }
 
 .cc-ledger-sheet__items-table-wrap {
@@ -2248,7 +2251,7 @@
 .cc-ledger-td--desc {
   width: 58%;
   font-size: var(--font-size-xs);
-  font-weight: 700;
+  font-weight: 600;
   color: var(--color-text-secondary);
   padding: var(--spacing-xs) 0;
   border-bottom: 1px solid var(--color-border);
@@ -2259,7 +2262,7 @@
 .cc-ledger-td--qty {
   width: 8%;
   font-size: var(--font-size-xs);
-  font-weight: 700;
+  font-weight: 600;
   color: var(--color-text-secondary);
   padding: var(--spacing-xs) var(--spacing-xs);
   border-bottom: 1px solid var(--color-border);
@@ -2271,7 +2274,7 @@
 .cc-ledger-td--price {
   width: 17%;
   font-size: var(--font-size-xs);
-  font-weight: 700;
+  font-weight: 600;
   color: var(--color-text-secondary);
   padding: var(--spacing-xs) var(--spacing-xs);
   border-bottom: 1px solid var(--color-border);
@@ -2283,7 +2286,7 @@
 .cc-ledger-td--amount {
   width: 17%;
   font-size: var(--font-size-xs);
-  font-weight: 700;
+  font-weight: 600;
   color: var(--color-text-secondary);
   padding: var(--spacing-xs) 0;
   border-bottom: 1px solid var(--color-border);
@@ -2301,7 +2304,7 @@
 
 .cc-ledger-item__title {
   font-size: var(--font-size-xs);
-  font-weight: 800;
+  font-weight: 600;
   color: var(--color-text-primary);
   text-transform: uppercase;
 }
@@ -2318,7 +2321,7 @@
 .cc-ledger-td--amount {
   padding: var(--spacing-sm) var(--spacing-xs);
   font-size: var(--font-size-xs);
-  font-weight: 700;
+  font-weight: 600;
   color: var(--color-text-primary);
   text-align: right;
   vertical-align: middle;
@@ -2356,14 +2359,14 @@
 }
 
 .cc-ledger-sheet__summary-val {
-  font-weight: 700;
+  font-weight: 600;
   color: var(--color-text-primary);
 }
 
 .cc-ledger-sheet__summary-row--deposit .cc-ledger-sheet__summary-label,
 .cc-ledger-sheet__summary-val--green {
   color: var(--color-success);
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .cc-ledger-sheet__summary-divider {
@@ -2379,7 +2382,7 @@
 .cc-ledger-sheet__summary-label-balance {
   font-family: var(--font-display, sans-serif);
   font-size: var(--font-size-sm);
-  font-weight: 800;
+  font-weight: 600;
   color: var(--color-text-primary);
   letter-spacing: 0.5px;
 }
@@ -2387,7 +2390,7 @@
 .cc-ledger-sheet__summary-val-balance {
   font-family: var(--font-mono);
   font-size: var(--font-size-base);
-  font-weight: 800;
+  font-weight: 600;
   color: var(--color-primary);
 }
 
@@ -2405,7 +2408,7 @@
 .cc-ledger-sheet__bank-title {
   font-family: var(--font-mono);
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.5px;
   color: var(--color-text-primary);
   text-transform: uppercase;
@@ -2436,7 +2439,7 @@
 
 .cc-ledger-sheet__bank-val--ref {
   color: var(--color-primary);
-  font-weight: 800;
+  font-weight: 600;
 }
 
 /* Export Format Dropdown & Actions */
@@ -2477,7 +2480,7 @@
 .cc-ledger-export-dropdown__title {
   font-family: var(--font-mono);
   font-size: 11px;
-  font-weight: 800;
+  font-weight: 600;
   color: var(--color-text-primary);
   letter-spacing: 0.5px;
 }
@@ -2564,14 +2567,14 @@
 .cc-ledger-export-item__title {
   font-family: var(--font-display, sans-serif);
   font-size: var(--font-size-xs);
-  font-weight: 700;
+  font-weight: 600;
   color: var(--color-text-primary);
 }
 
 .cc-ledger-export-item__badge {
   font-family: var(--font-mono);
   font-size: 9px;
-  font-weight: 800;
+  font-weight: 600;
   padding: 1px 5px;
   border-radius: 4px;
   text-transform: uppercase;
@@ -2666,7 +2669,7 @@
   margin: 0;
   font-family: var(--font-display);
   font-size: var(--font-size-base);
-  font-weight: 800;
+  font-weight: 600;
   color: var(--color-text-primary);
 }
 
@@ -2692,7 +2695,7 @@
   padding: var(--spacing-sm) var(--spacing-md);
   border-radius: var(--radius-sm);
   font-size: var(--font-size-xs);
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .cc-email-modal-alert--error {
@@ -2723,7 +2726,7 @@
 .cc-email-form-label {
   font-family: var(--font-mono);
   font-size: var(--font-size-xs);
-  font-weight: 700;
+  font-weight: 600;
   color: var(--color-text-secondary);
 }
 
@@ -2744,9 +2747,12 @@
 }
 
 .cc-email-form-input:focus,
-.cc-email-form-textarea:focus {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 1px;
+.cc-email-form-input:focus-visible,
+.cc-email-form-textarea:focus,
+.cc-email-form-textarea:focus-visible {
+  outline: none !important;
+  border-color: #0f172a;
+  box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.06);
 }
 
 .cc-email-form-input--locked {
@@ -2768,7 +2774,7 @@
   border-radius: var(--radius-md);
   font-family: var(--font-body);
   font-size: var(--font-size-xs);
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
   transition: all var(--motion-fast);
 }
@@ -2815,7 +2821,7 @@
   padding: var(--spacing-sm) var(--spacing-md);
   font-family: var(--font-mono);
   font-size: var(--font-size-xs);
-  font-weight: 700;
+  font-weight: 600;
   color: var(--color-text-secondary);
   border-bottom: 2px solid var(--color-border);
   background-color: var(--color-neutral-surface);
@@ -2844,7 +2850,7 @@
 }
 
 .cc-inv-pay-td-bold {
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .cc-inv-pay-td--right {
@@ -2859,7 +2865,7 @@
   background: transparent;
   border: none;
   color: var(--color-primary);
-  font-weight: 800;
+  font-weight: 600;
   cursor: pointer;
   text-decoration: underline;
   padding: 0;
@@ -2908,7 +2914,7 @@
 
 .cc-courier-meta-val--mono {
   font-family: var(--font-mono);
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .cc-courier-remarks-box {
@@ -2924,7 +2930,7 @@
 .cc-courier-remarks-label {
   font-family: var(--font-mono);
   font-size: var(--font-size-xs);
-  font-weight: 700;
+  font-weight: 600;
   color: var(--color-text-secondary);
 }
 
@@ -2933,5 +2939,117 @@
   font-size: var(--font-size-xs);
   color: var(--color-text-primary);
   line-height: 1.5;
+}
+
+/* ==========================================================================
+   DARK THEME (MIDNIGHT MODE) - INVOICES & LEDGER (WEB & MOBILE)
+   ========================================================================== */
+
+[data-theme-mode='midnight'] .cc-invoice-kpi-card,
+.theme-midnight .cc-invoice-kpi-card,
+.dark-mode .cc-invoice-kpi-card {
+  background-color: #111827 !important;
+  border-color: #1f2937 !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme-mode='midnight'] .cc-inv-search-input,
+.theme-midnight .cc-inv-search-input,
+.dark-mode .cc-inv-search-input,
+[data-theme-mode='midnight'] .cc-cust-invoices-input,
+.theme-midnight .cc-cust-invoices-input,
+.dark-mode .cc-cust-invoices-input,
+[data-theme-mode='midnight'] .cc-cust-invoices-select,
+.theme-midnight .cc-cust-invoices-select,
+.dark-mode .cc-cust-invoices-select {
+  background-color: #1f2937 !important;
+  color: #f9fafb !important;
+  border-color: #374151 !important;
+}
+
+[data-theme-mode='midnight'] .cc-inv-search-input:focus,
+.theme-midnight .cc-inv-search-input:focus,
+.dark-mode .cc-inv-search-input:focus,
+[data-theme-mode='midnight'] .cc-cust-invoices-input:focus,
+.theme-midnight .cc-cust-invoices-input:focus,
+.dark-mode .cc-cust-invoices-input:focus {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2) !important;
+}
+
+[data-theme-mode='midnight'] .cc-inv-table-container,
+.theme-midnight .cc-inv-table-container,
+.dark-mode .cc-inv-table-container {
+  background-color: #111827 !important;
+  border-color: #1f2937 !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme-mode='midnight'] .cc-inv-table thead,
+.theme-midnight .cc-inv-table thead,
+.dark-mode .cc-inv-table thead {
+  background-color: #030712 !important;
+}
+
+[data-theme-mode='midnight'] .cc-inv-table tbody tr,
+.theme-midnight .cc-inv-table tbody tr,
+.dark-mode .cc-inv-table tbody tr {
+  border-bottom-color: #1f2937 !important;
+}
+
+[data-theme-mode='midnight'] .cc-inv-table tbody tr:hover,
+.theme-midnight .cc-inv-table tbody tr:hover,
+.dark-mode .cc-inv-table tbody tr:hover {
+  background-color: #1f2937 !important;
+}
+
+[data-theme-mode='midnight'] .cc-inv-table td,
+.theme-midnight .cc-inv-table td,
+.dark-mode .cc-inv-table td {
+  color: #f9fafb !important;
+}
+
+[data-theme-mode='midnight'] .cc-inv-action-btn,
+.theme-midnight .cc-inv-action-btn,
+.dark-mode .cc-inv-action-btn {
+  border-color: #374151 !important;
+  color: #9ca3af !important;
+  background-color: #1f2937 !important;
+}
+
+[data-theme-mode='midnight'] .cc-inv-action-btn:hover,
+.theme-midnight .cc-inv-action-btn:hover,
+.dark-mode .cc-inv-action-btn:hover {
+  background-color: #ef4444 !important;
+  border-color: #ef4444 !important;
+  color: #ffffff !important;
+}
+
+[data-theme-mode='midnight'] .cc-inv-veh-card,
+.theme-midnight .cc-inv-veh-card,
+.dark-mode .cc-inv-veh-card {
+  background-color: #111827 !important;
+  border-color: #1f2937 !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme-mode='midnight'] .cc-inv-veh-card__financials,
+.theme-midnight .cc-inv-veh-card__financials,
+.dark-mode .cc-inv-veh-card__financials {
+  background-color: #1f2937 !important;
+}
+
+[data-theme-mode='midnight'] .cc-invoice-card,
+.theme-midnight .cc-invoice-card,
+.dark-mode .cc-invoice-card {
+  background-color: #111827 !important;
+  border-color: #1f2937 !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme-mode='midnight'] .cc-invoice-card:hover,
+.theme-midnight .cc-invoice-card:hover,
+.dark-mode .cc-invoice-card:hover {
+  border-color: #ef4444 !important;
 }
 

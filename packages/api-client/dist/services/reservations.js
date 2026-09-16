@@ -1,6 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.ReservationService = void 0;
 /**
  * Transactional reservation eligibility and hold (PUB-23, RULE-05, RULE-08,
  * RULE-10, D01-P06-T004). `create` requires an authenticated demo customer —
@@ -14,7 +11,7 @@ exports.ReservationService = void 0;
  * distinction. `getById` mirrors `EnquiryService.getLeadById`'s
  * null-on-404 convention.
  */
-class ReservationService {
+export class ReservationService {
     httpClient;
     constructor(httpClient) {
         this.httpClient = httpClient;
@@ -44,5 +41,4 @@ class ReservationService {
         }
     }
 }
-exports.ReservationService = ReservationService;
 //# sourceMappingURL=reservations.js.map

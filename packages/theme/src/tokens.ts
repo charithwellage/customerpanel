@@ -112,34 +112,30 @@ export interface SemanticThemeTokens {
 
 export const defaultSemanticTheme: SemanticThemeTokens = {
   colors: {
-    primary: '#dc2626', // POC red; AA contrast against white
-    primaryHover: '#b91c1c',
-    accent: '#ea580c', // POC hero gradient/active-nav orange
-    secondary: '#525252',
-    background: '#fafafa',
+    primary: '#c8102e', // CarChief Red brand accent
+    primaryHover: '#a00c24',
+    accent: '#0f172a', // Sleek Slate-900
+    secondary: '#475569', // Slate-600
+    background: '#f8fafc', // Slate-50 background matching chiefdesign.netlify.app
     surface: '#ffffff',
     surfaceElevated: '#ffffff',
-    surfaceDark: '#171717',
-    textPrimary: '#171717',
-    textSecondary: '#525252',
-    textOnDark: '#fafafa',
+    surfaceDark: '#0f172a',
+    textPrimary: '#0f172a', // Slate-900 text
+    textSecondary: '#64748b', // Slate-500 text
+    textOnDark: '#ffffff',
     textOnPrimary: '#ffffff',
-    // Dark text, not white: carchief's accent (#ea580c) is light enough that
-    // white text only reaches 3.56:1 (fails WCAG AA 4.5:1). #171717 is the
-    // same literal already used for textPrimary/surfaceDark in this file and
-    // reaches 5.04:1 against accent (verified via contrast.ts).
-    textOnAccent: '#171717',
-    border: '#e5e5e5',
-    focus: '#b91c1c',
-    success: '#166534',
-    successSurface: '#dcfce7',
+    textOnAccent: '#ffffff',
+    border: 'rgba(0, 0, 0, 0.08)', // Crisp bento card border
+    focus: '#c8102e',
+    success: '#047857',
+    successSurface: '#ecfdf5',
     warning: '#92400e',
-    warningSurface: '#fef3c7',
-    error: '#b91c1c',
-    errorSurface: '#fee2e2',
-    info: '#1d4ed8',
-    infoSurface: '#dbeafe',
-    neutralSurface: '#f5f5f5',
+    warningSurface: '#fffbeb',
+    error: '#c8102e',
+    errorSurface: '#fef2f2',
+    info: '#0369a1',
+    infoSurface: '#f0f9ff',
+    neutralSurface: '#f8fafc',
   },
   spacing: {
     xs: '0.25rem',
@@ -150,9 +146,9 @@ export const defaultSemanticTheme: SemanticThemeTokens = {
     '2xl': '3rem',
   },
   typography: {
-    fontFamily: 'Inter, system-ui, sans-serif',
-    fontDisplay: '"Space Grotesk", Inter, system-ui, sans-serif',
-    fontMono: '"JetBrains Mono", ui-monospace, SFMono-Regular, monospace',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Arial, sans-serif',
+    fontDisplay: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif',
+    fontMono: '"SF Mono", -apple-system, BlinkMacSystemFont, "Segoe UI Mono", Menlo, Monaco, Consolas, monospace',
     sizes: {
       xs: '0.75rem',
       sm: '0.875rem',
@@ -164,7 +160,7 @@ export const defaultSemanticTheme: SemanticThemeTokens = {
     weights: {
       regular: 400,
       medium: 500,
-      bold: 700,
+      bold: 600,
     },
   },
   breakpoints: {

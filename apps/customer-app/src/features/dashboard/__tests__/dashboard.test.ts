@@ -13,7 +13,7 @@ describe('Dashboard Types & Data Validation', () => {
 
     expect(source).not.toContain('PAIRED ACCOUNT');
     expect(source).not.toContain('dash-account-switch');
-    expect(source).toContain('cc-dash-date-badge');
+    expect(source).toContain('cc-dash-hero-badges');
   });
 
   it('keeps dashboard progress styling in CSS rather than a static inline width', async () => {

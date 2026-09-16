@@ -1,9 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.FreightRequestError = void 0;
-exports.resolveFreightRateStatus = resolveFreightRateStatus;
-exports.validateFreightEstimateRequest = validateFreightEstimateRequest;
-exports.calculateFreightEstimate = calculateFreightEstimate;
 // --- Phase 1.5: freight calculation (D01-P05-T002, D01-ASM-001) ---
 //
 // This module is the single authoritative home for the freight-estimate
@@ -24,7 +18,7 @@ exports.calculateFreightEstimate = calculateFreightEstimate;
 // destination/port pair — a structural passthrough, not a stub that needs
 // rewriting later. See
 // tasks/delivery_01/REQUIREMENT_GAPS_AND_ASSUMPTIONS.md row D01-ASM-001.
-class FreightRequestError extends Error {
+export class FreightRequestError extends Error {
     statusCode;
     field;
     constructor(statusCode, message, field) {
@@ -34,7 +28,6 @@ class FreightRequestError extends Error {
         this.field = field;
     }
 }
-exports.FreightRequestError = FreightRequestError;
 /**
  * Pure rate-lookup resolution for a destination/port pair as of `nowISO`.
  * Selects the most recent rate record whose `effectiveFrom` has already
@@ -42,7 +35,7 @@ exports.FreightRequestError = FreightRequestError;
  * (`stale`), or whether no started record exists at all (`no_rate`). This is
  * lookup context only — it never derives a total from `record.amount`.
  */
-function resolveFreightRateStatus(records, destinationCode, portCode, nowISO) {
+export function resolveFreightRateStatus(records, destinationCode, portCode, nowISO) {
     const matches = records.filter((r) => r.destinationCode === destinationCode && r.portCode === portCode);
     if (matches.length === 0) {
         return { status: 'no_rate' };
@@ -68,7 +61,7 @@ function resolveFreightRateStatus(records, destinationCode, portCode, nowISO) {
  * from the honest `estimate_unavailable_pending_rate` outcome — they are
  * different states, never conflated.
  */
-function validateFreightEstimateRequest(destinations, ports, request) {
+export function validateFreightEstimateRequest(destinations, ports, request) {
     if (!request || typeof request.destinationCode !== 'string' || !request.destinationCode.trim()) {
         throw new FreightRequestError(400, 'destinationCode is required', 'destinationCode');
     }
@@ -110,7 +103,7 @@ function validateFreightEstimateRequest(destinations, ports, request) {
  * contract never carries a monetary total field while the decisions are
  * open (RULE-09, RULE-10).
  */
-function calculateFreightEstimate(destinations, ports, records, request, nowISO) {
+export function calculateFreightEstimate(destinations, ports, records, request, nowISO) {
     validateFreightEstimateRequest(destinations, ports, request);
     const { status, record } = resolveFreightRateStatus(records, request.destinationCode, request.portCode, nowISO);
     // --- Calculation-sequence insertion point (Branch A, D01-P05-T002) ---

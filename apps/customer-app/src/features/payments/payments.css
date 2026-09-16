@@ -3,19 +3,164 @@
  */
 
 .cc-cust-remittance-page {
+  --font-mono: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-display: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xl);
+  gap: var(--spacing-md);
   width: 100%;
   max-width: 100%;
   margin: 0;
-  padding: 0 0 var(--spacing-2xl);
+  padding: 0 0 var(--spacing-lg);
 }
 
-/* --- Top Strip: 3 KPI Cards + 1 Action Button --- */
-.cc-remit-top-strip {
+.cc-cust-remittance-page,
+.cc-cust-remittance-page *,
+.cc-cust-remittance-page button,
+.cc-cust-remittance-page input,
+.cc-cust-remittance-page select,
+.cc-cust-remittance-page textarea,
+.cc-remit-modal-overlay,
+.cc-remit-modal-overlay *,
+.cc-pay-modal-overlay,
+.cc-pay-modal-overlay * {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+}
+
+/* Clamp non-title weights to max 600 across page, numbers, cards, tables, inputs, badges */
+.cc-cust-remittance-page strong,
+.cc-cust-remittance-page b,
+.cc-cust-remittance-page th,
+.cc-cust-remittance-page td,
+.cc-cust-remittance-page button,
+.cc-cust-remittance-page input,
+.cc-cust-remittance-page select,
+.cc-cust-remittance-page textarea,
+.cc-remit-modal-overlay strong,
+.cc-remit-modal-overlay b,
+.cc-remit-modal-overlay button,
+.cc-remit-modal-overlay input,
+.cc-remit-modal-overlay select,
+.cc-pay-modal-overlay strong,
+.cc-pay-modal-overlay b,
+.cc-pay-modal-overlay button,
+.cc-pay-modal-overlay td,
+.cc-pay-modal-overlay th {
+  font-weight: 600 !important;
+}
+
+/* Ensure all numbers, currency amounts, metrics use apple-system font and tabular numerals with font-weight 600 */
+.cc-cust-remittance-page [class*="num"],
+.cc-cust-remittance-page [class*="amount"],
+.cc-cust-remittance-page [class*="price"],
+.cc-cust-remittance-page [class*="digit"],
+.cc-cust-remittance-page [class*="val"],
+.cc-cust-remittance-page [class*="balance"],
+.cc-cust-remittance-page [class*="total"],
+.cc-cust-remittance-page [class*="count"],
+.cc-cust-remittance-page td,
+.cc-cust-remittance-page code,
+.cc-remit-modal-overlay [class*="amount"],
+.cc-remit-modal-overlay [class*="val"],
+.cc-pay-modal-overlay [class*="amount"],
+.cc-pay-modal-overlay [class*="val"],
+.cc-pay-modal-overlay td {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+  font-weight: 600 !important;
+  font-variant-numeric: tabular-nums;
+}
+
+.cc-cust-remittance-page .cc-stmt-kpi-bar {
+  margin-top: var(--spacing-xs);
+  margin-bottom: var(--spacing-xs);
+  padding-top: var(--spacing-xs);
+  padding-bottom: var(--spacing-xs);
+  gap: var(--spacing-sm);
+}
+
+.cc-remit-header-card .cc-stmt-kpi-bar {
+  background-color: transparent;
+  border: none;
+  border-top: 1px solid var(--color-border);
+  border-radius: 0;
+  box-shadow: none;
+  padding: var(--spacing-sm) 0 0 0;
+  margin-top: 2px;
+  margin-bottom: 0;
+  gap: var(--spacing-md);
+}
+
+/* --- Header Card, KPI Strip, and Layout --- */
+.cc-remit-header-card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  box-shadow: var(--shadow-sm);
+}
+
+.cc-remit-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+}
+
+/* Increased "MY PAYMENTS" wording title size */
+.cc-remit-title {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+  font-size: 1.85rem !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.02em;
+  color: #0f172a;
+  line-height: 1.2;
+  text-transform: uppercase;
+  display: inline-block;
+}
+
+.cc-remit-title-highlight {
+  background: linear-gradient(to right, #C8102E 0%, #DC2626 50%, #D97706 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  display: inline-block;
+  font-weight: 700 !important;
+}
+
+.cc-remit-subtitle {
+  margin: var(--spacing-xs) 0 0 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.cc-remit-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
+.cc-remit-date-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+  padding-top: var(--spacing-sm);
+  border-top: 1px solid var(--color-border);
+}
+
+.cc-remit-kpi-strip {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(220px, auto);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--spacing-md);
   align-items: stretch;
 }
@@ -41,7 +186,7 @@
 .cc-remit-kpi-card__label {
   font-family: var(--font-mono);
   font-size: 0.70rem;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.08em;
   color: var(--color-text-secondary);
   text-transform: uppercase;
@@ -51,7 +196,7 @@
 .cc-remit-kpi-card__value {
   font-family: var(--font-mono);
   font-size: var(--font-size-2xl);
-  font-weight: 800;
+  font-weight: 600;
   line-height: 1.1;
   letter-spacing: -0.01em;
   font-variant-numeric: tabular-nums;
@@ -100,44 +245,95 @@
 }
 
 .cc-remit-btn-submit-proof {
-  width: 100%;
-  min-height: var(--min-touch-target);
-  background: var(--color-primary);
-  color: var(--color-text-on-primary);
-  border: 1px solid var(--color-primary);
-  border-radius: var(--radius-lg);
-  padding: var(--spacing-md) var(--spacing-xl);
-  font-family: var(--font-display);
-  font-size: var(--font-size-sm);
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  display: flex;
+  position: relative;
+  overflow: hidden;
+  background: #16a34a !important;
+  color: #ffffff !important;
+  border: 1px solid #16a34a !important;
+  border-radius: 6px;
+  padding: 6px 14px;
+  min-height: 34px;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-sm);
+  gap: 6px;
   cursor: pointer;
-  box-shadow: var(--shadow-md);
-  transition: background-color var(--motion-fast) ease, border-color var(--motion-fast) ease, transform var(--motion-fast) ease;
+  box-shadow: 0 1px 3px rgba(22, 163, 74, 0.2);
+  transition: all var(--motion-fast) ease;
+  white-space: nowrap;
+}
+
+.cc-remit-btn-submit-proof::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -75%;
+  width: 50%;
+  height: 200%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.25),
+    transparent
+  );
+  transform: rotate(25deg);
+  animation: cc-remit-light-sweep 3.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes cc-remit-light-sweep {
+  0% {
+    left: -75%;
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.85;
+  }
+  45% {
+    left: 150%;
+    opacity: 0;
+  }
+  100% {
+    left: 150%;
+    opacity: 0;
+  }
 }
 
 .cc-remit-btn-submit-proof:hover {
-  background: var(--color-primary-hover);
-  border-color: var(--color-primary-hover);
+  background: #15803d !important;
+  color: #ffffff !important;
+  border-color: #15803d !important;
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.35);
   transform: translateY(-1px);
 }
 
-/* --- Section Heading --- */
-.cc-remit-section-header {
+.cc-remit-journal-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-xs);
+}
+
+.cc-remit-journal-unified-card {
   margin-top: var(--spacing-sm);
+}
+
+.cc-remit-journal-unified-card .cc-stmt-table-scroll-wrap {
+  margin-top: var(--spacing-xs);
 }
 
 .cc-remit-section-title {
   margin: 0;
   font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
-  font-weight: 700;
-  letter-spacing: 0.1em;
+  font-size: 0.70rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
   color: var(--color-text-secondary);
   text-transform: uppercase;
 }
@@ -162,11 +358,11 @@
 }
 
 .cc-remit-table th {
-  padding: var(--spacing-sm) var(--spacing-md);
+  padding: 8px 10px;
   font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.03em;
   color: var(--color-text-secondary);
   text-transform: uppercase;
   border-bottom: 2px solid var(--color-border);
@@ -193,10 +389,36 @@
 }
 
 .cc-remit-table td {
-  padding: var(--spacing-sm) var(--spacing-md);
-  font-size: var(--font-size-xs);
+  padding: 8px 10px;
+  font-size: 0.70rem;
+  font-weight: 400;
   color: var(--color-text-primary);
   vertical-align: middle;
+}
+
+.cc-remit-date-time-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  line-height: 1.15;
+}
+
+.cc-remit-date-main {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+}
+
+.cc-remit-time-sub {
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  font-weight: 400;
+  color: var(--color-text-secondary);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
 }
 
 .cc-remit-pagination {
@@ -216,7 +438,7 @@
   color: var(--color-text-primary);
   font-family: var(--font-display);
   font-size: var(--font-size-xs);
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
   transition: background-color var(--motion-fast) ease, border-color var(--motion-fast) ease, color var(--motion-fast) ease;
 }
@@ -242,18 +464,51 @@
   color: var(--color-text-secondary);
   font-family: var(--font-mono);
   font-size: var(--font-size-xs);
-  font-weight: 700;
+  font-weight: 600;
   text-align: center;
 }
 
 .cc-remit-ref-text {
   font-family: var(--font-mono);
-  font-weight: 700;
+  font-size: 9.5px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
   color: var(--color-text-primary);
+}
+
+.cc-remit-created-pill {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 450;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.cc-remit-created--salesman {
+  background: color-mix(in srgb, var(--color-warning) 12%, var(--color-surface));
+  color: var(--color-warning);
+  border: 1px solid color-mix(in srgb, var(--color-warning) 40%, var(--color-border));
+}
+
+.cc-remit-created--customer {
+  background: var(--color-neutral-surface);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+}
+
+.cc-remit-th--date {
+  font-size: 9px;
+  letter-spacing: 0.02em;
 }
 
 .cc-remit-td--date {
   font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: -0.02em;
   color: var(--color-text-secondary);
   white-space: nowrap;
 }
@@ -264,15 +519,17 @@
 
 .cc-remit-td--amount {
   font-family: var(--font-mono);
-  font-weight: 700;
+  font-size: 0.70rem;
+  font-weight: 400;
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
   white-space: nowrap;
 }
 
 .cc-remit-remaining-green {
   color: var(--color-success);
-  font-weight: 700;
+  font-size: 0.70rem;
+  font-weight: 500;
   font-family: var(--font-mono);
   white-space: nowrap;
 }
@@ -285,12 +542,12 @@
 
 .cc-remit-status-pill {
   display: inline-block;
-  padding: 3px var(--spacing-sm);
+  padding: 2px 6px;
   border-radius: var(--radius-pill);
   font-family: var(--font-mono);
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.05em;
+  font-size: 8.5px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   white-space: nowrap;
 }
@@ -311,6 +568,194 @@
   color: var(--color-warning);
   background: var(--color-warning-surface);
   border: 1px solid var(--color-warning);
+}
+
+/* --- TT Allocation Button & Summary Box --- */
+.cc-remit-action-group {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--spacing-xs);
+}
+
+.cc-remit-btn-allocate {
+  padding: 3px 9px;
+  font-size: 10px;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: all var(--motion-fast) ease;
+  white-space: nowrap;
+  box-shadow: var(--shadow-sm);
+}
+
+.cc-remit-btn-allocate:hover:not(:disabled) {
+  background: var(--color-neutral-surface);
+  border-color: var(--color-text-secondary);
+  color: var(--color-text-primary);
+}
+
+.cc-remit-btn-allocate:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  border-color: var(--color-border);
+  color: var(--color-text-secondary);
+  background: var(--color-neutral-surface);
+}
+
+.cc-remit-btn-icon-allocated {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 4px 7px;
+  font-size: 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all var(--motion-fast) ease;
+  white-space: nowrap;
+  box-shadow: var(--shadow-sm);
+}
+
+.cc-remit-btn-icon-allocated:hover {
+  background: var(--color-neutral-surface);
+  color: var(--color-text-primary);
+  border-color: var(--color-text-secondary);
+  box-shadow: var(--shadow-sm);
+}
+
+.cc-remit-btn-icon-allocated--active {
+  background: var(--color-text-primary);
+  color: var(--color-text-on-primary);
+  border-color: var(--color-text-primary);
+}
+
+.cc-remit-icon-arrow {
+  font-size: 7px;
+  line-height: 1;
+}
+
+/* Expanded Sub-Table Styling (Enlarged & Prominent) */
+.cc-remit-tr--expanded {
+  background-color: var(--color-neutral-surface);
+}
+
+.cc-remit-subtable-row {
+  background-color: color-mix(in srgb, var(--color-neutral-surface) 60%, var(--color-surface));
+}
+
+.cc-remit-subtable-cell {
+  padding: var(--spacing-md) var(--spacing-lg) !important;
+  border-bottom: 2px solid var(--color-border);
+}
+
+.cc-remit-subtable-wrapper {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-md) var(--spacing-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.cc-remit-subtable-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-sm);
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 1px solid var(--color-border);
+  font-size: var(--font-size-xs);
+}
+
+.cc-remit-subtable-title {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--color-text-primary);
+}
+
+.cc-remit-subtable-summary {
+  font-size: 12px;
+  color: var(--color-text-primary);
+}
+
+.cc-remit-subtable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: var(--spacing-xs);
+  font-size: 12px;
+}
+
+.cc-remit-subtable th {
+  padding: 7px 12px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-neutral-surface);
+  text-transform: uppercase;
+}
+
+.cc-remit-subtable td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--color-border);
+  font-size: 12px;
+}
+
+.cc-remit-subtable tr:last-child td {
+  border-bottom: none;
+}
+
+.cc-remit-subtable-name {
+  font-weight: 600;
+  color: var(--color-text-primary);
+  font-size: 12px;
+}
+
+.cc-remit-subtable-empty {
+  padding: var(--spacing-md);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  font-style: italic;
+}
+
+.cc-remit-allocate-summary-box {
+  background: var(--color-neutral-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.cc-remit-allocate-summary-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--font-size-xs);
+}
+
+.cc-remit-allocate-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--color-text-secondary);
+  letter-spacing: 0.05em;
+}
+
+.cc-remit-allocate-val {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-primary);
 }
 
 /* --- Modal: Upload Customer TT Proof (Image 2) --- */
@@ -353,7 +798,7 @@
   color: var(--color-primary);
   font-family: var(--font-mono);
   font-size: var(--font-size-xs);
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -381,7 +826,7 @@
   margin: 0 0 var(--spacing-xs);
   font-family: var(--font-display);
   font-size: var(--font-size-lg);
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: 0.03em;
   color: var(--color-text-primary);
   text-transform: uppercase;
@@ -452,7 +897,7 @@
 .cc-remit-form-label {
   font-family: var(--font-mono);
   font-size: var(--font-size-xs);
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.05em;
   color: var(--color-text-secondary);
   text-transform: uppercase;
@@ -480,12 +925,15 @@
 }
 
 .cc-remit-form-input:focus,
+.cc-remit-form-input:focus-visible,
 .cc-remit-form-select:focus,
-.cc-remit-form-textarea:focus {
-  outline: none;
+.cc-remit-form-select:focus-visible,
+.cc-remit-form-textarea:focus,
+.cc-remit-form-textarea:focus-visible {
+  outline: none !important;
   background: var(--color-surface);
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 var(--focus-ring-width) var(--color-focus);
+  border-color: #0f172a;
+  box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.06);
 }
 
 .cc-remit-form-textarea {
@@ -522,14 +970,14 @@
 .cc-remit-modal-submit-btn {
   width: 100%;
   min-height: var(--min-touch-target);
-  background: var(--color-primary);
-  color: var(--color-text-on-primary);
-  border: 1px solid var(--color-primary);
+  background: #16a34a !important;
+  color: #ffffff !important;
+  border: 1px solid #16a34a !important;
   border-radius: var(--radius-md);
   padding: var(--spacing-md);
   font-family: var(--font-display);
   font-size: var(--font-size-sm);
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   display: flex;
@@ -543,8 +991,8 @@
 }
 
 .cc-remit-modal-submit-btn:hover:not(:disabled) {
-  background: var(--color-primary-hover);
-  border-color: var(--color-primary-hover);
+  background: #15803d !important;
+  border-color: #15803d !important;
   transform: translateY(-1px);
 }
 
@@ -579,14 +1027,85 @@
   }
 }
 
-/* Filter Bar */
+/* Filter Toolbar & Date Range */
 .cc-remit-filter-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
   gap: var(--spacing-md);
-  margin-bottom: var(--spacing-sm);
+  padding: var(--spacing-sm) 0;
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.cc-remit-date-filter-group {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
+.cc-remit-date-label {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.cc-remit-date-inputs {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.cc-remit-date-input {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  min-height: 42px;
+  height: 42px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+  color: var(--color-text-primary);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  box-sizing: border-box;
+}
+
+.cc-remit-date-sep {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.cc-remit-reset-btn {
+  background: transparent;
+  border: none;
+  color: var(--color-primary);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0 4px;
+}
+
+/* Unified Filters Toolbar (Card directly before Table) */
+.cc-remit-filter-toolbar {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-sm) var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  box-shadow: var(--shadow-sm);
+}
+
+.cc-remit-search-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
 }
 
 .cc-remit-search-box {
@@ -594,39 +1113,189 @@
   align-items: center;
   position: relative;
   flex: 1;
-  min-width: 240px;
+  max-width: 480px;
+  min-width: 260px;
 }
 
 .cc-remit-search-icon {
   position: absolute;
-  left: var(--spacing-sm);
+  left: 12px;
   color: var(--color-text-secondary);
   pointer-events: none;
 }
 
 .cc-remit-search-input {
   width: 100%;
-  padding: var(--spacing-xs) var(--spacing-sm) var(--spacing-xs) 2rem;
+  height: 38px;
+  padding: 0 34px 0 38px;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   background-color: var(--color-surface);
   color: var(--color-text-primary);
   font-size: var(--font-size-xs);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+  transition: border-color var(--motion-fast) ease, box-shadow var(--motion-fast) ease, background-color var(--motion-fast) ease;
 }
 
-.cc-remit-filter-dropdowns {
+.cc-remit-search-input::placeholder {
+  color: var(--color-text-secondary);
+  opacity: 0.75;
+}
+
+.cc-remit-search-input:hover {
+  border-color: var(--color-primary);
+}
+
+.cc-remit-search-input:focus,
+.cc-remit-search-input:focus-visible {
+  outline: none !important;
+  background-color: var(--color-surface-elevated);
+  border-color: #0f172a;
+  box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.06);
+}
+
+.cc-remit-search-clear {
+  position: absolute;
+  right: 10px;
+  background: transparent;
+  border: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-pill);
+  transition: color var(--motion-fast) ease;
+}
+
+.cc-remit-search-clear:hover {
+  color: var(--color-primary);
+}
+
+.cc-remit-currency-filter {
   display: flex;
   align-items: center;
   gap: var(--spacing-xs);
 }
 
+.cc-remit-filter-label {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
 .cc-remit-filter-select {
-  padding: var(--spacing-xs) var(--spacing-sm);
+  height: 38px;
+  padding: 0 var(--spacing-md);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   background-color: var(--color-surface);
   color: var(--color-text-primary);
   font-size: var(--font-size-xs);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+  cursor: pointer;
+  transition: border-color var(--motion-fast) ease, box-shadow var(--motion-fast) ease;
+}
+
+.cc-remit-filter-select:hover {
+  border-color: var(--color-primary);
+}
+
+.cc-remit-filter-select:focus,
+.cc-remit-filter-select:focus-visible {
+  outline: none !important;
+  border-color: #0f172a;
+  box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.06);
+}
+
+/* Status Filter Radios (Matching My Orders > Reservation Type) */
+.cc-remit-mobile-filter {
+  display: none;
+}
+
+.cc-remit-filter-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm) var(--spacing-md);
+  padding: 8px 12px;
+  background-color: #f8fafc;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  margin-top: var(--spacing-xs);
+  margin-bottom: var(--spacing-md);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.cc-remit-filter-field {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+}
+
+.cc-remit-filter-label {
+  font-size: var(--font-size-xs);
+  font-weight: 600 !important;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.cc-remit-radios {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.cc-remit-radio-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  font-weight: 600 !important;
+  user-select: none;
+  transition: color var(--motion-fast) ease;
+}
+
+.cc-remit-radio-item:hover {
+  color: #0f172a;
+}
+
+.cc-remit-radio-item input[type="radio"] {
+  accent-color: var(--color-success, #10b981) !important;
+  cursor: pointer;
+  width: 14px;
+  height: 14px;
+  margin: 0;
+}
+
+.cc-remit-filter-actions {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+}
+
+.cc-remit-btn-clear-filter {
+  background: transparent;
+  border: none;
+  color: var(--color-primary, #c8102e);
+  font-size: var(--font-size-xs);
+  font-weight: 600 !important;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+}
+
+.cc-remit-btn-clear-filter:hover {
+  color: #990000;
 }
 
 /* Table Actions & Icon Buttons */
@@ -696,7 +1365,7 @@
   margin: 0;
   font-family: var(--font-display);
   font-size: var(--font-size-base);
-  font-weight: 800;
+  font-weight: 600;
   color: var(--color-text-primary);
 }
 
@@ -731,7 +1400,7 @@
 .cc-pay-detail-label {
   font-family: var(--font-mono);
   font-size: 0.68rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--color-text-secondary);
   text-transform: uppercase;
 }
@@ -747,7 +1416,7 @@
 }
 
 .cc-pay-detail-val--bold {
-  font-weight: 800;
+  font-weight: 600;
 }
 
 .cc-pay-color-green {
@@ -806,7 +1475,7 @@
   padding: var(--spacing-xs) var(--spacing-sm);
   font-family: var(--font-mono);
   font-size: var(--font-size-xs);
-  font-weight: 700;
+  font-weight: 600;
   color: var(--color-text-secondary);
   border-bottom: 2px solid var(--color-border);
   background-color: var(--color-neutral-surface);
@@ -831,9 +1500,1545 @@
 }
 
 .cc-pay-td-bold {
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .cc-pay-td--right {
   text-align: right;
 }
+
+/* Mobile View Container (hidden on desktop) */
+.cc-remit-mobile-view {
+  display: none;
+}
+
+/* ==========================================================================
+   MOBILE SPECIFIC RESPONSIVENESS FOR MY PAYMENTS (<= 768px)
+   ========================================================================== */
+@media (max-width: 768px) {
+  /* Enforce apple-system font throughout the entire page on mobile, including all numbers */
+  .cc-cust-remittance-page,
+  .cc-cust-remittance-page *,
+  .cc-cust-remittance-page button,
+  .cc-cust-remittance-page input,
+  .cc-cust-remittance-page select,
+  .cc-cust-remittance-page textarea,
+  .cc-remit-title,
+  .cc-remit-title-highlight,
+  .cc-remit-subtitle,
+  .cc-remit-btn-submit-proof,
+  .cc-remit-mobile-card,
+  .cc-remit-mobile-card *,
+  .cc-remit-status-pill,
+  .cc-remit-created-pill,
+  .cc-remit-mobile-card__ref,
+  .cc-remit-mobile-card__fin-val,
+  .cc-remit-spec-val,
+  .cc-stmt-kpi-val,
+  .cc-remit-mobile-amount-badge,
+  .cc-remit-td-mono,
+  .cc-stmt-td-mono,
+  .cc-remit-mobile-veh-tile,
+  .cc-remit-mobile-veh-tile * {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+  }
+
+  .cc-cust-remittance-page strong,
+  .cc-cust-remittance-page b {
+    font-weight: 600 !important;
+  }
+
+  .cc-cust-remittance-page {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+    padding: 12px 10px 32px 10px !important;
+    gap: 12px !important;
+    box-sizing: border-box !important;
+  }
+
+  /* 1. Page Header Card & Top Action */
+  .cc-remit-header-card {
+    padding: 16px 14px !important;
+    gap: 14px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 16px !important;
+    box-shadow: 0 4px 20px -4px rgba(15, 23, 42, 0.05) !important;
+  }
+
+  .cc-remit-header-top {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+    width: 100% !important;
+  }
+
+  .cc-remit-title {
+    font-size: 1.40rem !important;
+    font-weight: 600 !important;
+    line-height: 1.2 !important;
+    letter-spacing: -0.02em !important;
+    color: #0f172a !important;
+  }
+
+  .cc-remit-title-highlight {
+    color: #dc2626 !important;
+    font-weight: 600 !important;
+  }
+
+  .cc-remit-subtitle {
+    font-size: 0.76rem !important;
+    line-height: 1.4 !important;
+    color: #64748b !important;
+    margin-top: 4px !important;
+    font-weight: 400 !important;
+  }
+
+  .cc-remit-actions {
+    width: 100% !important;
+  }
+
+  /* Submit Payment Proof Button on Mobile: #16a34a (compact & sleek) */
+  .cc-remit-btn-submit-proof {
+    width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    height: 31px !important;
+    font-size: 0.72rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.01em !important;
+    border-radius: 7px !important;
+    background: #16a34a !important;
+    color: #ffffff !important;
+    border: none !important;
+    box-shadow: 0 2px 6px rgba(22, 163, 74, 0.2) !important;
+    cursor: pointer !important;
+    transition: all 0.15s ease !important;
+    padding: 0 10px !important;
+  }
+
+  .cc-remit-btn-submit-proof svg {
+    width: 14px !important;
+    height: 14px !important;
+  }
+
+  .cc-remit-btn-submit-proof:active {
+    transform: scale(0.985) !important;
+    background: #15803d !important;
+    box-shadow: 0 1px 4px rgba(22, 163, 74, 0.2) !important;
+  }
+
+  /* Date Range Filter Bar */
+  .cc-remit-date-bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+    width: 100% !important;
+    padding: 12px !important;
+    background: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 12px !important;
+    box-sizing: border-box !important;
+  }
+
+  .cc-remit-date-filter-group {
+    width: 100% !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 5px !important;
+  }
+
+  .cc-remit-date-label {
+    font-size: 0.64rem !important;
+    font-weight: 500 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.04em !important;
+    color: #475569 !important;
+  }
+
+  .cc-remit-date-inputs {
+    width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+  }
+
+  .cc-remit-date-input {
+    flex: 1 !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    height: 38px !important;
+    min-height: 38px !important;
+    font-size: 0.78rem !important;
+    font-weight: 400 !important;
+    color: #0f172a !important;
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 8px !important;
+    padding: 0 10px !important;
+    box-sizing: border-box !important;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03) !important;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+  }
+
+  .cc-remit-date-input:focus {
+    outline: none !important;
+    border-color: #16a34a !important;
+    box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.12) !important;
+  }
+
+  .cc-remit-date-sep {
+    font-size: 0.70rem !important;
+    font-weight: 400 !important;
+    color: #94a3b8 !important;
+    text-transform: lowercase !important;
+  }
+
+  .cc-remit-reset-btn {
+    align-self: flex-end !important;
+    margin-left: auto !important;
+    font-size: 0.68rem !important;
+    font-weight: 500 !important;
+    color: #dc2626 !important;
+    background: transparent !important;
+    border: none !important;
+    padding: 2px 0 !important;
+    cursor: pointer !important;
+    text-decoration: underline !important;
+  }
+
+  /* Executive KPI Summary Bar */
+  .cc-remit-header-card .cc-stmt-kpi-bar {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Hero Featured Card: Available Balance */
+  .cc-remit-header-card .cc-stmt-kpi-bar .cc-stmt-kpi-item:nth-child(3) {
+    grid-column: 1 / -1 !important;
+    order: -1 !important;
+    padding: 13px 15px !important;
+    background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%) !important;
+    border: 1px solid #86efac !important;
+    border-radius: 12px !important;
+    box-shadow: 0 2px 8px rgba(22, 163, 74, 0.08) !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+  }
+
+  .cc-remit-header-card .cc-stmt-kpi-bar .cc-stmt-kpi-item:nth-child(3) .cc-stmt-kpi-label {
+    font-size: 0.66rem !important;
+    font-weight: 600 !important;
+    color: #166534 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.04em !important;
+  }
+
+  .cc-remit-header-card .cc-stmt-kpi-bar .cc-stmt-kpi-item:nth-child(3) .cc-stmt-kpi-val {
+    font-size: 1.25rem !important;
+    font-weight: 700 !important;
+    color: #15803d !important;
+    font-variant-numeric: tabular-nums !important;
+  }
+
+  .cc-remit-header-card .cc-stmt-kpi-item {
+    min-width: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 11px 12px !important;
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 10px !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 3px !important;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03) !important;
+  }
+
+  .cc-remit-header-card .cc-stmt-kpi-label {
+    font-size: 0.60rem !important;
+    font-weight: 500 !important;
+    color: #64748b !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.04em !important;
+  }
+
+  .cc-remit-header-card .cc-stmt-kpi-val {
+    font-size: 0.94rem !important;
+    font-weight: 600 !important;
+    color: #0f172a !important;
+    font-variant-numeric: tabular-nums !important;
+  }
+
+  /* 2. Unified Journal Section Card */
+  .cc-remit-journal-unified-card {
+    padding: 14px 12px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 14px !important;
+    box-shadow: 0 3px 14px -3px rgba(15, 23, 42, 0.05) !important;
+  }
+
+  .cc-remit-journal-header-row {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+    width: 100% !important;
+  }
+
+  .cc-remit-section-title {
+    font-size: 0.72rem !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.02em !important;
+    color: #334155 !important;
+  }
+
+  /* Compact, sleek Side-by-Side Search & Currency Bar on Mobile with flawless alignment */
+  .cc-remit-search-row {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 8px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .cc-remit-search-box {
+    position: relative !important;
+    display: flex !important;
+    align-items: center !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    box-sizing: border-box !important;
+  }
+
+  .cc-remit-search-icon {
+    position: absolute !important;
+    left: 10px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    width: 14px !important;
+    height: 14px !important;
+    color: #94a3b8 !important;
+    pointer-events: none !important;
+    z-index: 2 !important;
+  }
+
+  .cc-remit-search-input {
+    width: 100% !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    padding: 0 28px 0 28px !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 8px !important;
+    background: #ffffff !important;
+    font-size: 0.68rem !important;
+    font-weight: 400 !important;
+    color: #0f172a !important;
+    box-sizing: border-box !important;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03) !important;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+    -webkit-appearance: none !important;
+  }
+
+  .cc-remit-search-input:focus,
+  .cc-remit-search-input:focus-visible {
+    outline: none !important;
+    border-color: #16a34a !important;
+    box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.12) !important;
+  }
+
+  .cc-remit-search-input::placeholder {
+    color: #94a3b8 !important;
+    font-size: 0.68rem !important;
+    font-weight: 400 !important;
+  }
+
+  .cc-remit-search-clear {
+    position: absolute !important;
+    right: 8px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    z-index: 2 !important;
+    color: #94a3b8 !important;
+    padding: 2px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: transparent !important;
+    border: none !important;
+    cursor: pointer !important;
+  }
+
+  .cc-remit-currency-filter {
+    flex: 0 0 auto !important;
+    width: auto !important;
+    display: flex !important;
+    align-items: center !important;
+    height: 32px !important;
+    margin: 0 !important;
+  }
+
+  .cc-remit-currency-filter .cc-remit-filter-label {
+    display: none !important;
+  }
+
+  .cc-remit-filter-select {
+    flex: 0 0 auto !important;
+    width: auto !important;
+    min-width: 76px !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    font-size: 0.68rem !important;
+    font-weight: 400 !important;
+    color: #0f172a !important;
+    border-radius: 8px !important;
+    border: 1px solid #cbd5e1 !important;
+    background: #ffffff !important;
+    padding: 0 8px !important;
+    box-sizing: border-box !important;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03) !important;
+    cursor: pointer !important;
+  }
+
+  .cc-remit-filter-select:focus {
+    outline: none !important;
+    border-color: #16a34a !important;
+    box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.12) !important;
+  }
+
+  /* 3. Filter Row: Hide Approval Status on Mobile, Show Allocation Status */
+  .cc-remit-desktop-filter {
+    display: none !important;
+  }
+
+  .cc-remit-mobile-filter {
+    display: flex !important;
+    padding: 9px 10px !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 6px !important;
+    margin-top: 6px !important;
+    margin-bottom: 10px !important;
+    border-radius: 10px !important;
+    background: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .cc-remit-filter-field {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 5px !important;
+    width: 100% !important;
+  }
+
+  .cc-remit-filter-field .cc-remit-filter-label {
+    font-size: 0.60rem !important;
+    font-weight: 500 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.04em !important;
+    color: #475569 !important;
+  }
+
+  .cc-remit-radios {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+    gap: 6px !important;
+    width: 100% !important;
+    padding: 2px 0 4px 0 !important;
+  }
+
+  .cc-remit-radios::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .cc-remit-radio-item {
+    position: relative !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    padding: 3.5px 9px !important;
+    font-size: 0.64rem !important;
+    font-weight: 400 !important;
+    border-radius: 9999px !important;
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #475569 !important;
+    cursor: pointer !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    transition: all 0.15s ease !important;
+    line-height: 1.2 !important;
+  }
+
+  .cc-remit-radio-item input[type="radio"] {
+    display: none !important;
+  }
+
+  .cc-remit-radio-item:has(input:checked) {
+    background: #0f172a !important;
+    border-color: #0f172a !important;
+    color: #ffffff !important;
+    font-weight: 500 !important;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.16) !important;
+  }
+
+  .cc-remit-filter-actions {
+    margin-left: 0 !important;
+    align-self: flex-start !important;
+  }
+
+  .cc-remit-btn-clear-filter {
+    font-size: 0.66rem !important;
+    font-weight: 500 !important;
+    color: #dc2626 !important;
+    background: transparent !important;
+    border: none !important;
+    padding: 2px 0 !important;
+    cursor: pointer !important;
+  }
+
+  /* 4. Table Toggle: Hide 10-column table on mobile, show mobile cards */
+  .cc-remit-desktop-view {
+    display: none !important;
+  }
+
+  .cc-remit-mobile-view {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 11px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  /* 4.1 Mobile Payment Card */
+  .cc-remit-mobile-card {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+    padding: 13px 14px !important;
+    background-color: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 12px !important;
+    box-shadow: 0 2px 8px -2px rgba(15, 23, 42, 0.05) !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+  }
+
+  .cc-remit-mobile-card__header {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+  }
+
+  .cc-remit-mobile-card__header-left {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    flex-wrap: wrap !important;
+  }
+
+  /* Refined, compact, non-loud TT Number Badge */
+  .cc-remit-mobile-card__ref {
+    font-size: 0.62rem !important;
+    font-weight: 450 !important;
+    color: #334155 !important;
+    background: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
+    padding: 2px 5px !important;
+    border-radius: 5px !important;
+    font-variant-numeric: tabular-nums !important;
+    letter-spacing: 0.01em !important;
+  }
+
+  .cc-remit-created-pill {
+    font-size: 0.56rem !important;
+    font-weight: 450 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.03em !important;
+    padding: 2px 5px !important;
+    border-radius: 5px !important;
+    background: #f1f5f9 !important;
+    color: #475569 !important;
+    border: 1px solid #e2e8f0 !important;
+  }
+
+  .cc-remit-status-pill {
+    font-size: 0.58rem !important;
+    font-weight: 450 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.03em !important;
+    padding: 2px 7px !important;
+    border-radius: 9999px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 3px !important;
+  }
+
+  .cc-remit-status--approved {
+    background: #ecfdf5 !important;
+    border: 1px solid #a7f3d0 !important;
+    color: #047857 !important;
+  }
+
+  .cc-remit-status--rejected {
+    background: #fef2f2 !important;
+    border: 1px solid #fecaca !important;
+    color: #b91c1c !important;
+  }
+
+  .cc-remit-status--review {
+    background: #fffbeb !important;
+    border: 1px solid #fde68a !important;
+    color: #b45309 !important;
+  }
+
+  .cc-remit-mobile-card__meta {
+    display: flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    font-size: 0.64rem !important;
+    color: #64748b !important;
+    line-height: 1.3 !important;
+    flex-wrap: wrap !important;
+    font-weight: 400 !important;
+  }
+
+  .cc-remit-meta-dot {
+    color: #cbd5e1 !important;
+    font-weight: 400 !important;
+  }
+
+  .cc-remit-mobile-meta-date {
+    font-weight: 400 !important;
+    font-size: 0.62rem !important;
+    color: #334155 !important;
+    font-variant-numeric: tabular-nums !important;
+  }
+
+  .cc-remit-mobile-card__fin-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr 1.15fr !important;
+    gap: 6px !important;
+    background: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 9px !important;
+    padding: 8px 10px !important;
+    box-sizing: border-box !important;
+  }
+
+  .cc-remit-mobile-card__fin-col {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 2px !important;
+  }
+
+  .cc-remit-mobile-card__fin-col--balance {
+    text-align: right !important;
+    align-items: flex-end !important;
+  }
+
+  .cc-remit-mobile-card__fin-label {
+    font-size: 0.52rem !important;
+    font-weight: 450 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.03em !important;
+    color: #64748b !important;
+  }
+
+  .cc-remit-mobile-card__fin-val {
+    font-size: 0.72rem !important;
+    font-weight: 500 !important;
+    font-variant-numeric: tabular-nums !important;
+    color: #0f172a !important;
+  }
+
+  .cc-stmt-val--due {
+    color: #b45309 !important;
+  }
+
+  .cc-remit-remaining-green {
+    color: #16a34a !important;
+    font-size: 0.72rem !important;
+    font-weight: 500 !important;
+  }
+
+  .cc-remit-mobile-card__actions {
+    display: flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    margin-top: 2px !important;
+    width: 100% !important;
+  }
+
+  .cc-remit-mobile-btn-detail {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    height: 25px !important;
+    min-height: 25px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 4px !important;
+    font-size: 0.58rem !important;
+    font-weight: 450 !important;
+    color: #334155 !important;
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 6px !important;
+    cursor: pointer !important;
+    transition: all 0.15s ease !important;
+    white-space: nowrap !important;
+    text-align: center !important;
+  }
+
+  .cc-remit-mobile-btn-detail:active {
+    background: #f1f5f9 !important;
+    border-color: #94a3b8 !important;
+    color: #0f172a !important;
+  }
+
+  .cc-remit-mobile-card__actions .cc-remit-btn-allocate {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    height: 25px !important;
+    min-height: 25px !important;
+    padding: 0 4px !important;
+    font-size: 0.58rem !important;
+    font-weight: 500 !important;
+    border-radius: 6px !important;
+    white-space: nowrap !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    background: #16a34a !important;
+    color: #ffffff !important;
+    border: none !important;
+    box-shadow: 0 1px 3px rgba(22, 163, 74, 0.18) !important;
+    cursor: pointer !important;
+    transition: all 0.15s ease !important;
+  }
+
+  .cc-remit-mobile-card__actions .cc-remit-btn-allocate:disabled {
+    background: #f1f5f9 !important;
+    border: 1px solid #e2e8f0 !important;
+    color: #94a3b8 !important;
+    box-shadow: none !important;
+    cursor: not-allowed !important;
+  }
+
+  .cc-remit-mobile-btn-expand {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    height: 25px !important;
+    min-height: 25px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 3px !important;
+    padding: 0 4px !important;
+    font-size: 0.58rem !important;
+    font-weight: 450 !important;
+    color: #334155 !important;
+    background: #f1f5f9 !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 6px !important;
+    cursor: pointer !important;
+    transition: all 0.15s ease !important;
+    white-space: nowrap !important;
+    text-align: center !important;
+  }
+
+  .cc-remit-mobile-btn-expand span:last-child {
+    font-size: 0.52rem !important;
+    line-height: 1 !important;
+  }
+
+  .cc-remit-mobile-btn-expand:active {
+    background: #e2e8f0 !important;
+    color: #0f172a !important;
+  }
+
+  .cc-remit-mobile-btn-expand--active {
+    background: #0f172a !important;
+    color: #ffffff !important;
+    border-color: #0f172a !important;
+    font-weight: 600 !important;
+    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.12) !important;
+  }
+
+  /* 4.2 Expanded Allocated Vehicles List on Mobile */
+  .cc-remit-mobile-allocated-list {
+    margin-top: 10px !important;
+    padding-top: 10px !important;
+    border-top: 1px dashed #cbd5e1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+
+  .cc-remit-mobile-allocated-title {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    font-size: 0.68rem !important;
+    font-weight: 600 !important;
+    color: #334155 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.04em !important;
+  }
+
+  .cc-remit-mobile-allocated-icon {
+    font-size: 0.82rem !important;
+    line-height: 1 !important;
+  }
+
+  /* 4.3 Mobile Vehicle Tile (Prominent, High-End Card on Mobile) */
+  .cc-remit-mobile-veh-tile {
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-left: 3.5px solid #2563eb !important;
+    border-radius: 9px !important;
+    padding: 10px 11px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    box-shadow: 0 2px 6px -1px rgba(15, 23, 42, 0.04) !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+  }
+
+  .cc-remit-mobile-veh-tile--unallocated {
+    border-left-color: #f59e0b !important;
+    background: #fffdfa !important;
+  }
+
+  .cc-remit-mobile-veh-tile__header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+
+  .cc-remit-mobile-veh-tile__name-group {
+    display: flex !important;
+    align-items: flex-start !important;
+    gap: 7px !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+  }
+
+  .cc-remit-mobile-veh-tile__icon-box {
+    width: 24px !important;
+    height: 24px !important;
+    border-radius: 5px !important;
+    background: #eff6ff !important;
+    border: 1px solid #dbeafe !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 0.85rem !important;
+    line-height: 1 !important;
+    flex-shrink: 0 !important;
+    margin-top: 1px !important;
+  }
+
+  .cc-remit-mobile-veh-tile__icon-box--index {
+    background: #eff6ff !important;
+    border-color: #dbeafe !important;
+    color: #1d4ed8 !important;
+    font-size: 0.68rem !important;
+    font-weight: 600 !important;
+  }
+
+  .cc-remit-mobile-veh-tile__title-wrap {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+  }
+
+  .cc-remit-mobile-veh-tile__name {
+    font-size: 0.78rem !important;
+    font-weight: 500 !important;
+    color: #0f172a !important;
+    line-height: 1.32 !important;
+    word-break: break-word !important;
+    letter-spacing: -0.01em !important;
+  }
+
+  .cc-remit-mobile-veh-tile__badge {
+    display: inline-flex !important;
+    align-items: center !important;
+    font-size: 0.58rem !important;
+    font-weight: 500 !important;
+    color: #1d4ed8 !important;
+    background: #eff6ff !important;
+    border: 1px solid #bfdbfe !important;
+    border-radius: 12px !important;
+    padding: 2px 6px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.04em !important;
+    flex-shrink: 0 !important;
+    margin-top: 1px !important;
+  }
+
+  .cc-remit-mobile-veh-tile__badge--unallocated {
+    color: #b45309 !important;
+    background: #fef3c7 !important;
+    border-color: #fde68a !important;
+  }
+
+  .cc-remit-mobile-veh-tile__unallocated-desc {
+    font-size: 0.68rem !important;
+    color: #64748b !important;
+    line-height: 1.35 !important;
+    font-style: italic !important;
+    font-weight: 400 !important;
+  }
+
+  /* 50/50 Symmetrical Spec Grid - Stacked to guarantee ZERO text truncation */
+  .cc-remit-mobile-veh-tile__specs {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 6px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .cc-remit-mobile-veh-tile__spec-pill {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    justify-content: center !important;
+    gap: 2px !important;
+    background: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 6px !important;
+    padding: 4px 7px !important;
+    box-sizing: border-box !important;
+    min-width: 0 !important;
+  }
+
+  .cc-remit-spec-lbl {
+    font-size: 0.52rem !important;
+    font-weight: 400 !important;
+    color: #64748b !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.04em !important;
+    line-height: 1 !important;
+  }
+
+  .cc-remit-spec-val {
+    font-size: 0.68rem !important;
+    font-weight: 500 !important;
+    color: #0f172a !important;
+    font-variant-numeric: tabular-nums !important;
+    line-height: 1.25 !important;
+    word-break: break-all !important;
+    white-space: normal !important;
+  }
+
+  /* Footer with Invoice and Green Amount Badge */
+  .cc-remit-mobile-veh-tile__footer {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    gap: 8px !important;
+    padding-top: 6px !important;
+    border-top: 1px dashed #e2e8f0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .cc-remit-mobile-invoice-tag {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    font-size: 0.66rem !important;
+    font-weight: 500 !important;
+    color: #475569 !important;
+    flex-shrink: 0 !important;
+  }
+
+  .cc-remit-mobile-amount-badge {
+    display: inline-flex !important;
+    align-items: center !important;
+    font-size: 0.72rem !important;
+    font-weight: 600 !important;
+    color: #15803d !important;
+    background: #f0fdf4 !important;
+    border: 1px solid #bbf7d0 !important;
+    border-radius: 6px !important;
+    padding: 2.5px 7px !important;
+    font-variant-numeric: tabular-nums !important;
+    margin-left: auto !important;
+    flex-shrink: 0 !important;
+  }
+
+  .cc-remit-mobile-allocated-empty {
+    font-size: 0.70rem !important;
+    font-weight: 400 !important;
+    color: #64748b !important;
+    padding: 11px !important;
+    background: #f8fafc !important;
+    border: 1px dashed #cbd5e1 !important;
+    border-radius: 7px !important;
+    text-align: center !important;
+  }
+
+  .cc-remit-mobile-empty {
+    padding: 26px 16px !important;
+    text-align: center !important;
+    font-size: 0.78rem !important;
+    color: #64748b !important;
+    background: #f8fafc !important;
+    border-radius: 10px !important;
+    border: 1px dashed #cbd5e1 !important;
+    font-weight: 400 !important;
+  }
+
+  /* 4.4 Pagination on Mobile */
+  .cc-remit-pagination {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    margin-top: 12px !important;
+    gap: 8px !important;
+    box-sizing: border-box !important;
+  }
+
+  .cc-remit-pagination__button {
+    height: 34px !important;
+    min-height: 34px !important;
+    min-width: 82px !important;
+    padding: 0 12px !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 7px !important;
+    background: #ffffff !important;
+    color: #334155 !important;
+    font-size: 0.74rem !important;
+    font-weight: 500 !important;
+    cursor: pointer !important;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+    transition: all 0.15s ease !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  .cc-remit-pagination__button:active:not(:disabled) {
+    background: #f8fafc !important;
+    border-color: #94a3b8 !important;
+    color: #0f172a !important;
+  }
+
+  .cc-remit-pagination__button:disabled {
+    opacity: 0.4 !important;
+    cursor: not-allowed !important;
+  }
+
+  .cc-remit-pagination__status {
+    min-width: auto !important;
+    font-size: 0.72rem !important;
+    font-weight: 400 !important;
+    color: #64748b !important;
+    font-variant-numeric: tabular-nums !important;
+    text-align: center !important;
+  }
+
+  /* 5. Modals on Mobile */
+  .cc-pay-modal-overlay,
+  .cc-remit-modal-overlay {
+    padding: 12px !important;
+    backdrop-filter: blur(4px) !important;
+    background: rgba(15, 23, 42, 0.5) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  .cc-pay-modal-dialog,
+  .cc-remit-modal-card {
+    max-height: 92vh !important;
+    border-radius: 14px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.2) !important;
+    overflow-y: auto !important;
+    padding: 15px 13px !important;
+    box-sizing: border-box !important;
+  }
+
+  .cc-pay-modal-header,
+  .cc-remit-modal-header {
+    padding: 0 0 10px 0 !important;
+    margin-bottom: 8px !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+  }
+
+  .cc-pay-modal-title,
+  .cc-remit-modal-title {
+    font-size: 0.92rem !important;
+    font-weight: 600 !important;
+    color: #0f172a !important;
+  }
+
+  .cc-remit-modal-subtitle {
+    font-size: 0.72rem !important;
+    color: #64748b !important;
+    line-height: 1.35 !important;
+    margin-bottom: 12px !important;
+    font-weight: 400 !important;
+  }
+
+  .cc-pay-modal-body,
+  .cc-remit-modal-body {
+    padding: 4px 0 !important;
+  }
+
+  .cc-pay-detail-grid {
+    gap: 10px 12px !important;
+  }
+
+  .cc-pay-detail-label {
+    font-size: 0.62rem !important;
+    font-weight: 500 !important;
+    color: #64748b !important;
+  }
+
+  .cc-pay-detail-val {
+    font-size: 0.76rem !important;
+    font-weight: 500 !important;
+    color: #0f172a !important;
+  }
+
+  .cc-remit-form-row {
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+
+  .cc-remit-form-field input,
+  .cc-remit-form-field select {
+    height: 36px !important;
+    border-radius: 7px !important;
+    font-size: 0.76rem !important;
+    font-weight: 400 !important;
+  }
+
+  /* Submit TT for Finance Approval Button inside modal on mobile */
+  .cc-remit-modal-submit-btn {
+    width: 100% !important;
+    min-height: 36px !important;
+    height: 36px !important;
+    padding: 0 14px !important;
+    font-size: 0.70rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.03em !important;
+    border-radius: 8px !important;
+    gap: 6px !important;
+    margin-top: 8px !important;
+  }
+
+  .cc-remit-modal-submit-btn svg {
+    width: 14px !important;
+    height: 14px !important;
+  }
+}
+
+/* =========================================================================
+   DARK THEME (MIDNIGHT MODE) - WEB & MOBILE
+   ========================================================================= */
+
+[data-theme-mode='midnight'] .cc-cust-remittance-page,
+.theme-midnight .cc-cust-remittance-page,
+.dark-mode .cc-cust-remittance-page {
+  background-color: transparent;
+  color: #f9fafb;
+}
+
+/* 1. Header Card & Executive KPI bar in Dark Mode */
+[data-theme-mode='midnight'] .cc-remit-header-card,
+.theme-midnight .cc-remit-header-card,
+.dark-mode .cc-remit-header-card {
+  background: #111827 !important;
+  border-color: #1f2937 !important;
+  box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.4) !important;
+}
+
+[data-theme-mode='midnight'] .cc-remit-title,
+.theme-midnight .cc-remit-title,
+.dark-mode .cc-remit-title {
+  color: #f9fafb !important;
+}
+
+[data-theme-mode='midnight'] .cc-remit-subtitle,
+.theme-midnight .cc-remit-subtitle,
+.dark-mode .cc-remit-subtitle {
+  color: #9ca3af !important;
+}
+
+[data-theme-mode='midnight'] .cc-remit-date-bar,
+.theme-midnight .cc-remit-date-bar,
+.dark-mode .cc-remit-date-bar {
+  background: #1f2937 !important;
+  border-color: #374151 !important;
+}
+
+[data-theme-mode='midnight'] .cc-remit-header-card .cc-stmt-kpi-item,
+.theme-midnight .cc-remit-header-card .cc-stmt-kpi-item,
+.dark-mode .cc-remit-header-card .cc-stmt-kpi-item {
+  background: #1f2937 !important;
+  border-color: #374151 !important;
+}
+
+[data-theme-mode='midnight'] .cc-remit-header-card .cc-stmt-kpi-label,
+.theme-midnight .cc-remit-header-card .cc-stmt-kpi-label,
+.dark-mode .cc-remit-header-card .cc-stmt-kpi-label {
+  color: #9ca3af !important;
+}
+
+[data-theme-mode='midnight'] .cc-remit-header-card .cc-stmt-kpi-val,
+.theme-midnight .cc-remit-header-card .cc-stmt-kpi-val,
+.dark-mode .cc-remit-header-card .cc-stmt-kpi-val {
+  color: #f9fafb !important;
+}
+
+[data-theme-mode='midnight'] .cc-remit-header-card .cc-stmt-kpi-bar .cc-stmt-kpi-item:nth-child(3),
+.theme-midnight .cc-remit-header-card .cc-stmt-kpi-bar .cc-stmt-kpi-item:nth-child(3),
+.dark-mode .cc-remit-header-card .cc-stmt-kpi-bar .cc-stmt-kpi-item:nth-child(3) {
+  background: linear-gradient(135deg, rgba(6, 78, 59, 0.45) 0%, #111827 100%) !important;
+  border-color: #059669 !important;
+}
+
+[data-theme-mode='midnight'] .cc-remit-header-card .cc-stmt-kpi-bar .cc-stmt-kpi-item:nth-child(3) .cc-stmt-kpi-label,
+.theme-midnight .cc-remit-header-card .cc-stmt-kpi-bar .cc-stmt-kpi-item:nth-child(3) .cc-stmt-kpi-label,
+.dark-mode .cc-remit-header-card .cc-stmt-kpi-bar .cc-stmt-kpi-item:nth-child(3) .cc-stmt-kpi-label {
+  color: #34d399 !important;
+}
+
+[data-theme-mode='midnight'] .cc-remit-header-card .cc-stmt-kpi-bar .cc-stmt-kpi-item:nth-child(3) .cc-stmt-kpi-val,
+.theme-midnight .cc-remit-header-card .cc-stmt-kpi-bar .cc-stmt-kpi-item:nth-child(3) .cc-stmt-kpi-val,
+.dark-mode .cc-remit-header-card .cc-stmt-kpi-bar .cc-stmt-kpi-item:nth-child(3) .cc-stmt-kpi-val {
+  color: #4ade80 !important;
+}
+
+/* 2. Journal Section & Search Filter in Dark Mode */
+[data-theme-mode='midnight'] .cc-remit-journal-unified-card,
+.theme-midnight .cc-remit-journal-unified-card,
+.dark-mode .cc-remit-journal-unified-card {
+  background: #111827 !important;
+  border-color: #1f2937 !important;
+  box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.4) !important;
+}
+
+[data-theme-mode='midnight'] .cc-remit-section-title,
+.theme-midnight .cc-remit-section-title,
+.dark-mode .cc-remit-section-title {
+  color: #f9fafb !important;
+}
+
+[data-theme-mode='midnight'] .cc-remit-search-input,
+.theme-midnight .cc-remit-search-input,
+.dark-mode .cc-remit-search-input {
+  background: #1f2937 !important;
+  border-color: #374151 !important;
+  color: #f9fafb !important;
+}
+
+[data-theme-mode='midnight'] .cc-remit-search-input::placeholder,
+.theme-midnight .cc-remit-search-input::placeholder,
+.dark-mode .cc-remit-search-input::placeholder {
+  color: #6b7280 !important;
+}
+
+[data-theme-mode='midnight'] .cc-remit-filter-select,
+.theme-midnight .cc-remit-filter-select,
+.dark-mode .cc-remit-filter-select {
+  background: #1f2937 !important;
+  border-color: #374151 !important;
+  color: #f9fafb !important;
+}
+
+[data-theme-mode='midnight'] .cc-remit-mobile-filter,
+.theme-midnight .cc-remit-mobile-filter,
+.dark-mode .cc-remit-mobile-filter {
+  background: #1f2937 !important;
+  border-color: #374151 !important;
+}
+
+[data-theme-mode='midnight'] .cc-remit-filter-field .cc-remit-filter-label,
+.theme-midnight .cc-remit-filter-field .cc-remit-filter-label,
+.dark-mode .cc-remit-filter-field .cc-remit-filter-label {
+  color: #9ca3af !important;
+}
+
+[data-theme-mode='midnight'] .cc-remit-radio-item,
+.theme-midnight .cc-remit-radio-item,
+.dark-mode .cc-remit-radio-item {
+  background: #111827 !important;
+  border-color: #374151 !important;
+  color: #9ca3af !important;
+}
+
+[data-theme-mode='midnight'] .cc-remit-radio-item:has(input:checked),
+.theme-midnight .cc-remit-radio-item:has(input:checked),
+.dark-mode .cc-remit-radio-item:has(input:checked) {
+  background: #374151 !important;
+  border-color: #4b5563 !important;
+  color: #f9fafb !important;
+}
+
+/* 3. Desktop Table in Dark Mode */
+[data-theme-mode='midnight'] .cc-remit-table-container,
+.theme-midnight .cc-remit-table-container,
+.dark-mode .cc-remit-table-container {
+  background: #111827 !important;
+  border-color: #1f2937 !important;
+}
+
+[data-theme-mode='midnight'] .cc-remit-table th,
+.theme-midnight .cc-remit-table th,
+.dark-mode .cc-remit-table th {
+  background: #1f2937 !important;
+  color: #9ca3af !important;
+  border-color: #374151 !important;
+}
+
+[data-theme-mode='midnight'] .cc-remit-table td,
+.theme-midnight .cc-remit-table td,
+.dark-mode .cc-remit-table td {
+  background: #111827 !important;
+  color: #f9fafb !important;
+  border-color: #1f2937 !important;
+}
+
+[data-theme-mode='midnight'] .cc-remit-table tbody tr:hover td,
+.theme-midnight .cc-remit-table tbody tr:hover td,
+.dark-mode .cc-remit-table tbody tr:hover td {
+  background: #1f2937 !important;
+}
+
+[data-theme-mode='midnight'] .cc-remit-table-subrow td,
+.theme-midnight .cc-remit-table-subrow td,
+.dark-mode .cc-remit-table-subrow td {
+  background: #0f172a !important;
+}
+
+[data-theme-mode='midnight'] .cc-remit-alloc-subtable,
+.theme-midnight .cc-remit-alloc-subtable,
+.dark-mode .cc-remit-alloc-subtable {
+  background: #111827 !important;
+  border-color: #1f2937 !important;
+}
+
+[data-theme-mode='midnight'] .cc-remit-alloc-th,
+.theme-midnight .cc-remit-alloc-th,
+.dark-mode .cc-remit-alloc-th {
+  background: #1f2937 !important;
+  color: #9ca3af !important;
+  border-color: #374151 !important;
+}
+
+[data-theme-mode='midnight'] .cc-remit-alloc-td,
+.theme-midnight .cc-remit-alloc-td,
+.dark-mode .cc-remit-alloc-td {
+  background: #111827 !important;
+  color: #f9fafb !important;
+  border-color: #1f2937 !important;
+}
+
+/* 4. Mobile Remittance Cards in Dark Mode */
+[data-theme-mode='midnight'] .cc-remit-mobile-card,
+.theme-midnight .cc-remit-mobile-card,
+.dark-mode .cc-remit-mobile-card {
+  background-color: #111827 !important;
+  border-color: #1f2937 !important;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.4) !important;
+}
+
+[data-theme-mode='midnight'] .cc-remit-mobile-card__ref,
+.theme-midnight .cc-remit-mobile-card__ref,
+.dark-mode .cc-remit-mobile-card__ref {
+  background: #1f2937 !important;
+  border-color: #374151 !important;
+  color: #f9fafb !important;
+}
+
+[data-theme-mode='midnight'] .cc-remit-created-pill,
+.theme-midnight .cc-remit-created-pill,
+.dark-mode .cc-remit-created-pill {
+  background: #1f2937 !important;
+  border-color: #374151 !important;
+  color: #9ca3af !important;
+}
+
+[data-theme-mode='midnight'] .cc-remit-mobile-meta-date,
+.theme-midnight .cc-remit-mobile-meta-date,
+.dark-mode .cc-remit-mobile-meta-date {
+  color: #cbd5e1 !important;
+}
+
+[data-theme-mode='midnight'] .cc-remit-mobile-card__meta,
+.theme-midnight .cc-remit-mobile-card__meta,
+.dark-mode .cc-remit-mobile-card__meta {
+  color: #9ca3af !important;
+}
+
+[data-theme-mode='midnight'] .cc-remit-mobile-card__fin-grid,
+.theme-midnight .cc-remit-mobile-card__fin-grid,
+.dark-mode .cc-remit-mobile-card__fin-grid {
+  background: #1f2937 !important;
+  border-color: #374151 !important;
+}
+
+[data-theme-mode='midnight'] .cc-remit-mobile-card__fin-label,
+.theme-midnight .cc-remit-mobile-card__fin-label,
+.dark-mode .cc-remit-mobile-card__fin-label {
+  color: #9ca3af !important;
+}
+
+[data-theme-mode='midnight'] .cc-remit-mobile-card__fin-val,
+.theme-midnight .cc-remit-mobile-card__fin-val,
+.dark-mode .cc-remit-mobile-card__fin-val {
+  color: #f9fafb !important;
+}
+
+[data-theme-mode='midnight'] .cc-remit-mobile-btn-detail,
+.theme-midnight .cc-remit-mobile-btn-detail,
+.dark-mode .cc-remit-mobile-btn-detail {
+  background: #1f2937 !important;
+  border-color: #374151 !important;
+  color: #f9fafb !important;
+}
+
+[data-theme-mode='midnight'] .cc-remit-mobile-btn-expand,
+.theme-midnight .cc-remit-mobile-btn-expand,
+.dark-mode .cc-remit-mobile-btn-expand {
+  background: #1f2937 !important;
+  border-color: #374151 !important;
+  color: #9ca3af !important;
+}
+
+[data-theme-mode='midnight'] .cc-remit-mobile-btn-expand--active,
+.theme-midnight .cc-remit-mobile-btn-expand--active,
+.dark-mode .cc-remit-mobile-btn-expand--active {
+  background: #374151 !important;
+  border-color: #4b5563 !important;
+  color: #f9fafb !important;
+}
+
+[data-theme-mode='midnight'] .cc-remit-mobile-veh-tile,
+.theme-midnight .cc-remit-mobile-veh-tile,
+.dark-mode .cc-remit-mobile-veh-tile {
+  background: #1f2937 !important;
+  border-color: #374151 !important;
+}
+
+[data-theme-mode='midnight'] .cc-remit-mobile-veh-tile--unallocated,
+.theme-midnight .cc-remit-mobile-veh-tile--unallocated,
+.dark-mode .cc-remit-mobile-veh-tile--unallocated {
+  background: rgba(120, 53, 15, 0.2) !important;
+  border-color: #78350f !important;
+}
+
+[data-theme-mode='midnight'] .cc-remit-mobile-allocated-title,
+.theme-midnight .cc-remit-mobile-allocated-title,
+.dark-mode .cc-remit-mobile-allocated-title {
+  color: #cbd5e1 !important;
+}
+
+/* 5. Modals, Drawers & Forms in Dark Mode */
+[data-theme-mode='midnight'] .cc-pay-modal,
+.theme-midnight .cc-pay-modal,
+.dark-mode .cc-pay-modal,
+[data-theme-mode='midnight'] .cc-remit-modal,
+.theme-midnight .cc-remit-modal,
+.dark-mode .cc-remit-modal {
+  background: #111827 !important;
+  border-color: #1f2937 !important;
+  color: #f9fafb !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6) !important;
+}
+
+[data-theme-mode='midnight'] .cc-pay-modal-title,
+.theme-midnight .cc-pay-modal-title,
+.dark-mode .cc-pay-modal-title,
+[data-theme-mode='midnight'] .cc-remit-modal-title,
+.theme-midnight .cc-remit-modal-title,
+.dark-mode .cc-remit-modal-title {
+  color: #f9fafb !important;
+}
+
+[data-theme-mode='midnight'] .cc-pay-modal-header,
+.theme-midnight .cc-pay-modal-header,
+.dark-mode .cc-pay-modal-header,
+[data-theme-mode='midnight'] .cc-remit-modal-header,
+.theme-midnight .cc-remit-modal-header,
+.dark-mode .cc-remit-modal-header {
+  border-bottom-color: #1f2937 !important;
+}
+
+[data-theme-mode='midnight'] .cc-pay-detail-label,
+.theme-midnight .cc-pay-detail-label,
+.dark-mode .cc-pay-detail-label {
+  color: #9ca3af !important;
+}
+
+[data-theme-mode='midnight'] .cc-pay-detail-val,
+.theme-midnight .cc-pay-detail-val,
+.dark-mode .cc-pay-detail-val {
+  color: #f9fafb !important;
+}
+
+[data-theme-mode='midnight'] .cc-remit-form-field input,
+.theme-midnight .cc-remit-form-field input,
+.dark-mode .cc-remit-form-field input,
+[data-theme-mode='midnight'] .cc-remit-form-field select,
+.theme-midnight .cc-remit-form-field select,
+.dark-mode .cc-remit-form-field select {
+  background: #1f2937 !important;
+  border-color: #374151 !important;
+  color: #f9fafb !important;
+}
+
+[data-theme-mode='midnight'] .cc-remit-finance-note,
+.theme-midnight .cc-remit-finance-note,
+.dark-mode .cc-remit-finance-note {
+  background: rgba(120, 53, 15, 0.2) !important;
+  border-color: #78350f !important;
+}
+

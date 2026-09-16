@@ -20,7 +20,7 @@ const API_PROXY_TARGET = process.env.CUSTOMER_API_PROXY_TARGET ?? 'http://127.0.
  * subdomain suffix rather than disabling Vite's host-header protection for all
  * arbitrary domains.
  */
-const ALLOWED_PREVIEW_HOSTS = ['.ngrok-free.dev', '.azurecontainerapps.io'];
+const ALLOWED_PREVIEW_HOSTS = ['.ngrok-free.dev', '.azurecontainerapps.io', 'localhost', '127.0.0.1'];
 
 /**
  * Serves `/healthz` from the dev and preview servers so the customer app
@@ -63,6 +63,7 @@ const apiProxy = {
 export default defineConfig({
   plugins: [react(), healthzPlugin()],
   server: {
+    host: true,
     port: CUSTOMER_APP_PORT,
     // Fail loudly rather than silently moving to another port: runtime evidence
     // must name the port that was actually served.

@@ -499,5 +499,33 @@ describe('My Vehicles UI Components (D02-P04-T002 & D02-P14-T008)', () => {
       // Initially renders loading or page structure
       expect(html).toBeTruthy();
     });
+
+    it('renders Reserved Vehicles tab with Reserve by Sales and Online Reserved types in CustomerFleetPage', () => {
+      const html = renderToStaticMarkup(
+        React.createElement(
+          QueryClientProvider,
+          { client: queryClient },
+          React.createElement(
+            CustomerShellProvider,
+            { initialUser: MOCK_USER, initialRoute: '/vehicles' },
+            React.createElement(
+              HttpClientProvider,
+              { apiBaseUrl: 'http://127.0.0.1:4000' },
+              React.createElement(CustomerFleetPage, {
+                onSelectVehicle: () => {},
+                initialOrdersTab: 'reservedVehicles',
+              })
+            )
+          )
+        )
+      );
+
+      expect(html).toContain('Reserved Vehicles');
+      expect(html).toContain('reserved-vehicles-section');
+      expect(html).toContain('Reserve by Sales');
+      expect(html).toContain('Online Reserved');
+      expect(html).toContain('WhatsApp Sales');
+      expect(html).toContain('cc-reservation-timer-chip');
+    });
   });
 });

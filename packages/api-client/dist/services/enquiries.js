@@ -1,6 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.EnquiryService = void 0;
 /**
  * Quotation enquiry submission (PUB-13, PUB-15, D01-P05-T004) plus the
  * staff-facing lead read-by-ID/list proof operations (PUB-16, D01-P06-T001).
@@ -11,7 +8,7 @@ exports.EnquiryService = void 0;
  * enforces this server-side, not this client (`HttpClient`'s
  * `getAuthToken` hook supplies the bearer token when configured).
  */
-class EnquiryService {
+export class EnquiryService {
     httpClient;
     constructor(httpClient) {
         this.httpClient = httpClient;
@@ -54,5 +51,4 @@ class EnquiryService {
         return this.httpClient.request('/api/v1/enquiries');
     }
 }
-exports.EnquiryService = EnquiryService;
 //# sourceMappingURL=enquiries.js.map

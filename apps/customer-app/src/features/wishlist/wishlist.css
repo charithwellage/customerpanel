@@ -3,10 +3,89 @@
    ========================================================================== */
 
 .cc-wishlist-page {
+  --font-mono: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-display: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md);
   width: 100%;
+}
+
+.cc-wishlist-page,
+.cc-wishlist-page *,
+.cc-wishlist-page button,
+.cc-wishlist-page input,
+.cc-wishlist-page select,
+.cc-wishlist-page textarea {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+}
+
+/* Typography weights: Titles retain bold emphasis (700),
+   while non-title elements (numbers, metrics, tables, cards, tags, strong tags) are reduced to weight 600 */
+.cc-wishlist-page strong,
+.cc-wishlist-page b,
+.cc-wishlist-page th {
+  font-weight: 600 !important;
+}
+
+/* Ensure all numbers use apple-system font and tabular numerals with font-weight reduced to 600 */
+.cc-wishlist-page [class*="num"],
+.cc-wishlist-page [class*="amount"],
+.cc-wishlist-page [class*="price"],
+.cc-wishlist-page [class*="digit"],
+.cc-wishlist-page [class*="val"],
+.cc-wishlist-page [class*="count"],
+.cc-wishlist-page td,
+.cc-wishlist-page code,
+.cc-wishlist-page .cc-wishlist-reservation-quota-badge,
+.cc-wishlist-page .cc-wishlist-found-badge,
+.cc-wishlist-page .cc-wishlist-views-badge,
+.cc-wishlist-page .cc-wishlist-inquirer-tile-badge,
+.cc-wishlist-page .cc-wishlist-fob-price-val,
+.cc-wishlist-page .cc-cust-fleet-card__spec-value,
+.cc-wishlist-page .cc-cust-fleet-card__spec-value--mono,
+.cc-wishlist-page .cc-wishlist-row-price-val,
+.cc-wishlist-page .cc-wishlist-pagination span {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+  font-weight: 600 !important;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Page Header */
+.cc-wishlist-header {
+  display: flex;
+  align-items: center;
+}
+
+.cc-wishlist-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+}
+
+.cc-wishlist-title {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+  font-size: 1.55rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: #0f172a;
+  margin: 0;
+  line-height: 1.2;
+  text-transform: uppercase;
+  display: inline-block;
+}
+
+.cc-wishlist-title-highlight {
+  background: linear-gradient(to right, #C8102E 0%, #DC2626 50%, #D97706 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  display: inline-block;
+  font-weight: 700;
 }
 
 /* Controls Bar (Search + Found + Per Page) */
@@ -36,12 +115,43 @@
   background-color: var(--color-background);
   color: var(--color-text-primary);
   font-size: var(--font-size-xs);
+  transition: border-color var(--motion-fast) ease;
+}
+
+.cc-wishlist-search-input:focus,
+.cc-wishlist-search-input:focus-visible {
+  border-color: #0f172a;
+  box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.06);
+  outline: none !important;
 }
 
 .cc-wishlist-counts-wrap {
   display: flex;
   align-items: center;
-  gap: var(--spacing-lg);
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+}
+
+/* Prominent 48-Hour Reservation Quota Badge (No Red) */
+.cc-wishlist-reservation-quota-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  background-color: var(--color-neutral-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 6px 14px;
+  box-shadow: var(--shadow-sm);
+  white-space: nowrap;
+}
+
+.cc-wishlist-reservation-quota-badge strong {
+  color: var(--color-primary);
+  font-weight: 600;
 }
 
 .cc-wishlist-found-badge {
@@ -63,15 +173,16 @@
 }
 
 .cc-wishlist-per-page-select {
-  padding: 2px var(--spacing-sm);
+  padding: 4px var(--spacing-sm);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   background-color: var(--color-surface);
   color: var(--color-text-primary);
   font-size: var(--font-size-xs);
+  cursor: pointer;
 }
 
-/* Cards Grid */
+/* Base Cards List/Grid Containers */
 .cc-wishlist-cards-grid {
   display: flex;
   flex-direction: column;
@@ -84,14 +195,16 @@
   border-radius: var(--radius-lg);
   padding: var(--spacing-md);
   display: grid;
-  grid-template-columns: 240px 1fr;
+  grid-template-columns: 280px 1fr;
   gap: var(--spacing-lg);
   box-shadow: var(--shadow-sm);
-  transition: border-color var(--motion-fast);
+  transition: transform var(--motion-fast) ease, box-shadow var(--motion-fast) ease, border-color var(--motion-fast) ease;
 }
 
 .cc-wishlist-card:hover {
-  border-color: var(--color-primary);
+  border-color: var(--color-border);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 @media (max-width: 768px) {
@@ -100,75 +213,430 @@
   }
 }
 
+/* ==========================================================================
+   GRID VIEW SPECIFIC TILE - CLEAN, PROPERLY ALIGNED & RICH
+   ========================================================================== */
 .cc-wishlist-cards-grid--grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: var(--spacing-md);
+  gap: 16px;
+  width: 100%;
 }
+
+@media (max-width: 1200px) {
+  .cc-wishlist-cards-grid--grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+  }
+}
+
+/* Responsive Button Labels */
+.cc-wishlist-btn-text--mobile {
+  display: none;
+}
+
+.cc-wishlist-btn-text--desktop {
+  display: inline;
+}
+
+@media (max-width: 820px) {
+  .cc-wishlist-cards-grid,
+  .cc-wishlist-cards-grid--grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+  }
+}
+
+
 
 .cc-wishlist-cards-grid--grid .cc-wishlist-card {
   display: flex;
   flex-direction: column;
   gap: 0;
   padding: 0;
-}
-
-.cc-wishlist-cards-grid--grid .cc-wishlist-card__image-box {
-  height: 190px;
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-}
-
-.cc-wishlist-cards-grid--grid .cc-wishlist-card__body {
-  padding: var(--spacing-md);
-}
-
-@media (max-width: 1400px) {
-  .cc-wishlist-cards-grid--grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 1000px) {
-  .cc-wishlist-cards-grid--grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 600px) {
-  .cc-wishlist-cards-grid--grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.cc-wishlist-card__image-box {
-  width: 100%;
-  height: 180px;
-  border-radius: var(--radius-md);
   overflow: hidden;
+  background-color: #ffffff !important;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05), 0 4px 12px -2px rgba(15, 23, 42, 0.04);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
+}
+
+.cc-wishlist-cards-grid--grid .cc-wishlist-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px -4px rgba(15, 23, 42, 0.1), 0 4px 8px -2px rgba(15, 23, 42, 0.04);
+  border-color: #cbd5e1;
+}
+
+/* Image Box - Proportional 145px Height */
+.cc-wishlist-cards-grid--grid .cc-wishlist-card__image-box {
+  height: 145px;
+  width: 100%;
+  border-radius: 12px 12px 0 0;
   position: relative;
-  background-color: var(--color-neutral-surface);
+  overflow: hidden;
+  background-color: #ffffff !important;
   cursor: pointer;
 }
 
-.cc-wishlist-card__image {
+.cc-wishlist-cards-grid--grid .cc-wishlist-card__image {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.cc-wishlist-views-badge,
-.cc-wishlist-group-tag {
+.cc-wishlist-cards-grid--grid .cc-wishlist-card:hover .cc-wishlist-card__image {
+  transform: scale(1.04);
+}
+
+/* Top-Left Badges & Banners (Watching, Inquiring & Reserved) */
+.cc-wishlist-tile-badges-top-left {
   position: absolute;
-  top: var(--spacing-xs);
-  left: var(--spacing-xs);
-  background-color: var(--color-surface-dark);
-  color: var(--color-text-on-primary);
-  border-radius: var(--radius-sm);
-  padding: 2px 6px;
-  font-size: 0.65rem;
-  font-family: var(--font-mono);
+  top: 8px;
+  left: 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  max-width: calc(100% - 40px);
+  z-index: 5;
+}
+
+.cc-wishlist-views-badge {
+  font-size: 0.62rem;
+  font-weight: 600 !important;
+  color: #1e293b;
+  background-color: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: 6px;
+  padding: 3px 7px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+  white-space: nowrap;
+}
+
+.cc-wishlist-inquirer-tile-badge {
+  font-size: 0.62rem;
+  font-weight: 600 !important;
+  color: var(--color-warning);
+  background-color: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  border: 1px solid color-mix(in srgb, var(--color-warning) 40%, transparent);
+  border-radius: 6px;
+  padding: 3px 7px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+  white-space: nowrap;
+}
+
+.cc-wishlist-reserved-tag {
+  font-size: 0.62rem;
+  font-weight: 600 !important;
+  color: #15803d;
+  background-color: rgba(240, 253, 244, 0.95);
+  backdrop-filter: blur(8px);
+  border: 1px solid #86efac;
+  border-radius: 6px;
+  padding: 3px 7px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  white-space: nowrap;
+}
+
+.cc-wishlist-remove-tile-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  background-color: rgba(255, 255, 255, 0.92);
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+  border-radius: 50%;
+  padding: 0;
+  font-size: 0.72rem;
+  font-weight: 600 !important;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  transition: all var(--motion-fast) ease;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.cc-wishlist-remove-tile-btn:hover {
+  background-color: #fee2e2;
+  color: #dc2626;
+  border-color: #fca5a5;
+  transform: scale(1.08);
+}
+
+/* Card Body with Balanced Padding */
+.cc-wishlist-cards-grid--grid .cc-wishlist-card__body {
+  padding: 12px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  justify-content: space-between;
+  gap: 8px;
+  background-color: #ffffff !important;
+}
+
+.cc-wishlist-cards-grid--grid .cc-wishlist-card__main-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.cc-wishlist-cards-grid--grid .cc-wishlist-card__header {
+  margin: 0;
+  width: 100%;
+  overflow: visible;
+}
+
+.cc-wishlist-cards-grid--grid .cc-wishlist-card__title {
+  font-size: 0.74rem;
   font-weight: 700;
-  opacity: 0.9;
+  line-height: 1.35;
+  white-space: normal;
+  word-break: normal;
+  overflow-wrap: break-word;
+  max-width: 100%;
+  margin: 0;
+  color: #0f172a;
+  min-height: 32px;
+  display: block;
+}
+
+/* Properly Aligned Specifications Table */
+.cc-wishlist-card .cc-cust-fleet-card__specs-table {
+  background: #ffffff;
+  border: 1px solid #f1f5f9;
+  border-radius: 8px;
+  padding: 6px 10px;
+  margin: 4px 0 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.02);
+}
+
+.cc-wishlist-cards-grid--grid .cc-cust-fleet-card__spec-row {
+  display: grid;
+  grid-template-columns: 82px 1fr;
+  align-items: center;
+  column-gap: 8px;
+  font-size: 0.71rem;
+  padding: 3px 0;
+  border-bottom: 1px solid #f8fafc;
+}
+
+.cc-wishlist-cards-grid--grid .cc-cust-fleet-card__spec-row:last-child {
+  border-bottom: none;
+}
+
+.cc-wishlist-card .cc-cust-fleet-card__spec-label {
+  color: #64748b;
+  font-weight: 500;
+  font-size: 0.71rem;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
+.cc-wishlist-card .cc-cust-fleet-card__spec-value {
+  color: #0f172a;
+  font-weight: 600;
+  font-size: 0.71rem;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+}
+
+/* Financials & FOB Price Header */
+.cc-wishlist-cards-grid--grid .cc-wishlist-card__financials {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  gap: 8px !important;
+  margin-top: auto !important;
+  padding-top: 8px !important;
+  border-top: 1px solid #f1f5f9 !important;
+}
+
+.cc-wishlist-cards-grid--grid .cc-wishlist-fob-price-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  width: 100% !important;
+  padding-bottom: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+.cc-wishlist-cards-grid--grid .cc-wishlist-fob-price-box {
+  display: flex !important;
+  align-items: baseline !important;
+  justify-content: space-between !important;
+  width: 100% !important;
+  white-space: nowrap !important;
+}
+
+.cc-wishlist-cards-grid--grid .cc-wishlist-fob-price-label {
+  font-size: 0.68rem !important;
+  font-weight: 600 !important;
+  color: #64748b !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.03em !important;
+  white-space: nowrap !important;
+}
+
+.cc-wishlist-cards-grid--grid .cc-wishlist-fob-price-val {
+  font-size: 0.98rem !important;
+  font-weight: 700 !important;
+  color: var(--color-primary, #c8102e) !important;
+  letter-spacing: -0.01em !important;
+  white-space: nowrap !important;
+}
+
+/* Action Button Row - 50/50 Aligned for Wishlist Buttons */
+.cc-wishlist-cards-grid--grid .cc-wishlist-card__action-group {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 6px !important;
+  width: 100% !important;
+}
+
+.cc-wishlist-action-btn {
+  height: 26px !important;
+  padding: 0 6px !important;
+  border-radius: 5px !important;
+  font-size: 0.65rem !important;
+  font-weight: 600 !important;
+  cursor: pointer;
+  transition: all var(--motion-fast) ease;
+  white-space: nowrap;
+  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  box-sizing: border-box;
+}
+
+.cc-wishlist-action-btn--inquire {
+  background: #fef3c7 !important;
+  color: #92400e !important;
+  border: 1px solid #f59e0b !important;
+  font-weight: 600 !important;
+  box-shadow: 0 1px 2px rgba(217, 119, 6, 0.15);
+}
+
+.cc-wishlist-action-btn--inquire:hover {
+  background: #fde68a !important;
+  border-color: #d97706 !important;
+  color: #78350f !important;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 6px rgba(217, 119, 6, 0.25);
+}
+
+.cc-wishlist-action-btn--reserve {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #ffffff !important;
+  border: 1px solid #059669;
+  box-shadow: 0 2px 4px rgba(16, 185, 129, 0.25);
+  animation: cc-reserve-pulse-glow 3.5s ease-in-out infinite;
+}
+
+.cc-wishlist-action-btn--reserve::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -75%;
+  width: 50%;
+  height: 200%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+  transform: rotate(25deg);
+  animation: cc-reserve-light-sweep 3.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes cc-reserve-light-sweep {
+  0% {
+    left: -75%;
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.85;
+  }
+  45% {
+    left: 150%;
+    opacity: 0;
+  }
+  100% {
+    left: 150%;
+    opacity: 0;
+  }
+}
+
+@keyframes cc-reserve-pulse-glow {
+  0%, 100% {
+    box-shadow: 0 2px 4px rgba(16, 185, 129, 0.25);
+  }
+  50% {
+    box-shadow: 0 2px 10px rgba(16, 185, 129, 0.5);
+  }
+}
+
+.cc-wishlist-action-btn--reserve:hover:not(:disabled) {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  color: #ffffff !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(16, 185, 129, 0.35);
+}
+
+.cc-wishlist-action-btn--reserve:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  border-color: var(--color-border);
+  background: var(--color-neutral-surface);
+  color: var(--color-text-secondary);
+}
+.cc-wishlist-action-btn--reserve:disabled::after {
+  display: none;
+}
+
+.cc-wishlist-action-badge--reserved {
+  height: 26px !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px !important;
+  background: #f0fdf4;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+  border-radius: 5px !important;
+  font-size: 0.63rem !important;
+  font-weight: 600 !important;
+  white-space: nowrap;
+  box-sizing: border-box;
+}
+
+.cc-wishlist-cards-grid--grid .cc-wishlist-action-btn,
+.cc-wishlist-cards-grid--grid .cc-wishlist-action-badge {
+  width: 100%;
 }
 
 .cc-wishlist-card__body {
@@ -183,14 +651,21 @@
   justify-content: space-between;
   align-items: flex-start;
   gap: var(--spacing-sm);
+  width: 100%;
+  overflow: visible;
 }
 
 .cc-wishlist-card__title {
   margin: 0;
   font-family: var(--font-display);
-  font-size: var(--font-size-base);
-  font-weight: 800;
+  font-size: 0.74rem;
+  font-weight: 700;
   color: var(--color-text-primary);
+  line-height: 1.35;
+  white-space: normal;
+  word-break: normal;
+  overflow-wrap: break-word;
+  max-width: 100%;
 }
 
 .cc-wishlist-remove-link {
@@ -198,76 +673,68 @@
   border: none;
   font-family: var(--font-mono);
   font-size: 0.68rem;
-  font-weight: 800;
-  color: var(--color-error);
+  font-weight: 600;
+  color: var(--color-text-secondary);
   cursor: pointer;
   padding: 2px 4px;
 }
 
 .cc-wishlist-remove-link:hover {
+  color: var(--color-error);
   text-decoration: underline;
 }
 
 .cc-wishlist-card__meta {
   display: flex;
-  align-items: center;
-  gap: var(--spacing-lg);
-  font-size: var(--font-size-xs);
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  font-size: 0.72rem;
+  font-family: var(--font-mono);
   color: var(--color-text-secondary);
 }
 
-.cc-wishlist-card__specs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-xs) 0;
-}
-
-.cc-wishlist-spec-tag {
-  background-color: var(--color-neutral-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  padding: 2px 6px;
-  font-size: 0.68rem;
-  font-weight: 600;
-  color: var(--color-text-secondary);
-}
-
-.cc-wishlist-card__financials {
+.cc-wishlist-meta-text {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-wrap: wrap;
-  gap: var(--spacing-md);
-  padding-top: var(--spacing-xs);
-  border-top: 1px solid var(--color-border);
-}
-
-.cc-wishlist-price-block {
-  display: flex;
-  align-items: center;
+  width: 100%;
   gap: var(--spacing-xs);
+  white-space: nowrap;
 }
 
-.cc-wishlist-price-label {
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
+.cc-wishlist-meta-text strong {
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+/* Universal specification label and value styling for wishlist cards */
+.cc-wishlist-card .cc-cust-fleet-card__spec-label {
   color: var(--color-text-secondary);
+  font-size: 0.71rem;
+  font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
+  text-align: left;
 }
 
-.cc-wishlist-price-val {
-  font-family: var(--font-mono);
-  font-size: var(--font-size-base);
-  font-weight: 800;
-  color: var(--color-primary);
+.cc-wishlist-card .cc-cust-fleet-card__spec-value {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: left;
+  font-size: 0.71rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
 }
 
-.cc-wishlist-inquirer-note {
+.cc-wishlist-card .cc-cust-fleet-card__spec-value--mono {
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: 0.7rem;
   color: var(--color-text-secondary);
-  font-style: italic;
+  text-align: left;
 }
+
 
 .cc-wishlist-empty {
   display: flex;
@@ -289,7 +756,7 @@
 .cc-wishlist-empty-title {
   margin: var(--spacing-xs) 0 0 0;
   font-size: var(--font-size-lg);
-  font-weight: 800;
+  font-weight: 600;
 }
 
 .cc-wishlist-empty-text {
@@ -301,11 +768,11 @@
 .cc-wishlist-btn-browse {
   margin-top: var(--spacing-md);
   padding: var(--spacing-xs) var(--spacing-lg);
-  background-color: var(--color-primary);
-  color: var(--color-text-on-primary);
+  background-color: var(--color-surface-dark);
+  color: var(--color-text-on-dark);
   border: none;
   border-radius: var(--radius-md);
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
 }
 
@@ -323,7 +790,7 @@
   color: var(--color-text-primary);
   font: inherit;
   font-size: var(--font-size-xs);
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -344,3 +811,905 @@
   color: var(--color-text-secondary);
   font-size: var(--font-size-xs);
 }
+
+/* ==========================================================================
+   MODAL POPUP SYSTEM (RESERVE CONFIRMATION & INQUIRE VEHICLE)
+   ========================================================================== */
+.cc-wishlist-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-md);
+  box-sizing: border-box;
+  animation: cc-wishlist-fade-in 0.18s ease-out;
+}
+
+@keyframes cc-wishlist-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.cc-wishlist-modal-card {
+  position: relative;
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.08);
+  max-width: 520px;
+  width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-sizing: border-box;
+  animation: cc-wishlist-scale-up 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes cc-wishlist-scale-up {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.cc-wishlist-modal-card,
+.cc-wishlist-modal-card * {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+}
+
+.cc-wishlist-modal-card strong,
+.cc-wishlist-modal-card b,
+.cc-wishlist-modal-card [class*="num"],
+.cc-wishlist-modal-card [class*="price"],
+.cc-wishlist-modal-card [class*="meta"] {
+  font-weight: 600 !important;
+  font-variant-numeric: tabular-nums;
+}
+
+.cc-wishlist-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--color-border);
+  background: #ffffff;
+}
+
+.cc-wishlist-modal-title {
+  margin: 0;
+  font-size: 1.02rem;
+  font-weight: 700;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  line-height: 1.25;
+}
+
+.cc-wishlist-modal-close {
+  background: transparent;
+  border: none;
+  font-size: 1.2rem;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  transition: all var(--motion-fast) ease;
+  line-height: 1;
+}
+
+.cc-wishlist-modal-close:hover {
+  background: var(--color-neutral-surface);
+  color: var(--color-text-primary);
+}
+
+.cc-wishlist-modal-body {
+  padding: 18px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Vehicle preview summary in modals */
+.cc-wishlist-modal-vehicle-summary {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 14px;
+  background: var(--color-neutral-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.cc-wishlist-modal-vehicle-thumb {
+  width: 80px;
+  height: 58px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+.cc-wishlist-modal-vehicle-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+  min-width: 0;
+}
+
+.cc-wishlist-modal-vehicle-name {
+  font-size: 0.80rem;
+  font-weight: 700;
+  color: #0f172a;
+  white-space: normal;
+  word-break: normal;
+  line-height: 1.35;
+}
+
+.cc-wishlist-modal-vehicle-meta {
+  font-size: 0.72rem;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cc-wishlist-modal-vehicle-price {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.cc-wishlist-modal-vehicle-price span {
+  font-size: 0.68rem;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+/* Reserve terms / quota callout box */
+.cc-wishlist-reserve-callout {
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid color-mix(in srgb, var(--color-success, #10b981) 30%, transparent);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cc-wishlist-reserve-callout-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-success, #10b981);
+}
+
+.cc-wishlist-reserve-callout-text {
+  font-size: 0.76rem;
+  line-height: 1.4;
+  color: #334155;
+  margin: 0;
+}
+
+.cc-wishlist-reserve-callout-subtext {
+  font-size: 0.7rem;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+/* Modal Form Controls */
+.cc-wishlist-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+}
+
+.cc-wishlist-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.cc-wishlist-form-label {
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: #334155;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.cc-wishlist-form-input,
+.cc-wishlist-form-textarea {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 0.8rem;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+  box-sizing: border-box;
+  transition: border-color var(--motion-fast) ease, box-shadow var(--motion-fast) ease;
+}
+
+.cc-wishlist-form-input:focus,
+.cc-wishlist-form-textarea:focus {
+  border-color: #0f172a;
+  box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.08);
+  outline: none;
+}
+
+.cc-wishlist-form-textarea {
+  resize: vertical;
+  min-height: 72px;
+}
+
+/* Modal Action Buttons */
+.cc-wishlist-modal-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-border);
+}
+
+.cc-wishlist-modal-btn {
+  padding: 6px 14px;
+  min-height: 30px;
+  border-radius: var(--radius-sm);
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--motion-fast) ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: none;
+}
+
+.cc-wishlist-modal-btn--secondary {
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+}
+
+.cc-wishlist-modal-btn--secondary:hover {
+  background: var(--color-neutral-surface);
+  color: var(--color-text-primary);
+}
+
+.cc-wishlist-modal-btn--primary {
+  background: #fef3c7 !important;
+  color: #92400e !important;
+  border: 1px solid #f59e0b !important;
+  font-weight: 600 !important;
+}
+
+.cc-wishlist-modal-btn--primary:hover {
+  background: #fde68a !important;
+  border-color: #d97706 !important;
+  color: #78350f !important;
+  transform: translateY(-1px);
+}
+
+.cc-wishlist-modal-btn--reserve {
+  background: var(--color-success, #10b981);
+  color: #ffffff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.cc-wishlist-modal-btn--reserve:hover {
+  background: #059669;
+  transform: translateY(-1px);
+}
+
+/* Success state inside modals */
+.cc-wishlist-modal-success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 20px 10px;
+  gap: 10px;
+}
+
+.cc-wishlist-modal-success-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: rgba(16, 185, 129, 0.12);
+  color: var(--color-success, #10b981);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+  animation: cc-wishlist-bounce 0.4s ease-out;
+}
+
+@keyframes cc-wishlist-bounce {
+  0% { transform: scale(0.6); opacity: 0; }
+  60% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+.cc-wishlist-modal-success-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.cc-wishlist-modal-success-desc {
+  font-size: 0.78rem;
+  color: var(--color-text-secondary);
+  line-height: 1.45;
+  margin: 0;
+  max-width: 380px;
+}
+
+.cc-wishlist-modal-success-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--color-success, #10b981);
+  font-size: 0.74rem;
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   MOBILE SPECIFIC OVERRIDES FOR WISHLIST (<= 768px)
+   Placed at the end of stylesheet to ensure full override precedence
+   ========================================================================== */
+@media (max-width: 768px) {
+  /* Header & Title Alignment with 48h Hold Quota Badge */
+  .cc-wishlist-header {
+    width: 100% !important;
+    margin-bottom: 6px !important;
+  }
+
+  .cc-wishlist-title-wrap {
+    width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 6px !important;
+    flex-wrap: wrap !important;
+  }
+
+  .cc-wishlist-title {
+    font-size: 1.05rem !important;
+    letter-spacing: -0.01em !important;
+    margin: 0 !important;
+    line-height: 1.2 !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* 48-Hour Hold Quota Badge: Smaller, compact & aligned with title */
+  .cc-wishlist-reservation-quota-badge {
+    font-size: 0.58rem !important;
+    padding: 2.5px 7px !important;
+    gap: 3px !important;
+    border-radius: 6px !important;
+    line-height: 1.2 !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    font-weight: 500 !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+  }
+
+  .cc-wishlist-reservation-quota-badge strong {
+    font-size: 0.58rem !important;
+    font-weight: 700 !important;
+  }
+
+  .cc-wishlist-btn-text--desktop {
+    display: none !important;
+  }
+
+  .cc-wishlist-btn-text--mobile {
+    display: inline !important;
+  }
+
+  .cc-wishlist-cards-grid,
+  .cc-wishlist-cards-grid--grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+  }
+
+  .cc-wishlist-cards-grid--grid .cc-wishlist-card {
+    padding: 0 !important;
+  }
+
+  .cc-wishlist-cards-grid--grid .cc-wishlist-card__body {
+    padding: 6px 8px 8px !important;
+    gap: 4px !important;
+  }
+
+  .cc-wishlist-cards-grid--grid .cc-wishlist-card__image-box {
+    height: 105px !important;
+  }
+
+  .cc-wishlist-cards-grid--grid .cc-wishlist-card__title {
+    font-size: 0.68rem !important;
+    line-height: 1.2 !important;
+    min-height: auto !important;
+    margin-bottom: 2px !important;
+  }
+
+  /* Specifications Table: Very small details without cutting on grid */
+  .cc-wishlist-cards-grid--grid .cc-cust-fleet-card__specs-table,
+  .cc-wishlist-card .cc-cust-fleet-card__specs-table {
+    padding: 3px 5px !important;
+    margin: 2px 0 0 0 !important;
+    border-radius: 6px !important;
+    background: #f8fafc !important;
+    border: 1px solid #f1f5f9 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .cc-wishlist-cards-grid--grid .cc-cust-fleet-card__spec-row,
+  .cc-wishlist-card .cc-cust-fleet-card__spec-row {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: baseline !important;
+    padding: 1.5px 0 !important;
+    column-gap: 3px !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+    width: 100% !important;
+  }
+
+  .cc-wishlist-cards-grid--grid .cc-cust-fleet-card__spec-row:last-child,
+  .cc-wishlist-card .cc-cust-fleet-card__spec-row:last-child {
+    border-bottom: none !important;
+  }
+
+  /* Stock No:, Chassis No:, Color / Spec:, Mileage: */
+  .cc-wishlist-card .cc-cust-fleet-card__spec-label,
+  .cc-wishlist-cards-grid--grid .cc-cust-fleet-card__spec-label {
+    font-size: 0.44rem !important;
+    color: #64748b !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    font-weight: 500 !important;
+    line-height: 1.2 !important;
+    letter-spacing: -0.01em !important;
+    text-align: left !important;
+  }
+
+  /* J240111111, NRE161-0091995, Pearl White, 177,000 KM */
+  .cc-wishlist-card .cc-cust-fleet-card__spec-value,
+  .cc-wishlist-cards-grid--grid .cc-cust-fleet-card__spec-value {
+    font-size: 0.46rem !important;
+    color: #0f172a !important;
+    text-align: right !important;
+    white-space: nowrap !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    line-height: 1.2 !important;
+    font-weight: 600 !important;
+    letter-spacing: -0.01em !important;
+  }
+
+  .cc-wishlist-card .cc-cust-fleet-card__spec-value--mono,
+  .cc-wishlist-cards-grid--grid .cc-cust-fleet-card__spec-value--mono {
+    font-family: var(--font-mono, monospace) !important;
+    font-size: 0.45rem !important;
+    letter-spacing: -0.02em !important;
+    text-align: right !important;
+  }
+
+  /* Financials & FOB Price */
+  .cc-wishlist-cards-grid--grid .cc-wishlist-card__financials {
+    gap: 4px !important;
+    padding-top: 4px !important;
+    margin-top: 4px !important;
+  }
+
+  .cc-wishlist-cards-grid--grid .cc-wishlist-fob-price-label {
+    font-size: 0.48rem !important;
+  }
+
+  .cc-wishlist-cards-grid--grid .cc-wishlist-fob-price-val {
+    font-size: 0.72rem !important;
+  }
+
+  /* Reduced size of inquire & reserve buttons */
+  .cc-wishlist-cards-grid--grid .cc-wishlist-card__action-group {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 4px !important;
+    margin-top: 4px !important;
+  }
+
+  .cc-wishlist-action-btn,
+  .cc-wishlist-action-badge {
+    height: 22px !important;
+    min-height: 22px !important;
+    font-size: 0.52rem !important;
+    padding: 0 3px !important;
+    border-radius: 4px !important;
+    gap: 2px !important;
+    letter-spacing: -0.01em !important;
+    white-space: nowrap !important;
+  }
+
+  /* Top badges & remove button */
+  .cc-wishlist-tile-badges-top-left {
+    top: 4px !important;
+    left: 4px !important;
+    gap: 3px !important;
+  }
+
+  .cc-wishlist-views-badge,
+  .cc-wishlist-inquirer-tile-badge,
+  .cc-wishlist-reserved-tag {
+    font-size: 0.46rem !important;
+    padding: 1.5px 4px !important;
+    border-radius: 4px !important;
+  }
+
+  .cc-wishlist-remove-tile-btn {
+    width: 20px !important;
+    height: 20px !important;
+    top: 4px !important;
+    right: 4px !important;
+    font-size: 0.60rem !important;
+  }
+}
+
+/* =========================================================================
+   DARK THEME (MIDNIGHT MODE) - WISHLIST (WEB & MOBILE)
+   ========================================================================= */
+
+[data-theme-mode='midnight'] .cc-cust-wishlist-page,
+.theme-midnight .cc-cust-wishlist-page,
+.dark-mode .cc-cust-wishlist-page,
+[data-theme-mode='midnight'] .cc-wishlist-page,
+.theme-midnight .cc-wishlist-page,
+.dark-mode .cc-wishlist-page {
+  background-color: transparent;
+  color: #ffffff;
+}
+
+[data-theme-mode='midnight'] .cc-wishlist-card,
+.theme-midnight .cc-wishlist-card,
+.dark-mode .cc-wishlist-card,
+[data-theme-mode='midnight'] .cc-wishlist-cards-grid--grid .cc-wishlist-card,
+[data-theme-mode='midnight'] .cc-wishlist-cards-grid--list .cc-wishlist-card {
+  background-color: #111827 !important;
+  border-color: #1f2937 !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
+}
+
+[data-theme-mode='midnight'] .cc-wishlist-card__image-box,
+.theme-midnight .cc-wishlist-card__image-box,
+.dark-mode .cc-wishlist-card__image-box {
+  background-color: #0f172a !important;
+}
+
+/* ==========================================================================
+   MY WISHLIST - Vehicle Card: Full Tile to Dark & All Details Fonts to White
+   ========================================================================== */
+[data-theme-mode='midnight'] .cc-wishlist-card,
+.theme-midnight .cc-wishlist-card,
+.dark-mode .cc-wishlist-card,
+[data-theme-mode='midnight'] .cc-wishlist-cards-grid .cc-wishlist-card,
+.theme-midnight .cc-wishlist-cards-grid .cc-wishlist-card,
+.dark-mode .cc-wishlist-cards-grid .cc-wishlist-card,
+[data-theme-mode='midnight'] .cc-wishlist-cards-grid--grid .cc-wishlist-card,
+.theme-midnight .cc-wishlist-cards-grid--grid .cc-wishlist-card,
+.dark-mode .cc-wishlist-cards-grid--grid .cc-wishlist-card,
+[data-theme-mode='midnight'] .cc-wishlist-cards-grid--list .cc-wishlist-card,
+.theme-midnight .cc-wishlist-cards-grid--list .cc-wishlist-card,
+.dark-mode .cc-wishlist-cards-grid--list .cc-wishlist-card {
+  background: #111827 !important;
+  background-color: #111827 !important;
+  border-color: #1f2937 !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
+}
+
+[data-theme-mode='midnight'] .cc-wishlist-card__image-box,
+.theme-midnight .cc-wishlist-card__image-box,
+.dark-mode .cc-wishlist-card__image-box,
+[data-theme-mode='midnight'] .cc-wishlist-cards-grid .cc-wishlist-card__image-box,
+.theme-midnight .cc-wishlist-cards-grid .cc-wishlist-card__image-box,
+.dark-mode .cc-wishlist-cards-grid .cc-wishlist-card__image-box,
+[data-theme-mode='midnight'] .cc-wishlist-cards-grid--grid .cc-wishlist-card__image-box,
+.theme-midnight .cc-wishlist-cards-grid--grid .cc-wishlist-card__image-box,
+.dark-mode .cc-wishlist-cards-grid--grid .cc-wishlist-card__image-box,
+[data-theme-mode='midnight'] .cc-wishlist-cards-grid--list .cc-wishlist-card__image-box,
+.theme-midnight .cc-wishlist-cards-grid--list .cc-wishlist-card__image-box,
+.dark-mode .cc-wishlist-cards-grid--list .cc-wishlist-card__image-box {
+  background: #0f172a !important;
+  background-color: #0f172a !important;
+}
+
+[data-theme-mode='midnight'] .cc-wishlist-card__body,
+.theme-midnight .cc-wishlist-card__body,
+.dark-mode .cc-wishlist-card__body,
+[data-theme-mode='midnight'] .cc-wishlist-cards-grid .cc-wishlist-card__body,
+.theme-midnight .cc-wishlist-cards-grid .cc-wishlist-card__body,
+.dark-mode .cc-wishlist-cards-grid .cc-wishlist-card__body,
+[data-theme-mode='midnight'] .cc-wishlist-cards-grid--grid .cc-wishlist-card__body,
+.theme-midnight .cc-wishlist-cards-grid--grid .cc-wishlist-card__body,
+.dark-mode .cc-wishlist-cards-grid--grid .cc-wishlist-card__body,
+[data-theme-mode='midnight'] .cc-wishlist-cards-grid--list .cc-wishlist-card__body,
+.theme-midnight .cc-wishlist-cards-grid--list .cc-wishlist-card__body,
+.dark-mode .cc-wishlist-cards-grid--list .cc-wishlist-card__body {
+  background: #111827 !important;
+  background-color: #111827 !important;
+  color: #ffffff !important;
+}
+
+[data-theme-mode='midnight'] .cc-wishlist-card__main-content,
+.theme-midnight .cc-wishlist-card__main-content,
+.dark-mode .cc-wishlist-card__main-content {
+  background: transparent !important;
+  background-color: transparent !important;
+  color: #ffffff !important;
+}
+
+/* Vehicle Specifications Table - Full Dark Surface */
+[data-theme-mode='midnight'] .cc-wishlist-card .cc-cust-fleet-card__specs-table,
+.theme-midnight .cc-wishlist-card .cc-cust-fleet-card__specs-table,
+.dark-mode .cc-wishlist-card .cc-cust-fleet-card__specs-table,
+[data-theme-mode='midnight'] .cc-wishlist-cards-grid .cc-cust-fleet-card__specs-table,
+.theme-midnight .cc-wishlist-cards-grid .cc-cust-fleet-card__specs-table,
+.dark-mode .cc-wishlist-cards-grid .cc-cust-fleet-card__specs-table,
+[data-theme-mode='midnight'] .cc-wishlist-cards-grid--grid .cc-cust-fleet-card__specs-table,
+.theme-midnight .cc-wishlist-cards-grid--grid .cc-cust-fleet-card__specs-table,
+.dark-mode .cc-wishlist-cards-grid--grid .cc-cust-fleet-card__specs-table,
+[data-theme-mode='midnight'] .cc-wishlist-cards-grid--list .cc-cust-fleet-card__specs-table,
+.theme-midnight .cc-wishlist-cards-grid--list .cc-cust-fleet-card__specs-table,
+.dark-mode .cc-wishlist-cards-grid--list .cc-cust-fleet-card__specs-table {
+  background: #1a2234 !important;
+  background-color: #1a2234 !important;
+  border: 1px solid #1f2937 !important;
+}
+
+[data-theme-mode='midnight'] .cc-cust-fleet-card__spec-row,
+.theme-midnight .cc-cust-fleet-card__spec-row,
+.dark-mode .cc-cust-fleet-card__spec-row,
+[data-theme-mode='midnight'] .cc-wishlist-cards-grid .cc-cust-fleet-card__spec-row,
+.theme-midnight .cc-wishlist-cards-grid .cc-cust-fleet-card__spec-row,
+.dark-mode .cc-wishlist-cards-grid .cc-cust-fleet-card__spec-row,
+[data-theme-mode='midnight'] .cc-wishlist-cards-grid--grid .cc-cust-fleet-card__spec-row,
+.theme-midnight .cc-wishlist-cards-grid--grid .cc-cust-fleet-card__spec-row,
+.dark-mode .cc-wishlist-cards-grid--grid .cc-cust-fleet-card__spec-row,
+[data-theme-mode='midnight'] .cc-wishlist-cards-grid--list .cc-cust-fleet-card__spec-row,
+.theme-midnight .cc-wishlist-cards-grid--list .cc-cust-fleet-card__spec-row,
+.dark-mode .cc-wishlist-cards-grid--list .cc-cust-fleet-card__spec-row {
+  border-bottom: 1px solid #1f2937 !important;
+}
+
+/* Vehicle Title - Pure White */
+[data-theme-mode='midnight'] .cc-wishlist-card__title,
+.theme-midnight .cc-wishlist-card__title,
+.dark-mode .cc-wishlist-card__title,
+[data-theme-mode='midnight'] .cc-wishlist-cards-grid .cc-wishlist-card__title,
+.theme-midnight .cc-wishlist-cards-grid .cc-wishlist-card__title,
+.dark-mode .cc-wishlist-cards-grid .cc-wishlist-card__title,
+[data-theme-mode='midnight'] .cc-wishlist-cards-grid--grid .cc-wishlist-card__title,
+.theme-midnight .cc-wishlist-cards-grid--grid .cc-wishlist-card__title,
+.dark-mode .cc-wishlist-cards-grid--grid .cc-wishlist-card__title,
+[data-theme-mode='midnight'] .cc-wishlist-cards-grid--list .cc-wishlist-card__title,
+.theme-midnight .cc-wishlist-cards-grid--list .cc-wishlist-card__title,
+.dark-mode .cc-wishlist-cards-grid--list .cc-wishlist-card__title {
+  color: #ffffff !important;
+}
+
+/* Vehicle Details Fonts - All Details, Spec Labels & Values Pure White */
+[data-theme-mode='midnight'] .cc-wishlist-card .cc-cust-fleet-card__spec-label,
+.theme-midnight .cc-wishlist-card .cc-cust-fleet-card__spec-label,
+.dark-mode .cc-wishlist-card .cc-cust-fleet-card__spec-label,
+[data-theme-mode='midnight'] .cc-wishlist-cards-grid .cc-cust-fleet-card__spec-label,
+.theme-midnight .cc-wishlist-cards-grid .cc-cust-fleet-card__spec-label,
+.dark-mode .cc-wishlist-cards-grid .cc-cust-fleet-card__spec-label,
+[data-theme-mode='midnight'] .cc-wishlist-cards-grid--grid .cc-cust-fleet-card__spec-label,
+.theme-midnight .cc-wishlist-cards-grid--grid .cc-cust-fleet-card__spec-label,
+.dark-mode .cc-wishlist-cards-grid--grid .cc-cust-fleet-card__spec-label,
+[data-theme-mode='midnight'] .cc-wishlist-cards-grid--list .cc-cust-fleet-card__spec-label,
+.theme-midnight .cc-wishlist-cards-grid--list .cc-cust-fleet-card__spec-label,
+.dark-mode .cc-wishlist-cards-grid--list .cc-cust-fleet-card__spec-label {
+  color: #ffffff !important;
+}
+
+[data-theme-mode='midnight'] .cc-wishlist-card .cc-cust-fleet-card__spec-value,
+.theme-midnight .cc-wishlist-card .cc-cust-fleet-card__spec-value,
+.dark-mode .cc-wishlist-card .cc-cust-fleet-card__spec-value,
+[data-theme-mode='midnight'] .cc-wishlist-cards-grid .cc-cust-fleet-card__spec-value,
+.theme-midnight .cc-wishlist-cards-grid .cc-cust-fleet-card__spec-value,
+.dark-mode .cc-wishlist-cards-grid .cc-cust-fleet-card__spec-value,
+[data-theme-mode='midnight'] .cc-wishlist-cards-grid--grid .cc-cust-fleet-card__spec-value,
+.theme-midnight .cc-wishlist-cards-grid--grid .cc-cust-fleet-card__spec-value,
+.dark-mode .cc-wishlist-cards-grid--grid .cc-cust-fleet-card__spec-value,
+[data-theme-mode='midnight'] .cc-wishlist-cards-grid--list .cc-cust-fleet-card__spec-value,
+.theme-midnight .cc-wishlist-cards-grid--list .cc-cust-fleet-card__spec-value,
+.dark-mode .cc-wishlist-cards-grid--list .cc-cust-fleet-card__spec-value {
+  color: #ffffff !important;
+}
+
+[data-theme-mode='midnight'] .cc-wishlist-card .cc-cust-fleet-card__spec-value--mono,
+.theme-midnight .cc-wishlist-card .cc-cust-fleet-card__spec-value--mono,
+.dark-mode .cc-wishlist-card .cc-cust-fleet-card__spec-value--mono,
+[data-theme-mode='midnight'] .cc-wishlist-cards-grid .cc-cust-fleet-card__spec-value--mono,
+.theme-midnight .cc-wishlist-cards-grid .cc-cust-fleet-card__spec-value--mono,
+.dark-mode .cc-wishlist-cards-grid .cc-cust-fleet-card__spec-value--mono,
+[data-theme-mode='midnight'] .cc-wishlist-cards-grid--grid .cc-cust-fleet-card__spec-value--mono,
+.theme-midnight .cc-wishlist-cards-grid--grid .cc-cust-fleet-card__spec-value--mono,
+.dark-mode .cc-wishlist-cards-grid--grid .cc-cust-fleet-card__spec-value--mono,
+[data-theme-mode='midnight'] .cc-wishlist-cards-grid--list .cc-cust-fleet-card__spec-value--mono,
+.theme-midnight .cc-wishlist-cards-grid--list .cc-cust-fleet-card__spec-value--mono,
+.dark-mode .cc-wishlist-cards-grid--list .cc-cust-fleet-card__spec-value--mono {
+  color: #ffffff !important;
+}
+
+[data-theme-mode='midnight'] .cc-wishlist-fob-price-label,
+.theme-midnight .cc-wishlist-fob-price-label,
+.dark-mode .cc-wishlist-fob-price-label,
+[data-theme-mode='midnight'] .cc-wishlist-cards-grid .cc-wishlist-fob-price-label,
+.theme-midnight .cc-wishlist-cards-grid .cc-wishlist-fob-price-label,
+.dark-mode .cc-wishlist-cards-grid .cc-wishlist-fob-price-label,
+[data-theme-mode='midnight'] .cc-wishlist-cards-grid--grid .cc-wishlist-fob-price-label,
+.theme-midnight .cc-wishlist-cards-grid--grid .cc-wishlist-fob-price-label,
+.dark-mode .cc-wishlist-cards-grid--grid .cc-wishlist-fob-price-label,
+[data-theme-mode='midnight'] .cc-wishlist-cards-grid--list .cc-wishlist-fob-price-label,
+.theme-midnight .cc-wishlist-cards-grid--list .cc-wishlist-fob-price-label,
+.dark-mode .cc-wishlist-cards-grid--list .cc-wishlist-fob-price-label {
+  color: #ffffff !important;
+}
+
+[data-theme-mode='midnight'] .cc-wishlist-fob-price-val,
+.theme-midnight .cc-wishlist-fob-price-val,
+.dark-mode .cc-wishlist-fob-price-val,
+[data-theme-mode='midnight'] .cc-wishlist-cards-grid .cc-wishlist-fob-price-val,
+.theme-midnight .cc-wishlist-cards-grid .cc-wishlist-fob-price-val,
+.dark-mode .cc-wishlist-cards-grid .cc-wishlist-fob-price-val,
+[data-theme-mode='midnight'] .cc-wishlist-cards-grid--grid .cc-wishlist-fob-price-val,
+.theme-midnight .cc-wishlist-cards-grid--grid .cc-wishlist-fob-price-val,
+.dark-mode .cc-wishlist-cards-grid--grid .cc-wishlist-fob-price-val,
+[data-theme-mode='midnight'] .cc-wishlist-cards-grid--list .cc-wishlist-fob-price-val,
+.theme-midnight .cc-wishlist-cards-grid--list .cc-wishlist-fob-price-val,
+.dark-mode .cc-wishlist-cards-grid--list .cc-wishlist-fob-price-val {
+  color: #ffffff !important;
+}
+
+[data-theme-mode='midnight'] .cc-wishlist-card__chassis,
+.theme-midnight .cc-wishlist-card__chassis,
+.dark-mode .cc-wishlist-card__chassis {
+  color: #ffffff !important;
+}
+
+[data-theme-mode='midnight'] .cc-wishlist-card__price,
+.theme-midnight .cc-wishlist-card__price,
+.dark-mode .cc-wishlist-card__price {
+  color: #ffffff !important;
+}
+
+[data-theme-mode='midnight'] .cc-wishlist-card__meta,
+.theme-midnight .cc-wishlist-card__meta,
+.dark-mode .cc-wishlist-card__meta,
+[data-theme-mode='midnight'] .cc-wishlist-meta-text,
+.theme-midnight .cc-wishlist-meta-text,
+.dark-mode .cc-wishlist-meta-text,
+[data-theme-mode='midnight'] .cc-wishlist-meta-text strong,
+.theme-midnight .cc-wishlist-meta-text strong,
+.dark-mode .cc-wishlist-meta-text strong {
+  color: #ffffff !important;
+}
+
+[data-theme-mode='midnight'] .cc-wishlist-card__financials,
+.theme-midnight .cc-wishlist-card__financials,
+.dark-mode .cc-wishlist-card__financials,
+[data-theme-mode='midnight'] .cc-wishlist-cards-grid .cc-wishlist-card__financials,
+.theme-midnight .cc-wishlist-cards-grid .cc-wishlist-card__financials,
+.dark-mode .cc-wishlist-cards-grid .cc-wishlist-card__financials,
+[data-theme-mode='midnight'] .cc-wishlist-cards-grid--grid .cc-wishlist-card__financials,
+.theme-midnight .cc-wishlist-cards-grid--grid .cc-wishlist-card__financials,
+.dark-mode .cc-wishlist-cards-grid--grid .cc-wishlist-card__financials,
+[data-theme-mode='midnight'] .cc-wishlist-cards-grid--list .cc-wishlist-card__financials,
+.theme-midnight .cc-wishlist-cards-grid--list .cc-wishlist-card__financials,
+.dark-mode .cc-wishlist-cards-grid--list .cc-wishlist-card__financials {
+  border-top: 1px solid #1f2937 !important;
+}
+
+/* Badges & Remove Button on Tile */
+[data-theme-mode='midnight'] .cc-wishlist-remove-tile-btn,
+.theme-midnight .cc-wishlist-remove-tile-btn,
+.dark-mode .cc-wishlist-remove-tile-btn {
+  background-color: rgba(17, 24, 39, 0.85) !important;
+  border-color: #374151 !important;
+  color: #ffffff !important;
+}
+
+[data-theme-mode='midnight'] .cc-wishlist-views-badge,
+.theme-midnight .cc-wishlist-views-badge,
+.dark-mode .cc-wishlist-views-badge {
+  background-color: rgba(17, 24, 39, 0.85) !important;
+  border-color: #374151 !important;
+  color: #ffffff !important;
+}
+
+[data-theme-mode='midnight'] .cc-wishlist-inquirer-tile-badge,
+.theme-midnight .cc-wishlist-inquirer-tile-badge,
+.dark-mode .cc-wishlist-inquirer-tile-badge {
+  background-color: rgba(17, 24, 39, 0.85) !important;
+  border-color: #78350f !important;
+  color: #fbbf24 !important;
+}
+
+/* Inquire Action Button */
+[data-theme-mode='midnight'] .cc-wishlist-action-btn--inquire,
+.theme-midnight .cc-wishlist-action-btn--inquire,
+.dark-mode .cc-wishlist-action-btn--inquire {
+  background: #1f2937 !important;
+  border-color: #d97706 !important;
+  color: #fbbf24 !important;
+}
+
+[data-theme-mode='midnight'] .cc-wishlist-filter-bar,
+.theme-midnight .cc-wishlist-filter-bar,
+.dark-mode .cc-wishlist-filter-bar,
+[data-theme-mode='midnight'] .cc-wishlist-header-card,
+.theme-midnight .cc-wishlist-header-card,
+.dark-mode .cc-wishlist-header-card {
+  background: #111827 !important;
+  border-color: #1f2937 !important;
+}
+
+[data-theme-mode='midnight'] .cc-wishlist-search-input,
+.theme-midnight .cc-wishlist-search-input,
+.dark-mode .cc-wishlist-search-input,
+[data-theme-mode='midnight'] .cc-wishlist-filter-select,
+.theme-midnight .cc-wishlist-filter-select,
+.dark-mode .cc-wishlist-filter-select {
+  background: #1f2937 !important;
+  border-color: #374151 !important;
+  color: #f9fafb !important;
+}
+
+[data-theme-mode='midnight'] .cc-wishlist-quote-modal,
+.theme-midnight .cc-wishlist-quote-modal,
+.dark-mode .cc-wishlist-quote-modal {
+  background: #111827 !important;
+  border-color: #1f2937 !important;
+  color: #f9fafb !important;
+}
+
+
+

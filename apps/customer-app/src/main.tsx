@@ -7,8 +7,12 @@ import { applyCustomerTheme } from './theme.js';
 const savedMode = (typeof localStorage !== 'undefined' && localStorage.getItem('carchief_theme_mode') === 'midnight') ? 'midnight' : 'daylight';
 applyCustomerTheme(document.documentElement, import.meta.env.VITE_THEME_ID, savedMode);
 
-if (import.meta.env.PROD && 'serviceWorker' in navigator) {
-  void navigator.serviceWorker.register('/sw.js', { scope: '/' });
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    void navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => {
+      // Ignore registration errors during local sandboxed testing
+    });
+  });
 }
 
 const container = document.getElementById('root');

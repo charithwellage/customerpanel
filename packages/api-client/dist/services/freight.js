@@ -1,13 +1,10 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.FreightService = void 0;
 /**
  * Destination/port/rate lookup only (D01-ASM-001). `estimate()` always
  * returns the deterministic `estimate_unavailable_pending_rate` outcome
  * while `DEC-PUB-FREIGHT-MODEL` is OPEN — no formula and no computed total
  * are implemented here.
  */
-class FreightService {
+export class FreightService {
     httpClient;
     constructor(httpClient) {
         this.httpClient = httpClient;
@@ -35,5 +32,4 @@ class FreightService {
         });
     }
 }
-exports.FreightService = FreightService;
 //# sourceMappingURL=freight.js.map

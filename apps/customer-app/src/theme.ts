@@ -23,7 +23,7 @@ export const MIDNIGHT_COLOR_VARIABLES: Record<string, string> = {
   '--color-text-on-primary': '#ffffff',
   '--color-text-on-accent': '#111827',
   '--color-border': '#1f2937',
-  '--color-focus': '#ef4444',
+  '--color-focus': '#94a3b8',
   '--color-success': '#34d399',
   '--color-success-surface': '#064e3b',
   '--color-warning': '#fbbf24',

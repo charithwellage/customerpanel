@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.getErrorAlertAttributes = getErrorAlertAttributes;
-function getErrorAlertAttributes(props) {
+export function getErrorAlertAttributes(props) {
     return {
         role: 'alert',
         'aria-live': 'assertive',

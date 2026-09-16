@@ -1,9 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.getThemeCssVariables = getThemeCssVariables;
-exports.formatCssVariableString = formatCssVariableString;
-const tokens_js_1 = require("./tokens.js");
-function getThemeCssVariables(theme = tokens_js_1.defaultSemanticTheme) {
+import { defaultSemanticTheme } from './tokens.js';
+export function getThemeCssVariables(theme = defaultSemanticTheme) {
     return {
         '--color-primary': theme.colors.primary,
         '--color-primary-hover': theme.colors.primaryHover,
@@ -17,6 +13,7 @@ function getThemeCssVariables(theme = tokens_js_1.defaultSemanticTheme) {
         '--color-text-secondary': theme.colors.textSecondary,
         '--color-text-on-dark': theme.colors.textOnDark,
         '--color-text-on-primary': theme.colors.textOnPrimary,
+        '--color-text-on-accent': theme.colors.textOnAccent,
         '--color-border': theme.colors.border,
         '--color-focus': theme.colors.focus,
         '--color-success': theme.colors.success,
@@ -57,7 +54,7 @@ function getThemeCssVariables(theme = tokens_js_1.defaultSemanticTheme) {
         '--min-touch-target': theme.accessibility.minTouchTarget,
     };
 }
-function formatCssVariableString(theme = tokens_js_1.defaultSemanticTheme) {
+export function formatCssVariableString(theme = defaultSemanticTheme) {
     const vars = getThemeCssVariables(theme);
     return Object.entries(vars)
         .map(([key, val]) => `${key}: ${val};`)

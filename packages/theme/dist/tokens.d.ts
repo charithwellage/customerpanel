@@ -17,6 +17,15 @@ export interface ColorTokens {
     textSecondary: string;
     textOnDark: string;
     textOnPrimary: string;
+    /**
+     * Text colour for content placed directly on the `accent` background
+     * (`.hero-btn-primary`, `.nav-link-active`). Deliberately a separate token
+     * from `textOnPrimary`: `accent` and `primary` are unrelated hues/luminances
+     * per theme (carchief's accent orange is lighter than its primary red;
+     * ocean's accent teal is darker than carchief's), so a single shared value
+     * cannot pass WCAG AA against both — each theme calibrates its own.
+     */
+    textOnAccent: string;
     border: string;
     focus: string;
     success: string;

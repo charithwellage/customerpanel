@@ -490,6 +490,9 @@ export interface SearchVehiclesQuery {
   collection?: string;
   yearMin?: number;
   yearMax?: number;
+  monthMin?: number;
+  monthMax?: number;
+  tags?: string[];
   priceMin?: number;
   priceMax?: number;
   mileageMin?: number;
@@ -1399,6 +1402,8 @@ export interface CustomerStatementEntry {
 
 export interface CustomerStatementSummary {
   customerId: string;
+  customerName?: string;
+  currency?: string;
   fromDate: string;
   toDate: string;
   openingBalanceUsd: number;

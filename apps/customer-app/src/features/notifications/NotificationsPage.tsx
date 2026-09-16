@@ -45,16 +45,74 @@ function getNotificationTitle(n: Notification): string {
   return 'ACCOUNT ACTIVITY UPDATE';
 }
 
-function getNotificationTypeTag(n: Notification): string {
-  if (n.type === 'Payment') return '(PAYMENT_APPROVED)';
-  if (n.type === 'Shipment') return '(SHIPMENT_SCHEDULED)';
-  if (n.type === 'Document') return '(DOCUMENT_RELEASED)';
-  if (n.type === 'Vehicle') return '(VEHICLE_UPDATED)';
-  return `(${n.type.toUpperCase()})`;
+function getNotificationTypeMeta(n: Notification): { label: string; badgeClass: string; icon: React.ReactNode } {
+  if (n.type === 'Payment') {
+    return {
+      label: 'PAYMENT',
+      badgeClass: 'cc-notif-badge--payment',
+      icon: (
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <rect x="2" y="4" width="20" height="16" rx="2" />
+          <line x1="2" y1="10" x2="22" y2="10" />
+        </svg>
+      ),
+    };
+  }
+  if (n.type === 'Shipment') {
+    return {
+      label: 'SHIPMENT',
+      badgeClass: 'cc-notif-badge--shipment',
+      icon: (
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M2 17a5 5 0 0 0 10 0c0-2.76-2.5-5-5-5s-5 2.24-5 5z" />
+          <path d="M12 17a5 5 0 0 0 10 0c0-2.76-2.5-5-5-5s-5 2.24-5 5z" />
+          <path d="M7 12V4h10v8" />
+        </svg>
+      ),
+    };
+  }
+  if (n.type === 'Document') {
+    return {
+      label: 'DOCUMENT',
+      badgeClass: 'cc-notif-badge--document',
+      icon: (
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+          <polyline points="14 2 14 8 20 8" />
+          <line x1="16" y1="13" x2="8" y2="13" />
+          <line x1="16" y1="17" x2="8" y2="17" />
+        </svg>
+      ),
+    };
+  }
+  if (n.type === 'Vehicle') {
+    return {
+      label: 'VEHICLE',
+      badgeClass: 'cc-notif-badge--vehicle',
+      icon: (
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <rect x="3" y="11" width="18" height="8" rx="2" />
+          <path d="m5 11 2.5-6h9l2.5 6" />
+          <circle cx="7.5" cy="15.5" r="1.5" />
+          <circle cx="16.5" cy="15.5" r="1.5" />
+        </svg>
+      ),
+    };
+  }
+  return {
+    label: 'UPDATE',
+    badgeClass: 'cc-notif-badge--general',
+    icon: (
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+        <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+      </svg>
+    ),
+  };
 }
 
 export const NotificationsPage: React.FC = () => {
-  const { setActiveRoute } = useCustomerShell();
+  const { setActiveRoute, previousRoute } = useCustomerShell();
   const [filter, setFilter] = React.useState<NotificationFilter>('all');
   const [search, setSearch] = React.useState('');
   const { data, isLoading, isFetching, error, refetch } = useCustomerNotifications(filter, search.trim());
@@ -65,6 +123,11 @@ export const NotificationsPage: React.FC = () => {
   React.useEffect(() => {
     setActiveRoute('/notifications');
   }, [setActiveRoute]);
+
+  const handleClose = () => {
+    const target = (previousRoute && previousRoute !== '/notifications') ? previousRoute : '/dashboard';
+    setActiveRoute(target);
+  };
 
   const openRelated = (notification: Notification) => {
     const route = appRouteFor(notification);
@@ -83,6 +146,38 @@ export const NotificationsPage: React.FC = () => {
 
   return (
     <div className="cc-notifs-page" aria-labelledby="bulletins-title">
+      {/* Top Header Bar with Title, Unread Counter & Close Button */}
+      <header className="cc-notifs-header">
+        <div className="cc-notifs-header-left">
+          <div className="cc-notifs-header-title-row">
+            <h1 id="bulletins-title" className="cc-notifs-header-title">Notifications &amp; Bulletins</h1>
+            {(data?.unreadCount ?? 0) > 0 && (
+              <span className="cc-notifs-unread-badge">
+                {data?.unreadCount} unread
+              </span>
+            )}
+          </div>
+          <p className="cc-notifs-header-subtitle">
+            Live operational updates, shipping tracking alerts, and vehicle documents
+          </p>
+        </div>
+
+        <button
+          type="button"
+          id="bulletins-close-btn"
+          className="cc-notifs-close-btn"
+          onClick={handleClose}
+          aria-label="Close notifications and return"
+          title="Close (Minimize) notifications"
+        >
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+          <span className="cc-notifs-close-btn-text">Close</span>
+        </button>
+      </header>
+
       {/* Top Search & Filter Bar */}
       <div className="cc-notifs-toolbar" role="search" aria-label="Notification search and filters">
         <div className="cc-notifs-search-wrap">
@@ -110,8 +205,8 @@ export const NotificationsPage: React.FC = () => {
             aria-label="Filter notifications by status"
           >
             <option value="all">All Notifications</option>
-            <option value="unread">Unread Notifications</option>
-            <option value="read">Read Notifications</option>
+            <option value="unread">Unread</option>
+            <option value="read">Read</option>
           </select>
         </div>
 
@@ -122,7 +217,22 @@ export const NotificationsPage: React.FC = () => {
           onClick={() => markAllRead.mutate()}
           disabled={markAllRead.isPending || (data?.unreadCount ?? 0) === 0}
         >
-          {markAllRead.isPending ? 'MARKING...' : 'MARK ALL READ'}
+          {markAllRead.isPending ? 'Marking...' : 'Mark All Read'}
+        </button>
+
+        <button
+          type="button"
+          id="bulletins-toolbar-close-btn"
+          className="cc-notifs-toolbar-close-btn"
+          onClick={handleClose}
+          aria-label="Close notifications"
+          title="Close (Minimize) notifications"
+        >
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+          <span className="cc-notifs-toolbar-close-text">Close</span>
         </button>
       </div>
 
@@ -172,8 +282,8 @@ export const NotificationsPage: React.FC = () => {
             const isUnread = !notification.isRead;
             const route = appRouteFor(notification);
             const title = getNotificationTitle(notification);
-            const typeTag = getNotificationTypeTag(notification);
             const dateStr = formatNotificationDate(notification.createdAt);
+            const meta = getNotificationTypeMeta(notification);
 
             return (
               <article
@@ -183,20 +293,17 @@ export const NotificationsPage: React.FC = () => {
                   if (route) openRelated(notification);
                 }}
               >
-                {/* Left Icon Badge */}
-                <div className={`cc-notif-icon-box ${isUnread ? 'cc-notif-icon-box--unread' : 'cc-notif-icon-box--read'}`} aria-hidden="true">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-                    <polyline points="22,6 12,13 2,6" />
-                  </svg>
+                {/* Left Type Icon Badge */}
+                <div className={`cc-notif-icon-box ${meta.badgeClass}`} aria-hidden="true">
+                  {meta.icon}
                 </div>
 
                 {/* Main Content Area */}
                 <div className="cc-notif-body">
                   <div className="cc-notif-header-line">
                     <span className="cc-notif-title">{title}</span>
-                    <span className="cc-notif-badge-critical">CRITICAL</span>
-                    <span className="cc-notif-type-tag">{typeTag}</span>
+                    <span className={`cc-notif-type-tag ${meta.badgeClass}`}>{meta.label}</span>
+                    {isUnread && <span className="cc-notif-unread-dot" title="Unread" />}
                   </div>
 
                   <p className="cc-notif-message">{notification.message}</p>
@@ -217,7 +324,7 @@ export const NotificationsPage: React.FC = () => {
                       title="Mark as read"
                       aria-label="Mark as read"
                     >
-                      READ
+                      Mark Read
                     </button>
                   )}
 
@@ -232,8 +339,6 @@ export const NotificationsPage: React.FC = () => {
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                       <polyline points="3 6 5 6 21 6" />
                       <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                      <line x1="10" y1="11" x2="10" y2="17" />
-                      <line x1="14" y1="11" x2="14" y2="17" />
                     </svg>
                   </button>
                 </div>

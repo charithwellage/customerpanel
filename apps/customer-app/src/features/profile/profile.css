@@ -1,19 +1,355 @@
-/* Profile Feature CSS - Enterprise 2-Column Layout */
+/* Profile Feature CSS - Enterprise Layout & Theme Integration */
+
+.cc-cust-profile,
+.cc-cust-profile * {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
 
 .cc-cust-profile {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xl);
+  gap: var(--spacing-lg);
   width: 100%;
   max-width: 100%;
   margin: 0;
   padding: 0 0 var(--spacing-2xl);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
+/* Header Hero Banner Card */
+.cc-profile-header-card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.cc-profile-header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  width: 100%;
+}
+
+.cc-profile-header-main {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.cc-profile-header-side {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.cc-profile-health-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--spacing-xs) var(--spacing-md);
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.cc-profile-health-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cc-profile-health-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--color-success);
+}
+
+.cc-profile-health-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  letter-spacing: 0.05em;
+}
+
+.cc-profile-health-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: 10px;
+  color: var(--color-text-secondary);
+}
+
+/* 4-Column Full-Width Quick Metrics Ribbon */
+.cc-profile-metrics-ribbon {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--spacing-md);
+  padding-top: var(--spacing-md);
+  border-top: 1px dashed var(--color-border);
+  width: 100%;
+}
+
+.cc-profile-metric-chip {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  transition: transform var(--motion-fast), border-color var(--motion-fast), box-shadow var(--motion-fast);
+}
+
+.cc-profile-metric-chip:hover {
+  border-color: var(--color-text-secondary);
+  box-shadow: var(--shadow-sm);
+}
+
+.cc-profile-metric-icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-primary);
+  flex-shrink: 0;
+  transition: transform var(--motion-fast), border-color var(--motion-fast);
+}
+
+.cc-profile-metric-chip:hover .cc-profile-metric-icon-wrap {
+  transform: scale(1.06);
+}
+
+.cc-profile-metric-icon-wrap--fleet {
+  color: var(--color-info);
+  background: var(--color-info-surface);
+}
+
+.cc-profile-metric-icon-wrap--security {
+  color: var(--color-primary);
+  background: var(--color-neutral-surface);
+}
+
+.cc-profile-metric-icon-wrap--partner {
+  color: var(--color-warning);
+  background: var(--color-warning-surface);
+}
+
+.cc-profile-metric-icon-wrap--compliance {
+  color: var(--color-success);
+  background: var(--color-success-surface);
+}
+
+.cc-profile-metric-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cc-profile-metric-label {
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.cc-profile-metric-value {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.cc-profile-metric-tag {
+  display: inline-block;
+  font-size: 9.5px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+.cc-profile-metric-tag--success {
+  color: var(--color-success);
+}
+
+.cc-profile-metric-tag--info {
+  color: var(--color-info);
+}
+
+.cc-profile-metric-tag--warning {
+  color: var(--color-warning);
+}
+
+.cc-profile-header-main {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.cc-profile-avatar-box {
+  position: relative;
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: var(--color-surface-elevated);
+  border: 2px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: border-color var(--motion-fast), box-shadow var(--motion-fast);
+}
+
+.cc-profile-avatar-box:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 15%, transparent);
+}
+
+.cc-profile-avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.cc-profile-avatar-upload-btn {
+  position: absolute;
+  bottom: -3px;
+  right: -3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--color-surface);
+  color: var(--color-primary);
+  border: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--motion-fast);
+  padding: 0;
+}
+
+.cc-profile-avatar-upload-btn:hover {
+  background: var(--color-neutral-surface);
+  color: var(--color-primary);
+  border-color: var(--color-border);
+}
+
+.cc-profile-avatar-initials {
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  color: var(--color-text-primary);
+  letter-spacing: 0.04em;
+}
+
+.cc-profile-status-dot {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: var(--color-success);
+  border: 2px solid var(--color-surface);
+}
+
+.cc-profile-header-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cc-profile-header-title-line {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+}
+
+.cc-profile-badges-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  flex-wrap: wrap;
+}
+
+.cc-profile-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  border-radius: 9999px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.cc-profile-badge--id {
+  background: var(--color-surface-elevated);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+}
+
+.cc-profile-badge--tier {
+  background: var(--color-warning-surface);
+  color: var(--color-warning);
+  border: 1px solid var(--color-border);
+  font-weight: 600;
+}
+
+.cc-profile-badge--status {
+  background: var(--color-success-surface);
+  color: var(--color-success);
+  border: 1px solid var(--color-border);
+}
+
+.cc-profile-header-name {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+  font-size: 1.85rem !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.02em;
+  color: #0f172a;
+  line-height: 1.2;
+  text-transform: uppercase;
+  display: inline-block;
+}
+
+.cc-profile-title-highlight {
+  background: linear-gradient(to right, #C8102E 0%, #DC2626 50%, #D97706 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  display: inline-block;
+  font-weight: 700 !important;
+}
+
+.cc-profile-header-sub {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+/* Profile 2-Column Grid Layout */
 .cc-profile-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
-  gap: var(--spacing-xl);
+  gap: var(--spacing-lg);
   align-items: start;
   width: 100%;
 }
@@ -21,17 +357,17 @@
 .cc-profile-col {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xl);
+  gap: var(--spacing-lg);
 }
 
 /* Profile Card Styling */
 .cc-profile-card {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-lg);
-  padding: var(--spacing-xl);
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   background: var(--color-surface);
   box-shadow: var(--shadow-sm);
 }
@@ -40,27 +376,96 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.cc-profile-card__header-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.cc-profile-card__icon,
+.cc-profile-audit-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  color: var(--color-primary);
+  flex-shrink: 0;
+  box-sizing: border-box;
+  transition: transform var(--motion-fast), background-color var(--motion-fast), border-color var(--motion-fast), color var(--motion-fast);
+}
+
+.cc-profile-card:hover .cc-profile-card__icon,
+.cc-profile-card:hover .cc-profile-audit-icon,
+.cc-profile-card__header-title-wrap:hover .cc-profile-card__icon,
+.cc-profile-card__header-title-wrap:hover .cc-profile-audit-icon {
+  transform: scale(1.15) rotate(4deg);
 }
 
 .cc-profile-card__header--audit {
   flex-direction: row;
   align-items: center;
   gap: var(--spacing-sm);
+  padding-bottom: 0;
+  border-bottom: none;
 }
 
 .cc-profile-card__title {
   margin: 0;
-  font-family: var(--font-mono);
   font-size: var(--font-size-xs);
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--color-text-primary);
   line-height: 1.2;
 }
 
+.cc-profile-card__title--contact,
+.cc-profile-card__title--2fa,
+.cc-profile-card__title--preferences,
+.cc-profile-card__title--credentials,
+.cc-profile-card__title--sessions,
 .cc-profile-card__title--audit {
   color: var(--color-text-primary);
+}
+
+.cc-profile-card__icon--contact {
+  color: var(--color-primary);
+  background: var(--color-neutral-surface);
+}
+
+.cc-profile-card__icon--2fa {
+  color: var(--color-success);
+  background: var(--color-success-surface);
+}
+
+.cc-profile-card__icon--preferences {
+  color: var(--color-info);
+  background: var(--color-info-surface);
+}
+
+.cc-profile-card__icon--credentials {
+  color: var(--color-warning);
+  background: var(--color-warning-surface);
+}
+
+.cc-profile-card__icon--sessions {
+  color: var(--color-info);
+  background: var(--color-info-surface);
+}
+
+.cc-profile-audit-icon,
+.cc-profile-card__icon--audit {
+  color: var(--color-success);
+  background: var(--color-success-surface);
 }
 
 .cc-profile-card__subtitle {
@@ -86,9 +491,8 @@
 }
 
 .cc-profile-label {
-  font-family: var(--font-mono);
   font-size: 10px;
-  font-weight: 800;
+  font-weight: 500;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--color-text-secondary);
@@ -102,19 +506,29 @@
   padding: 0 var(--spacing-sm);
   background: var(--color-surface-elevated);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
+  box-sizing: border-box;
   transition: border-color var(--motion-fast), box-shadow var(--motion-fast);
 }
 
 .cc-profile-input-wrap:focus-within {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 1px var(--color-primary);
+  border-color: var(--color-border);
+  box-shadow: var(--shadow-sm);
+}
+
+.cc-profile-input-wrap:focus-within .cc-profile-input-icon {
+  color: var(--color-text-primary);
 }
 
 .cc-profile-input-wrap--readonly {
-  background: var(--color-surface-elevated);
+  background: var(--color-surface);
   border-color: var(--color-border);
   opacity: 0.85;
+}
+
+.cc-profile-input-wrap--readonly:focus-within {
+  border-color: var(--color-border);
+  box-shadow: none;
 }
 
 .cc-profile-input-icon {
@@ -130,10 +544,46 @@
   border: none;
   background: transparent;
   color: var(--color-text-primary);
-  font-family: var(--font-mono);
   font-size: var(--font-size-xs);
   padding: 0;
-  outline: none;
+  outline: none !important;
+}
+
+.cc-profile-input:focus,
+.cc-profile-input:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.cc-profile-btn:focus,
+.cc-profile-btn:focus-visible,
+.cc-profile-avatar-box:focus,
+.cc-profile-avatar-box:focus-visible {
+  outline: none !important;
+}
+
+.cc-profile-password-toggle-btn {
+  background: transparent;
+  border: none;
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: color var(--motion-fast);
+}
+
+.cc-profile-password-toggle-btn:hover,
+.cc-profile-password-toggle-btn:focus-visible,
+.cc-profile-password-toggle-btn--active {
+  color: #16a34a !important;
+}
+
+.cc-profile-password-toggle-btn:focus,
+.cc-profile-password-toggle-btn:focus-visible {
+  outline: none !important;
 }
 
 .cc-profile-input:read-only {
@@ -149,7 +599,6 @@
 .cc-profile-field-error {
   font-size: 11px;
   color: var(--color-error);
-  font-family: var(--font-mono);
 }
 
 /* Actions & Buttons */
@@ -163,37 +612,66 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 38px;
-  padding: var(--spacing-xs) var(--spacing-lg);
-  font-family: var(--font-mono);
+  min-height: 40px;
+  height: 40px;
+  padding: 0 var(--spacing-lg);
   font-size: 11px;
-  font-weight: 800;
+  font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   cursor: pointer;
-  transition: opacity var(--motion-fast), background-color var(--motion-fast);
-  border: 1px solid transparent;
+  transition: opacity var(--motion-fast), background-color var(--motion-fast), box-shadow var(--motion-fast);
+  border: none;
+  box-sizing: border-box;
 }
 
 .cc-profile-btn--primary {
-  background: var(--color-primary);
-  color: var(--color-text-on-primary);
-  border-color: var(--color-primary);
+  background: #16a34a !important;
+  color: #ffffff !important;
+  border: 1px solid #16a34a !important;
+  box-shadow: 0 1px 3px rgba(22, 163, 74, 0.2);
 }
 
 .cc-profile-btn--primary:hover:not(:disabled) {
-  opacity: 0.92;
+  background: #15803d !important;
+  border-color: #15803d !important;
+  opacity: 1;
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
+}
+
+.cc-profile-btn--primary:active:not(:disabled) {
+  background: #166534 !important;
+  border-color: #166534 !important;
+  transform: translateY(1px);
 }
 
 .cc-profile-btn--secondary {
   background: var(--color-surface-elevated);
-  color: var(--color-text-secondary);
-  border-color: var(--color-border);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
 }
 
 .cc-profile-btn--secondary:hover:not(:disabled) {
-  background: var(--color-surface);
+  background: var(--color-neutral-surface);
+  border-color: var(--color-text-secondary);
+}
+
+.cc-profile-btn--revoke {
+  width: 100%;
+  margin-top: var(--spacing-xs);
+  gap: var(--spacing-xs);
+  background: var(--color-surface-elevated);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+  font-weight: 500;
+}
+
+.cc-profile-btn--revoke:hover:not(:disabled) {
+  background: var(--color-neutral-surface);
+  border-color: var(--color-text-secondary);
   color: var(--color-text-primary);
 }
 
@@ -208,10 +686,7 @@
   border: 1px solid var(--color-border);
 }
 
-.cc-profile-audit-icon {
-  flex-shrink: 0;
-  color: var(--color-primary);
-}
+
 
 .cc-profile-audit-body {
   display: flex;
@@ -221,7 +696,6 @@
 
 .cc-profile-audit-text {
   margin: 0;
-  font-family: var(--font-mono);
   font-size: 11.5px;
   line-height: 1.6;
   color: var(--color-text-secondary);
@@ -229,7 +703,7 @@
 
 .cc-profile-audit-text strong {
   color: var(--color-text-primary);
-  font-weight: 800;
+  font-weight: 500;
 }
 
 /* Status and Alert Messages */
@@ -238,7 +712,6 @@
   border: 1px dashed var(--color-border);
   border-radius: var(--radius-md);
   color: var(--color-text-secondary);
-  font-family: var(--font-mono);
   font-size: var(--font-size-xs);
 }
 
@@ -251,7 +724,6 @@
   margin: 0;
   padding: var(--spacing-xs) var(--spacing-sm);
   border-radius: var(--radius-sm);
-  font-family: var(--font-mono);
   font-size: 11px;
 }
 
@@ -273,8 +745,9 @@
   border: 1px solid var(--color-border);
 }
 
-/* Visually Hidden Helper */
-.visually-hidden {
+/* Visually Hidden & Screen Reader Helpers */
+.visually-hidden,
+.sr-only {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -286,10 +759,1098 @@
   border-width: 0;
 }
 
-/* Responsive */
+/* Password Strength Meter */
+.cc-profile-strength-wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  margin-top: 4px;
+}
+
+.cc-profile-strength-bar {
+  flex: 1;
+  height: 4px;
+  background: var(--color-surface-elevated);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.cc-profile-strength-fill {
+  height: 100%;
+  transition: width var(--motion-fast), background-color var(--motion-fast);
+}
+
+.cc-profile-strength--weak {
+  width: 33%;
+  background-color: var(--color-error);
+}
+
+.cc-profile-strength--medium {
+  width: 66%;
+  background-color: var(--color-warning);
+}
+
+.cc-profile-strength--strong {
+  width: 100%;
+  background-color: var(--color-success);
+}
+
+.cc-profile-strength-text {
+  font-size: 10px;
+  color: var(--color-text-secondary);
+}
+
+.cc-profile-strength-text strong {
+  color: var(--color-text-primary);
+  font-weight: 500;
+}
+
+/* Toggle Switch Component */
+.cc-profile-toggle-switch {
+  position: relative;
+  width: 34px;
+  height: 18px;
+  border-radius: 9px;
+  background: #94a3b8;
+  border: 1px solid #64748b;
+  cursor: pointer;
+  padding: 0;
+  transition: background-color var(--motion-fast), border-color var(--motion-fast), box-shadow var(--motion-fast);
+  flex-shrink: 0;
+}
+
+.cc-profile-toggle-switch:hover {
+  background: #64748b;
+  border-color: #475569 !important;
+  box-shadow: 0 0 0 2px rgba(100, 116, 139, 0.25);
+}
+
+.cc-profile-toggle-switch--active {
+  background: #16a34a !important;
+  border-color: #16a34a !important;
+}
+
+.cc-profile-toggle-switch--active:hover {
+  background: #15803d !important;
+  border-color: #15803d !important;
+  box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.25);
+}
+
+.cc-profile-toggle-switch:focus-visible {
+  outline: 2px solid #16a34a !important;
+  outline-offset: 2px;
+}
+
+.cc-profile-toggle-knob {
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.2);
+  transition: transform var(--motion-fast), background-color var(--motion-fast);
+}
+
+.cc-profile-toggle-switch--active .cc-profile-toggle-knob {
+  transform: translateX(16px);
+  background: #ffffff;
+}
+
+/* Midnight mode toggle switch */
+[data-theme-mode='midnight'] .cc-profile-toggle-switch,
+.theme-midnight .cc-profile-toggle-switch {
+  background: #334155;
+  border-color: #475569;
+}
+
+[data-theme-mode='midnight'] .cc-profile-toggle-switch:hover,
+.theme-midnight .cc-profile-toggle-switch:hover {
+  background: #475569;
+  border-color: #64748b !important;
+  box-shadow: 0 0 0 2px rgba(71, 85, 105, 0.3);
+}
+
+[data-theme-mode='midnight'] .cc-profile-toggle-switch--active,
+.theme-midnight .cc-profile-toggle-switch--active {
+  background: #16a34a !important;
+  border-color: #16a34a !important;
+}
+
+[data-theme-mode='midnight'] .cc-profile-toggle-switch--active:hover,
+.theme-midnight .cc-profile-toggle-switch--active:hover {
+  background: #15803d !important;
+  border-color: #15803d !important;
+}
+
+[data-theme-mode='midnight'] .cc-profile-toggle-knob,
+.theme-midnight .cc-profile-toggle-knob {
+  background: #f8fafc;
+}
+
+/* 2FA Body & Rows */
+.cc-profile-2fa-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.cc-profile-2fa-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-xs) 0;
+}
+
+.cc-profile-2fa-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cc-profile-2fa-label {
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.cc-profile-2fa-sub {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+}
+
+/* Preferences List */
+.cc-profile-preferences-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.cc-profile-preference-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  padding: var(--spacing-xs) 0;
+  border-bottom: 1px dashed var(--color-border);
+}
+
+.cc-profile-preference-row:last-child {
+  border-bottom: none;
+}
+
+.cc-profile-preference-main {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.cc-profile-pref-icon-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+  box-sizing: border-box;
+  transition: all var(--motion-fast);
+}
+
+.cc-profile-preference-row:hover .cc-profile-pref-icon-wrap {
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.cc-profile-preference-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cc-profile-preference-title {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.cc-profile-preference-desc {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+}
+
+/* Sessions List */
+.cc-profile-sessions-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.cc-profile-session-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.cc-profile-session-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cc-profile-session-title-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.cc-profile-session-device {
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.cc-profile-session-badge {
+  font-size: 9px;
+  font-weight: 500;
+  padding: 1px 5px;
+  border-radius: var(--radius-sm);
+  background: var(--color-success-surface);
+  color: var(--color-success);
+  border: 1px solid var(--color-success);
+}
+
+.cc-profile-session-meta {
+  font-size: 10.5px;
+  color: var(--color-text-secondary);
+}
+
+/* =========================================================================
+   Responsive Styling (Tablet & Mobile)
+   ========================================================================= */
+
 @media (max-width: 960px) {
   .cc-profile-grid {
     grid-template-columns: 1fr;
-    gap: var(--spacing-lg);
+    gap: var(--spacing-md);
+  }
+
+  .cc-profile-metrics-ribbon {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-sm);
   }
 }
+
+@media (max-width: 768px) {
+  /* Mobile Typography & Apple-System Font Enforcement */
+  .cc-cust-profile,
+  .cc-cust-profile *,
+  .cc-cust-profile button,
+  .cc-cust-profile input,
+  .cc-cust-profile select,
+  .cc-profile-header-name,
+  .cc-profile-title-highlight,
+  .cc-profile-card__title,
+  .cc-profile-label,
+  .cc-profile-btn,
+  .cc-profile-metric-value,
+  .cc-profile-metric-label,
+  .cc-profile-badge,
+  .cc-profile-health-label,
+  .cc-profile-health-meta,
+  .cc-profile-preference-title,
+  .cc-profile-session-device,
+  .cc-profile-session-meta {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+  }
+
+  .cc-cust-profile strong,
+  .cc-cust-profile b {
+    font-weight: 600 !important;
+  }
+
+  /* Page Container Full Mobile Width & Spacing */
+  .cc-cust-profile {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
+    padding: 10px 8px 32px 8px !important;
+    gap: 12px !important;
+  }
+
+  /* 1. Header Hero Banner Card Mobile */
+  .cc-profile-header-card {
+    padding: 14px 12px !important;
+    gap: 12px !important;
+    border-radius: 14px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
+  }
+
+  .cc-profile-header-top {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+    width: 100% !important;
+  }
+
+  /* Right Side Health Card - Taken UP to the very top on mobile */
+  .cc-profile-header-side {
+    order: -1 !important;
+    width: 100% !important;
+  }
+
+  .cc-profile-health-card {
+    width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 8px 12px !important;
+    border-radius: 10px !important;
+    gap: 4px !important;
+    background: var(--color-surface-elevated) !important;
+    border: 1px solid var(--color-border) !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  .cc-profile-health-top {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+  }
+
+  .cc-profile-health-dot {
+    width: 7px !important;
+    height: 7px !important;
+    border-radius: 50% !important;
+    background-color: #16a34a !important;
+    flex-shrink: 0 !important;
+  }
+
+  .cc-profile-health-label {
+    font-size: 10px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.04em !important;
+    color: var(--color-text-primary) !important;
+  }
+
+  .cc-profile-health-meta {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    font-size: 9px !important;
+    color: var(--color-text-secondary) !important;
+    font-weight: 500 !important;
+    gap: 6px !important;
+    padding-top: 2px !important;
+  }
+
+  .cc-profile-header-main {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+    width: 100% !important;
+  }
+
+  .cc-profile-avatar-box {
+    width: 52px !important;
+    height: 52px !important;
+    min-width: 52px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .cc-profile-avatar-initials {
+    font-size: 15px !important;
+  }
+
+  .cc-profile-avatar-upload-btn {
+    width: 20px !important;
+    height: 20px !important;
+    bottom: -2px !important;
+    right: -2px !important;
+  }
+
+  .cc-profile-header-info {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 4px !important;
+    flex: 1 !important;
+    min-width: 0 !important;
+  }
+
+  .cc-profile-header-title-line {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 4px !important;
+    width: 100% !important;
+  }
+
+  .cc-profile-header-name {
+    font-size: 1.25rem !important;
+    line-height: 1.2 !important;
+    font-weight: 700 !important;
+    word-break: break-word !important;
+    margin: 0 !important;
+  }
+
+  /* Badges Row - Smaller & Perfectly Aligned on Mobile */
+  .cc-profile-badges-row {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    gap: 4px !important;
+    width: 100% !important;
+    margin: 2px 0 1px 0 !important;
+  }
+
+  .cc-profile-badge {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    height: 18px !important;
+    min-height: 18px !important;
+    padding: 0 6px !important;
+    font-size: 7.5px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.02em !important;
+    line-height: 1 !important;
+    border-radius: 9999px !important;
+    box-sizing: border-box !important;
+    white-space: nowrap !important;
+    vertical-align: middle !important;
+  }
+
+  .cc-profile-badge--id {
+    font-size: 7.5px !important;
+    padding: 0 5px !important;
+  }
+
+  .cc-profile-badge--tier {
+    font-size: 7.5px !important;
+    padding: 0 6px !important;
+    gap: 3px !important;
+  }
+
+  .cc-profile-badge--status {
+    font-size: 7.5px !important;
+    padding: 0 6px !important;
+  }
+
+  .cc-profile-header-sub {
+    font-size: 11px !important;
+    line-height: 1.4 !important;
+    word-break: break-word !important;
+    color: var(--color-text-secondary) !important;
+    margin: 0 !important;
+  }
+
+  /* 2. Quick Metrics Ribbon - 2x2 Clean Grid on Mobile */
+  .cc-profile-metrics-ribbon {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+    padding-top: 10px !important;
+    border-top: 1px dashed var(--color-border) !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .cc-profile-metric-chip {
+    padding: 8px 10px !important;
+    gap: 8px !important;
+    border-radius: 10px !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+    align-items: center !important;
+  }
+
+  .cc-profile-metric-icon-wrap {
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    border-radius: 8px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .cc-profile-metric-icon-wrap svg {
+    width: 16px !important;
+    height: 16px !important;
+  }
+
+  .cc-profile-metric-info {
+    flex: 1 !important;
+    min-width: 0 !important;
+    gap: 1px !important;
+    overflow: hidden !important;
+  }
+
+  .cc-profile-metric-label {
+    font-size: 8.5px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.04em !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .cc-profile-metric-value {
+    font-size: 11.5px !important;
+    font-weight: 600 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .cc-profile-metric-tag {
+    font-size: 9px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  /* 3. Main Grid & Columns Stack */
+  .cc-profile-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .cc-profile-col {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+    width: 100% !important;
+  }
+
+  /* 4. Profile Cards Mobile Styling */
+  .cc-profile-card {
+    padding: 14px 12px !important;
+    border-radius: 14px !important;
+    gap: 12px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .cc-profile-card__header {
+    gap: 3px !important;
+    padding-bottom: 8px !important;
+    border-bottom: 1px solid var(--color-border) !important;
+  }
+
+  .cc-profile-card__header-title-wrap {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+  }
+
+  .cc-profile-card__icon,
+  .cc-profile-audit-icon {
+    width: 26px !important;
+    height: 26px !important;
+    padding: 3px !important;
+    border-radius: 6px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .cc-profile-card__title {
+    font-size: 11.5px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.05em !important;
+  }
+
+  .cc-profile-card__subtitle {
+    font-size: 11px !important;
+    line-height: 1.4 !important;
+    color: var(--color-text-secondary) !important;
+  }
+
+  /* 5. Forms & Inputs */
+  .cc-profile-form {
+    gap: 11px !important;
+    width: 100% !important;
+  }
+
+  .cc-profile-field {
+    gap: 4px !important;
+    width: 100% !important;
+  }
+
+  .cc-profile-label {
+    font-size: 9.5px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.05em !important;
+  }
+
+  .cc-profile-input-wrap {
+    height: 40px !important;
+    padding: 0 10px !important;
+    border-radius: 8px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .cc-profile-input {
+    font-size: 12.5px !important;
+  }
+
+  .cc-profile-input-icon {
+    margin-right: 6px !important;
+  }
+
+  .cc-profile-password-toggle-btn {
+    padding: 6px !important;
+    min-width: 32px !important;
+    min-height: 32px !important;
+  }
+
+  /* Password Strength Meter */
+  .cc-profile-strength-wrap {
+    margin-top: 4px !important;
+    gap: 8px !important;
+  }
+
+  .cc-profile-strength-text {
+    font-size: 10px !important;
+  }
+
+  /* Form Actions & Buttons */
+  .cc-profile-actions {
+    width: 100% !important;
+    margin-top: 4px !important;
+  }
+
+  .cc-profile-btn {
+    min-height: 40px !important;
+    height: 40px !important;
+    border-radius: 8px !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.06em !important;
+  }
+
+  .cc-profile-btn--primary {
+    width: 100% !important;
+  }
+
+  .cc-profile-btn--revoke {
+    width: 100% !important;
+    height: 38px !important;
+    font-size: 11px !important;
+    margin-top: 8px !important;
+    gap: 6px !important;
+  }
+
+  /* 6. 2FA Toggle Row Mobile */
+  .cc-profile-2fa-row {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 12px !important;
+    padding: 4px 0 !important;
+  }
+
+  .cc-profile-2fa-info {
+    flex: 1 !important;
+    min-width: 0 !important;
+  }
+
+  .cc-profile-2fa-label {
+    font-size: 12px !important;
+    font-weight: 600 !important;
+  }
+
+  .cc-profile-2fa-sub {
+    font-size: 10.5px !important;
+    line-height: 1.35 !important;
+  }
+
+  .cc-profile-toggle-switch {
+    width: 36px !important;
+    height: 20px !important;
+    border-radius: 10px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .cc-profile-toggle-knob {
+    width: 16px !important;
+    height: 16px !important;
+    top: 1px !important;
+    left: 1px !important;
+  }
+
+  .cc-profile-toggle-switch--active .cc-profile-toggle-knob {
+    transform: translateX(16px) !important;
+  }
+
+  /* 7. Notification Preferences Rows Mobile */
+  .cc-profile-preferences-list {
+    gap: 8px !important;
+  }
+
+  .cc-profile-preference-row {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 10px !important;
+    padding: 8px 0 !important;
+  }
+
+  .cc-profile-preference-main {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    flex: 1 !important;
+    min-width: 0 !important;
+  }
+
+  .cc-profile-pref-icon-wrap {
+    width: 28px !important;
+    height: 28px !important;
+    min-width: 28px !important;
+    border-radius: 6px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .cc-profile-pref-icon-wrap svg {
+    width: 14px !important;
+    height: 14px !important;
+  }
+
+  .cc-profile-preference-info {
+    flex: 1 !important;
+    min-width: 0 !important;
+  }
+
+  .cc-profile-preference-title {
+    font-size: 11.5px !important;
+    font-weight: 600 !important;
+  }
+
+  .cc-profile-preference-desc {
+    font-size: 10.5px !important;
+    line-height: 1.35 !important;
+  }
+
+  /* 8. Active Sessions List Mobile */
+  .cc-profile-sessions-list {
+    gap: 8px !important;
+  }
+
+  .cc-profile-session-item {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 6px !important;
+    padding: 10px 12px !important;
+    border-radius: 10px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .cc-profile-session-info {
+    width: 100% !important;
+    gap: 4px !important;
+  }
+
+  .cc-profile-session-title-row {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+  }
+
+  .cc-profile-session-device {
+    font-size: 11.5px !important;
+    font-weight: 600 !important;
+  }
+
+  .cc-profile-session-badge {
+    font-size: 8.5px !important;
+    padding: 1px 6px !important;
+    border-radius: 4px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .cc-profile-session-meta {
+    font-size: 10px !important;
+    line-height: 1.4 !important;
+    word-break: break-word !important;
+  }
+
+  /* 9. Audit Info Card Mobile */
+  .cc-profile-audit-body {
+    gap: 6px !important;
+  }
+
+  .cc-profile-audit-text {
+    font-size: 11px !important;
+    line-height: 1.5 !important;
+    word-break: break-word !important;
+  }
+}
+
+/* Extra small mobile screens (<= 380px) */
+@media (max-width: 380px) {
+  .cc-profile-header-name {
+    font-size: 1.15rem !important;
+  }
+
+  .cc-profile-avatar-box {
+    width: 46px !important;
+    height: 46px !important;
+    min-width: 46px !important;
+  }
+
+  .cc-profile-avatar-initials {
+    font-size: 13px !important;
+  }
+
+  .cc-profile-metrics-ribbon {
+    grid-template-columns: 1fr !important;
+    gap: 6px !important;
+  }
+
+  .cc-profile-health-meta {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 2px !important;
+  }
+}
+
+/* =========================================================================
+   DARK THEME (MIDNIGHT MODE) - PROFILE & SECURITY (WEB & MOBILE)
+   ========================================================================= */
+
+[data-theme-mode='midnight'] .cc-cust-profile,
+.theme-midnight .cc-cust-profile,
+.dark-mode .cc-cust-profile {
+  background-color: transparent;
+  color: #f9fafb;
+}
+
+[data-theme-mode='midnight'] .cc-profile-header-card,
+.theme-midnight .cc-profile-header-card,
+.dark-mode .cc-profile-header-card {
+  background: #111827 !important;
+  border-color: #1f2937 !important;
+  box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.4) !important;
+}
+
+[data-theme-mode='midnight'] .cc-profile-header-name,
+.theme-midnight .cc-profile-header-name,
+.dark-mode .cc-profile-header-name {
+  color: #f9fafb !important;
+}
+
+[data-theme-mode='midnight'] .cc-profile-header-sub,
+.theme-midnight .cc-profile-header-sub,
+.dark-mode .cc-profile-header-sub {
+  color: #9ca3af !important;
+}
+
+[data-theme-mode='midnight'] .cc-profile-health-card,
+.theme-midnight .cc-profile-health-card,
+.dark-mode .cc-profile-health-card {
+  background: #1f2937 !important;
+  border-color: #374151 !important;
+}
+
+[data-theme-mode='midnight'] .cc-profile-health-label,
+.theme-midnight .cc-profile-health-label,
+.dark-mode .cc-profile-health-label {
+  color: #f9fafb !important;
+}
+
+[data-theme-mode='midnight'] .cc-profile-health-meta,
+.theme-midnight .cc-profile-health-meta,
+.dark-mode .cc-profile-health-meta {
+  color: #9ca3af !important;
+}
+
+[data-theme-mode='midnight'] .cc-profile-badge--id,
+.theme-midnight .cc-profile-badge--id,
+.dark-mode .cc-profile-badge--id {
+  background: #1f2937 !important;
+  color: #9ca3af !important;
+  border-color: #374151 !important;
+}
+
+[data-theme-mode='midnight'] .cc-profile-metric-chip,
+.theme-midnight .cc-profile-metric-chip,
+.dark-mode .cc-profile-metric-chip {
+  background: #1f2937 !important;
+  border-color: #374151 !important;
+}
+
+[data-theme-mode='midnight'] .cc-profile-metric-label,
+.theme-midnight .cc-profile-metric-label,
+.dark-mode .cc-profile-metric-label {
+  color: #9ca3af !important;
+}
+
+[data-theme-mode='midnight'] .cc-profile-metric-value,
+.theme-midnight .cc-profile-metric-value,
+.dark-mode .cc-profile-metric-value {
+  color: #f9fafb !important;
+}
+
+[data-theme-mode='midnight'] .cc-profile-card,
+.theme-midnight .cc-profile-card,
+.dark-mode .cc-profile-card {
+  background: #111827 !important;
+  border-color: #1f2937 !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
+}
+
+[data-theme-mode='midnight'] .cc-profile-card__header,
+.theme-midnight .cc-profile-card__header,
+.dark-mode .cc-profile-card__header {
+  border-bottom-color: #1f2937 !important;
+}
+
+[data-theme-mode='midnight'] .cc-profile-card__title,
+.theme-midnight .cc-profile-card__title,
+.dark-mode .cc-profile-card__title {
+  color: #f9fafb !important;
+}
+
+[data-theme-mode='midnight'] .cc-profile-card__subtitle,
+.theme-midnight .cc-profile-card__subtitle,
+.dark-mode .cc-profile-card__subtitle {
+  color: #9ca3af !important;
+}
+
+[data-theme-mode='midnight'] .cc-profile-label,
+.theme-midnight .cc-profile-label,
+.dark-mode .cc-profile-label {
+  color: #9ca3af !important;
+}
+
+[data-theme-mode='midnight'] .cc-profile-input-wrap,
+.theme-midnight .cc-profile-input-wrap,
+.dark-mode .cc-profile-input-wrap {
+  background: #1f2937 !important;
+  border-color: #374151 !important;
+}
+
+[data-theme-mode='midnight'] .cc-profile-input-wrap--readonly,
+.theme-midnight .cc-profile-input-wrap--readonly,
+.dark-mode .cc-profile-input-wrap--readonly {
+  background: #0f172a !important;
+  border-color: #1f2937 !important;
+}
+
+[data-theme-mode='midnight'] .cc-profile-input,
+.theme-midnight .cc-profile-input,
+.dark-mode .cc-profile-input {
+  color: #f9fafb !important;
+}
+
+[data-theme-mode='midnight'] .cc-profile-input::placeholder,
+.theme-midnight .cc-profile-input::placeholder,
+.dark-mode .cc-profile-input::placeholder {
+  color: #6b7280 !important;
+}
+
+[data-theme-mode='midnight'] .cc-profile-2fa-label,
+.theme-midnight .cc-profile-2fa-label,
+.dark-mode .cc-profile-2fa-label {
+  color: #f9fafb !important;
+}
+
+[data-theme-mode='midnight'] .cc-profile-2fa-sub,
+.theme-midnight .cc-profile-2fa-sub,
+.dark-mode .cc-profile-2fa-sub {
+  color: #9ca3af !important;
+}
+
+[data-theme-mode='midnight'] .cc-profile-preference-row,
+.theme-midnight .cc-profile-preference-row,
+.dark-mode .cc-profile-preference-row {
+  border-bottom-color: #1f2937 !important;
+}
+
+[data-theme-mode='midnight'] .cc-profile-preference-title,
+.theme-midnight .cc-profile-preference-title,
+.dark-mode .cc-profile-preference-title {
+  color: #f9fafb !important;
+}
+
+[data-theme-mode='midnight'] .cc-profile-preference-desc,
+.theme-midnight .cc-profile-preference-desc,
+.dark-mode .cc-profile-preference-desc {
+  color: #9ca3af !important;
+}
+
+[data-theme-mode='midnight'] .cc-profile-pref-icon-wrap,
+.theme-midnight .cc-profile-pref-icon-wrap,
+.dark-mode .cc-profile-pref-icon-wrap {
+  background: #1f2937 !important;
+  border-color: #374151 !important;
+}
+
+[data-theme-mode='midnight'] .cc-profile-session-item,
+.theme-midnight .cc-profile-session-item,
+.dark-mode .cc-profile-session-item {
+  background: #1f2937 !important;
+  border-color: #374151 !important;
+}
+
+[data-theme-mode='midnight'] .cc-profile-session-device,
+.theme-midnight .cc-profile-session-device,
+.dark-mode .cc-profile-session-device {
+  color: #f9fafb !important;
+}
+
+[data-theme-mode='midnight'] .cc-profile-session-meta,
+.theme-midnight .cc-profile-session-meta,
+.dark-mode .cc-profile-session-meta {
+  color: #9ca3af !important;
+}
+
+[data-theme-mode='midnight'] .cc-profile-btn--secondary,
+.theme-midnight .cc-profile-btn--secondary,
+.dark-mode .cc-profile-btn--secondary {
+  background: #1f2937 !important;
+  border-color: #374151 !important;
+  color: #f9fafb !important;
+}
+
+[data-theme-mode='midnight'] .cc-profile-btn--secondary:hover:not(:disabled),
+.theme-midnight .cc-profile-btn--secondary:hover:not(:disabled),
+.dark-mode .cc-profile-btn--secondary:hover:not(:disabled) {
+  background: #374151 !important;
+  border-color: #4b5563 !important;
+}
+
+[data-theme-mode='midnight'] .cc-profile-audit-text,
+.theme-midnight .cc-profile-audit-text,
+.dark-mode .cc-profile-audit-text {
+  color: #9ca3af !important;
+}
+
+[data-theme-mode='midnight'] .cc-profile-audit-text strong,
+.theme-midnight .cc-profile-audit-text strong,
+.dark-mode .cc-profile-audit-text strong {
+  color: #f9fafb !important;
+}
+
+

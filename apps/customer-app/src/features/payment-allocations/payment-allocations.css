@@ -1,14 +1,85 @@
 .cc-payment-allocations-page {
+  --font-mono: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-display: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
   max-width: 1440px;
   margin: 0 auto;
   padding: 28px;
   color: var(--color-text-primary);
-  font-family: var(--font-body);
 }
 
-.cc-payment-allocations-header h1 { margin: 0; font-family: var(--font-display); font-size: var(--font-size-xl); letter-spacing: -0.02em; }
+.cc-payment-allocations-page,
+.cc-payment-allocations-page *,
+.cc-payment-allocations-page button,
+.cc-payment-allocations-page input,
+.cc-payment-allocations-page select,
+.cc-payment-allocations-page textarea {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+}
+
+/* Clamp non-title weights to max 600 across page, numbers, cards, tables, inputs, badges */
+.cc-payment-allocations-page strong,
+.cc-payment-allocations-page b,
+.cc-payment-allocations-page th,
+.cc-payment-allocations-page td,
+.cc-payment-allocations-page button,
+.cc-payment-allocations-page input,
+.cc-payment-allocations-page select,
+.cc-payment-allocations-page textarea,
+.cc-payment-allocations-page .cc-payment-allocation-money,
+.cc-payment-allocations-page .cc-payment-allocation-status,
+.cc-payment-allocations-page .cc-portal-financial-amount {
+  font-weight: 600 !important;
+}
+
+/* Ensure all numbers, currency amounts, metrics use apple-system font and tabular numerals with font-weight 600 */
+.cc-payment-allocations-page [class*="num"],
+.cc-payment-allocations-page [class*="amount"],
+.cc-payment-allocations-page [class*="price"],
+.cc-payment-allocations-page [class*="digit"],
+.cc-payment-allocations-page [class*="val"],
+.cc-payment-allocations-page [class*="balance"],
+.cc-payment-allocations-page [class*="total"],
+.cc-payment-allocations-page [class*="count"],
+.cc-payment-allocations-page td,
+.cc-payment-allocations-page code {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+  font-weight: 600 !important;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Increased "PAYMENT ALLOCATIONS" wording title size and signature portal gradient */
+.cc-payment-allocations-title {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+  font-size: 1.85rem !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.02em;
+  color: #0f172a;
+  line-height: 1.2;
+  text-transform: uppercase;
+  display: inline-block;
+}
+
+.cc-payment-allocations-title-highlight {
+  background: linear-gradient(to right, #C8102E 0%, #DC2626 50%, #D97706 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  display: inline-block;
+  font-weight: 700 !important;
+}
+
+.cc-payment-allocations-header h1,
+.cc-payment-allocation-detail h2 {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+  font-weight: 700 !important;
+}
+
 .cc-payment-allocations-header p { color: var(--color-text-secondary); margin: var(--spacing-xs) 0 0; }
-.cc-payment-allocations-eyebrow { color: var(--color-primary) !important; font-size: var(--font-size-xs); font-weight: 800; letter-spacing: .12em; }
+.cc-payment-allocations-eyebrow { color: var(--color-primary) !important; font-size: var(--font-size-xs); font-weight: 600 !important; letter-spacing: .12em; }
 
 .cc-payment-allocation-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin: 24px 0; }
 .cc-payment-allocation-kpis > div,
@@ -28,11 +99,24 @@
 .cc-payment-allocation-table-wrap { overflow-x: hidden; }
 .cc-payment-allocation-table { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 0; font-family: var(--font-body); font-size: var(--font-size-xs); }
 .cc-payment-allocation-table th,
-.cc-payment-allocation-table td { padding: 9px 7px; border-bottom: 1px solid var(--color-border); text-align: left; vertical-align: middle; overflow-wrap: anywhere; }
-.cc-payment-allocation-table th { padding: 9px 7px; border-bottom: 1px solid var(--color-border); text-align: left; vertical-align: middle; }
+.cc-payment-allocation-table td { padding: 8px 6px; border-bottom: 1px solid var(--color-border); text-align: left; vertical-align: middle; overflow-wrap: anywhere; }
+.cc-payment-allocation-table th { padding: 8px 6px; border-bottom: 1px solid var(--color-border); text-align: left; vertical-align: middle; }
 .cc-payment-allocation-table thead { background: var(--color-neutral-surface); }
-.cc-payment-allocation-table thead th { background: var(--color-neutral-surface); color: var(--color-text-secondary); font-family: var(--font-mono); font-size: var(--font-size-xs); font-weight: 700; letter-spacing: .04em; line-height: 1.2; border-bottom: 2px solid var(--color-border); text-transform: uppercase; white-space: normal; }
-.cc-payment-allocation-table thead th > span { display: block; }
+.cc-payment-allocation-table thead th {
+  background: var(--color-neutral-surface);
+  color: var(--color-text-secondary);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+  font-size: 10.5px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.04em;
+  line-height: 1.25;
+  padding: 8px 6px;
+  border-bottom: 2px solid var(--color-border);
+  text-transform: uppercase;
+  white-space: normal;
+  vertical-align: middle;
+}
+.cc-payment-allocation-table thead th > span { display: block; line-height: 1.2; }
 .cc-payment-allocation-table thead th:first-child { border-top-left-radius: var(--radius-lg); }
 .cc-payment-allocation-table thead th:last-child { border-top-right-radius: var(--radius-lg); }
 .cc-payment-allocation-table tbody tr:last-child > th,
@@ -43,21 +127,21 @@
 .cc-payment-allocation-row--expanded { background: var(--color-neutral-surface); }
 .cc-payment-allocation-row:focus-visible { box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--color-primary) 28%, transparent); }
 .cc-payment-allocation-row th strong { font-family: var(--font-mono); letter-spacing: .02em; }
-.cc-payment-allocation-money { font-family: var(--font-mono); font-weight: 700; }
+.cc-payment-allocation-money { font-family: var(--font-mono); font-weight: 600; }
 .cc-payment-allocation-number { text-align: right !important; }
-.cc-payment-allocation-table th:nth-child(1), .cc-payment-allocation-table td:nth-child(1) { width: 8%; }
+.cc-payment-allocation-table th:nth-child(1), .cc-payment-allocation-table td:nth-child(1) { width: 9%; }
 .cc-payment-allocation-table th:nth-child(2), .cc-payment-allocation-table td:nth-child(2) { width: 10%; }
-.cc-payment-allocation-table th:nth-child(3), .cc-payment-allocation-table td:nth-child(3) { width: 10%; }
-.cc-payment-allocation-table th:nth-child(4), .cc-payment-allocation-table td:nth-child(4) { width: 15%; }
-.cc-payment-allocation-table th:nth-child(5), .cc-payment-allocation-table td:nth-child(5) { width: 4%; }
+.cc-payment-allocation-table th:nth-child(3), .cc-payment-allocation-table td:nth-child(3) { width: 9%; }
+.cc-payment-allocation-table th:nth-child(4), .cc-payment-allocation-table td:nth-child(4) { width: 14%; }
+.cc-payment-allocation-table th:nth-child(5), .cc-payment-allocation-table td:nth-child(5) { width: 5%; }
 .cc-payment-allocation-table thead th:nth-child(5) { white-space: nowrap; }
 .cc-payment-allocation-table th:nth-child(6), .cc-payment-allocation-table td:nth-child(6) { width: 11%; }
 .cc-payment-allocation-table th:nth-child(7), .cc-payment-allocation-table td:nth-child(7) { width: 11%; }
-.cc-payment-allocation-table th:nth-child(8), .cc-payment-allocation-table td:nth-child(8) { width: 12%; }
+.cc-payment-allocation-table th:nth-child(8), .cc-payment-allocation-table td:nth-child(8) { width: 11%; }
 .cc-payment-allocation-table th:nth-child(9), .cc-payment-allocation-table td:nth-child(9) { width: 7%; }
-.cc-payment-allocation-table th:nth-child(10), .cc-payment-allocation-table td:nth-child(10) { width: 10%; }
+.cc-payment-allocation-table th:nth-child(10), .cc-payment-allocation-table td:nth-child(10) { width: 13%; }
 .cc-payment-allocation-status-cell { white-space: normal !important; }
-.cc-payment-allocation-status { display: block; width: max-content; padding: 5px 9px; border-radius: var(--radius-pill); background: var(--color-surface-elevated); font-size: var(--font-size-xs); font-weight: 700; }
+.cc-payment-allocation-status { display: block; width: max-content; padding: 5px 9px; border-radius: var(--radius-pill); background: var(--color-surface-elevated); font-size: var(--font-size-xs); font-weight: 600; }
 .cc-payment-allocation-status--FullyAllocated { color: var(--color-success); }
 .cc-payment-allocation-status--PartiallyAllocated { color: var(--color-warning); }
 
@@ -79,7 +163,7 @@
 .cc-payment-allocation-line img,
 .cc-payment-allocation-line__image { width: 56px; height: 42px; object-fit: cover; border-radius: var(--radius-sm); background: var(--color-surface-elevated); }
 .cc-payment-allocation-line > div { display: grid; gap: 3px; }
-.cc-payment-allocation-line strong { font-size: var(--font-size-sm); font-weight: 700; }
+.cc-payment-allocation-line strong { font-size: var(--font-size-sm); font-weight: 600; }
 .cc-payment-allocation-line small { color: var(--color-text-secondary); font-size: var(--font-size-xs); line-height: 1.45; }
 .cc-payment-allocation-line > span { display: grid; gap: 3px; color: var(--color-text-secondary); font-size: var(--font-size-sm); text-align: right; white-space: nowrap; }
 .cc-payment-allocation-line__financials { display: grid !important; grid-template-columns: repeat(3, minmax(90px, 1fr)); gap: var(--spacing-sm) !important; min-width: 300px; }
@@ -91,7 +175,7 @@
 .cc-payment-allocation-invoice > div:last-child { display: flex; }
 .cc-payment-allocation-invoice strong { font-family: var(--font-mono); font-size: var(--font-size-sm); letter-spacing: .02em; }
 .cc-payment-allocation-invoice button,
-.cc-payment-allocation-pagination button { min-height: 40px; padding: 0 var(--spacing-md); border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); color: var(--color-primary); font: inherit; font-size: var(--font-size-sm); font-weight: 700; line-height: 1; cursor: pointer; transition: background-color var(--motion-fast), border-color var(--motion-fast), color var(--motion-fast), transform var(--motion-fast); }
+.cc-payment-allocation-pagination button { min-height: 40px; padding: 0 var(--spacing-md); border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); color: var(--color-primary); font: inherit; font-size: var(--font-size-sm); font-weight: 600; line-height: 1; cursor: pointer; transition: background-color var(--motion-fast), border-color var(--motion-fast), color var(--motion-fast), transform var(--motion-fast); }
 .cc-payment-allocation-invoice button + button { margin-left: 8px; }
 .cc-payment-allocation-invoice button:hover,
 .cc-payment-allocation-pagination button:hover:not(:disabled) { border-color: var(--color-primary); background: var(--color-primary); color: var(--color-text-on-primary); }
@@ -127,4 +211,75 @@
   .cc-payment-allocation-kpis { grid-template-columns: 1fr; }
   .cc-payment-allocation-invoice > div:last-child { display: grid; grid-template-columns: 1fr; gap: 8px; }
   .cc-payment-allocation-invoice button + button { margin-left: 0; }
+}
+
+/* ==========================================================================
+   DARK THEME (MIDNIGHT MODE) - PAYMENT ALLOCATIONS (WEB & MOBILE)
+   ========================================================================== */
+
+[data-theme-mode='midnight'] .cc-payment-allocations-title,
+.theme-midnight .cc-payment-allocations-title,
+.dark-mode .cc-payment-allocations-title {
+  color: #f9fafb !important;
+}
+
+[data-theme-mode='midnight'] .cc-payment-allocation-kpis > div,
+.theme-midnight .cc-payment-allocation-kpis > div,
+.dark-mode .cc-payment-allocation-kpis > div,
+[data-theme-mode='midnight'] .cc-payment-allocation-filters,
+.theme-midnight .cc-payment-allocation-filters,
+.dark-mode .cc-payment-allocation-filters,
+[data-theme-mode='midnight'] .cc-payment-allocation-table-wrap,
+.theme-midnight .cc-payment-allocation-table-wrap,
+.dark-mode .cc-payment-allocation-table-wrap {
+  background: #111827 !important;
+  border-color: #1f2937 !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme-mode='midnight'] .cc-payment-allocation-table thead,
+.theme-midnight .cc-payment-allocation-table thead,
+.dark-mode .cc-payment-allocation-table thead,
+[data-theme-mode='midnight'] .cc-payment-allocation-table thead th,
+.theme-midnight .cc-payment-allocation-table thead th,
+.dark-mode .cc-payment-allocation-table thead th {
+  background: #030712 !important;
+  border-bottom-color: #1f2937 !important;
+  color: #9ca3af !important;
+}
+
+[data-theme-mode='midnight'] .cc-payment-allocation-table td,
+.theme-midnight .cc-payment-allocation-table td,
+.dark-mode .cc-payment-allocation-table td {
+  border-bottom-color: #1f2937 !important;
+  color: #f9fafb !important;
+}
+
+[data-theme-mode='midnight'] .cc-payment-allocation-row:hover,
+.theme-midnight .cc-payment-allocation-row:hover,
+.dark-mode .cc-payment-allocation-row:hover,
+[data-theme-mode='midnight'] .cc-payment-allocation-row--expanded,
+.theme-midnight .cc-payment-allocation-row--expanded,
+.dark-mode .cc-payment-allocation-row--expanded {
+  background: #1f2937 !important;
+}
+
+[data-theme-mode='midnight'] .cc-payment-allocation-detail-row > td,
+.theme-midnight .cc-payment-allocation-detail-row > td,
+.dark-mode .cc-payment-allocation-detail-row > td {
+  background: #111827 !important;
+}
+
+[data-theme-mode='midnight'] .cc-payment-allocation-line,
+.theme-midnight .cc-payment-allocation-line,
+.dark-mode .cc-payment-allocation-line {
+  background: #1f2937 !important;
+  border-color: #374151 !important;
+}
+
+[data-theme-mode='midnight'] .cc-payment-allocation-invoice,
+.theme-midnight .cc-payment-allocation-invoice,
+.dark-mode .cc-payment-allocation-invoice {
+  background: #1f2937 !important;
+  border-color: #374151 !important;
 }

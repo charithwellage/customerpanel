@@ -1,11 +1,8 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.ContentService = void 0;
 /**
  * Public content, FAQ and testimonial services (PUB-17, PUB-18, PUB-19, PUB-20,
  * PUB-21, PUB-27, PUB-29, PUB-30, PUB-31, PUB-35).
  */
-class ContentService {
+export class ContentService {
     httpClient;
     constructor(httpClient) {
         this.httpClient = httpClient;
@@ -113,5 +110,4 @@ class ContentService {
         }
     }
 }
-exports.ContentService = ContentService;
 //# sourceMappingURL=content.js.map

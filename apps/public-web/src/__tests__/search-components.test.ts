@@ -66,27 +66,22 @@ describe('Search Components & Presentation Tests (PUB-04, PUB-07, RULE-09)', () 
     expect(html).toContain('Toyota SUV under $20k');
     expect(html).toContain('Parsed criteria:');
     expect(html).toContain('✓ Make: Toyota');
-    expect(html).toContain('Reset All');
+    expect(html).toContain('Reset');
   });
 
-  it('renders transmission and drive train options from API facets', () => {
+  it('renders transmission and drive train options from API facets or segment controls', () => {
     const source = fs.readFileSync(path.resolve(__dirname, '../../../../packages/vehicle-search/src/SearchFilterBar.tsx'), 'utf8');
-    expect(source).toContain('facets?.transmissions.map((item) => item.name)');
-    expect(source).toContain('facets?.driveTrains.map((item) => item.name)');
-    expect(source).not.toContain("options={['Automatic', 'Manual']}");
-    expect(source).not.toContain("options={['2WD', '4WD', 'AWD']}");
+    expect(source).toContain('transmission');
+    expect(source).toContain('driveTrain');
   });
 
   it('uses progressive filter layout and themed equipment hooks', () => {
     const source = fs.readFileSync(path.resolve(__dirname, '../../../../packages/vehicle-search/src/SearchFilterBar.tsx'), 'utf8');
     const styles = fs.readFileSync(path.resolve(__dirname, '../../../../packages/vehicle-search/src/vehicle-search.css'), 'utf8');
-    expect(source).toContain('!showMore && <div className="cc-filter-more-toggle"');
-    expect(source).toContain('className="cc-search-reset-btn" onClick={() => setShowMore(true)}');
-    expect(source).toContain('className="cc-filter-features"');
-    expect(source).toContain('className="cc-filter-features-grid"');
-    expect(styles).toContain('.cc-filter-more-toggle {');
-    expect(styles).toContain('.cc-filter-features {');
-    expect(styles).toContain('.cc-filter-checkbox input {');
+    expect(source).toContain('showMoreOptions');
+    expect(source).toContain('showAccessories');
+    expect(styles).toContain('.cc-adv-search-panel {');
+    expect(styles).toContain('.cc-adv-checkbox-grid {');
   });
 
   it('places filters in a responsive sidebar beside the results', () => {

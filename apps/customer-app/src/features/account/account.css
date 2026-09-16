@@ -13,13 +13,29 @@
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  padding: var(--spacing-xl) var(--spacing-md);
-  background: var(--color-background);
+  padding: 32px 16px;
+  background: radial-gradient(circle at 50% 12%, rgba(220, 38, 38, 0.12) 0%, rgba(15, 23, 42, 0.78) 100%), #0f172a;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
-/* ---------- Sign-in card ---------- */
+/* ---------- Sign-in card (Modal Dialog View) ---------- */
 
-.cc-acc-login-card,
+.cc-acc-login-card {
+  position: relative;
+  width: 100%;
+  max-width: 448px;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  border-top: 4px solid #dc2626; /* Prominent red accent strip */
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.38), 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  animation: ccFadeIn var(--motion-normal) ease-out;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
 .cc-acc-recovery-card {
   display: flex;
   flex-direction: column;
@@ -46,87 +62,116 @@
   }
 }
 
-/* Brand Identity */
-.cc-acc-login-card__brand {
+.cc-acc-login-card__inner {
+  padding: 24px 28px 22px 28px;
   display: flex;
-  align-items: center;
+  flex-direction: column;
+}
+
+/* Brand Header & Close Button Row */
+.cc-acc-modal-header {
+  display: flex;
+  align-items: flex-start;
   justify-content: space-between;
-  padding-bottom: var(--spacing-sm);
-  border-bottom: 1px solid var(--color-border);
+  margin-bottom: 22px;
 }
 
 .cc-acc-brand-logo {
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: 12px;
 }
 
 .cc-acc-shield-icon {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .cc-acc-title-wrap {
   display: flex;
-  align-items: baseline;
-  gap: var(--spacing-xs);
+  flex-direction: column;
+  gap: 2px;
 }
 
 .cc-acc-brand-name {
-  font-family: var(--font-display);
-  font-size: var(--font-size-xl);
-  font-weight: 900;
-  letter-spacing: -0.01em;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
 }
 
 .cc-acc-brand-car {
-  color: var(--color-text-primary);
+  color: #0f172a;
 }
 
 .cc-acc-brand-chief {
-  color: var(--color-primary);
+  color: #dc2626;
 }
 
 .cc-acc-brand-sub {
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 10px;
   font-weight: 700;
-  color: var(--color-text-secondary);
-  letter-spacing: 0.08em;
+  color: #94a3b8;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
-.cc-acc-online-pill {
-  display: inline-flex;
+/* Modal Close Button */
+.cc-acc-modal-close-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #f1f5f9;
+  border: none;
+  display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-xs) var(--spacing-sm);
-  background: var(--color-success-surface);
-  border: 1px solid var(--color-success);
-  border-radius: var(--radius-pill);
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
+  justify-content: center;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.cc-acc-modal-close-btn:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+/* Heading Section */
+.cc-acc-heading-section {
+  margin-bottom: 24px;
+}
+
+.cc-acc-login-card__title {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 25px;
   font-weight: 800;
-  color: var(--color-success);
-  letter-spacing: 0.06em;
+  color: #0f172a;
+  margin: 0 0 6px 0;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
 }
 
-.cc-acc-online-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: var(--radius-pill);
-  background: var(--color-success);
+.cc-acc-login-card__subtitle {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14.5px;
+  line-height: 1.45;
+  color: #475569;
+  margin: 0;
 }
 
-/* Card Header */
-.cc-acc-login-card__header,
+/* Card Header for recovery card */
 .cc-acc-recovery-card__header {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-xs);
 }
 
-.cc-acc-login-card__badge,
 .cc-acc-recovery-card__badge {
   align-self: flex-start;
   padding: var(--spacing-xs) var(--spacing-sm);
@@ -276,115 +321,214 @@
 .cc-acc-login-card__form {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  gap: 16px;
 }
 
 .cc-acc-login-card__field {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs);
+  gap: 7px;
 }
 
 .cc-acc-login-card__label-row {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
-  gap: var(--spacing-sm);
 }
 
 .cc-acc-login-card__label {
-  font-size: var(--font-size-xs);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 11px;
   font-weight: 700;
-  color: var(--color-text-primary);
+  color: #64748b;
   text-transform: uppercase;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.08em;
 }
 
-.cc-acc-input-wrap,
-.cc-acc-password-wrap {
-  position: relative;
+.cc-acc-login-card__forgot-btn {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #dc2626;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: color 0.15s ease;
+  text-decoration: none;
+}
+
+.cc-acc-login-card__forgot-btn:hover {
+  color: #b91c1c;
+  text-decoration: underline;
+}
+
+/* Input container with left icon */
+.cc-acc-input-container {
   display: flex;
   align-items: center;
+  gap: 10px;
+  height: 46px;
+  padding: 0 14px;
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 8px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cc-acc-input-container:focus-within {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.cc-acc-field-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  flex-shrink: 0;
 }
 
 .cc-acc-login-card__input {
-  width: 100%;
-  min-height: var(--min-touch-target);
-  padding: var(--spacing-sm) var(--spacing-md);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  font-family: var(--font-body);
-  font-size: var(--font-size-base);
-  color: var(--color-text-primary);
-  transition: border-color var(--motion-fast) ease, box-shadow var(--motion-fast) ease;
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  color: #0f172a;
+  font-weight: 500;
+  min-width: 0;
+  padding: 0;
+}
+
+.cc-acc-login-card__input::placeholder {
+  color: #94a3b8;
+  font-weight: 400;
 }
 
 .cc-acc-login-card__input--password {
-  padding-right: var(--spacing-2xl);
+  letter-spacing: 2px;
 }
 
-.cc-acc-login-card__input:focus-visible,
-.cc-acc-login-card__input:focus {
-  outline: none;
-  border-color: var(--color-focus);
-}
-
-.cc-acc-pwd-toggle {
-  position: absolute;
-  right: var(--spacing-sm);
+.cc-acc-pwd-toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: transparent;
   border: none;
-  font-size: var(--font-size-base);
+  color: #94a3b8;
   cursor: pointer;
-  padding: var(--spacing-xs);
-  border-radius: var(--radius-sm);
+  padding: 4px;
+  border-radius: 4px;
+  transition: color 0.15s ease;
+}
+
+.cc-acc-pwd-toggle-btn:hover {
+  color: #475569;
 }
 
 .cc-acc-login-card__field-error,
 .cc-acc-recovery-card__field-error {
-  font-size: var(--font-size-xs);
+  font-size: 11.5px;
   font-weight: 600;
-  color: var(--color-error);
+  color: #dc2626;
+  margin-top: 2px;
 }
 
-.cc-acc-login-card__forgot-btn {
-  padding: 0;
-  background: none;
-  border: none;
-  color: var(--color-primary);
-  font-size: var(--font-size-xs);
-  font-weight: 600;
-  text-decoration: underline;
-  cursor: pointer;
-}
-
-.cc-acc-login-card__actions {
+/* Options Row: Checkbox & 256-Bit SSL Badge */
+.cc-acc-login-options-row {
   display: flex;
-  flex-direction: column;
-  margin-top: var(--spacing-xs);
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+
+.cc-acc-remember-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.cc-acc-checkbox {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.cc-acc-checkbox-custom {
+  width: 17px;
+  height: 17px;
+  border-radius: 4px;
+  background: #2563eb;
+  border: 1px solid #1d4ed8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease;
+  flex-shrink: 0;
+}
+
+.cc-acc-checkbox:not(:checked) + .cc-acc-checkbox-custom {
+  background: #ffffff;
+  border-color: #cbd5e1;
+}
+
+.cc-acc-checkbox:not(:checked) + .cc-acc-checkbox-custom svg {
+  display: none;
+}
+
+.cc-acc-remember-text {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.cc-acc-ssl-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #16a34a;
+  letter-spacing: 0.04em;
+}
+
+/* Submit Action Button */
+.cc-acc-login-card__actions {
+  margin-top: 6px;
 }
 
 .cc-acc-login-card__submit {
   width: 100%;
-  padding: var(--spacing-md);
-  background: var(--color-primary);
-  color: var(--color-text-on-primary);
+  height: 48px;
+  background: #0b132b;
+  color: #ffffff;
   border: none;
-  border-radius: var(--radius-md);
-  font-family: var(--font-display);
-  font-size: var(--font-size-base);
-  font-weight: 800;
-  letter-spacing: 0.04em;
+  border-radius: 8px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 13.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   cursor: pointer;
-  box-shadow: var(--shadow-md);
-  transition: all var(--motion-fast) ease;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-shadow: 0 2px 4px rgba(11, 19, 43, 0.12);
 }
 
 .cc-acc-login-card__submit:hover:not(:disabled) {
-  background: var(--color-primary-hover);
-  box-shadow: var(--shadow-lg);
+  background: #1e293b;
+  box-shadow: 0 4px 12px rgba(11, 19, 43, 0.25);
 }
 
 .cc-acc-login-card__submit:disabled {
@@ -392,7 +536,36 @@
   cursor: not-allowed;
 }
 
-/* Footer Navigation & Security */
+/* Modal Bottom Footer Strip */
+.cc-acc-modal-footer {
+  background: #f8fafc;
+  border-top: 1px solid #f1f5f9;
+  padding: 13px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cc-acc-footer-left {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.cc-acc-footer-right {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  color: #8b9ab0;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Footer Navigation & Security (legacy/recovery fallback) */
 .cc-acc-footer {
   display: flex;
   flex-direction: column;
@@ -508,4 +681,125 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--spacing-sm);
+}
+
+/* ==========================================================================
+   DARK THEME (MIDNIGHT MODE) - ACCOUNT LOGIN & RECOVERY (WEB & MOBILE)
+   ========================================================================== */
+
+[data-theme-mode='midnight'] .cc-acc-login-card,
+.theme-midnight .cc-acc-login-card,
+.dark-mode .cc-acc-login-card {
+  background: #111827 !important;
+  border-color: #1f2937 !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 10px 15px -3px rgba(0, 0, 0, 0.4) !important;
+}
+
+[data-theme-mode='midnight'] .cc-acc-brand-car,
+.theme-midnight .cc-acc-brand-car,
+.dark-mode .cc-acc-brand-car {
+  color: #f9fafb !important;
+}
+
+[data-theme-mode='midnight'] .cc-acc-modal-close-btn,
+.theme-midnight .cc-acc-modal-close-btn,
+.dark-mode .cc-acc-modal-close-btn {
+  background: #1f2937 !important;
+  color: #9ca3af !important;
+}
+
+[data-theme-mode='midnight'] .cc-acc-modal-close-btn:hover,
+.theme-midnight .cc-acc-modal-close-btn:hover,
+.dark-mode .cc-acc-modal-close-btn:hover {
+  background: #374151 !important;
+  color: #f9fafb !important;
+}
+
+[data-theme-mode='midnight'] .cc-acc-login-card__title,
+.theme-midnight .cc-acc-login-card__title,
+.dark-mode .cc-acc-login-card__title {
+  color: #f9fafb !important;
+}
+
+[data-theme-mode='midnight'] .cc-acc-login-card__subtitle,
+.theme-midnight .cc-acc-login-card__subtitle,
+.dark-mode .cc-acc-login-card__subtitle {
+  color: #9ca3af !important;
+}
+
+[data-theme-mode='midnight'] .cc-acc-login-card__label,
+.theme-midnight .cc-acc-login-card__label,
+.dark-mode .cc-acc-login-card__label {
+  color: #9ca3af !important;
+}
+
+[data-theme-mode='midnight'] .cc-acc-input-container,
+.theme-midnight .cc-acc-input-container,
+.dark-mode .cc-acc-input-container {
+  background: #1f2937 !important;
+  border-color: #374151 !important;
+}
+
+[data-theme-mode='midnight'] .cc-acc-input-container:focus-within,
+.theme-midnight .cc-acc-input-container:focus-within,
+.dark-mode .cc-acc-input-container:focus-within {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2) !important;
+}
+
+[data-theme-mode='midnight'] .cc-acc-login-card__input,
+.theme-midnight .cc-acc-login-card__input,
+.dark-mode .cc-acc-login-card__input {
+  color: #f9fafb !important;
+}
+
+[data-theme-mode='midnight'] .cc-acc-login-card__input::placeholder,
+.theme-midnight .cc-acc-login-card__input::placeholder,
+.dark-mode .cc-acc-login-card__input::placeholder {
+  color: #6b7280 !important;
+}
+
+[data-theme-mode='midnight'] .cc-acc-checkbox:not(:checked) + .cc-acc-checkbox-custom,
+.theme-midnight .cc-acc-checkbox:not(:checked) + .cc-acc-checkbox-custom,
+.dark-mode .cc-acc-checkbox:not(:checked) + .cc-acc-checkbox-custom {
+  background: #1f2937 !important;
+  border-color: #374151 !important;
+}
+
+[data-theme-mode='midnight'] .cc-acc-remember-text,
+.theme-midnight .cc-acc-remember-text,
+.dark-mode .cc-acc-remember-text {
+  color: #e2e8f0 !important;
+}
+
+[data-theme-mode='midnight'] .cc-acc-login-card__submit,
+.theme-midnight .cc-acc-login-card__submit,
+.dark-mode .cc-acc-login-card__submit {
+  background: #ef4444 !important;
+  color: #ffffff !important;
+}
+
+[data-theme-mode='midnight'] .cc-acc-login-card__submit:hover:not(:disabled),
+.theme-midnight .cc-acc-login-card__submit:hover:not(:disabled),
+.dark-mode .cc-acc-login-card__submit:hover:not(:disabled) {
+  background: #dc2626 !important;
+}
+
+[data-theme-mode='midnight'] .cc-acc-modal-footer,
+.theme-midnight .cc-acc-modal-footer,
+.dark-mode .cc-acc-modal-footer {
+  background: #030712 !important;
+  border-top-color: #1f2937 !important;
+}
+
+[data-theme-mode='midnight'] .cc-acc-footer-left,
+.theme-midnight .cc-acc-footer-left,
+.dark-mode .cc-acc-footer-left {
+  color: #9ca3af !important;
+}
+
+[data-theme-mode='midnight'] .cc-acc-footer-right,
+.theme-midnight .cc-acc-footer-right,
+.dark-mode .cc-acc-footer-right {
+  color: #6b7280 !important;
 }

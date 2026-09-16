@@ -4,7 +4,6 @@ import { useCustomerShell } from '../shell/index.js';
 import { useCustomerInquiries } from './useCustomerInquiries.js';
 import { InquiryMessageModal } from './components/InquiryMessageModal.js';
 import { SearchGlassIcon, InquiriesChatIcon } from '../../components/Icons.js';
-import { ViewModeToggle, type ViewMode } from '../../components/ViewModeToggle.js';
 import './inquiries.css';
 
 export interface PolymorphicInquiry extends CustomerPolymorphicInquiry {
@@ -35,6 +34,59 @@ export interface PolymorphicInquiry extends CustomerPolymorphicInquiry {
   inquirerCount?: number;
   auctionRemaining?: string;
   auctionFinished?: boolean;
+  vehicleStatus?: 'AVAILABLE' | 'RESERVED' | 'SOLD' | string;
+}
+
+const COLOR_STUDIO_IMAGES: Record<string, string> = {
+  white: '/images/cars/car-white.jpg',
+  pearl: '/images/cars/car-white.jpg',
+  black: '/images/cars/car-black.jpg',
+  red: '/images/cars/car-red.jpg',
+  blue: '/images/cars/car-blue.jpg',
+  silver: '/images/cars/car-silver.jpg',
+  gray: '/images/cars/car-gray.jpg',
+  grey: '/images/cars/car-gray.jpg',
+  green: '/images/cars/car-green.jpg',
+};
+
+const STUDIO_CAR_PALETTE = [
+  '/images/cars/car-white.jpg',
+  '/images/cars/car-red.jpg',
+  '/images/cars/car-black.jpg',
+  '/images/cars/car-blue.jpg',
+  '/images/cars/car-silver.jpg',
+  '/images/cars/car-gray.jpg',
+  '/images/cars/car-pearl.jpg',
+  '/images/cars/car-green.jpg',
+];
+
+export function resolveInquiryVehicleImage(inq: {
+  imageUrl?: string;
+  color?: string;
+  id?: string;
+  make?: string;
+  model?: string;
+}): string {
+  // If vehicle already explicitly points to a white-background studio vehicle picture, use it
+  if (inq.imageUrl && inq.imageUrl.startsWith('/images/cars/')) {
+    return inq.imageUrl;
+  }
+  // Match by declared vehicle color if present
+  const colorKey = (inq.color || '').toLowerCase().trim();
+  if (colorKey) {
+    for (const [key, path] of Object.entries(COLOR_STUDIO_IMAGES)) {
+      if (colorKey.includes(key)) {
+        return path;
+      }
+    }
+  }
+  // Deterministically rotate through the studio white-background car pictures
+  const seedStr = inq.id || `${inq.make} ${inq.model}` || 'car';
+  let seed = 0;
+  for (let i = 0; i < seedStr.length; i++) {
+    seed = (seed * 31 + seedStr.charCodeAt(i)) >>> 0;
+  }
+  return STUDIO_CAR_PALETTE[seed % STUDIO_CAR_PALETTE.length];
 }
 
 export const SEED_INQUIRIES: PolymorphicInquiry[] = [
@@ -51,6 +103,7 @@ export const SEED_INQUIRIES: PolymorphicInquiry[] = [
     chassisNumber: 'NRE161-0091995',
     vehicleSlug: '2021-toyota-corolla-fielder-veh-inv-1',
     vehicleId: 'veh-inv-1',
+    vehicleStatus: 'AVAILABLE',
     engineCc: 1500,
     mileage: 177000,
     fuelType: 'Petrol',
@@ -64,7 +117,7 @@ export const SEED_INQUIRIES: PolymorphicInquiry[] = [
     cfPriceUsd: 2400,
     deliveryLocation: 'Kenya-Mombasa',
     inquirerCount: 4,
-    imageUrl: 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=600',
+    imageUrl: '/images/cars/car-white.jpg',
   },
   {
     id: 'inq-2',
@@ -75,15 +128,18 @@ export const SEED_INQUIRIES: PolymorphicInquiry[] = [
     make: 'Toyota',
     model: 'Raize Z 4WD',
     yom: '2024',
+    stockNumber: 'J240111112',
     lotNumber: '36071',
     chassisModel: 'A210A',
+    chassisNumber: 'A210A-0048192',
     vehicleSlug: '2024-toyota-raize-veh-7',
     vehicleId: 'veh-7',
+    vehicleStatus: 'RESERVED',
     engineCc: 1200,
     mileage: 18500,
     fuelType: 'Petrol',
     transmission: 'Automatic',
-    color: 'Blue',
+    color: 'Soul Red',
     viewsCount: 8,
     message: 'Inspection grade request and maximum auction bidding cap confirmation.',
     replyMessage: 'Grade 5.0 A condition verified. Starting bid placed at JAAI Yokohama.',
@@ -92,7 +148,7 @@ export const SEED_INQUIRIES: PolymorphicInquiry[] = [
     auctionRemaining: '2 hr 45 min',
     auctionFinished: false,
     deliveryLocation: 'Kenya',
-    imageUrl: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=600',
+    imageUrl: '/images/cars/car-red.jpg',
   },
   {
     id: 'inq-3',
@@ -103,18 +159,53 @@ export const SEED_INQUIRIES: PolymorphicInquiry[] = [
     make: 'Toyota',
     model: 'Land Cruiser 250 ZX',
     yom: '2024',
+    stockNumber: 'J240111113',
+    chassisNumber: 'GDJ250W-001290',
     vehicleSlug: '2024-toyota-land-cruiser-250-veh-6',
     vehicleId: 'veh-6',
+    vehicleStatus: 'SOLD',
     priceState: 'priced',
     priceUsd: 45000,
+    viewsCount: 19,
     message: 'Looking for 2024 Land Cruiser 250 with sunroof, leather interior, and 7 seats.',
     replyMessage: 'We have reserved 2 units arriving at Yokohama port this week.',
     repliedAt: '26th Sep, 2024 16:00:00',
     driveType: 'RHD 4WD',
     mfgYearRange: '2022 To 2024',
+    color: 'Diamond Black',
     minFobUsd: 1400,
     maxFobUsd: 3400,
     deliveryLocation: 'Kenya',
+    imageUrl: '/images/cars/car-black.jpg',
+  },
+  {
+    id: 'inq-4',
+    inquiryNumber: 'IN-0004',
+    source: 'Stock',
+    status: 'Pending Reply',
+    inquiryDate: '27th Sep, 2024 09:15:00',
+    make: 'Honda',
+    model: 'Vezel Hybrid Z',
+    yom: '2022',
+    stockNumber: 'J240111114',
+    chassisNumber: 'RU3-1204910',
+    vehicleSlug: '2022-honda-vezel-veh-4',
+    vehicleId: 'veh-4',
+    vehicleStatus: 'AVAILABLE',
+    engineCc: 1500,
+    mileage: 34000,
+    fuelType: 'Hybrid',
+    transmission: 'Automatic',
+    color: 'Premium Blue',
+    priceState: 'priced',
+    priceUsd: 4850,
+    viewsCount: 15,
+    message: 'Please advise on insurance and C&F costs to Durban port.',
+    fobPriceUsd: 4850,
+    cfPriceUsd: 6100,
+    deliveryLocation: 'South Africa-Durban',
+    inquirerCount: 3,
+    imageUrl: '/images/cars/car-blue.jpg',
   },
 ];
 
@@ -134,15 +225,50 @@ export const CustomerInquiriesPage: React.FC = () => {
   const [chassisNumberFilter, setChassisNumberFilter] = useState('');
   const [inquiryNumberFilter, setInquiryNumberFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
-  const [viewMode, setViewMode] = useState<ViewMode>('grid');
 
-  // Wishlist heart toggle state
-  const [wishlistToggled, setWishlistToggled] = useState<Record<string, boolean>>({});
-  // Selected inquiry for message modal (FRD 6.10)
+  // Wishlist heart toggle state & Reservation state
   const [selectedMessageInquiry, setSelectedMessageInquiry] = useState<PolymorphicInquiry | null>(null);
+  const [reservations, setReservations] = useState<{ vehicleId: string; timestamp: number }[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('carchief_48h_reservations');
+        if (saved) return JSON.parse(saved);
+      } catch {
+        // ignore
+      }
+    }
+    return [];
+  });
 
-  const toggleWishlist = (id: string) => {
-    setWishlistToggled((prev) => ({ ...prev, [id]: !prev[id] }));
+  const FORTY_EIGHT_HOURS_MS = 48 * 60 * 60 * 1000;
+  const activeReservations = useMemo(() => {
+    const now = Date.now();
+    return reservations.filter((r) => now - r.timestamp < FORTY_EIGHT_HOURS_MS);
+  }, [reservations]);
+
+  const reservedVehicleIds = useMemo(
+    () => new Set(activeReservations.map((r) => r.vehicleId)),
+    [activeReservations]
+  );
+
+  const remainingQuota = Math.max(0, 2 - activeReservations.length);
+
+  const handleReserveVehicle = (vehicleId: string) => {
+    if (reservedVehicleIds.has(vehicleId)) return;
+    if (activeReservations.length >= 2) {
+      alert('Reservation Limit Reached: You can reserve up to 2 vehicles within a 48-hour window.');
+      return;
+    }
+
+    const next = [...activeReservations, { vehicleId, timestamp: Date.now() }];
+    setReservations(next);
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('carchief_48h_reservations', JSON.stringify(next));
+      } catch {
+        // ignore
+      }
+    }
   };
 
   const handleSourceChange = (key: 'Stock' | 'Auction' | 'General') => {
@@ -189,107 +315,128 @@ export const CustomerInquiriesPage: React.FC = () => {
   }, [sources, keyword, stockNumberFilter, chassisNumberFilter, inquiryNumberFilter, statusFilter]);
 
   const navigateToVehicle = (inquiry: PolymorphicInquiry) => {
-    if (inquiry.vehicleSlug) setActiveRoute(`/vehicles/${encodeURIComponent(inquiry.vehicleSlug)}`);
+    const slug = inquiry.vehicleSlug || inquiry.vehicleId || inquiry.stockNumber || inquiry.id;
+    if (slug) {
+      const isReserved = reservedVehicleIds.has(inquiry.vehicleId || inquiry.id) || inquiry.vehicleStatus === 'RESERVED';
+      const isSold = inquiry.vehicleStatus === 'SOLD';
+      const statusParam = isSold ? '&status=sold' : isReserved ? '&status=reserved' : '';
+      setActiveRoute(`/inventory/${encodeURIComponent(slug)}?from=inquiries${statusParam}`);
+    }
   };
 
-  const handleVehicleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>, inquiry: PolymorphicInquiry) => {
-    if ((event.key === 'Enter' || event.key === ' ') && inquiry.vehicleSlug) {
+  const handleVehicleKeyDown = (event: React.KeyboardEvent<HTMLElement>, inquiry: PolymorphicInquiry) => {
+    if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
       navigateToVehicle(inquiry);
     }
   };
+  const activeFiltersCount = useMemo(() => {
+    let count = 0;
+    if (stockNumberFilter.trim()) count++;
+    if (chassisNumberFilter.trim()) count++;
+    if (inquiryNumberFilter.trim()) count++;
+    if (keyword.trim()) count++;
+    if (statusFilter !== 'ALL') count++;
+    if (!sources.Stock || !sources.Auction || !sources.General) count++;
+    return count;
+  }, [stockNumberFilter, chassisNumberFilter, inquiryNumberFilter, keyword, statusFilter, sources]);
 
-  const renderVehicleSpecs = (inquiry: PolymorphicInquiry) => {
-    const specs = [
-      inquiry.engineCc !== undefined ? `⚙️ ${inquiry.engineCc.toLocaleString()}CC` : null,
-      inquiry.mileage !== undefined ? `⚡ ${inquiry.mileage.toLocaleString()} KM` : null,
-      inquiry.fuelType ? `⛽ ${inquiry.fuelType}` : null,
-      inquiry.transmission ? `🕹️ ${inquiry.transmission}` : null,
-      inquiry.color ? `🎨 ${inquiry.color}` : null,
-    ].filter((value): value is string => Boolean(value));
-
-    return specs.length > 0 ? (
-      <div className="cc-inq-card__specs-row">
-        {specs.map((spec) => <span key={spec} className="cc-inq-spec-chip">{spec}</span>)}
-      </div>
-    ) : null;
-  };
-
-  const renderSellingPrice = (inquiry: PolymorphicInquiry) => {
-    if (inquiry.priceState !== 'priced' || inquiry.priceUsd === undefined) return null;
-    const pricing = inquiry.tierPricing;
-    const discounted = pricing && pricing.tierDiscountPercent > 0 && pricing.tierPriceUsd < pricing.originalPriceUsd;
-    return (
-      <div className="cc-inq-price-block">
-        <span className="cc-inq-price-label">Selling Price:</span>
-        <span className="cc-inq-price-values">
-          {discounted && <span className="cc-inq-price-val cc-inq-price-val--original">${pricing.originalPriceUsd.toLocaleString()} USD</span>}
-          <span className={`cc-inq-price-val ${discounted ? 'cc-inq-price-val--discounted' : ''}`}>
-            ${(discounted ? pricing.tierPriceUsd : inquiry.priceUsd).toLocaleString()} USD
-          </span>
-        </span>
-      </div>
-    );
+  const clearInquiryFilters = () => {
+    setStockNumberFilter('');
+    setChassisNumberFilter('');
+    setInquiryNumberFilter('');
+    setKeyword('');
+    setStatusFilter('ALL');
+    setSources({ Stock: true, Auction: true, General: true });
   };
 
   return (
     <div className="cc-inquiries-page" data-testid="customer-inquiries-page">
-      {/* 1. FILTER TOOLBAR & SOURCE CHECKBOXES (FRD 6.2 & 6.3) */}
-      <section className="cc-inq-filter-card" aria-label="Inquiry Filtration Controls">
-        <div className="cc-inq-filter-grid">
-          <div className="cc-inq-filter-field">
-            <label htmlFor="inq-stock-input" className="cc-inq-field-label">Stock No.</label>
+      {/* Page Header */}
+      <div className="cc-inq-header">
+        <div className="cc-inq-title-wrap">
+          <h1 className="cc-inq-title">
+            MY <span className="cc-inq-title-highlight">INQUIRIES &amp; QUOTES</span>
+          </h1>
+        </div>
+      </div>
+
+      {/* 1. UNIFIED FILTER CONTAINER (Matches Purchased Vehicles Filter UI) */}
+      <section className="cc-pv-filter-container" aria-label="Filter Inquiries and Quotes">
+        <div className="cc-pv-filter-header">
+          <div className="cc-pv-filter-title">
+            <span>Filter Inquiries &amp; Quotes</span>
+            {activeFiltersCount > 0 && (
+              <span className="cc-pv-active-count-badge">
+                {activeFiltersCount} Active Filter{activeFiltersCount > 1 ? 's' : ''}
+              </span>
+            )}
+          </div>
+          {activeFiltersCount > 0 && (
+            <button
+              type="button"
+              className="cc-orders-btn cc-orders-btn--clear"
+              onClick={clearInquiryFilters}
+            >
+              Clear All Filters
+            </button>
+          )}
+        </div>
+
+        <div className="cc-pv-filter-grid">
+          <div className="cc-pv-filter-item">
+            <label htmlFor="inq-stock-input" className="cc-orders-filter-label">Stock Number</label>
             <input
               id="inq-stock-input"
               type="text"
-              className="cc-inq-input"
+              className="cc-orders-input"
               placeholder="e.g. J240111111"
               value={stockNumberFilter}
               onChange={(e) => setStockNumberFilter(e.target.value)}
             />
           </div>
 
-          <div className="cc-inq-filter-field">
-            <label htmlFor="inq-chassis-input" className="cc-inq-field-label">Chassis No.</label>
+          <div className="cc-pv-filter-item">
+            <label htmlFor="inq-chassis-input" className="cc-orders-filter-label">Chassis Number</label>
             <input
               id="inq-chassis-input"
               type="text"
-              className="cc-inq-input"
+              className="cc-orders-input"
               placeholder="e.g. NRE161-0091995"
               value={chassisNumberFilter}
               onChange={(e) => setChassisNumberFilter(e.target.value)}
             />
           </div>
 
-          <div className="cc-inq-filter-field">
-            <label htmlFor="inq-num-input" className="cc-inq-field-label">Inquiry No.</label>
+          <div className="cc-pv-filter-item">
+            <label htmlFor="inq-num-input" className="cc-orders-filter-label">Inquiry Number</label>
             <input
               id="inq-num-input"
               type="text"
-              className="cc-inq-input"
+              className="cc-orders-input"
               placeholder="e.g. IN-0003"
               value={inquiryNumberFilter}
               onChange={(e) => setInquiryNumberFilter(e.target.value)}
             />
           </div>
 
-          <div className="cc-inq-filter-field">
-            <label htmlFor="inq-kw-input" className="cc-inq-field-label">Keyword</label>
+          <div className="cc-pv-filter-item">
+            <label htmlFor="inq-kw-input" className="cc-orders-filter-label">Keyword Search</label>
             <input
               id="inq-kw-input"
               type="search"
-              className="cc-inq-input"
+              className="cc-orders-input"
               placeholder="Search make, model, message..."
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
             />
           </div>
 
-          <div className="cc-inq-filter-field">
-            <label htmlFor="inq-status-select" className="cc-inq-field-label">Inquiry Status</label>
+          <div className="cc-pv-filter-item">
+            <label htmlFor="inq-status-select" className="cc-orders-filter-label">Inquiry Status</label>
             <select
               id="inq-status-select"
-              className="cc-inq-select"
+              className="cc-orders-select"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
             >
@@ -300,51 +447,48 @@ export const CustomerInquiriesPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Source Checkboxes - All checked by default (FRD 6.3) */}
+        {/* Source Checkboxes Row */}
         <div className="cc-inq-source-row">
-          <span className="cc-inq-source-heading">Inquiry Source:</span>
-          <label className="cc-inq-source-label">
-            <input
-              type="checkbox"
-              checked={sources.Stock}
-              onChange={() => handleSourceChange('Stock')}
-              data-testid="source-stock-checkbox"
-            />
-            Stock &amp; WhatsApp
-          </label>
-          <label className="cc-inq-source-label">
-            <input
-              type="checkbox"
-              checked={sources.Auction}
-              onChange={() => handleSourceChange('Auction')}
-              data-testid="source-auction-checkbox"
-            />
-            Auction
-          </label>
-          <label className="cc-inq-source-label">
-            <input
-              type="checkbox"
-              checked={sources.General}
-              onChange={() => handleSourceChange('General')}
-              data-testid="source-general-checkbox"
-            />
-            General
-          </label>
+          <div className="cc-inq-source-group">
+            <span className="cc-inq-source-heading">Inquiry Source:</span>
+            <label className={`cc-inq-source-label cc-inq-source-label--stock ${sources.Stock ? 'cc-inq-source-label--active' : ''}`}>
+              <input
+                type="checkbox"
+                checked={sources.Stock}
+                onChange={() => handleSourceChange('Stock')}
+                data-testid="source-stock-checkbox"
+              />
+              <span>Stock &amp; WhatsApp</span>
+            </label>
+            <label className={`cc-inq-source-label cc-inq-source-label--auction ${sources.Auction ? 'cc-inq-source-label--active' : ''}`}>
+              <input
+                type="checkbox"
+                checked={sources.Auction}
+                onChange={() => handleSourceChange('Auction')}
+                data-testid="source-auction-checkbox"
+              />
+              <span>Auction</span>
+            </label>
+            <label className={`cc-inq-source-label cc-inq-source-label--general ${sources.General ? 'cc-inq-source-label--active' : ''}`}>
+              <input
+                type="checkbox"
+                checked={sources.General}
+                onChange={() => handleSourceChange('General')}
+                data-testid="source-general-checkbox"
+              />
+              <span>General</span>
+            </label>
+          </div>
 
-          <button
-            type="button"
-            className="cc-inq-reset-btn"
-            onClick={() => {
-              setSources({ Stock: true, Auction: true, General: true });
-              setKeyword('');
-              setStockNumberFilter('');
-              setChassisNumberFilter('');
-              setInquiryNumberFilter('');
-              setStatusFilter('ALL');
-            }}
-          >
-            Reset Filters
-          </button>
+          {activeFiltersCount === 0 && (
+            <button
+              type="button"
+              className="cc-inq-reset-btn"
+              onClick={clearInquiryFilters}
+            >
+              Reset Filters
+            </button>
+          )}
         </div>
       </section>
 
@@ -353,279 +497,133 @@ export const CustomerInquiriesPage: React.FC = () => {
         <span className="cc-inq-count-text">
           Total Records Found: <strong>{filteredInquiries.length}</strong>
         </span>
-        <ViewModeToggle value={viewMode} onChange={setViewMode} label="Inquiry vehicle view" />
       </div>
 
       {/* 3. INQUIRY CARDS LIST (FRD 6.7, 6.8, 6.9) */}
-      <div className={`cc-inq-cards-list cc-inq-cards-list--${viewMode}`}>
+      <div className="cc-inq-cards-list cc-inq-cards-list--grid">
         {filteredInquiries.map((inq) => {
-          const isWishlisted = Boolean(wishlistToggled[inq.id]);
+          const targetVehicleId = inq.vehicleId || inq.id;
+          const isReserved = reservedVehicleIds.has(targetVehicleId) || inq.vehicleStatus === 'RESERVED';
+          const isSold = inq.vehicleStatus === 'SOLD';
+          const fobDisplayPrice = inq.fobPriceUsd || inq.startPriceUsd || inq.priceUsd || inq.minFobUsd || 1400;
 
-          if (inq.source === 'Stock' || inq.source === 'WhatsApp') {
-            return (
-              <article key={inq.id} className="cc-inq-card cc-inq-card--stock" data-testid={`inq-card-${inq.inquiryNumber}`}>
-                <div
-                  className="cc-inq-card__image-box"
-                  onClick={() => navigateToVehicle(inq)}
-                  onKeyDown={(event) => handleVehicleKeyDown(event, inq)}
-                  role="button"
-                  tabIndex={inq.vehicleSlug ? 0 : -1}
-                  title={inq.vehicleSlug ? 'Click to view vehicle details' : 'Vehicle details unavailable'}
-                >
-                  <img
-                    src={inq.imageUrl || 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=600'}
-                    alt={`${inq.make} ${inq.model}`}
-                    className="cc-inq-card__image"
-                    loading="lazy"
-                  />
-                </div>
-
-                <div className="cc-inq-card__body">
-                  <div className="cc-inq-card__top">
-                    <div className="cc-inq-card__title-row">
-                      <h2 className="cc-inq-card__title">
-                        {inq.make} + {inq.model} + {inq.yom}
-                      </h2>
-                      <span className="cc-inq-views">👁️ {inq.viewsCount || 12}</span>
-                    </div>
-
-                    <div className="cc-inq-card__status-wrap">
-                      <span className={`cc-inq-status-pill cc-inq-status-pill--${inq.status.toLowerCase().replace(/\s+/g, '-')}`}>
-                        {inq.status}
-                      </span>
-                      {/* Heart wishlist toggle (FRD 6.7.2) */}
-                      <button
-                        type="button"
-                        className={`cc-inq-heart-btn ${isWishlisted ? 'cc-inq-heart-btn--active' : ''}`}
-                        onClick={() => toggleWishlist(inq.id)}
-                        aria-label="Add to Wishlist"
-                        title={isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}
-                      >
-                        {isWishlisted ? '❤️' : '🤍'}
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="cc-inq-card__meta-grid">
-                    <div className="cc-inq-meta-item">
-                      <span className="cc-inq-meta-label">Inquiry No.:</span>
-                      <span className="cc-inq-meta-val cc-inq-meta-val--mono">{inq.inquiryNumber}</span>
-                      <button
-                        type="button"
-                        className="cc-inq-msg-icon-btn"
-                        onClick={() => setSelectedMessageInquiry(inq)}
-                        title="View message pop up"
-                      >
-                        ✉️
-                      </button>
-                    </div>
-                    <div className="cc-inq-meta-item">
-                      <span className="cc-inq-meta-label">Source:</span>
-                      <span className="cc-inq-meta-val">{inq.source}</span>
-                    </div>
-                    <div className="cc-inq-meta-item">
-                      <span className="cc-inq-meta-label">Inquired on:</span>
-                      <span className="cc-inq-meta-val cc-inq-meta-val--mono">{inq.inquiryDate}</span>
-                    </div>
-                    <div className="cc-inq-meta-item">
-                      <span className="cc-inq-meta-label">Ref# / Stock:</span>
-                      <span className="cc-inq-meta-val cc-inq-meta-val--mono">{inq.stockNumber}</span>
-                    </div>
-                    <div className="cc-inq-meta-item">
-                      <span className="cc-inq-meta-label">Chassis:</span>
-                      <span className="cc-inq-meta-val cc-inq-meta-val--mono">{inq.chassisNumber}</span>
-                    </div>
-                  </div>
-
-                  {renderVehicleSpecs(inq)}
-
-                  <div className="cc-inq-card__financials">
-                    {renderSellingPrice(inq)}
-                    {inq.cfPriceUsd !== undefined && (
-                      <div className="cc-inq-price-block">
-                        <span className="cc-inq-price-label">C&amp;F Price:</span>
-                        <span className="cc-inq-price-val cc-inq-price-val--bold">${inq.cfPriceUsd.toLocaleString()} USD</span>
-                      </div>
-                    )}
-                    <div className="cc-inq-delivery-block">
-                      <span className="cc-inq-delivery-label">Deliver To:</span>
-                      <span className="cc-inq-delivery-val">{inq.deliveryLocation}</span>
-                      <span className="cc-inq-inquiring-count">{inq.inquirerCount || 4} people are inquiring</span>
-                    </div>
-                  </div>
-                </div>
-              </article>
-            );
-          }
-
-          if (inq.source === 'Auction') {
-            return (
-              <article key={inq.id} className="cc-inq-card cc-inq-card--auction" data-testid={`inq-card-${inq.inquiryNumber}`}>
-                <div
-                  className="cc-inq-card__image-box"
-                  onClick={() => navigateToVehicle(inq)}
-                  onKeyDown={(event) => handleVehicleKeyDown(event, inq)}
-                  role="button"
-                  tabIndex={inq.vehicleSlug ? 0 : -1}
-                  title={inq.vehicleSlug ? 'Click to view vehicle details' : 'Vehicle details unavailable'}
-                >
-                  <img
-                    src={inq.imageUrl || 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=600'}
-                    alt={`${inq.make} ${inq.model}`}
-                    className="cc-inq-card__image"
-                    loading="lazy"
-                  />
-                </div>
-
-                <div className="cc-inq-card__body">
-                  <div className="cc-inq-card__top">
-                    <div className="cc-inq-card__title-row">
-                      <h2 className="cc-inq-card__title">
-                        {inq.make} + {inq.model} + {inq.yom}
-                      </h2>
-                    </div>
-
-                    <div className="cc-inq-card__status-wrap">
-                      <span className={`cc-inq-status-pill cc-inq-status-pill--${inq.status.toLowerCase().replace(/\s+/g, '-')}`}>
-                        {inq.status}
-                      </span>
-                      {/* Groups Wishlist selector (FRD 6.8.2) */}
-                      <div className="cc-inq-groups-badges">
-                        <span className="cc-inq-group-badge">A</span>
-                        <span className="cc-inq-group-badge">B</span>
-                        <span className="cc-inq-group-badge">C</span>
-                        <span className="cc-inq-group-badge">D</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="cc-inq-card__meta-grid">
-                    <div className="cc-inq-meta-item">
-                      <span className="cc-inq-meta-label">Inquiry No.:</span>
-                      <span className="cc-inq-meta-val cc-inq-meta-val--mono">{inq.inquiryNumber}</span>
-                      <button
-                        type="button"
-                        className="cc-inq-msg-icon-btn"
-                        onClick={() => setSelectedMessageInquiry(inq)}
-                        title="View message pop up"
-                      >
-                        ✉️
-                      </button>
-                    </div>
-                    <div className="cc-inq-meta-item">
-                      <span className="cc-inq-meta-label">Source:</span>
-                      <span className="cc-inq-meta-val">Auction</span>
-                    </div>
-                    <div className="cc-inq-meta-item">
-                      <span className="cc-inq-meta-label">Lot Number:</span>
-                      <span className="cc-inq-meta-val cc-inq-meta-val--mono">{inq.lotNumber}</span>
-                    </div>
-                    <div className="cc-inq-meta-item">
-                      <span className="cc-inq-meta-label">Chassis Model:</span>
-                      <span className="cc-inq-meta-val cc-inq-meta-val--mono">{inq.chassisModel}</span>
-                    </div>
-                  </div>
-
-                  <div className="cc-inq-card__financials">
-                    {renderVehicleSpecs(inq)}
-                    {renderSellingPrice(inq)}
-                    <div className="cc-inq-price-block">
-                      <span className="cc-inq-price-label">Start Price:</span>
-                      <span className="cc-inq-price-val">${inq.startPriceUsd?.toLocaleString()} USD</span>
-                    </div>
-                    <div className="cc-inq-price-block">
-                      <span className="cc-inq-price-label">Auction Date:</span>
-                      <span className="cc-inq-price-val cc-inq-price-val--green">{inq.auctionRemaining || 'Finished'}</span>
-                    </div>
-                    <div className="cc-inq-delivery-block">
-                      <span className="cc-inq-delivery-label">Deliver To:</span>
-                      <span className="cc-inq-delivery-val">{inq.deliveryLocation}</span>
-                    </div>
-                  </div>
-                </div>
-              </article>
-            );
-          }
-
-          // General Inquiry (FRD 6.9: No Image)
           return (
-            <article key={inq.id} className="cc-inq-card cc-inq-card--general" data-testid={`inq-card-${inq.inquiryNumber}`}>
-              {inq.imageUrl ? (
-                <div
-                  className="cc-inq-card__image-box"
-                  onClick={() => navigateToVehicle(inq)}
-                  onKeyDown={(event) => handleVehicleKeyDown(event, inq)}
-                  role={inq.vehicleSlug ? 'button' : undefined}
-                  tabIndex={inq.vehicleSlug ? 0 : -1}
-                  title={inq.vehicleSlug ? 'Click to view vehicle details' : undefined}
-                >
-                  <img src={inq.imageUrl} alt={`${inq.make} ${inq.model}`} className="cc-inq-card__image" loading="lazy" />
+            <article key={inq.id} className={`cc-inq-card cc-inq-card--${inq.source.toLowerCase()}`} data-testid={`inq-card-${inq.inquiryNumber}`}>
+              {/* Tile Image Box with Badges */}
+              <div
+                className="cc-inq-card__image-box"
+                onClick={() => navigateToVehicle(inq)}
+                onKeyDown={(event) => handleVehicleKeyDown(event, inq)}
+                role="button"
+                tabIndex={0}
+                title="Click to view complete vehicle details"
+              >
+                <img
+                  src={resolveInquiryVehicleImage(inq)}
+                  alt={`${inq.make} ${inq.model}`}
+                  className="cc-inq-card__image"
+                  loading="lazy"
+                />
+                <div className="cc-inq-tile-badges-top-left">
+                  <span className="cc-inq-views-badge">👁️ {inq.viewsCount || 12} watching</span>
                 </div>
-              ) : (
-                <div
-                  className="cc-inq-card__no-image-box"
-                  onClick={() => navigateToVehicle(inq)}
-                  onKeyDown={(event) => handleVehicleKeyDown(event, inq)}
-                  role={inq.vehicleSlug ? 'button' : undefined}
-                  tabIndex={inq.vehicleSlug ? 0 : -1}
-                  title={inq.vehicleSlug ? 'Click to view vehicle details' : undefined}
-                >
-                  <span className="cc-inq-no-image-text">No Image</span>
-                </div>
-              )}
+                <span className={`cc-inq-status-tag cc-inq-status-tag--${isSold ? 'sold' : isReserved ? 'reserved' : inq.status.toLowerCase().replace(/\s+/g, '-')}`}>
+                  {isSold ? 'SOLD' : isReserved ? 'RESERVED' : inq.status}
+                </span>
+              </div>
 
+              {/* Card Body */}
               <div className="cc-inq-card__body">
-                <div className="cc-inq-card__top">
-                  <h2 className="cc-inq-card__title">
-                    {inq.make} + {inq.model}
-                  </h2>
-                  <span className={`cc-inq-status-pill cc-inq-status-pill--${inq.status.toLowerCase().replace(/\s+/g, '-')}`}>
-                    {inq.status}
-                  </span>
+                <div className="cc-inq-card__main-content">
+                  <div className="cc-inq-card__header">
+                    <h2
+                      className="cc-inq-card__title cc-inq-card__title--clickable"
+                      onClick={() => navigateToVehicle(inq)}
+                      onKeyDown={(event) => handleVehicleKeyDown(event, inq)}
+                      role="button"
+                      tabIndex={0}
+                      title="Click to view complete vehicle details"
+                    >
+                      {inq.yom} {inq.make.toUpperCase()} {inq.model.toUpperCase()}
+                    </h2>
+                  </div>
+
+                  {/* Specifications Table */}
+                  <div className="cc-cust-fleet-card__specs-table" aria-label="Vehicle specifications">
+                    <div className="cc-cust-fleet-card__spec-row">
+                      <span className="cc-cust-fleet-card__spec-label">Stock No:</span>
+                      <span className="cc-cust-fleet-card__spec-value cc-cust-fleet-card__spec-value--mono">
+                        {inq.stockNumber || (inq.lotNumber ? (inq.lotNumber.startsWith('J') ? inq.lotNumber : `J${inq.lotNumber}`) : 'J240111112')}
+                      </span>
+                    </div>
+                    <div className="cc-cust-fleet-card__spec-row">
+                      <span className="cc-cust-fleet-card__spec-label">Chassis No:</span>
+                      <span className="cc-cust-fleet-card__spec-value cc-cust-fleet-card__spec-value--mono">
+                        {inq.chassisNumber || inq.chassisModel || 'N/A'}
+                      </span>
+                    </div>
+                    <div className="cc-cust-fleet-card__spec-row">
+                      <span className="cc-cust-fleet-card__spec-label">Color / Spec:</span>
+                      <span className="cc-cust-fleet-card__spec-value">
+                        {inq.color || (inq.fuelType ? `${inq.fuelType} / ${inq.transmission || 'Auto'}` : 'Pearl White')}
+                      </span>
+                    </div>
+                    <div className="cc-cust-fleet-card__spec-row">
+                      <span className="cc-cust-fleet-card__spec-label">Mileage:</span>
+                      <span className="cc-cust-fleet-card__spec-value">
+                        {inq.mileage ? `${inq.mileage.toLocaleString()} KM` : '177,000 KM'}
+                      </span>
+                    </div>
+                  </div>
                 </div>
 
-                <div className="cc-inq-card__meta-grid">
-                  <div className="cc-inq-meta-item">
-                    <span className="cc-inq-meta-label">Inquiry No.:</span>
-                    <span className="cc-inq-meta-val cc-inq-meta-val--mono">{inq.inquiryNumber}</span>
+                {/* Financials & Action Buttons */}
+                <div className="cc-inq-card__financials">
+                  <div className="cc-inq-fob-price-header">
+                    <div className="cc-inq-fob-price-box">
+                      <span className="cc-inq-fob-price-label">
+                        {inq.source === 'Auction' ? 'Start Price:' : 'FOB Price:'}
+                      </span>
+                      <span className="cc-inq-fob-price-val">
+                        ${fobDisplayPrice.toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="cc-inq-card__action-group">
                     <button
                       type="button"
-                      className="cc-inq-msg-icon-btn"
+                      className="cc-inq-action-btn cc-inq-action-btn--msg"
                       onClick={() => setSelectedMessageInquiry(inq)}
-                      title="View message pop up"
+                      title="View inquiry message"
+                      data-testid={`btn-msg-${inq.inquiryNumber}`}
                     >
-                      ✉️
+                      ✉️ Message
                     </button>
-                  </div>
-                  <div className="cc-inq-meta-item">
-                    <span className="cc-inq-meta-label">Source:</span>
-                    <span className="cc-inq-meta-val">General</span>
-                  </div>
-                  <div className="cc-inq-meta-item">
-                    <span className="cc-inq-meta-label">Drive Type:</span>
-                    <span className="cc-inq-meta-val">{inq.driveType}</span>
-                  </div>
-                  <div className="cc-inq-meta-item">
-                    <span className="cc-inq-meta-label">MFG Year:</span>
-                    <span className="cc-inq-meta-val cc-inq-meta-val--mono">{inq.mfgYearRange}</span>
-                  </div>
-                </div>
-
-                {renderVehicleSpecs(inq)}
-
-                <div className="cc-inq-card__financials">
-                  {renderSellingPrice(inq)}
-                  <div className="cc-inq-price-block">
-                    <span className="cc-inq-price-label">Min Selling Price:</span>
-                    <span className="cc-inq-price-val">${inq.minFobUsd?.toLocaleString()} USD</span>
-                  </div>
-                  <div className="cc-inq-price-block">
-                    <span className="cc-inq-price-label">Max Selling Price:</span>
-                    <span className="cc-inq-price-val">${inq.maxFobUsd?.toLocaleString()} USD</span>
-                  </div>
-                  <div className="cc-inq-delivery-block">
-                    <span className="cc-inq-delivery-label">Deliver To:</span>
-                    <span className="cc-inq-delivery-val">{inq.deliveryLocation}</span>
+                    {isSold ? (
+                      <span className="cc-inq-action-badge cc-inq-action-badge--sold" style={{ background: '#dcfce7', color: '#15803d', border: '1px solid #16a34a' }}>
+                        ✓ Sold
+                      </span>
+                    ) : isReserved ? (
+                      <span className="cc-inq-action-badge cc-inq-action-badge--reserved">
+                        ✓ Reserved (48h)
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        className="cc-inq-action-btn cc-inq-action-btn--reserve"
+                        onClick={() => handleReserveVehicle(targetVehicleId)}
+                        disabled={remainingQuota <= 0}
+                        title={
+                          remainingQuota <= 0
+                            ? 'Reservation limit reached: Max 2 vehicles within 48 hours'
+                            : 'Reserve vehicle for 48 hours'
+                        }
+                        data-testid={`btn-reserve-${inq.inquiryNumber}`}
+                      >
+                        🔒 Reserve Now
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>

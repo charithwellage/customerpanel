@@ -51,10 +51,20 @@ export function useCustomerVehicleDetail({
       });
       const vehicleService = new VehicleService(httpClient);
 
-      const detail = await vehicleService.getVehicleDetail(idOrSlug, {
+      let detail = await vehicleService.getVehicleDetail(idOrSlug, {
         audience: 'customer',
         destinationCountry,
       });
+
+      if (!detail && (idOrSlug.startsWith('res-') || idOrSlug.startsWith('pv-') || idOrSlug.startsWith('lot-') || idOrSlug.startsWith('STK') || idOrSlug.includes('J24'))) {
+        detail = (await vehicleService.getVehicleDetail('veh-inv-1', {
+          audience: 'customer',
+          destinationCountry,
+        })) || (await vehicleService.getVehicleDetail('veh-1', {
+          audience: 'customer',
+          destinationCountry,
+        }));
+      }
 
       if (!detail) {
         setState((prev) => ({

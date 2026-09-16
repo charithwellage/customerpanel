@@ -632,4 +632,71 @@ export const RedDocIcon: React.FC<IconProps> = ({ size = 16, ...props }) => (
   </svg>
 );
 
+export const CarChiefLogoMark: React.FC<{ width?: number; height?: number; className?: string }> = ({ width = 24, height = 26, className }) => (
+  <div className={className} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }} aria-hidden="true">
+    <svg width={width} height={height} viewBox="0 0 24 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 1L2 5.5V11.5C2 17.65 6.26 23.38 12 25C17.74 23.38 22 17.65 22 11.5V5.5L12 1Z" fill="#DC2626" stroke="#B91C1C" strokeWidth="1.5"/>
+      <text x="12" y="16.5" textAnchor="middle" fill="#FFFFFF" fontSize="13" fontWeight="900" fontFamily="Inter, sans-serif">C</text>
+    </svg>
+  </div>
+);
+
+export const SidebarCollapseIcon: React.FC<IconProps> = ({ size = 18, ...props }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+    {...props}
+  >
+    <rect width="18" height="18" x="3" y="3" rx="2" />
+    <path d="M9 3v18" />
+    <path d="m14 9-3 3 3 3" />
+  </svg>
+);
+
+export const SidebarExpandIcon: React.FC<IconProps> = ({ size = 18, ...props }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+    {...props}
+  >
+    <rect width="18" height="18" x="3" y="3" rx="2" />
+    <path d="M9 3v18" />
+    <path d="m13 15 3-3-3-3" />
+  </svg>
+);
+
+export const DemandTargetIcon: React.FC<IconProps> = ({ size = 18, ...props }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+    {...props}
+  >
+    <circle cx="12" cy="12" r="10" />
+    <circle cx="12" cy="12" r="6" />
+    <circle cx="12" cy="12" r="2" />
+  </svg>
+);
+
+
 

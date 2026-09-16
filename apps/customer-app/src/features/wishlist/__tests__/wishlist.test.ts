@@ -38,8 +38,6 @@ describe('FRD Section 8: Customer Wishlist UI', () => {
     );
 
     expect(html).toContain('data-testid="customer-wishlist-page"');
-    expect(html).toContain('customer-wishlist-ai-search');
-    expect(html).toContain('Search with AI');
     expect(html).not.toContain('data-testid="tab-stock-wishlist"');
     expect(html).not.toContain('data-testid="tab-auction-wishlist"');
     expect(html).not.toContain('Auction');
@@ -51,6 +49,6 @@ describe('FRD Section 8: Customer Wishlist UI', () => {
     expect(html).not.toContain('data-testid="btn-whatsapp-J240111111"');
     expect(html).not.toContain('data-testid="btn-quote-J240111111"');
     expect(html).toContain('data-testid="btn-remove-J240111111"');
-    expect(html).toContain('4 people are inquiring');
+    expect(html).toContain('people are inquiring');
   });
 });

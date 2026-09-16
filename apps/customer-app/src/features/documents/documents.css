@@ -30,7 +30,7 @@
   color: var(--color-text-secondary);
   font-family: var(--font-mono);
   font-size: 0.70rem;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
@@ -40,7 +40,7 @@
   color: var(--color-text-primary);
   font-family: var(--font-body);
   font-size: var(--font-size-2xl);
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.2;
   letter-spacing: -0.02em;
 }
@@ -90,7 +90,7 @@
 .cc-cust-documents__field span {
   font-family: var(--font-mono);
   font-size: 0.70rem;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--color-text-secondary);
@@ -111,8 +111,12 @@
 }
 
 .cc-cust-documents__field input:focus,
-.cc-cust-documents__field select:focus {
-  border-color: var(--color-primary);
+.cc-cust-documents__field input:focus-visible,
+.cc-cust-documents__field select:focus,
+.cc-cust-documents__field select:focus-visible {
+  outline: none !important;
+  border-color: #0f172a;
+  box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.06);
 }
 
 /* 3. Document Cards Grid */
@@ -144,7 +148,7 @@
   margin: 0;
   font-family: var(--font-mono);
   font-size: 0.70rem;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--color-text-secondary);
@@ -155,7 +159,7 @@
   color: var(--color-text-primary);
   font-family: var(--font-mono);
   font-size: var(--font-size-xl);
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: -0.01em;
   font-variant-numeric: tabular-nums;
   line-height: 1.2;
@@ -206,7 +210,7 @@
   padding: 0.65rem var(--spacing-md);
   font-family: var(--font-mono);
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   border-radius: var(--radius-md);
@@ -242,7 +246,7 @@
   margin: 0;
   font-family: var(--font-body);
   font-size: var(--font-size-lg);
-  font-weight: 700;
+  font-weight: 600;
   color: var(--color-text-primary);
   letter-spacing: -0.01em;
 }
@@ -286,7 +290,7 @@
   color: var(--color-text-primary);
   font-family: var(--font-body);
   font-size: var(--font-size-base);
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .cc-cust-documents__categories ul {
@@ -344,7 +348,7 @@
   color: var(--color-text-on-primary);
   font-family: var(--font-mono);
   font-size: var(--font-size-xs);
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   cursor: pointer;
@@ -361,4 +365,120 @@
     display: grid;
     grid-template-columns: 1fr;
   }
+}
+
+/* ==========================================================================
+   DARK THEME (MIDNIGHT MODE) - DOCUMENTS VAULT (WEB & MOBILE)
+   ========================================================================== */
+
+[data-theme-mode='midnight'] .cc-cust-documents__boundary,
+.theme-midnight .cc-cust-documents__boundary,
+.dark-mode .cc-cust-documents__boundary {
+  background: #1f2937 !important;
+  border-color: #374151 !important;
+  color: #f9fafb !important;
+}
+
+[data-theme-mode='midnight'] .cc-cust-documents__controls,
+.theme-midnight .cc-cust-documents__controls,
+.dark-mode .cc-cust-documents__controls {
+  background: #111827 !important;
+  border-color: #1f2937 !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
+}
+
+[data-theme-mode='midnight'] .cc-cust-documents__field input,
+.theme-midnight .cc-cust-documents__field input,
+.dark-mode .cc-cust-documents__field input,
+[data-theme-mode='midnight'] .cc-cust-documents__field select,
+.theme-midnight .cc-cust-documents__field select,
+.dark-mode .cc-cust-documents__field select {
+  background: #1f2937 !important;
+  color: #f9fafb !important;
+  border-color: #374151 !important;
+}
+
+[data-theme-mode='midnight'] .cc-cust-documents__field input:focus,
+.theme-midnight .cc-cust-documents__field input:focus,
+.dark-mode .cc-cust-documents__field input:focus,
+[data-theme-mode='midnight'] .cc-cust-documents__field select:focus,
+.theme-midnight .cc-cust-documents__field select:focus,
+.dark-mode .cc-cust-documents__field select:focus {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2) !important;
+}
+
+[data-theme-mode='midnight'] .cc-cust-document-card,
+.theme-midnight .cc-cust-document-card,
+.dark-mode .cc-cust-document-card {
+  background: #111827 !important;
+  border-color: #1f2937 !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme-mode='midnight'] .cc-cust-document-card:hover,
+.theme-midnight .cc-cust-document-card:hover,
+.dark-mode .cc-cust-document-card:hover {
+  border-color: #ef4444 !important;
+}
+
+[data-theme-mode='midnight'] .cc-cust-document-card__title,
+.theme-midnight .cc-cust-document-card__title,
+.dark-mode .cc-cust-document-card__title,
+[data-theme-mode='midnight'] .cc-cust-document-card__details dd,
+.theme-midnight .cc-cust-document-card__details dd,
+.dark-mode .cc-cust-document-card__details dd {
+  color: #f9fafb !important;
+}
+
+[data-theme-mode='midnight'] .cc-cust-document-card__details,
+.theme-midnight .cc-cust-document-card__details,
+.dark-mode .cc-cust-document-card__details {
+  border-color: #1f2937 !important;
+}
+
+[data-theme-mode='midnight'] .cc-cust-document-card__action,
+.theme-midnight .cc-cust-document-card__action,
+.dark-mode .cc-cust-document-card__action {
+  background: #1f2937 !important;
+  border-color: #374151 !important;
+  color: #ef4444 !important;
+}
+
+[data-theme-mode='midnight'] .cc-cust-document-card__action:hover,
+.theme-midnight .cc-cust-document-card__action:hover,
+.dark-mode .cc-cust-document-card__action:hover {
+  background: #ef4444 !important;
+  color: #ffffff !important;
+  border-color: #ef4444 !important;
+}
+
+[data-theme-mode='midnight'] .cc-cust-documents__detail,
+.theme-midnight .cc-cust-documents__detail,
+.dark-mode .cc-cust-documents__detail {
+  background: #111827 !important;
+  border-color: #1f2937 !important;
+  border-left-color: #ef4444 !important;
+}
+
+[data-theme-mode='midnight'] .cc-cust-documents__categories,
+.theme-midnight .cc-cust-documents__categories,
+.dark-mode .cc-cust-documents__categories {
+  background: #111827 !important;
+  border-color: #1f2937 !important;
+}
+
+[data-theme-mode='midnight'] .cc-cust-documents__categories li,
+.theme-midnight .cc-cust-documents__categories li,
+.dark-mode .cc-cust-documents__categories li {
+  background: #1f2937 !important;
+  border-color: #374151 !important;
+  color: #9ca3af !important;
+}
+
+[data-theme-mode='midnight'] .cc-cust-documents__categories li:hover,
+.theme-midnight .cc-cust-documents__categories li:hover,
+.dark-mode .cc-cust-documents__categories li:hover {
+  color: #f9fafb !important;
+  border-color: #ef4444 !important;
 }

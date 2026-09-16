@@ -18,7 +18,7 @@
 
 .favourites-title {
   font-size: var(--font-size-lg);
-  font-weight: 700;
+  font-weight: 600;
   color: var(--color-text-primary);
   margin: 0;
   line-height: 1.2;
@@ -75,7 +75,7 @@
 
 .form-section-title {
   font-size: var(--font-size-sm);
-  font-weight: 700;
+  font-weight: 600;
   color: var(--color-text-primary);
   margin: 0;
   text-transform: uppercase;
@@ -120,10 +120,12 @@
 }
 
 .form-input:focus,
-.form-select:focus {
-  outline: 2px solid var(--color-focus);
-  outline-offset: 2px;
-  border-color: var(--color-focus);
+.form-input:focus-visible,
+.form-select:focus,
+.form-select:focus-visible {
+  outline: none !important;
+  border-color: #0f172a;
+  box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.06);
 }
 
 .form-input:disabled,
@@ -259,7 +261,7 @@
 
 .favourite-name {
   font-size: var(--font-size-base);
-  font-weight: 700;
+  font-weight: 600;
   color: var(--color-text-primary);
   margin: 0;
   line-height: 1.2;
@@ -330,7 +332,7 @@
 
 .empty-state-title {
   font-size: var(--font-size-base);
-  font-weight: 700;
+  font-weight: 600;
   color: var(--color-text-primary);
   margin: 0;
 }
@@ -514,4 +516,77 @@
   .form-select {
     transition: none;
   }
+}
+
+/* ==========================================================================
+   DARK THEME (MIDNIGHT MODE) - FAVOURITES (WEB & MOBILE)
+   ========================================================================== */
+
+[data-theme-mode='midnight'] .favourite-form-container,
+.theme-midnight .favourite-form-container,
+.dark-mode .favourite-form-container {
+  background: #111827 !important;
+  border-color: #1f2937 !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
+}
+
+[data-theme-mode='midnight'] .form-input,
+.theme-midnight .form-input,
+.dark-mode .form-input,
+[data-theme-mode='midnight'] .form-select,
+.theme-midnight .form-select,
+.dark-mode .form-select {
+  background: #1f2937 !important;
+  color: #f9fafb !important;
+  border-color: #374151 !important;
+}
+
+[data-theme-mode='midnight'] .form-input:focus,
+.theme-midnight .form-input:focus,
+.dark-mode .form-input:focus,
+[data-theme-mode='midnight'] .form-select:focus,
+.theme-midnight .form-select:focus,
+.dark-mode .form-select:focus {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2) !important;
+}
+
+[data-theme-mode='midnight'] .cancel-button,
+.theme-midnight .cancel-button,
+.dark-mode .cancel-button {
+  background: #1f2937 !important;
+  color: #f9fafb !important;
+  border-color: #374151 !important;
+}
+
+[data-theme-mode='midnight'] .cancel-button:hover:not(:disabled),
+.theme-midnight .cancel-button:hover:not(:disabled),
+.dark-mode .cancel-button:hover:not(:disabled) {
+  background: #374151 !important;
+}
+
+[data-theme-mode='midnight'] .favourite-card,
+.theme-midnight .favourite-card,
+.dark-mode .favourite-card {
+  background: #111827 !important;
+  border-color: #1f2937 !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme-mode='midnight'] .favourite-card:hover,
+.theme-midnight .favourite-card:hover,
+.dark-mode .favourite-card:hover {
+  border-color: #ef4444 !important;
+}
+
+[data-theme-mode='midnight'] .favourite-name,
+.theme-midnight .favourite-name,
+.dark-mode .favourite-name {
+  color: #f9fafb !important;
+}
+
+[data-theme-mode='midnight'] .favourite-criteria,
+.theme-midnight .favourite-criteria,
+.dark-mode .favourite-criteria {
+  color: #9ca3af !important;
 }

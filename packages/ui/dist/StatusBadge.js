@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.getStatusBadgeCssClass = getStatusBadgeCssClass;
-function getStatusBadgeCssClass(variant = 'neutral') {
+export function getStatusBadgeCssClass(variant = 'neutral') {
     switch (variant) {
         case 'success':
             return 'cc-badge cc-badge-success';

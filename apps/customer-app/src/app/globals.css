@@ -34,7 +34,7 @@ body {
   min-width: 320px;
   background: var(--color-background);
   color: var(--color-text-primary);
-  font-family: var(--font-body);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
   font-size: var(--font-size-base);
   line-height: 1.5;
   color-scheme: light;
@@ -44,9 +44,115 @@ body {
   min-height: 100vh;
 }
 
-/* Visible keyboard focus everywhere; never removed without a replacement. */
-:focus-visible {
-  outline: var(--focus-ring-width) solid var(--color-focus);
+/*
+ * System-Wide Focus Standardization:
+ * Eliminates oversized red outlines, thick borders, and heavy gradient/shadow rings.
+ */
+input,
+select,
+textarea,
+[type="search"],
+[type="text"],
+[type="email"],
+[type="password"],
+[type="number"],
+[type="tel"] {
+  outline: none !important;
+}
+
+input:focus,
+input:focus-visible,
+select:focus,
+select:focus-visible,
+textarea:focus,
+textarea:focus-visible,
+[type="search"]:focus,
+[type="search"]:focus-visible,
+.cc-search-input:focus,
+.cc-search-input:focus-visible,
+.cc-filter-select:focus,
+.cc-filter-select:focus-visible,
+.cc-filter-input:focus,
+.cc-filter-input:focus-visible,
+.cc-adv-ai-input:focus,
+.cc-adv-ai-input:focus-visible,
+.cc-adv-search-input:focus,
+.cc-adv-search-input:focus-visible,
+.cc-adv-select:focus,
+.cc-adv-select:focus-visible,
+.cc-adv-input:focus,
+.cc-adv-input:focus-visible,
+.cc-orders-input:focus,
+.cc-orders-input:focus-visible,
+.cc-orders-select:focus,
+.cc-orders-select:focus-visible,
+.cc-wishlist-search-input:focus,
+.cc-wishlist-search-input:focus-visible,
+.cc-profile-input:focus,
+.cc-profile-input:focus-visible,
+.cc-inv-search-input:focus,
+.cc-inv-search-input:focus-visible,
+.cc-cust-invoices-input:focus,
+.cc-cust-invoices-input:focus-visible,
+.cc-remit-form-input:focus,
+.cc-remit-form-input:focus-visible,
+.cc-remit-search-input:focus,
+.cc-remit-search-input:focus-visible,
+.cc-remit-select:focus,
+.cc-remit-select:focus-visible {
+  outline: none !important;
+  border-color: #0f172a !important;
+  box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.06) !important;
+}
+
+[data-theme-mode="midnight"] input:focus,
+[data-theme-mode="midnight"] input:focus-visible,
+[data-theme-mode="midnight"] select:focus,
+[data-theme-mode="midnight"] select:focus-visible,
+[data-theme-mode="midnight"] textarea:focus,
+[data-theme-mode="midnight"] textarea:focus-visible,
+[data-theme-mode="midnight"] [type="search"]:focus,
+[data-theme-mode="midnight"] [type="search"]:focus-visible,
+[data-theme-mode="midnight"] .cc-search-input:focus,
+[data-theme-mode="midnight"] .cc-search-input:focus-visible,
+[data-theme-mode="midnight"] .cc-filter-select:focus,
+[data-theme-mode="midnight"] .cc-filter-select:focus-visible,
+[data-theme-mode="midnight"] .cc-filter-input:focus,
+[data-theme-mode="midnight"] .cc-filter-input:focus-visible,
+[data-theme-mode="midnight"] .cc-adv-ai-input:focus,
+[data-theme-mode="midnight"] .cc-adv-ai-input:focus-visible,
+[data-theme-mode="midnight"] .cc-adv-search-input:focus,
+[data-theme-mode="midnight"] .cc-adv-search-input:focus-visible,
+[data-theme-mode="midnight"] .cc-adv-select:focus,
+[data-theme-mode="midnight"] .cc-adv-select:focus-visible,
+[data-theme-mode="midnight"] .cc-adv-input:focus,
+[data-theme-mode="midnight"] .cc-adv-input:focus-visible,
+[data-theme-mode="midnight"] .cc-orders-input:focus,
+[data-theme-mode="midnight"] .cc-orders-input:focus-visible,
+[data-theme-mode="midnight"] .cc-orders-select:focus,
+[data-theme-mode="midnight"] .cc-orders-select:focus-visible,
+[data-theme-mode="midnight"] .cc-wishlist-search-input:focus,
+[data-theme-mode="midnight"] .cc-wishlist-search-input:focus-visible,
+[data-theme-mode="midnight"] .cc-profile-input:focus,
+[data-theme-mode="midnight"] .cc-profile-input:focus-visible,
+[data-theme-mode="midnight"] .cc-inv-search-input:focus,
+[data-theme-mode="midnight"] .cc-inv-search-input:focus-visible,
+[data-theme-mode="midnight"] .cc-cust-invoices-input:focus,
+[data-theme-mode="midnight"] .cc-cust-invoices-input:focus-visible,
+[data-theme-mode="midnight"] .cc-remit-form-input:focus,
+[data-theme-mode="midnight"] .cc-remit-form-input:focus-visible,
+[data-theme-mode="midnight"] .cc-remit-search-input:focus,
+[data-theme-mode="midnight"] .cc-remit-search-input:focus-visible,
+[data-theme-mode="midnight"] .cc-remit-select:focus,
+[data-theme-mode="midnight"] .cc-remit-select:focus-visible {
+  outline: none !important;
+  border-color: #94a3b8 !important;
+  box-shadow: 0 0 0 2px rgba(148, 163, 184, 0.12) !important;
+}
+
+/* Subtle, refined keyboard focus for non-field interactive elements (buttons, links) */
+:focus-visible:not(input):not(select):not(textarea):not([type="search"]) {
+  outline: 1.5px solid var(--color-focus, #94a3b8);
   outline-offset: 2px;
 }
 
@@ -63,4 +169,218 @@ a {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* ==========================================================================
+   GLOBAL DARK THEME (MIDNIGHT MODE) - APPLICATION-WIDE ENFORCEMENT
+   Ensures ALL white/light backgrounds turn dark and fonts turn light across
+   all pages in both mobile and web views.
+   ========================================================================== */
+
+[data-theme-mode="midnight"],
+html[data-theme-mode="midnight"],
+body[data-theme-mode="midnight"],
+.theme-midnight,
+html.theme-midnight,
+body.theme-midnight,
+.dark-mode,
+html.dark-mode,
+body.dark-mode {
+  color-scheme: dark !important;
+  background-color: #090d16 !important;
+  color: #f9fafb !important;
+}
+
+/* Universal Page Containers & Shell Background */
+[data-theme-mode="midnight"] #root,
+.theme-midnight #root,
+.dark-mode #root,
+[data-theme-mode="midnight"] .cc-cust-shell-layout,
+.theme-midnight .cc-cust-shell-layout,
+.dark-mode .cc-cust-shell-layout,
+[data-theme-mode="midnight"] .cc-cust-shell-main,
+.theme-midnight .cc-cust-shell-main,
+.dark-mode .cc-cust-shell-main,
+[data-theme-mode="midnight"] .cc-cust-shell-content,
+.theme-midnight .cc-cust-shell-content,
+.dark-mode .cc-cust-shell-content,
+[data-theme-mode="midnight"] .cc-cust-shell-footer,
+.theme-midnight .cc-cust-shell-footer,
+.dark-mode .cc-cust-shell-footer {
+  background-color: #090d16 !important;
+  color: #f9fafb !important;
+}
+
+/* Universal Surface Cards & Panels - Eliminate White Backgrounds */
+[data-theme-mode="midnight"] .cc-card,
+.theme-midnight .cc-card,
+.dark-mode .cc-card,
+[data-theme-mode="midnight"] .card,
+.theme-midnight .card,
+.dark-mode .card,
+[data-theme-mode="midnight"] .panel,
+.theme-midnight .panel,
+.dark-mode .panel,
+[data-theme-mode="midnight"] .cc-panel,
+.theme-midnight .cc-panel,
+.dark-mode .cc-panel,
+[data-theme-mode="midnight"] [class*="-card"]:not([class*="-card__"]):not(.cc-cust-shell-sidebar-badge):not(.cc-cust-sidebar-verified-card),
+.theme-midnight [class*="-card"]:not([class*="-card__"]):not(.cc-cust-shell-sidebar-badge):not(.cc-cust-sidebar-verified-card),
+.dark-mode [class*="-card"]:not([class*="-card__"]):not(.cc-cust-shell-sidebar-badge):not(.cc-cust-sidebar-verified-card),
+[data-theme-mode="midnight"] [class*="__card"]:not([class*="__card__"]),
+.theme-midnight [class*="__card"]:not([class*="__card__"]),
+.dark-mode [class*="__card"]:not([class*="__card__"]) {
+  background-color: #111827 !important;
+  border-color: #1f2937 !important;
+  color: #f9fafb !important;
+}
+
+/* Ensure vehicle card status wrapper has no dark square background behind pill */
+.cc-vehicle-card__status,
+[data-theme-mode="midnight"] .cc-vehicle-card__status,
+.theme-midnight .cc-vehicle-card__status,
+.dark-mode .cc-vehicle-card__status {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+
+/* Universal Headings and Text: Eliminate Dark Inks in Midnight Mode */
+[data-theme-mode="midnight"] h1,
+.theme-midnight h1,
+.dark-mode h1,
+[data-theme-mode="midnight"] h2,
+.theme-midnight h2,
+.dark-mode h2,
+[data-theme-mode="midnight"] h3,
+.theme-midnight h3,
+.dark-mode h3,
+[data-theme-mode="midnight"] h4,
+.theme-midnight h4,
+.dark-mode h4,
+[data-theme-mode="midnight"] h5,
+.theme-midnight h5,
+.dark-mode h5,
+[data-theme-mode="midnight"] h6,
+.theme-midnight h6,
+.dark-mode h6,
+[data-theme-mode="midnight"] strong,
+.theme-midnight strong,
+.dark-mode strong,
+[data-theme-mode="midnight"] b,
+.theme-midnight b,
+.dark-mode b,
+[data-theme-mode="midnight"] [class*="title"]:not(.cc-cust-verified-title):not(.cc-remit-pill):not(.cc-notif-badge-critical),
+.theme-midnight [class*="title"]:not(.cc-cust-verified-title):not(.cc-remit-pill):not(.cc-notif-badge-critical),
+.dark-mode [class*="title"]:not(.cc-cust-verified-title):not(.cc-remit-pill):not(.cc-notif-badge-critical) {
+  color: #f9fafb !important;
+}
+
+[data-theme-mode="midnight"] [class*="desc"],
+.theme-midnight [class*="desc"],
+.dark-mode [class*="desc"],
+[data-theme-mode="midnight"] [class*="subtitle"],
+.theme-midnight [class*="subtitle"],
+.dark-mode [class*="subtitle"],
+[data-theme-mode="midnight"] [class*="subtext"],
+.theme-midnight [class*="subtext"],
+.dark-mode [class*="subtext"],
+[data-theme-mode="midnight"] [class*="meta"]:not(.cc-inv-type-pill),
+.theme-midnight [class*="meta"]:not(.cc-inv-type-pill),
+.dark-mode [class*="meta"]:not(.cc-inv-type-pill),
+[data-theme-mode="midnight"] [class*="label"]:not(.cc-remit-pill):not(.cc-notif-badge-critical),
+.theme-midnight [class*="label"]:not(.cc-remit-pill):not(.cc-notif-badge-critical),
+.dark-mode [class*="label"]:not(.cc-remit-pill):not(.cc-notif-badge-critical) {
+  color: #9ca3af !important;
+}
+
+/* Universal Form Fields (Inputs, Selects, Textareas) */
+[data-theme-mode="midnight"] input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="reset"]),
+.theme-midnight input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="reset"]),
+.dark-mode input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="reset"]),
+[data-theme-mode="midnight"] select,
+.theme-midnight select,
+.dark-mode select,
+[data-theme-mode="midnight"] textarea,
+.theme-midnight textarea,
+.dark-mode textarea {
+  background-color: #1f2937 !important;
+  color: #f9fafb !important;
+  border-color: #374151 !important;
+}
+
+[data-theme-mode="midnight"] input::placeholder,
+.theme-midnight input::placeholder,
+.dark-mode input::placeholder,
+[data-theme-mode="midnight"] textarea::placeholder,
+.theme-midnight textarea::placeholder,
+.dark-mode textarea::placeholder {
+  color: #9ca3af !important;
+}
+
+/* Universal Modals & Overlays */
+[data-theme-mode="midnight"] [role="dialog"],
+.theme-midnight [role="dialog"],
+.dark-mode [role="dialog"],
+[data-theme-mode="midnight"] [class*="modal"]:not([class*="overlay"]),
+.theme-midnight [class*="modal"]:not([class*="overlay"]),
+.dark-mode [class*="modal"]:not([class*="overlay"]),
+[data-theme-mode="midnight"] [class*="drawer"],
+.theme-midnight [class*="drawer"],
+.dark-mode [class*="drawer"],
+[data-theme-mode="midnight"] [class*="popover"],
+.theme-midnight [class*="popover"],
+.dark-mode [class*="popover"],
+[data-theme-mode="midnight"] [class*="dropdown"],
+.theme-midnight [class*="dropdown"],
+.dark-mode [class*="dropdown"] {
+  background-color: #111827 !important;
+  border-color: #1f2937 !important;
+  color: #f9fafb !important;
+}
+
+/* Universal Tables */
+[data-theme-mode="midnight"] table,
+.theme-midnight table,
+.dark-mode table {
+  color: #f9fafb !important;
+}
+
+[data-theme-mode="midnight"] thead,
+.theme-midnight thead,
+.dark-mode thead,
+[data-theme-mode="midnight"] thead th,
+.theme-midnight thead th,
+.dark-mode thead th {
+  background-color: #030712 !important;
+  color: #9ca3af !important;
+  border-color: #1f2937 !important;
+}
+
+[data-theme-mode="midnight"] tbody tr,
+.theme-midnight tbody tr,
+.dark-mode tbody tr {
+  border-color: #1f2937 !important;
+}
+
+[data-theme-mode="midnight"] tbody tr:hover,
+.theme-midnight tbody tr:hover,
+.dark-mode tbody tr:hover {
+  background-color: #1f2937 !important;
+}
+
+[data-theme-mode="midnight"] tbody td,
+.theme-midnight tbody td,
+.dark-mode tbody td {
+  color: #f9fafb !important;
+  border-color: #1f2937 !important;
+}
+
+/* Remove any light border lines */
+[data-theme-mode="midnight"] hr,
+.theme-midnight hr,
+.dark-mode hr {
+  border-color: #1f2937 !important;
 }
