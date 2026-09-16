@@ -330,6 +330,8 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
   const [showThumbnails, setShowThumbnails] = useState(true);
   const [isZoomed, setIsZoomed] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [lightboxZoom, setLightboxZoom] = useState(1);
 
   // 360 Interactive Spin state
   const [spin360Index, setSpin360Index] = useState(0);
@@ -405,6 +407,45 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
     }, 700);
     return () => clearInterval(interval);
   }, [isAutoSpinning, activeMediaTab]);
+
+  // Lightbox keyboard navigation & body scroll lock
+  useEffect(() => {
+    if (!isLightboxOpen) return;
+
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsLightboxOpen(false);
+        setLightboxZoom(1);
+      } else if (e.key === 'ArrowLeft') {
+        setCurrentImageIndex((prev) => {
+          const total = vehicle?.media ? getVisibleGalleryImages(vehicle.media).length || FALLBACK_IMAGES.length : FALLBACK_IMAGES.length;
+          return prev > 0 ? prev - 1 : total - 1;
+        });
+        setLightboxZoom(1);
+      } else if (e.key === 'ArrowRight') {
+        setCurrentImageIndex((prev) => {
+          const total = vehicle?.media ? getVisibleGalleryImages(vehicle.media).length || FALLBACK_IMAGES.length : FALLBACK_IMAGES.length;
+          return prev < total - 1 ? prev + 1 : 0;
+        });
+        setLightboxZoom(1);
+      } else if (e.key === '+' || e.key === '=') {
+        setLightboxZoom((z) => Math.min(3, Math.round((z + 0.3) * 10) / 10));
+      } else if (e.key === '-' || e.key === '_') {
+        setLightboxZoom((z) => Math.max(1, Math.round((z - 0.3) * 10) / 10));
+      } else if (e.key === '0') {
+        setLightboxZoom(1);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isLightboxOpen, vehicle]);
 
   if (loading) {
     return (
@@ -655,7 +696,9 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
           onClick={handleBack}
           aria-label={resolvedBackLabel}
         >
-          &larr; {resolvedBackLabel}
+          <span className="cc-cust-breadcrumb-back-arrow" aria-hidden="true">&larr;</span>
+          <span className="cc-cust-breadcrumb-back-label-short">Back</span>
+          <span className="cc-cust-breadcrumb-back-label-full">{resolvedBackLabel}</span>
         </button>
         {isInquiriesSource ? (
           <>
@@ -920,8 +963,11 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
                   <button
                     type="button"
                     className="cc-cust-gallery-ctrl-btn"
-                    onClick={() => setIsZoomed((z) => !z)}
-                    title="Toggle Zoom"
+                    onClick={() => {
+                      setIsLightboxOpen(true);
+                      setLightboxZoom(1);
+                    }}
+                    title="Click to zoom in full popup modal"
                   >
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <circle cx="11" cy="11" r="8" />
@@ -945,13 +991,30 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
                 </div>
 
                 {/* Main Image Display */}
-                <div className={`cc-cust-gallery-main-img-wrap ${isZoomed ? 'cc-cust-gallery-main-img-wrap--zoomed' : ''}`}>
+                <div
+                  className={`cc-cust-gallery-main-img-wrap ${isZoomed ? 'cc-cust-gallery-main-img-wrap--zoomed' : ''}`}
+                  onClick={() => {
+                    setIsLightboxOpen(true);
+                    setLightboxZoom(1);
+                  }}
+                  title="Click to zoom picture in popup"
+                  style={{ cursor: 'zoom-in' }}
+                >
                   <img
                     src={images[currentImageIndex]}
                     alt={`${title} - View ${currentImageIndex + 1}`}
                     className="cc-cust-gallery-main-img"
                     loading="eager"
                   />
+                  <div className="cc-cust-gallery-click-hint">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <circle cx="11" cy="11" r="8" />
+                      <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                      <line x1="11" y1="8" x2="11" y2="14" />
+                      <line x1="8" y1="11" x2="14" y2="11" />
+                    </svg>
+                    Click to zoom
+                  </div>
                 </div>
 
                 {/* Navigation Arrows */}
@@ -2471,6 +2534,156 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
                   </div>
                 </>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Vehicle Picture Zoom Popup Lightbox */}
+      {isLightboxOpen && images.length > 0 && (
+        <div
+          className="cc-cust-lightbox-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Vehicle Image Zoom Preview"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setIsLightboxOpen(false);
+              setLightboxZoom(1);
+            }
+          }}
+        >
+          {/* Lightbox Header */}
+          <div className="cc-cust-lightbox-header">
+            <div className="cc-cust-lightbox-info">
+              <span className="cc-cust-lightbox-title">{title}</span>
+              <span className="cc-cust-lightbox-counter">
+                {currentImageIndex + 1} / {images.length}
+              </span>
+            </div>
+            <div className="cc-cust-lightbox-tools">
+              <button
+                type="button"
+                className="cc-cust-lightbox-tool-btn"
+                onClick={() => setLightboxZoom((z) => Math.max(1, Math.round((z - 0.3) * 10) / 10))}
+                disabled={lightboxZoom <= 1}
+                title="Zoom out (-)"
+              >
+                －
+              </button>
+              <button
+                type="button"
+                className="cc-cust-lightbox-tool-btn"
+                onClick={() => setLightboxZoom(1)}
+                title="Reset zoom (0)"
+              >
+                {Math.round(lightboxZoom * 100)}%
+              </button>
+              <button
+                type="button"
+                className="cc-cust-lightbox-tool-btn"
+                onClick={() => setLightboxZoom((z) => Math.min(3, Math.round((z + 0.3) * 10) / 10))}
+                disabled={lightboxZoom >= 3}
+                title="Zoom in (+)"
+              >
+                ＋
+              </button>
+              <button
+                type="button"
+                className="cc-cust-lightbox-close-btn"
+                onClick={() => {
+                  setIsLightboxOpen(false);
+                  setLightboxZoom(1);
+                }}
+                aria-label="Close zoom popup"
+                title="Close (Esc)"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+
+          {/* Lightbox Main Stage */}
+          <div
+            className="cc-cust-lightbox-stage"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setIsLightboxOpen(false);
+                setLightboxZoom(1);
+              }
+            }}
+          >
+            {images.length > 1 && (
+              <button
+                type="button"
+                className="cc-cust-lightbox-arrow cc-cust-lightbox-arrow--prev"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handlePrevImage();
+                  setLightboxZoom(1);
+                }}
+                aria-label="Previous image (Left Arrow)"
+              >
+                ‹
+              </button>
+            )}
+
+            <div
+              className="cc-cust-lightbox-img-container"
+              style={{
+                transform: `scale(${lightboxZoom})`,
+                cursor: lightboxZoom > 1 ? 'zoom-out' : 'zoom-in',
+              }}
+              onClick={() => {
+                setLightboxZoom((z) => (z > 1 ? 1 : 2));
+              }}
+              title={lightboxZoom > 1 ? 'Click to reset zoom' : 'Click to zoom in 2x'}
+            >
+              <img
+                src={images[currentImageIndex]}
+                alt={`${title} - Zoomed View ${currentImageIndex + 1}`}
+                className="cc-cust-lightbox-img"
+              />
+            </div>
+
+            {images.length > 1 && (
+              <button
+                type="button"
+                className="cc-cust-lightbox-arrow cc-cust-lightbox-arrow--next"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleNextImage();
+                  setLightboxZoom(1);
+                }}
+                aria-label="Next image (Right Arrow)"
+              >
+                ›
+              </button>
+            )}
+          </div>
+
+          {/* Lightbox Footer with Thumbnails */}
+          <div className="cc-cust-lightbox-footer">
+            {images.length > 1 && (
+              <div className="cc-cust-lightbox-thumbs">
+                {images.map((imgSrc, idx) => (
+                  <button
+                    key={`lb-thumb-${idx}`}
+                    type="button"
+                    className={`cc-cust-lightbox-thumb-btn ${idx === currentImageIndex ? 'cc-cust-lightbox-thumb-btn--active' : ''}`}
+                    onClick={() => {
+                      setCurrentImageIndex(idx);
+                      setLightboxZoom(1);
+                    }}
+                    aria-label={`Go to image ${idx + 1}`}
+                  >
+                    <img src={imgSrc} alt={`Thumbnail ${idx + 1}`} />
+                  </button>
+                ))}
+              </div>
+            )}
+            <div className="cc-cust-lightbox-hint">
+              Press Esc to close, Left / Right arrow keys to navigate, or click the photo to zoom
             </div>
           </div>
         </div>
