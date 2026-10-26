@@ -33,11 +33,11 @@ function readPrefilledEmail(): string {
 
 /** Reads the saved/prefilled password to keep it on the screen. */
 function readPrefilledPassword(): string {
-  if (typeof window === 'undefined') return 'Password123!';
+  if (typeof window === 'undefined') return 'Password@1234';
   try {
-    return localStorage.getItem('carchief_saved_password') || 'Password123!';
+    return localStorage.getItem('carchief_saved_password') || 'Password@1234';
   } catch {
-    return 'Password123!';
+    return 'Password@1234';
   }
 }
 

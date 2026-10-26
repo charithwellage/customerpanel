@@ -6722,6 +6722,8 @@ class PostgresStore implements DemoStore {
   private notifications = seedNotifications.map((notification) => ({ ...notification }));
   private customerProfiles = seedCustomerProfiles.map((profile) => ({ ...profile }));
   private allocations = seedAllocations.map((allocation) => ({ ...allocation }));
+  private readonly ensuringFleetCustomers = new Map<string, Promise<void>>();
+  private readonly ensuredFleetCustomers = new Set<string>();
 
   constructor(connectionString: string) {
     this.pool = new Pool({ connectionString });
@@ -7841,6 +7843,34 @@ class PostgresStore implements DemoStore {
   }
 
   private async ensureCustomerFleetDataInPostgres(customerId: string, customerEmail?: string): Promise<void> {
+    if (customerId.startsWith('cust-exception')) return;
+    if (this.ensuredFleetCustomers.has(customerId)) return;
+    const inFlight = this.ensuringFleetCustomers.get(customerId);
+    if (inFlight) {
+      return inFlight;
+    }
+    const promise = (async () => {
+      try {
+        await this.doEnsureCustomerFleetDataInPostgres(customerId, customerEmail);
+        this.ensuredFleetCustomers.add(customerId);
+      } catch (err: any) {
+        if (err?.code === '40P01') {
+          // PostgreSQL deadlock detected: backoff and retry once
+          await new Promise((r) => setTimeout(r, 60 + Math.random() * 100));
+          await this.doEnsureCustomerFleetDataInPostgres(customerId, customerEmail);
+          this.ensuredFleetCustomers.add(customerId);
+        } else {
+          console.error(`ensureCustomerFleetDataInPostgres error for ${customerId}:`, err);
+        }
+      } finally {
+        this.ensuringFleetCustomers.delete(customerId);
+      }
+    })();
+    this.ensuringFleetCustomers.set(customerId, promise);
+    await promise;
+  }
+
+  private async doEnsureCustomerFleetDataInPostgres(customerId: string, customerEmail?: string): Promise<void> {
     if (customerId.startsWith('cust-exception')) return;
     if (customerId !== 'cust-123') {
       const acctResult = await this.pool.query('SELECT email FROM customer_accounts WHERE customer_id = $1', [customerId]);
@@ -10011,6 +10041,7 @@ class PostgresStore implements DemoStore {
       this.paymentRecords = seedPayments.map((payment) => ({ ...payment }));
       this.paymentNotifications = seedPaymentNotifications.map((notification) => ({ ...notification }));
       this.allocations = seedAllocations.map((allocation) => ({ ...allocation }));
+      this.ensuredFleetCustomers.clear();
 
       await this.ensureCustomerFleetDataInPostgres(seedAccount.customerId, seedAccount.email);
       await this.ensureCustomerFleetDataInPostgres('user-other-456', 'amina.njeri@example.com');

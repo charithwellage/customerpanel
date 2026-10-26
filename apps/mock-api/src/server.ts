@@ -1137,10 +1137,24 @@ export function createMockApiApp(store: DemoStore = createStore()): Express {
     res.send(html);
   });
 
+  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+    console.error('Mock API route error caught:', err);
+    if (!res.headersSent) {
+      res.status(500).json({
+        statusCode: 500,
+        message: err?.message || 'Internal Server Error',
+        correlationId: 'corr-500',
+      });
+    }
+  });
+
   return app;
 }
 
 if (process.env.NODE_ENV !== 'test') {
+  process.on('unhandledRejection', (reason) => {
+    console.error('Mock API unhandledRejection caught:', reason);
+  });
   const port = process.env.MOCK_API_PORT || 4000;
   const store = createStore();
   const app = createMockApiApp(store);

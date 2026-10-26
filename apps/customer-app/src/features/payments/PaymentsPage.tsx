@@ -27,6 +27,13 @@ import {
 import '../statement/statement.css';
 import './payments.css';
 
+function safeRandomUUID(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return 'key-' + Date.now().toString(36) + '-' + Math.random().toString(36).substring(2, 10);
+}
+
 export interface RemittanceJournalEntry {
   id: string;
   reference: string;
@@ -543,7 +550,7 @@ export const PaymentsPage: React.FC = () => {
       paymentDate: new Date().toISOString().slice(0, 10),
       remarks: '',
       proof: { fileName: '', fileType: 'PDF', sizeBytes: 0, scanStatus: 'Pending' },
-      idempotencyKey: crypto.randomUUID(),
+      idempotencyKey: safeRandomUUID(),
     },
     mode: 'onSubmit',
   });
@@ -573,7 +580,7 @@ export const PaymentsPage: React.FC = () => {
         paymentDate: new Date().toISOString().slice(0, 10),
         remarks: '',
         proof: { fileName: '', fileType: 'PDF', sizeBytes: 0, scanStatus: 'Pending' },
-        idempotencyKey: crypto.randomUUID(),
+        idempotencyKey: safeRandomUUID(),
       });
 
       setTimeout(() => {

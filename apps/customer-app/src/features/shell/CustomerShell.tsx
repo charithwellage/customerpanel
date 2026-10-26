@@ -72,7 +72,7 @@ const CustomerShellInner: React.FC<CustomerShellInnerProps> = ({
           )}
 
           <div className="cc-cust-shell-container">
-            <CustomerErrorBoundary>
+            <CustomerErrorBoundary key={activeRoute}>
               {loading ? (
                 <div className="cc-cust-shell-loading" role="status" aria-live="polite">
                   <div className="cc-cust-shell-spinner" aria-hidden="true" />
