@@ -29,10 +29,10 @@ COPY openapi ./openapi
 # The dependency closure (`...`) is required: unlike public-web, Vite resolves
 # each @carchief/* workspace package through its published `main`, so every
 # dependency must have emitted dist/ before the app bundle is built.
-RUN pnpm --filter @carchief/customer-app... build
+RUN pnpm --filter @carchief/mock-api... build && pnpm --filter @carchief/customer-app... build
+RUN chmod +x apps/customer-app/entrypoint.sh
 
 EXPOSE 3001
-# `vite preview` serves the built bundle. It reads CUSTOMER_API_PROXY_TARGET at
-# start time and proxies same-origin /api/v1 calls to the Mock API, so no
-# container-internal hostname is ever baked into the browser bundle.
-CMD ["pnpm", "--filter", "@carchief/customer-app", "preview"]
+# `vite preview` serves the built bundle. When running standalone or without an external Mock API,
+# the entrypoint starts the embedded in-memory Mock API on port 4000.
+CMD ["sh", "apps/customer-app/entrypoint.sh"]
