@@ -67,10 +67,11 @@ describe('Customer App Shell & Navigation Unit Tests', () => {
       )
     );
 
-    // All 6 consolidated main nav items are always visible regardless of route
+    // Consolidated main nav items are visible
     expect(html).toContain('Dashboard');           // customer.dashboard → 'Dashboard' (English i18n)
     expect(html).toContain('All Inventory Stock'); // label fallback
     expect(html).toContain('My Vehicles');         // customer.myVehicles → 'My Vehicles'
+    expect(html).toContain('Account &amp; Payments');  // parent group
     expect(html).toContain('My Statement');        // customer.statement → 'My Statement'
     expect(html).toContain('Wire Remittance');     // customer.wireRemittance → 'Wire Remittance'
     expect(html).toContain('Account');             // label fallback
@@ -97,7 +98,7 @@ describe('Customer App Shell & Navigation Unit Tests', () => {
     expect(html).toContain('aria-current="page"');
   });
 
-  it('renders Wire Remittance as a top-level nav item without sub-nav', () => {
+  it('renders Account & Payments with My Statement and Wire Remittance sub-items', () => {
     const html = renderToStaticMarkup(
       React.createElement(
         CustomerShellProvider,
@@ -106,10 +107,11 @@ describe('Customer App Shell & Navigation Unit Tests', () => {
       )
     );
 
+    expect(html).toContain('Account &amp; Payments');
     expect(html).toContain('Wire Remittance');
+    expect(html).toContain('My Statement');
     expect(html).toContain('href="/payments"');
-    expect(html).not.toContain('Purchased Vehicles');
-    expect(html).not.toContain('Secure Vault');
+    expect(html).toContain('href="/statement"');
   });
 
   it('keeps Bulletins & Alerts available through the fixed bell, not the sidebar', async () => {

@@ -1111,9 +1111,22 @@ function createMockApiApp(store = (0, store_js_1.createStore)()) {
         res.setHeader('Content-Type', 'text/html');
         res.send(html);
     });
+    app.use((err, _req, res, _next) => {
+        console.error('Mock API route error caught:', err);
+        if (!res.headersSent) {
+            res.status(500).json({
+                statusCode: 500,
+                message: err?.message || 'Internal Server Error',
+                correlationId: 'corr-500',
+            });
+        }
+    });
     return app;
 }
 if (process.env.NODE_ENV !== 'test') {
+    process.on('unhandledRejection', (reason) => {
+        console.error('Mock API unhandledRejection caught:', reason);
+    });
     const port = process.env.MOCK_API_PORT || 4000;
     const store = (0, store_js_1.createStore)();
     const app = createMockApiApp(store);

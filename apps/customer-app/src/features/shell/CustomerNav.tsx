@@ -24,6 +24,8 @@ import {
   CarChiefLogoMark,
   SidebarCollapseIcon,
   DemandTargetIcon,
+  PortReadyBoxIcon,
+  HomeIcon,
 } from '../../components/Icons.js';
 
 
@@ -85,7 +87,7 @@ export interface CustomerTopCornerActionsProps {
 }
 
 export const CustomerTopCornerActions: React.FC<CustomerTopCornerActionsProps> = ({ compact = false }) => {
-  const { activeRoute, setActiveRoute, previousRoute, themeMode, toggleThemeMode } = useCustomerShell();
+  const { activeRoute, setActiveRoute, previousRoute, themeMode, toggleThemeMode, closeMobileMenu } = useCustomerShell();
   const queryClient = React.useContext(QueryClientContext);
   const isNotificationsOpen = activeRoute === '/notifications';
 
@@ -98,9 +100,30 @@ export const CustomerTopCornerActions: React.FC<CustomerTopCornerActionsProps> =
     }
   };
 
+  const handleHomeClick = () => {
+    setActiveRoute('/dashboard');
+    closeMobileMenu();
+  };
+
   return (
     <aside className="cc-cust-top-actions" aria-label="Quick user actions" data-testid="cust-top-actions">
-      {/* 1. Change Language Option */}
+      {/* 1. Home / Dashboard Shortcut Button (Mobile Only) */}
+      {compact && (
+        <button
+          type="button"
+          className={`cc-cust-top-action-btn cc-cust-top-home-btn${activeRoute === '/dashboard' ? ' cc-cust-top-home-btn--active' : ''}`}
+          onClick={handleHomeClick}
+          aria-label="Navigate to Dashboard"
+          title="Dashboard / Home"
+          data-testid="cust-top-home-btn"
+        >
+          <span className="cc-cust-top-btn-icon" aria-hidden="true">
+            <HomeIcon size={13} />
+          </span>
+        </button>
+      )}
+
+      {/* 2. Change Language Option */}
       <CustomerLanguageSwitcher
         id={compact ? 'mobile-top-language-switcher' : 'top-corner-language-switcher'}
         compact={compact}
@@ -156,6 +179,7 @@ function getGroupLabel(item: NavigationItem, t: (key: string, params?: Record<st
     case 'statement': return t('customer.statement', undefined, item.label);
     case 'payments':  return t('customer.wireRemittance', undefined, item.label);
     case 'finances':  return t('customer.finances', undefined, item.label);
+    case 'account-payments': return t('customer.accountPayments', undefined, item.label);
     case 'account':   return t('customer.account', undefined, item.label);
     case 'profile':   return t('customer.profileSecurity', undefined, item.label);
     case 'notifications': return t('customer.bulletinsAlerts', undefined, item.label);
@@ -177,6 +201,7 @@ function getSubItemLabel(item: SubNavigationItem, t: (key: string, params?: Reco
     case 'documents':     return t('customer.documents', undefined, item.label);
     case 'notifications': return t('customer.notifications', undefined, item.label);
     case 'profile':       return t('customer.profile', undefined, item.label);
+    case 'consignee':     return t('customer.consigneeNotifyParty', undefined, item.label);
     default: return item.label;
   }
 }
@@ -189,6 +214,7 @@ const renderNavIcon = (itemId: string, fallbackIcon?: string): React.ReactNode =
       case 'demand':              return <DemandTargetIcon size={15} />;
       case 'garage':              return <VehiclesSideCarIcon size={15} />;
       case 'finances':            return <WireRemittanceDollarIcon size={15} />;
+      case 'account-payments':    return <WireRemittanceDollarIcon size={15} />;
       case 'account':             return <ClientProfileUserIcon size={15} />;
       case 'statement':           return <InvoiceDocumentIcon size={15} />;
       case 'inventory':           return <ShowroomCarIcon size={15} />;
@@ -202,6 +228,7 @@ const renderNavIcon = (itemId: string, fallbackIcon?: string): React.ReactNode =
       case 'documents':           return <VaultShieldIcon size={15} />;
       case 'notifications':       return <BulletinsBellIcon size={15} />;
       case 'profile':             return <ClientProfileUserIcon size={15} />;
+      case 'consignee':           return <PortReadyBoxIcon size={15} />;
       default: return fallbackIcon ? <span>{fallbackIcon}</span> : null;
     }
   };
@@ -281,9 +308,11 @@ const NavGroup: React.FC<NavGroupProps> = ({ item, activeRoute, setActiveRoute, 
   const childRoutes = item.children?.map((c) => c.href) ?? [];
   const isGroupActive = isPathMatch(item.href) || childRoutes.some(isPathMatch);
 
-  // "My Vehicles" group is open by default always, while allowing customer to toggle/minimize it if they want
+  // "My Vehicles", "Account & Payments", and "Profile & Security" groups are open by default always, while allowing customer to toggle/minimize it if they want
   const isMyVehicles = item.id === 'garage' || item.href === '/vehicles';
-  const [isOpen, setIsOpen] = useState(() => isMyVehicles || isGroupActive);
+  const isAccountPayments = item.id === 'account-payments' || item.id === 'finances';
+  const isProfile = item.id === 'profile' || item.href === '/profile';
+  const [isOpen, setIsOpen] = useState(() => isMyVehicles || isAccountPayments || isProfile || isGroupActive);
 
   // Automatically keep sub-nav open when any child is active
   React.useEffect(() => {
@@ -497,7 +526,7 @@ export const CustomerNav: React.FC = () => {
               title="Exit To Showroom"
             >
               <span className="cc-cust-tool-icon" aria-hidden="true">
-                <ExternalArrowIcon size={15} />
+                <ExternalArrowIcon size={13} />
               </span>
               <span>Exit To Showroom</span>
             </a>
@@ -513,7 +542,7 @@ export const CustomerNav: React.FC = () => {
                   title="Sign Out"
                 >
                   <span className="cc-cust-logout-icon" aria-hidden="true">
-                    <SecureLogoutDoorIcon size={15} />
+                    <SecureLogoutDoorIcon size={13} />
                   </span>
                   <span>{t('customer.logout', undefined, 'Sign Out')}</span>
                   <span className="sr-only">Sign out</span>
@@ -551,7 +580,7 @@ export const CustomerNav: React.FC = () => {
               title="Exit To Showroom"
             >
               <span className="cc-cust-tool-icon" aria-hidden="true">
-                <ExternalArrowIcon size={15} />
+                <ExternalArrowIcon size={13} />
               </span>
               <span>Exit To Showroom</span>
             </a>
@@ -566,7 +595,7 @@ export const CustomerNav: React.FC = () => {
                 title="Sign Out"
               >
                 <span className="cc-cust-logout-icon" aria-hidden="true">
-                  <SecureLogoutDoorIcon size={15} />
+                  <SecureLogoutDoorIcon size={13} />
                 </span>
                 <span>{t('customer.logout', undefined, 'Sign Out')}</span>
                 <span className="sr-only">Sign out</span>

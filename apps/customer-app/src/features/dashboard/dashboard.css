@@ -595,6 +595,20 @@
   transform: translateY(-2px);
 }
 
+.cc-dash-bento-card--static {
+  cursor: default;
+}
+
+.cc-dash-bento-card--static:hover {
+  transform: none;
+  border-color: #e2e8f0;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.cc-dash-bento-card--static:hover::before {
+  transform: none;
+}
+
 .cc-dash-kpi-top {
   display: flex;
   align-items: center;

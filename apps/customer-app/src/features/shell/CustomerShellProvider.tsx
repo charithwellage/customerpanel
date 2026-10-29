@@ -88,18 +88,15 @@ const DEFAULT_NAV_ITEMS: NavigationItem[] = [
     ],
   },
   {
-    id: 'statement',
-    label: 'My Statement',
-    altLabel: 'Customer Statement',
+    id: 'account-payments',
+    label: 'Account & Payments',
+    altLabel: 'Account & Payments',
     href: '/statement',
-    icon: '📑',
-  },
-  {
-    id: 'payments',
-    label: 'Wire Remittance',
-    altLabel: 'Payments & Wire Remittances',
-    href: '/payments',
-    icon: '💲',
+    icon: '💳',
+    children: [
+      { id: 'statement', label: 'My Statement', altLabel: 'Customer Statement', href: '/statement', icon: '📑' },
+      { id: 'payments', label: 'Wire Remittance', altLabel: 'Payments & Wire Remittances', href: '/payments', icon: '💲' },
+    ],
   },
   /* Section PAYMENT ALLOCATIONS hidden and commented out from both web and mobile
   {
@@ -116,6 +113,10 @@ const DEFAULT_NAV_ITEMS: NavigationItem[] = [
     altLabel: 'Profile & Account Security',
     href: '/profile',
     icon: '👤',
+    children: [
+      { id: 'profile', label: 'Profile & Security', altLabel: 'Profile & Security', href: '/profile', icon: '👤' },
+      { id: 'consignee', label: 'Consignee & Notify Party', altLabel: 'Consignee & Notify Party Details', href: '/consignee', icon: '📦' },
+    ],
   },
 ];
 

@@ -13,6 +13,7 @@ import { PaymentsPage } from '../features/payments/index.js';
 import { PaymentAllocationsPage } from '../features/payment-allocations/index.js';
 import { NotificationsPage } from '../features/notifications/index.js';
 import { ProfilePage } from '../features/profile/index.js';
+import { ConsigneePage } from '../features/consignee/index.js';
 import { CustomerInquiriesPage } from '../features/inquiries/index.js';
 import { CustomerWishlistPage } from '../features/wishlist/index.js';
 import { CustomerFavouritesPage } from '../features/favourites/index.js';
@@ -268,8 +269,12 @@ const AppContent: React.FC<{ session: CustomerSession; apiBaseUrl: string }> = (
     return <NotificationsPage />;
   }
 
-  if (activeRoute === '/profile') {
+  if (activeRoute === '/profile' || activeRoute.startsWith('/profile?') || activeRoute.startsWith('/profile#')) {
     return <ProfilePage />;
+  }
+
+  if (activeRoute === '/consignee' || activeRoute.startsWith('/consignee?') || activeRoute.startsWith('/consignee#') || activeRoute === '/consignees') {
+    return <ConsigneePage />;
   }
 
   if (activeRoute.startsWith('/invoices/')) {

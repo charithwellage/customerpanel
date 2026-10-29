@@ -73,6 +73,7 @@ export interface TrackerCustomConfig {
   sections: {
     status: boolean;
     shipping: boolean;
+    delivery: boolean;
     consignee: boolean;
     product: boolean;
   };
@@ -101,6 +102,13 @@ export interface TrackerCustomConfig {
     docInspection: boolean;
     docExportCert: boolean;
     docInvoice: boolean;
+  };
+  deliveryFields: {
+    inspection: boolean;
+    yardIn: boolean;
+    estimatedDeparture: boolean;
+    actualDeparture: boolean;
+    estimatedArrival: boolean;
   };
   consigneeFields: {
     consigneeName: boolean;
@@ -154,6 +162,7 @@ export const DEFAULT_TRACKER_CUSTOM_CONFIG: TrackerCustomConfig = {
   sections: {
     status: true,
     shipping: true,
+    delivery: true,
     consignee: true,
     product: true,
   },
@@ -182,6 +191,13 @@ export const DEFAULT_TRACKER_CUSTOM_CONFIG: TrackerCustomConfig = {
     docInspection: true,
     docExportCert: true,
     docInvoice: true,
+  },
+  deliveryFields: {
+    inspection: true,
+    yardIn: true,
+    estimatedDeparture: true,
+    actualDeparture: true,
+    estimatedArrival: true,
   },
   consigneeFields: {
     consigneeName: true,
@@ -253,6 +269,7 @@ export function decodeTrackerCustomConfig(encoded: string): TrackerCustomConfig 
       sections: { ...DEFAULT_TRACKER_CUSTOM_CONFIG.sections, ...(parsed.sections || {}) },
       statusFields: { ...DEFAULT_TRACKER_CUSTOM_CONFIG.statusFields, ...(parsed.statusFields || {}) },
       shippingFields: { ...DEFAULT_TRACKER_CUSTOM_CONFIG.shippingFields, ...(parsed.shippingFields || {}) },
+      deliveryFields: { ...DEFAULT_TRACKER_CUSTOM_CONFIG.deliveryFields, ...(parsed.deliveryFields || {}) },
       consigneeFields: { ...DEFAULT_TRACKER_CUSTOM_CONFIG.consigneeFields, ...(parsed.consigneeFields || {}) },
       productFields: { ...DEFAULT_TRACKER_CUSTOM_CONFIG.productFields, ...(parsed.productFields || {}) },
       specItems: { ...DEFAULT_TRACKER_CUSTOM_CONFIG.specItems, ...(parsed.specItems || {}) },
@@ -385,8 +402,39 @@ export const VehicleTrackingModal: React.FC<VehicleTrackingModalProps> = ({
   const loadingPort = (vehicle as any).loadingPort || 'Yokohama → Japan';
   const dischargePort = vehicle.destinationPort || 'Mombasa';
 
+  const computeRevisedDate = (dateStr: string, addDays: number): string => {
+    try {
+      const cleaned = dateStr.replace(/(\d+)(st|nd|rd|th)/gi, '$1').replace(',', ' ').trim();
+      const parsed = Date.parse(cleaned);
+      if (!isNaN(parsed)) {
+        const d = new Date(parsed + addDays * 86400000);
+        const day = d.getDate();
+        const allMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const month = allMonths[d.getMonth()];
+        const year = d.getFullYear();
+        return `${day} ${month}, ${year}`;
+      }
+    } catch {
+      // fallback
+    }
+    return dateStr;
+  };
+
+  const actualEtd = (vehicle as any)?.actualEtd || (vehicle as any)?.etd || '15 Jul, 2026';
+  const revisedEtd = (vehicle as any)?.revisedEtd || computeRevisedDate(actualEtd, 7);
+
+  const actualEta = (vehicle as any)?.actualEta || (vehicle as any)?.eta || '14 Aug, 2026';
+  const revisedEta = (vehicle as any)?.revisedEta || computeRevisedDate(actualEta, 10);
+
   const isDelivered = activeStepIndex >= 10;
   const isDeparted = activeStepIndex >= 6;
+
+  const inspectionDate = (vehicle as any)?.inspectionDate || (vehicle as any)?.inspectionPassedDate || '12 Jun, 2026';
+  const yardInDate = (vehicle as any)?.yardInDate || '18 Jun, 2026';
+  const yardLocation = (vehicle as any)?.yardLocation || (vehicle as any)?.currentLocation || 'Yokohama Yard, Japan';
+  const estimatedDepartureDate = actualEtd || '15 Jul, 2026';
+  const actualDepartureDate = (vehicle as any)?.actualDepartureDate || (isDeparted ? revisedEtd : '20 Jul, 2026');
+  const estimatedArrivalDate = revisedEta || actualEta || '24 Aug, 2026';
 
   const currentImgIdx = Math.max(0, rawImages.indexOf(primaryImg));
 
@@ -466,8 +514,30 @@ export const VehicleTrackingModal: React.FC<VehicleTrackingModalProps> = ({
     }
   };
 
+  const handleDownloadPictures = (mode: 'with_watermark' | 'without_watermark') => {
+    const isClean = mode === 'without_watermark';
+    try {
+      if (typeof document !== 'undefined' && primaryImg) {
+        const link = document.createElement('a');
+        link.href = primaryImg;
+        link.download = `${vehicle.chassisNumber || 'vehicle'}-${isClean ? 'no-watermark' : 'watermarked'}.jpg`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    } catch {
+      // ignore
+    }
+    setToastMessage(
+      isClean
+        ? 'Downloading pictures without watermark (Clean archive)...'
+        : 'Downloading pictures (with CarChief watermark)...'
+    );
+    setTimeout(() => setToastMessage(null), 3500);
+  };
+
   const handleDownloadZip = () => {
-    alert('Preparing high-resolution images ZIP archive for download...');
+    handleDownloadPictures('with_watermark');
   };
 
   const handleDownloadDoc = (docName: string) => {
@@ -544,9 +614,10 @@ export const VehicleTrackingModal: React.FC<VehicleTrackingModalProps> = ({
 
   const handleUnselectAllDraft = () => {
     setDraftConfig({
-      sections: { status: false, shipping: false, consignee: false, product: false },
+      sections: { status: false, shipping: false, delivery: false, consignee: false, product: false },
       statusFields: { bookingLineApproach: false, exportCertificate: false, inspectionProcedure: false, confirmBooking: false, departureConfirmation: false, destinationInvoice: false },
       shippingFields: { shippingCompany: false, departureVessel: false, departurePort: false, departureEtd: false, arrivalVessel: false, arrivalVoyage: false, arrivalPort: false, arrivalEta: false, courierTrackingNo: false, courierCompany: false, courierDocuments: false, courierAccessories: false, docBl: false, docInspection: false, docExportCert: false, docInvoice: false },
+      deliveryFields: { inspection: false, yardIn: false, estimatedDeparture: false, actualDeparture: false, estimatedArrival: false },
       consigneeFields: { consigneeName: false, consigneeAddress: false, consigneeCity: false, consigneeCountry: false, consigneePhone: false, consigneeEmail: false, notifyName: false, notifyAddress: false, notifyCity: false, notifyCountry: false, notifyPhone: false, notifyEmail: false },
       productFields: { mediaGallery: false, zipDownload: false, shipmentTimeline: false, vehicleHeader: false, specsBox: false, accessories: false, otherOptions: false },
       specItems: {
@@ -573,6 +644,9 @@ export const VehicleTrackingModal: React.FC<VehicleTrackingModalProps> = ({
       } else if (sectionKey === 'shipping') {
         const allOff = Object.values(updated.shippingFields).every((v) => !v);
         if (allOff) updated.shippingFields = { ...DEFAULT_TRACKER_CUSTOM_CONFIG.shippingFields };
+      } else if (sectionKey === 'delivery') {
+        const allOff = Object.values(updated.deliveryFields).every((v) => !v);
+        if (allOff) updated.deliveryFields = { ...DEFAULT_TRACKER_CUSTOM_CONFIG.deliveryFields };
       } else if (sectionKey === 'consignee') {
         const allOff = Object.values(updated.consigneeFields).every((v) => !v);
         if (allOff) updated.consigneeFields = { ...DEFAULT_TRACKER_CUSTOM_CONFIG.consigneeFields };
@@ -1124,7 +1198,17 @@ export const VehicleTrackingModal: React.FC<VehicleTrackingModalProps> = ({
                               )}
                               ETD
                             </td>
-                            <td>15 Jul, 2026</td>
+                            <td>
+                              <div className="cc-tracker-date-cell">
+                                <del className="cc-tracker-struck-date" title="Original Departure ETD">
+                                  {actualEtd}
+                                </del>
+                                <span className="cc-tracker-revised-date-wrap">
+                                  <span className="cc-tracker-revised-date">{revisedEtd}</span>
+                                  <span className="cc-tracker-revised-badge">Revised</span>
+                                </span>
+                              </div>
+                            </td>
                           </tr>
                         )}
                       </tbody>
@@ -1212,7 +1296,17 @@ export const VehicleTrackingModal: React.FC<VehicleTrackingModalProps> = ({
                               )}
                               ETA
                             </td>
-                            <td>14 Aug, 2026</td>
+                            <td>
+                              <div className="cc-tracker-date-cell">
+                                <del className="cc-tracker-struck-date" title="Original Arrival ETA">
+                                  {actualEta}
+                                </del>
+                                <span className="cc-tracker-revised-date-wrap">
+                                  <span className="cc-tracker-revised-date">{revisedEta}</span>
+                                  <span className="cc-tracker-revised-badge cc-tracker-revised-badge--arrival">Revised</span>
+                                </span>
+                              </div>
+                            </td>
                           </tr>
                         )}
                       </tbody>
@@ -1639,7 +1733,173 @@ export const VehicleTrackingModal: React.FC<VehicleTrackingModalProps> = ({
           )}
 
           {/* =========================================================================
-              SECTION 3: CONSIGNEE / NOTIFY PARTY OF YOUR REQUEST
+              SECTION 3: DELIVERY DETAILS
+              ========================================================================= */}
+          {(isCustomizeMode || config.sections.delivery) && (
+            <div className={`cc-tracker-main-box ${isCustomizeMode && !draftConfig.sections.delivery ? 'cc-tracker-box--dimmed' : ''}`}>
+              <div className="cc-tracker-section-banner">
+                {isCustomizeMode ? (
+                  <label className="cc-tracker-custom-banner-label">
+                    <input
+                      type="checkbox"
+                      checked={draftConfig.sections.delivery}
+                      onChange={() => handleToggleSectionMaster('delivery')}
+                      className="cc-tracker-field-checkbox"
+                    />
+                    <span>SECTION 3: DELIVERY DETAILS</span>
+                    {!draftConfig.sections.delivery && <span className="cc-tracker-hidden-tag">(Section Hidden)</span>}
+                  </label>
+                ) : (
+                  <span>DELIVERY DETAILS</span>
+                )}
+              </div>
+
+              <div className="cc-tracker-grid-two-col">
+                {/* Left Column: Inspection & Yard In */}
+                <div className="cc-tracker-col">
+                  <div className="cc-tracker-info-block">
+                    <h4 className="cc-tracker-sub-heading">Pre-delivery & Yard Readiness</h4>
+                    <table className="cc-tracker-mini-table">
+                      <tbody>
+                        {shouldRenderField(activeViewConfig.sections.delivery, activeViewConfig.deliveryFields.inspection) && (
+                          <tr className={isCustomizeMode && !draftConfig.deliveryFields.inspection ? 'cc-tracker-row--dimmed' : ''}>
+                            <td className="cc-tracker-label-td">
+                              {isCustomizeMode && (
+                                <input
+                                  type="checkbox"
+                                  checked={draftConfig.deliveryFields.inspection}
+                                  onChange={(e) => setDraftConfig({
+                                    ...draftConfig,
+                                    deliveryFields: { ...draftConfig.deliveryFields, inspection: e.target.checked }
+                                  })}
+                                  className="cc-tracker-field-checkbox"
+                                />
+                              )}
+                              Inspection
+                            </td>
+                            <td>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                <span className="cc-tracker-status-passed-badge">✓ Passed (JAAI / QISJ)</span>
+                                <span className="cc-tracker-date-highlight">{inspectionDate}</span>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+
+                        {shouldRenderField(activeViewConfig.sections.delivery, activeViewConfig.deliveryFields.yardIn) && (
+                          <tr className={isCustomizeMode && !draftConfig.deliveryFields.yardIn ? 'cc-tracker-row--dimmed' : ''}>
+                            <td className="cc-tracker-label-td">
+                              {isCustomizeMode && (
+                                <input
+                                  type="checkbox"
+                                  checked={draftConfig.deliveryFields.yardIn}
+                                  onChange={(e) => setDraftConfig({
+                                    ...draftConfig,
+                                    deliveryFields: { ...draftConfig.deliveryFields, yardIn: e.target.checked }
+                                  })}
+                                  className="cc-tracker-field-checkbox"
+                                />
+                              )}
+                              Yard In
+                            </td>
+                            <td>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                <span style={{ fontWeight: 600, color: '#334155' }}>{yardLocation}</span>
+                                <span className="cc-tracker-date-highlight">({yardInDate})</span>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Right Column: Schedule & Dates */}
+                <div className="cc-tracker-col">
+                  <div className="cc-tracker-info-block">
+                    <h4 className="cc-tracker-sub-heading">Schedule & Voyage Timeline</h4>
+                    <table className="cc-tracker-mini-table">
+                      <tbody>
+                        {shouldRenderField(activeViewConfig.sections.delivery, activeViewConfig.deliveryFields.estimatedDeparture) && (
+                          <tr className={isCustomizeMode && !draftConfig.deliveryFields.estimatedDeparture ? 'cc-tracker-row--dimmed' : ''}>
+                            <td className="cc-tracker-label-td">
+                              {isCustomizeMode && (
+                                <input
+                                  type="checkbox"
+                                  checked={draftConfig.deliveryFields.estimatedDeparture}
+                                  onChange={(e) => setDraftConfig({
+                                    ...draftConfig,
+                                    deliveryFields: { ...draftConfig.deliveryFields, estimatedDeparture: e.target.checked }
+                                  })}
+                                  className="cc-tracker-field-checkbox"
+                                />
+                              )}
+                              Estimated Departure Date:
+                            </td>
+                            <td>
+                              <span className="cc-tracker-date-highlight">{estimatedDepartureDate}</span>
+                            </td>
+                          </tr>
+                        )}
+
+                        {shouldRenderField(activeViewConfig.sections.delivery, activeViewConfig.deliveryFields.actualDeparture) && (
+                          <tr className={isCustomizeMode && !draftConfig.deliveryFields.actualDeparture ? 'cc-tracker-row--dimmed' : ''}>
+                            <td className="cc-tracker-label-td">
+                              {isCustomizeMode && (
+                                <input
+                                  type="checkbox"
+                                  checked={draftConfig.deliveryFields.actualDeparture}
+                                  onChange={(e) => setDraftConfig({
+                                    ...draftConfig,
+                                    deliveryFields: { ...draftConfig.deliveryFields, actualDeparture: e.target.checked }
+                                  })}
+                                  className="cc-tracker-field-checkbox"
+                                />
+                              )}
+                              Actual Departure Date:
+                            </td>
+                            <td>
+                              {isDeparted ? (
+                                <span className="cc-tracker-date-badge--actual">{actualDepartureDate}</span>
+                              ) : (
+                                <span className="cc-tracker-status-cell--pending">{actualDepartureDate}</span>
+                              )}
+                            </td>
+                          </tr>
+                        )}
+
+                        {shouldRenderField(activeViewConfig.sections.delivery, activeViewConfig.deliveryFields.estimatedArrival) && (
+                          <tr className={isCustomizeMode && !draftConfig.deliveryFields.estimatedArrival ? 'cc-tracker-row--dimmed' : ''}>
+                            <td className="cc-tracker-label-td">
+                              {isCustomizeMode && (
+                                <input
+                                  type="checkbox"
+                                  checked={draftConfig.deliveryFields.estimatedArrival}
+                                  onChange={(e) => setDraftConfig({
+                                    ...draftConfig,
+                                    deliveryFields: { ...draftConfig.deliveryFields, estimatedArrival: e.target.checked }
+                                  })}
+                                  className="cc-tracker-field-checkbox"
+                                />
+                              )}
+                              Estimated Arrival Date:
+                            </td>
+                            <td>
+                              <span className="cc-tracker-date-highlight cc-tracker-date-highlight--arrival">{estimatedArrivalDate}</span>
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* =========================================================================
+              SECTION 4: CONSIGNEE / NOTIFY PARTY OF YOUR REQUEST
               ========================================================================= */}
           {(isCustomizeMode || config.sections.consignee) && (
             <div className={`cc-tracker-main-box ${isCustomizeMode && !draftConfig.sections.consignee ? 'cc-tracker-box--dimmed' : ''}`}>
@@ -1652,7 +1912,7 @@ export const VehicleTrackingModal: React.FC<VehicleTrackingModalProps> = ({
                       onChange={() => handleToggleSectionMaster('consignee')}
                       className="cc-tracker-field-checkbox"
                     />
-                    <span>SECTION 3: CONSIGNEE / NOTIFY PARTY OF YOUR REQUEST</span>
+                    <span>SECTION 4: CONSIGNEE / NOTIFY PARTY OF YOUR REQUEST</span>
                     {!draftConfig.sections.consignee && <span className="cc-tracker-hidden-tag">(Section Hidden)</span>}
                   </label>
                 ) : (
@@ -1921,7 +2181,7 @@ export const VehicleTrackingModal: React.FC<VehicleTrackingModalProps> = ({
           )}
 
           {/* =========================================================================
-              SECTION 4: PRODUCT DETAILS
+              SECTION 5: PRODUCT DETAILS
               ========================================================================= */}
           {(isCustomizeMode || config.sections.product) && (
             <div className={`cc-tracker-main-box ${isCustomizeMode && !draftConfig.sections.product ? 'cc-tracker-box--dimmed' : ''}`}>
@@ -1934,7 +2194,7 @@ export const VehicleTrackingModal: React.FC<VehicleTrackingModalProps> = ({
                       onChange={() => handleToggleSectionMaster('product')}
                       className="cc-tracker-field-checkbox"
                     />
-                    <span>SECTION 4: PRODUCT DETAILS</span>
+                    <span>SECTION 5: PRODUCT DETAILS</span>
                     {!draftConfig.sections.product && <span className="cc-tracker-hidden-tag">(Section Hidden)</span>}
                   </label>
                 ) : (
@@ -2033,13 +2293,34 @@ export const VehicleTrackingModal: React.FC<VehicleTrackingModalProps> = ({
                           className="cc-tracker-field-checkbox"
                         />
                       )}
-                      <button
-                        type="button"
-                        className="cc-tracker-zip-btn"
-                        onClick={handleDownloadZip}
-                      >
-                        <span className="cc-tracker-dl-icon">⬇</span> &nbsp;Download all images in ZIP file
-                      </button>
+                      <div className="cc-tracker-download-btns-group">
+                        <button
+                          type="button"
+                          className="cc-tracker-zip-btn cc-tracker-zip-btn--watermark"
+                          onClick={() => handleDownloadPictures('with_watermark')}
+                          title="Download vehicle pictures with watermark"
+                        >
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                            <polyline points="7 10 12 15 17 10" />
+                            <line x1="12" y1="15" x2="12" y2="3" />
+                          </svg>
+                          <span>With Watermark</span>
+                        </button>
+                        <button
+                          type="button"
+                          className="cc-tracker-zip-btn cc-tracker-zip-btn--clean"
+                          onClick={() => handleDownloadPictures('without_watermark')}
+                          title="Download high-resolution vehicle pictures without watermark"
+                        >
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                            <polyline points="7 10 12 15 17 10" />
+                            <line x1="12" y1="15" x2="12" y2="3" />
+                          </svg>
+                          <span>Without Watermark</span>
+                        </button>
+                      </div>
                       {isCustomizeMode && !draftConfig.productFields.zipDownload && <span className="cc-tracker-hidden-pill">Hidden</span>}
                     </div>
                   )}

@@ -1491,45 +1491,47 @@ export const CustomerDemandPage: React.FC = () => {
                   <div className="cc-demand-form-col">
                     <h4 className="cc-demand-col-title">Vehicle Specifications</h4>
 
-                    <div className="cc-demand-field">
-                      <label htmlFor="demand-make" className="cc-demand-form-label">
-                        Make <span className="cc-demand-req">*</span>
-                      </label>
-                      <select
-                        id="demand-make"
-                        className="cc-demand-input"
-                        value={formMake}
-                        onChange={(e) => setFormMake(e.target.value)}
-                        required
-                      >
-                        <option value="Toyota">Toyota</option>
-                        <option value="Nissan">Nissan</option>
-                        <option value="Honda">Honda</option>
-                        <option value="Mazda">Mazda</option>
-                        <option value="Subaru">Subaru</option>
-                        <option value="Mitsubishi">Mitsubishi</option>
-                        <option value="Suzuki">Suzuki</option>
-                        <option value="Lexus">Lexus</option>
-                        <option value="Mercedes-Benz">Mercedes-Benz</option>
-                        <option value="BMW">BMW</option>
-                        <option value="Land Rover">Land Rover</option>
-                        <option value="Other">Other / Specialty</option>
-                      </select>
-                    </div>
+                    <div className="cc-demand-fields-row">
+                      <div className="cc-demand-field">
+                        <label htmlFor="demand-make" className="cc-demand-form-label">
+                          Make <span className="cc-demand-req">*</span>
+                        </label>
+                        <select
+                          id="demand-make"
+                          className="cc-demand-input"
+                          value={formMake}
+                          onChange={(e) => setFormMake(e.target.value)}
+                          required
+                        >
+                          <option value="Toyota">Toyota</option>
+                          <option value="Nissan">Nissan</option>
+                          <option value="Honda">Honda</option>
+                          <option value="Mazda">Mazda</option>
+                          <option value="Subaru">Subaru</option>
+                          <option value="Mitsubishi">Mitsubishi</option>
+                          <option value="Suzuki">Suzuki</option>
+                          <option value="Lexus">Lexus</option>
+                          <option value="Mercedes-Benz">Mercedes-Benz</option>
+                          <option value="BMW">BMW</option>
+                          <option value="Land Rover">Land Rover</option>
+                          <option value="Other">Other / Specialty</option>
+                        </select>
+                      </div>
 
-                    <div className="cc-demand-field">
-                      <label htmlFor="demand-model" className="cc-demand-form-label">
-                        Model &amp; Trim <span className="cc-demand-req">*</span>
-                      </label>
-                      <input
-                        id="demand-model"
-                        type="text"
-                        className="cc-demand-input"
-                        placeholder="e.g. Land Cruiser Prado TX-L, Note e-Power, CX-5 XD"
-                        value={formModel}
-                        onChange={(e) => setFormModel(e.target.value)}
-                        required
-                      />
+                      <div className="cc-demand-field">
+                        <label htmlFor="demand-model" className="cc-demand-form-label">
+                          Model &amp; Trim <span className="cc-demand-req">*</span>
+                        </label>
+                        <input
+                          id="demand-model"
+                          type="text"
+                          className="cc-demand-input"
+                          placeholder="e.g. Prado TX-L, CX-5"
+                          value={formModel}
+                          onChange={(e) => setFormModel(e.target.value)}
+                          required
+                        />
+                      </div>
                     </div>
 
                     <div className="cc-demand-fields-row">
@@ -1647,81 +1649,85 @@ export const CustomerDemandPage: React.FC = () => {
                   <div className="cc-demand-form-col">
                     <h4 className="cc-demand-col-title">Destination &amp; Timing</h4>
 
-                    <div className="cc-demand-field">
-                      <label htmlFor="demand-budget" className="cc-demand-form-label">
-                        Target Budget (CIF in USD) <span className="cc-demand-req">*</span>
-                      </label>
-                      <div className="cc-demand-currency-wrap">
-                        <span className="cc-demand-currency-symbol">$</span>
-                        <input
-                          id="demand-budget"
-                          type="number"
-                          step="500"
-                          min="1000"
-                          className="cc-demand-input cc-demand-input--currency"
-                          value={formBudget}
-                          onChange={(e) => setFormBudget(Number(e.target.value))}
+                    <div className="cc-demand-fields-row">
+                      <div className="cc-demand-field">
+                        <label htmlFor="demand-budget" className="cc-demand-form-label">
+                          Target Budget (CIF) <span className="cc-demand-req">*</span>
+                        </label>
+                        <div className="cc-demand-currency-wrap">
+                          <span className="cc-demand-currency-symbol">$</span>
+                          <input
+                            id="demand-budget"
+                            type="number"
+                            step="500"
+                            min="1000"
+                            className="cc-demand-input cc-demand-input--currency"
+                            value={formBudget}
+                            onChange={(e) => setFormBudget(Number(e.target.value))}
+                            required
+                          />
+                          <span className="cc-demand-currency-suffix">USD</span>
+                        </div>
+                      </div>
+
+                      <div className="cc-demand-field">
+                        <label htmlFor="demand-port" className="cc-demand-form-label">
+                          Destination Port <span className="cc-demand-req">*</span>
+                        </label>
+                        <select
+                          id="demand-port"
+                          className="cc-demand-input"
+                          value={formPort}
+                          onChange={(e) => setFormPort(e.target.value)}
                           required
-                        />
-                        <span className="cc-demand-currency-suffix">USD</span>
+                        >
+                          <option value="Mombasa, Kenya">Mombasa, Kenya</option>
+                          <option value="Dar es Salaam, Tanzania">Dar es Salaam, Tanzania</option>
+                          <option value="Kingston, Jamaica">Kingston, Jamaica</option>
+                          <option value="Georgetown, Guyana">Georgetown, Guyana</option>
+                          <option value="Durban, South Africa">Durban, South Africa</option>
+                          <option value="Maputo, Mozambique">Maputo, Mozambique</option>
+                          <option value="Walvis Bay, Namibia">Walvis Bay, Namibia</option>
+                          <option value="Jebel Ali, Dubai">Jebel Ali, Dubai</option>
+                          <option value="Port Louis, Mauritius">Port Louis, Mauritius</option>
+                          <option value="Other Port">Other Destination Port</option>
+                        </select>
                       </div>
                     </div>
 
-                    <div className="cc-demand-field">
-                      <label htmlFor="demand-port" className="cc-demand-form-label">
-                        Destination Port <span className="cc-demand-req">*</span>
-                      </label>
-                      <select
-                        id="demand-port"
-                        className="cc-demand-input"
-                        value={formPort}
-                        onChange={(e) => setFormPort(e.target.value)}
-                        required
-                      >
-                        <option value="Mombasa, Kenya">Mombasa, Kenya</option>
-                        <option value="Dar es Salaam, Tanzania">Dar es Salaam, Tanzania</option>
-                        <option value="Kingston, Jamaica">Kingston, Jamaica</option>
-                        <option value="Georgetown, Guyana">Georgetown, Guyana</option>
-                        <option value="Durban, South Africa">Durban, South Africa</option>
-                        <option value="Maputo, Mozambique">Maputo, Mozambique</option>
-                        <option value="Walvis Bay, Namibia">Walvis Bay, Namibia</option>
-                        <option value="Jebel Ali, Dubai">Jebel Ali, Dubai</option>
-                        <option value="Port Louis, Mauritius">Port Louis, Mauritius</option>
-                        <option value="Other Port">Other Destination Port</option>
-                      </select>
-                    </div>
+                    <div className="cc-demand-fields-row">
+                      <div className="cc-demand-field">
+                        <label htmlFor="demand-horizon" className="cc-demand-form-label">
+                          Purchase Horizon <span className="cc-demand-req">*</span>
+                        </label>
+                        <select
+                          id="demand-horizon"
+                          className="cc-demand-input"
+                          value={formHorizon}
+                          onChange={(e) => setFormHorizon(e.target.value)}
+                          required
+                        >
+                          <option value="Immediate (1-2 weeks)">Immediate (1–2 weeks)</option>
+                          <option value="Within 1 month">Within 1 month</option>
+                          <option value="1-3 months">1–3 months</option>
+                          <option value="3-6 months">3–6 months</option>
+                          <option value="Flexible / Browsing">Flexible / Browsing</option>
+                        </select>
+                      </div>
 
-                    <div className="cc-demand-field">
-                      <label htmlFor="demand-horizon" className="cc-demand-form-label">
-                        When do you plan to purchase? <span className="cc-demand-req">*</span>
-                      </label>
-                      <select
-                        id="demand-horizon"
-                        className="cc-demand-input"
-                        value={formHorizon}
-                        onChange={(e) => setFormHorizon(e.target.value)}
-                        required
-                      >
-                        <option value="Immediate (1-2 weeks)">Immediate (1–2 weeks)</option>
-                        <option value="Within 1 month">Within 1 month</option>
-                        <option value="1-3 months">1–3 months</option>
-                        <option value="3-6 months">3–6 months</option>
-                        <option value="Flexible / Browsing">Flexible / Waiting for great deal</option>
-                      </select>
-                    </div>
-
-                    <div className="cc-demand-field">
-                      <label htmlFor="demand-color" className="cc-demand-form-label">
-                        Color Preference
-                      </label>
-                      <input
-                        id="demand-color"
-                        type="text"
-                        className="cc-demand-input"
-                        placeholder="e.g. Pearl White, Black, Red, Silver"
-                        value={formColor}
-                        onChange={(e) => setFormColor(e.target.value)}
-                      />
+                      <div className="cc-demand-field">
+                        <label htmlFor="demand-color" className="cc-demand-form-label">
+                          Color Preference
+                        </label>
+                        <input
+                          id="demand-color"
+                          type="text"
+                          className="cc-demand-input"
+                          placeholder="e.g. Pearl White, Black"
+                          value={formColor}
+                          onChange={(e) => setFormColor(e.target.value)}
+                        />
+                      </div>
                     </div>
 
                     <div className="cc-demand-field">
@@ -1748,8 +1754,8 @@ export const CustomerDemandPage: React.FC = () => {
                   <textarea
                     id="demand-notes"
                     className="cc-demand-textarea"
-                    rows={3}
-                    placeholder="Mention specific options like leather interior, sunroof, 360 camera, roof rails, 7 seats, Modellista body kit, or maximum acceptable mileage..."
+                    rows={2}
+                    placeholder="Mention specific options like leather interior, sunroof, 360 camera, roof rails, 7 seats, or acceptable mileage..."
                     value={formNotes}
                     onChange={(e) => setFormNotes(e.target.value)}
                   />

@@ -5725,6 +5725,8 @@ class PostgresStore {
     notifications = seedNotifications.map((notification) => ({ ...notification }));
     customerProfiles = seedCustomerProfiles.map((profile) => ({ ...profile }));
     allocations = seedAllocations.map((allocation) => ({ ...allocation }));
+    ensuringFleetCustomers = new Map();
+    ensuredFleetCustomers = new Set();
     constructor(connectionString) {
         this.pool = new pg_1.Pool({ connectionString });
     }
@@ -6711,6 +6713,38 @@ class PostgresStore {
        ON CONFLICT (id) DO NOTHING`);
     }
     async ensureCustomerFleetDataInPostgres(customerId, customerEmail) {
+        if (customerId.startsWith('cust-exception'))
+            return;
+        if (this.ensuredFleetCustomers.has(customerId))
+            return;
+        const inFlight = this.ensuringFleetCustomers.get(customerId);
+        if (inFlight) {
+            return inFlight;
+        }
+        const promise = (async () => {
+            try {
+                await this.doEnsureCustomerFleetDataInPostgres(customerId, customerEmail);
+                this.ensuredFleetCustomers.add(customerId);
+            }
+            catch (err) {
+                if (err?.code === '40P01') {
+                    // PostgreSQL deadlock detected: backoff and retry once
+                    await new Promise((r) => setTimeout(r, 60 + Math.random() * 100));
+                    await this.doEnsureCustomerFleetDataInPostgres(customerId, customerEmail);
+                    this.ensuredFleetCustomers.add(customerId);
+                }
+                else {
+                    console.error(`ensureCustomerFleetDataInPostgres error for ${customerId}:`, err);
+                }
+            }
+            finally {
+                this.ensuringFleetCustomers.delete(customerId);
+            }
+        })();
+        this.ensuringFleetCustomers.set(customerId, promise);
+        await promise;
+    }
+    async doEnsureCustomerFleetDataInPostgres(customerId, customerEmail) {
         if (customerId.startsWith('cust-exception'))
             return;
         if (customerId !== 'cust-123') {
@@ -8531,6 +8565,7 @@ class PostgresStore {
             this.paymentRecords = seedPayments.map((payment) => ({ ...payment }));
             this.paymentNotifications = seedPaymentNotifications.map((notification) => ({ ...notification }));
             this.allocations = seedAllocations.map((allocation) => ({ ...allocation }));
+            this.ensuredFleetCustomers.clear();
             await this.ensureCustomerFleetDataInPostgres(seedAccount.customerId, seedAccount.email);
             await this.ensureCustomerFleetDataInPostgres('user-other-456', 'amina.njeri@example.com');
             await this.ensureMockRelationalFixtures();

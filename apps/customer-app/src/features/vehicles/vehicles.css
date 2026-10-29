@@ -1835,6 +1835,40 @@
   font-weight: 600;
 }
 
+/* Delivery Details Section Badges & Highlights */
+.cc-tracker-status-passed-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #f0fdf4;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.cc-tracker-date-highlight {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.cc-tracker-date-highlight--arrival {
+  color: #2563eb;
+}
+
+.cc-tracker-date-badge--actual {
+  display: inline-block;
+  background: #f8fafc;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-weight: 700;
+}
+
 /* Two Column Layout */
 .cc-tracker-grid-two-col {
   display: grid;
@@ -2126,23 +2160,31 @@
   gap: 10px;
 }
 
+.cc-tracker-download-btns-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  width: 100%;
+}
+
 .cc-tracker-zip-btn {
   width: 100%;
-  padding: 11px 18px;
+  padding: 7px 12px;
   border: 1.5px solid #cbd5e1;
-  border-radius: 8px;
+  border-radius: 6px;
   background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
   color: #1e293b;
-  font-size: 13px;
+  font-size: 11.5px;
   font-weight: 650;
   cursor: pointer;
   transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
   text-align: center;
-  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
+  white-space: nowrap;
 }
 
 .cc-tracker-zip-btn:hover {
@@ -2150,7 +2192,97 @@
   border-color: #94a3b8;
   color: #0f172a;
   transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.09);
+  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.08);
+}
+
+.cc-tracker-zip-btn--watermark {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  color: #1e293b;
+  border: 1.5px solid #cbd5e1;
+}
+
+.cc-tracker-zip-btn--watermark:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+  color: #0f172a;
+}
+
+.cc-tracker-zip-btn--clean {
+  background: linear-gradient(180deg, #f0f9ff 0%, #e0f2fe 100%);
+  color: #0369a1;
+  border: 1.5px solid #7dd3fc;
+}
+
+.cc-tracker-zip-btn--clean:hover {
+  background: #e0f2fe;
+  border-color: #38bdf8;
+  color: #0284c7;
+  box-shadow: 0 4px 14px rgba(14, 165, 233, 0.15);
+}
+
+.cc-tracker-clean-badge {
+  font-size: 9.5px;
+  font-weight: 750;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  padding: 1.5px 6px;
+  border-radius: 999px;
+  background: #0284c7;
+  color: #ffffff;
+  margin-left: 4px;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Shipping Info: Cut / Struck Actual ETD/ETA and Revised ETD/ETA */
+.cc-tracker-date-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.cc-tracker-struck-date {
+  color: #94a3b8;
+  font-size: 12px;
+  text-decoration: line-through;
+  text-decoration-color: #ef4444;
+  text-decoration-thickness: 1.5px;
+  font-weight: 500;
+  display: inline-block;
+}
+
+.cc-tracker-revised-date-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cc-tracker-revised-date {
+  font-weight: 700;
+  color: #0f172a;
+  font-size: 13px;
+}
+
+.cc-tracker-revised-badge {
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  padding: 1.5px 6px;
+  border-radius: 4px;
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+  line-height: 1.2;
+  display: inline-flex;
+  align-items: center;
+}
+
+.cc-tracker-revised-badge--arrival {
+  background: #eff6ff;
+  color: #1e40af;
+  border-color: #bfdbfe;
 }
 
 /* Compact 11-Stage Milestone Timeline under ZIP Download */
@@ -4193,7 +4325,7 @@
 
 .cc-pv-filter-grid {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 6px 8px;
   width: 100%;
   align-items: flex-end;
@@ -4658,7 +4790,7 @@
 
 .cc-invoice-vehicle-card {
   display: grid;
-  grid-template-columns: 88px 1fr;
+  grid-template-columns: 100px 1fr;
   align-items: center;
   gap: 16px;
   background: #f8fafc;
@@ -4675,8 +4807,8 @@
 }
 
 .cc-invoice-vehicle-thumb-wrap {
-  width: 88px;
-  height: 64px;
+  width: 100px;
+  height: 75px;
   border-radius: 8px;
   overflow: hidden;
   border: 1px solid #cbd5e1;
@@ -4722,6 +4854,61 @@
   border: 1px solid #bbf7d0;
   padding: 2px 8px;
   border-radius: 6px;
+}
+
+/* Vehicle Financials Strip: Sold Price, Allocated, Pending */
+.cc-invoice-vehicle-financials {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 6px 10px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  margin: 2px 0;
+}
+
+.cc-invoice-vehicle-financials--price-only {
+  width: fit-content;
+  display: inline-flex;
+}
+
+.cc-invoice-vehicle-fin-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+}
+
+.cc-invoice-vehicle-fin-label {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.cc-invoice-vehicle-fin-val {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.cc-invoice-vehicle-fin-item--sold .cc-invoice-vehicle-fin-val {
+  color: #0f172a;
+}
+
+.cc-invoice-vehicle-fin-item--allocated .cc-invoice-vehicle-fin-val,
+.cc-amount-allocated-green {
+  color: #16a34a;
+}
+
+.cc-invoice-vehicle-fin-item--pending .cc-invoice-vehicle-fin-val {
+  color: #dc2626;
+}
+
+.cc-invoice-vehicle-fin-val--settled {
+  color: #16a34a !important;
 }
 
 .cc-invoice-vehicle-meta-tags {
@@ -5484,7 +5671,7 @@
 
 @media (max-width: 860px) {
   .cc-pv-filter-grid {
-    grid-template-columns: repeat(6, minmax(85px, 1fr));
+    grid-template-columns: repeat(5, minmax(85px, 1fr));
     overflow-x: auto;
     padding-bottom: 2px;
   }
@@ -5504,7 +5691,7 @@
 
 @media (max-width: 640px) {
   .cc-pv-filter-grid {
-    grid-template-columns: repeat(6, minmax(80px, 1fr));
+    grid-template-columns: repeat(5, minmax(80px, 1fr));
     overflow-x: auto;
     padding-bottom: 2px;
   }
@@ -8235,6 +8422,7 @@
   }
 
   .cc-tracker-media-block {
+    order: 2 !important;
     width: 100% !important;
     max-width: 420px !important;
     display: flex !important;
@@ -8410,31 +8598,54 @@
   }
 
   .cc-tracker-media-actions {
+    order: 3 !important;
     width: 100% !important;
     max-width: 420px !important;
-    margin: 0 auto !important;
+    margin: 0 auto 6px auto !important;
     display: flex !important;
     flex-direction: column !important;
     align-items: center !important;
     justify-content: center !important;
   }
 
-  .cc-tracker-zip-btn {
+  .cc-tracker-download-btns-group {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 6px !important;
     width: 100% !important;
     max-width: 420px !important;
-    height: 34px !important;
-    font-size: 11px !important;
+    box-sizing: border-box !important;
+  }
+
+  .cc-tracker-zip-btn {
+    width: 100% !important;
+    max-width: unset !important;
+    height: 30px !important;
+    min-height: 30px !important;
+    font-size: 10px !important;
     font-weight: 600 !important;
     color: #1e293b !important;
     background: #f8fafc !important;
-    border: 1.5px solid #cbd5e1 !important;
-    border-radius: 8px !important;
-    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04) !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 6px !important;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
     justify-content: center !important;
-    margin: 4px auto 0 auto !important;
+    text-align: center !important;
+    margin: 0 !important;
+    padding: 2px 6px !important;
     transition: all 0.15s ease !important;
     display: flex !important;
     align-items: center !important;
+    gap: 4px !important;
+    line-height: 1.15 !important;
+    box-sizing: border-box !important;
+    white-space: nowrap !important;
+  }
+
+  .cc-tracker-zip-btn svg {
+    width: 11px !important;
+    height: 11px !important;
+    flex-shrink: 0 !important;
   }
 
   .cc-tracker-zip-btn:hover {
@@ -8448,27 +8659,75 @@
     transform: scale(0.98) !important;
   }
 
+  .cc-tracker-clean-badge {
+    font-size: 8.5px !important;
+    padding: 1px 4px !important;
+    margin-left: 2px !important;
+    flex-shrink: 0 !important;
+  }
+
   .cc-tracker-product-specs-col {
+    order: 4 !important;
     width: 100% !important;
     box-sizing: border-box !important;
   }
 
   .cc-tracker-compact-timeline-box {
+    order: 1 !important;
     padding: 9px !important;
     border-radius: 8px !important;
-    margin-top: 8px !important;
+    margin-top: 0 !important;
+    margin-bottom: 8px !important;
     width: 100% !important;
     box-sizing: border-box !important;
   }
 
+  .cc-tracker-compact-timeline-header {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+    width: 100% !important;
+    margin-bottom: 8px !important;
+  }
+
+  .cc-tracker-compact-timeline-header-left {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+  }
+
   .cc-tracker-compact-timeline-title {
     font-size: 10.5px !important;
-    font-weight: 600 !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.3px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .cc-tracker-timeline-vector-icon {
+    width: 15px !important;
+    height: 15px !important;
+    flex-shrink: 0 !important;
   }
 
   .cc-tracker-compact-timeline-badge {
     font-size: 9.5px !important;
-    font-weight: 600 !important;
+    font-weight: 700 !important;
+    padding: 3px 8px !important;
+    border-radius: 999px !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    margin-left: auto !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    line-height: 1.2 !important;
+    text-align: right !important;
   }
 
   .cc-track-timeline__stage-title {
@@ -9600,7 +9859,7 @@
 
   .cc-invoice-vehicle-card {
     display: grid !important;
-    grid-template-columns: 84px 1fr !important;
+    grid-template-columns: 88px 1fr !important;
     gap: 8px !important;
     padding: 10px !important;
     background: #ffffff !important;
@@ -9613,8 +9872,8 @@
   .cc-invoice-vehicle-thumb-wrap {
     grid-column: 1 !important;
     grid-row: 1 / span 2 !important;
-    width: 84px !important;
-    height: 64px !important;
+    width: 88px !important;
+    height: 76px !important;
     border-radius: 6px !important;
     overflow: hidden !important;
     border: 1px solid #cbd5e1 !important;
@@ -9651,31 +9910,54 @@
     word-break: break-word !important;
   }
 
-  .cc-invoice-vehicle-price {
-    font-size: 0.60rem !important;
-    font-weight: 750 !important;
-    color: #15803d !important;
-    background: #f0fdf4 !important;
-    border: 1px solid #bbf7d0 !important;
-    padding: 1px 6px !important;
-    border-radius: 4px !important;
-    display: inline-block !important;
-  }
-
-  .cc-invoice-vehicle-meta-tags {
+  .cc-invoice-vehicle-financials {
     grid-column: 2 !important;
     grid-row: 2 !important;
     display: flex !important;
     flex-wrap: wrap !important;
-    gap: 3px 5px !important;
-    margin-top: 3px !important;
+    align-items: center !important;
+    gap: 3px 8px !important;
+    padding: 3px 6px !important;
+    margin: 2px 0 !important;
+    background: #f1f5f9 !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 4px !important;
+  }
+
+  .cc-invoice-vehicle-fin-item {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 3px !important;
+    font-size: 0.65rem !important;
+  }
+
+  .cc-invoice-vehicle-fin-label {
+    font-size: 0.58rem !important;
+    font-weight: 600 !important;
+    color: #64748b !important;
+    text-transform: uppercase !important;
+  }
+
+  .cc-invoice-vehicle-fin-val {
+    font-size: 0.68rem !important;
+    font-weight: 700 !important;
+  }
+
+  .cc-invoice-vehicle-meta-tags {
+    grid-column: 1 / -1 !important;
+    grid-row: 3 !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 4px 6px !important;
+    margin-top: 4px !important;
+    width: 100% !important;
   }
 
   .cc-invoice-vehicle-meta-tag {
-    font-size: 0.52rem !important;
+    font-size: 0.56rem !important;
     background: #f8fafc !important;
     border: 1px solid #e2e8f0 !important;
-    padding: 1px 5px !important;
+    padding: 2px 6px !important;
     border-radius: 4px !important;
     color: #64748b !important;
     line-height: 1.3 !important;
@@ -9688,7 +9970,7 @@
 
   .cc-invoice-vehicle-docs-box {
     grid-column: 1 / -1 !important;
-    grid-row: 3 !important;
+    grid-row: 4 !important;
     width: 100% !important;
     background: #f8fafc !important;
     border: 1px solid #e2e8f0 !important;
@@ -10171,6 +10453,40 @@
   color: #f9fafb !important;
 }
 
+[data-theme-mode='midnight'] .cc-invoice-vehicle-financials,
+.theme-midnight .cc-invoice-vehicle-financials,
+.dark-mode .cc-invoice-vehicle-financials {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+}
+
+[data-theme-mode='midnight'] .cc-invoice-vehicle-fin-label,
+.theme-midnight .cc-invoice-vehicle-fin-label,
+.dark-mode .cc-invoice-vehicle-fin-label {
+  color: #94a3b8 !important;
+}
+
+[data-theme-mode='midnight'] .cc-invoice-vehicle-fin-item--sold .cc-invoice-vehicle-fin-val,
+.theme-midnight .cc-invoice-vehicle-fin-item--sold .cc-invoice-vehicle-fin-val,
+.dark-mode .cc-invoice-vehicle-fin-item--sold .cc-invoice-vehicle-fin-val {
+  color: #f8fafc !important;
+}
+
+[data-theme-mode='midnight'] .cc-invoice-vehicle-fin-item--allocated .cc-invoice-vehicle-fin-val,
+.theme-midnight .cc-invoice-vehicle-fin-item--allocated .cc-invoice-vehicle-fin-val,
+.dark-mode .cc-invoice-vehicle-fin-item--allocated .cc-invoice-vehicle-fin-val,
+[data-theme-mode='midnight'] .cc-amount-allocated-green,
+.theme-midnight .cc-amount-allocated-green,
+.dark-mode .cc-amount-allocated-green {
+  color: #4ade80 !important;
+}
+
+[data-theme-mode='midnight'] .cc-invoice-vehicle-fin-item--pending .cc-invoice-vehicle-fin-val,
+.theme-midnight .cc-invoice-vehicle-fin-item--pending .cc-invoice-vehicle-fin-val,
+.dark-mode .cc-invoice-vehicle-fin-item--pending .cc-invoice-vehicle-fin-val {
+  color: #f87171 !important;
+}
+
 /* ==========================================================================
    MY ORDERS - Purchased Vehicles: Car Tracker Button on Card
    ========================================================================== */
@@ -10451,6 +10767,27 @@
   border-color: #4b5563 !important;
   color: #ffffff !important;
 }
+
+[data-theme-mode='midnight'] .cc-tracker-zip-btn--clean,
+.theme-midnight .cc-tracker-zip-btn--clean,
+.dark-mode .cc-tracker-zip-btn--clean {
+  background: rgba(14, 165, 233, 0.16) !important;
+  border-color: rgba(56, 189, 248, 0.4) !important;
+  color: #38bdf8 !important;
+}
+
+[data-theme-mode='midnight'] .cc-tracker-revised-date,
+.theme-midnight .cc-tracker-revised-date,
+.dark-mode .cc-tracker-revised-date {
+  color: #f1f5f9 !important;
+}
+
+[data-theme-mode='midnight'] .cc-tracker-struck-date,
+.theme-midnight .cc-tracker-struck-date,
+.dark-mode .cc-tracker-struck-date {
+  color: #64748b !important;
+}
+
 
 /* Compact 11-Stage Timeline in Car Tracker Modal */
 [data-theme-mode='midnight'] .cc-tracker-compact-timeline-box,

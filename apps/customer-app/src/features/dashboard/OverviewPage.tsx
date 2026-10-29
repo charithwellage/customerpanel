@@ -1,11 +1,15 @@
 import React, { useMemo, useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useDashboard } from './useDashboard.js';
 import { useCustomerShell } from '../shell/index.js';
 import { useCustomerVehicles } from '../vehicles/useCustomerVehicles.js';
 import { useCustomerInvoices } from '../invoices/useCustomerInvoices.js';
 import { useCustomerNotifications } from '../notifications/useCustomerNotifications.js';
 import { useCustomerProfile } from '../profile/useCustomerProfile.js';
+import { useHttpClient } from '../account/index.js';
+import { VehicleService } from '@carchief/api-client';
 import { CustomerPwaBanner, usePwaInstall } from '../pwa/index.js';
+import { SubmitWireProofModal } from '../payments/index.js';
 import type { CustomerVehicleSummary, CustomerInvoiceSummary, Notification } from '@carchief/domain';
 import {
   WireRemittanceDollarIcon,
@@ -92,9 +96,23 @@ export const OverviewPage: React.FC = () => {
   const { data: notificationsData } = useCustomerNotifications('all', '');
   const { data: profile } = useCustomerProfile();
   const { canInstall, installApp } = usePwaInstall();
+  const httpClient = useHttpClient();
+
+  // Query live available inventory so recommendations prioritize active unsold stock
+  const { data: recommendedInventoryData } = useQuery({
+    queryKey: ['customer-recommended-inventory'],
+    queryFn: async () => {
+      if (!httpClient) return null;
+      const vehicleService = new VehicleService(httpClient);
+      return vehicleService.getVehicles({ audience: 'customer', limit: 20 });
+    },
+    staleTime: 60 * 1000,
+    gcTime: 5 * 60 * 1000,
+  });
 
   // Dashboard Customization State
   const [isCustomizing, setIsCustomizing] = useState(false);
+  const [isWireProofModalOpen, setIsWireProofModalOpen] = useState(false);
   const [showWidgetManager, setShowWidgetManager] = useState(false);
   const [draggedWidgetId, setDraggedWidgetId] = useState<string | null>(null);
   const [dragOverWidgetId, setDragOverWidgetId] = useState<string | null>(null);
@@ -293,123 +311,217 @@ export const OverviewPage: React.FC = () => {
     return defaultPriorityInvoices;
   }, [invoicesData]);
 
+  // Strict helper: check whether a vehicle is sold, delivered, or purchased
+  const isVehicleSold = (v: unknown): boolean => {
+    if (!v || typeof v !== 'object') return true;
+    const item = v as Record<string, unknown>;
+    const statusCode = String(item.vehicleStatusCode || '').trim().toLowerCase();
+    const status = String(item.status || '').trim().toLowerCase();
+    const statusLabel = String(item.statusLabel || '').trim().toLowerCase();
+    const shippingStage = String(item.shippingStage || '').trim().toLowerCase();
+    const logisticsStatus = String(item.logisticsStatus || '').trim().toLowerCase();
+
+    return (
+      statusCode === 'sold' ||
+      status === 'sold' ||
+      status === 'delivered' ||
+      shippingStage === 'delivered' ||
+      logisticsStatus === 'delivered' ||
+      statusLabel.includes('sold') ||
+      statusLabel.includes('purchased') ||
+      statusLabel.includes('delivered') ||
+      Boolean(item.isSold) ||
+      Boolean(item.sold) ||
+      item.vehicleStatus === 'Sold' ||
+      item.status === 'Sold'
+    );
+  };
+
+  // Curated fallback vehicle pool (all actively available in stock, none sold)
+  const defaultAvailableFallbackVehicles = [
+    {
+      id: 'veh-1',
+      slug: '2021-toyota-corolla-axio-veh-1',
+      year: '2024',
+      make: 'TOYOTA',
+      model: 'LAND CRUISER 250',
+      price: '$38,500 USD',
+      badge: 'TOP MATCH',
+      image: '/images/cars/car-white.jpg',
+    },
+    {
+      id: 'veh-2',
+      slug: '2022-toyota-yaris-cross-veh-2',
+      year: '2023',
+      make: 'HONDA',
+      model: 'VEZEL E:HEV Z',
+      price: '$21,400 USD',
+      badge: 'HIGH DEMAND',
+      image: '/images/cars/car-silver.jpg',
+    },
+    {
+      id: 'veh-3',
+      slug: '2020-honda-fit-hybrid-veh-3',
+      year: '2023',
+      make: 'NISSAN',
+      model: 'X-TRAIL E-POWER',
+      price: '$26,800 USD',
+      badge: 'POPULAR',
+      image: '/images/cars/car-blue.jpg',
+    },
+    {
+      id: 'veh-4',
+      slug: '2023-nissan-note-aura-veh-4',
+      year: '2022',
+      make: 'TOYOTA',
+      model: 'HARRIER HYBRID',
+      price: '$29,900 USD',
+      badge: 'PREMIUM',
+      image: '/images/cars/car-pearl.jpg',
+    },
+    {
+      id: 'veh-5',
+      slug: '2021-honda-fit-hybrid-veh-5',
+      year: '2021',
+      make: 'HONDA',
+      model: 'FIT HYBRID',
+      price: '$7,900 USD',
+      badge: 'GRADE A+',
+      image: '/images/cars/car-red.jpg',
+    },
+    {
+      id: 'veh-6',
+      slug: '2022-subaru-forester-veh-6',
+      year: '2023',
+      make: 'MERCEDES-BENZ',
+      model: 'C200 AMG LINE',
+      price: '$41,800 USD',
+      badge: 'FAST DISPATCH',
+      image: '/images/cars/car-black.jpg',
+    },
+    {
+      id: 'veh-7',
+      slug: '2021-suzuki-jimny-sierra-veh-7',
+      year: '2021',
+      make: 'TOYOTA',
+      model: 'COROLLA FIELDER',
+      price: '$14,200 USD',
+      badge: 'BEST VALUE',
+      image: '/images/cars/car-gray.jpg',
+    },
+    {
+      id: 'veh-8',
+      slug: '2020-toyota-rav4-hybrid-veh-8',
+      year: '2023',
+      make: 'TOYOTA',
+      model: 'RAV4 ADVENTURE',
+      price: '$32,600 USD',
+      badge: 'BESTSELLER',
+      image: '/images/cars/car-green.jpg',
+    },
+    {
+      id: 'veh-9',
+      slug: '2023-lexus-nx350h-veh-9',
+      year: '2022',
+      make: 'LEXUS',
+      model: 'NX 350H F SPORT',
+      price: '$45,900 USD',
+      badge: 'VIP CHOICE',
+      image: '/images/cars/car-white.jpg',
+    },
+    {
+      id: 'veh-10',
+      slug: '2021-toyota-alphard-sc-veh-10',
+      year: '2020',
+      make: 'TOYOTA',
+      model: 'ALPHARD EXEC',
+      price: '$48,200 USD',
+      badge: 'LUXURY VAN',
+      image: '/images/cars/car-pearl.jpg',
+    },
+  ];
+
   // Personalized recommended vehicles for the customer (5 per row, displaying Year, Make, Model, Price)
+  // Strictly EXCLUDES any sold, delivered, or purchased vehicles.
   const personalizedVehicles = useMemo(() => {
-    if (allVehicles.length > 0) {
-      return allVehicles.slice(0, 10).map((v, i) => ({
+    const badges = [
+      'TOP MATCH',
+      'HIGH DEMAND',
+      'POPULAR',
+      'PREMIUM',
+      'GRADE A+',
+      'FAST DISPATCH',
+      'BEST VALUE',
+      'BESTSELLER',
+      'VIP CHOICE',
+      'LUXURY VAN',
+    ];
+
+    const results: Array<{
+      id: string;
+      slug: string;
+      year: string;
+      make: string;
+      model: string;
+      price: string;
+      badge: string;
+      image: string;
+    }> = [];
+    const seenIds = new Set<string>();
+
+    // 1. Prioritize real available inventory vehicles (filtering out sold vehicles)
+    const inventoryItems = (recommendedInventoryData?.items || []).filter((v) => !isVehicleSold(v));
+    for (const v of inventoryItems) {
+      if (results.length >= 10) break;
+      if (!v.id || seenIds.has(v.id)) continue;
+      seenIds.add(v.id);
+      results.push({
         id: v.id,
         slug: v.slug || v.id,
         year: String(v.year || 2024),
         make: (v.make || 'TOYOTA').toUpperCase(),
         model: (v.model || 'LAND CRUISER').toUpperCase(),
         price: v.priceUsd ? `$${v.priceUsd.toLocaleString()} USD` : 'ASK FOB',
-        badge: ['TOP MATCH', 'HIGH DEMAND', 'POPULAR', 'PREMIUM', 'GRADE A+', 'FAST DISPATCH', 'BEST VALUE', 'BESTSELLER', 'VIP CHOICE', 'LUXURY VAN'][i % 10],
-        image: resolveStudioWhiteBgImage(v, i),
-      }));
+        badge: badges[results.length % badges.length],
+        image: resolveStudioWhiteBgImage(v, results.length),
+      });
     }
-    return [
-      {
-        id: 'veh-1',
-        slug: '2021-toyota-corolla-axio-veh-1',
-        year: '2024',
-        make: 'TOYOTA',
-        model: 'LAND CRUISER 250',
-        price: '$38,500 USD',
-        badge: 'TOP MATCH',
-        image: '/images/cars/car-white.jpg',
-      },
-      {
-        id: 'veh-2',
-        slug: '2022-toyota-yaris-cross-veh-2',
-        year: '2023',
-        make: 'HONDA',
-        model: 'VEZEL E:HEV Z',
-        price: '$21,400 USD',
-        badge: 'HIGH DEMAND',
-        image: '/images/cars/car-silver.jpg',
-      },
-      {
-        id: 'veh-3',
-        slug: '2020-honda-fit-hybrid-veh-3',
-        year: '2023',
-        make: 'NISSAN',
-        model: 'X-TRAIL E-POWER',
-        price: '$26,800 USD',
-        badge: 'POPULAR',
-        image: '/images/cars/car-blue.jpg',
-      },
-      {
-        id: 'veh-4',
-        slug: '2023-nissan-note-aura-veh-4',
-        year: '2022',
-        make: 'TOYOTA',
-        model: 'HARRIER HYBRID',
-        price: '$29,900 USD',
-        badge: 'PREMIUM',
-        image: '/images/cars/car-pearl.jpg',
-      },
-      {
-        id: 'veh-5',
-        slug: '2019-mazda-cx-5-veh-5',
-        year: '2022',
-        make: 'MAZDA',
-        model: 'CX-5 2.2D',
-        price: '$23,500 USD',
-        badge: 'GRADE A+',
-        image: '/images/cars/car-red.jpg',
-      },
-      {
-        id: 'veh-6',
-        slug: '2022-subaru-forester-veh-6',
-        year: '2023',
-        make: 'MERCEDES-BENZ',
-        model: 'C200 AMG LINE',
-        price: '$41,800 USD',
-        badge: 'FAST DISPATCH',
-        image: '/images/cars/car-black.jpg',
-      },
-      {
-        id: 'veh-7',
-        slug: '2021-suzuki-jimny-sierra-veh-7',
-        year: '2021',
-        make: 'TOYOTA',
-        model: 'COROLLA FIELDER',
-        price: '$14,200 USD',
-        badge: 'BEST VALUE',
-        image: '/images/cars/car-gray.jpg',
-      },
-      {
-        id: 'veh-8',
-        slug: '2020-toyota-rav4-hybrid-veh-8',
-        year: '2023',
-        make: 'TOYOTA',
-        model: 'RAV4 ADVENTURE',
-        price: '$32,600 USD',
-        badge: 'BESTSELLER',
-        image: '/images/cars/car-green.jpg',
-      },
-      {
-        id: 'veh-9',
-        slug: '2023-lexus-nx350h-veh-9',
-        year: '2022',
-        make: 'LEXUS',
-        model: 'NX 350H F SPORT',
-        price: '$45,900 USD',
-        badge: 'VIP CHOICE',
-        image: '/images/cars/car-white.jpg',
-      },
-      {
-        id: 'veh-10',
-        slug: '2021-toyota-alphard-sc-veh-10',
-        year: '2020',
-        make: 'TOYOTA',
-        model: 'ALPHARD EXEC',
-        price: '$48,200 USD',
-        badge: 'LUXURY VAN',
-        image: '/images/cars/car-pearl.jpg',
-      },
-    ];
-  }, [allVehicles]);
+
+    // 2. If needed, supplement with active non-sold fleet vehicles
+    if (results.length < 10) {
+      const unsoldFleet = allVehicles.filter((v) => !isVehicleSold(v));
+      for (const v of unsoldFleet) {
+        if (results.length >= 10) break;
+        if (!v.id || seenIds.has(v.id)) continue;
+        seenIds.add(v.id);
+        results.push({
+          id: v.id,
+          slug: v.slug || v.id,
+          year: String(v.year || 2024),
+          make: (v.make || 'TOYOTA').toUpperCase(),
+          model: (v.model || 'LAND CRUISER').toUpperCase(),
+          price: v.priceUsd ? `$${v.priceUsd.toLocaleString()} USD` : 'ASK FOB',
+          badge: badges[results.length % badges.length],
+          image: resolveStudioWhiteBgImage(v, results.length),
+        });
+      }
+    }
+
+    // 3. Fill any remaining slots with guaranteed unsold fallback vehicles
+    if (results.length < 10) {
+      for (const v of defaultAvailableFallbackVehicles) {
+        if (results.length >= 10) break;
+        if (!v.id || seenIds.has(v.id) || isVehicleSold(v)) continue;
+        seenIds.add(v.id);
+        results.push({
+          ...v,
+          badge: badges[results.length % badges.length],
+        });
+      }
+    }
+
+    return results;
+  }, [recommendedInventoryData, allVehicles]);
 
   // Notifications / Bulletins
   const bulletins = useMemo(() => {
@@ -475,7 +587,7 @@ export const OverviewPage: React.FC = () => {
           <section className="cc-dash-kpi-grid" aria-label="Key metrics summary">
             <div className="cc-dash-bento-card" onClick={() => setActiveRoute('/vehicles')} role="button" tabIndex={0}>
               <div className="cc-dash-kpi-top">
-                <span className="cc-dash-kpi-label">BOUGHT CARS</span>
+                <span className="cc-dash-kpi-label">My orders</span>
                 <span className="cc-dash-kpi-icon">
                   <BoughtCarsIcon size={16} />
                 </span>
@@ -484,9 +596,9 @@ export const OverviewPage: React.FC = () => {
               <div className="cc-dash-kpi-bottom">FULL LEDGER</div>
             </div>
 
-            <div className="cc-dash-bento-card" onClick={() => setActiveRoute('/vehicles')} role="button" tabIndex={0}>
+            <div className="cc-dash-bento-card cc-dash-bento-card--static">
               <div className="cc-dash-kpi-top">
-                <span className="cc-dash-kpi-label">IN TRANSIT</span>
+                <span className="cc-dash-kpi-label">TBA</span>
                 <span className="cc-dash-kpi-icon">
                   <InTransitShipIcon size={16} />
                 </span>
@@ -495,9 +607,9 @@ export const OverviewPage: React.FC = () => {
               <div className="cc-dash-kpi-bottom">VESSELS EN ROUTE</div>
             </div>
 
-            <div className="cc-dash-bento-card" onClick={() => setActiveRoute('/vehicles')} role="button" tabIndex={0}>
+            <div className="cc-dash-bento-card cc-dash-bento-card--static">
               <div className="cc-dash-kpi-top">
-                <span className="cc-dash-kpi-label">PORT READY</span>
+                <span className="cc-dash-kpi-label">TBA</span>
                 <span className="cc-dash-kpi-icon">
                   <PortReadyBoxIcon size={16} />
                 </span>
@@ -506,9 +618,9 @@ export const OverviewPage: React.FC = () => {
               <div className="cc-dash-kpi-bottom">BOOKED &amp; LOADED</div>
             </div>
 
-            <div className="cc-dash-bento-card" onClick={() => setActiveRoute('/invoices')} role="button" tabIndex={0}>
+            <div className="cc-dash-bento-card cc-dash-bento-card--static">
               <div className="cc-dash-kpi-top">
-                <span className="cc-dash-kpi-label">DUE BILLS</span>
+                <span className="cc-dash-kpi-label">TBA</span>
                 <span className="cc-dash-kpi-icon">
                   <DueBillsClockIcon size={16} />
                 </span>
@@ -543,7 +655,7 @@ export const OverviewPage: React.FC = () => {
               <button
                 type="button"
                 className="cc-dash-header-link"
-                onClick={() => setActiveRoute('/vehicles')}
+                onClick={() => setActiveRoute('/vehicles?tab=purchasedVehicles')}
               >
                 VIEW ALL &rarr;
               </button>
@@ -554,7 +666,7 @@ export const OverviewPage: React.FC = () => {
                 <div
                   key={item.id}
                   className="cc-dash-shipment-row"
-                  onClick={() => setActiveRoute('/vehicles')}
+                  onClick={() => setActiveRoute('/vehicles?tab=purchasedVehicles')}
                   role="button"
                   tabIndex={0}
                 >
@@ -665,7 +777,7 @@ export const OverviewPage: React.FC = () => {
             <div className="cc-dash-shortcuts-grid">
               <div
                 className="cc-dash-shortcut-card"
-                onClick={() => setActiveRoute('/payments?action=submit_proof')}
+                onClick={() => setIsWireProofModalOpen(true)}
                 role="button"
                 tabIndex={0}
               >
@@ -1230,6 +1342,11 @@ export const OverviewPage: React.FC = () => {
 
       {/* PERSONALIZED VEHICLES AT THE END (FULL WIDTH 5 PER ROW) */}
       {bottomFullWidthWidgets.map((w) => renderDraggableWrapper(w))}
+
+      <SubmitWireProofModal
+        isOpen={isWireProofModalOpen}
+        onClose={() => setIsWireProofModalOpen(false)}
+      />
     </div>
   );
 };

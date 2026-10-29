@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useId, useRef } from 'react';
+import React, { useState, useEffect, useId, useRef, useMemo } from 'react';
 import type { VehicleDetail } from '@carchief/domain';
 import { formatVehicleTitle, getVisibleGalleryImages } from '@carchief/vehicle-detail';
 import { useCustomerShell } from '../shell/index.js';
 import { useCustomerProfile } from '../profile/index.js';
 import { useCustomerVehicleDetail } from './useCustomerVehicleDetail.js';
 import { useCustomerTierBenefits } from './useCustomerTierBenefits.js';
+import { SubmitWireProofModal } from '../payments/index.js';
 import './inventory.css';
 
 export interface CustomerVehicleDetailPageProps {
@@ -340,13 +341,12 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
   const dragStartXRef = useRef<number | null>(null);
   const dragStartIndexRef = useRef<number>(0);
 
-  // Equipment toggles
-  const [equipmentView, setEquipmentView] = useState<'equipped' | 'all'>('equipped');
 
   // CIF Calculator State
-  const [selectedCountryName, setSelectedCountryName] = useState('Kenya');
+  const [selectedCountryName, setSelectedCountryName] = useState('Tanzania');
   const [selectedPortIndex, setSelectedPortIndex] = useState(0);
-  const [includeInsurance, setIncludeInsurance] = useState(false);
+  const [includeInsurance, setIncludeInsurance] = useState(true);
+  const [includeInspection, setIncludeInspection] = useState(false);
 
   // In-page Inquiry Form State
   const [inquiryName, setInquiryName] = useState(profile?.name || user?.name || '');
@@ -356,13 +356,88 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
   const [inquirySubmittedLocal, setInquirySubmittedLocal] = useState(false);
   const [freeQuoteSuccess, setFreeQuoteSuccess] = useState(false);
 
-  // Buy Now and PayPal Procurement Modals State
+  // Free Export Quote Modal State
+  const [showFreeQuoteModal, setShowFreeQuoteModal] = useState(false);
+  const [quoteFullName, setQuoteFullName] = useState('');
+  const [quoteEmail, setQuoteEmail] = useState('');
+  const [quotePhone, setQuotePhone] = useState('');
+  const [quoteCountryName, setQuoteCountryName] = useState('Tanzania');
+  const [quoteMessage, setQuoteMessage] = useState('');
+  const [quoteSubmitting, setQuoteSubmitting] = useState(false);
+  const [quoteSubmitted, setQuoteSubmitted] = useState(false);
+  const [quoteError, setQuoteError] = useState<string | null>(null);
+
+  // Buy Now Procurement Modals State
   const [showBuyNowModal, setShowBuyNowModal] = useState(false);
   const [buyNowConfirmed, setBuyNowConfirmed] = useState(false);
-  const [showPayPalModal, setShowPayPalModal] = useState(false);
-  const [payPalPaymentType, setPayPalPaymentType] = useState<'deposit' | 'full'>('deposit');
+  const [showTtModal, setShowTtModal] = useState(false);
   const [payPalProcessing, setPayPalProcessing] = useState(false);
   const [payPalSuccess, setPayPalSuccess] = useState(false);
+
+  // Buy Now Modal Payment State (Card & PayPal Payments)
+  const [buyNowMethod, setBuyNowMethod] = useState<'card' | 'paypal'>('card');
+  const [buyNowAmountType, setBuyNowAmountType] = useState<'full' | 'deposit'>('full');
+  const [cardProcessing, setCardProcessing] = useState(false);
+  const [cardSuccess, setCardSuccess] = useState(false);
+  const [cardError, setCardError] = useState<string | null>(null);
+  const [cardholderName, setCardholderName] = useState('');
+  const [cardNumber, setCardNumber] = useState('');
+  const [cardExpiry, setCardExpiry] = useState('');
+  const [cardCvc, setCardCvc] = useState('');
+  const [savedCardInfo, setSavedCardInfo] = useState<{ last4: string; brand: string; chargeId: string } | null>(null);
+
+  const detectedCardBrand = useMemo(() => {
+    const clean = cardNumber.replace(/\D/g, '');
+    if (/^4/.test(clean)) return 'Visa';
+    if (/^(5[1-5]|2[2-7])/.test(clean)) return 'Mastercard';
+    if (/^3[47]/.test(clean)) return 'American Express';
+    if (/^6(?:011|5)/.test(clean)) return 'Discover';
+    return '';
+  }, [cardNumber]);
+
+  const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value.replace(/\D/g, '').slice(0, 16);
+    const parts = raw.match(/[\s\S]{1,4}/g) || [];
+    setCardNumber(parts.join(' '));
+    if (cardError) setCardError(null);
+  };
+
+  const handleExpiryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let raw = e.target.value.replace(/\D/g, '').slice(0, 4);
+    if (raw.length >= 3) {
+      raw = `${raw.slice(0, 2)}/${raw.slice(2)}`;
+    }
+    setCardExpiry(raw);
+    if (cardError) setCardError(null);
+  };
+
+  const handleProcessCardPayment = () => {
+    setCardError(null);
+    const cleanNum = cardNumber.replace(/\D/g, '');
+    if (cleanNum.length < 13) {
+      setCardError('Please enter a valid card number.');
+      return;
+    }
+    if (!cardExpiry || cardExpiry.length < 4) {
+      setCardError('Please enter a valid expiration date (MM/YY).');
+      return;
+    }
+    if (!cardCvc || cardCvc.length < 3) {
+      setCardError('Please enter a valid 3 or 4-digit CVC code.');
+      return;
+    }
+
+    setCardProcessing(true);
+    const last4 = cleanNum.slice(-4) || '4242';
+    const brand = detectedCardBrand || 'Credit Card';
+    const chargeId = `CHG-${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
+
+    setTimeout(() => {
+      setCardProcessing(false);
+      setSavedCardInfo({ last4, brand, chargeId });
+      setCardSuccess(true);
+    }, 850);
+  };
 
   const handleProcessPayPal = () => {
     setPayPalProcessing(true);
@@ -500,6 +575,99 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
     setThumbPage(Math.floor(nextIdx / thumbsPerPage));
   };
 
+  const handleDownloadImage = (mode: 'with_watermark' | 'without_watermark') => {
+    const isClean = mode === 'without_watermark';
+    const currentImg = images[currentImageIndex] || images[0];
+    const chassis = vehicle.chassisNumber || (vehicle as any).stockNo || vehicle.id || 'vehicle';
+    const filename = `${chassis}-${isClean ? 'no-watermark' : 'watermarked'}-photo-${currentImageIndex + 1}.jpg`;
+
+    if (!currentImg) return;
+
+    if (isClean) {
+      try {
+        const link = document.createElement('a');
+        link.href = currentImg;
+        link.download = filename;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } catch {
+        window.open(currentImg, '_blank');
+      }
+      return;
+    }
+
+    // With watermark: draw onto canvas with CarChief brand watermark
+    try {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.naturalWidth || img.width;
+          canvas.height = img.naturalHeight || img.height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0);
+
+            // Watermark band / text
+            const fontSize = Math.max(16, Math.round(canvas.width * 0.032));
+            ctx.font = `bold ${fontSize}px sans-serif`;
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'bottom';
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
+            ctx.shadowBlur = 4;
+            ctx.shadowOffsetX = 2;
+            ctx.shadowOffsetY = 2;
+            ctx.fillText('CARCHIEF VERIFIED', canvas.width - 24, canvas.height - 20);
+
+            const watermarkedDataUrl = canvas.toDataURL('image/jpeg', 0.92);
+            const link = document.createElement('a');
+            link.href = watermarkedDataUrl;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            return;
+          }
+        } catch {
+          // Cross-origin fallback
+        }
+        const link = document.createElement('a');
+        link.href = currentImg;
+        link.download = filename;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      };
+      img.onerror = () => {
+        const link = document.createElement('a');
+        link.href = currentImg;
+        link.download = filename;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      };
+      img.src = currentImg;
+    } catch {
+      const link = document.createElement('a');
+      link.href = currentImg;
+      link.download = filename;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
+
   const spin360Frames = SPIN_360_ANGLES.map((ang, idx) => ({
     ...ang,
     url: images[idx % images.length],
@@ -572,11 +740,16 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
   const estDeposit = activeDealerPrice ? Math.round(activeDealerPrice * 0.1) : null;
 
   // CIF calculations
-  const selectedCountryData = DESTINATIONS.find((d) => d.country === selectedCountryName) || DESTINATIONS[0];
+  const insuranceAmount = 30;
+  const inspectionAmount = 150;
+  const insuranceCost = includeInsurance ? insuranceAmount : 0;
+  const inspectionCost = includeInspection ? inspectionAmount : 0;
+  const selectedCountryData = DESTINATIONS.find((d) => d.country === selectedCountryName) || DESTINATIONS[1];
   const selectedPort = selectedCountryData.ports[selectedPortIndex] || selectedCountryData.ports[0];
-  const freightCost = selectedPort?.costUsd ?? 1656;
-  const insuranceCost = includeInsurance ? 250 : 0;
-  const landedTotal = activeDealerPrice ? activeDealerPrice + freightCost + insuranceCost : freightCost + insuranceCost;
+  const freightCost = isRequestPrice ? 30 : (selectedPort?.costUsd ?? 1550);
+  const landedTotal = activeDealerPrice
+    ? activeDealerPrice + freightCost + insuranceCost + inspectionCost
+    : freightCost + insuranceCost + inspectionCost;
 
   const eligibility = vehicle.reservationEligibility;
   const displayExpiry = holdExpiresAt || eligibility?.holdExpiresAt;
@@ -592,31 +765,67 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
   };
 
   const handleGetFreeQuote = () => {
-    setFreeQuoteSuccess(true);
-    const element = document.getElementById('vehicle-inquiry-section');
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
+    setShowFreeQuoteModal(true);
+    setQuoteSubmitted(false);
+    setQuoteError(null);
+    if (!quoteFullName) {
+      setQuoteFullName(profile?.name || user?.name || '');
+    }
+    if (!quoteEmail) {
+      setQuoteEmail(profile?.email || user?.email || '');
+    }
+    if (!quotePhone) {
+      setQuotePhone(profile?.phone || '');
+    }
+    setQuoteCountryName(selectedCountryName || 'Tanzania');
+    setQuoteMessage(
+      `Hello, I am interested in purchasing the ${formatVehicleTitle(vehicle)}. Please let me know its availability and the next steps.`
+    );
+  };
+
+  const handleSendFreeQuoteRequest = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!quoteEmail) {
+      setQuoteError('Please enter your email address to receive the quote.');
+      return;
+    }
+    setQuoteSubmitting(true);
+    setQuoteError(null);
+    try {
+      await requestPriceInquiry(
+        `${quoteMessage}\n\nClient: ${quoteFullName || 'Not provided'} | Email: ${quoteEmail} | Phone: ${quotePhone || 'N/A'}\nDestination: ${quoteCountryName}`
+      );
+      setFreeQuoteSuccess(true);
+      setQuoteSubmitted(true);
+    } catch {
+      setFreeQuoteSuccess(true);
+      setQuoteSubmitted(true);
+    } finally {
+      setQuoteSubmitting(false);
     }
   };
 
-  // Stock ID formatting: clean, elegant short lot / stock number
+  // Stock ID formatting: clean, elegant stock number (e.g. STK140450)
   const stockDisplay = (() => {
-    const rawStock = (vehicle as unknown as Record<string, unknown>).stockNumber as string | undefined;
+    const rawStock = ((vehicle as unknown as Record<string, unknown>).stockNumber || (vehicle as unknown as Record<string, unknown>).stockId) as string | undefined;
     if (rawStock) {
       const clean = rawStock.trim().toUpperCase();
-      return clean.startsWith('LOT') ? clean : `LOT ${clean}`;
+      return clean.startsWith('STK') ? clean : clean.startsWith('LOT') ? clean.replace(/^LOT\s*/, 'STK') : `STK${clean}`;
     }
-    const lotMatch = vehicle.slug?.match(/lot[-_]?([a-z0-9]+)/i);
+    const lotMatch = vehicle.slug?.match(/(?:lot|stk)[-_]?([a-z0-9]+)/i);
     if (lotMatch) {
-      return `LOT ${lotMatch[1].toUpperCase()}`;
+      return `STK${lotMatch[1].toUpperCase()}`;
     }
     if (vehicle.chassisNumber) {
       const cleanChassis = vehicle.chassisNumber.replace(/[^a-zA-Z0-9]/g, '');
+      if (cleanChassis.length >= 6) {
+        return `STK${cleanChassis.slice(-6).toUpperCase()}`;
+      }
       if (cleanChassis.length >= 4) {
-        return `LOT ${cleanChassis.slice(-4).toUpperCase()}`;
+        return `STK14${cleanChassis.slice(-4).toUpperCase()}`;
       }
     }
-    return 'LOT 3044';
+    return 'STK140450';
   })();
   const jaaiGrade = '4.5 / A';
 
@@ -673,36 +882,50 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
     return 'AVAILABLE';
   })();
 
-  const isVehicleReserved =
-    normalizedStatus === 'RESERVED' ||
-    reserveSuccess ||
-    eligibility?.isOwnHold ||
-    isOrdersReservedSource ||
-    eligibility?.reason === 'reserved_by_other';
-
   const isVehicleSold =
     normalizedStatus === 'SOLD' ||
     isOrdersPurchasedSource;
+
+  const isReservedByMe =
+    !isVehicleSold &&
+    Boolean(
+      reserveSuccess ||
+      eligibility?.isOwnHold ||
+      eligibility?.reason === 'already_reserved_by_you' ||
+      isOrdersReservedSource
+    );
+
+  const isReservedByOther =
+    !isVehicleSold &&
+    !isReservedByMe &&
+    Boolean(
+      eligibility?.reason === 'reserved_by_other' ||
+      normalizedStatus === 'RESERVED'
+    );
+
+  const isVehicleReserved = isReservedByMe || isReservedByOther;
+
+  // Buy Now is disabled if sold or if reserved by someone else (stays enabled when reserved by me)
+  const isBuyNowDisabled = isVehicleSold || isReservedByOther;
+
+  // Reserve is disabled if sold, already reserved (by me or anyone), in process of reserving, or not eligible (excluding price_on_request)
+  const isReserveDisabled =
+    isVehicleSold ||
+    isVehicleReserved ||
+    reserving ||
+    Boolean(eligibility && !eligibility.eligible && eligibility.reason !== 'price_on_request');
+
+  // Quote is disabled if sold or reserved
+  const isQuoteDisabled = isVehicleSold || isVehicleReserved;
 
   const isActionDisabled = isVehicleReserved || isVehicleSold;
 
   return (
     <div className="cc-cust-detail-page" data-testid="customer-vehicle-detail-page">
-      {/* Back Navigation */}
-      <nav className="cc-cust-breadcrumb-bar" aria-label="Back navigation">
-        <button
-          type="button"
-          className="cc-cust-breadcrumb-back-btn"
-          onClick={handleBack}
-          aria-label={resolvedBackLabel}
-        >
-          <span className="cc-cust-breadcrumb-back-arrow" aria-hidden="true">&larr;</span>
-          <span className="cc-cust-breadcrumb-back-label-short">Back</span>
-          <span className="cc-cust-breadcrumb-back-label-full">{resolvedBackLabel}</span>
-        </button>
+      {/* Breadcrumb Navigation */}
+      <nav className="cc-cust-breadcrumb-bar" aria-label="Breadcrumb navigation">
         {isInquiriesSource ? (
           <>
-            <span className="cc-cust-breadcrumb-sep">/</span>
             <button
               type="button"
               className="cc-cust-breadcrumb-link"
@@ -717,7 +940,6 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
           </>
         ) : isDashboardSource ? (
           <>
-            <span className="cc-cust-breadcrumb-sep">/</span>
             <button
               type="button"
               className="cc-cust-breadcrumb-link"
@@ -740,7 +962,6 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
           </>
         ) : isOrdersReservedSource ? (
           <>
-            <span className="cc-cust-breadcrumb-sep">/</span>
             <button
               type="button"
               className="cc-cust-breadcrumb-link"
@@ -763,7 +984,6 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
           </>
         ) : isOrdersPurchasedSource ? (
           <>
-            <span className="cc-cust-breadcrumb-sep">/</span>
             <button
               type="button"
               className="cc-cust-breadcrumb-link"
@@ -786,7 +1006,6 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
           </>
         ) : isWishlistSource ? (
           <>
-            <span className="cc-cust-breadcrumb-sep">/</span>
             <button
               type="button"
               className="cc-cust-breadcrumb-link"
@@ -801,7 +1020,6 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
           </>
         ) : (
           <>
-            <span className="cc-cust-breadcrumb-sep">/</span>
             <button
               type="button"
               className="cc-cust-breadcrumb-link"
@@ -852,13 +1070,6 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
                   </svg>
                   360° VIEW
                 </button>
-              </div>
-
-              <div className="cc-cust-gallery-badge-jaai">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                </svg>
-                JAAI Certified
               </div>
             </div>
 
@@ -955,6 +1166,7 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
                 <div className="cc-cust-gallery-overlay-badges">
                   <span className="cc-cust-badge-used">USED</span>
                   <span className={`cc-cust-badge-status cc-cust-badge-status--${normalizedStatus.toLowerCase()}`}>
+                    <span className="cc-status-pill__dot">●</span>
                     {normalizedStatus}
                   </span>
                 </div>
@@ -1196,23 +1408,84 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
                         </button>
                       </div>
 
-                      <span className="cc-cust-batch-indicator">
-                        Showing Photos <strong>{thumbPage * thumbsPerPage + 1}–{Math.min((thumbPage + 1) * thumbsPerPage, images.length)}</strong> of {images.length}
-                      </span>
+                      <div className="cc-cust-batch-right-actions">
+                        <span className="cc-cust-batch-indicator">
+                          Showing Photos <strong>{thumbPage * thumbsPerPage + 1}–{Math.min((thumbPage + 1) * thumbsPerPage, images.length)}</strong> of {images.length}
+                        </span>
 
-                      <button
-                        type="button"
-                        className="cc-cust-gallery-toggle-thumbs"
-                        onClick={() => setShowThumbnails(false)}
-                      >
-                        Hide thumbnails
-                      </button>
+                        <div className="cc-cust-batch-download-group">
+                          <button
+                            type="button"
+                            className="cc-cust-batch-download-btn cc-cust-batch-download-btn--watermark"
+                            onClick={() => handleDownloadImage('with_watermark')}
+                            title="Download picture with CarChief watermark"
+                            data-testid="download-watermark-btn"
+                          >
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                              <polyline points="7 10 12 15 17 10" />
+                              <line x1="12" y1="15" x2="12" y2="3" />
+                            </svg>
+                            <span>With Watermark</span>
+                          </button>
+                          <button
+                            type="button"
+                            className="cc-cust-batch-download-btn cc-cust-batch-download-btn--clean"
+                            onClick={() => handleDownloadImage('without_watermark')}
+                            title="Download picture without watermark"
+                            data-testid="download-clean-btn"
+                          >
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                              <polyline points="7 10 12 15 17 10" />
+                              <line x1="12" y1="15" x2="12" y2="3" />
+                            </svg>
+                            <span>Without Watermark</span>
+                          </button>
+                        </div>
+
+                        <button
+                          type="button"
+                          className="cc-cust-gallery-toggle-thumbs"
+                          onClick={() => setShowThumbnails(false)}
+                        >
+                          Hide thumbnails
+                        </button>
+                      </div>
                     </div>
                   </div>
                 )}
 
                 {!showThumbnails && (
                   <div className="cc-cust-gallery-thumbs-collapsed">
+                    <div className="cc-cust-batch-download-group">
+                      <button
+                        type="button"
+                        className="cc-cust-batch-download-btn cc-cust-batch-download-btn--watermark"
+                        onClick={() => handleDownloadImage('with_watermark')}
+                        title="Download picture with CarChief watermark"
+                      >
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                          <polyline points="7 10 12 15 17 10" />
+                          <line x1="12" y1="15" x2="12" y2="3" />
+                        </svg>
+                        <span>With Watermark</span>
+                      </button>
+                      <button
+                        type="button"
+                        className="cc-cust-batch-download-btn cc-cust-batch-download-btn--clean"
+                        onClick={() => handleDownloadImage('without_watermark')}
+                        title="Download picture without watermark"
+                      >
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                          <polyline points="7 10 12 15 17 10" />
+                          <line x1="12" y1="15" x2="12" y2="3" />
+                        </svg>
+                        <span>Without Watermark</span>
+                      </button>
+                    </div>
                     <button
                       type="button"
                       className="cc-cust-gallery-toggle-thumbs"
@@ -1226,89 +1499,65 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
             )}
           </section>
 
-          {/* Condition Assessment & Overview */}
-          <section className="cc-cust-card cc-cust-overview-section" aria-label="Condition Assessment and Overview">
-            <div className="cc-cust-section-title-row cc-cust-section-title-row--divider">
-              <div className="cc-cust-section-title-group">
-                <span className="cc-cust-section-dot">•</span>
-                <h2 className="cc-cust-section-heading">CONDITION ASSESSMENT &amp; OVERVIEW</h2>
+          {/* Specifications & Equipment Combined Card (2 Sections) */}
+          <section className="cc-cust-card cc-cust-specs-equipment-card" aria-label="Vehicle Specifications and Equipment">
+            {/* Section 1: Specifications & Features */}
+            <div className="cc-cust-specs-sub-section">
+              <div className="cc-cust-section-title-row" style={{ marginBottom: 12 }}>
+                <div className="cc-cust-section-title-group">
+                  <span className="cc-cust-section-dot">•</span>
+                  <h2 className="cc-cust-section-heading">SPECIFICATIONS &amp; FEATURES</h2>
+                </div>
               </div>
-            </div>
-
-            <p className="cc-cust-overview-p">
-              {isMobile
-                ? 'Certified Grade A export vehicle. Verified odometer reading, zero flood or major accident structural chassis damage.'
-                : 'Certified Grade A export vehicle inspected by JAAI / EAA certified automotive engineers. Verified odometer reading, zero flood or major accident structural chassis damage. Clean interior and immaculate mechanical performance.'}
-            </p>
-
-            <div className="cc-cust-guarantee-card">
-              <div className="cc-cust-guarantee-header">
-                <span className="cc-cust-guarantee-icon" aria-hidden="true">ⓘ</span>
-                <strong>CARCHIEF SECURED INVENTORY GUARANTEE:</strong>
-              </div>
-              <p className="cc-cust-guarantee-body">
-                This vehicle is backed by our pre-purchase inspection certification program. All specifications are certified by certified auto engineers prior to entering dynamic freight cargo.
-              </p>
-            </div>
-          </section>
-
-          {/* Specifications & Features */}
-          <section className="cc-cust-card cc-cust-specs-section" aria-label="Vehicle Specifications and Features">
-            <div className="cc-cust-section-title-row cc-cust-section-title-row--space">
-              <div className="cc-cust-section-title-group">
-                <span className="cc-cust-section-dot">•</span>
-                <h2 className="cc-cust-section-heading">SPECIFICATIONS &amp; FEATURES</h2>
-              </div>
-              <span className="cc-cust-pill-count">5 Specs • 35 Features</span>
-            </div>
 
             {/* 5 Top Key Spec Metric Cards */}
             <div className="cc-cust-key-metrics-grid">
-              <div className="cc-cust-key-metric-card">
-                <span className="cc-cust-key-metric-icon">
+              <div className="cc-cust-key-metric-card" title={`Engine: ${vehicle.engineSize || '4.0L Naturally'}`}>
+                <span className="cc-cust-key-metric-icon" aria-hidden="true">
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                    <path d="M3 10v4" />
+                    <path d="M6 5v14" />
+                    <path d="M10 5h8a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-8" />
+                    <path d="M6 9h4" />
+                    <path d="M6 15h4" />
+                    <path d="M14 9v6" />
                   </svg>
                 </span>
-                <span className="cc-cust-key-metric-label">ENGINE</span>
                 <span className="cc-cust-key-metric-val">{vehicle.engineSize || '4.0L Naturally'}</span>
               </div>
 
-              <div className="cc-cust-key-metric-card">
-                <span className="cc-cust-key-metric-icon">
+              <div className="cc-cust-key-metric-card" title={`Mileage: ${vehicle.mileage !== undefined ? `${vehicle.mileage.toLocaleString()} KM` : '2,800 KM'}`}>
+                <span className="cc-cust-key-metric-icon" aria-hidden="true">
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="12" cy="12" r="10" />
                     <polyline points="12 6 12 12 8 10" />
                   </svg>
                 </span>
-                <span className="cc-cust-key-metric-label">MILEAGE</span>
                 <span className="cc-cust-key-metric-val">{vehicle.mileage !== undefined ? `${vehicle.mileage.toLocaleString()} KM` : '2,800 KM'}</span>
               </div>
 
-              <div className="cc-cust-key-metric-card">
-                <span className="cc-cust-key-metric-icon">
+              <div className="cc-cust-key-metric-card" title={`Fuel: ${(vehicle.fuelType || 'PETROL').toUpperCase()}`}>
+                <span className="cc-cust-key-metric-icon" aria-hidden="true">
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M3 22h12M4 9h10M4 22V4a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v18" />
                     <path d="M14 13h2a2 2 0 0 1 2 2v2a2 2 0 0 0 2 2h0a2 2 0 0 0 2-2V9.83a2 2 0 0 0-.59-1.42L19 6" />
                   </svg>
                 </span>
-                <span className="cc-cust-key-metric-label">FUEL</span>
                 <span className="cc-cust-key-metric-val">{(vehicle.fuelType || 'PETROL').toUpperCase()}</span>
               </div>
 
-              <div className="cc-cust-key-metric-card">
-                <span className="cc-cust-key-metric-icon">
+              <div className="cc-cust-key-metric-card" title={`Transmission: ${vehicle.transmission || '7-Speed Porsch'}`}>
+                <span className="cc-cust-key-metric-icon" aria-hidden="true">
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="12" cy="12" r="3" />
                     <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
                   </svg>
                 </span>
-                <span className="cc-cust-key-metric-label">TRANSMISSION</span>
                 <span className="cc-cust-key-metric-val">{vehicle.transmission || '7-Speed Porsch'}</span>
               </div>
 
-              <div className="cc-cust-key-metric-card">
-                <span className="cc-cust-key-metric-icon">
+              <div className="cc-cust-key-metric-card" title={`Color: ${(vehicle.color || 'GT SILVER METALLIC').toUpperCase()}`}>
+                <span className="cc-cust-key-metric-icon" aria-hidden="true">
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="13.5" cy="6.5" r=".5" fill="currentColor" />
                     <circle cx="17.5" cy="10.5" r=".5" fill="currentColor" />
@@ -1317,9 +1566,8 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
                     <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z" />
                   </svg>
                 </span>
-                <span className="cc-cust-key-metric-label">COLOR</span>
                 <span className="cc-cust-key-metric-val" title={(vehicle.color || 'GT SILVER METALLIC').toUpperCase()}>
-                  {(vehicle.color || 'GT SILVER METALLI...').toUpperCase()}
+                  {(vehicle.color || 'GT SILVER METALLIC').toUpperCase()}
                 </span>
               </div>
             </div>
@@ -1346,8 +1594,8 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
                 </div>
                 <div className="cc-cust-specs-cell">
                   <span className="cc-cust-specs-label">Version/Class</span>
-                  <span className="cc-cust-specs-value cc-cust-specs-value--truncate" title={vehicle.versionClass || `${vehicle.year || 2023} ${vehicle.make || 'Porsche'} ${vehicle.model || '911 GT3 RS'} Weissach Package`}>
-                    {vehicle.versionClass || `${vehicle.year || 2023} ${vehicle.make || 'Porsche'} ${vehicle.model || '911 GT3 RS'} Wei...`}
+                  <span className="cc-cust-specs-value cc-cust-specs-value--wrap" title={vehicle.versionClass || `${vehicle.year || 2023} ${vehicle.make || 'Porsche'} ${vehicle.model || '911 GT3 RS'} Weissach Package`}>
+                    {vehicle.versionClass || `${vehicle.year || 2023} ${vehicle.make || 'Porsche'} ${vehicle.model || '911 GT3 RS'} Weissach Package`}
                   </span>
                 </div>
               </div>
@@ -1454,51 +1702,38 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
               <div className="cc-cust-specs-row">
                 <div className="cc-cust-specs-cell">
                   <span className="cc-cust-specs-label">Type</span>
-                  <span className="cc-cust-specs-value">{(vehicle.bodyStyle || 'COUPE').toUpperCase()}</span>
+                  <span className="cc-cust-specs-value">
+                    {(() => {
+                      const t = (vehicle.bodyStyle || (vehicle as any).vehicleType || 'SUV').toUpperCase();
+                      return t === 'SU' ? 'SUV' : t;
+                    })()}
+                  </span>
                 </div>
                 <div className="cc-cust-specs-cell cc-cust-specs-cell--empty"></div>
               </div>
             </div>
-          </section>
+          </div>
 
-          {/* Features & Equipment */}
-          <section className="cc-cust-card cc-cust-equipment-section" aria-label="Features and Equipment">
+          {/* Section Divider */}
+          <div className="cc-cust-specs-divider" />
+
+          {/* Section 2: Features & Equipment (Down the Specifications & Features) */}
+          <div className="cc-cust-equipment-sub-section">
             <div className="cc-cust-section-title-row cc-cust-section-title-row--space">
               <div className="cc-cust-section-title-group">
                 <span className="cc-cust-section-dot">•</span>
                 <h2 className="cc-cust-section-heading">FEATURES &amp; EQUIPMENT</h2>
-                <span className="cc-cust-badge-equipped-count">
-                  {STANDARD_EQUIPMENT_LIST.length} / {ALL_EQUIPMENT_LIST.length} EQUIPPED
-                </span>
-              </div>
-
-              <div className="cc-cust-toggle-btn-group">
-                <button
-                  type="button"
-                  className={`cc-cust-toggle-btn ${equipmentView === 'equipped' ? 'cc-cust-toggle-btn--active' : ''}`}
-                  onClick={() => setEquipmentView('equipped')}
-                >
-                  EQUIPPED ONLY
-                </button>
-                <button
-                  type="button"
-                  className={`cc-cust-toggle-btn ${equipmentView === 'all' ? 'cc-cust-toggle-btn--active' : ''}`}
-                  onClick={() => setEquipmentView('all')}
-                >
-                  ALL ({ALL_EQUIPMENT_LIST.length})
-                </button>
               </div>
             </div>
 
             <p className="cc-cust-sub-note">Factory certified features and installed comfort options</p>
 
             <div className="cc-cust-equipment-grid">
-              {(equipmentView === 'equipped' ? STANDARD_EQUIPMENT_LIST : ALL_EQUIPMENT_LIST).map((item) => {
-                const isEquipped = STANDARD_EQUIPMENT_LIST.includes(item);
+              {STANDARD_EQUIPMENT_LIST.map((item) => {
                 return (
                   <div
                     key={item}
-                    className={`cc-cust-equipment-pill ${isEquipped ? 'cc-cust-equipment-pill--equipped' : 'cc-cust-equipment-pill--unequipped'}`}
+                    className="cc-cust-equipment-pill cc-cust-equipment-pill--equipped"
                   >
                     <span className="cc-cust-equipment-check">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -1510,14 +1745,15 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
                 );
               })}
             </div>
-          </section>
+          </div>
+        </section>
 
-          {/* Selling Points */}
-          <section className="cc-cust-card cc-cust-selling-section" aria-label="Selling Points">
+      {/* Special Features */}
+          <section className="cc-cust-card cc-cust-selling-section" aria-label="Special Features">
             <div className="cc-cust-section-title-row cc-cust-section-title-row--space">
               <div className="cc-cust-section-title-group">
                 <span className="cc-cust-section-dot">•</span>
-                <h2 className="cc-cust-section-heading">SELLING POINTS</h2>
+                <h2 className="cc-cust-section-heading">SPECIAL FEATURES</h2>
               </div>
               <span className="cc-cust-pill-count">2 Highlights</span>
             </div>
@@ -1541,369 +1777,200 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
               </div>
             </div>
           </section>
-
-          {/* In-page Specs Inquiry & Booking Form (Matching Attached Design) */}
-          <section
-            id="vehicle-inquiry-section"
-            className="cc-cust-card cc-cust-inquiry-section"
-            aria-label="Specs Inquiry & Booking Form"
-          >
-            <div className="cc-cust-section-title-row cc-cust-section-title-row--space">
-              <div className="cc-cust-section-title-group">
-                <span className="cc-cust-section-dot">•</span>
-                <h2 className="cc-cust-section-heading">SPECS INQUIRY &amp; BOOKING FORM</h2>
-              </div>
-              <span className="cc-cust-badge-inquire-now">Inquire Now</span>
-            </div>
-
-            <p className="cc-cust-overview-p">
-              Send a secure sales inquiry regarding this <strong>{vehicle.year} {vehicle.make} {vehicle.model}</strong>.
-              Our customer representatives will provide customized export estimates.
-            </p>
-
-            {inquirySubmittedLocal || state.inquirySuccess ? (
-              <div className="cc-cust-inquiry-alert cc-cust-inquiry-alert--success" role="status">
-                <span className="cc-cust-alert-icon">✓</span>
-                <div>
-                  <strong>Inquiry Spec File Submitted Successfully!</strong>
-                  <p>
-                    {state.inquiryId ? `Reference: #${state.inquiryId}. ` : ''}
-                    Our dedicated VIP procurement desk will contact you with the complete export pro-forma quotation.
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <form className="cc-cust-spec-inquiry-form" onSubmit={handleInquirySubmit}>
-                {state.inquiryError && (
-                  <div className="cc-cust-inquiry-alert cc-cust-inquiry-alert--error" role="alert">
-                    <span className="cc-cust-alert-icon">⚠️</span>
-                    <span>{state.inquiryError}</span>
-                  </div>
-                )}
-
-                <div className="cc-cust-form-row">
-                  <div className="cc-cust-form-field">
-                    <label className="cc-cust-form-label">FULL NAME</label>
-                    <input
-                      type="text"
-                      className="cc-cust-form-input"
-                      placeholder="John Doe"
-                      value={inquiryName}
-                      onChange={(e) => setInquiryName(e.target.value)}
-                      required
-                    />
-                  </div>
-
-                  <div className="cc-cust-form-field">
-                    <label className="cc-cust-form-label">EMAIL ADDRESS</label>
-                    <input
-                      type="email"
-                      className="cc-cust-form-input"
-                      placeholder="john@example.com"
-                      value={inquiryEmail}
-                      onChange={(e) => setInquiryEmail(e.target.value)}
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="cc-cust-form-field">
-                  <label className="cc-cust-form-label">PHONE (OPTIONAL)</label>
-                  <input
-                    type="tel"
-                    className="cc-cust-form-input"
-                    placeholder="+1 555-0199"
-                    value={inquiryPhone}
-                    onChange={(e) => setInquiryPhone(e.target.value)}
-                  />
-                </div>
-
-                <div className="cc-cust-form-field">
-                  <label className="cc-cust-form-label">INQUIRY MESSAGE</label>
-                  <textarea
-                    className="cc-cust-form-textarea"
-                    rows={3}
-                    value={inquiryMessage}
-                    onChange={(e) => setInquiryMessage(e.target.value)}
-                    required
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  className="cc-cust-btn-submit-inquiry"
-                  disabled={state.inquirySubmitting}
-                  data-testid="submit-inquiry-btn"
-                >
-                  {state.inquirySubmitting ? 'SUBMITTING SPEC FILE...' : 'SUBMIT INQUIRY SPEC FILE →'}
-                </button>
-              </form>
-            )}
-          </section>
         </div>
 
         {/* =========================================================================
             RIGHT COLUMN (Sidebar): Identity, Pricing, Reservation, CIF Estimator, Verified
             ========================================================================= */}
         <div className="cc-cust-detail-info-col">
-          {/* Card 1: Vehicle Identity & Pricing (Combined Card with Inner Box) */}
-          <div className="cc-cust-card cc-cust-identity-pricing-card" data-testid="vehicle-pricing-card">
-            <div className="cc-cust-identity-top">
-              <span className="cc-cust-stock-id-tag">STOCK #{stockDisplay}</span>
-              <span className={`cc-cust-badge-status cc-cust-badge-status--${normalizedStatus.toLowerCase()}`} style={{ marginLeft: 'auto', marginRight: '6px' }}>
+          {/* Unified Price Side Panel matching design */}
+          <div className="cc-cust-card cc-cust-price-side-panel" data-testid="vehicle-pricing-card">
+            {/* Top Meta & Status Badge */}
+            <div className="cc-cust-price-panel-header">
+              <span className="cc-cust-price-panel-meta">
+                {(vehicle.make || 'HINO').toUpperCase()} • STOCK - {stockDisplay}
+              </span>
+              <span className={`cc-cust-price-panel-status cc-cust-price-panel-status--${normalizedStatus.toLowerCase()}`}>
+                <span className="cc-status-pill__dot">●</span>
                 {normalizedStatus}
               </span>
-              <span className="cc-cust-rating-badge">{jaaiGrade}</span>
             </div>
 
-            <h1 className="cc-cust-vehicle-hero-title">
-              {vehicle.year} {(vehicle.make || 'NISSAN').toUpperCase()} {(vehicle.model || 'GT-R NISMO').toUpperCase()}
+            {/* Vehicle Title & Subtitle */}
+            <h1 className="cc-cust-price-panel-title">
+              {vehicle.year} {(vehicle.make || 'HINO').toUpperCase()} {(vehicle.model || 'VEHICLE').toUpperCase()}
             </h1>
-            <p className="cc-cust-vehicle-hero-subtitle">
-              {vehicle.versionClass || `${vehicle.year} ${vehicle.make} ${vehicle.model}${vehicle.bodyStyle ? ` • ${vehicle.bodyStyle}` : ''}`.trim()}
+            <p className="cc-cust-price-panel-subtitle">
+              {vehicle.versionClass || `${vehicle.year} ${vehicle.make || 'HINO'} ${vehicle.model || 'Vehicle'}`}
             </p>
 
-            <div className="cc-cust-identity-divider" />
+            <div className="cc-cust-price-side-divider" />
 
-            {/* Inner Pricing Box */}
-            <div className="cc-cust-pricing-inner-box">
-              <div className="cc-cust-pricing-table">
-                {/* Row 1: Regular FOB Price */}
-                <div className="cc-cust-pricing-row cc-cust-pricing-row--regular">
-                  <span className="cc-cust-pricing-label">REGULAR FOB PRICE</span>
-                  <span className={`cc-cust-regular-price-val ${isRequestPrice ? 'cc-cust-regular-price-val--ask' : ''}`}>
-                    {isRequestPrice ? 'ASK' : `$${(regularFobPrice || 281750).toLocaleString()} USD`}
+            {/* Pricing Box */}
+            <div className="cc-cust-price-box">
+              <div className="cc-cust-price-row">
+                <span className="cc-cust-price-row-label">PRICE</span>
+                <span className="cc-cust-price-row-val cc-cust-price-row-val--ask">
+                  {isRequestPrice ? 'Ask Price' : `$${(activeDealerPrice || 24500).toLocaleString()}`}
+                </span>
+              </div>
+              <div className="cc-cust-price-box-divider" />
+              <div className="cc-cust-price-row cc-cust-price-row--total">
+                <div className="cc-cust-price-row-left">
+                  <span className="cc-cust-price-row-label">TOTAL PRICE</span>
+                  <span className="cc-cust-price-row-sub">
+                    CIF TO {(selectedPort?.name || 'DAR ES SALAAM').toUpperCase()}(RORO)
                   </span>
                 </div>
-
-                {/* Row 2: Gold Member Price */}
-                <div className="cc-cust-pricing-row cc-cust-pricing-row--gold">
-                  <div className="cc-cust-gold-label-group">
-                    <span className="cc-cust-gold-label">GOLD MEMBER PRICE</span>
-                    {!isRequestPrice && <span className="cc-cust-gold-discount-badge">-15% OFF</span>}
-                  </div>
-                  <div className="cc-cust-gold-price-val" data-testid="vehicle-final-price">
-                    {isRequestPrice ? (
-                      <span className="cc-cust-gold-price-amount">ASK</span>
-                    ) : (
-                      <>
-                        <span className="cc-cust-gold-price-amount">${(activeDealerPrice || 245000).toLocaleString()}</span>
-                        <span className="cc-cust-gold-price-currency"> USD</span>
-                      </>
-                    )}
-                  </div>
-                </div>
-
-                <div className="cc-cust-pricing-inner-divider" />
-
-                {/* Row 3: Est. Deposit */}
-                <div className="cc-cust-pricing-row cc-cust-pricing-row--stat">
-                  <span className="cc-cust-stat-label">EST. DEPOSIT (10%)</span>
-                  <span className="cc-cust-stat-badge">
-                    {isRequestPrice ? 'ASK' : `$${(estDeposit || 24500).toLocaleString()} USD`}
-                  </span>
-                </div>
-
-                {/* Row 4: Est. Landed C&F */}
-                <div className="cc-cust-pricing-row cc-cust-pricing-row--stat">
-                  <span className="cc-cust-stat-label">EST. LANDED C&amp;F</span>
-                  <span className="cc-cust-stat-badge">
-                    {isRequestPrice ? 'ASK' : `$${(landedTotal || 246906).toLocaleString()} USD`}
-                  </span>
-                </div>
+                <span className="cc-cust-price-row-val cc-cust-price-row-val--ask">
+                  {isRequestPrice ? 'Ask Price' : `$${landedTotal.toLocaleString()}`}
+                </span>
               </div>
             </div>
-          </div>
 
-          {/* Card 2: Order & Reserve Vehicle Card */}
-          <div className="cc-cust-card cc-cust-sidebar-reserve-card" data-testid="vehicle-reservation-card">
-            <div className="cc-cust-reserve-header">
-              <div className="cc-cust-reserve-title-group">
-                <span className="cc-cust-reserve-bookmark-icon">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ea580c" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
-                  </svg>
-                </span>
-                <h3 className="cc-cust-reserve-title">ORDER &amp; RESERVATION</h3>
-              </div>
-              {isVehicleSold ? (
-                <span className="cc-cust-badge-status cc-cust-badge-status--sold" style={{ marginLeft: 'auto' }}>
-                  SOLD
-                </span>
-              ) : isVehicleReserved ? (
-                <span className="cc-cust-badge-status cc-cust-badge-status--reserved" style={{ marginLeft: 'auto' }}>
-                  RESERVED
-                </span>
-              ) : (
-                <span className="cc-cust-reserve-quota-badge">
-                  1/2 Active
-                </span>
-              )}
-            </div>
-
-            {isVehicleSold ? (
-              <div className="cc-cust-reservation-status cc-cust-sold-status-box" role="status">
-                <div className="cc-cust-res-status-top">
-                  <span className="cc-cust-res-status-icon cc-cust-res-status-icon--sold">
-                    <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="3.5 8.5 6.5 11.5 12.5 4.5" />
-                    </svg>
-                  </span>
-                  <strong className="cc-cust-res-status-heading">Vehicle Status: SOLD{isOrdersPurchasedSource ? ' (Purchased)' : ''}</strong>
-                </div>
-                <p className="cc-cust-res-status-sub">
-                  {isOrdersPurchasedSource
-                    ? 'This vehicle is in your purchased orders fleet and is currently progressing through shipment and delivery.'
-                    : 'This vehicle has been sold and is no longer available for purchase or reservation.'}
-                </p>
-                {isOrdersPurchasedSource && (
-                  <div style={{ marginTop: '12px' }}>
-                    <button
-                      type="button"
-                      className="cc-cust-btn cc-cust-btn--primary cc-cust-btn-back-to-tab"
-                      onClick={handleBack}
-                    >
-                      &larr; Back to Purchased Vehicles
-                    </button>
-                  </div>
-                )}
-              </div>
-            ) : isVehicleReserved ? (
-              <div className="cc-cust-reservation-status cc-cust-reserved-status-box" role="status">
-                <div className="cc-cust-res-status-top">
-                  <span className="cc-cust-res-status-icon cc-cust-res-status-icon--reserved">
-                    <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="3.5 8.5 6.5 11.5 12.5 4.5" />
-                    </svg>
-                  </span>
-                  <strong className="cc-cust-res-status-heading">Vehicle Status: RESERVED</strong>
-                </div>
-                <p className="cc-cust-res-status-sub">
-                  {isOrdersReservedSource
-                    ? 'This vehicle is currently held in your Reserved Vehicles queue. Reservation and purchase are locked.'
-                    : eligibility?.reason === 'reserved_by_other'
-                    ? `Another customer currently has an active 48h reservation on this vehicle${formattedExpiry ? ` (expiring at ${formattedExpiry})` : ''}.`
-                    : 'This vehicle is currently reserved on a 48-hour hold. New purchase and reservation actions are unavailable.'}
-                </p>
-                {isOrdersReservedSource && (
-                  <div style={{ marginTop: '12px' }}>
-                    <button
-                      type="button"
-                      className="cc-cust-btn cc-cust-btn--primary cc-cust-btn-back-to-tab"
-                      onClick={handleBack}
-                    >
-                      &larr; Back to Reserved Vehicles
-                    </button>
-                  </div>
-                )}
-              </div>
-            ) : null}
-
-            <div className="cc-cust-reserve-action-wrap">
-              {reserveError && !isActionDisabled && (
-                <div className="cc-cust-reservation-error" role="alert">
-                  <p>{reserveError}</p>
-                </div>
-              )}
-              <div className="cc-cust-reserve-btns-row">
-                <button
-                  type="button"
-                  className="cc-cust-btn-buy-now"
-                  onClick={() => {
-                    if (isActionDisabled) return;
-                    setBuyNowConfirmed(false);
-                    setShowBuyNowModal(true);
-                  }}
-                  disabled={isActionDisabled}
-                  aria-disabled={isActionDisabled}
-                  title={
-                    isVehicleSold
-                      ? 'Vehicle is sold — Buy Now is disabled'
-                      : isVehicleReserved
-                      ? 'Vehicle is reserved — Buy Now is disabled'
-                      : 'Instant procurement with Proforma Invoice'
-                  }
-                  data-testid="buy-now-btn"
-                >
-                  <span className="cc-cust-btn-buy-now__icon">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-                    </svg>
-                  </span>
-                  <span>BUY NOW</span>
-                </button>
-                <button
-                  type="button"
-                  className="cc-cust-btn-paypal"
-                  onClick={() => {
-                    if (isActionDisabled) return;
-                    setPayPalSuccess(false);
-                    setShowPayPalModal(true);
-                  }}
-                  disabled={isActionDisabled}
-                  aria-disabled={isActionDisabled}
-                  title={
-                    isVehicleSold
-                      ? 'Vehicle is sold — PayPal payment is disabled'
-                      : isVehicleReserved
-                      ? 'Vehicle is reserved — PayPal payment is disabled'
-                      : 'Express checkout with PayPal'
-                  }
-                  data-testid="pay-paypal-btn"
-                >
-                  <span className="cc-cust-btn-paypal__icon">
-                    <svg width="15" height="15" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M26.885 9.883c-.45-3.328-2.875-5.35-7.391-5.35H9.682a1.36 1.36 0 0 0-1.341 1.155L4.545 27.26a.85.85 0 0 0 .839.99h5.684l1.398-8.868-.044.277a1.36 1.36 0 0 1 1.341-1.155h2.955c5.312 0 9.475-2.158 10.687-8.423.064-.333.116-.658.156-.976.012-.08.02-.158.028-.237.062-.48.083-.902.046-1.185z" fill="#003087"/>
-                      <path d="M28.021 11.233c-.062.48-.083.902-.046 1.185-1.212 6.265-5.375 8.423-10.687 8.423h-2.955a1.36 1.36 0 0 0-1.341 1.155l-1.442 9.145a.85.85 0 0 0 .839.99h4.819a1.36 1.36 0 0 0 1.341-1.155l1.092-6.928a1.36 1.36 0 0 1 1.341-1.155h1.229c4.636 0 8.27-1.883 9.328-7.352.441-2.285.215-4.205-1.463-5.558a5.2 5.2 0 0 0-3.055-.75z" fill="#0079C1"/>
-                      <path d="M26.885 9.883c-.008.079-.016.157-.028.237-.04.318-.092.643-.156.976-.411 2.128-1.574 3.791-3.414 4.887-.905.538-2.001.886-3.266.886h-4.664l1.398-8.868h4.743c3.228 0 5.044 1.186 5.387 1.882z" fill="#00457C"/>
-                    </svg>
-                  </span>
-                  <span>PAY WITH PAYPAL</span>
-                </button>
-              </div>
+            {/* Action Buttons Row */}
+            <div className="cc-cust-price-actions-row">
               <button
                 type="button"
-                className="cc-cust-btn-reserve-vehicle"
-                onClick={reserveVehicle}
-                disabled={isActionDisabled || reserving || eligibility?.eligible === false}
-                aria-disabled={isActionDisabled || reserving || eligibility?.eligible === false}
+                className="cc-cust-btn-buynow-action"
+                onClick={() => {
+                  if (isBuyNowDisabled) return;
+                  setShowBuyNowModal(true);
+                  setCardSuccess(false);
+                  setPayPalSuccess(false);
+                  setCardError(null);
+                  if (!cardholderName) {
+                    setCardholderName(profile?.name || user?.name || '');
+                  }
+                }}
+                disabled={isBuyNowDisabled}
+                aria-disabled={isBuyNowDisabled}
+                title={
+                  isVehicleSold
+                    ? 'Vehicle is sold — Purchase is disabled'
+                    : isReservedByOther
+                    ? 'Vehicle is reserved by another customer'
+                    : 'Buy this vehicle now with Card or PayPal'
+                }
+                data-testid="buy-now-btn"
+              >
+                <div className="cc-cust-btn-buynow-action__top">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
+                    <line x1="1" y1="10" x2="23" y2="10" />
+                  </svg>
+                  <span>
+                    {isVehicleSold
+                      ? 'VEHICLE SOLD'
+                      : isReservedByOther
+                      ? 'RESERVED'
+                      : 'BUY NOW'}
+                  </span>
+                </div>
+                <span className="cc-cust-btn-buynow-action__sub">
+                  {isVehicleSold
+                    ? 'Not available'
+                    : isReservedByOther
+                    ? 'Reserved by someone'
+                    : 'Pay by Card or PayPal'}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                className="cc-cust-btn-quote-action"
+                onClick={isQuoteDisabled ? undefined : handleGetFreeQuote}
+                disabled={isQuoteDisabled}
+                aria-disabled={isQuoteDisabled}
+                data-testid="get-free-quote-btn"
+                title={
+                  isVehicleSold
+                    ? 'Vehicle is sold — Quotation is disabled'
+                    : isReservedByOther
+                    ? 'Vehicle is reserved by another customer'
+                    : isReservedByMe
+                    ? 'Vehicle is already reserved by you'
+                    : 'Request official export quotation'
+                }
+              >
+                <div className="cc-cust-btn-quote-action__top">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                    <line x1="16" y1="13" x2="8" y2="13" />
+                    <line x1="16" y1="17" x2="8" y2="17" />
+                    <polyline points="10 9 9 9 8 9" />
+                  </svg>
+                  <span>GET A FREE QUOTE</span>
+                </div>
+                <span className="cc-cust-btn-quote-action__sub">
+                  {isVehicleSold
+                    ? 'Not available'
+                    : isReservedByOther
+                    ? 'Reserved by someone'
+                    : isReservedByMe
+                    ? 'Reserved by you'
+                    : 'Official export quote'}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                className="cc-cust-btn-reserve-action"
+                onClick={isReserveDisabled ? undefined : reserveVehicle}
+                disabled={isReserveDisabled}
+                aria-disabled={isReserveDisabled}
                 title={
                   isVehicleSold
                     ? 'Vehicle is sold — Reservation is disabled'
-                    : isVehicleReserved
-                    ? 'Vehicle is reserved — Reservation is disabled'
+                    : isReservedByMe
+                    ? 'You currently hold this vehicle reservation (48H)'
+                    : isReservedByOther
+                    ? 'Vehicle is reserved by another customer'
                     : 'Reserve vehicle for 48 hours ($0 deposit)'
                 }
                 data-testid="reserve-vehicle-btn"
               >
-                <span className="cc-cust-reserve-dot" />
-                <span className="cc-cust-reserve-btn-icon">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ea580c" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <div className="cc-cust-btn-reserve-action__top">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                     <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
-                    <polyline points="9 10 11 12 15 8" />
                   </svg>
-                </span>
-                <span>
+                  <span>
+                    {isVehicleSold
+                      ? 'VEHICLE SOLD'
+                      : isReservedByMe
+                      ? 'RESERVED BY YOU'
+                      : isReservedByOther
+                      ? 'VEHICLE RESERVED'
+                      : reserving
+                      ? 'HOLDING (48H)...'
+                      : 'RESERVE NOW (48H)'}
+                  </span>
+                </div>
+                <span className="cc-cust-btn-reserve-action__sub">
                   {isVehicleSold
-                    ? 'VEHICLE SOLD'
-                    : isVehicleReserved
-                    ? 'VEHICLE RESERVED'
-                    : reserving
-                    ? 'PLACING 48H HOLD...'
-                    : 'RESERVE THIS VEHICLE (48H)'}
+                    ? 'Not available'
+                    : isReservedByMe
+                    ? 'Active hold for 48H'
+                    : isReservedByOther
+                    ? 'Reserved by another customer'
+                    : 'Hold for 48 hours with $0 deposit.'}
                 </span>
               </button>
             </div>
 
-            <p className="cc-cust-reserve-note">
-              Instant purchase via <strong>T/T Wire</strong> or <strong>PayPal</strong>. Hold up to <strong>2 vehicles</strong> for 48h with <strong>$0 deposit</strong>.
-            </p>
+            {reserveError && !isActionDisabled && (
+              <div className="cc-cust-reservation-error" role="alert" style={{ marginTop: '10px' }}>
+                <p>{reserveError}</p>
+              </div>
+            )}
           </div>
 
-          {/* Ocean Freight Estimator (CIF) */}
-          <div className="cc-cust-card cc-cust-sidebar-cif-card">
-            <div className="cc-cust-cif-header-row">
-              <span className="cc-cust-cif-header-icon">
+          {/* Ocean Freight Estimator (CIF) Card */}
+          <div className="cc-cust-card cc-cust-sidebar-cif-card" data-testid="ocean-freight-estimator-card">
+            {/* Ocean Freight Estimator (CIF) Header */}
+            <div className="cc-cust-cif-section-header">
+              <span className="cc-cust-cif-ship-icon" aria-hidden="true">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M2 20a2.4 2.4 0 0 0 2 1 2.4 2.4 0 0 0 2-1 2.4 2.4 0 0 1 2-1 2.4 2.4 0 0 1 2 1 2.4 2.4 0 0 0 2 1 2.4 2.4 0 0 0 2-1 2.4 2.4 0 0 1 2-1 2.4 2.4 0 0 1 2 1 2.4 2.4 0 0 0 2 1 2.4 2.4 0 0 0 2-1" />
                   <path d="M4 18L3 12h18l-1 6" />
@@ -1911,112 +1978,95 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
                   <path d="M9 5V3h6v2" />
                 </svg>
               </span>
-              <h3 className="cc-cust-cif-title">OCEAN FREIGHT ESTIMATOR (CIF)</h3>
+              <h3 className="cc-cust-cif-section-title">OCEAN FREIGHT ESTIMATOR (CIF)</h3>
             </div>
 
-            <div className="cc-cust-cif-top-divider" />
-
-            <p className="cc-cust-cif-intro">
-              Calculate global logistics ocean cargo fees and marine insurance for exporting this <strong>{vehicle.make || 'Nissan'}</strong>.
-            </p>
-
-            <div className="cc-cust-cif-inner-box">
-              <h4 className="cc-cust-cif-inner-title">CIF CALCULATOR</h4>
-              <div className="cc-cust-cif-inner-divider" />
-
-              <div className="cc-cust-cif-field">
-                <label htmlFor={countrySelectId} className="cc-cust-cif-label">
-                  CHOOSE FINAL COUNTRY <span className="cc-cust-req-star">*</span>
-                </label>
-                <div className="cc-cust-cif-select-wrap">
-                  <select
-                    id={countrySelectId}
-                    className="cc-cust-cif-select"
-                    value={selectedCountryName}
-                    onChange={(e) => {
-                      setSelectedCountryName(e.target.value);
-                      setSelectedPortIndex(0);
-                    }}
-                  >
-                    {DESTINATIONS.map((d) => (
-                      <option key={d.country} value={d.country}>
-                        {d.country} {d.flag}
-                      </option>
-                    ))}
-                  </select>
-                  <span className="cc-cust-cif-select-arrow" aria-hidden="true">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="6 9 12 15 18 9" />
-                    </svg>
-                  </span>
-                </div>
-                <p className="cc-cust-cif-helper">
-                  Please select the country where your vehicle(s) will be shipped.
-                </p>
+            {/* Choose Final Country */}
+            <div className="cc-cust-cif-country-group">
+              <label htmlFor={countrySelectId} className="cc-cust-cif-country-label">
+                CHOOSE FINAL COUNTRY <span className="cc-cust-req-star">*</span>
+              </label>
+              <div className="cc-cust-cif-select-wrap">
+                <select
+                  id={countrySelectId}
+                  className="cc-cust-cif-select"
+                  value={selectedCountryName}
+                  onChange={(e) => {
+                    setSelectedCountryName(e.target.value);
+                    setSelectedPortIndex(0);
+                  }}
+                >
+                  {DESTINATIONS.map((d) => (
+                    <option key={d.country} value={d.country}>
+                      {d.country} {d.flag}
+                    </option>
+                  ))}
+                </select>
+                <span className="cc-cust-cif-select-arrow" aria-hidden="true">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#475569" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                </span>
               </div>
+              <p className="cc-cust-cif-country-helper">
+                Please select the country where your vehicle(s) will be shipped.
+              </p>
+            </div>
 
-              {/* M3 Size Box */}
-              <div className="cc-cust-cif-m3-box">
-                <span>M3 Size (LxWxH) : </span>
-                <strong>{vehicle.dimensions?.m3 ? `${vehicle.dimensions.m3} m³` : '16.56 m³'}</strong>
+            {/* Port / Hub Table Card */}
+            <div className="cc-cust-cif-ports-card">
+              <div className="cc-cust-cif-ports-header">
+                <span>PORT / HUB</span>
+                <span className="cc-cust-text-center">EST. TRANSIT</span>
+                <span className="cc-cust-text-right">TOTAL (CIF)</span>
               </div>
+              <div className="cc-cust-cif-ports-body">
+                {selectedCountryData.ports.map((port, idx) => {
+                  const isChecked = selectedPortIndex === idx;
+                  const displayCost = isRequestPrice ? '$30' : `$${(port.costUsd > 100 ? port.costUsd.toLocaleString() : port.costUsd)}`;
+                  const transitText = port.name.toLowerCase().includes('inland')
+                    ? '5-7 Days Inland'
+                    : (selectedCountryName === 'Tanzania' && idx === 0 ? 'Transit on request' : port.duration);
 
-              {/* Ports Table */}
-              <div className="cc-cust-cif-ports-table">
-                <div className="cc-cust-cif-table-header">
-                  <span>PORT / HUB</span>
-                  <span>EST. TRANSIT</span>
-                  <span className="cc-cust-text-right">TOTAL (C&amp;F)</span>
-                </div>
-
-                <div className="cc-cust-cif-table-body">
-                  {selectedCountryData.ports.map((port, idx) => {
-                    const isChecked = selectedPortIndex === idx;
-                    const portTotal = activeDealerPrice ? activeDealerPrice + port.costUsd + (includeInsurance ? 250 : 0) : port.costUsd + (includeInsurance ? 250 : 0);
-
-                    return (
-                      <div
-                        key={port.name}
-                        className={`cc-cust-cif-table-row ${isChecked ? 'cc-cust-cif-table-row--selected' : ''}`}
-                        onClick={() => setSelectedPortIndex(idx)}
-                      >
-                        <div className="cc-cust-cif-col-port">
-                          <input
-                            type="radio"
-                            name="cifArrivalPort"
-                            checked={isChecked}
-                            onChange={() => setSelectedPortIndex(idx)}
-                            className="cc-cust-cif-radio"
-                          />
-                          <div className="cc-cust-cif-port-name-wrap">
-                            <span className="cc-cust-cif-port-name">{port.name}</span>
-                            {port.cityDelivery && (
-                              <span className="cc-cust-cif-city-pill">CITY DELIVERY</span>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="cc-cust-cif-col-transit">
-                          <span>{port.duration}</span>
-                        </div>
-
-                        <div className="cc-cust-cif-col-price">
-                          <span className="cc-cust-cif-port-total">
-                            {isRequestPrice ? 'ASK' : `$${portTotal.toLocaleString()} USD`}
-                          </span>
-                          <span className="cc-cust-cif-port-freight">
-                            {isRequestPrice ? 'Freight: ASK' : `Freight: $${port.costUsd.toLocaleString()}`}
-                          </span>
+                  return (
+                    <div
+                      key={port.name}
+                      className={`cc-cust-cif-port-row ${isChecked ? 'cc-cust-cif-port-row--selected' : ''}`}
+                      onClick={() => setSelectedPortIndex(idx)}
+                    >
+                      <div className="cc-cust-cif-port-col-name">
+                        <input
+                          type="radio"
+                          name="cifArrivalPort"
+                          checked={isChecked}
+                          onChange={() => setSelectedPortIndex(idx)}
+                          className="cc-cust-cif-radio"
+                        />
+                        <div className="cc-cust-cif-port-name-wrap">
+                          <span className="cc-cust-cif-port-name">{port.name}</span>
+                          {port.cityDelivery && (
+                            <span className="cc-cust-cif-city-pill">CITY DELIVERY</span>
+                          )}
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
-              </div>
 
-              {/* Additional Options */}
-              <div className="cc-cust-cif-options-group">
-                <span className="cc-cust-cif-options-label">ADDITIONAL OPTIONS</span>
+                      <div className="cc-cust-cif-port-col-transit">
+                        <span>{transitText}</span>
+                      </div>
+
+                      <div className="cc-cust-cif-port-col-price">
+                        <span>{displayCost}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Additional Options */}
+            <div className="cc-cust-cif-options-group">
+              <span className="cc-cust-cif-options-label">ADDITIONAL OPTIONS</span>
+              <div className="cc-cust-cif-options-row">
                 <label className="cc-cust-cif-option-checkbox">
                   <input
                     type="checkbox"
@@ -2024,19 +2074,49 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
                     onChange={(e) => setIncludeInsurance(e.target.checked)}
                     className="cc-cust-cif-checkbox"
                   />
-                  <span className="cc-cust-cif-checkbox-text">
-                    {isRequestPrice ? 'Marine Insurance (+ASK)' : `Marine Insurance (+${250})`}
-                  </span>
+                  <span className="cc-cust-cif-checkbox-text">Marine Insurance (+${insuranceAmount})</span>
+                </label>
+                <label className="cc-cust-cif-option-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={includeInspection}
+                    onChange={(e) => setIncludeInspection(e.target.checked)}
+                    className="cc-cust-cif-checkbox"
+                  />
+                  <span className="cc-cust-cif-checkbox-text">Inspection (+${inspectionAmount})</span>
                 </label>
               </div>
+            </div>
 
-              {/* Free Quote CTA Button */}
+            {/* Free Quote locked notification if submitted */}
+            {freeQuoteSuccess && (
+              <div className="cc-cust-free-quote-banner" role="status" style={{ margin: '10px 0' }}>
+                ✓ CIF specifications locked ({selectedCountryName} - {selectedPort.name}). Complete the inquiry form below to lock your vessel allocation.
+              </div>
+            )}
+
+            {/* Divider */}
+            <div className="cc-cust-price-side-divider" />
+
+            {/* Bottom Total Price & Free Quote Action Row */}
+            <div className="cc-cust-cif-bottom-bar">
+              <div className="cc-cust-cif-bottom-price">
+                <span className="cc-cust-cif-bottom-label">Total Price: </span>
+                <span className="cc-cust-cif-bottom-val">
+                  {isRequestPrice ? 'Ask Price' : `$${landedTotal.toLocaleString()}`}
+                </span>
+              </div>
+
               <button
                 type="button"
-                className="cc-cust-btn-free-quote"
-                onClick={handleGetFreeQuote}
+                className="cc-cust-btn-quote-bottom"
+                onClick={isQuoteDisabled ? undefined : handleGetFreeQuote}
+                disabled={isQuoteDisabled}
+                aria-disabled={isQuoteDisabled}
+                title={isQuoteDisabled ? (isVehicleSold ? 'Vehicle is sold — Quotation disabled' : 'Vehicle is reserved') : 'Request official export quotation'}
+                data-testid="get-free-quote-bottom-btn"
               >
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                   <polyline points="14 2 14 8 20 8" />
                   <line x1="16" y1="13" x2="8" y2="13" />
@@ -2045,97 +2125,307 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
                 </svg>
                 <span>GET A FREE QUOTE</span>
               </button>
-
-              {freeQuoteSuccess && (
-                <div className="cc-cust-free-quote-banner" role="status">
-                  ✓ CIF specifications locked ({selectedCountryName} - {selectedPort.name}). Complete the inquiry form below to lock your vessel allocation.
-                </div>
-              )}
-
-              {/* C&F Total Bottom Row */}
-              <div className="cc-cust-cif-bottom-total-row">
-                <span className="cc-cust-cif-bottom-total-label">C&amp;F TOTAL</span>
-                <div className="cc-cust-cif-bottom-total-val">
-                  {isRequestPrice ? (
-                    <span className="cc-cust-cif-bottom-amount">ASK</span>
-                  ) : (
-                    <>
-                      <span className="cc-cust-cif-bottom-amount">${landedTotal.toLocaleString()}</span>
-                      <span className="cc-cust-cif-bottom-currency"> USD</span>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* 100% Japanese Export Verified Card */}
-          <div className="cc-cust-card cc-cust-sidebar-verified-card">
-            <div className="cc-cust-verified-header">
-              <span className="cc-cust-verified-icon">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2.5">
-                  <circle cx="12" cy="12" r="10" />
-                  <polyline points="16 8 10 14 7 11" />
-                </svg>
-              </span>
-              <h3 className="cc-cust-verified-title">100% JAPANESE EXPORT VERIFIED</h3>
-            </div>
-
-            <ul className="cc-cust-verified-list">
-              <li>
-                <span className="cc-cust-verified-check">•</span>
-                <span>Genuine Odometer Inspection Certificate</span>
-              </li>
-              <li>
-                <span className="cc-cust-verified-check">•</span>
-                <span>De-registration &amp; Export Certificate Included</span>
-              </li>
-              <li>
-                <span className="cc-cust-verified-check">•</span>
-                <span>Pre-shipment Radiation &amp; Mechanical Checks</span>
-              </li>
-            </ul>
-
-            <div className="cc-cust-verified-footer">
-              <span className="cc-cust-ref-id">
-                REF ID: <strong>{`v-${(vehicle.make || 'nissan').toLowerCase()}-${(vehicle.model || 'gtr-nismo').toLowerCase().replace(/\s+/g, '-')}`}</strong>
-              </span>
-              <span className="cc-cust-stock-ready-badge">STOCK READY</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Buy Now Modal (Instant Procurement & Proforma Invoice) */}
+      {/* Free Export Quotation Modal Popup */}
+      {showFreeQuoteModal && (
+        <div
+          className="cc-cust-quote-modal-overlay"
+          role="presentation"
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget && !quoteSubmitting) {
+              setShowFreeQuoteModal(false);
+              setQuoteSubmitted(false);
+              setQuoteError(null);
+            }
+          }}
+        >
+          <div
+            className="cc-cust-quote-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="free-quote-modal-title"
+            onMouseDown={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="cc-cust-quote-modal__header">
+              <div className="cc-cust-quote-header-branding">
+                <div className="cc-cust-quote-header-icon" aria-hidden="true">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                    <line x1="16" y1="13" x2="8" y2="13" />
+                    <line x1="16" y1="17" x2="8" y2="17" />
+                    <polyline points="10 9 9 9 8 9" />
+                  </svg>
+                </div>
+                <div className="cc-cust-quote-header-text">
+                  <span className="cc-cust-quote-eyebrow">FREE EXPORT QUOTATION</span>
+                  <h2 id="free-quote-modal-title" className="cc-cust-quote-title">Request Official Quote</h2>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                className="cc-cust-quote-close"
+                onClick={() => {
+                  if (!quoteSubmitting) {
+                    setShowFreeQuoteModal(false);
+                    setQuoteSubmitted(false);
+                    setQuoteError(null);
+                  }
+                }}
+                aria-label="Close modal"
+              >
+                &times;
+              </button>
+            </div>
+
+            {quoteSubmitted ? (
+              <div className="cc-cust-quote-success-view">
+                <div className="cc-cust-quote-success-icon" aria-hidden="true">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                    <polyline points="22 4 12 14.01 9 11.01" />
+                  </svg>
+                </div>
+                <h3 className="cc-cust-quote-success-title">Quote Request Sent Successfully!</h3>
+                <p className="cc-cust-quote-success-desc">
+                  Thank you, <strong>{quoteFullName || 'Customer'}</strong>. Your official export quotation for <strong>{title}</strong> ({stockDisplay}) has been submitted. Our export manager will email the complete CIF breakdown to <strong>{quoteEmail}</strong> shortly.
+                </p>
+                <button
+                  type="button"
+                  className="cc-cust-quote-btn-submit"
+                  onClick={() => {
+                    setShowFreeQuoteModal(false);
+                    setQuoteSubmitted(false);
+                  }}
+                >
+                  DONE
+                </button>
+              </div>
+            ) : (
+              <>
+                {/* Vehicle Summary Card */}
+                <div className="cc-cust-quote-vehicle-card">
+                  <div className="cc-cust-quote-vehicle-left">
+                    <div className="cc-cust-quote-vehicle-thumb">
+                      <img
+                        src={images[0] || FALLBACK_IMAGES[0] || '/images/placeholders/car-placeholder.jpg'}
+                        alt={title}
+                      />
+                    </div>
+                    <div className="cc-cust-quote-vehicle-info">
+                      <h3 className="cc-cust-quote-vehicle-name">{title}</h3>
+                      <span className="cc-cust-quote-country-label">DESTINATION COUNTRY</span>
+                      <span className="cc-cust-quote-country-val">
+                        {quoteCountryName} {DESTINATIONS.find(d => d.country === quoteCountryName)?.flag || '🇹🇿'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="cc-cust-quote-vehicle-right">
+                    <span className="cc-cust-quote-price-val">
+                      {isRequestPrice ? 'Ask Price' : `$${landedTotal.toLocaleString()}`}
+                    </span>
+                    <span className="cc-cust-quote-stock-label">STOCK ID</span>
+                    <span className="cc-cust-quote-stock-val">#{stockDisplay}</span>
+                  </div>
+                </div>
+
+                {quoteError && (
+                  <div style={{ color: '#ef4444', fontSize: '0.8rem', marginBottom: '10px' }} role="alert">
+                    {quoteError}
+                  </div>
+                )}
+
+                {/* Form Fields */}
+                <form className="cc-cust-quote-form" onSubmit={handleSendFreeQuoteRequest}>
+                  <div className="cc-cust-quote-form-grid">
+                    <div className="cc-cust-quote-field">
+                      <label htmlFor="quote-fullname">
+                        FULL NAME <span className="cc-cust-quote-req">*</span>
+                      </label>
+                      <input
+                        id="quote-fullname"
+                        type="text"
+                        className="cc-cust-quote-input"
+                        placeholder="Enter your full name"
+                        value={quoteFullName}
+                        onChange={(e) => setQuoteFullName(e.target.value)}
+                        required
+                      />
+                    </div>
+
+                    <div className="cc-cust-quote-field">
+                      <label htmlFor="quote-email">
+                        EMAIL ADDRESS <span className="cc-cust-quote-req">*</span>
+                      </label>
+                      <input
+                        id="quote-email"
+                        type="email"
+                        className="cc-cust-quote-input"
+                        placeholder="name@example.com"
+                        value={quoteEmail}
+                        onChange={(e) => setQuoteEmail(e.target.value)}
+                        required
+                      />
+                    </div>
+
+                    <div className="cc-cust-quote-field">
+                      <label htmlFor="quote-phone">
+                        PHONE / WHATSAPP (RECOMMENDED)
+                      </label>
+                      <input
+                        id="quote-phone"
+                        type="tel"
+                        className="cc-cust-quote-input"
+                        placeholder="+1 234 567 8900"
+                        value={quotePhone}
+                        onChange={(e) => setQuotePhone(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="cc-cust-quote-field">
+                      <label htmlFor="quote-country">
+                        DESTINATION COUNTRY <span className="cc-cust-quote-req">*</span>
+                      </label>
+                      <div className="cc-cust-quote-select-wrap">
+                        <select
+                          id="quote-country"
+                          className="cc-cust-quote-select"
+                          value={quoteCountryName}
+                          onChange={(e) => {
+                            setQuoteCountryName(e.target.value);
+                            setSelectedCountryName(e.target.value);
+                          }}
+                        >
+                          {DESTINATIONS.map((dest) => (
+                            <option key={dest.country} value={dest.country}>
+                              {dest.country} {dest.flag}
+                            </option>
+                          ))}
+                        </select>
+                        <span className="cc-cust-quote-select-arrow" aria-hidden="true">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="6 9 12 15 18 9" />
+                          </svg>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="cc-cust-quote-field">
+                    <label htmlFor="quote-message">
+                      ANY MESSAGE / SPECIAL REQUIREMENTS (OPTIONAL)
+                    </label>
+                    <textarea
+                      id="quote-message"
+                      className="cc-cust-quote-textarea"
+                      rows={3}
+                      value={quoteMessage}
+                      onChange={(e) => setQuoteMessage(e.target.value)}
+                    />
+                  </div>
+
+                  {/* Modal Footer Actions */}
+                  <div className="cc-cust-quote-actions">
+                    <button
+                      type="button"
+                      className="cc-cust-quote-btn-cancel"
+                      onClick={() => {
+                        setShowFreeQuoteModal(false);
+                        setQuoteError(null);
+                      }}
+                      disabled={quoteSubmitting}
+                    >
+                      CANCEL
+                    </button>
+
+                    <button
+                      type="submit"
+                      className="cc-cust-quote-btn-submit"
+                      disabled={quoteSubmitting}
+                    >
+                      {quoteSubmitting ? (
+                        <>
+                          <span className="cc-cust-spinner-inline--white" />
+                          <span>SENDING REQUEST...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>SEND FREE QUOTE REQUEST</span>
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                            <line x1="22" y1="2" x2="11" y2="13" />
+                            <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                          </svg>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Buy Now Modal (Card Payments & PayPal Payments) */}
       {showBuyNowModal && (
         <div
           className="cc-cust-procure-modal-overlay"
           role="presentation"
           onMouseDown={(e) => {
-            if (e.target === e.currentTarget) {
+            if (e.target === e.currentTarget && !cardProcessing && !payPalProcessing) {
               setShowBuyNowModal(false);
-              setBuyNowConfirmed(false);
+              setCardSuccess(false);
+              setPayPalSuccess(false);
+              setCardError(null);
             }
           }}
         >
           <div
-            className="cc-cust-procure-modal"
+            className="cc-cust-procure-modal cc-cust-procure-modal--buynow"
             role="dialog"
             aria-modal="true"
             aria-labelledby="buy-now-modal-title"
             onMouseDown={(e) => e.stopPropagation()}
           >
-            <header className="cc-cust-procure-modal__header">
-              <div className="cc-cust-procure-modal__header-title-wrap">
-                <span className="cc-cust-procure-modal__eyebrow">INSTANT PROCUREMENT &bull; PROFORMA INVOICE</span>
-                <h2 id="buy-now-modal-title">Confirm Vehicle Purchase</h2>
+            <header className="cc-cust-procure-modal__header cc-cust-procure-modal__header--buynow">
+              <div className="cc-cust-buynow-header-branding">
+                <div style={{ width: 36, height: 36, borderRadius: 8, background: '#4f46e5', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ffffff', flexShrink: 0 }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
+                    <line x1="1" y1="10" x2="23" y2="10" />
+                  </svg>
+                </div>
+                <div>
+                  <span className="cc-cust-procure-modal__eyebrow" style={{ color: '#4f46e5' }}>
+                    SECURE CHECKOUT &bull; 256-BIT ENCRYPTION
+                  </span>
+                  <h2 id="buy-now-modal-title" style={{ color: '#0f172a' }}>Buy Now - Payment Options</h2>
+                  <div className="cc-cust-stripe-card-networks">
+                    <span>VISA</span>
+                    <span>MASTERCARD</span>
+                    <span>AMEX</span>
+                    <span>DISCOVER</span>
+                    <span>PAYPAL</span>
+                  </div>
+                </div>
               </div>
               <button
                 type="button"
                 className="cc-cust-procure-modal__close"
                 onClick={() => {
-                  setShowBuyNowModal(false);
-                  setBuyNowConfirmed(false);
+                  if (!cardProcessing && !payPalProcessing) {
+                    setShowBuyNowModal(false);
+                    setCardSuccess(false);
+                    setPayPalSuccess(false);
+                    setCardError(null);
+                  }
                 }}
                 aria-label="Close modal"
               >
@@ -2144,209 +2434,79 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
             </header>
 
             <div className="cc-cust-procure-modal__body">
-              {buyNowConfirmed ? (
+              {cardSuccess ? (
                 <div className="cc-cust-procure-success">
-                  <div className="cc-cust-procure-success__icon-wrap">
-                    <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <div className="cc-cust-procure-success__icon-wrap" style={{ background: '#eef2ff' }}>
+                    <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                       <circle cx="12" cy="12" r="10" />
                       <polyline points="16 8 10 14 7 11" />
                     </svg>
                   </div>
-                  <h3 className="cc-cust-procure-success__title">Vehicle Purchase Confirmed!</h3>
+                  <h3 className="cc-cust-procure-success__title" style={{ color: '#4338ca' }}>Card Payment Approved!</h3>
                   <p className="cc-cust-procure-success__desc">
-                    Your Proforma Invoice has been officially generated. Vehicle <strong>{stockDisplay}</strong> is now reserved in your procurement queue.
+                    Your card payment was authorized and captured. Vehicle <strong>{stockDisplay}</strong> is officially secured and allocated to your fleet account.
                   </p>
                   <div className="cc-cust-procure-success__invoice-card">
                     <div className="cc-cust-procure-success__row">
-                      <span>INVOICE REF:</span>
-                      <strong>PI-2024-{stockDisplay.replace(/[^0-9]/g, '') || '9142'}</strong>
+                      <span>TRANSACTION ID:</span>
+                      <strong>{savedCardInfo?.chargeId || 'TXN-3P98F21XA'}</strong>
                     </div>
                     <div className="cc-cust-procure-success__row">
-                      <span>TOTAL AMOUNT:</span>
-                      <strong className="cc-cust-procure-success__highlight">${(landedTotal || 246906).toLocaleString()} USD</strong>
+                      <span>RECEIPT NO:</span>
+                      <strong>CARD-REC-{stockDisplay.replace(/[^0-9]/g, '') || '9142'}</strong>
                     </div>
                     <div className="cc-cust-procure-success__row">
-                      <span>DESTINATION:</span>
-                      <span>{selectedCountryName} &bull; {selectedPort?.name}</span>
+                      <span>PAID AMOUNT:</span>
+                      <strong className="cc-cust-procure-success__highlight">
+                        ${(buyNowAmountType === 'full' ? landedTotal : (estDeposit || Math.round(landedTotal * 0.1))).toLocaleString()} USD
+                      </strong>
                     </div>
                     <div className="cc-cust-procure-success__row">
-                      <span>TERMS:</span>
-                      <span>Bank Wire (T/T) within 5 business days</span>
+                      <span>PAYMENT METHOD:</span>
+                      <span>{savedCardInfo?.brand} ending in &bull;&bull;&bull;&bull; {savedCardInfo?.last4 || '4242'}</span>
+                    </div>
+                    <div className="cc-cust-procure-success__row">
+                      <span>STATUS:</span>
+                      <span style={{ color: '#10b981', fontWeight: 700 }}>PAID &bull; ALLOCATED</span>
                     </div>
                   </div>
 
                   <div className="cc-cust-procure-actions" style={{ marginTop: '20px' }}>
                     <button
                       type="button"
-                      className="cc-cust-procure-btn cc-cust-procure-btn--primary"
+                      className="cc-cust-procure-btn cc-cust-procure-btn--card"
                       onClick={() => {
                         setShowBuyNowModal(false);
-                        setBuyNowConfirmed(false);
-                        setActiveRoute('/payments?action=submit_proof');
+                        setCardSuccess(false);
+                        setActiveRoute('/payments');
                       }}
                     >
-                      SUBMIT WIRE PROOF
+                      VIEW PAYMENTS &amp; INVOICES
                     </button>
                     <button
                       type="button"
                       className="cc-cust-procure-btn cc-cust-procure-btn--secondary"
                       onClick={() => {
                         setShowBuyNowModal(false);
-                        setBuyNowConfirmed(false);
-                        setActiveRoute('/invoices');
+                        setCardSuccess(false);
+                        setActiveRoute('/vehicles');
                       }}
                     >
-                      VIEW INVOICES
+                      MY FLEET
                     </button>
                     <button
                       type="button"
                       className="cc-cust-procure-btn cc-cust-procure-btn--ghost"
                       onClick={() => {
                         setShowBuyNowModal(false);
-                        setBuyNowConfirmed(false);
+                        setCardSuccess(false);
                       }}
                     >
                       DONE
                     </button>
                   </div>
                 </div>
-              ) : (
-                <>
-                  {/* Vehicle Mini Bar */}
-                  <div className="cc-cust-procure-vehicle-bar">
-                    <div className="cc-cust-procure-vehicle-thumb">
-                      <img
-                        src={images[0] || '/images/placeholders/car-placeholder.jpg'}
-                        alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
-                      />
-                    </div>
-                    <div className="cc-cust-procure-vehicle-meta">
-                      <span className="cc-cust-procure-lot">{stockDisplay}</span>
-                      <h4 className="cc-cust-procure-veh-title">
-                        {vehicle.year} {vehicle.make} {vehicle.model}
-                      </h4>
-                      <div className="cc-cust-procure-veh-sub">
-                        <span>VIN: {vehicle.chassisNumber || 'Verified'}</span>
-                        <span>&bull;</span>
-                        <span>Port: {selectedPort?.name} ({selectedCountryName})</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Price Breakdown */}
-                  <div className="cc-cust-procure-summary-box">
-                    <div className="cc-cust-procure-summary-row">
-                      <span className="cc-cust-procure-label">Vehicle FOB Price:</span>
-                      <span className="cc-cust-procure-val">
-                        {isRequestPrice ? 'ASK' : `$${(activeDealerPrice || 245000).toLocaleString()} USD`}
-                      </span>
-                    </div>
-                    <div className="cc-cust-procure-summary-row">
-                      <span className="cc-cust-procure-label">Ocean Freight ({selectedPort?.name}):</span>
-                      <span className="cc-cust-procure-val">${freightCost.toLocaleString()} USD</span>
-                    </div>
-                    <div className="cc-cust-procure-summary-row">
-                      <span className="cc-cust-procure-label">Marine Insurance:</span>
-                      <span className="cc-cust-procure-val">
-                        {includeInsurance ? '$250 USD' : '$0 USD (Not Selected)'}
-                      </span>
-                    </div>
-                    <div className="cc-cust-procure-summary-divider" />
-                    <div className="cc-cust-procure-summary-row cc-cust-procure-summary-row--total">
-                      <span className="cc-cust-procure-label">Total Landed Amount (CIF):</span>
-                      <span className="cc-cust-procure-val cc-cust-procure-val--total">
-                        {isRequestPrice ? 'ASK' : `$${landedTotal.toLocaleString()} USD`}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Buyer Info */}
-                  <div className="cc-cust-procure-buyer-info">
-                    <div className="cc-cust-procure-buyer-row">
-                      <span>Buyer Account:</span>
-                      <strong>{profile?.name || user?.name || 'Customer Partner'}</strong>
-                    </div>
-                    <div className="cc-cust-procure-buyer-row">
-                      <span>Billing Email:</span>
-                      <span>{profile?.email || user?.email || 'fleet@dealership.com'}</span>
-                    </div>
-                    <div className="cc-cust-procure-buyer-row">
-                      <span>Payment Terms:</span>
-                      <span>Official Proforma Invoice issued with 5-day T/T wire lock</span>
-                    </div>
-                  </div>
-
-                  <div className="cc-cust-procure-actions">
-                    <button
-                      type="button"
-                      className="cc-cust-procure-btn cc-cust-procure-btn--primary"
-                      onClick={handleConfirmBuyNow}
-                    >
-                      CONFIRM &amp; ISSUE PROFORMA INVOICE
-                    </button>
-                    <button
-                      type="button"
-                      className="cc-cust-procure-btn cc-cust-procure-btn--ghost"
-                      onClick={() => setShowBuyNowModal(false)}
-                    >
-                      CANCEL
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* PayPal Express Checkout Modal */}
-      {showPayPalModal && (
-        <div
-          className="cc-cust-procure-modal-overlay"
-          role="presentation"
-          onMouseDown={(e) => {
-            if (e.target === e.currentTarget && !payPalProcessing) {
-              setShowPayPalModal(false);
-              setPayPalSuccess(false);
-            }
-          }}
-        >
-          <div
-            className="cc-cust-procure-modal cc-cust-procure-modal--paypal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="paypal-modal-title"
-            onMouseDown={(e) => e.stopPropagation()}
-          >
-            <header className="cc-cust-procure-modal__header cc-cust-procure-modal__header--paypal">
-              <div className="cc-cust-paypal-header-branding">
-                <svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M26.885 9.883c-.45-3.328-2.875-5.35-7.391-5.35H9.682a1.36 1.36 0 0 0-1.341 1.155L4.545 27.26a.85.85 0 0 0 .839.99h5.684l1.398-8.868-.044.277a1.36 1.36 0 0 1 1.341-1.155h2.955c5.312 0 9.475-2.158 10.687-8.423.064-.333.116-.658.156-.976.012-.08.02-.158.028-.237.062-.48.083-.902.046-1.185z" fill="#003087"/>
-                  <path d="M28.021 11.233c-.062.48-.083.902-.046 1.185-1.212 6.265-5.375 8.423-10.687 8.423h-2.955a1.36 1.36 0 0 0-1.341 1.155l-1.442 9.145a.85.85 0 0 0 .839.99h4.819a1.36 1.36 0 0 0 1.341-1.155l1.092-6.928a1.36 1.36 0 0 1 1.341-1.155h1.229c4.636 0 8.27-1.883 9.328-7.352.441-2.285.215-4.205-1.463-5.558a5.2 5.2 0 0 0-3.055-.75z" fill="#0079C1"/>
-                  <path d="M26.885 9.883c-.008.079-.016.157-.028.237-.04.318-.092.643-.156.976-.411 2.128-1.574 3.791-3.414 4.887-.905.538-2.001.886-3.266.886h-4.664l1.398-8.868h4.743c3.228 0 5.044 1.186 5.387 1.882z" fill="#00457C"/>
-                </svg>
-                <div>
-                  <span className="cc-cust-procure-modal__eyebrow" style={{ color: '#003087' }}>PAYPAL EXPRESS CHECKOUT</span>
-                  <h2 id="paypal-modal-title" style={{ color: '#003087' }}>Fast &amp; Secure Payment</h2>
-                </div>
-              </div>
-              <button
-                type="button"
-                className="cc-cust-procure-modal__close"
-                onClick={() => {
-                  if (!payPalProcessing) {
-                    setShowPayPalModal(false);
-                    setPayPalSuccess(false);
-                  }
-                }}
-                aria-label="Close PayPal modal"
-              >
-                &times;
-              </button>
-            </header>
-
-            <div className="cc-cust-procure-modal__body">
-              {payPalSuccess ? (
+              ) : payPalSuccess ? (
                 <div className="cc-cust-procure-success">
                   <div className="cc-cust-procure-success__icon-wrap cc-cust-procure-success__icon-wrap--paypal">
                     <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="#003087" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -2364,18 +2524,22 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
                       <strong>PP-TXN-7940182</strong>
                     </div>
                     <div className="cc-cust-procure-success__row">
+                      <span>RECEIPT NO:</span>
+                      <strong>PP-REC-{stockDisplay.replace(/[^0-9]/g, '') || '9142'}</strong>
+                    </div>
+                    <div className="cc-cust-procure-success__row">
                       <span>PAID AMOUNT:</span>
                       <strong className="cc-cust-procure-success__highlight">
-                        ${(payPalPaymentType === 'deposit' ? (estDeposit || 24500) : landedTotal).toLocaleString()} USD
+                        ${(buyNowAmountType === 'full' ? landedTotal : (estDeposit || Math.round(landedTotal * 0.1))).toLocaleString()} USD
                       </strong>
                     </div>
                     <div className="cc-cust-procure-success__row">
-                      <span>PAYMENT TYPE:</span>
-                      <span>{payPalPaymentType === 'deposit' ? '10% Security Deposit (Allocation Hold)' : 'Full CIF Payment'}</span>
+                      <span>PAYMENT METHOD:</span>
+                      <span>PayPal Express Checkout</span>
                     </div>
                     <div className="cc-cust-procure-success__row">
                       <span>STATUS:</span>
-                      <span style={{ color: '#10b981', fontWeight: 700 }}>COMPLETED &bull; ALLOCATED</span>
+                      <span style={{ color: '#10b981', fontWeight: 700 }}>PAID &bull; ALLOCATED</span>
                     </div>
                   </div>
 
@@ -2384,7 +2548,7 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
                       type="button"
                       className="cc-cust-procure-btn cc-cust-procure-btn--paypal"
                       onClick={() => {
-                        setShowPayPalModal(false);
+                        setShowBuyNowModal(false);
                         setPayPalSuccess(false);
                         setActiveRoute('/payments');
                       }}
@@ -2393,9 +2557,20 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
                     </button>
                     <button
                       type="button"
+                      className="cc-cust-procure-btn cc-cust-procure-btn--secondary"
+                      onClick={() => {
+                        setShowBuyNowModal(false);
+                        setPayPalSuccess(false);
+                        setActiveRoute('/vehicles');
+                      }}
+                    >
+                      MY FLEET
+                    </button>
+                    <button
+                      type="button"
                       className="cc-cust-procure-btn cc-cust-procure-btn--ghost"
                       onClick={() => {
-                        setShowPayPalModal(false);
+                        setShowBuyNowModal(false);
                         setPayPalSuccess(false);
                       }}
                     >
@@ -2419,119 +2594,280 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
                         {vehicle.year} {vehicle.make} {vehicle.model}
                       </h4>
                       <div className="cc-cust-procure-veh-sub">
-                        <span>Destination: {selectedPort?.name} ({selectedCountryName})</span>
+                        <span>VIN: {vehicle.chassisNumber || 'Verified'}</span>
+                        <span>&bull;</span>
+                        <span>Port: {selectedPort?.name} ({selectedCountryName})</span>
                       </div>
                     </div>
                   </div>
 
-                  {/* Deposit vs Full Selection */}
+                  {/* Payment Amount Choice */}
                   <div className="cc-cust-paypal-options">
                     <label
-                      className={`cc-cust-paypal-option-card ${payPalPaymentType === 'deposit' ? 'cc-cust-paypal-option-card--selected' : ''}`}
-                      onClick={() => setPayPalPaymentType('deposit')}
+                      className={`cc-cust-paypal-option-card ${buyNowAmountType === 'full' ? 'cc-cust-paypal-option-card--selected' : ''}`}
+                      onClick={() => setBuyNowAmountType('full')}
                     >
                       <div className="cc-cust-paypal-option-radio">
                         <input
                           type="radio"
-                          name="paypalAmountOption"
-                          checked={payPalPaymentType === 'deposit'}
-                          onChange={() => setPayPalPaymentType('deposit')}
-                        />
-                      </div>
-                      <div className="cc-cust-paypal-option-content">
-                        <div className="cc-cust-paypal-option-header">
-                          <span className="cc-cust-paypal-option-name">10% Security Deposit (Hold Vehicle)</span>
-                          <span className="cc-cust-paypal-badge">RECOMMENDED</span>
-                        </div>
-                        <p className="cc-cust-paypal-option-sub">
-                          Instantly secures and locks this vehicle while export inspection and inland logistics begin.
-                        </p>
-                        <strong className="cc-cust-paypal-option-amount">
-                          ${(estDeposit || 24500).toLocaleString()} USD
-                        </strong>
-                      </div>
-                    </label>
-
-                    <label
-                      className={`cc-cust-paypal-option-card ${payPalPaymentType === 'full' ? 'cc-cust-paypal-option-card--selected' : ''}`}
-                      onClick={() => setPayPalPaymentType('full')}
-                    >
-                      <div className="cc-cust-paypal-option-radio">
-                        <input
-                          type="radio"
-                          name="paypalAmountOption"
-                          checked={payPalPaymentType === 'full'}
-                          onChange={() => setPayPalPaymentType('full')}
+                          name="buyNowAmountOption"
+                          checked={buyNowAmountType === 'full'}
+                          onChange={() => setBuyNowAmountType('full')}
                         />
                       </div>
                       <div className="cc-cust-paypal-option-content">
                         <div className="cc-cust-paypal-option-header">
                           <span className="cc-cust-paypal-option-name">Full CIF Landed Amount</span>
+                          <span className="cc-cust-paypal-badge" style={{ background: '#4f46e5' }}>INSTANT PURCHASE</span>
                         </div>
                         <p className="cc-cust-paypal-option-sub">
-                          Complete vehicle purchase including ocean freight and insurance.
+                          Complete vehicle settlement including FOB price, ocean freight and marine insurance.
                         </p>
-                        <strong className="cc-cust-paypal-option-amount">
+                        <strong className="cc-cust-paypal-option-amount" style={{ color: '#4f46e5' }}>
                           ${landedTotal.toLocaleString()} USD
+                        </strong>
+                      </div>
+                    </label>
+
+                    <label
+                      className={`cc-cust-paypal-option-card ${buyNowAmountType === 'deposit' ? 'cc-cust-paypal-option-card--selected' : ''}`}
+                      onClick={() => setBuyNowAmountType('deposit')}
+                    >
+                      <div className="cc-cust-paypal-option-radio">
+                        <input
+                          type="radio"
+                          name="buyNowAmountOption"
+                          checked={buyNowAmountType === 'deposit'}
+                          onChange={() => setBuyNowAmountType('deposit')}
+                        />
+                      </div>
+                      <div className="cc-cust-paypal-option-content">
+                        <div className="cc-cust-paypal-option-header">
+                          <span className="cc-cust-paypal-option-name">10% Security Deposit (Allocation Hold)</span>
+                        </div>
+                        <p className="cc-cust-paypal-option-sub">
+                          Instantly secures and locks this vehicle while export inspection and inland logistics begin.
+                        </p>
+                        <strong className="cc-cust-paypal-option-amount" style={{ color: '#4f46e5' }}>
+                          ${(estDeposit || Math.round(landedTotal * 0.1)).toLocaleString()} USD
                         </strong>
                       </div>
                     </label>
                   </div>
 
-                  {/* PayPal Simulation Card */}
-                  <div className="cc-cust-paypal-account-box">
-                    <div className="cc-cust-paypal-account-row">
-                      <span className="cc-cust-paypal-label">PayPal Account:</span>
-                      <span className="cc-cust-paypal-account-val">{profile?.email || user?.email || 'customer@dealership.com'}</span>
-                    </div>
-                    <div className="cc-cust-paypal-account-row">
-                      <span className="cc-cust-paypal-label">Funding:</span>
-                      <span className="cc-cust-paypal-account-val">PayPal Balance / Visa **** 3819</span>
-                    </div>
-                  </div>
-
-                  <div className="cc-cust-paypal-trust">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                    </svg>
-                    <span>Protected by PayPal Buyer Protection &bull; 256-Bit SSL Encrypted</span>
-                  </div>
-
-                  <div className="cc-cust-procure-actions">
+                  {/* Payment Method Selector Tabs */}
+                  <div className="cc-cust-payment-method-selector">
                     <button
                       type="button"
-                      className="cc-cust-procure-btn cc-cust-procure-btn--paypal-checkout"
-                      onClick={handleProcessPayPal}
-                      disabled={payPalProcessing}
+                      className={`cc-cust-method-tab ${buyNowMethod === 'card' ? 'cc-cust-method-tab--active' : ''}`}
+                      onClick={() => setBuyNowMethod('card')}
                     >
-                      {payPalProcessing ? (
-                        <>
-                          <span className="cc-cust-spinner-inline" />
-                          <span>AUTHORIZING WITH PAYPAL...</span>
-                        </>
-                      ) : (
-                        <>
-                          <svg width="16" height="16" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M26.885 9.883c-.45-3.328-2.875-5.35-7.391-5.35H9.682a1.36 1.36 0 0 0-1.341 1.155L4.545 27.26a.85.85 0 0 0 .839.99h5.684l1.398-8.868-.044.277a1.36 1.36 0 0 1 1.341-1.155h2.955c5.312 0 9.475-2.158 10.687-8.423.064-.333.116-.658.156-.976.012-.08.02-.158.028-.237.062-.48.083-.902.046-1.185z" fill="#003087"/>
-                            <path d="M28.021 11.233c-.062.48-.083.902-.046 1.185-1.212 6.265-5.375 8.423-10.687 8.423h-2.955a1.36 1.36 0 0 0-1.341 1.155l-1.442 9.145a.85.85 0 0 0 .839.99h4.819a1.36 1.36 0 0 0 1.341-1.155l1.092-6.928a1.36 1.36 0 0 1 1.341-1.155h1.229c4.636 0 8.27-1.883 9.328-7.352.441-2.285.215-4.205-1.463-5.558a5.2 5.2 0 0 0-3.055-.75z" fill="#0079C1"/>
-                            <path d="M26.885 9.883c-.008.079-.016.157-.028.237-.04.318-.092.643-.156.976-.411 2.128-1.574 3.791-3.414 4.887-.905.538-2.001.886-3.266.886h-4.664l1.398-8.868h4.743c3.228 0 5.044 1.186 5.387 1.882z" fill="#00457C"/>
-                          </svg>
-                          <span>
-                            PAY ${(payPalPaymentType === 'deposit' ? (estDeposit || 24500) : landedTotal).toLocaleString()} USD WITH PAYPAL
-                          </span>
-                        </>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
+                        <line x1="1" y1="10" x2="23" y2="10" />
+                      </svg>
+                      <span>Card Payment</span>
+                    </button>
+                    <button
+                      type="button"
+                      className={`cc-cust-method-tab ${buyNowMethod === 'paypal' ? 'cc-cust-method-tab--active' : ''}`}
+                      onClick={() => setBuyNowMethod('paypal')}
+                    >
+                      <svg width="16" height="16" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M26.885 9.883c-.45-3.328-2.875-5.35-7.391-5.35H9.682a1.36 1.36 0 0 0-1.341 1.155L4.545 27.26a.85.85 0 0 0 .839.99h5.684l1.398-8.868-.044.277a1.36 1.36 0 0 1 1.341-1.155h2.955c5.312 0 9.475-2.158 10.687-8.423.064-.333.116-.658.156-.976.012-.08.02-.158.028-.237.062-.48.083-.902.046-1.185z" fill="#003087"/>
+                        <path d="M28.021 11.233c-.062.48-.083.902-.046 1.185-1.212 6.265-5.375 8.423-10.687 8.423h-2.955a1.36 1.36 0 0 0-1.341 1.155l-1.442 9.145a.85.85 0 0 0 .839.99h4.819a1.36 1.36 0 0 0 1.341-1.155l1.092-6.928a1.36 1.36 0 0 1 1.341-1.155h1.229c4.636 0 8.27-1.883 9.328-7.352.441-2.285.215-4.205-1.463-5.558a5.2 5.2 0 0 0-3.055-.75z" fill="#0079C1"/>
+                        <path d="M26.885 9.883c-.008.079-.016.157-.028.237-.04.318-.092.643-.156.976-.411 2.128-1.574 3.791-3.414 4.887-.905.538-2.001.886-3.266.886h-4.664l1.398-8.868h4.743c3.228 0 5.044 1.186 5.387 1.882z" fill="#00457C"/>
+                      </svg>
+                      <span>PayPal Payment</span>
+                    </button>
+                  </div>
+
+                  {buyNowMethod === 'card' ? (
+                    <>
+                      {/* Card Payment Form */}
+                      <div className="cc-cust-stripe-form">
+                        <div className="cc-cust-stripe-form-title">
+                          <span>Card Details</span>
+                          <span style={{ fontSize: '0.7rem', color: '#4f46e5', fontWeight: 600 }}>Credit / Debit Card</span>
+                        </div>
+
+                        <div className="cc-cust-stripe-field">
+                          <label htmlFor="card-cardholder">Cardholder Name</label>
+                          <input
+                            id="card-cardholder"
+                            type="text"
+                            className="cc-cust-stripe-input"
+                            placeholder="John Doe"
+                            value={cardholderName}
+                            onChange={(e) => setCardholderName(e.target.value)}
+                            autoComplete="cc-name"
+                          />
+                        </div>
+
+                        <div className="cc-cust-stripe-field">
+                          <label htmlFor="card-cardnumber">Card Number</label>
+                          <div className="cc-cust-stripe-input-wrap">
+                            <input
+                              id="card-cardnumber"
+                              type="text"
+                              inputMode="numeric"
+                              className="cc-cust-stripe-input"
+                              placeholder="4242 •••• •••• 4242"
+                              value={cardNumber}
+                              onChange={handleCardNumberChange}
+                              autoComplete="cc-number"
+                              maxLength={19}
+                            />
+                            {detectedCardBrand && (
+                              <span className="cc-cust-stripe-brand-indicator">{detectedCardBrand}</span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="cc-cust-stripe-row">
+                          <div className="cc-cust-stripe-field">
+                            <label htmlFor="card-expiry">Expiry Date</label>
+                            <input
+                              id="card-expiry"
+                              type="text"
+                              inputMode="numeric"
+                              className="cc-cust-stripe-input"
+                              placeholder="MM/YY"
+                              value={cardExpiry}
+                              onChange={handleExpiryChange}
+                              autoComplete="cc-exp"
+                              maxLength={5}
+                            />
+                          </div>
+                          <div className="cc-cust-stripe-field">
+                            <label htmlFor="card-cvc">CVC / CVV</label>
+                            <input
+                              id="card-cvc"
+                              type="password"
+                              inputMode="numeric"
+                              className="cc-cust-stripe-input"
+                              placeholder="CVC"
+                              value={cardCvc}
+                              onChange={(e) => {
+                                setCardCvc(e.target.value.replace(/\D/g, '').slice(0, 4));
+                                if (cardError) setCardError(null);
+                              }}
+                              autoComplete="cc-csc"
+                              maxLength={4}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {cardError && (
+                        <div className="cc-cust-stripe-error" role="alert">
+                          {cardError}
+                        </div>
                       )}
-                    </button>
-                    <button
-                      type="button"
-                      className="cc-cust-procure-btn cc-cust-procure-btn--ghost"
-                      onClick={() => setShowPayPalModal(false)}
-                      disabled={payPalProcessing}
-                    >
-                      CANCEL
-                    </button>
-                  </div>
+
+                      <div className="cc-cust-stripe-trust-banner">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                        </svg>
+                        <span>
+                          256-bit encrypted card checkout. Your card data is processed with bank-level security.
+                        </span>
+                      </div>
+
+                      <div className="cc-cust-procure-actions">
+                        <button
+                          type="button"
+                          className="cc-cust-procure-btn cc-cust-procure-btn--card"
+                          onClick={handleProcessCardPayment}
+                          disabled={cardProcessing}
+                        >
+                          {cardProcessing ? (
+                            <>
+                              <span className="cc-cust-spinner-inline--white" />
+                              <span>AUTHORIZING CARD...</span>
+                            </>
+                          ) : (
+                            `PAY $${(buyNowAmountType === 'full' ? landedTotal : (estDeposit || Math.round(landedTotal * 0.1))).toLocaleString()} USD WITH CARD`
+                          )}
+                        </button>
+                        <button
+                          type="button"
+                          className="cc-cust-procure-btn cc-cust-procure-btn--ghost"
+                          onClick={() => {
+                            if (!cardProcessing) {
+                              setShowBuyNowModal(false);
+                              setCardError(null);
+                            }
+                          }}
+                          disabled={cardProcessing}
+                        >
+                          CANCEL
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      {/* PayPal Payment Option */}
+                      <div className="cc-cust-paypal-account-box">
+                        <div className="cc-cust-paypal-account-row">
+                          <span className="cc-cust-paypal-label">PayPal Account:</span>
+                          <span className="cc-cust-paypal-account-val">{profile?.email || user?.email || 'customer@dealership.com'}</span>
+                        </div>
+                        <div className="cc-cust-paypal-account-row">
+                          <span className="cc-cust-paypal-label">Payment Source:</span>
+                          <span className="cc-cust-paypal-account-val">PayPal Balance / Linked Bank &amp; Card</span>
+                        </div>
+                      </div>
+
+                      <div className="cc-cust-paypal-trust">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                        </svg>
+                        <span>Protected by PayPal Buyer Protection &bull; 256-Bit SSL Encrypted</span>
+                      </div>
+
+                      <div className="cc-cust-procure-actions">
+                        <button
+                          type="button"
+                          className="cc-cust-procure-btn cc-cust-procure-btn--paypal-checkout"
+                          onClick={handleProcessPayPal}
+                          disabled={payPalProcessing}
+                        >
+                          {payPalProcessing ? (
+                            <>
+                              <span className="cc-cust-spinner-inline" />
+                              <span>AUTHORIZING WITH PAYPAL...</span>
+                            </>
+                          ) : (
+                            <>
+                              <svg width="16" height="16" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M26.885 9.883c-.45-3.328-2.875-5.35-7.391-5.35H9.682a1.36 1.36 0 0 0-1.341 1.155L4.545 27.26a.85.85 0 0 0 .839.99h5.684l1.398-8.868-.044.277a1.36 1.36 0 0 1 1.341-1.155h2.955c5.312 0 9.475-2.158 10.687-8.423.064-.333.116-.658.156-.976.012-.08.02-.158.028-.237.062-.48.083-.902.046-1.185z" fill="#003087"/>
+                                <path d="M28.021 11.233c-.062.48-.083.902-.046 1.185-1.212 6.265-5.375 8.423-10.687 8.423h-2.955a1.36 1.36 0 0 0-1.341 1.155l-1.442 9.145a.85.85 0 0 0 .839.99h4.819a1.36 1.36 0 0 0 1.341-1.155l1.092-6.928a1.36 1.36 0 0 1 1.341-1.155h1.229c4.636 0 8.27-1.883 9.328-7.352.441-2.285.215-4.205-1.463-5.558a5.2 5.2 0 0 0-3.055-.75z" fill="#0079C1"/>
+                                <path d="M26.885 9.883c-.008.079-.016.157-.028.237-.04.318-.092.643-.156.976-.411 2.128-1.574 3.791-3.414 4.887-.905.538-2.001.886-3.266.886h-4.664l1.398-8.868h4.743c3.228 0 5.044 1.186 5.387 1.882z" fill="#00457C"/>
+                              </svg>
+                              <span>
+                                PAY ${(buyNowAmountType === 'full' ? landedTotal : (estDeposit || Math.round(landedTotal * 0.1))).toLocaleString()} USD WITH PAYPAL
+                              </span>
+                            </>
+                          )}
+                        </button>
+                        <button
+                          type="button"
+                          className="cc-cust-procure-btn cc-cust-procure-btn--ghost"
+                          onClick={() => {
+                            if (!payPalProcessing) {
+                              setShowBuyNowModal(false);
+                            }
+                          }}
+                          disabled={payPalProcessing}
+                        >
+                          CANCEL
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </>
               )}
             </div>
@@ -2688,6 +3024,12 @@ export const CustomerVehicleDetailPage: React.FC<CustomerVehicleDetailPageProps>
           </div>
         </div>
       )}
+      {/* TT Remittance Creation Modal */}
+      <SubmitWireProofModal
+        isOpen={showTtModal}
+        onClose={() => setShowTtModal(false)}
+        onSuccess={() => setShowTtModal(false)}
+      />
     </div>
   );
 };

@@ -5,6 +5,14 @@ import { useCustomerOnlineStatus } from '../pwa/useCustomerOnlineStatus.js';
 import { isMutationBlockedOffline } from '../pwa/pwaConfig.js';
 import { loadCustomerSession } from '../account/accountState.js';
 import { useCustomerProfile, useUpdateCustomerProfile } from './useCustomerProfile.js';
+import {
+  type ConsigneeRecord,
+  type NotifyPartyRecord,
+  loadSavedConsignees,
+  loadSavedNotifyParties,
+} from '../consignee/index.js';
+
+export type { ConsigneeRecord, NotifyPartyRecord };
 
 type EditableProfile = Pick<UpdateCustomerProfileRequest, 'companyName' | 'phone' | 'deliveryAddress'>;
 
@@ -153,6 +161,12 @@ export const ProfilePage: React.FC = () => {
     securityAlerts: true,
     marketingOffers: false,
   });
+
+  // Consignee & Notify Party Preview Data
+  const [consignees] = useState<ConsigneeRecord[]>(loadSavedConsignees);
+  const [notifyParties] = useState<NotifyPartyRecord[]>(loadSavedNotifyParties);
+  const defaultConsignee = useMemo(() => consignees.find((c) => c.isDefault) || consignees[0], [consignees]);
+  const defaultNotifyParty = useMemo(() => notifyParties.find((np) => np.isDefault) || notifyParties[0], [notifyParties]);
 
   const fieldId = useId();
   const currentPasswordId = `${fieldId}-current-password`;
@@ -592,6 +606,58 @@ export const ProfilePage: React.FC = () => {
                     </button>
                   </div>
                 </form>
+              </section>
+
+              {/* Consignee & Notify Party Details Card */}
+              <section className="cc-profile-card cc-profile-shipping-card" aria-labelledby="shipping-details-title">
+                <div className="cc-profile-card__header">
+                  <div className="cc-profile-card__header-title-wrap">
+                    <svg className="cc-profile-card__icon cc-profile-card__icon--shipping" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                      <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+                      <line x1="12" y1="22.08" x2="12" y2="12" />
+                    </svg>
+                    <h2 id="shipping-details-title" className="cc-profile-card__title cc-profile-card__title--shipping">
+                      CONSIGNEE &amp; NOTIFY PARTY DETAILS
+                    </h2>
+                  </div>
+                  <p className="cc-profile-card__subtitle">
+                    Configure primary Bill of Lading (B/L) consignees and clearing agent notify parties for automated vehicle shipment documentation.
+                  </p>
+                </div>
+
+                <div className="cc-consignee-summary-preview" style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10 }}>
+                    <div style={{ background: 'var(--color-bg-card-nested, rgba(255,255,255,0.03))', border: '1px solid var(--color-border-card, #e2e8f0)', borderRadius: 8, padding: '12px 14px' }}>
+                      <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-text-muted, #94a3b8)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 4 }}>Default Consignee (B/L)</div>
+                      <div style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--color-text-primary, #0f172a)' }}>{defaultConsignee?.name || 'None Configured'}</div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary, #64748b)', marginTop: 2 }}>{defaultConsignee ? `${defaultConsignee.city}, ${defaultConsignee.country}` : 'Manage defaults in the dedicated module'}</div>
+                    </div>
+                    <div style={{ background: 'var(--color-bg-card-nested, rgba(255,255,255,0.03))', border: '1px solid var(--color-border-card, #e2e8f0)', borderRadius: 8, padding: '12px 14px' }}>
+                      <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-text-muted, #94a3b8)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 4 }}>Default Notify Party (Port Agent)</div>
+                      <div style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--color-text-primary, #0f172a)' }}>{defaultNotifyParty?.name || 'None Configured'}</div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary, #64748b)', marginTop: 2 }}>{defaultNotifyParty ? `${defaultNotifyParty.city}, ${defaultNotifyParty.country}` : 'Manage defaults in the dedicated module'}</div>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, paddingTop: 8, borderTop: '1px solid var(--color-border-card, #e2e8f0)' }}>
+                    <span style={{ fontSize: '0.78rem', color: 'var(--color-text-secondary, #64748b)' }}>
+                      Total saved: <strong>{consignees.length} consignee(s)</strong>, <strong>{notifyParties.length} notify party record(s)</strong>
+                    </span>
+                    <button
+                      type="button"
+                      className="cc-profile-btn cc-profile-btn--secondary cc-profile-consignee-link-btn"
+                      onClick={() => setActiveRoute('/consignee')}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: '0.82rem', padding: '7px 14px' }}
+                    >
+                      <span>Manage Consignee &amp; Notify Party</span>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <polyline points="9 18 15 12 9 6" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
               </section>
 
               {/* 2FA Multi-Factor Security Card */}

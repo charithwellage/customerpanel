@@ -110,6 +110,16 @@ export const CUSTOMER_FEATURE_REGISTRY: Record<string, FeatureOwnershipRecord> =
     fixtureNamespace: 'customer_profile',
     e2eSpecPath: 'tests/e2e/customer/profile.spec.ts',
   },
+  consignee: {
+    id: 'consignee',
+    phase: 'Phase 2.8',
+    title: 'Consignee & Notify Party Management',
+    routePath: '/consignee',
+    openapiPrefix: '/api/v1/customer/consignee',
+    mockApiPrefix: '/api/v1/customer/consignee',
+    fixtureNamespace: 'customer_consignee',
+    e2eSpecPath: 'tests/e2e/customer/consignee.spec.ts',
+  },
   auth: {
     id: 'auth',
     phase: 'Phase 2.12',

@@ -97,6 +97,7 @@ interface ProformaRecord {
   incoterm: 'C&F' | 'FOB' | 'CIF';
   expiresAtTimestamp?: number;
   expanded?: boolean;
+  vehicles?: InvoiceVehicleItem[];
 }
 
 export interface InvoiceVehicleItem {
@@ -108,6 +109,8 @@ export interface InvoiceVehicleItem {
   chassisNumber: string;
   destinationPort: string;
   totalPriceCif: number;
+  paidAmount?: number;
+  dueAmount?: number;
   imageUrl: string;
   etd?: string;
   eta?: string;
@@ -270,6 +273,31 @@ const MOCK_PROFORMAS: ProformaRecord[] = [
     totalAmountUsd: 12850,
     incoterm: 'C&F',
     expiresAtTimestamp: Date.now() + (35 * 3600 + 42 * 60 + 10) * 1000,
+    vehicles: [
+      {
+        id: 'pf-veh-5',
+        title: 'Toyota Land Cruiser Prado TX L 2022',
+        make: 'Toyota',
+        model: 'Land Cruiser Prado',
+        stkNumber: 'STK299 / TRJ150',
+        chassisNumber: 'TRJ150-0192834',
+        destinationPort: 'Colombo',
+        totalPriceCif: 12850,
+        paidAmount: 0,
+        dueAmount: 12850,
+        imageUrl: '/images/cars/car-pearl.jpg',
+        etd: '25th Sep, 2026',
+        eta: '10th Oct, 2026',
+        currentLocation: 'Nagoya Yard',
+        orderStatus: 'Hold Active',
+        documents: {
+          surrenderBl: false,
+          originalBl: false,
+          ecOriginal: true,
+          inspectionCertificate: false,
+        },
+      },
+    ],
   },
   {
     id: 'pf-6',
@@ -280,6 +308,31 @@ const MOCK_PROFORMAS: ProformaRecord[] = [
     totalAmountUsd: 8450,
     incoterm: 'FOB',
     expiresAtTimestamp: Date.now() + (21 * 3600 + 15 * 60 + 45) * 1000,
+    vehicles: [
+      {
+        id: 'pf-veh-6',
+        title: 'Honda Vezel Hybrid Z 2022',
+        make: 'Honda',
+        model: 'Vezel Hybrid',
+        stkNumber: 'J240111114',
+        chassisNumber: 'RU3-1204910',
+        destinationPort: 'Mombasa',
+        totalPriceCif: 8450,
+        paidAmount: 0,
+        dueAmount: 8450,
+        imageUrl: '/images/cars/car-blue.jpg',
+        etd: '20th Sep, 2026',
+        eta: '5th Oct, 2026',
+        currentLocation: 'Yokohama Yard',
+        orderStatus: 'Hold Active',
+        documents: {
+          surrenderBl: false,
+          originalBl: false,
+          ecOriginal: true,
+          inspectionCertificate: false,
+        },
+      },
+    ],
   },
   {
     id: 'pf-1',
@@ -289,6 +342,31 @@ const MOCK_PROFORMAS: ProformaRecord[] = [
     shipper: 'Carchief Co. Ltd',
     totalAmountUsd: 459521,
     incoterm: 'C&F',
+    vehicles: [
+      {
+        id: 'pf-veh-1',
+        title: 'Toyota Corolla Fielder 1.5G 2021',
+        make: 'Toyota',
+        model: 'Corolla Fielder',
+        stkNumber: 'J240111111',
+        chassisNumber: 'NRE161-0091995',
+        destinationPort: 'Colombo',
+        totalPriceCif: 459521,
+        paidAmount: 0,
+        dueAmount: 459521,
+        imageUrl: '/images/cars/car-white.jpg',
+        etd: '10th Sep, 2026',
+        eta: '25th Sep, 2026',
+        currentLocation: 'Kobe Yard',
+        orderStatus: 'Quotation Expired',
+        documents: {
+          surrenderBl: false,
+          originalBl: false,
+          ecOriginal: true,
+          inspectionCertificate: false,
+        },
+      },
+    ],
   },
   {
     id: 'pf-2',
@@ -298,6 +376,31 @@ const MOCK_PROFORMAS: ProformaRecord[] = [
     shipper: 'CarChief',
     totalAmountUsd: 4594,
     incoterm: 'FOB',
+    vehicles: [
+      {
+        id: 'pf-veh-2',
+        title: 'Nissan X-Trail 20X Hybrid 2020',
+        make: 'Nissan',
+        model: 'X-Trail',
+        stkNumber: 'J240111113',
+        chassisNumber: 'NT32-514022',
+        destinationPort: 'Colombo',
+        totalPriceCif: 4594,
+        paidAmount: 0,
+        dueAmount: 4594,
+        imageUrl: '/images/cars/car-black.jpg',
+        etd: '5th Sep, 2026',
+        eta: '20th Sep, 2026',
+        currentLocation: 'In Japan',
+        orderStatus: 'Quotation Expired',
+        documents: {
+          surrenderBl: false,
+          originalBl: false,
+          ecOriginal: false,
+          inspectionCertificate: false,
+        },
+      },
+    ],
   },
   {
     id: 'pf-3',
@@ -308,6 +411,31 @@ const MOCK_PROFORMAS: ProformaRecord[] = [
     shipper: 'CarChief',
     totalAmountUsd: 3671,
     incoterm: 'FOB',
+    vehicles: [
+      {
+        id: 'pf-veh-3',
+        title: 'Mazda Demio 13S 2019',
+        make: 'Mazda',
+        model: 'Demio 13S',
+        stkNumber: 'J240111112',
+        chassisNumber: 'DE3FS-884021',
+        destinationPort: 'Colombo',
+        totalPriceCif: 3671,
+        paidAmount: 0,
+        dueAmount: 3671,
+        imageUrl: '/images/cars/car-red.jpg',
+        etd: '1st Sep, 2026',
+        eta: '16th Sep, 2026',
+        currentLocation: 'Yokohama Yard',
+        orderStatus: 'Invoice Issued',
+        documents: {
+          surrenderBl: false,
+          originalBl: true,
+          ecOriginal: true,
+          inspectionCertificate: false,
+        },
+      },
+    ],
   },
   {
     id: 'pf-4',
@@ -317,6 +445,31 @@ const MOCK_PROFORMAS: ProformaRecord[] = [
     shipper: 'Carchief Co. Ltd',
     totalAmountUsd: 3840,
     incoterm: 'FOB',
+    vehicles: [
+      {
+        id: 'pf-veh-4',
+        title: 'Honda FIT DHJ-GE10',
+        make: 'Honda',
+        model: 'Fit',
+        stkNumber: 'STK258 / GE8-12',
+        chassisNumber: 'GE8-12',
+        destinationPort: 'Colombo',
+        totalPriceCif: 3840,
+        paidAmount: 0,
+        dueAmount: 3840,
+        imageUrl: '/images/cars/car-silver.jpg',
+        etd: '28th Aug, 2026',
+        eta: '12th Sep, 2026',
+        currentLocation: 'Nagoya Port',
+        orderStatus: 'Quotation Expired',
+        documents: {
+          surrenderBl: false,
+          originalBl: false,
+          ecOriginal: true,
+          inspectionCertificate: false,
+        },
+      },
+    ],
   },
 ];
 
@@ -340,6 +493,8 @@ const MOCK_INVOICES: InvoiceRecord[] = [
         chassisNumber: 'GE8-12',
         destinationPort: 'Colombo',
         totalPriceCif: 5000,
+        paidAmount: 2000,
+        dueAmount: 3000,
         imageUrl: '/images/cars/car-silver.jpg',
         etd: '18th Sep, 2026',
         eta: '2nd Oct, 2026',
@@ -373,6 +528,8 @@ const MOCK_INVOICES: InvoiceRecord[] = [
         chassisNumber: 'GE8-1099735',
         destinationPort: 'Colombo',
         totalPriceCif: 4000,
+        paidAmount: 0,
+        dueAmount: 4000,
         imageUrl: '/images/cars/car-white.jpg',
         etd: '15th Sep, 2026',
         eta: '28th Sep, 2026',
@@ -406,6 +563,8 @@ const MOCK_INVOICES: InvoiceRecord[] = [
         chassisNumber: 'RU3-1204910',
         destinationPort: 'Mombasa',
         totalPriceCif: 3671,
+        paidAmount: 3671,
+        dueAmount: 0,
         imageUrl: '/images/cars/car-blue.jpg',
         etd: '10th Sep, 2026',
         eta: '24th Sep, 2026',
@@ -439,6 +598,8 @@ const MOCK_INVOICES: InvoiceRecord[] = [
         chassisNumber: 'TRJ150-0192834',
         destinationPort: 'Colombo',
         totalPriceCif: 9500,
+        paidAmount: 9500,
+        dueAmount: 0,
         imageUrl: '/images/cars/car-pearl.jpg',
         etd: '20th Aug, 2026',
         eta: '5th Sep, 2026',
@@ -460,6 +621,8 @@ const MOCK_INVOICES: InvoiceRecord[] = [
         chassisNumber: 'HNT32-092831',
         destinationPort: 'Colombo',
         totalPriceCif: 5000,
+        paidAmount: 5000,
+        dueAmount: 0,
         imageUrl: '/images/cars/car-green.jpg',
         etd: '20th Aug, 2026',
         eta: '5th Sep, 2026',
@@ -757,21 +920,25 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({
         fleetApiData?.items.find((v) => v.chassisNumber === chassis || v.stockNumber === chassis) ||
         MOCK_PURCHASED_VEHICLES.find((pv) => pv.chassisNumber === chassis || pv.id === chassis);
       if (match) {
-        setSelectedTrackingVehicle(
+        const baseMatch =
           (match as unknown as CustomerVehicleSummary) ||
-            ({
-              id: (match as any).id,
-              make: (match as any).make,
-              model: (match as any).model,
-              year: 2022,
-              chassisNumber: (match as any).chassisNumber,
-              status: (match as any).orderStatus,
-              totalAmountUsd: (match as any).totalPriceCif,
-              currency: 'USD',
-              locationStatus: (match as any).currentLocation,
-              destinationPort: (match as any).destinationPort,
-            } as unknown as CustomerVehicleSummary)
-        );
+          ({
+            id: (match as any).id,
+            make: (match as any).make,
+            model: (match as any).model,
+            year: 2022,
+            chassisNumber: (match as any).chassisNumber,
+            status: (match as any).orderStatus,
+            totalAmountUsd: (match as any).totalPriceCif,
+            currency: 'USD',
+            locationStatus: (match as any).currentLocation,
+            destinationPort: (match as any).destinationPort,
+          } as unknown as CustomerVehicleSummary);
+        setSelectedTrackingVehicle({
+          ...baseMatch,
+          etd: (match as any).etd,
+          eta: (match as any).eta,
+        } as unknown as CustomerVehicleSummary);
       } else {
         // Fallback for custom links or direct stock numbers
         setSelectedTrackingVehicle({
@@ -836,17 +1003,33 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({
     });
   }, [invoicePaymentFilter, invoiceSearch]);
 
-  // Filtered Purchased Vehicles
+  // Helper to parse date strings like "4th Sep,2026", "10th Aug, 2026", or ISO dates
+  const parseVehicleDate = (dateStr?: string): number => {
+    if (!dateStr) return 0;
+    const cleaned = dateStr.replace(/(\d+)(st|nd|rd|th)/gi, '$1').replace(',', ' ').trim();
+    const parsed = Date.parse(cleaned);
+    return isNaN(parsed) ? 0 : parsed;
+  };
+
+  // Filtered Purchased Vehicles (latest first)
   const filteredPurchasedVehicles = useMemo(() => {
-    return purchasedVehicles.filter((pv) => {
-      if (filterMake && !pv.make.toLowerCase().includes(filterMake.toLowerCase())) return false;
-      if (filterModel && !pv.model.toLowerCase().includes(filterModel.toLowerCase())) return false;
-      if (filterOrderStatus && !pv.orderStatus.toLowerCase().includes(filterOrderStatus.toLowerCase())) return false;
-      if (filterStkNum && !pv.stkNumber.toLowerCase().includes(filterStkNum.toLowerCase())) return false;
-      if (filterInvoiceNo && !pv.invoiceNumber.toLowerCase().includes(filterInvoiceNo.toLowerCase())) return false;
-      if (filterChassisNo && !pv.chassisNumber.toLowerCase().includes(filterChassisNo.toLowerCase())) return false;
-      return true;
-    });
+    return purchasedVehicles
+      .filter((pv) => {
+        if (filterMake && !pv.make.toLowerCase().includes(filterMake.toLowerCase())) return false;
+        if (filterModel && !pv.model.toLowerCase().includes(filterModel.toLowerCase())) return false;
+        if (filterOrderStatus && !pv.orderStatus.toLowerCase().includes(filterOrderStatus.toLowerCase())) return false;
+        if (filterStkNum && !pv.stkNumber.toLowerCase().includes(filterStkNum.toLowerCase())) return false;
+        if (filterInvoiceNo && !pv.invoiceNumber.toLowerCase().includes(filterInvoiceNo.toLowerCase())) return false;
+        if (filterChassisNo && !pv.chassisNumber.toLowerCase().includes(filterChassisNo.toLowerCase())) return false;
+        return true;
+      })
+      .slice()
+      .sort((a, b) => {
+        const timeA = parseVehicleDate(a.invoiceDate) || parseVehicleDate(a.etd) || parseVehicleDate(a.eta);
+        const timeB = parseVehicleDate(b.invoiceDate) || parseVehicleDate(b.etd) || parseVehicleDate(b.eta);
+        if (timeB !== timeA) return timeB - timeA;
+        return (b.invoiceNumber || '').localeCompare(a.invoiceNumber || '');
+      });
   }, [purchasedVehicles, filterMake, filterModel, filterOrderStatus, filterStkNum, filterInvoiceNo, filterChassisNo]);
 
   // Filtered Reserved Vehicles
@@ -875,6 +1058,79 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({
     setExpandedInvoices((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
+  const getVehiclesForProforma = (pf: ProformaRecord): InvoiceVehicleItem[] => {
+    if (pf.vehicles && pf.vehicles.length > 0) {
+      return pf.vehicles;
+    }
+    const matchedReserved = MOCK_RESERVED_VEHICLES.find(
+      (rv: ReservedVehicleRecord) =>
+        (rv.stockNumber && rv.stockNumber.toLowerCase().includes(pf.proformaNumber.replace(/\D/g, ''))) ||
+        (rv.chassisNumber && rv.chassisNumber.toLowerCase().includes(pf.proformaNumber.replace(/\D/g, '')))
+    );
+    if (matchedReserved) {
+      return [
+        {
+          id: `veh-${pf.id}`,
+          title: matchedReserved.title,
+          make: matchedReserved.make,
+          model: matchedReserved.model,
+          stkNumber: matchedReserved.stockNumber,
+          chassisNumber: matchedReserved.chassisNumber,
+          destinationPort: 'Colombo',
+          totalPriceCif: pf.totalAmountUsd,
+          paidAmount: 0,
+          dueAmount: pf.totalAmountUsd,
+          imageUrl: matchedReserved.imageUrl,
+          etd: '18th Sep, 2026',
+          eta: '2nd Oct, 2026',
+          currentLocation: 'In Japan Yard',
+          orderStatus:
+            pf.status === 'ACTIVE'
+              ? 'Hold Active'
+              : pf.status === 'SWITCHED'
+              ? 'Invoice Issued'
+              : 'Quotation Expired',
+          documents: {
+            surrenderBl: false,
+            originalBl: false,
+            ecOriginal: true,
+            inspectionCertificate: false,
+          },
+        },
+      ];
+    }
+    return [
+      {
+        id: `veh-${pf.id}`,
+        title: `${pf.shipper} Vehicle (${pf.proformaNumber})`,
+        make: 'Toyota',
+        model: 'Prius Alpha',
+        stkNumber: `STK-${pf.proformaNumber}`,
+        chassisNumber: `ZVW41-${pf.proformaNumber.replace(/\D/g, '')}`,
+        destinationPort: 'Colombo',
+        totalPriceCif: pf.totalAmountUsd,
+        paidAmount: 0,
+        dueAmount: pf.totalAmountUsd,
+        imageUrl: '/images/cars/car-white.jpg',
+        etd: '18th Sep, 2026',
+        eta: '2nd Oct, 2026',
+        currentLocation: 'In Japan Yard',
+        orderStatus:
+          pf.status === 'ACTIVE'
+            ? 'Hold Active'
+            : pf.status === 'SWITCHED'
+            ? 'Invoice Issued'
+            : 'Quotation Expired',
+        documents: {
+          surrenderBl: false,
+          originalBl: false,
+          ecOriginal: true,
+          inspectionCertificate: false,
+        },
+      },
+    ];
+  };
+
   const getVehiclesForInvoice = (inv: InvoiceRecord): InvoiceVehicleItem[] => {
     if (inv.vehicles && inv.vehicles.length > 0) {
       return inv.vehicles;
@@ -890,6 +1146,8 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({
       chassisNumber: pv.chassisNumber,
       destinationPort: pv.destinationPort,
       totalPriceCif: pv.totalPriceCif,
+      paidAmount: pv.paidAmount,
+      dueAmount: pv.dueAmount,
       imageUrl: pv.imageUrl,
       etd: pv.etd,
       eta: pv.eta,
@@ -913,6 +1171,8 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({
         chassisNumber: `ZVW41-${inv.invoiceNumber.replace(/\D/g, '')}`,
         destinationPort: 'Colombo',
         totalPriceCif: inv.totalAmountUsd,
+        paidAmount: inv.paidAmountUsd,
+        dueAmount: inv.dueAmountUsd,
         imageUrl: '/images/cars/car-white.jpg',
         etd: '18th Sep, 2026',
         eta: '2nd Oct, 2026',
@@ -1374,19 +1634,57 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({
 
           {ordersTab === 'purchasedVehicles' && (
             <div className={`cc-pv-filter-container ${isPvFilterExpanded ? 'cc-pv-filter-container--expanded' : 'cc-pv-filter-container--minimized'}`}>
-              <div className="cc-pv-filter-header">
-                <div className="cc-pv-filter-title">
-                  <span>Filter Purchased Vehicles</span>
-                  {[filterMake, filterModel, filterOrderStatus, filterStkNum, filterInvoiceNo, filterChassisNo].filter(Boolean).length > 0 && (
-                    <span className="cc-pv-active-count-badge">
-                      {[filterMake, filterModel, filterOrderStatus, filterStkNum, filterInvoiceNo, filterChassisNo].filter(Boolean).length} Active Filter{[filterMake, filterModel, filterOrderStatus, filterStkNum, filterInvoiceNo, filterChassisNo].filter(Boolean).length > 1 ? 's' : ''}
-                    </span>
-                  )}
+              <div className="cc-orders-filter-row cc-pv-orders-filter-row">
+                <div className="cc-orders-filter-field">
+                  <span className="cc-orders-filter-label">Order Status:</span>
+                  <div className="cc-orders-radios">
+                    <label className="cc-orders-radio-item">
+                      <input
+                        type="radio"
+                        name="pv-order-status-filter"
+                        value=""
+                        checked={filterOrderStatus === ''}
+                        onChange={() => setFilterOrderStatus('')}
+                      />
+                      All Statuses
+                    </label>
+                    <label className="cc-orders-radio-item">
+                      <input
+                        type="radio"
+                        name="pv-order-status-filter"
+                        value="Confirmed"
+                        checked={filterOrderStatus === 'Confirmed'}
+                        onChange={() => setFilterOrderStatus('Confirmed')}
+                      />
+                      Confirmed
+                    </label>
+                    <label className="cc-orders-radio-item">
+                      <input
+                        type="radio"
+                        name="pv-order-status-filter"
+                        value="In Transit"
+                        checked={filterOrderStatus === 'In Transit'}
+                        onChange={() => setFilterOrderStatus('In Transit')}
+                      />
+                      In Transit
+                    </label>
+                    <label className="cc-orders-radio-item">
+                      <input
+                        type="radio"
+                        name="pv-order-status-filter"
+                        value="Delivered"
+                        checked={filterOrderStatus === 'Delivered'}
+                        onChange={() => setFilterOrderStatus('Delivered')}
+                      />
+                      Delivered
+                    </label>
+                  </div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
+
+                <div className="cc-orders-filter-actions" style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
                   {[filterMake, filterModel, filterOrderStatus, filterStkNum, filterInvoiceNo, filterChassisNo].filter(Boolean).length > 0 && (
                     <button type="button" className="cc-orders-btn cc-orders-btn--clear" onClick={clearPurchasedVehicleFilters}>
-                      Clear All Filters
+                      Clear
                     </button>
                   )}
                   <button
@@ -1394,9 +1692,14 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({
                     className="cc-pv-filter-toggle-btn"
                     onClick={() => setIsPvFilterExpanded(!isPvFilterExpanded)}
                     aria-expanded={isPvFilterExpanded}
-                    title={isPvFilterExpanded ? 'Minimize filters' : 'Maximize filters'}
+                    title={isPvFilterExpanded ? 'Hide more filters' : 'More filters'}
                   >
-                    <span>{isPvFilterExpanded ? 'Minimize' : 'Search / Filter'}</span>
+                    <span>{isPvFilterExpanded ? 'Hide Filters' : 'More Filters'}</span>
+                    {[filterMake, filterModel, filterStkNum, filterInvoiceNo, filterChassisNo].filter(Boolean).length > 0 && (
+                      <span className="cc-pv-active-count-badge" style={{ marginLeft: 4 }}>
+                        {[filterMake, filterModel, filterStkNum, filterInvoiceNo, filterChassisNo].filter(Boolean).length}
+                      </span>
+                    )}
                     <svg
                       width="12"
                       height="12"
@@ -1451,16 +1754,6 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({
                       value={filterChassisNo}
                       onChange={(e) => setFilterChassisNo(e.target.value)}
                     />
-                  </div>
-
-                  <div className="cc-pv-filter-item">
-                    <label htmlFor="pv-status" className="cc-orders-filter-label">Order Status</label>
-                    <select id="pv-status" className="cc-orders-select" value={filterOrderStatus} onChange={(e) => setFilterOrderStatus(e.target.value)}>
-                      <option value="">All Statuses</option>
-                      <option value="Confirmed">Confirmed</option>
-                      <option value="In Transit">In Transit</option>
-                      <option value="Delivered">Delivered</option>
-                    </select>
                   </div>
 
                   <div className="cc-pv-filter-item">
@@ -1640,6 +1933,9 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({
               <div className="cc-orders-empty">No proforma invoices found.</div>
             ) : (
               filteredProformas.map((item) => {
+                const proformaVehicles = getVehiclesForProforma(item);
+                const isExpanded = !!expandedProformas[item.id];
+
                 const openProformaModal = () =>
                   setDocModalData({
                     type: 'proforma',
@@ -1712,14 +2008,17 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({
                               <span className="cc-proforma-stat-lbl">Terms</span>
                               <span className="cc-proforma-stat-val">Bank Wire (TT)</span>
                             </div>
+                            {item.status === 'ACTIVE' && (
+                              <div className="cc-proforma-stat-item cc-proforma-stat-item--timer">
+                                <span className="cc-proforma-stat-lbl">Expires In</span>
+                                <ReservationCountdownClock targetTimestamp={item.expiresAtTimestamp || Date.now() + (35 * 3600 + 42 * 60 + 10) * 1000} />
+                              </div>
+                            )}
                           </div>
 
                           <div className="cc-proforma-status-guide">
                             {item.status === 'ACTIVE' && (
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                                <ReservationCountdownClock targetTimestamp={item.expiresAtTimestamp || Date.now() + (35 * 3600 + 42 * 60 + 10) * 1000} />
-                                <span>Hold Active • Pay deposit to issue Commercial Invoice</span>
-                              </div>
+                              <span>Hold Active • Pay deposit to issue Commercial Invoice</span>
                             )}
                             {item.status === 'SWITCHED' && (
                               <span>✅ Converted to Commercial Invoice: <strong>{item.switchedToInvoice}</strong></span>
@@ -1732,7 +2031,7 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({
                       </div>
 
                       {/* Column 3: Amount & Action Button */}
-                      <div className="cc-proforma-col cc-proforma-col--action">
+                      <div className="cc-proforma-col cc-proforma-col--action cc-invoice-col--action">
                         <div className="cc-proforma-amount-stack">
                           <span className="cc-orders-amount-label">Total Amount</span>
                           <span className="cc-orders-amount-value">
@@ -1741,7 +2040,7 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({
                         </div>
                         <button
                           type="button"
-                          className="cc-orders-doc-popup-btn"
+                          className="cc-orders-doc-popup-btn cc-invoice-action-btn"
                           onClick={(e) => {
                             e.stopPropagation();
                             openProformaModal();
@@ -1749,8 +2048,138 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({
                         >
                           📄 Proforma
                         </button>
+
+                        <button
+                          type="button"
+                          className={`cc-invoice-dropdown-btn ${isExpanded ? 'cc-invoice-dropdown-btn--open' : ''}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleProformaExpand(item.id);
+                          }}
+                          aria-expanded={isExpanded}
+                          title={isExpanded ? 'Hide vehicles' : 'Show vehicles in proforma'}
+                        >
+                          <svg
+                            className="cc-invoice-vector-car"
+                            width="15"
+                            height="15"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            aria-hidden="true"
+                          >
+                            <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9C2.1 11.1 2 11.5 2 12v4c0 .6.4 1 1 1h2" />
+                            <circle cx="7" cy="17" r="2" />
+                            <path d="M9 17h6" />
+                            <circle cx="17" cy="17" r="2" />
+                          </svg>
+                          <span>Show vehicles</span>
+                          <span className="cc-invoice-vehicle-count-badge">{proformaVehicles.length}</span>
+                          <span className="cc-invoice-dropdown-chevron">{isExpanded ? '▲' : '▼'}</span>
+                        </button>
                       </div>
                     </div>
+
+                    {/* Collapsible Dropdown: Vehicles Inside Proforma Invoice */}
+                    {isExpanded && (
+                      <div
+                        className="cc-invoice-vehicles-dropdown"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <div className="cc-invoice-vehicles-header">
+                          <div className="cc-invoice-vehicles-title">
+                            <svg
+                              className="cc-invoice-vector-car cc-invoice-vector-car--header"
+                              width="18"
+                              height="18"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              aria-hidden="true"
+                            >
+                              <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9C2.1 11.1 2 11.5 2 12v4c0 .6.4 1 1 1h2" />
+                              <circle cx="7" cy="17" r="2" />
+                              <path d="M9 17h6" />
+                              <circle cx="17" cy="17" r="2" />
+                            </svg>
+                            <span>Vehicles Attached to Proforma ({proformaVehicles.length})</span>
+                          </div>
+                          <span className="cc-invoice-vehicles-sub">
+                            Quotation specifications &amp; reservation status
+                          </span>
+                        </div>
+
+                        <div className="cc-invoice-vehicles-list">
+                          {proformaVehicles.map((veh) => {
+                            const vehiclePrice = veh.totalPriceCif;
+
+                            return (
+                              <div key={veh.id} className="cc-invoice-vehicle-card">
+                                {/* Vehicle Thumbnail */}
+                                <div className="cc-invoice-vehicle-thumb-wrap">
+                                  <img
+                                    src={veh.imageUrl}
+                                    alt={veh.title}
+                                    className="cc-invoice-vehicle-thumb"
+                                    loading="lazy"
+                                  />
+                                </div>
+
+                                {/* Vehicle Body Details */}
+                                <div className="cc-invoice-vehicle-body">
+                                  <div className="cc-invoice-vehicle-title-line">
+                                    <h4 className="cc-invoice-vehicle-title">{veh.title}</h4>
+                                  </div>
+
+                                  {/* Vehicle Price Only */}
+                                  <div className="cc-invoice-vehicle-financials cc-invoice-vehicle-financials--price-only" aria-label="Vehicle price">
+                                    <div className="cc-invoice-vehicle-fin-item cc-invoice-vehicle-fin-item--sold">
+                                      <span className="cc-invoice-vehicle-fin-label">Price:</span>
+                                      <strong className="cc-invoice-vehicle-fin-val">
+                                        ${vehiclePrice.toLocaleString()} USD
+                                      </strong>
+                                    </div>
+                                  </div>
+
+                                  <div className="cc-invoice-vehicle-meta-tags">
+                                    <span className="cc-invoice-vehicle-meta-tag">
+                                      Chassis: <strong>{veh.chassisNumber}</strong>
+                                    </span>
+                                    {veh.stkNumber && (
+                                      <span className="cc-invoice-vehicle-meta-tag">
+                                        STK: <strong>{veh.stkNumber}</strong>
+                                      </span>
+                                    )}
+                                    <span className="cc-invoice-vehicle-meta-tag">
+                                      Port: <strong>{veh.destinationPort}</strong>
+                                    </span>
+                                    <span className="cc-invoice-vehicle-meta-tag">
+                                      Incoterm: <strong>{item.incoterm}</strong>
+                                    </span>
+                                    {veh.currentLocation && (
+                                      <span className="cc-invoice-vehicle-meta-tag">
+                                        Location: <strong>{veh.currentLocation}</strong>
+                                      </span>
+                                    )}
+                                    {veh.etd && (
+                                      <span className="cc-invoice-vehicle-meta-tag">
+                                        ETD: <strong>{veh.etd}</strong>
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 );
               })
@@ -1810,34 +2239,6 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({
                       <div className="cc-invoice-col cc-invoice-col--id">
                         <div className="cc-invoice-card__id-line">
                           <span className="cc-invoice-card__number">{item.invoiceNumber}</span>
-                          <span className="cc-invoice-icon-badge" title="Commercial Document">
-                            📄
-                          </span>
-                          <span className="cc-invoice-icon-badge" title="Email Notification">
-                            ✉️
-                          </span>
-                          <span
-                            className="cc-invoice-icon-badge cc-invoice-icon-badge--car"
-                            title={`Invoice includes ${invoiceVehicles.length} vehicle(s)`}
-                          >
-                            <svg
-                              className="cc-invoice-vector-car"
-                              width="14"
-                              height="14"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              aria-hidden="true"
-                            >
-                              <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9C2.1 11.1 2 11.5 2 12v4c0 .6.4 1 1 1h2" />
-                              <circle cx="7" cy="17" r="2" />
-                              <path d="M9 17h6" />
-                              <circle cx="17" cy="17" r="2" />
-                            </svg>
-                          </span>
                           <span
                             className={`cc-invoice-status-pill ${
                               item.dueAmountUsd > 0
@@ -1925,7 +2326,7 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({
                             toggleInvoiceExpand(item.id);
                           }}
                           aria-expanded={isExpanded}
-                          title={isExpanded ? 'Hide vehicles' : 'See vehicles in invoice'}
+                          title={isExpanded ? 'Hide vehicles' : 'Show vehicles in invoice'}
                         >
                           <svg
                             className="cc-invoice-vector-car"
@@ -1944,7 +2345,7 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({
                             <path d="M9 17h6" />
                             <circle cx="17" cy="17" r="2" />
                           </svg>
-                          <span>See vehicles</span>
+                          <span>Show vehicles</span>
                           <span className="cc-invoice-vehicle-count-badge">{invoiceVehicles.length}</span>
                           <span className="cc-invoice-dropdown-chevron">{isExpanded ? '▲' : '▼'}</span>
                         </button>
@@ -1984,28 +2385,58 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({
                         </div>
 
                         <div className="cc-invoice-vehicles-list">
-                          {invoiceVehicles.map((veh) => (
-                            <div key={veh.id} className="cc-invoice-vehicle-card">
-                              {/* Vehicle Thumbnail */}
-                              <div className="cc-invoice-vehicle-thumb-wrap">
-                                <img
-                                  src={veh.imageUrl}
-                                  alt={veh.title}
-                                  className="cc-invoice-vehicle-thumb"
-                                  loading="lazy"
-                                />
-                              </div>
+                          {invoiceVehicles.map((veh) => {
+                            const soldPrice = veh.totalPriceCif;
+                            const allocatedAmount =
+                              veh.paidAmount !== undefined
+                                ? veh.paidAmount
+                                : invoiceVehicles.length === 1
+                                ? item.paidAmountUsd
+                                : 0;
+                            const pendingAmount =
+                              veh.dueAmount !== undefined
+                                ? veh.dueAmount
+                                : Math.max(0, soldPrice - allocatedAmount);
 
-                              {/* Vehicle Body Details & Documents */}
-                              <div className="cc-invoice-vehicle-body">
-                                <div className="cc-invoice-vehicle-title-line">
-                                  <h4 className="cc-invoice-vehicle-title">{veh.title}</h4>
-                                  {veh.totalPriceCif > 0 && (
-                                    <span className="cc-invoice-vehicle-price">
-                                      ${veh.totalPriceCif.toLocaleString()} CIF
-                                    </span>
-                                  )}
+                            return (
+                              <div key={veh.id} className="cc-invoice-vehicle-card">
+                                {/* Vehicle Thumbnail */}
+                                <div className="cc-invoice-vehicle-thumb-wrap">
+                                  <img
+                                    src={veh.imageUrl}
+                                    alt={veh.title}
+                                    className="cc-invoice-vehicle-thumb"
+                                    loading="lazy"
+                                  />
                                 </div>
+
+                                {/* Vehicle Body Details & Documents */}
+                                <div className="cc-invoice-vehicle-body">
+                                  <div className="cc-invoice-vehicle-title-line">
+                                    <h4 className="cc-invoice-vehicle-title">{veh.title}</h4>
+                                  </div>
+
+                                  {/* Financial Breakdown: Sold Price, Allocated, Pending */}
+                                  <div className="cc-invoice-vehicle-financials" aria-label="Vehicle payment breakdown">
+                                    <div className="cc-invoice-vehicle-fin-item cc-invoice-vehicle-fin-item--sold">
+                                      <span className="cc-invoice-vehicle-fin-label">Sold Price:</span>
+                                      <strong className="cc-invoice-vehicle-fin-val">
+                                        ${soldPrice.toLocaleString()} USD
+                                      </strong>
+                                    </div>
+                                    <div className="cc-invoice-vehicle-fin-item cc-invoice-vehicle-fin-item--allocated">
+                                      <span className="cc-invoice-vehicle-fin-label">Allocated:</span>
+                                      <strong className="cc-invoice-vehicle-fin-val">
+                                        ${allocatedAmount.toLocaleString()} USD
+                                      </strong>
+                                    </div>
+                                    <div className="cc-invoice-vehicle-fin-item cc-invoice-vehicle-fin-item--pending">
+                                      <span className="cc-invoice-vehicle-fin-label">Pending:</span>
+                                      <strong className={`cc-invoice-vehicle-fin-val ${pendingAmount > 0 ? 'cc-invoice-vehicle-fin-val--pending' : 'cc-invoice-vehicle-fin-val--settled'}`}>
+                                        ${pendingAmount.toLocaleString()} USD
+                                      </strong>
+                                    </div>
+                                  </div>
 
                                 <div className="cc-invoice-vehicle-meta-tags">
                                   <span className="cc-invoice-vehicle-meta-tag">
@@ -2107,7 +2538,8 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({
                                 </div>
                               </div>
                             </div>
-                          ))}
+                          );
+                        })}
                         </div>
                       </div>
                     )}
@@ -2228,17 +2660,17 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({
 
                         <div className="cc-pv-detail-col">
                           <div className="cc-pv-detail-row">
-                            <span className="cc-pv-label">Total Price (CIF)</span>
-                            <span className="cc-pv-value">{pv.totalPriceCif.toLocaleString()} USD</span>
+                            <span className="cc-pv-label">Sold Price</span>
+                            <span className="cc-pv-value">${pv.totalPriceCif.toLocaleString()} USD</span>
                           </div>
                           <div className="cc-pv-detail-row">
-                            <span className="cc-pv-label">Paid Amount</span>
-                            <span className="cc-pv-value">{pv.paidAmount.toLocaleString()} USD</span>
+                            <span className="cc-pv-label">Allocated</span>
+                            <span className="cc-pv-value cc-amount-allocated-green">${pv.paidAmount.toLocaleString()} USD</span>
                           </div>
                           <div className="cc-pv-detail-row">
-                            <span className="cc-pv-label">Due Amount</span>
+                            <span className="cc-pv-label">Pending</span>
                             <span className={`cc-pv-value ${pv.dueAmount > 0 ? 'cc-amount-due-red' : 'cc-amount-due-green'}`}>
-                              {pv.dueAmount.toLocaleString()} USD
+                              ${pv.dueAmount.toLocaleString()} USD
                             </span>
                           </div>
                           <div className="cc-pv-detail-row cc-pv-location-row">
@@ -2352,21 +2784,23 @@ export const CustomerFleetPage: React.FC<CustomerFleetPageProps> = ({
                             const summaryMatch = fleetApiData?.items.find(
                               (v) => v.make === pv.make || v.id === pv.id
                             );
-                            setSelectedTrackingVehicle(
-                              summaryMatch ||
-                                ({
-                                  id: pv.id,
-                                  make: pv.make,
-                                  model: pv.model,
-                                  year: 2022,
-                                  chassisNumber: pv.chassisNumber,
-                                  status: pv.orderStatus,
-                                  totalAmountUsd: pv.totalPriceCif,
-                                  currency: 'USD',
-                                  locationStatus: pv.currentLocation,
-                                  destinationPort: pv.destinationPort,
-                                } as unknown as CustomerVehicleSummary)
-                            );
+                            const base = summaryMatch || ({
+                              id: pv.id,
+                              make: pv.make,
+                              model: pv.model,
+                              year: 2022,
+                              chassisNumber: pv.chassisNumber,
+                              status: pv.orderStatus,
+                              totalAmountUsd: pv.totalPriceCif,
+                              currency: 'USD',
+                              locationStatus: pv.currentLocation,
+                              destinationPort: pv.destinationPort,
+                            } as unknown as CustomerVehicleSummary);
+                            setSelectedTrackingVehicle({
+                              ...base,
+                              etd: pv.etd,
+                              eta: pv.eta,
+                            } as unknown as CustomerVehicleSummary);
                           }}
                         >
                           <svg

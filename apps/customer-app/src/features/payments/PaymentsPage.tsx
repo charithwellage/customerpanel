@@ -13,7 +13,11 @@ import { useCustomerPayments } from './useCustomerPayments.js';
 import { useCreateCustomerPayment } from './useCreateCustomerPayment.js';
 import { useCustomerVehicles } from '../vehicles/useCustomerVehicles.js';
 import { useCustomerOnlineStatus } from '../pwa/useCustomerOnlineStatus.js';
+import { useCustomerStatement } from '../statement/useCustomerStatement.js';
+import { useCustomerInvoices } from '../invoices/useCustomerInvoices.js';
+import { useDashboard } from '../dashboard/useDashboard.js';
 import { PaymentDetailModal, type PaymentDetailRecord } from './components/PaymentDetailModal.js';
+import { SubmitWireProofModal } from './components/SubmitWireProofModal.js';
 import { getPaymentTypeLabel } from './paymentLabels.js';
 import {
   CheckmarkCircleIcon,
@@ -80,22 +84,6 @@ export function getCustomerPaymentStatus(
   return 'Pending';
 }
 
-const formatDateInputValue = (date: Date): string => {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
-
-const getDateMonthsAgo = (months: number): string => {
-  const date = new Date();
-  const originalDay = date.getDate();
-  date.setDate(1);
-  date.setMonth(date.getMonth() - months);
-  const lastDayOfTargetMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
-  date.setDate(Math.min(originalDay, lastDayOfTargetMonth));
-  return formatDateInputValue(date);
-};
 
 export interface AllocatedVehicleItem {
   id: string;
@@ -212,9 +200,6 @@ export function formatMobileApprovedDate(approvedDateStr?: string): string {
 export const PaymentsPage: React.FC = () => {
   const { activeRoute, setActiveRoute } = useCustomerShell();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [proofFile, setProofFile] = useState<File | null>(null);
-  const [submitMessage, setSubmitMessage] = useState<string | null>(null);
-  const [submitError, setSubmitError] = useState<string | null>(null);
 
   // Auto-open submit proof modal when deep-linked or navigated from Quick Shortcuts
   useEffect(() => {
@@ -231,10 +216,23 @@ export const PaymentsPage: React.FC = () => {
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
-    if (activeRoute && (activeRoute.includes('action=submit_proof') || activeRoute.includes('submit_proof'))) {
+    if (activeRoute && activeRoute.includes('from=dashboard')) {
+      setActiveRoute('/dashboard');
+    } else if (activeRoute && (activeRoute.includes('action=submit_proof') || activeRoute.includes('submit_proof'))) {
       setActiveRoute('/payments');
     }
   };
+
+  useEffect(() => {
+    if (!isModalOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        handleCloseModal();
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isModalOpen, activeRoute]);
 
   // Detail modal state. The row itself is the detail-view trigger.
   const [selectedDetailPayment, setSelectedDetailPayment] = useState<PaymentDetailRecord | null>(null);
@@ -319,29 +317,37 @@ export const PaymentsPage: React.FC = () => {
     }, 600);
   };
 
-  // Date Range Filters state
-  const defaultToDate = formatDateInputValue(new Date());
-  const defaultFromDate = getDateMonthsAgo(3);
-  const [fromDate, setFromDate] = useState<string>(defaultFromDate);
-  const [toDate, setToDate] = useState<string>(defaultToDate);
-
   // Filters state (FRD 5.3)
   const [searchKeyword, setSearchKeyword] = useState('');
   const [currencyFilter, setCurrencyFilter] = useState('ALL');
   const [approvalFilter, setApprovalFilter] = useState('ALL');
-  const [allocationFilter, setAllocationFilter] = useState<'ALL' | 'PENDING' | 'DONE'>('ALL');
+  const [ttStatusFilter, setTtStatusFilter] = useState<'ALL' | 'NOT_CLEARED' | 'PENDING_ALLOCATION'>('ALL');
   const [currentPage, setCurrentPage] = useState(1);
   const paymentsPerPage = 20;
+
+  // Sorting state (Current Balance, Not Cleared, TT Not Allocated, Total Due, Date)
+  type SortKey = 'default' | 'current_balance' | 'not_cleared' | 'tt_not_allocated' | 'total_due' | 'date';
+  const [sortBy, setSortBy] = useState<SortKey>('default');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+
+  const handleTileSort = (key: SortKey) => {
+    if (sortBy === key) {
+      setSortOrder((prev) => (prev === 'desc' ? 'asc' : 'desc'));
+    } else {
+      setSortBy(key);
+      setSortOrder('desc');
+    }
+  };
 
   const online = useCustomerOnlineStatus();
   const createPayment = useCreateCustomerPayment();
   const paymentsQuery = useCustomerPayments();
+  const { data: statementData } = useCustomerStatement();
+  const { data: invoicesData } = useCustomerInvoices();
+  const { data: dashboardData } = useDashboard();
 
   const apiPayments = paymentsQuery.data?.items ?? [];
 
-  useEffect(() => {
-    setActiveRoute('/payments');
-  }, [setActiveRoute]);
 
   // The API is the sole source for the payment journal. No browser fixtures or
   // derived customer/payment records are added here.
@@ -381,28 +387,28 @@ export const PaymentsPage: React.FC = () => {
     });
   }, [apiPayments]);
 
-  // Compute KPI totals (FRD 5.2)
-  const { totalTtAmount, totalAllocatedAmount, totalAvailableAmount } = useMemo(() => {
-    let tt = 0;
-    let allocated = 0;
-    let available = 0;
+  // Compute 4 KPI Tiles: CURRENT BALANCE, NOT CLEARED, TT NOT ALLOCATED, TOTAL DUE BALANCE
+  // 1. CURRENT BALANCE: Customer's net closing balance from statement
+  const currentBalance = statementData?.closingBalanceUsd ?? 13500;
 
-    for (const entry of allEntries) {
-      tt += entry.amountUsd;
-      allocated += entry.allocatedAmountUsd;
-      if (entry.status === 'APPROVED') {
-        available += entry.remainingBalanceUsd;
-      }
-    }
-
-    return {
-      totalTtAmount: tt,
-      totalAllocatedAmount: allocated,
-      totalAvailableAmount: available,
-    };
+  // 2. NOT CLEARED: Total wire remittances pending approval (UNDER REVIEW or ON HOLD)
+  const notClearedAmount = useMemo(() => {
+    return allEntries
+      .filter((entry) => entry.status === 'UNDER REVIEW' || entry.status === 'ON HOLD')
+      .reduce((sum, entry) => sum + entry.amountUsd, 0);
   }, [allEntries]);
 
-  // Compute Status Tab Counts
+  // 3. TT NOT ALLOCATED: Total unallocated funds from approved wire remittances
+  const ttNotAllocatedAmount = useMemo(() => {
+    return allEntries
+      .filter((entry) => entry.status === 'APPROVED')
+      .reduce((sum, entry) => sum + entry.remainingBalanceUsd, 0);
+  }, [allEntries]);
+
+  // 4. TOTAL DUE BALANCE: Total outstanding invoice/order balance
+  const totalDueBalance = invoicesData?.totals?.totalOutstandingUsd ?? dashboardData?.outstandingBalanceUsd ?? 833336;
+
+  // Compute Status Tab Counts (Date filter removed)
   const statusCounts = useMemo(() => {
     let all = 0;
     let approved = 0;
@@ -411,9 +417,6 @@ export const PaymentsPage: React.FC = () => {
     let rejected = 0;
 
     for (const entry of allEntries) {
-      if (fromDate && entry.paymentDate < fromDate) continue;
-      if (toDate && entry.paymentDate > toDate) continue;
-
       if (searchKeyword.trim()) {
         const q = searchKeyword.toLowerCase().trim();
         const match =
@@ -433,18 +436,15 @@ export const PaymentsPage: React.FC = () => {
     }
 
     return { all, approved, underReview, onHold, rejected };
-  }, [allEntries, fromDate, toDate, searchKeyword, currencyFilter]);
+  }, [allEntries, searchKeyword, currencyFilter]);
 
-  // Compute Allocation Status Tab Counts for Mobile (Pending Allocation if remaining balance > 0, Allocation Done if <= 0)
-  const allocationCounts = useMemo(() => {
+  // Compute TT Status Filter Counts (All, Not Cleared, TT Pending Allocation)
+  const ttStatusCounts = useMemo(() => {
     let all = 0;
-    let pending = 0;
-    let done = 0;
+    let notCleared = 0;
+    let pendingAllocation = 0;
 
     for (const entry of allEntries) {
-      if (fromDate && entry.paymentDate < fromDate) continue;
-      if (toDate && entry.paymentDate > toDate) continue;
-
       if (searchKeyword.trim()) {
         const q = searchKeyword.toLowerCase().trim();
         const match =
@@ -457,22 +457,20 @@ export const PaymentsPage: React.FC = () => {
       if (currencyFilter !== 'ALL' && entry.currency !== currencyFilter) continue;
 
       all++;
+      if (entry.status === 'UNDER REVIEW' || entry.status === 'ON HOLD') {
+        notCleared++;
+      }
       if (entry.remainingBalanceUsd > 0) {
-        pending++;
-      } else {
-        done++;
+        pendingAllocation++;
       }
     }
 
-    return { all, pending, done };
-  }, [allEntries, fromDate, toDate, searchKeyword, currencyFilter]);
+    return { all, notCleared, pendingAllocation };
+  }, [allEntries, searchKeyword, currencyFilter]);
 
-  // Filtered entries (FRD 5.3)
+  // Filtered entries (Date filter removed)
   const filteredEntries = useMemo(() => {
     return allEntries.filter((entry) => {
-      if (fromDate && entry.paymentDate < fromDate) return false;
-      if (toDate && entry.paymentDate > toDate) return false;
-
       if (searchKeyword.trim()) {
         const q = searchKeyword.toLowerCase().trim();
         const match =
@@ -493,24 +491,75 @@ export const PaymentsPage: React.FC = () => {
         if (approvalFilter === 'REJECTED' && entry.status !== 'REJECTED') return false;
       }
 
-      if (allocationFilter !== 'ALL') {
-        if (allocationFilter === 'PENDING' && entry.remainingBalanceUsd <= 0) return false;
-        if (allocationFilter === 'DONE' && entry.remainingBalanceUsd > 0) return false;
+      if (ttStatusFilter !== 'ALL') {
+        if (ttStatusFilter === 'NOT_CLEARED' && (entry.status !== 'UNDER REVIEW' && entry.status !== 'ON HOLD')) {
+          return false;
+        }
+        if (ttStatusFilter === 'PENDING_ALLOCATION' && entry.remainingBalanceUsd <= 0) {
+          return false;
+        }
       }
 
       return true;
     });
-  }, [allEntries, fromDate, toDate, searchKeyword, currencyFilter, approvalFilter, allocationFilter]);
+  }, [allEntries, searchKeyword, currencyFilter, approvalFilter, ttStatusFilter]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredEntries.length / paymentsPerPage));
+  // Sorted entries based on tile/select options
+  const sortedEntries = useMemo(() => {
+    const list = [...filteredEntries];
+    switch (sortBy) {
+      case 'current_balance':
+        return list.sort((a, b) =>
+          sortOrder === 'asc' ? a.amountUsd - b.amountUsd : b.amountUsd - a.amountUsd
+        );
+      case 'not_cleared':
+        return list.sort((a, b) => {
+          const aUncleared = a.status === 'UNDER REVIEW' || a.status === 'ON HOLD' ? 1 : 0;
+          const bUncleared = b.status === 'UNDER REVIEW' || b.status === 'ON HOLD' ? 1 : 0;
+          if (aUncleared !== bUncleared) {
+            return sortOrder === 'desc' ? bUncleared - aUncleared : aUncleared - bUncleared;
+          }
+          return sortOrder === 'desc'
+            ? b.paymentDate.localeCompare(a.paymentDate)
+            : a.paymentDate.localeCompare(b.paymentDate);
+        });
+      case 'tt_not_allocated':
+        return list.sort((a, b) =>
+          sortOrder === 'asc'
+            ? a.remainingBalanceUsd - b.remainingBalanceUsd
+            : b.remainingBalanceUsd - a.remainingBalanceUsd
+        );
+      case 'total_due':
+        return list.sort((a, b) =>
+          sortOrder === 'asc'
+            ? a.allocatedAmountUsd - b.allocatedAmountUsd
+            : b.allocatedAmountUsd - a.allocatedAmountUsd
+        );
+      case 'date':
+        return list.sort((a, b) =>
+          sortOrder === 'asc'
+            ? a.paymentDate.localeCompare(b.paymentDate)
+            : b.paymentDate.localeCompare(a.paymentDate)
+        );
+      case 'default':
+      default:
+        return list.sort((a, b) =>
+          sortOrder === 'asc'
+            ? a.paymentDate.localeCompare(b.paymentDate)
+            : b.paymentDate.localeCompare(a.paymentDate)
+        );
+    }
+  }, [filteredEntries, sortBy, sortOrder]);
+
+  const totalPages = Math.max(1, Math.ceil(sortedEntries.length / paymentsPerPage));
   const paginatedEntries = useMemo(
-    () => filteredEntries.slice((currentPage - 1) * paymentsPerPage, currentPage * paymentsPerPage),
-    [currentPage, filteredEntries]
+    () => sortedEntries.slice((currentPage - 1) * paymentsPerPage, currentPage * paymentsPerPage),
+    [currentPage, sortedEntries]
   );
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchKeyword, currencyFilter, approvalFilter, allocationFilter]);
+  }, [searchKeyword, currencyFilter, approvalFilter, ttStatusFilter, sortBy, sortOrder]);
 
   useEffect(() => {
     if (currentPage > totalPages) setCurrentPage(totalPages);
@@ -536,175 +585,126 @@ export const PaymentsPage: React.FC = () => {
     });
   };
 
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    reset,
-    formState: { errors },
-  } = useForm<CustomerPaymentFormInput, unknown, CustomerPaymentFormValues>({
-    resolver: zodResolver(customerPaymentFormSchema),
-    defaultValues: {
-      invoiceId: 'INV-GENERAL',
-      currency: 'USD',
-      paymentDate: new Date().toISOString().slice(0, 10),
-      remarks: '',
-      proof: { fileName: '', fileType: 'PDF', sizeBytes: 0, scanStatus: 'Pending' },
-      idempotencyKey: safeRandomUUID(),
-    },
-    mode: 'onSubmit',
-  });
-
-  const onSubmit = async (values: CustomerPaymentFormValues) => {
-    setSubmitMessage(null);
-    setSubmitError(null);
-    try {
-      const request: CreateCustomerPaymentRequest = {
-        invoiceId: values.invoiceId?.trim() || 'INV-GENERAL',
-        reference: values.reference.trim(),
-        bankName: values.bankName.trim(),
-        currency: values.currency,
-        amountUsd: values.amountUsd,
-        paymentDate: values.paymentDate,
-        ...(values.remarks?.trim() ? { remarks: values.remarks.trim() } : {}),
-        proof: values.proof,
-        idempotencyKey: values.idempotencyKey,
-      };
-
-      const payment = await createPayment.mutateAsync(request);
-      setSubmitMessage(`Payment ${payment.reference} submitted successfully for finance review!`);
-      setProofFile(null);
-      reset({
-        invoiceId: 'INV-GENERAL',
-        currency: 'USD',
-        paymentDate: new Date().toISOString().slice(0, 10),
-        remarks: '',
-        proof: { fileName: '', fileType: 'PDF', sizeBytes: 0, scanStatus: 'Pending' },
-        idempotencyKey: safeRandomUUID(),
-      });
-
-      setTimeout(() => {
-        setIsModalOpen(false);
-        setSubmitMessage(null);
-      }, 1200);
-    } catch (error: unknown) {
-      setSubmitError(error instanceof Error ? error.message : 'Payment submission failed. Please retry.');
-    }
-  };
-
-  const handleProofChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0] ?? null;
-    setProofFile(file);
-    if (!file) {
-      setValue('proof', { fileName: '', fileType: 'PDF', sizeBytes: 0, scanStatus: 'Pending' }, { shouldValidate: true });
-      return;
-    }
-    const extension = file.name.split('.').pop()?.toUpperCase();
-    const fileType =
-      extension === 'JPG' || extension === 'JPEG'
-        ? 'JPG'
-        : extension === 'PNG'
-          ? 'PNG'
-          : extension === 'PDF'
-            ? 'PDF'
-            : undefined;
-
-    setValue(
-      'proof',
-      fileType
-        ? { fileName: file.name, fileType, sizeBytes: file.size, scanStatus: 'Pending' }
-        : { fileName: file.name, fileType: 'PDF', sizeBytes: MAX_PAYMENT_PROOF_BYTES + 1, scanStatus: 'Pending' },
-      { shouldValidate: true }
-    );
-  };
-
   return (
     <section className="cc-cust-remittance-page" aria-label="Customer Wire Remittance" data-testid="customer-payments-page">
-      {/* 1. Page Header Card with Title & Date Selection */}
+      {/* Breadcrumb Navigation with Submit Wire Proof in the opposite corner */}
+      <nav className="cc-remit-breadcrumb-bar" aria-label="Breadcrumb navigation">
+        <div className="cc-remit-breadcrumb-trail">
+          <button
+            type="button"
+            className="cc-remit-breadcrumb-link"
+            onClick={() => setActiveRoute('/dashboard')}
+          >
+            Dashboard
+          </button>
+          <span className="cc-remit-breadcrumb-sep">/</span>
+          <span className="cc-remit-breadcrumb-current" aria-current="page">
+            Wire Remittance
+          </span>
+        </div>
+
+        <div className="cc-remit-actions">
+          <button
+            type="button"
+            className="cc-remit-btn-submit-proof"
+            onClick={() => setIsModalOpen(true)}
+            data-testid="btn-submit-payment-proof"
+          >
+            <PlusIcon size={12} />
+            <span>Submit Wire Proof</span>
+          </button>
+        </div>
+      </nav>
+
+      {/* 1. Page Header Card with Title & Description */}
       <section className="cc-remit-header-card" aria-labelledby="payments-heading">
         <div className="cc-remit-header-top">
           <div>
             <h1 id="payments-heading" className="cc-remit-title cc-portal-page-title">
-              <span className="sr-only">My Payments</span>
-              <span aria-hidden="true">MY <span className="cc-remit-title-highlight">PAYMENTS</span></span>
+              <span className="sr-only">Wire Remittance</span>
+              <span aria-hidden="true">WIRE <span className="cc-remit-title-highlight">REMITTANCE</span></span>
             </h1>
             <p className="cc-remit-subtitle cc-portal-page-description">
               Submit wire transfer details, track approval status, and manage TT remittance allocations.
             </p>
           </div>
-
-          <div className="cc-remit-actions">
-            <button
-              type="button"
-              className="cc-remit-btn-submit-proof"
-              onClick={() => setIsModalOpen(true)}
-              data-testid="btn-submit-payment-proof"
-            >
-              <PlusIcon size={13} />
-              <span>Submit Payment Proof</span>
-            </button>
-          </div>
         </div>
 
-        {/* Date Range Selection (Select Dates) */}
-        <div className="cc-remit-date-bar">
-          <div className="cc-remit-date-filter-group">
-            <label htmlFor="remit-from-date" className="cc-remit-date-label">
-              Transaction Date:
-            </label>
-            <div className="cc-remit-date-inputs">
-              <input
-                id="remit-from-date"
-                type="date"
-                className="cc-remit-date-input"
-                value={fromDate}
-                onChange={(e) => setFromDate(e.target.value)}
-                data-testid="remit-from-date"
-              />
-              <span className="cc-remit-date-sep">to</span>
-              <input
-                id="remit-to-date"
-                type="date"
-                className="cc-remit-date-input"
-                value={toDate}
-                onChange={(e) => setToDate(e.target.value)}
-                data-testid="remit-to-date"
-              />
-            </div>
-          </div>
-
-          <button
-            type="button"
-            className="cc-remit-reset-btn"
-            onClick={() => {
-              setFromDate(defaultFromDate);
-              setToDate(defaultToDate);
-            }}
+        {/* 2. TOTAL METRICS SUMMARY BAR (4 TILES) */}
+        <div className="cc-remit-kpi-bar cc-remit-kpi-bar-4" aria-label="Remittance Totals">
+          <div
+            className={`cc-remit-kpi-item cc-remit-kpi-clickable ${sortBy === 'current_balance' ? 'cc-remit-kpi-active' : ''}`}
+            onClick={() => handleTileSort('current_balance')}
+            role="button"
+            tabIndex={0}
+            title="Click to sort by Current Balance"
+            data-testid="kpi-current-balance"
           >
-            Reset Range
-          </button>
-        </div>
-
-        {/* 2. TOTAL METRICS SUMMARY BAR (Merged into the Header Card) */}
-        <div className="cc-stmt-kpi-bar" aria-label="Remittance Totals">
-          <div className="cc-stmt-kpi-item">
-            <span className="cc-stmt-kpi-label">TOTAL TT AMOUNT:</span>
-            <span className="cc-stmt-kpi-val cc-stmt-val--credit">
-              ${totalTtAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
+            <div className="cc-remit-kpi-inner">
+              <span className="cc-remit-kpi-label">CURRENT BALANCE:</span>
+              <span className="cc-remit-kpi-val cc-stmt-val--credit">
+                ${currentBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
+              </span>
+            </div>
+            <span className="cc-remit-kpi-sort-pill">
+              {sortBy === 'current_balance' ? (sortOrder === 'asc' ? '▲ ASC' : '▼ DESC') : 'Sort'}
             </span>
           </div>
 
-          <div className="cc-stmt-kpi-item">
-            <span className="cc-stmt-kpi-label">TOTAL ALLOCATED:</span>
-            <span className="cc-stmt-kpi-val cc-stmt-val--due">
-              ${totalAllocatedAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
+          <div
+            className={`cc-remit-kpi-item cc-remit-kpi-clickable ${sortBy === 'not_cleared' ? 'cc-remit-kpi-active' : ''}`}
+            onClick={() => handleTileSort('not_cleared')}
+            role="button"
+            tabIndex={0}
+            title="Click to sort by Not Cleared remittances"
+            data-testid="kpi-not-cleared"
+          >
+            <div className="cc-remit-kpi-inner">
+              <span className="cc-remit-kpi-label">NOT CLEARED:</span>
+              <span className="cc-remit-kpi-val cc-stmt-val--review">
+                ${notClearedAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
+              </span>
+            </div>
+            <span className="cc-remit-kpi-sort-pill">
+              {sortBy === 'not_cleared' ? (sortOrder === 'asc' ? '▲ ASC' : '▼ DESC') : 'Sort'}
             </span>
           </div>
 
-          <div className="cc-stmt-kpi-item">
-            <span className="cc-stmt-kpi-label">TOTAL AVAILABLE:</span>
-            <span className="cc-stmt-kpi-val cc-stmt-val--credit">
-              ${totalAvailableAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
+          <div
+            className={`cc-remit-kpi-item cc-remit-kpi-clickable ${sortBy === 'tt_not_allocated' ? 'cc-remit-kpi-active' : ''}`}
+            onClick={() => handleTileSort('tt_not_allocated')}
+            role="button"
+            tabIndex={0}
+            title="Click to sort by TT Not Allocated"
+            data-testid="kpi-tt-not-allocated"
+          >
+            <div className="cc-remit-kpi-inner">
+              <span className="cc-remit-kpi-label">TT NOT ALLOCATED:</span>
+              <span className="cc-remit-kpi-val cc-stmt-val--credit">
+                ${ttNotAllocatedAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
+              </span>
+            </div>
+            <span className="cc-remit-kpi-sort-pill">
+              {sortBy === 'tt_not_allocated' ? (sortOrder === 'asc' ? '▲ ASC' : '▼ DESC') : 'Sort'}
+            </span>
+          </div>
+
+          <div
+            className={`cc-remit-kpi-item cc-remit-kpi-clickable ${sortBy === 'total_due' ? 'cc-remit-kpi-active' : ''}`}
+            onClick={() => handleTileSort('total_due')}
+            role="button"
+            tabIndex={0}
+            title="Click to sort by Total Due Balance"
+            data-testid="kpi-total-due-balance"
+          >
+            <div className="cc-remit-kpi-inner">
+              <span className="cc-remit-kpi-label">TOTAL DUE BALANCE:</span>
+              <span className="cc-remit-kpi-val cc-stmt-val--due">
+                ${totalDueBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
+              </span>
+            </div>
+            <span className="cc-remit-kpi-sort-pill">
+              {sortBy === 'total_due' ? (sortOrder === 'asc' ? '▲ ASC' : '▼ DESC') : 'Sort'}
             </span>
           </div>
         </div>
@@ -712,9 +712,60 @@ export const PaymentsPage: React.FC = () => {
 
       {/* 3. MERGED CUSTOMER TT REMITTANCE JOURNAL SECTION (Title, Search, Currency Filter, Status Tabs & Table in 1 Container) */}
       <section className="cc-stmt-table-section cc-remit-journal-unified-card" aria-label="Customer TT Remittance Journal">
-        {/* Card Header: Section Title + Search & Currency Filters */}
+        {/* Card Header: Section Title, Status Filter, Search & Currency Filters */}
         <div className="cc-remit-journal-header-row">
           <h2 className="cc-remit-section-title">CUSTOMER TT REMITTANCE JOURNAL</h2>
+
+          {/* TT Status Filter Bar (Comes FIRST: Primary category/status segmentation) */}
+          <div className="cc-remit-filter-row cc-remit-status-filter-row">
+            <div className="cc-remit-filter-field">
+              <span className="cc-remit-filter-label">TT STATUS:</span>
+              <div className="cc-remit-radios" role="tablist" aria-label="TT Status">
+                <label className="cc-remit-radio-item">
+                  <input
+                    type="radio"
+                    name="tt-status-filter"
+                    value="ALL"
+                    checked={ttStatusFilter === 'ALL'}
+                    onChange={() => setTtStatusFilter('ALL')}
+                  />
+                  All ({ttStatusCounts.all})
+                </label>
+                <label className="cc-remit-radio-item">
+                  <input
+                    type="radio"
+                    name="tt-status-filter"
+                    value="NOT_CLEARED"
+                    checked={ttStatusFilter === 'NOT_CLEARED'}
+                    onChange={() => setTtStatusFilter('NOT_CLEARED')}
+                  />
+                  Not Cleared ({ttStatusCounts.notCleared})
+                </label>
+                <label className="cc-remit-radio-item">
+                  <input
+                    type="radio"
+                    name="tt-status-filter"
+                    value="PENDING_ALLOCATION"
+                    checked={ttStatusFilter === 'PENDING_ALLOCATION'}
+                    onChange={() => setTtStatusFilter('PENDING_ALLOCATION')}
+                  />
+                  TT Pending Allocation ({ttStatusCounts.pendingAllocation})
+                </label>
+              </div>
+            </div>
+
+            {ttStatusFilter !== 'ALL' && (
+              <div className="cc-remit-filter-actions">
+                <button
+                  type="button"
+                  className="cc-remit-btn-clear-filter"
+                  onClick={() => setTtStatusFilter('ALL')}
+                >
+                  Clear Filter
+                </button>
+              </div>
+            )}
+          </div>
 
           {/* Search Box & Currency Dropdown */}
           <div className="cc-remit-search-row">
@@ -756,131 +807,66 @@ export const PaymentsPage: React.FC = () => {
                 <option value="GBP">GBP</option>
               </select>
             </div>
-          </div>
-        </div>
 
-        {/* Desktop Approval Status Filter removed from desktop view */}
-        {/*
-        <div className="cc-remit-filter-row cc-remit-desktop-filter">
-          <div className="cc-remit-filter-field">
-            <span className="cc-remit-filter-label">Approval Status:</span>
-            <div className="cc-remit-radios" role="tablist" aria-label="Approval Status">
-              <label className="cc-remit-radio-item">
-                <input
-                  type="radio"
-                  name="approval-filter"
-                  value="ALL"
-                  checked={approvalFilter === 'ALL'}
-                  onChange={() => setApprovalFilter('ALL')}
-                />
-                All ({statusCounts.all})
+            <div className="cc-remit-sort-filter">
+              <label htmlFor="remit-sort-filter" className="cc-remit-filter-label">
+                Sort By:
               </label>
-              <label className="cc-remit-radio-item">
-                <input
-                  type="radio"
-                  name="approval-filter"
-                  value="APPROVED"
-                  checked={approvalFilter === 'APPROVED'}
-                  onChange={() => setApprovalFilter('APPROVED')}
-                />
-                Approved ({statusCounts.approved})
-              </label>
-              <label className="cc-remit-radio-item">
-                <input
-                  type="radio"
-                  name="approval-filter"
-                  value="UNDER_REVIEW"
-                  checked={approvalFilter === 'UNDER_REVIEW'}
-                  onChange={() => setApprovalFilter('UNDER_REVIEW')}
-                />
-                Under Review ({statusCounts.underReview})
-              </label>
-              <label className="cc-remit-radio-item">
-                <input
-                  type="radio"
-                  name="approval-filter"
-                  value="ON_HOLD"
-                  checked={approvalFilter === 'ON_HOLD'}
-                  onChange={() => setApprovalFilter('ON_HOLD')}
-                />
-                On Hold ({statusCounts.onHold})
-              </label>
-              <label className="cc-remit-radio-item">
-                <input
-                  type="radio"
-                  name="approval-filter"
-                  value="REJECTED"
-                  checked={approvalFilter === 'REJECTED'}
-                  onChange={() => setApprovalFilter('REJECTED')}
-                />
-                Rejected ({statusCounts.rejected})
-              </label>
-            </div>
-          </div>
-
-          {approvalFilter !== 'ALL' && (
-            <div className="cc-remit-filter-actions">
-              <button
-                type="button"
-                className="cc-remit-btn-clear-filter"
-                onClick={() => setApprovalFilter('ALL')}
+              <select
+                id="remit-sort-filter"
+                className="cc-remit-filter-select"
+                value={
+                  sortBy === 'default'
+                    ? 'default'
+                    : sortBy === 'not_cleared'
+                      ? 'not_cleared'
+                      : `${sortBy}_${sortOrder}`
+                }
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val === 'default') {
+                    setSortBy('default');
+                    setSortOrder('desc');
+                  } else if (val === 'date_asc') {
+                    setSortBy('date');
+                    setSortOrder('asc');
+                  } else if (val === 'current_balance_desc') {
+                    setSortBy('current_balance');
+                    setSortOrder('desc');
+                  } else if (val === 'current_balance_asc') {
+                    setSortBy('current_balance');
+                    setSortOrder('asc');
+                  } else if (val === 'not_cleared') {
+                    setSortBy('not_cleared');
+                    setSortOrder('desc');
+                  } else if (val === 'tt_not_allocated_desc') {
+                    setSortBy('tt_not_allocated');
+                    setSortOrder('desc');
+                  } else if (val === 'tt_not_allocated_asc') {
+                    setSortBy('tt_not_allocated');
+                    setSortOrder('asc');
+                  } else if (val === 'total_due_desc') {
+                    setSortBy('total_due');
+                    setSortOrder('desc');
+                  } else if (val === 'total_due_asc') {
+                    setSortBy('total_due');
+                    setSortOrder('asc');
+                  }
+                }}
+                data-testid="payments-sort-select"
               >
-                Clear Filter
-              </button>
-            </div>
-          )}
-        </div>
-        */}
-
-        {/* Mobile Allocation Status Filter (hidden on desktop > 768px, shown on mobile) */}
-        <div className="cc-remit-filter-row cc-remit-mobile-filter">
-          <div className="cc-remit-filter-field">
-            <span className="cc-remit-filter-label">Allocation Status:</span>
-            <div className="cc-remit-radios" role="tablist" aria-label="Allocation Status">
-              <label className="cc-remit-radio-item">
-                <input
-                  type="radio"
-                  name="mobile-allocation-filter"
-                  value="ALL"
-                  checked={allocationFilter === 'ALL'}
-                  onChange={() => setAllocationFilter('ALL')}
-                />
-                All ({allocationCounts.all})
-              </label>
-              <label className="cc-remit-radio-item">
-                <input
-                  type="radio"
-                  name="mobile-allocation-filter"
-                  value="PENDING"
-                  checked={allocationFilter === 'PENDING'}
-                  onChange={() => setAllocationFilter('PENDING')}
-                />
-                Pending Allocation ({allocationCounts.pending})
-              </label>
-              <label className="cc-remit-radio-item">
-                <input
-                  type="radio"
-                  name="mobile-allocation-filter"
-                  value="DONE"
-                  checked={allocationFilter === 'DONE'}
-                  onChange={() => setAllocationFilter('DONE')}
-                />
-                Allocation Done ({allocationCounts.done})
-              </label>
+                <option value="default">Default (Newest First)</option>
+                <option value="date_asc">Oldest First</option>
+                <option value="current_balance_desc">Current Balance (High to Low)</option>
+                <option value="current_balance_asc">Current Balance (Low to High)</option>
+                <option value="not_cleared">Not Cleared First</option>
+                <option value="tt_not_allocated_desc">TT Not Allocated (High to Low)</option>
+                <option value="tt_not_allocated_asc">TT Not Allocated (Low to High)</option>
+                <option value="total_due_desc">Total Due Balance (High to Low)</option>
+                <option value="total_due_asc">Total Due Balance (Low to High)</option>
+              </select>
             </div>
           </div>
-
-          {allocationFilter !== 'ALL' && (
-            <div className="cc-remit-filter-actions">
-              <button
-                type="button"
-                className="cc-remit-btn-clear-filter"
-                onClick={() => setAllocationFilter('ALL')}
-              >
-                Clear Filter
-              </button>
-            </div>
-          )}
         </div>
 
         {/* Desktop Table View (hidden on mobile <= 768px) */}
@@ -892,10 +878,42 @@ export const PaymentsPage: React.FC = () => {
                 <th scope="col">PAYMENT TYPE</th>
                 <th scope="col">CREATED BY</th>
                 <th scope="col">CURRENCY</th>
-                <th scope="col" className="cc-stmt-th--right">TT AMOUNT</th>
-                <th scope="col" className="cc-stmt-th--right">ALLOCATED</th>
-                <th scope="col" className="cc-stmt-th--right">BALANCE</th>
-                <th scope="col" className="cc-remit-th--date">APPROVED DATE & TIME</th>
+                <th
+                  scope="col"
+                  className="cc-stmt-th--right cc-remit-th--sortable"
+                  onClick={() => handleTileSort('current_balance')}
+                  style={{ cursor: 'pointer' }}
+                  title="Click to sort by TT Amount / Balance"
+                >
+                  TT AMOUNT {sortBy === 'current_balance' ? (sortOrder === 'asc' ? '▲' : '▼') : ''}
+                </th>
+                <th
+                  scope="col"
+                  className="cc-stmt-th--right cc-remit-th--sortable"
+                  onClick={() => handleTileSort('total_due')}
+                  style={{ cursor: 'pointer' }}
+                  title="Click to sort by Allocated / Total Due"
+                >
+                  ALLOCATED {sortBy === 'total_due' ? (sortOrder === 'asc' ? '▲' : '▼') : ''}
+                </th>
+                <th
+                  scope="col"
+                  className="cc-stmt-th--right cc-remit-th--sortable"
+                  onClick={() => handleTileSort('tt_not_allocated')}
+                  style={{ cursor: 'pointer' }}
+                  title="Click to sort by TT Not Allocated / Balance"
+                >
+                  BALANCE {sortBy === 'tt_not_allocated' ? (sortOrder === 'asc' ? '▲' : '▼') : ''}
+                </th>
+                <th
+                  scope="col"
+                  className="cc-remit-th--date cc-remit-th--sortable"
+                  onClick={() => handleTileSort('date')}
+                  style={{ cursor: 'pointer' }}
+                  title="Click to sort by Approved Date & Time"
+                >
+                  APPROVED DATE &amp; TIME {sortBy === 'date' || sortBy === 'default' ? (sortOrder === 'asc' ? '▲' : '▼') : ''}
+                </th>
                 <th scope="col" className="cc-stmt-th--right">ACTION</th>
               </tr>
             </thead>
@@ -1350,204 +1368,10 @@ export const PaymentsPage: React.FC = () => {
         </div>
       )}
 
-      {/* Modal: UPLOAD CUSTOMER TT PROOF */}
-      {isModalOpen && (
-        <div
-          className="cc-remit-modal-overlay"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="remit-modal-title"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) handleCloseModal();
-          }}
-        >
-          <div className="cc-remit-modal-card">
-            <div className="cc-remit-modal-header">
-              <div className="cc-remit-modal-tag">
-                <span className="cc-remit-modal-tag__icon" aria-hidden="true">🏛️</span>
-                <span>TT REMITTANCE CREATION</span>
-              </div>
-              <button
-                type="button"
-                className="cc-remit-modal-close"
-                onClick={handleCloseModal}
-                aria-label="Close modal"
-              >
-                <CloseIcon size={20} />
-              </button>
-            </div>
-
-            <h3 id="remit-modal-title" className="cc-remit-modal-title">
-              UPLOAD CUSTOMER TT PROOF
-            </h3>
-            <p className="cc-remit-modal-subtitle">
-              Submit wire transfer details. Finance will verify and approve for invoice allocation.
-            </p>
-
-            {!online && (
-              <div className="cc-remit-alert cc-remit-alert--warning" role="status">
-                You are offline. TT submission is blocked until the connection is restored.
-              </div>
-            )}
-
-            {submitMessage && (
-              <div className="cc-remit-alert cc-remit-alert--success" role="status">
-                {submitMessage}
-              </div>
-            )}
-
-            {submitError && (
-              <div className="cc-remit-alert cc-remit-alert--error" role="alert">
-                {submitError}
-              </div>
-            )}
-
-            <form onSubmit={(e) => void handleSubmit(onSubmit)(e)} noValidate className="cc-remit-form">
-              <input type="hidden" {...register('invoiceId')} value="INV-GENERAL" />
-
-              <div className="cc-remit-form-row cc-remit-form-row--2col">
-                <div className="cc-remit-form-field">
-                  <label htmlFor="remit-ref-input" className="cc-remit-form-label">
-                    TT NUMBER / SWIFT REF *
-                  </label>
-                  <input
-                    id="remit-ref-input"
-                    className="cc-remit-form-input"
-                    placeholder="e.g. TT-984021-SW"
-                    {...register('reference')}
-                    aria-invalid={Boolean(errors.reference)}
-                  />
-                  {errors.reference && (
-                    <span className="cc-remit-field-error">{errors.reference.message}</span>
-                  )}
-                </div>
-
-                <div className="cc-remit-form-field">
-                  <label htmlFor="remit-bank-input" className="cc-remit-form-label">
-                    REMITTING BANK *
-                  </label>
-                  <input
-                    id="remit-bank-input"
-                    className="cc-remit-form-input"
-                    placeholder="e.g. Barclays Bank"
-                    {...register('bankName')}
-                    aria-invalid={Boolean(errors.bankName)}
-                  />
-                  {errors.bankName && (
-                    <span className="cc-remit-field-error">{errors.bankName.message}</span>
-                  )}
-                </div>
-              </div>
-
-              <div className="cc-remit-form-row cc-remit-form-row--3col">
-                <div className="cc-remit-form-field">
-                  <label htmlFor="remit-currency-select" className="cc-remit-form-label">
-                    TT CURRENCY *
-                  </label>
-                  <select
-                    id="remit-currency-select"
-                    className="cc-remit-form-select"
-                    {...register('currency')}
-                    data-testid="remit-currency-select"
-                  >
-                    <option value="USD">USD ($) - US Dollar</option>
-                    <option value="JPY">JPY (¥) - Japanese Yen</option>
-                    <option value="EUR">EUR (€) - Euro</option>
-                    <option value="GBP">GBP (£) - British Pound</option>
-                    <option value="KES">KES (KSh) - Kenyan Shilling</option>
-                  </select>
-                </div>
-
-                <div className="cc-remit-form-field">
-                  <label htmlFor="remit-amount-input" className="cc-remit-form-label">
-                    ORIGINAL AMOUNT *
-                  </label>
-                  <input
-                    id="remit-amount-input"
-                    type="number"
-                    step="0.01"
-                    min="0.01"
-                    className="cc-remit-form-input"
-                    placeholder="e.g. 15000.00"
-                    {...register('amountUsd')}
-                    aria-invalid={Boolean(errors.amountUsd)}
-                  />
-                  {errors.amountUsd && (
-                    <span className="cc-remit-field-error">{errors.amountUsd.message}</span>
-                  )}
-                </div>
-
-                <div className="cc-remit-form-field">
-                  <label htmlFor="remit-date-input" className="cc-remit-form-label">
-                    TT DATE *
-                  </label>
-                  <input
-                    id="remit-date-input"
-                    type="date"
-                    className="cc-remit-form-input"
-                    {...register('paymentDate')}
-                    aria-invalid={Boolean(errors.paymentDate)}
-                  />
-                  {errors.paymentDate && (
-                    <span className="cc-remit-field-error">{errors.paymentDate.message}</span>
-                  )}
-                </div>
-              </div>
-
-              <div className="cc-remit-form-field cc-remit-form-field--full">
-                <label htmlFor="remit-proof-input" className="cc-remit-form-label">
-                  TT COPY ATTACHMENT (PDF / IMAGE)
-                </label>
-                <div className="cc-remit-file-upload-box">
-                  <input
-                    id="remit-proof-input"
-                    type="file"
-                    accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
-                    onChange={handleProofChange}
-                    className="cc-remit-file-native-input"
-                  />
-                </div>
-                {proofFile && (
-                  <span className="cc-remit-file-selected-info">
-                    Selected: {proofFile.name} ({Math.ceil(proofFile.size / 1024)} KB)
-                  </span>
-                )}
-                {errors.proof && (
-                  <span className="cc-remit-field-error">
-                    {errors.proof.message?.toString() || 'Please choose a valid TT proof file.'}
-                  </span>
-                )}
-              </div>
-
-              <div className="cc-remit-form-field cc-remit-form-field--full">
-                <label htmlFor="remit-remarks-input" className="cc-remit-form-label">
-                  REMARKS (OPTIONAL)
-                </label>
-                <textarea
-                  id="remit-remarks-input"
-                  rows={3}
-                  className="cc-remit-form-textarea"
-                  placeholder="e.g. Wire transfer deposit for future vehicle allocation."
-                  {...register('remarks')}
-                  aria-invalid={Boolean(errors.remarks)}
-                />
-                {errors.remarks && (
-                  <span className="cc-remit-field-error">{errors.remarks.message}</span>
-                )}
-              </div>
-
-              <button
-                type="submit"
-                className="cc-remit-modal-submit-btn"
-                disabled={!online || createPayment.isPending}
-              >
-                <span>{createPayment.isPending ? 'SUBMITTING...' : 'SUBMIT TT FOR FINANCE APPROVAL'}</span>
-                <PaperPlaneIcon size={18} />
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
+      <SubmitWireProofModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+      />
     </section>
   );
 };

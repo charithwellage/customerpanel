@@ -71,13 +71,13 @@
   gap: var(--spacing-md);
 }
 
-/* Increased "MY STATEMENT" wording title size */
+/* Page title matching portal standard (1.55rem, 700) */
 .cc-stmt-title {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
-  font-size: 1.85rem !important;
+  font-size: 1.55rem !important;
   font-weight: 700 !important;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.015em;
   color: #0f172a;
   line-height: 1.2;
   text-transform: uppercase;
@@ -520,8 +520,8 @@
     box-sizing: border-box !important;
   }
 
-  /* Total Balance is the hero full-width summary card */
-  .cc-stmt-kpi-bar .cc-stmt-kpi-item:nth-child(3) {
+  /* Total Balance is the hero full-width summary card in Customer Statement */
+  .cc-statement-page .cc-stmt-kpi-bar .cc-stmt-kpi-item:nth-child(3) {
     grid-column: 1 / -1 !important;
     order: -1 !important;
     padding: 12px 14px !important;
@@ -533,7 +533,7 @@
     border-radius: var(--radius-md) !important;
   }
 
-  .cc-stmt-kpi-bar .cc-stmt-kpi-item:nth-child(3) .cc-stmt-kpi-val {
+  .cc-statement-page .cc-stmt-kpi-bar .cc-stmt-kpi-item:nth-child(3) .cc-stmt-kpi-val {
     font-size: 1.15rem !important;
     font-weight: 600 !important;
   }
@@ -1020,9 +1020,9 @@
    DARK THEME (MIDNIGHT MODE) - STATEMENT (WEB & MOBILE)
    ========================================================================= */
 
-[data-theme-mode='midnight'] .cc-stmt-kpi-bar .cc-stmt-kpi-item:nth-child(3),
-.theme-midnight .cc-stmt-kpi-bar .cc-stmt-kpi-item:nth-child(3),
-.dark-mode .cc-stmt-kpi-bar .cc-stmt-kpi-item:nth-child(3) {
+[data-theme-mode='midnight'] .cc-statement-page .cc-stmt-kpi-bar .cc-stmt-kpi-item:nth-child(3),
+.theme-midnight .cc-statement-page .cc-stmt-kpi-bar .cc-stmt-kpi-item:nth-child(3),
+.dark-mode .cc-statement-page .cc-stmt-kpi-bar .cc-stmt-kpi-item:nth-child(3) {
   background: linear-gradient(135deg, rgba(6, 78, 59, 0.45) 0%, #111827 100%) !important;
   border-color: #059669 !important;
 }

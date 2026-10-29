@@ -2196,6 +2196,282 @@
     font-size: 11.5px !important;
     text-align: center !important;
   }
+
+  /* Create Future Demand Modal Dialog Mobile Layout */
+  .cc-demand-modal-dialog {
+    width: 95% !important;
+    max-width: 520px !important;
+    border-radius: 12px !important;
+    margin: 8px auto !important;
+    max-height: 90vh !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  .cc-demand-modal-dialog form {
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+    flex: 1 !important;
+    overflow: hidden !important;
+  }
+
+  .cc-demand-modal-header {
+    padding: 10px 14px !important;
+    gap: 8px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .cc-demand-modal-title-group {
+    gap: 8px !important;
+    min-width: 0 !important;
+  }
+
+  .cc-demand-modal-icon {
+    font-size: 16px !important;
+    line-height: 1 !important;
+    flex-shrink: 0 !important;
+  }
+
+  .cc-demand-modal-title-group h2 {
+    font-size: 13.5px !important;
+    font-weight: 600 !important;
+    line-height: 1.25 !important;
+    color: #ffffff !important;
+  }
+
+  .cc-demand-modal-sub {
+    font-size: 10.5px !important;
+    line-height: 1.3 !important;
+    margin-top: 1px !important;
+    color: #94a3b8 !important;
+  }
+
+  .cc-demand-modal-body {
+    padding: 12px 14px !important;
+    gap: 11px !important;
+    max-height: calc(90vh - 102px) !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  /* Radio cards for reason */
+  .cc-demand-radio-cards {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 6px !important;
+  }
+
+  .cc-demand-radio-card {
+    padding: 7px 10px !important;
+    gap: 8px !important;
+    border-radius: 8px !important;
+  }
+
+  .cc-demand-radio-card input {
+    margin-top: 1px !important;
+    width: 14px !important;
+    height: 14px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .cc-demand-radio-card-content strong {
+    font-size: 11.5px !important;
+    margin-bottom: 1px !important;
+    line-height: 1.25 !important;
+  }
+
+  .cc-demand-radio-card-content span {
+    font-size: 10px !important;
+    line-height: 1.35 !important;
+    color: #64748b !important;
+  }
+
+  /* Form columns and fields */
+  .cc-demand-form-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 11px !important;
+  }
+
+  .cc-demand-form-col {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+
+  .cc-demand-col-title {
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.03em !important;
+    padding-bottom: 3px !important;
+    margin: 0 0 2px 0 !important;
+  }
+
+  .cc-demand-field {
+    gap: 3px !important;
+  }
+
+  .cc-demand-form-label {
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    margin-bottom: 2px !important;
+    display: block !important;
+  }
+
+  .cc-demand-fields-row {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+
+  .cc-demand-input,
+  .cc-demand-textarea {
+    height: 35px !important;
+    min-height: 35px !important;
+    font-size: 12px !important;
+    padding: 6px 9px !important;
+    border-radius: 6px !important;
+    box-sizing: border-box !important;
+  }
+
+  .cc-demand-currency-wrap {
+    height: 35px !important;
+  }
+
+  .cc-demand-currency-symbol {
+    font-size: 12px !important;
+    left: 8px !important;
+  }
+
+  .cc-demand-input--currency {
+    padding-left: 19px !important;
+    padding-right: 36px !important;
+    font-size: 12px !important;
+  }
+
+  .cc-demand-currency-suffix {
+    font-size: 10px !important;
+    right: 8px !important;
+  }
+
+  /* Vector graphic preview */
+  .cc-demand-form-vector-preview {
+    padding: 6px 10px !important;
+    gap: 8px !important;
+    border-radius: 6px !important;
+  }
+
+  .cc-demand-form-vector-preview .cc-demand-card__vector-wrap {
+    width: 36px !important;
+    height: 24px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .cc-demand-form-vector-preview .cc-demand-vector-svg {
+    max-width: 32px !important;
+    max-height: 22px !important;
+  }
+
+  .cc-demand-form-vector-desc {
+    font-size: 10px !important;
+    line-height: 1.3 !important;
+  }
+
+  /* Notes */
+  .cc-demand-textarea {
+    min-height: 48px !important;
+    height: 50px !important;
+    font-size: 11.5px !important;
+    line-height: 1.35 !important;
+    padding: 6px 9px !important;
+  }
+
+  /* Notification preferences */
+  .cc-demand-notify-section {
+    padding: 8px 10px !important;
+    gap: 6px !important;
+    border-radius: 8px !important;
+  }
+
+  .cc-demand-notify-section .cc-demand-form-label {
+    font-size: 10.5px !important;
+    margin-bottom: 0 !important;
+  }
+
+  .cc-demand-notify-checkboxes {
+    gap: 8px 12px !important;
+  }
+
+  .cc-demand-checkbox-label {
+    font-size: 10.5px !important;
+    gap: 5px !important;
+  }
+
+  .cc-demand-checkbox-label input[type='checkbox'] {
+    width: 13px !important;
+    height: 13px !important;
+    margin: 0 !important;
+  }
+
+  /* Modal footer */
+  .cc-demand-modal-footer {
+    padding: 9px 14px !important;
+    gap: 8px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .cc-demand-cancel-btn {
+    padding: 0 14px !important;
+    height: 33px !important;
+    font-size: 11.5px !important;
+    border-radius: 6px !important;
+  }
+
+  .cc-demand-submit-btn {
+    padding: 0 16px !important;
+    height: 33px !important;
+    font-size: 12px !important;
+    border-radius: 6px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .cc-demand-modal-dialog {
+    width: calc(100% - 16px) !important;
+    margin: 6px auto !important;
+  }
+
+  .cc-demand-modal-header {
+    padding: 8px 11px !important;
+  }
+
+  .cc-demand-modal-body {
+    padding: 10px 11px !important;
+    gap: 9px !important;
+  }
+
+  .cc-demand-fields-row {
+    gap: 6px !important;
+  }
+
+  .cc-demand-input,
+  .cc-demand-textarea {
+    height: 33px !important;
+    min-height: 33px !important;
+    font-size: 11.5px !important;
+    padding: 5px 8px !important;
+  }
+
+  .cc-demand-currency-wrap {
+    height: 33px !important;
+  }
+
+  .cc-demand-cancel-btn,
+  .cc-demand-submit-btn {
+    height: 32px !important;
+    font-size: 11px !important;
+  }
 }
 
 /* =========================================================================
@@ -2897,8 +3173,11 @@
 }
 
 /* 6. Modals (New Demand & Matches) */
+[data-theme-mode='midnight'] .cc-demand-modal-dialog,
 [data-theme-mode='midnight'] .cc-demand-modal-card,
+.theme-midnight .cc-demand-modal-dialog,
 .theme-midnight .cc-demand-modal-card,
+.dark-mode .cc-demand-modal-dialog,
 .dark-mode .cc-demand-modal-card {
   background: #111827 !important;
   border: 1px solid #1f2937 !important;

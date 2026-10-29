@@ -32,7 +32,7 @@ export const CustomerLanguageSwitcher: React.FC<CustomerLanguageSwitcherProps> =
       >
         {supportedLanguages.map((lang) => (
           <option key={lang.code} value={lang.code}>
-            {lang.nativeLabel}
+            {compact ? lang.code.toUpperCase() : lang.nativeLabel}
           </option>
         ))}
       </select>
