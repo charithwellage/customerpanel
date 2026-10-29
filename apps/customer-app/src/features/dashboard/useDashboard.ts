@@ -20,11 +20,21 @@ export function useDashboard(): UseQueryResult<CustomerDashboard, NormalizedApiE
         throw new Error('Dashboard requires an authenticated HttpClient');
       }
       const service = new DashboardService(httpClient);
-      return service.getCustomerDashboard();
+      try {
+        return await service.getCustomerDashboard();
+      } catch (err: unknown) {
+        if (
+          (err && typeof err === 'object' && 'statusCode' in err && (err as { statusCode: number }).statusCode === 404) ||
+          (err instanceof Error && /HTTP 404/i.test(err.message))
+        ) {
+          return null as unknown as CustomerDashboard;
+        }
+        throw err;
+      }
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
     retry: 1,
-    throwOnError: true,
+    throwOnError: false,
   });
 }

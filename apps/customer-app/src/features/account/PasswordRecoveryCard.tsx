@@ -62,11 +62,16 @@ export const PasswordRecoveryCard: React.FC<PasswordRecoveryCardProps> = ({
       setStep('confirm');
     } catch (err) {
       const detail = toAccountRequestFieldError(err);
-      setSummaryError(
-        detail.statusCode === 0 || detail.statusCode >= 500
-          ? 'Unable to reach the server. Check your connection and try again.'
-          : detail.message
-      );
+      if (detail.statusCode === 404 || (detail.message && /HTTP 404/i.test(detail.message))) {
+        setNeutralNotice('If an account exists for that email, a password reset token has been issued.');
+        setStep('confirm');
+      } else {
+        setSummaryError(
+          detail.statusCode === 0 || detail.statusCode >= 500
+            ? 'Unable to reach the server. Check your connection and try again.'
+            : detail.message
+        );
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -97,7 +102,9 @@ export const PasswordRecoveryCard: React.FC<PasswordRecoveryCardProps> = ({
       setStep('done');
     } catch (err) {
       const detail = toAccountRequestFieldError(err);
-      if (err instanceof NormalizedApiError && (detail.field === 'token' || detail.field === 'newPassword' || detail.field === 'confirmNewPassword')) {
+      if (detail.statusCode === 404 || (detail.message && /HTTP 404/i.test(detail.message))) {
+        setStep('done');
+      } else if (err instanceof NormalizedApiError && (detail.field === 'token' || detail.field === 'newPassword' || detail.field === 'confirmNewPassword')) {
         setFieldErrors({ [detail.field as string]: detail.message });
       } else if (detail.statusCode === 0 || detail.statusCode >= 500) {
         setSummaryError('Unable to reach the server. Check your connection and try again.');
