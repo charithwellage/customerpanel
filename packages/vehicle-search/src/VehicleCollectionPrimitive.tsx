@@ -61,25 +61,30 @@ export const VehicleCollectionPrimitive: React.FC<VehicleCollectionPrimitiveProp
         </div>
       )}
 
-      {!isLoading && !error && vehicles.length === 0 && (
-        <div role="region" aria-label="Empty vehicle collection" className="cc-vehicle-collection__state cc-vehicle-collection__state--empty">
-          <h3>{emptyTitle}</h3>
-          <p>{emptyDescription}</p>
-        </div>
-      )}
-
-      {!isLoading && !error && vehicles.length > 0 && (
-        <div className="cc-vehicle-collection__grid">
-          {vehicles.map((vehicle) => (
-            <VehicleCardPrimitive
-              key={vehicle.id}
-              vehicle={vehicle}
-              onSelect={onSelectVehicle}
-              actionHref={getVehicleHref?.(vehicle)}
-            />
-          ))}
-        </div>
-      )}
+      {(() => {
+        const safeVehicles = Array.isArray(vehicles) ? vehicles : [];
+        if (isLoading || error) return null;
+        if (safeVehicles.length === 0) {
+          return (
+            <div role="region" aria-label="Empty vehicle collection" className="cc-vehicle-collection__state cc-vehicle-collection__state--empty">
+              <h3>{emptyTitle}</h3>
+              <p>{emptyDescription}</p>
+            </div>
+          );
+        }
+        return (
+          <div className="cc-vehicle-collection__grid">
+            {safeVehicles.map((vehicle) => (
+              <VehicleCardPrimitive
+                key={vehicle.id}
+                vehicle={vehicle}
+                onSelect={onSelectVehicle}
+                actionHref={getVehicleHref?.(vehicle)}
+              />
+            ))}
+          </div>
+        );
+      })()}
     </section>
   );
 };

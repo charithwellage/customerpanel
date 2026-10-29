@@ -228,40 +228,41 @@ export const CustomerInventoryPage: React.FC<CustomerInventoryPageProps> = ({
 
       {/* Main Results Content (Errors, Empty, or Vehicle Grid) */}
       <div className="cc-cust-inventory-content">
-        {state.error ? <SearchErrorState error={state.error} onRetry={refetch} /> : (
-          <>
-
-            {!state.loading && state.items.length === 0 ? (
-              <div className="cc-inventory-empty-demand-wrap">
-                <SearchEmptyState onResetFilters={resetFilters} />
-                <div className="cc-inventory-demand-prompt-card">
-                  <div className="cc-inventory-demand-prompt-left">
-                    <span className="cc-inventory-demand-prompt-icon">🎯</span>
-                    <div>
-                      <h4 className="cc-inventory-demand-prompt-title">Couldn't find the vehicle you're looking for?</h4>
-                      <p className="cc-inventory-demand-prompt-desc">
-                        Our Japan procurement team monitors 130+ daily auctions (USS, TAA, CAA, JU). Post a demand with your exact specifications, and we'll source it directly for you.
-                      </p>
+        {state.error ? <SearchErrorState error={state.error} onRetry={refetch} /> : (() => {
+          const items = Array.isArray(state?.items) ? state.items : [];
+          return (
+            <>
+              {!state.loading && items.length === 0 ? (
+                <div className="cc-inventory-empty-demand-wrap">
+                  <SearchEmptyState onResetFilters={resetFilters} />
+                  <div className="cc-inventory-demand-prompt-card">
+                    <div className="cc-inventory-demand-prompt-left">
+                      <span className="cc-inventory-demand-prompt-icon">🎯</span>
+                      <div>
+                        <h4 className="cc-inventory-demand-prompt-title">Couldn't find the vehicle you're looking for?</h4>
+                        <p className="cc-inventory-demand-prompt-desc">
+                          Our Japan procurement team monitors 130+ daily auctions (USS, TAA, CAA, JU). Post a demand with your exact specifications, and we'll source it directly for you.
+                        </p>
+                      </div>
                     </div>
+                    <button
+                      type="button"
+                      className="cc-inventory-demand-prompt-btn"
+                      onClick={() => setActiveRoute('/demand')}
+                    >
+                      Post Demand Request →
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    className="cc-inventory-demand-prompt-btn"
-                    onClick={() => setActiveRoute('/demand')}
-                  >
-                    Post Demand Request →
-                  </button>
                 </div>
-              </div>
-            ) : (
-              <>
-                <VehicleCollectionPrimitive
-                  vehicles={state.items}
-                  isLoading={state.loading}
-                  error={null}
-                  onSelectVehicle={onSelectVehicle}
-                  getVehicleHref={(v) => `/inventory/${v.slug || v.id}`}
-                />
+              ) : (
+                <>
+                  <VehicleCollectionPrimitive
+                    vehicles={items}
+                    isLoading={state.loading}
+                    error={null}
+                    onSelectVehicle={onSelectVehicle}
+                    getVehicleHref={(v) => `/inventory/${v.slug || v.id}`}
+                  />
 
                 {/* Rich Pagination Bar with 4-Row (8) & Show All Toggle and Page Navigation */}
                 {state.total > 0 && (
@@ -392,8 +393,9 @@ export const CustomerInventoryPage: React.FC<CustomerInventoryPageProps> = ({
               </>
             )}
           </>
-        )}
-      </div>
+        );
+      })()}
     </div>
-  );
+  </div>
+);
 };

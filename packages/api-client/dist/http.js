@@ -84,6 +84,11 @@ export class HttpClient {
             if (contentType && contentType.includes('application/json')) {
                 return (await response.json());
             }
+            // If the server responded with 200 OK but returned an HTML document (e.g. SPA fallback on static hosting / Netlify),
+            // throw NormalizedApiError 404 so callers can trigger offline/preview fallback data cleanly.
+            if (contentType && contentType.includes('text/html')) {
+                throw new NormalizedApiError(404, 'Endpoint returned HTML document instead of JSON (API unavailable)', correlationId);
+            }
             return {};
         }
         catch (err) {

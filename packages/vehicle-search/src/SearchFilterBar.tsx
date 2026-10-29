@@ -102,7 +102,7 @@ export function SearchFilterBar({
   query,
   facets,
   naturalPhrase,
-  understoodTokens,
+  understoodTokens = [],
   onNaturalPhraseChange,
   onApplyNaturalSearch,
   onUpdateQuery,
@@ -323,7 +323,7 @@ export function SearchFilterBar({
       )}
 
       {/* Understood Natural Language Search Chips */}
-      {understoodTokens.length > 0 && (
+      {Array.isArray(understoodTokens) && understoodTokens.length > 0 && (
         <div className="cc-understood-tokens" role="region" aria-label="Understood search tokens">
           <span className="cc-understood-token-label">Parsed criteria:</span>
           {understoodTokens.map((token, index) => (

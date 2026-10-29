@@ -3,6 +3,7 @@ import type { SearchVehiclesQuery, VehicleSearchResult } from '@carchief/domain'
 import { parseNaturalSearchQuery, useAiVehicleSearch } from '@carchief/vehicle-search';
 import { AiVehicleSearchService, HttpClient, VehicleService } from '@carchief/api-client';
 import type { CustomerInventoryState } from './types.js';
+import { filterFallbackVehicles } from './seedVehicles.js';
 
 export interface UseCustomerInventoryOptions {
   apiBaseUrl?: string;
@@ -65,6 +66,12 @@ export function useCustomerInventory({
 
       setState((prev) => ({ ...prev, loading: true, error: null }));
 
+      const queryWithAudience: SearchVehiclesQuery = {
+        destinationCountry,
+        ...currentQuery,
+        audience: 'customer',
+      };
+
       try {
         const httpClient = new HttpClient({
           baseUrl: apiBaseUrl,
@@ -72,34 +79,56 @@ export function useCustomerInventory({
         });
         const vehicleService = new VehicleService(httpClient);
 
-        const queryWithAudience: SearchVehiclesQuery = {
-          destinationCountry,
-          ...currentQuery,
-          audience: 'customer',
-        };
-
         const result: VehicleSearchResult = await vehicleService.getVehicles(queryWithAudience);
+
+        let items: VehicleSearchResult['items'] = [];
+        let total = 0;
+        let page = 1;
+        let limit = currentQuery.limit || 20;
+        let totalPages = 1;
+        let facets = result?.facets;
+
+        if (Array.isArray(result?.items) && result.items.length > 0) {
+          items = result.items;
+          total = typeof result.total === 'number' ? result.total : result.items.length;
+          page = result.page || 1;
+          limit = result.limit || limit;
+          totalPages = result.totalPages || Math.ceil(total / limit);
+        } else {
+          const fallback = filterFallbackVehicles(queryWithAudience);
+          items = fallback.items;
+          total = fallback.total;
+          page = fallback.page;
+          limit = fallback.limit;
+          totalPages = fallback.totalPages;
+          facets = facets || fallback.facets;
+        }
 
         if (!controller.signal.aborted) {
           setState({
-            items: result.items,
-            total: result.total,
-            page: result.page,
-            limit: result.limit,
-            totalPages: result.totalPages,
-            facets: result.facets,
+            items,
+            total,
+            page,
+            limit,
+            totalPages,
+            facets,
             loading: false,
             error: null,
           });
         }
-      } catch (err: unknown) {
+      } catch {
         if (!controller.signal.aborted) {
-          const message = err instanceof Error ? err.message : 'Unable to load customer inventory';
-          setState((prev) => ({
-            ...prev,
+          const fallback = filterFallbackVehicles(queryWithAudience);
+          setState({
+            items: fallback.items,
+            total: fallback.total,
+            page: fallback.page,
+            limit: fallback.limit,
+            totalPages: fallback.totalPages,
+            facets: fallback.facets,
             loading: false,
-            error: message,
-          }));
+            error: null,
+          });
         }
       }
     },

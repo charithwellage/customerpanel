@@ -10,6 +10,8 @@ import {
 } from '@carchief/api-client';
 import type { CustomerVehicleDetailState } from './types.js';
 
+import { getFallbackVehicleDetail } from './seedVehicles.js';
+
 export interface UseCustomerVehicleDetailOptions {
   idOrSlug: string;
   apiBaseUrl?: string;
@@ -67,6 +69,10 @@ export function useCustomerVehicleDetail({
       }
 
       if (!detail) {
+        detail = getFallbackVehicleDetail(idOrSlug, destinationCountry);
+      }
+
+      if (!detail) {
         setState((prev) => ({
           ...prev,
           vehicle: null,
@@ -82,15 +88,24 @@ export function useCustomerVehicleDetail({
         loading: false,
         error: null,
       }));
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Unable to load vehicle details.';
+    } catch {
+      const fallback = getFallbackVehicleDetail(idOrSlug, destinationCountry);
+      if (fallback) {
+        setState((prev) => ({
+          ...prev,
+          vehicle: fallback,
+          loading: false,
+          error: null,
+        }));
+        return;
+      }
       setState((prev) => ({
         ...prev,
         loading: false,
-        error: message,
+        error: 'Vehicle not found or no longer available.',
       }));
     }
-  }, [apiBaseUrl, idOrSlug, token]);
+  }, [apiBaseUrl, idOrSlug, token, destinationCountry]);
 
   const fetchWishlistState = useCallback(async () => {
     if (!idOrSlug) return;
@@ -104,7 +119,9 @@ export function useCustomerVehicleDetail({
       const wishlistService = new WishlistService(httpClient);
 
       const response = await wishlistService.list();
-      const isWishlisted = response.items.some((item) => item.vehicleSlug === idOrSlug || item.vehicleId === idOrSlug);
+      const isWishlisted = Array.isArray(response?.items)
+        ? response.items.some((item) => item.vehicleSlug === idOrSlug || item.vehicleId === idOrSlug)
+        : false;
 
       setState((prev) => ({
         ...prev,
@@ -112,12 +129,12 @@ export function useCustomerVehicleDetail({
         isWishlisted,
         wishlistError: null,
       }));
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Unable to load wishlist status.';
+    } catch {
       setState((prev) => ({
         ...prev,
         wishlistLoading: false,
-        wishlistError: message,
+        isWishlisted: false,
+        wishlistError: null,
       }));
     }
   }, [apiBaseUrl, idOrSlug, token]);
