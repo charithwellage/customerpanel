@@ -1061,6 +1061,111 @@
   white-space: nowrap;
 }
 
+.cc-dash-status-tag--paid {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #16a34a;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 0.64rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+/* Financial Billing Summary Tabs & Grouping */
+.cc-dash-billing-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.cc-dash-billing-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cc-dash-billing-title-wrap {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.cc-dash-billing-tabs {
+  display: inline-flex;
+  align-items: center;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 2px;
+  gap: 2px;
+}
+
+.cc-dash-billing-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #64748b;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.cc-dash-billing-tab:hover {
+  color: #0f172a;
+}
+
+.cc-dash-billing-tab--active {
+  background: #ffffff;
+  color: #c8102e;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme-mode='midnight'] .cc-dash-billing-tabs,
+.theme-midnight .cc-dash-billing-tabs {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+}
+
+[data-theme-mode='midnight'] .cc-dash-billing-tab,
+.theme-midnight .cc-dash-billing-tab {
+  color: #94a3b8 !important;
+}
+
+[data-theme-mode='midnight'] .cc-dash-billing-tab:hover,
+.theme-midnight .cc-dash-billing-tab:hover {
+  color: #f8fafc !important;
+}
+
+[data-theme-mode='midnight'] .cc-dash-billing-tab--active,
+.theme-midnight .cc-dash-billing-tab--active {
+  background: #0f172a !important;
+  color: #f87171 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4) !important;
+}
+
+.cc-dash-text-amber {
+  color: #d97706 !important;
+  font-weight: 600;
+}
+
+.cc-dash-text-green {
+  color: #16a34a !important;
+}
+
 /* =========================================================================
    3.3. UNREAD BULLETINS & SECURE VAULT
    ========================================================================= */
@@ -2271,14 +2376,33 @@
     display: none !important;
   }
 
-  /* 6. Financial Billing Summary - Remove Type & Status Columns, Only Due Date (No Time), Smaller Font & Fit on Screen */
+  /* 6. Financial Billing Summary - Remove Type, Chassis & Status Columns on Mobile */
   .cc-dash-table .cc-dash-col-type,
   .cc-dash-table .cc-dash-col-status,
+  .cc-dash-table .cc-dash-col-chassis,
   .cc-dash-table th:nth-child(2),
   .cc-dash-table td:nth-child(2),
   .cc-dash-table th:nth-child(6),
   .cc-dash-table td:nth-child(6) {
     display: none !important;
+  }
+
+  .cc-dash-billing-title-wrap {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+  }
+
+  .cc-dash-billing-tabs {
+    width: 100% !important;
+    display: flex !important;
+  }
+
+  .cc-dash-billing-tab {
+    flex: 1 !important;
+    justify-content: center !important;
+    padding: 6px 4px !important;
+    font-size: 0.62rem !important;
   }
 
   .cc-dash-table-container {

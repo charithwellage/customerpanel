@@ -116,6 +116,7 @@ export const OverviewPage: React.FC = () => {
   const [showWidgetManager, setShowWidgetManager] = useState(false);
   const [draggedWidgetId, setDraggedWidgetId] = useState<string | null>(null);
   const [dragOverWidgetId, setDragOverWidgetId] = useState<string | null>(null);
+  const [billingViewMode, setBillingViewMode] = useState<'vehicle' | 'invoice'>('vehicle');
 
   const [widgets, setWidgets] = useState<DashboardWidgetConfig[]>(() => {
     try {
@@ -310,6 +311,85 @@ export const OverviewPage: React.FC = () => {
     }
     return defaultPriorityInvoices;
   }, [invoicesData]);
+
+  // Vehicle-wise billing summary rows (STK Number wise)
+  const vehicleBillingRows = useMemo(() => {
+    const defaultPriorityVehicles = [
+      {
+        id: 'v-b1',
+        stkNumber: 'STK: NRE161',
+        vehicleTitle: '2021 TOYOTA COROLLA FIELDER',
+        chassisNumber: 'NRE161-0091995',
+        amount: '$17,360',
+        outstanding: '$17,360',
+        status: 'PENDING PAYMENT',
+      },
+      {
+        id: 'v-b2',
+        stkNumber: 'STK: DE3FS-',
+        vehicleTitle: '2013 MAZDA DEMIO',
+        chassisNumber: 'DE3FS-1848347777',
+        amount: '$7,840',
+        outstanding: '$7,840',
+        status: 'PENDING PAYMENT',
+      },
+      {
+        id: 'v-b3',
+        stkNumber: 'STK: NZT260',
+        vehicleTitle: '2013 TOYOTA PREMIO',
+        chassisNumber: 'NZT260-313860066',
+        amount: '$9,440',
+        outstanding: '$9,440',
+        status: 'PENDING PAYMENT',
+      },
+      {
+        id: 'v-b4',
+        stkNumber: 'STK: WVWZZZ',
+        vehicleTitle: '2013 VOLKSWAGEN GOLF',
+        chassisNumber: 'WVWZZZAUZEW125455',
+        amount: '$11,200',
+        outstanding: '$11,200',
+        status: 'PENDING PAYMENT',
+      },
+      {
+        id: 'v-b5',
+        stkNumber: 'STK: HA36S-',
+        vehicleTitle: '2019 SUZUKI ALTO',
+        chassisNumber: 'HA36S-517414',
+        amount: '$12,480',
+        outstanding: '$0',
+        status: 'PAID IN FULL',
+      },
+    ];
+
+    if (allVehicles.length > 0) {
+      const candidates = allVehicles.filter(
+        (v) => v.commercialBill || v.totalAmountUsd || v.balanceAmountUsd || v.priceUsd
+      );
+      if (candidates.length > 0) {
+        return candidates.slice(0, 5).map((v, i) => {
+          const chassis = v.chassisNumber || v.vehicleId || `CH-${1000 + i}`;
+          const rawStk = v.stockNumber || chassis.split('-')[0] || `STK-${1000 + i}`;
+          const stkNumber = rawStk.startsWith('STK') ? rawStk : `STK: ${rawStk}`;
+          const vehicleTitle = `${v.year || 2023} ${v.make || 'TOYOTA'} ${v.model || 'VEHICLE'}`.toUpperCase();
+          const totalAmount = v.commercialBill?.soldAmountUsd || v.totalAmountUsd || v.priceUsd || 14500;
+          const outstandingAmount = v.commercialBill?.balanceAmountUsd ?? v.balanceAmountUsd ?? (totalAmount - (v.paidAmountUsd || 0));
+          const isSettled = outstandingAmount <= 0;
+          return {
+            id: v.id || `v-b-${i}`,
+            stkNumber,
+            vehicleTitle,
+            chassisNumber: chassis.replace(/^CHASSIS:\s*/i, ''),
+            amount: `$${totalAmount.toLocaleString()}`,
+            outstanding: isSettled ? '$0' : `$${outstandingAmount.toLocaleString()}`,
+            status: isSettled ? 'PAID IN FULL' : 'PENDING PAYMENT',
+          };
+        });
+      }
+    }
+
+    return defaultPriorityVehicles;
+  }, [allVehicles]);
 
   // Strict helper: check whether a vehicle is sold, delivered, or purchased
   const isVehicleSold = (v: unknown): boolean => {
@@ -709,12 +789,40 @@ export const OverviewPage: React.FC = () => {
       case 'billing_summary':
         return (
           <section className="cc-dash-bento-panel" aria-labelledby="financial-billing-heading">
-            <div className="cc-dash-panel-header">
-              <div>
-                <h2 id="financial-billing-heading" className="cc-dash-panel-title">
-                  FINANCIAL BILLING SUMMARY
-                </h2>
-                <p className="cc-dash-panel-subtitle">Top 5 priority accounts with approaching due dates &bull; Pending payment settlement</p>
+            <div className="cc-dash-panel-header cc-dash-billing-panel-header">
+              <div className="cc-dash-billing-header-left">
+                <div className="cc-dash-billing-title-wrap">
+                  <h2 id="financial-billing-heading" className="cc-dash-panel-title">
+                    FINANCIAL BILLING SUMMARY
+                  </h2>
+                  <div className="cc-dash-billing-tabs" role="tablist" aria-label="Billing summary grouping">
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={billingViewMode === 'vehicle'}
+                      className={`cc-dash-billing-tab ${billingViewMode === 'vehicle' ? 'cc-dash-billing-tab--active' : ''}`}
+                      onClick={() => setBillingViewMode('vehicle')}
+                    >
+                      <VehiclesSideCarIcon size={13} />
+                      <span>VEHICLE WISE (STK)</span>
+                    </button>
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={billingViewMode === 'invoice'}
+                      className={`cc-dash-billing-tab ${billingViewMode === 'invoice' ? 'cc-dash-billing-tab--active' : ''}`}
+                      onClick={() => setBillingViewMode('invoice')}
+                    >
+                      <InvoiceDocumentIcon size={13} />
+                      <span>INVOICE WISE</span>
+                    </button>
+                  </div>
+                </div>
+                <p className="cc-dash-panel-subtitle">
+                  {billingViewMode === 'vehicle'
+                    ? 'Vehicle billing by stock number (STK) • Commercialized balances & settlement'
+                    : 'Top 5 priority accounts with approaching due dates • Pending payment settlement'}
+                </p>
               </div>
               <button
                 type="button"
@@ -725,40 +833,81 @@ export const OverviewPage: React.FC = () => {
               </button>
             </div>
 
-            <div className="cc-dash-table-container">
-              <table className="cc-dash-table">
-                <thead>
-                  <tr>
-                    <th scope="col">INVOICE NO</th>
-                    <th scope="col" className="cc-dash-col-type">TYPE</th>
-                    <th scope="col">AMOUNT</th>
-                    <th scope="col">OUTSTANDING</th>
-                    <th scope="col">DUE DATE</th>
-                    <th scope="col" className="cc-dash-th-right cc-dash-col-status">
-                      STATUS
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {billingRows.map((inv) => (
-                    <tr
-                      key={inv.id}
-                      className="cc-dash-tr-interactive"
-                      onClick={() => setActiveRoute('/invoices')}
-                    >
-                      <td className="cc-dash-td-mono cc-dash-td-bold">{inv.id}</td>
-                      <td className="cc-dash-td-muted cc-dash-col-type">{inv.type}</td>
-                      <td className="cc-dash-td-mono">{inv.amount}</td>
-                      <td className="cc-dash-td-mono cc-dash-td-bold cc-dash-text-red">{inv.outstanding}</td>
-                      <td className="cc-dash-td-mono cc-dash-td-muted">{inv.dueDate}</td>
-                      <td className="cc-dash-td-right cc-dash-col-status">
-                        <span className="cc-dash-status-tag cc-dash-status-tag--pending">{inv.status}</span>
-                      </td>
+            {billingViewMode === 'vehicle' ? (
+              <div className="cc-dash-table-container">
+                <table className="cc-dash-table">
+                  <thead>
+                    <tr>
+                      <th scope="col">STK NUMBER</th>
+                      <th scope="col">VEHICLE</th>
+                      <th scope="col" className="cc-dash-col-chassis">CHASSIS NO</th>
+                      <th scope="col">AMOUNT</th>
+                      <th scope="col">OUTSTANDING</th>
+                      <th scope="col" className="cc-dash-th-right cc-dash-col-status">
+                        STATUS
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {vehicleBillingRows.map((veh) => (
+                      <tr
+                        key={veh.id}
+                        className="cc-dash-tr-interactive"
+                        onClick={() => setActiveRoute('/invoices')}
+                      >
+                        <td className="cc-dash-td-mono cc-dash-td-bold cc-dash-text-amber">{veh.stkNumber}</td>
+                        <td className="cc-dash-td-bold">{veh.vehicleTitle}</td>
+                        <td className="cc-dash-td-muted cc-dash-td-mono cc-dash-col-chassis">{veh.chassisNumber}</td>
+                        <td className="cc-dash-td-mono">{veh.amount}</td>
+                        <td className={`cc-dash-td-mono cc-dash-td-bold ${veh.outstanding === '$0' ? 'cc-dash-text-green' : 'cc-dash-text-red'}`}>
+                          {veh.outstanding}
+                        </td>
+                        <td className="cc-dash-td-right cc-dash-col-status">
+                          <span className={`cc-dash-status-tag ${veh.status === 'PAID IN FULL' ? 'cc-dash-status-tag--paid' : 'cc-dash-status-tag--pending'}`}>
+                            {veh.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="cc-dash-table-container">
+                <table className="cc-dash-table">
+                  <thead>
+                    <tr>
+                      <th scope="col">INVOICE NO</th>
+                      <th scope="col" className="cc-dash-col-type">TYPE</th>
+                      <th scope="col">AMOUNT</th>
+                      <th scope="col">OUTSTANDING</th>
+                      <th scope="col">DUE DATE</th>
+                      <th scope="col" className="cc-dash-th-right cc-dash-col-status">
+                        STATUS
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {billingRows.map((inv) => (
+                      <tr
+                        key={inv.id}
+                        className="cc-dash-tr-interactive"
+                        onClick={() => setActiveRoute('/invoices')}
+                      >
+                        <td className="cc-dash-td-mono cc-dash-td-bold">{inv.id}</td>
+                        <td className="cc-dash-td-muted cc-dash-col-type">{inv.type}</td>
+                        <td className="cc-dash-td-mono">{inv.amount}</td>
+                        <td className="cc-dash-td-mono cc-dash-td-bold cc-dash-text-red">{inv.outstanding}</td>
+                        <td className="cc-dash-td-mono cc-dash-td-muted">{inv.dueDate}</td>
+                        <td className="cc-dash-td-right cc-dash-col-status">
+                          <span className="cc-dash-status-tag cc-dash-status-tag--pending">{inv.status}</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </section>
         );
 

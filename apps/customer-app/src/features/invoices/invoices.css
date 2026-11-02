@@ -34,6 +34,82 @@
   margin: 0;
 }
 
+/* Ledger View Tabs: Vehicle Wise (STK) vs Invoice Wise */
+.cc-inv-view-tabs {
+  display: inline-flex;
+  align-items: center;
+  background: var(--color-surface-elevated, #f1f5f9);
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: var(--radius-md, 8px);
+  padding: 4px;
+  gap: 4px;
+  margin-top: var(--spacing-xs, 4px);
+  width: fit-content;
+}
+
+.cc-inv-view-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--color-text-secondary, #64748b);
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.cc-inv-view-tab:hover {
+  color: var(--color-text-primary, #0f172a);
+}
+
+.cc-inv-view-tab--active {
+  background: #ffffff;
+  color: var(--color-primary, #c8102e);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme-mode='midnight'] .cc-inv-view-tabs,
+.theme-midnight .cc-inv-view-tabs {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+}
+
+[data-theme-mode='midnight'] .cc-inv-view-tab,
+.theme-midnight .cc-inv-view-tab {
+  color: #94a3b8 !important;
+}
+
+[data-theme-mode='midnight'] .cc-inv-view-tab:hover,
+.theme-midnight .cc-inv-view-tab:hover {
+  color: #f8fafc !important;
+}
+
+[data-theme-mode='midnight'] .cc-inv-view-tab--active,
+.theme-midnight .cc-inv-view-tab--active {
+  background: #0f172a !important;
+  color: #f87171 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4) !important;
+}
+
+@media (max-width: 768px) {
+  .cc-inv-view-tabs {
+    width: 100% !important;
+    display: flex !important;
+  }
+  .cc-inv-view-tab {
+    flex: 1 !important;
+    justify-content: center !important;
+    padding: 8px 6px !important;
+    font-size: 0.68rem !important;
+  }
+}
+
 /* KPI Summary Cards Grid */
 .cc-invoice-kpi-grid {
   display: grid;

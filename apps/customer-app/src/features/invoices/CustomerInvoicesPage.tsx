@@ -272,6 +272,14 @@ export const CustomerInvoicesPage: React.FC<CustomerInvoicesPageProps> = ({ onSe
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLedger, setSelectedLedger] = useState<InvoicedLedgerEntry | null>(null);
   const [isLedgerModalOpen, setIsLedgerModalOpen] = useState(false);
+  const [activeLedgerView, setActiveLedgerView] = useState<'all' | 'vehicle' | 'invoice'>(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const v = params.get('view');
+      if (v === 'vehicle' || v === 'invoice') return v;
+    }
+    return 'all';
+  });
 
   useEffect(() => {
     setActiveRoute('/invoices');
@@ -385,8 +393,42 @@ export const CustomerInvoicesPage: React.FC<CustomerInvoicesPageProps> = ({ onSe
         totalUnits={invoicedVehiclesList.length}
       />
 
+      {/* Ledger View Filter Tabs */}
+      <div className="cc-inv-view-tabs" role="tablist" aria-label="Billing ledger view grouping">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeLedgerView === 'all'}
+          className={`cc-inv-view-tab ${activeLedgerView === 'all' ? 'cc-inv-view-tab--active' : ''}`}
+          onClick={() => setActiveLedgerView('all')}
+        >
+          ALL BILLING ({allLedgerEntries.length + invoicedVehiclesList.length})
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeLedgerView === 'vehicle'}
+          className={`cc-inv-view-tab ${activeLedgerView === 'vehicle' ? 'cc-inv-view-tab--active' : ''}`}
+          onClick={() => setActiveLedgerView('vehicle')}
+        >
+          <VehiclesSideCarIcon size={14} />
+          <span>VEHICLE WISE - STK NUMBER ({invoicedVehiclesList.length})</span>
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeLedgerView === 'invoice'}
+          className={`cc-inv-view-tab ${activeLedgerView === 'invoice' ? 'cc-inv-view-tab--active' : ''}`}
+          onClick={() => setActiveLedgerView('invoice')}
+        >
+          <RedDocIcon size={14} />
+          <span>INVOICE WISE ({allLedgerEntries.length})</span>
+        </button>
+      </div>
+
       {/* SECTION 1: Active Invoice Ledgers Table */}
-      <section className="cc-inv-section" aria-labelledby="active-ledgers-heading">
+      {(activeLedgerView === 'all' || activeLedgerView === 'invoice') && (
+        <section className="cc-inv-section" aria-labelledby="active-ledgers-heading">
         <div className="cc-inv-section__header">
           <h2 id="active-ledgers-heading" className="cc-inv-section__title">
             ACTIVE INVOICE LEDGERS
@@ -495,9 +537,11 @@ export const CustomerInvoicesPage: React.FC<CustomerInvoicesPageProps> = ({ onSe
           </table>
         </div>
       </section>
+      )}
 
       {/* SECTION 2: Purchased Vehicles Ledger Grid */}
-      <section className="cc-inv-vehicles-section" aria-labelledby="invoiced-vehicles-heading">
+      {(activeLedgerView === 'all' || activeLedgerView === 'vehicle') && (
+        <section className="cc-inv-vehicles-section" aria-labelledby="invoiced-vehicles-heading">
         <div className="cc-inv-vehicles-header">
           <div className="cc-inv-vehicles-header__left">
             <div className="cc-inv-vehicles-title-row">
@@ -594,6 +638,7 @@ export const CustomerInvoicesPage: React.FC<CustomerInvoicesPageProps> = ({ onSe
           ))}
         </div>
       </section>
+      )}
 
       {/* Invoice Ledger Modal Popup */}
       <InvoiceLedgerModal
