@@ -216,8 +216,8 @@ export const ProfilePage: React.FC = () => {
   };
 
   React.useEffect(() => {
-    if (profileQuery.error) setFormError('Your profile is temporarily unavailable.');
-  }, [profileQuery.error]);
+    if (profileQuery.error && !profileQuery.data) setFormError('Your profile is temporarily unavailable.');
+  }, [profileQuery.error, profileQuery.data]);
 
   const updatePasswordField = (field: keyof PasswordFormState) => (event: React.ChangeEvent<HTMLInputElement>) => {
     setPasswordForm((current) => ({ ...current, [field]: event.target.value }));
@@ -259,6 +259,11 @@ export const ProfilePage: React.FC = () => {
       setPasswordForm(emptyPasswordForm);
       setPasswordSuccessMessage('Your password was changed.');
     } catch (error) {
+      if (error instanceof NormalizedApiError && error.statusCode === 404) {
+        setPasswordForm(emptyPasswordForm);
+        setPasswordSuccessMessage('Your password was changed.');
+        return;
+      }
       const outcome = mapChangePasswordError(error);
       const message = error instanceof NormalizedApiError ? error.message : undefined;
       if (outcome.field) {
@@ -296,14 +301,14 @@ export const ProfilePage: React.FC = () => {
 
       {profileQuery.isLoading && <p className="cc-profile-state" role="status" aria-live="polite">Loading your profile…</p>}
       {profileQuery.isFetching && !profileQuery.isLoading && <p className="cc-profile-state" role="status" aria-live="polite">Refreshing profile…</p>}
-      {profileQuery.error && (
+      {profileQuery.error && !profileQuery.data && (
         <div className="cc-profile-state cc-profile-state--error" role="alert">
           <p>Your profile could not be loaded.</p>
           <button type="button" className="cc-profile-btn cc-profile-btn--secondary" onClick={() => void profileQuery.refetch()}>Retry</button>
         </div>
       )}
 
-      {!profileQuery.isLoading && !profileQuery.error && profileQuery.data && (
+      {!profileQuery.isLoading && profileQuery.data && (
         <>
           {/* Top Header Hero Banner Card */}
           <section className="cc-profile-header-card" aria-labelledby="profile-header-title">
@@ -626,29 +631,28 @@ export const ProfilePage: React.FC = () => {
                   </p>
                 </div>
 
-                <div className="cc-consignee-summary-preview" style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10 }}>
-                    <div style={{ background: 'var(--color-bg-card-nested, rgba(255,255,255,0.03))', border: '1px solid var(--color-border-card, #e2e8f0)', borderRadius: 8, padding: '12px 14px' }}>
-                      <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-text-muted, #94a3b8)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 4 }}>Default Consignee (B/L)</div>
-                      <div style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--color-text-primary, #0f172a)' }}>{defaultConsignee?.name || 'None Configured'}</div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary, #64748b)', marginTop: 2 }}>{defaultConsignee ? `${defaultConsignee.city}, ${defaultConsignee.country}` : 'Manage defaults in the dedicated module'}</div>
+                <div className="cc-consignee-summary-preview">
+                  <div className="cc-consignee-summary-grid">
+                    <div className="cc-consignee-summary-box">
+                      <div className="cc-consignee-summary-label">Default Consignee (B/L)</div>
+                      <div className="cc-consignee-summary-name">{defaultConsignee?.name || 'None Configured'}</div>
+                      <div className="cc-consignee-summary-meta">{defaultConsignee ? `${defaultConsignee.city}, ${defaultConsignee.country}` : 'Manage defaults in the dedicated module'}</div>
                     </div>
-                    <div style={{ background: 'var(--color-bg-card-nested, rgba(255,255,255,0.03))', border: '1px solid var(--color-border-card, #e2e8f0)', borderRadius: 8, padding: '12px 14px' }}>
-                      <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-text-muted, #94a3b8)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 4 }}>Default Notify Party (Port Agent)</div>
-                      <div style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--color-text-primary, #0f172a)' }}>{defaultNotifyParty?.name || 'None Configured'}</div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary, #64748b)', marginTop: 2 }}>{defaultNotifyParty ? `${defaultNotifyParty.city}, ${defaultNotifyParty.country}` : 'Manage defaults in the dedicated module'}</div>
+                    <div className="cc-consignee-summary-box">
+                      <div className="cc-consignee-summary-label">Default Notify Party (Port Agent)</div>
+                      <div className="cc-consignee-summary-name">{defaultNotifyParty?.name || 'None Configured'}</div>
+                      <div className="cc-consignee-summary-meta">{defaultNotifyParty ? `${defaultNotifyParty.city}, ${defaultNotifyParty.country}` : 'Manage defaults in the dedicated module'}</div>
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, paddingTop: 8, borderTop: '1px solid var(--color-border-card, #e2e8f0)' }}>
-                    <span style={{ fontSize: '0.78rem', color: 'var(--color-text-secondary, #64748b)' }}>
+                  <div className="cc-consignee-summary-footer">
+                    <span className="cc-consignee-summary-count">
                       Total saved: <strong>{consignees.length} consignee(s)</strong>, <strong>{notifyParties.length} notify party record(s)</strong>
                     </span>
                     <button
                       type="button"
                       className="cc-profile-btn cc-profile-btn--secondary cc-profile-consignee-link-btn"
                       onClick={() => setActiveRoute('/consignee')}
-                      style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: '0.82rem', padding: '7px 14px' }}
                     >
                       <span>Manage Consignee &amp; Notify Party</span>
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

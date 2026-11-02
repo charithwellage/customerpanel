@@ -116,8 +116,9 @@ describe('Customer application — no residual demo copy anywhere (D02-P12-T006,
   it('finds no "demo session", "demo customer" or "not a production identity" copy in any .tsx source file', async () => {
     const { readdir, readFile } = await import('node:fs/promises');
     const path = await import('node:path');
+    const { fileURLToPath } = await import('node:url');
     const forbidden = [/demo session/i, /demo customer/i, /not a production identity/i];
-    const root = path.default.resolve(new URL('../../..', import.meta.url).pathname);
+    const root = path.default.resolve(fileURLToPath(new URL('../../..', import.meta.url)));
     const offenders: string[] = [];
 
     async function walk(dir: string): Promise<void> {
