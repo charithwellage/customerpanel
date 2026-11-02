@@ -789,35 +789,11 @@ export const OverviewPage: React.FC = () => {
       case 'billing_summary':
         return (
           <section className="cc-dash-bento-panel" aria-labelledby="financial-billing-heading">
-            <div className="cc-dash-panel-header cc-dash-billing-panel-header">
-              <div className="cc-dash-billing-header-left">
-                <div className="cc-dash-billing-title-wrap">
-                  <h2 id="financial-billing-heading" className="cc-dash-panel-title">
-                    FINANCIAL BILLING SUMMARY
-                  </h2>
-                  <div className="cc-dash-billing-tabs" role="tablist" aria-label="Billing summary grouping">
-                    <button
-                      type="button"
-                      role="tab"
-                      aria-selected={billingViewMode === 'vehicle'}
-                      className={`cc-dash-billing-tab ${billingViewMode === 'vehicle' ? 'cc-dash-billing-tab--active' : ''}`}
-                      onClick={() => setBillingViewMode('vehicle')}
-                    >
-                      <VehiclesSideCarIcon size={13} />
-                      <span>VEHICLE WISE (STK)</span>
-                    </button>
-                    <button
-                      type="button"
-                      role="tab"
-                      aria-selected={billingViewMode === 'invoice'}
-                      className={`cc-dash-billing-tab ${billingViewMode === 'invoice' ? 'cc-dash-billing-tab--active' : ''}`}
-                      onClick={() => setBillingViewMode('invoice')}
-                    >
-                      <InvoiceDocumentIcon size={13} />
-                      <span>INVOICE WISE</span>
-                    </button>
-                  </div>
-                </div>
+            <div className="cc-dash-panel-header">
+              <div>
+                <h2 id="financial-billing-heading" className="cc-dash-panel-title">
+                  FINANCIAL BILLING SUMMARY
+                </h2>
                 <p className="cc-dash-panel-subtitle">
                   {billingViewMode === 'vehicle'
                     ? 'Vehicle billing by stock number (STK) • Commercialized balances & settlement'
@@ -830,6 +806,30 @@ export const OverviewPage: React.FC = () => {
                 onClick={() => setActiveRoute('/invoices')}
               >
                 FULL LEDGER &rarr;
+              </button>
+            </div>
+
+            {/* Dedicated Segmented 2-Button Switcher */}
+            <div className="cc-dash-billing-switcher" role="tablist" aria-label="Billing summary grouping">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={billingViewMode === 'vehicle'}
+                className={`cc-dash-billing-btn ${billingViewMode === 'vehicle' ? 'cc-dash-billing-btn--active' : ''}`}
+                onClick={() => setBillingViewMode('vehicle')}
+              >
+                <VehiclesSideCarIcon size={14} className="cc-dash-billing-btn-icon" />
+                <span className="cc-dash-billing-btn-text">VEHICLE WISE (STK)</span>
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={billingViewMode === 'invoice'}
+                className={`cc-dash-billing-btn ${billingViewMode === 'invoice' ? 'cc-dash-billing-btn--active' : ''}`}
+                onClick={() => setBillingViewMode('invoice')}
+              >
+                <InvoiceDocumentIcon size={14} className="cc-dash-billing-btn-icon" />
+                <span className="cc-dash-billing-btn-text">INVOICE WISE</span>
               </button>
             </div>
 

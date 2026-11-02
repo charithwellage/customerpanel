@@ -1075,86 +1075,90 @@
   white-space: nowrap;
 }
 
-/* Financial Billing Summary Tabs & Grouping */
-.cc-dash-billing-panel-header {
+/* Financial Billing Summary Switcher (VEHICLE WISE (STK) vs INVOICE WISE) */
+.cc-dash-billing-switcher {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.cc-dash-billing-header-left {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.cc-dash-billing-title-wrap {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.cc-dash-billing-tabs {
-  display: inline-flex;
-  align-items: center;
-  background: #f1f5f9;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  padding: 2px;
-  gap: 2px;
-}
-
-.cc-dash-billing-tab {
-  display: inline-flex;
-  align-items: center;
+  width: 100%;
+  background: var(--color-surface-elevated, #f1f5f9);
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: 8px;
+  padding: 4px;
   gap: 6px;
-  padding: 4px 10px;
-  font-size: 0.68rem;
+  margin: 2px 0 12px 0;
+  box-sizing: border-box;
+}
+
+.cc-dash-billing-btn {
+  flex: 1 1 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 8px 12px;
+  font-size: 0.74rem;
   font-weight: 700;
-  color: #64748b;
+  letter-spacing: 0.04em;
+  color: var(--color-text-secondary, #64748b);
   background: transparent;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
-  letter-spacing: 0.04em;
-  transition: all 0.15s ease;
+  transition: all 0.18s ease;
   white-space: nowrap;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.cc-dash-billing-tab:hover {
-  color: #0f172a;
+.cc-dash-billing-btn:hover {
+  color: var(--color-text-primary, #0f172a);
+  background: rgba(0, 0, 0, 0.03);
 }
 
-.cc-dash-billing-tab--active {
-  background: #ffffff;
-  color: #c8102e;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+.cc-dash-billing-btn--active {
+  background: #ffffff !important;
+  color: #c8102e !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1) !important;
 }
 
-[data-theme-mode='midnight'] .cc-dash-billing-tabs,
-.theme-midnight .cc-dash-billing-tabs {
+.cc-dash-billing-btn-icon {
+  flex-shrink: 0;
+}
+
+.cc-dash-billing-btn-text {
+  white-space: nowrap;
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+/* Midnight Dark Mode */
+[data-theme-mode='midnight'] .cc-dash-billing-switcher,
+.theme-midnight .cc-dash-billing-switcher,
+.dark-mode .cc-dash-billing-switcher {
   background: #1e293b !important;
   border-color: #334155 !important;
 }
 
-[data-theme-mode='midnight'] .cc-dash-billing-tab,
-.theme-midnight .cc-dash-billing-tab {
+[data-theme-mode='midnight'] .cc-dash-billing-btn,
+.theme-midnight .cc-dash-billing-btn,
+.dark-mode .cc-dash-billing-btn {
   color: #94a3b8 !important;
 }
 
-[data-theme-mode='midnight'] .cc-dash-billing-tab:hover,
-.theme-midnight .cc-dash-billing-tab:hover {
+[data-theme-mode='midnight'] .cc-dash-billing-btn:hover,
+.theme-midnight .cc-dash-billing-btn:hover,
+.dark-mode .cc-dash-billing-btn:hover {
   color: #f8fafc !important;
+  background: rgba(255, 255, 255, 0.04) !important;
 }
 
-[data-theme-mode='midnight'] .cc-dash-billing-tab--active,
-.theme-midnight .cc-dash-billing-tab--active {
+[data-theme-mode='midnight'] .cc-dash-billing-btn--active,
+.theme-midnight .cc-dash-billing-btn--active,
+.dark-mode .cc-dash-billing-btn--active {
   background: #0f172a !important;
   color: #f87171 !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4) !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4) !important;
 }
 
 .cc-dash-text-amber {
@@ -2387,22 +2391,29 @@
     display: none !important;
   }
 
-  .cc-dash-billing-title-wrap {
-    flex-direction: column !important;
-    align-items: flex-start !important;
-    gap: 8px !important;
-  }
-
-  .cc-dash-billing-tabs {
+  .cc-dash-billing-switcher {
     width: 100% !important;
     display: flex !important;
+    margin: 4px 0 10px 0 !important;
+    padding: 3px !important;
+    gap: 4px !important;
+    box-sizing: border-box !important;
   }
 
-  .cc-dash-billing-tab {
-    flex: 1 !important;
-    justify-content: center !important;
-    padding: 6px 4px !important;
-    font-size: 0.62rem !important;
+  .cc-dash-billing-btn {
+    flex: 1 1 50% !important;
+    min-height: 40px !important;
+    padding: 8px 6px !important;
+    font-size: 0.68rem !important;
+    gap: 6px !important;
+    text-align: center !important;
+    border-radius: 6px !important;
+  }
+
+  .cc-dash-billing-btn-text {
+    font-size: 0.68rem !important;
+    letter-spacing: 0.02em !important;
+    white-space: nowrap !important;
   }
 
   .cc-dash-table-container {

@@ -101,12 +101,18 @@
   .cc-inv-view-tabs {
     width: 100% !important;
     display: flex !important;
+    padding: 3px !important;
+    gap: 4px !important;
+    box-sizing: border-box !important;
   }
   .cc-inv-view-tab {
-    flex: 1 !important;
+    flex: 1 1 0 !important;
     justify-content: center !important;
-    padding: 8px 6px !important;
-    font-size: 0.68rem !important;
+    padding: 8px 4px !important;
+    font-size: 0.65rem !important;
+    min-height: 38px !important;
+    border-radius: 6px !important;
+    text-align: center !important;
   }
 }
 
